@@ -1,0 +1,11 @@
+--- a/m9k.smali (W2 rebuilt dex, decoded)
++++ b/m9k.smali (X-rung, 02f)
+@@ -81,6 +81,8 @@
+     move p5, v0
+ 
+     :cond_35
++    const/4 p5, 0x1
++
+     invoke-static {p5}, Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;
+ 
+     move-result-object p3

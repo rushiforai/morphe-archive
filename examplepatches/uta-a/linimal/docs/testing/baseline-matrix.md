@@ -510,6 +510,28 @@ sol のレビューの指摘を受けて、注入の判定（wide 命令によ�
 
 生成 APK はリポジトリ外の `/Users/uta_a/morphe/line-linimal-preview-scroll.apk`。独立検証アプリは LINE 本体とは別 package・別保存先であり、LINE 内の確認は上の 2 行で別に行った。
 
+## トークのプレビュー無効化（2026-11-12）
+
+「一般」に初期 OFF の「トークのプレビューを無効にする」を追加。LINE 26.16.0 の長押しの可否判定 `u42/f.a()` を設定 ON のときだけ false にして、従来の長押しメニューを開く（`docs/analysis/chat-scroll-preview.md`）。ON の間は「プレビューをスクロール可能にする」「プレビューの Premium の案内を表示しない」を操作不能にし、保存値は保つ。
+
+| 確認 | 結果 |
+| --- | --- |
+| Java 17 の全テスト、`buildAndroid` | Pass。patches 421 件、extension 397 件。対象特定・register 検査・`ExternalLabel` が元の先頭命令を指すこと、設定の保存・再起動・fail-open・保存値の維持、操作不能の条件を含む |
+| exact APKM preflight、Morphe Desktop 1.14.0 適用 | Pass |
+| embedded patch-status | 全 81 件 OK。`linimal.patch.preview-disable` は `PreviewDisableGuarded`、1/1。`preview-scroll` などプレビュー関連の既存 status も OK |
+| 全 15 DEX の `dexdump` と `d8 --min-api 28` | Pass |
+| 生成 DEX の注入位置 | `u42/f.a()` の先頭が `invoke-static PreviewDisableHooks` → `move-result v0` → `if-eqz v0` → `const/4 v0, 0` → `return v0`、分岐先は元の `iget-object v0, v4` |
+| sol（omp の `gpt-6.1-sol`）の読み取り専用レビュー | smali・対象特定・干渉・fail-open は問題なし。注入テストと保存値維持テストの不足の指摘を受けてテストを追加した |
+| XIG07 の LINE への上書き | Pass。同一署名でデータを保持したまま上書き、`cmd package compile -f -m verify` 成功 |
+| 設定 OFF の長押し（「Linimal」のトーク） | 公式どおりプレビュー画面が開く |
+| 設定 ON | 再起動案内が出る。2 行は操作不能になり保存値（ON）をグレーで表示、行やスイッチを押しても値は変わらない |
+| 設定 ON・再起動後の長押し | 従来の長押しメニューが開き、先頭に「既読をつけずに読む」。押すと「Linimal」のトークが開く |
+| 設定 OFF に戻す | 2 行はすぐ操作可能になり保存値 ON のまま。再起動後はプレビューが開き、スクロールできる |
+| ライトテーマ（端末の夜間モード OFF） | 従来メニュー、プレビューのメニュー、Linimal の設定画面（操作不能の行を含む）がライトの配色に追従 |
+| logcat | FATAL EXCEPTION、VerifyError、crash buffer の LINE のエラーはいずれも 0 件 |
+
+Square のスレッドホームは同じ判定を通ることをコードで確認したが、実機では確認していない。生成 APK はリポジトリ外の `/Users/uta_a/morphe/line-linimal-preview-disable.apk`。
+
 ## AMOLED テーマ（2026-11-10）
 
 「テーマ」ページを新設し、初期 OFF の「ダークモードの背景を黒にする」を追加。LINE の DEX とリソースは変更せず、夜間設定だけの resource table を `ResourcesLoader` で重ねる（`docs/analysis/amoled-theme.md`）。
@@ -540,3 +562,53 @@ Linimal の設定画面、再起動の確認、既読なし閲覧の案内とメ
 | 端末既定（日本語） | 従来どおり日本語。FATAL EXCEPTION と VerifyError は 0 件 |
 
 確認後に LINE のアプリ別言語を未設定（端末の言語に従う）へ戻した。
+
+## トークの ＋ メニューの Agent i（2026-11-11）
+
+トークの ＋ メニュー上部にある「トークルームのAgent iを表示」（`chat_ui_attach_menu_ai_talk_chip_switch`）を、設定「＋メニューの Agent i を表示しない」で隠す。解析は `docs/analysis/agent-i-entry-points.md` の「Chat ＋ menu toggle」。
+
+| 確認 | 結果 |
+| --- | --- |
+| Java 17 の全テスト、`buildAndroid` | Pass。注入位置の形の判定と拒否する形（ID 違い・重複、ComposeView 以外への cast、別 register での中身の判定、フラグの上書き・高位 register、GONE を書かない引数）、fail-open、設定・依存鎖・訳 |
+| Morphe Desktop 1.14.0 適用、署名 | Pass。端末の LINE と同じ証明書（SHA-256 `24b512b8…`） |
+| embedded patch-status | 全件 OK。`linimal.patch.agent-i-chat-plus-menu` は `AgentIPlusMenuToggleGuarded`、1/1 |
+| 注入後の smali | `sm1/f1.invoke` の check-cast 直後で表示可否の `v3` を hook に通し、合流点 `:goto_7c` を避けていることを確認 |
+| XIG07 への上書き | 同一署名でデータを保持。cold start 後の FATAL EXCEPTION と VerifyError は 0 件 |
+| 実機の表示 | 利用者が確認。設定 ON で ＋ メニュー上部の切り替えが消え、OFF・再起動で元どおり表示される |
+
+## グループの既読者（2026-11-11）
+
+グループと複数人トークで、メッセージを読んだメンバーを表示する 6 設定（自分のメッセージのアイコン、他人のメッセージの既読数・アイコン、タップで一覧、長押しメニュー、サーバー同期）を追加した。解析は `docs/analysis/read-receipt-readers.md`。
+
+| 確認 | 結果 |
+| --- | --- |
+| Java 17 の全テスト、`buildAndroid` | Pass。既読者・未読者の算出（送信者と自分の除外、退会者、メンバー不明時）、命令列の形の判定と拒否する形、画像 path の検証と縮小率、設定・小見出し・訳の網羅 |
+| Morphe Desktop 1.14.0 適用、署名 | Pass。端末の LINE と同じ証明書（SHA-256 `24b512b8…`） |
+| embedded patch-status | 全件 OK。既読者の 6 件は `ReadersReadCountBindInjected`（2）、`ReadersRowEntryInjected`（2）、`ReadersContextMenuInjected`、`ReadersServerSyncBridgeGenerated` |
+| 注入後の smali | `lq1/i.K0` の入口と既読ラベルの表示・非表示の両経路、`kk1/n.s` の配色直前、bridge の生成メソッドを逆アセンブルして確認 |
+| XIG07 への上書き | 同一署名でデータを保持。cold start 後の FATAL EXCEPTION と VerifyError は 0 件 |
+| 実機の表示 | 利用者が確認。他人のメッセージは上からアイコン・既読 N・時刻の順で、時刻と同じ端にそろう。未読者に自分が出ない |
+
+初版では自分の送信行の送信者 mid から自分を学習する方式だったが、実機で未読者に自分が残った。LINE 自身が使う `getProfile()` の mid を返す helper を呼ぶ `myMid` を生成する方式に改めた。他人のメッセージの段は当初中央ぞろえで時刻とずれたため、時刻の文字の端にそろえるよう改めた。
+## 他人のメッセージの既読者を横並びに戻す（2026-11-11）
+
+他人のメッセージの「アイコン」と「既読 N」を縦 2 段から横 1 行へ戻した。既読数を時刻と同じ端に置き、アイコンを吹き出しから遠い外側に置く。
+
+| 確認 | 結果 |
+| --- | --- |
+| Java 17 の全テスト、`buildAndroid` | Pass |
+| embedded patch-status | 全件 OK |
+| XIG07 への上書き | 同一署名でデータを保持。cold start と操作後の FATAL EXCEPTION と VerifyError は 0 件 |
+| 実機の表示 | 6 人のグループで、テキスト・ボイスメッセージ・動画・連続した発言のいずれも「既読 3 → アイコン」の 1 行になり、既読数の左端が時刻の左端とそろい、アイコンは吹き出しから遠い側に並ぶ。読み上げ用の説明は「時刻。既読 3」 |
+
+## ホームのライブ配信（2026-11-11）
+
+ホームのフィードに出る公式アカウントのライブ配信のカード（`HomeFeedLiveSingle`、LINE MUSIC など）を、設定「ライブ配信を表示しない」で隠す。
+
+| 確認 | 結果 |
+| --- | --- |
+| Java 17 の全テスト、`buildAndroid` | Pass。描画関数の引数の並び、shouldExecute の分岐と skip 経路（既定値付き引数の `l()` と range の skip を区別）、拒否する形、fail-open |
+| embedded patch-status | 全件 OK。`linimal.patch.home-feed-live` は `HomeFeedLiveRendererGuarded`、1/1 |
+| 注入後の smali | `ds2/c1.q` の `A(IZ)Z` の直後で、元の判定が true のときだけ hook を読み、抑制時は skip 経路へ倒すことを確認 |
+| XIG07 への上書き | 同一署名でデータを保持。設定 OFF・ON それぞれの cold start でホームを表示し、FATAL EXCEPTION と VerifyError は 0 件 |
+| 実機の表示 | 未確認。確認時点ではライブ配信がなく、設定 OFF でもカードが出なかったため、ON で消えることは確かめられていない |

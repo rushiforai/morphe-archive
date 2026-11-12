@@ -98,7 +98,7 @@ private val payFallbackDeepLinkFingerprint = Fingerprint(
  * item class anchors から導いた共通 superclass、signature、enum access と call sequence を組み合わせます。
  */
 val chatPlusMenuPatch = bytecodePatch(
-    name = "トークの ＋ メニュー",
+    name = "Chat plus menu items",
     description = "トークの ＋ メニューからカレンダー・LINE ギフト・LINE Pay を、実行時設定で個別に取り除けるようにします。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

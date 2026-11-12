@@ -1,0 +1,96 @@
+{
+  "brave": {
+    "label": "Brave",
+    "repo": "brave/brave-browser",
+    "scheduleWeekday": "Sat",
+    "releaseNamePrefix": "Release v",
+    "apkAsset": "^Bravearm64Universal\\.apk$",
+    "sha256Asset": "^Bravearm64Universal\\.apk\\.sha256$",
+    "locator": "scripts/brave/NativeLocatorCheck.c",
+    "versionsFile": "patches/src/main/kotlin/app/template/patches/brave/Compatibility.kt",
+    "patches": [
+      "Brave font picker in settings",
+      "Brave auto-hide toolbar with accessibility services"
+    ]
+  },
+  "titanium": {
+    "label": "Titanium",
+    "repo": "jqssun/android-titanium-browser",
+    "releaseNamePrefix": "",
+    "apkAsset": "-arm64-v8a\\.apk$",
+    "sha256Asset": null,
+    "locator": "scripts/titanium/NativeLocatorCheck.c",
+    "versionsFile": "patches/src/main/kotlin/app/template/patches/helium/Compatibility.kt",
+    "patches": [
+      "Titanium font picker in settings",
+      "Auto-hide toolbar with accessibility services",
+      "Hide tab close undo snackbar"
+    ]
+  },
+  "notesnook": {
+    "label": "Notesnook",
+    "repo": "streetwriters/notesnook",
+    "releaseNamePrefix": "Notesnook Android v",
+    "apkAsset": "^notesnook-arm64-v8a\\.apk$",
+    "sha256Asset": null,
+    "locator": null,
+    "versionsFile": "patches/src/main/kotlin/app/template/patches/notesnook/Compatibility.kt",
+    "adapterPath": "patches/src/main/resources/notesnook/adapters/{version}.bundle",
+    "patches": [
+      "Notesnook custom font"
+    ]
+  },
+  "joplin": {
+    "label": "Joplin",
+    "repo": "laurent22/joplin-android",
+    "releaseNamePrefix": "android-v",
+    "apkAsset": "^joplin-v[0-9.]+\\.apk$",
+    "sha256Asset": null,
+    "locator": null,
+    "versionsFile": null,
+    "adapterPath": "patches/src/main/resources/joplin/adapters/{version}.bundle",
+    "patches": [
+      "Joplin zero-flash custom font"
+    ]
+  },
+  "anytype": {
+    "label": "Anytype",
+    "repo": "anyproto/anytype-kotlin",
+    "releaseNamePrefix": "",
+    "apkAsset": "^anytype-[0-9.]+-arm64-v8a\\.apk$",
+    "sha256Asset": null,
+    "locator": null,
+    "versionsFile": "patches/src/main/kotlin/app/template/patches/anytype/Compatibility.kt",
+    "patches": [
+      "Anytype custom font"
+    ]
+  },
+  "bare": {
+    "label": "Bare",
+    "repo": "BareBrowser/bare-browser",
+    "releaseNamePrefix": "Bare ",
+    "apkAsset": "^Bare-[0-9.]+-arm64-v8a\\.apk$",
+    "sha256Asset": null,
+    "locator": "scripts/brave/NativeLocatorCheck.c",
+    "versionsFile": "patches/src/main/kotlin/app/template/patches/bare/Compatibility.kt",
+    "patches": [
+      "Bare font picker in settings",
+      "Bare auto-hide toolbar with accessibility services",
+      "Skip Bare welcome screens"
+    ]
+  },
+  "bitwarden": {
+    "label": "Bitwarden",
+    "repo": "bitwarden/android",
+    "releaseNamePrefix": "Password Manager ",
+    "apkAsset": "^com\\.x8bit\\.bitwarden\\.apk$",
+    "sha256Asset": "^com\\.x8bit\\.bitwarden\\.apk-sha256\\.txt$",
+    "locator": null,
+    "versionsFile": "patches/src/main/kotlin/app/template/patches/bitwarden/Compatibility.kt",
+    "patches": [
+      "Bitwarden passphrase total length",
+      "Bitwarden custom special characters",
+      "Bitwarden trust re-signed browsers for passkeys"
+    ]
+  }
+}

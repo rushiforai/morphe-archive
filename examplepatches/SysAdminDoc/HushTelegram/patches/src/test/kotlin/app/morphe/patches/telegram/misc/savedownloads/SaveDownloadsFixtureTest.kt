@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.util.names.addInstructions
 import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
@@ -22,14 +23,11 @@ import app.morphe.util.call
 import app.morphe.util.namedRegisters
 import app.morphe.util.names.origParameterTypes
 import app.morphe.util.names.origString
-import app.morphe.util.names.TelegramNames
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
@@ -90,24 +88,22 @@ class SaveDownloadsFixtureTest {
             val oldFinishing = ImmutableMethod.of(finishing)
             assertEquals(emptyList<String>(), PatchLogCapture.warnings { saveDownloadsPatch.execute(context) })
 
-            // Ahead of the state check, the three fields that say whether the finished file was downloaded.
+            // Ahead of the state check, the operation's account, its name and the two fields that say whether the finished file was downloaded.
             val finish = finishing.controlBody()
             val operation = finishing.localRegisterCount()
-            assertTrue("$name: three locals below p0", operation >= 3)
-            assertEquals(listOf(Opcode.MOVE_OBJECT_FROM16, Opcode.IGET_OBJECT, Opcode.IGET_OBJECT, Opcode.IGET_OBJECT, Opcode.INVOKE_STATIC),
-                finish.take(5).map { it.opcode })
-            // 13.2 merges FilePathDatabase.PathData into another class, so that field's type keeps the build's name.
-            val pathData = TelegramNames.of(context).field(LOAD_OPERATION, "pathSaveData", PATH_SAVE_DATA.substringAfter(':'))
-            val saved = (finish[1] as ReferenceInstruction).reference as FieldReference
-            assertTrue("$name: ${finish[1].controlRef()}", finish[1].controlRef() == PATH_SAVE_DATA ||
-                listOf(saved.definingClass, saved.name, saved.type) == listOf(pathData.owner, pathData.name, pathData.descriptor))
-            assertEquals(listOf(CACHE_FILE_TEMP, STORAGE_CACHE_FINAL,
-                "$SAVE_DOWNLOADS->finishing(Ljava/lang/Object;Ljava/io/File;Ljava/io/File;)V"), finish.take(5).drop(2).refs())
-            assertEquals(listOf(listOf(2, operation), listOf(0, 2), listOf(1, 2), listOf(2, 2), listOf(0, 1, 2)),
-                finish.take(5).map { it.namedRegisters() })
+            assertTrue("$name: five locals below p0", operation >= 5)
+            // The last argument is the preload flag, the second of the build's (increment, preload), a boolean in the stock method's last register.
+            assertEquals("$name: the preload flag", "Z", oldFinishing.parameterTypes.last().toString())
+            val preload = oldFinishing.implementation!!.registerCount - 1
+            assertEquals(listOf(Opcode.MOVE_OBJECT_FROM16, Opcode.IGET_BOOLEAN, Opcode.MOVE_FROM16, Opcode.OR_INT_2ADDR, Opcode.IGET,
+                Opcode.IGET_OBJECT, Opcode.IGET_OBJECT, Opcode.IGET_OBJECT, Opcode.INVOKE_STATIC), finish.take(9).map { it.opcode })
+            assertEquals(listOf(PRELOAD_VIDEO, LOAD_ACCOUNT, LOAD_FILE_NAME, CACHE_FILE_TEMP, STORAGE_CACHE_FINAL,
+                "$SAVE_DOWNLOADS->finishing(ILjava/lang/String;Ljava/io/File;Ljava/io/File;I)V"), finish.take(9).refs())
+            assertEquals(listOf(listOf(2, operation), listOf(3, 2), listOf(1, preload), listOf(3, 1), listOf(4, 2), listOf(0, 2),
+                listOf(1, 2), listOf(2, 2), listOf(4, 0, 1, 2, 3)), finish.take(9).map { it.namedRegisters() })
             val stockFinish = oldFinishing.controlBody().filter { it.opcode != Opcode.NOP }
             assertEquals("$name: onFinishLoadingFile's own code", stockFinish.map { it.opcode to it.controlRef() },
-                finish.drop(5).filter { it.opcode != Opcode.NOP }.map { it.opcode to it.controlRef() })
+                finish.drop(9).filter { it.opcode != Opcode.NOP }.map { it.opcode to it.controlRef() })
 
             // The build inlines the delegate's fileDidLoaded: it builds the delegate's runnable, then posts it to the UI.
             val before = old.controlBody()
@@ -220,6 +216,26 @@ class SaveDownloadsFixtureTest {
                 }
                 val at = start.controlBody().indexOfFirst { it.opcode == Opcode.IPUT_OBJECT && it.controlRef() == CACHE_FILE_TEMP }
                 start.replaceInstruction(at, "nop")
+            },
+            "FileLoadOperation's name isn't set in setPaths alone" to { context ->
+                val operation = context.tgMutableClassDefBy(LOAD_OPERATION)
+                val loader = context.tgMutableClassDefBy(FILE_LOADER)
+                val paths = (operation.methods + loader.methods).single { method ->
+                    method.controlBody().any { it.opcode == Opcode.IPUT_OBJECT && it.controlRef() == LOAD_FILE_NAME }
+                }
+                val at = paths.controlBody().indexOfFirst { it.opcode == Opcode.IPUT_OBJECT && it.controlRef() == LOAD_FILE_NAME }
+                paths.replaceInstruction(at, "nop")
+            },
+            // A second place that names the operation could give it a name fileDidLoaded never gets.
+            "FileLoadOperation's name isn't set in setPaths alone" to { context ->
+                val operation = context.tgMutableClassDefBy(LOAD_OPERATION)
+                operation.methods.single { it.origName == "setIsPreloadVideoOperation" }.addInstructions(0, """
+                    const/4 v0, 0x0
+                    iput-object v0, p0, $LOAD_FILE_NAME
+                """)
+            },
+            "FileLoadOperation's file fields changed" to { context ->
+                context.tgMutableClassDefBy(LOAD_OPERATION).fields.removeIf { it.origName == "currentAccount" }
             },
         )
         for ((why, change) in shapes) {

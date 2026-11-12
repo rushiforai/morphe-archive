@@ -33,6 +33,8 @@
  *    derived from this material must maintain a visible credit or
  *    acknowledgment to the original author(s) within the application's
  *    user interface (e.g., in an "About" or "Credits" section).
+ *
+ * Modified by lavinhoque33, 2026-11-10.
  */
 
 package app.morphe.extension.youtube.patches.feed;
@@ -174,7 +176,7 @@ final class FeedCardSpacing {
                 return;
             }
 
-            final int gap = FeedCardLayoutPatch.CARD_VERTICAL_SPACING;
+            final int gap = FeedCardLayoutPatch.getCardVerticalSpacing();
             int type = getItemType(item);
             if (type == ITEM_UNKNOWN && position > 1 && FeedCardLayoutPatch.isChipBar(item)) {
                 // The shelf of chips below the top of the feed is not the bar of chips, and it is not visible.
@@ -192,7 +194,7 @@ final class FeedCardSpacing {
                 case ITEM_SHELF_FOOTER -> {
                     // The footer of a shelf has no visible content, and the next item is not always laid out
                     // after it, so the footer keeps the height of a gap and gives the rest of its height back.
-                    outRect.bottom = gap - FeedCardLayoutPatch.SHELF_FOOTER_HEIGHT;
+                    outRect.bottom = gap - FeedCardLayoutPatch.getShelfFooterHeight();
                     final int bottom = outRect.bottom;
                     Logger.printDebug(() -> "Shelf footer spacing: " + bottom);
                 }
@@ -208,7 +210,7 @@ final class FeedCardSpacing {
             if (type == ITEM_SHELF_ROW) {
                 // The rows of a shelf keep their own gap, which is below the gap of the cards.
                 if (aboveType == ITEM_SHELF_ROW) {
-                    outRect.top += FeedCardLayoutPatch.SHORTS_ROW_SPACING;
+                    outRect.top += FeedCardLayoutPatch.getShortsRowSpacing();
                 }
             }
 

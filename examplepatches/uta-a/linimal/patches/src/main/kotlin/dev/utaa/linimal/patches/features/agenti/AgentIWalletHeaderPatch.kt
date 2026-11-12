@@ -63,7 +63,7 @@ private val walletAgentStateSupplierFingerprint = Fingerprint(
  * ON はその state argument だけ null にし、OFF と hook failure は同一 state instance を渡します。
  */
 val agentIWalletHeaderPatch = bytecodePatch(
-    name = "ウォレット上部の Agent i",
+    name = "Agent i in wallet header",
     description = "ウォレット画面上部にある Agent i の入口を、実行時設定で非表示にできるようにします。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

@@ -31,6 +31,7 @@ val myDialogHardenBeaconsPatch = bytecodePatch(
         "The SDK class init stays alive (required by RN); only transmission dies.",
     default = true,
 ) {
+    category("Privacy")
     compatibleWith(MYDIALOG_COMPATIBILITY)
 
     execute {

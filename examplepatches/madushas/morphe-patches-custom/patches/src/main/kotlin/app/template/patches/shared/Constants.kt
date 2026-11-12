@@ -94,7 +94,8 @@ object Constants {
         // Universal APK (arm64-v8a + armeabi-v7a + x86 + x86_64).
         signatures = setOf("25512576dacc619bd925d1ea05a3e140311d31b0b853183abe1d9da8fd3f240f"),
         targets = listOf(
-            AppTarget(version = "4.80.0", versionCode = 1717895889, minSdk = 29)
+            AppTarget(version = "4.80.0", versionCode = 1717895889, minSdk = 29),
+            AppTarget(version = "4.80.1", versionCode = 1717921629, minSdk = 29)
         )
     )
 
@@ -113,6 +114,66 @@ object Constants {
                 versionCodes = mapOf(SupportedAbi.ARM64_V8A to 1104134730),
                 minSdk = 30,
             )
+        )
+    )
+
+    val TEAMS_COMPATIBILITY = Compatibility(
+        name = "Microsoft Teams",
+        packageName = "com.microsoft.teams",
+        // XAPK bundle: base + config.arm64_v8a / mdpi / en splits.
+        apkFileType = ApkFileType.APKS,
+        appIconColor = 0x5059C9,
+        signatures = setOf("d49b848e0580370b89c4da712b8da7296782e866bcbfb58ccd873fd954725985"),
+        targets = listOf(
+            AppTarget(version = "1416/1.0.0.2026202302", versionCode = 2026202325, minSdk = 30)
+        )
+    )
+
+    val JOOBLE_COMPATIBILITY = Compatibility(
+        name = "Jooble",
+        packageName = "jooble.org",
+        // XAPK bundle: base + config.arm64_v8a / mdpi / en splits (Flutter AOT in the abi split).
+        apkFileType = ApkFileType.APKS,
+        appIconColor = 0x00A0DC,
+        signatures = setOf("b04f1f3ee9399ec2a19a4d5dfe2d9bfe708726d1a0ad20ab3dd8464d0d66fd5f"),
+        targets = listOf(
+            AppTarget(version = "1.47.0", versionCode = 247611, minSdk = 24)
+        )
+    )
+
+    val GLASSDOOR_COMPATIBILITY = Compatibility(
+        name = "Glassdoor",
+        packageName = "com.glassdoor.app",
+        // XAPK bundle: base + config.arm64_v8a / mdpi / en splits.
+        apkFileType = ApkFileType.APKS,
+        appIconColor = 0x0CAA41,
+        signatures = setOf("417fbc259ee23a858641efaed3229cdca31cd9b514086c91fbe041b5c15fa952"),
+        targets = listOf(
+            AppTarget(version = "13.15.1", versionCode = 125125, minSdk = 32)
+        )
+    )
+
+    val SHIMA_COMPATIBILITY = Compatibility(
+        name = "Shima+ Dynamic Island",
+        packageName = "com.piyush.island",
+        // XAPK bundle: base + config.mdpi (no ABI splits — no native libs at all).
+        apkFileType = ApkFileType.APKS,
+        appIconColor = 0x000000,
+        signatures = setOf("eebb863d29141f9157d3c50b47d05d1eb8a734d0c46781b9e3d015b71b751d1d"),
+        targets = listOf(
+            AppTarget(version = "0.5.1", versionCode = 9, minSdk = 32)
+        )
+    )
+
+    val PROTON_VPN_COMPATIBILITY = Compatibility(
+        name = "Proton VPN",
+        packageName = "ch.protonvpn.android",
+        // Single APK carrying every ABI (arm64-v8a, armeabi-v7a, x86_64, …) — not a bundle.
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x6D4AFF,
+        signatures = setOf("dcc9439ec1a6c6a8d0203f3423ee42bcc8b970628e53cb73a0393f398dd5b853"),
+        targets = listOf(
+            AppTarget(version = "5.20.98.0", versionCode = 605209800, minSdk = 26)
         )
     )
 

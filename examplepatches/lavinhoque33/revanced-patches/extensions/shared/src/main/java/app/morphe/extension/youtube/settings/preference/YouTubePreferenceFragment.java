@@ -2,7 +2,7 @@
  * Original author(s):
  * - anddea (https://github.com/anddea)
  * - COOLak (https://github.com/COOLak)
- * Modified by lavinhoque33, 2026-11-06
+ * Modified by lavinhoque33, 2026-11-11
  */
 
 package app.morphe.extension.youtube.settings.preference;
@@ -100,9 +100,6 @@ public class YouTubePreferenceFragment extends ToolbarPreferenceFragment {
             preferenceScreen = getPreferenceScreen();
             Utils.sortPreferenceGroups(preferenceScreen);
 
-            // Root rows retain XML order; the keyless header's finite negative order puts it first.
-            // Add after sorting so it has no icon slot or searchable setting.
-            preferenceScreen.addPreference(new AboutPreference(getActivity()));
             setPreferenceScreenToolbar(preferenceScreen);
 
             // Import / Export
@@ -138,6 +135,11 @@ public class YouTubePreferenceFragment extends ToolbarPreferenceFragment {
             if (applySettingToPreference) {
                 navigationBarOrderPreference.updateSummary();
             }
+            return;
+        }
+
+        if (pref instanceof GlassNavigationBarPreference) {
+            // The dialog reads and saves its settings directly, so there is no UI value to sync.
             return;
         }
 

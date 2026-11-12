@@ -36,6 +36,7 @@ val pdbSoulLikeHookPatch = bytecodePatch(
         "swipes survive the server's short feed window.",
     default = true,
 ) {
+    category("Interface")
     compatibleWith(PDB_COMPATIBILITY)
 
     execute {

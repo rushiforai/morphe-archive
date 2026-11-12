@@ -8,6 +8,7 @@ import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
 import android.app.Application;
+import android.app.Dialog;
 import android.app.Fragment;
 import android.app.KeyguardManager;
 import android.content.Context;
@@ -16,15 +17,21 @@ import android.hardware.biometrics.BiometricPrompt;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Looper;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
+import android.widget.PopupWindow;
+import android.widget.TextView;
 
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.PausedProcess;
+import app.morphe.extension.tiktok.navigation.BottomTabLabels;
+import app.morphe.extension.tiktok.navigation.StartPage;
 import app.morphe.extension.tiktok.settings.L10n;
 import app.morphe.extension.tiktok.settings.Settings;
+import app.morphe.extension.tiktok.settings.SettingsStatus;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -94,6 +101,110 @@ public class AppLockTest {
             AppLock.succeeded();
             assertNull("unlocking left the cover up", coverOf(activity));
             assertFalse(AppLock.isLocked());
+        }
+    }
+
+    /** A mouse wheel over the cover leaves the screen under it where it is until the unlock. */
+    @Test public void aWheelOverTheCoverNeverReachesTheScreenUnderIt() {
+        try (ActivityController<Screen> screen = Robolectric.buildActivity(Screen.class).setup()) {
+            Activity activity = screen.get();
+            idleFor(AppLock.ASK_DELAY_MS + 50);
+            View decor = activity.getWindow().getDecorView();
+            ViewGroup content = activity.findViewById(android.R.id.content);
+            int[] turns = app.morphe.extension.tiktok.Wheel.count(content.getChildAt(0));
+            assertNotNull(coverOf(activity));
+            assertTrue("nothing took the wheel", app.morphe.extension.tiktok.Wheel.turn(decor));
+            assertEquals("a wheel over the cover scrolled the screen under it", 0, turns[0]);
+
+            AppLock.succeeded();
+            assertNull(coverOf(activity));
+            assertTrue(app.morphe.extension.tiktok.Wheel.turn(decor));
+            assertEquals("the fixture's wheel never reaches the screen", 1, turns[0]);
+        }
+    }
+
+    /** A dialog or a popup is a window above the cover, so the lock takes it off until the unlock. */
+    @Test public void aDialogOrPopupOpenedUnderTheLockStaysOffTheScreenUntilTheUnlock() {
+        try (ActivityController<Screen> screen = Robolectric.buildActivity(Screen.class).setup()) {
+            Activity activity = screen.get();
+            View decor = activity.getWindow().getDecorView();
+            assertNotNull(coverOf(activity));
+
+            Dialog dialog = new Dialog(activity);
+            dialog.setContentView(new TextView(activity));
+            dialog.show();
+            View dialogRoot = dialog.getWindow().getDecorView();
+            assertEquals("the dialog had a frame over the lock", View.GONE, dialogRoot.getVisibility());
+            PopupWindow popup = new PopupWindow(new TextView(activity), 200, 200);
+            popup.showAtLocation(decor, Gravity.CENTER, 0, 0);
+            View popupRoot = popup.getContentView().getRootView();
+            assertEquals("the popup had a frame over the lock", View.GONE, popupRoot.getVisibility());
+            idle();
+            assertEquals(View.GONE, dialogRoot.getVisibility());
+            assertEquals(View.GONE, popupRoot.getVisibility());
+            assertTrue("TikTok's dialog was closed instead of set aside", dialog.isShowing());
+            assertEquals("the locked screen itself was hidden", View.VISIBLE, decor.getVisibility());
+
+            AppLock.succeeded();
+            assertEquals("the dialog didn't come back", View.VISIBLE, dialogRoot.getVisibility());
+            assertEquals("the popup didn't come back", View.VISIBLE, popupRoot.getVisibility());
+            Dialog later = new Dialog(activity);
+            later.show();
+            assertEquals("a dialog after the unlock was hidden", View.VISIBLE,
+                    later.getWindow().getDecorView().getVisibility());
+            later.dismiss();
+            dialog.dismiss();
+            popup.dismiss();
+        }
+    }
+
+    /** One left open on the way out comes back with its screen, under the lock, as it was. */
+    @Test public void aDialogLeftOpenIsHiddenOnAReturnPastTheDelayAndOneTikTokHidStaysHidden() {
+        try (ActivityController<Screen> screen = Robolectric.buildActivity(Screen.class).setup()) {
+            Activity activity = screen.get();
+            idleFor(AppLock.ASK_DELAY_MS + 50);
+            AppLock.succeeded();
+            Dialog open = new Dialog(activity);
+            open.show();
+            Dialog hidden = new Dialog(activity);
+            hidden.show();
+            hidden.hide();
+            View openRoot = open.getWindow().getDecorView();
+            View hiddenRoot = hidden.getWindow().getDecorView();
+
+            screen.pause().stop();
+            idleFor(Duration.ofMinutes(6).toMillis());
+            screen.restart();
+            assertTrue(AppLock.isLocked());
+            assertEquals("the dialog left open showed over the lock", View.GONE, openRoot.getVisibility());
+            screen.resume();
+            idleFor(AppLock.ASK_DELAY_MS + 50);
+            assertEquals(View.GONE, openRoot.getVisibility());
+
+            AppLock.succeeded();
+            assertEquals("the dialog left open didn't come back", View.VISIBLE, openRoot.getVisibility());
+            assertEquals("the dialog TikTok hid came back", View.GONE, hiddenRoot.getVisibility());
+            open.dismiss();
+            hidden.dismiss();
+        }
+    }
+
+    /** Where the window list can't be watched, the lock still finds a dialog on its next pass. */
+    @Test public void withTheWindowListUnwatchedADialogIsStillFoundOnTheNextPass() {
+        AppLock.unwatchedForTests = true;
+        try (ActivityController<Screen> screen = Robolectric.buildActivity(Screen.class).setup()) {
+            Activity activity = screen.get();
+            Dialog dialog = new Dialog(activity);
+            dialog.show();
+            View dialogRoot = dialog.getWindow().getDecorView();
+            assertEquals("the fixture watched the window list after all", View.VISIBLE, dialogRoot.getVisibility());
+
+            activity.getWindow().getDecorView().requestLayout();
+            idle();
+            assertEquals("the dialog stayed over the lock", View.GONE, dialogRoot.getVisibility());
+            AppLock.succeeded();
+            assertEquals(View.VISIBLE, dialogRoot.getVisibility());
+            dialog.dismiss();
         }
     }
 
@@ -174,6 +285,219 @@ public class AppLockTest {
             assertTrue(unlock.performClick());
             assertEquals(2, asked.size());
         }
+    }
+
+    @Test public void tabAndAReaderGoToUnlockAndNothingUnderTheCover() {
+        try (ActivityController<Screen> screen = Robolectric.buildActivity(Screen.class).create()) {
+            Activity activity = screen.get();
+            ViewGroup content = activity.findViewById(android.R.id.content);
+            android.widget.Button like = new android.widget.Button(activity);
+            like.setFocusableInTouchMode(true);
+            ((ViewGroup) content.getChildAt(0)).addView(like);
+            screen.start().resume().visible();
+            View cover = coverOf(activity);
+            assertNotNull(cover);
+            View unlock = ((ViewGroup) ((ViewGroup) cover).getChildAt(0)).getChildAt(1);
+
+            ArrayList<View> stops = new ArrayList<>();
+            activity.getWindow().getDecorView().addFocusables(stops, View.FOCUS_FORWARD, View.FOCUSABLES_ALL);
+            assertEquals("Tab goes somewhere other than Unlock under the lock", List.of(unlock), stops);
+            assertFalse("the screen under the lock can still take focus", like.requestFocus());
+
+            android.view.accessibility.AccessibilityNodeInfo info = cover.createAccessibilityNodeInfo();
+            assertFalse("a reader is told the cover itself can be pressed", info.isClickable());
+            assertFalse("a reader is offered a click on the cover itself", info.getActionList().contains(
+                    android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK));
+            assertTrue("the cover stopped swallowing touches", cover.isClickable());
+
+            AppLock.succeeded();
+            assertTrue("the screen can't take focus after the unlock", like.requestFocus());
+        }
+    }
+
+    @Test public void aViewTikTokPutsOnTheScreenWhileLockedStaysUnderTheCover() {
+        try (ActivityController<Screen> screen = Robolectric.buildActivity(Screen.class).setup()) {
+            Activity activity = screen.get();
+            ViewGroup decor = (ViewGroup) activity.getWindow().getDecorView();
+            View cover = coverOf(activity);
+            assertNotNull(cover);
+            View unlock = ((ViewGroup) ((ViewGroup) cover).getChildAt(0)).getChildAt(1);
+
+            // Straight onto the decor, after the cover went up, as a floating view would be.
+            android.widget.Button late = new android.widget.Button(activity);
+            late.setFocusableInTouchMode(true);
+            decor.addView(late);
+            decor.getViewTreeObserver().dispatchOnGlobalLayout();
+
+            assertEquals("the cover is no longer over everything on the screen",
+                    decor.getChildCount() - 1, decor.indexOfChild(cover));
+            ArrayList<View> stops = new ArrayList<>();
+            decor.addFocusables(stops, View.FOCUS_FORWARD, View.FOCUSABLES_ALL);
+            assertEquals("Tab reaches what TikTok added under the lock", List.of(unlock), stops);
+            assertFalse("a reader reaches what TikTok added under the lock", late.isImportantForAccessibility());
+
+            AppLock.succeeded();
+            assertTrue("what TikTok added can't take focus after the unlock", late.requestFocus());
+            assertTrue("a reader can't reach what TikTok added after the unlock", late.isImportantForAccessibility());
+        }
+    }
+
+    @Test public void aViewTikTokRaisesOnTheScreenStaysUnderTheCover() {
+        try (ActivityController<Screen> screen = Robolectric.buildActivity(Screen.class).setup()) {
+            Activity activity = screen.get();
+            ViewGroup decor = (ViewGroup) activity.getWindow().getDecorView();
+            View cover = coverOf(activity);
+            View raised = new View(activity);
+            raised.setTranslationZ(cover.getZ() + 500);
+            decor.addView(raised);
+            decor.getViewTreeObserver().dispatchOnGlobalLayout();
+            assertTrue("a view raised above the cover draws over it", cover.getZ() > raised.getZ());
+        }
+    }
+
+    @Test public void aReaderHearsTheTitleWithUnlockRatherThanAsAStopOfItsOwn() {
+        try (ActivityController<Screen> screen = Robolectric.buildActivity(Screen.class).setup()) {
+            ViewGroup column = (ViewGroup) ((ViewGroup) coverOf(screen.get())).getChildAt(0);
+            assertFalse("the title is a stop of its own", column.getChildAt(0).isImportantForAccessibility());
+            String said = String.valueOf(unlockOf(coverOf(screen.get())).getContentDescription());
+            assertTrue(said, said.contains(L10n.t("TikTok is locked")) && said.contains(L10n.t("Unlock")));
+        }
+    }
+
+    @Test public void aCoverTikTokTakesOffHandsBackItsCurtainAndGoesBackOn() {
+        try (ActivityController<Screen> screen = Robolectric.buildActivity(Screen.class).create()) {
+            Activity activity = screen.get();
+            android.widget.Button like = likeOn(activity);
+            screen.start().resume().visible();
+            ViewGroup decor = (ViewGroup) activity.getWindow().getDecorView();
+            View taken = coverOf(activity);
+            decor.removeView(taken);
+            idle();
+
+            View cover = coverOf(activity);
+            assertNotNull("the screen stayed open with the lock up", cover);
+            assertTrue(cover != taken);
+            assertFalse("a reader reaches the screen under the new cover", like.isImportantForAccessibility());
+
+            AppLock.succeeded();
+            assertNull(coverOf(activity));
+            assertTrue("the cover TikTok took off kept the screen from a reader", like.isImportantForAccessibility());
+            assertTrue("the cover TikTok took off kept the screen from Tab", like.requestFocus());
+        }
+    }
+
+    @Test public void aStartPageCoverPutUpUnderTheLockLeavesUnlockInReach() {
+        boolean labelsWere = SettingsStatus.bottomTabLabelsEnabled;
+        SettingsStatus.bottomTabLabelsEnabled = true;
+        Settings.START_PAGE.save(StartPage.PROFILE);
+        try (ActivityController<Screen> screen = Robolectric.buildActivity(Screen.class, launcher()).create().start()) {
+            Activity activity = screen.get();
+            android.widget.Button like = likeOn(activity);
+            View[] tabs = startOnProfile(activity);
+            screen.resume().visible();
+            ViewGroup decor = (ViewGroup) activity.getWindow().getDecorView();
+            View cover = coverOf(activity);
+            View start = startCoverIn(decor);
+            assertNotNull(start);
+            assertTrue("the start page's cover went over the lock", decor.indexOfChild(start) < decor.indexOfChild(cover));
+            assertOnlyUnlockInReach(decor, cover);
+
+            showTab(decor, tabs);
+            assertNull(startCoverIn(decor));
+            assertOnlyUnlockInReach(decor, cover);
+            assertFalse("the screen came out from under the lock", like.isImportantForAccessibility());
+
+            AppLock.succeeded();
+            assertTrue(like.isImportantForAccessibility());
+            assertTrue(like.requestFocus());
+        } finally {
+            SettingsStatus.bottomTabLabelsEnabled = labelsWere;
+            Settings.START_PAGE.resetToDefault();
+        }
+    }
+
+    @Test public void aLockOverTheStartPageCoverLeavesTheScreenReadableWhicheverComesOffFirst() {
+        boolean labelsWere = SettingsStatus.bottomTabLabelsEnabled;
+        SettingsStatus.bottomTabLabelsEnabled = true;
+        Settings.START_PAGE.save(StartPage.PROFILE);
+        try (ActivityController<Screen> screen = Robolectric.buildActivity(Screen.class, launcher()).create()) {
+            Activity activity = screen.get();
+            android.widget.Button like = likeOn(activity);
+            View[] tabs = startOnProfile(activity);
+            screen.start().resume().visible();
+            ViewGroup decor = (ViewGroup) activity.getWindow().getDecorView();
+            View cover = coverOf(activity);
+            assertNotNull(startCoverIn(decor));
+            assertOnlyUnlockInReach(decor, cover);
+
+            AppLock.succeeded();
+            assertFalse("the screen came out from under the start page's cover",
+                    like.isImportantForAccessibility());
+            showTab(decor, tabs);
+            assertNull(startCoverIn(decor));
+            assertTrue(like.isImportantForAccessibility());
+            assertTrue(like.requestFocus());
+        } finally {
+            SettingsStatus.bottomTabLabelsEnabled = labelsWere;
+            Settings.START_PAGE.resetToDefault();
+        }
+    }
+
+    private static Intent launcher() {
+        return new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER);
+    }
+
+    /** A button on the screen, which Tab and a reader can reach unless something covers it. */
+    private static android.widget.Button likeOn(Activity activity) {
+        android.widget.Button like = new android.widget.Button(activity);
+        like.setFocusableInTouchMode(true);
+        page(activity).addView(like);
+        return like;
+    }
+
+    private static ViewGroup page(Activity activity) {
+        return (ViewGroup) ((ViewGroup) activity.findViewById(android.R.id.content)).getChildAt(0);
+    }
+
+    /** Home and Profile in the bottom bar, Home selected, and a launcher start that opens on Profile. */
+    private static View[] startOnProfile(Activity activity) {
+        View home = new View(activity);
+        View profile = new View(activity);
+        page(activity).addView(home);
+        page(activity).addView(profile);
+        BottomTabLabels.tabCreated(home, "HOME");
+        BottomTabLabels.tabCreated(profile, "USER");
+        home.setSelected(true);
+        assertEquals("USER", StartPage.coldStartTag(activity, "HOME", null));
+        return new View[] {home, profile};
+    }
+
+    /** Profile comes up, which takes the start page's cover off before the next frame. */
+    private static void showTab(ViewGroup decor, View[] tabs) {
+        tabs[0].setSelected(false);
+        tabs[1].setSelected(true);
+        decor.getViewTreeObserver().dispatchOnPreDraw();
+        idle();
+    }
+
+    private static View startCoverIn(ViewGroup decor) {
+        for (int index = 0; index < decor.getChildCount(); index++) {
+            View child = decor.getChildAt(index);
+            if (child.getClass().getName().endsWith("StartCover$Cover")) return child;
+        }
+        return null;
+    }
+
+    private static void assertOnlyUnlockInReach(ViewGroup decor, View cover) {
+        View unlock = unlockOf(cover);
+        assertTrue("a reader can't reach Unlock", unlock.isImportantForAccessibility());
+        ArrayList<View> stops = new ArrayList<>();
+        decor.addFocusables(stops, View.FOCUS_FORWARD, View.FOCUSABLES_ALL);
+        assertEquals("Tab goes somewhere other than Unlock", List.of(unlock), stops);
+    }
+
+    private static View unlockOf(View cover) {
+        return ((ViewGroup) ((ViewGroup) cover).getChildAt(0)).getChildAt(1);
     }
 
     @Test public void theSystemTakingThePromptDownAsksAgainButNotForever() {

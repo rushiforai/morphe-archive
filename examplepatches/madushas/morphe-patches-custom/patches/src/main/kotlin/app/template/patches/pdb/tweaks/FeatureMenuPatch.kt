@@ -41,6 +41,7 @@ val pdbExtrasResourcePatch = resourcePatch(
     description = "Adds the Pdb Extras entry to the Settings screen and registers the extension components.",
     default = true,
 ) {
+    category("Interface")
     compatibleWith(PDB_COMPATIBILITY)
 
     execute {
@@ -169,6 +170,7 @@ val pdbExtrasPatch = bytecodePatch(
     description = "Adds a single Pdb Extras entry to the top of Pdb's Settings screen.",
     default = true,
 ) {
+    category("Interface")
     compatibleWith(PDB_COMPATIBILITY)
 
     dependsOn(pdbExtrasResourcePatch)

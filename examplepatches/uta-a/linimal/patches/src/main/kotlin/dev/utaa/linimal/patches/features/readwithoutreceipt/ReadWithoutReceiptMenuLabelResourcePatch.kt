@@ -26,7 +26,7 @@ internal object ReadWithoutReceiptMenuLabelResource {
 
 /** 設定項目が参照する文字列を、既存の値を書き換えずに 1 件だけ追加します。 */
 val readWithoutReceiptMenuLabelResourcePatch = resourcePatch(
-    name = "既読をつけずに読むの文字列",
+    name = "Read without receipt strings",
     description = "「既読をつけずに読む」のメニュー項目が参照する文字列 resource を追加します。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

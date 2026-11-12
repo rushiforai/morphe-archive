@@ -15,7 +15,9 @@
 - Fix search history count: the arm64 libapp.so clamps the count next to 搜尋歷史 to 20, the search
   page passes 20 as its limit, and the badge text no longer loads "search.upgradeBadge".
 - Hide promotions: the firebase_remote_config plugin calls the extension on the parameters
-  it sends to Dart, just before every return, so the promotion popups stay turned off.
+  it sends to Dart, just before every return, so the promotion popups stay turned off, and the
+  free home screen widget views call the extension right after they are created, so their
+  "升級即時看板" footer is hidden.
 - Patch settings: the extension is merged, the Flutter loader and DartMessenger call it, every
   hook above first checks its setting, and the drawer's 廣告設定 label is renamed to 修補設定.
 """
@@ -296,6 +298,33 @@ def check_hide_promotions(dex_files):
         print(f"[{'OK' if hooked == total else 'MISSING'}] remote config hook in {hook}: {hooked}/{total} returns")
     if len(hooks) != 1 or hooks[0][1] != hooks[0][2]:
         print("[MISSING] remote config hook")
+        return False
+
+    widget_call = f"{EXTENSION}PromotionOverrides;->hideWidgetUpgradeLink("
+    widget_hooks = []
+    for dex in dex_files:
+        for class_def in dex.get_classes():
+            if class_def.get_name().startswith(EXTENSION):
+                continue
+            for method in class_def.get_methods():
+                if not method.get_code():
+                    continue
+                instructions = list(method.get_code().get_bc().get_instructions())
+                for i, ins in enumerate(instructions):
+                    if widget_call not in ins.get_output():
+                        continue
+                    # Inserted right after `new RemoteViews(context.getPackageName(), layout)`.
+                    previous = instructions[i - 1] if i > 0 else None
+                    after_init = (
+                        previous is not None
+                        and previous.get_name() == "invoke-direct"
+                        and "Landroid/widget/RemoteViews;-><init>" in previous.get_output()
+                    )
+                    widget_hooks.append((f"{class_def.get_name()}->{method.get_name()}{method.get_descriptor()}", after_init))
+    for hook, after_init in widget_hooks:
+        print(f"[{'OK' if after_init else 'MISSING'}] widget upgrade link hook in {hook}")
+    if len(widget_hooks) != 1 or not widget_hooks[0][1]:
+        print("[MISSING] widget upgrade link hook")
         return False
     print("Hide promotions patch is applied")
     return True

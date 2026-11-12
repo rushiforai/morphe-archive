@@ -33,6 +33,10 @@ VERSION="$(grep -E '^version' gradle.properties | head -1 | cut -d= -f2 | tr -d 
 ASSET="$REPO/patches/build/libs/patches-$VERSION.mpp"
 URL="https://github.com/$OWNER_REPO/releases/download/v$VERSION/patches-$VERSION.mpp"
 NOTES="$REPO/patches/build/libs/notes-$VERSION.md"
+# Release title: keep it honest — count the distinct apps the bundle targets
+# instead of naming two of them (the old hardcoded "Pdb + MyDialog" went stale).
+APP_COUNT="$(python3 -c "import json;d=json.load(open('patches-list.json'));print(len({c['packageName'] for p in d['patches'] for c in (p.get('compatiblePackages') or [])}))" 2>/dev/null || echo 0)"
+TITLE="Morphe Patches v$VERSION ($APP_COUNT apps)"
 
 # ── changelog ────────────────────────────────────────────────────────────────
 # Morphe Manager renders patches-bundle.json "description" as the source's
@@ -216,7 +220,7 @@ if [[ "$MODE" == "--publish" ]]; then
   git push origin HEAD
   gh release create "v$VERSION" "$ASSET" \
     --repo "$OWNER_REPO" \
-    --title "Morphe Patches (Pdb + MyDialog) v$VERSION" \
+    --title "$TITLE" \
     --notes-file "$NOTES"
   echo "==> Released v$VERSION — refresh the source in Morphe Manager"
 else
@@ -225,7 +229,7 @@ else
 
     git push origin HEAD
     gh release create v$VERSION patches/build/libs/patches-$VERSION.mpp \\
-      --repo $OWNER_REPO --title "Morphe Patches (Pdb + MyDialog) v$VERSION" \
+      --repo $OWNER_REPO --title "$TITLE" \
       --notes-file patches/build/libs/notes-$VERSION.md
 
     Then in Morphe Manager re-add / refresh:

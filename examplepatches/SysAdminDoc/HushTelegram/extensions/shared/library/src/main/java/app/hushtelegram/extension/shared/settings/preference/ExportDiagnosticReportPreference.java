@@ -98,6 +98,12 @@ public class ExportDiagnosticReportPreference extends Preference {
         return busy;
     }
 
+    /** The summary this row rests on, also while it says a report is being built. */
+    @Nullable
+    public CharSequence restingSummary() {
+        return busy ? restingSummary : getSummary();
+    }
+
     private void showBusy() {
         if (busy) return;
         busy = true;

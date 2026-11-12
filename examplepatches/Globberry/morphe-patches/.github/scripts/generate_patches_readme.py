@@ -144,20 +144,19 @@ def versions_table(targets):
     return "\n".join(rows)
 
 
-def spoiler(label, package, count, targets, tbl, expanded=False):
+def spoiler(label, count, targets, tbl, expanded=False):
     """Wrap a patches table in a <details> spoiler with a versions sub-table.
     If expanded=True, the spoiler is open by default (for repos with few patches).
     """
     noun = "patch" if count == 1 else "patches"
     vtbl = versions_table(targets)
-    package_line = f"**Package name:** `{package}`\n\n"
     versions_section = f"**🎯 Supported versions:**\n\n{vtbl}\n\n" if vtbl else ""
     tag = "<details open>" if expanded else "<details>"
     return f"""{tag}
 <summary>{label}&nbsp;&nbsp;•&nbsp;&nbsp;{count} {noun}</summary>
 <br>
 
-{package_line}{versions_section}{tbl}
+{versions_section}{tbl}
 
 </details>"""
 
@@ -174,7 +173,7 @@ def build_content(expanded=False):
     for entry in by_pkg.values():
         patches = list(entry["patches"].values())
         label   = f"{entry['emoji']} {entry['name']}"
-        lines.append(spoiler(label, entry["package"], len(patches), entry["targets"], patches_table(patches), expanded))
+        lines.append(spoiler(label, len(patches), entry["targets"], patches_table(patches), expanded))
         lines.append("")
 
     # Universal patches (no specific app)

@@ -26,7 +26,7 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
  */
 val accountSwitchLockBypassPatch = bytecodePatch(
     name = "Account Switch Lock Bypass",
-    description = "アカウント切り替えロックのタイムアウトをスキップし、スプラッシュ画面からの即時初期化を可能にします。",
+    description = "UNSUPPORTED historical experiment. Do not select: breaks account synchronization/login. Patching will stop if enabled.",
     default = false
 ) {
     compatibleWith("com.google.android.googlequicksearchbox")
@@ -99,7 +99,7 @@ val accountSwitchLockBypassPatch = bytecodePatch(
 
 val accountSyncLoopFixPatch = bytecodePatch(
     name = "Account Sync Binder Loop Fix",
-    description = "AccountSyncService へのバインド失敗による無限リトライと Binder リミットクラッシュを防止します。",
+    description = "UNSUPPORTED historical experiment. Do not select: breaks account synchronization/login. Patching will stop if enabled.",
     default = false
 ) {
     compatibleWith("com.google.android.googlequicksearchbox")
@@ -159,13 +159,14 @@ val accountSyncLoopFixPatch = bytecodePatch(
 
 val accountConvertFallbackPatch = bytecodePatch(
     name = "Account ID Fallback for Clone",
-    description = "AGSA アカウント名から Account ID への変換失敗例外（flgu）を防止し、デフォルト AccountId でフォールバックします。",
+    description = "UNSUPPORTED historical experiment. Do not select: breaks account synchronization/login. Patching will stop if enabled.",
     default = false
 ) {
     compatibleWith("com.google.android.googlequicksearchbox")
 
     execute {
         VersionHookRegistry.requireProfile(packageMetadata)
+        VersionHookRegistry.target(HookId.ACCOUNT_CONVERT_FALLBACK, packageMetadata)
         fun ensureRegisters(impl: Any?, minRegs: Int) {
             if (impl == null) return
             try {

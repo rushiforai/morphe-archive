@@ -391,10 +391,10 @@ try {
     [IO.File]::WriteAllText($notZip, 'not a ZIP archive')
     Assert-Refusal (Invoke-Check -Stock $notZip -Patched $notZip -Name 'not-an-apk') 'cannot read ZIP archive' 'Invalid APK bytes passed.'
 
-    # Both builds carry libtmessages and liblanguage_id_l2c_jni for four ABIs. The Play build adds
-    # libdatastore_shared_counter to each, so it has three libraries per ABI where the web build has two.
+    # Both builds carry libtmessages, liblanguage_id_l2c_jni and libdatastore_shared_counter for four ABIs.
+    # The web build gained libdatastore_shared_counter in 13.2.1 (72919); before that only Play had it.
     $pinned = @{
-        'telegram-web-13.2.1-72919' = @{ Entries = 8; Aligned16Kb = 4; Relros64 = 4; MidPage = 2 }
+        'telegram-web-13.2.1-72919' = @{ Entries = 12; Aligned16Kb = 6; Relros64 = 6; MidPage = 4 }
         'telegram-play-13.2.1-72911' = @{ Entries = 12; Aligned16Kb = 6; Relros64 = 6; MidPage = 4 }
     }
     foreach ($fixturePath in $fixtures) {

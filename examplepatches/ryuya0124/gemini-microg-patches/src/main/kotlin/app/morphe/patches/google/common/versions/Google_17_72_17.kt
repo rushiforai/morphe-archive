@@ -16,7 +16,9 @@ val google177217 = AppVersionProfile(
     ),
     validation = listOf(
         "2026-11-10: extracted installed original APK; DEX target inspection completed",
-        "Pending: build verification and Secure Folder real-device test"
+        "2026-11-10: APK/DEX/MPP verification completed; Secure Folder send/response confirmation pending",
+        "2026-11-12: API36 emulator shell UID2000: original Google coexistence, Lens permission-gate before/after and clone launcher routing verified; no account/chat test",
+        "2026-11-12: actual APK first-call/cached/seeded process-name paths verified; old widget receiver DI crash reproduced and fixed"
     ),
     hooks = mapOf(
         HookId.DEVICE_COMPLIANCE_FEATURE to TargetSpec(

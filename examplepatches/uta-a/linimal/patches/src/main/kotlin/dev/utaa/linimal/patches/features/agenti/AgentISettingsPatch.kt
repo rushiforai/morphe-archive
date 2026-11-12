@@ -121,7 +121,7 @@ private val settingsVisibilityPredicateFingerprint = Fingerprint(
  * Navigator, destination, remote predicate sources, and subscription state still execute unchanged.
  */
 val agentISettingsPatch = bytecodePatch(
-    name = "設定画面の Agent i",
+    name = "Agent i in settings",
     description = "LINE の設定画面にある Agent i と LINE AI Services の入口を、実行時設定で非表示にできるようにします。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

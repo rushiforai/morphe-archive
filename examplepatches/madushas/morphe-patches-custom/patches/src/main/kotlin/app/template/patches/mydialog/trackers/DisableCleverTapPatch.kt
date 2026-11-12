@@ -31,6 +31,7 @@ val myDialogDisableCleverTapPatch = bytecodePatch(
         "attribution. Push notifications themselves keep working.",
     default = true,
 ) {
+    category("Privacy")
     compatibleWith(MYDIALOG_COMPATIBILITY)
 
     execute {

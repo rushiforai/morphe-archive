@@ -7,15 +7,21 @@ Checks:
   2. manifest: VpnPro components gone, free VpnReceiver kept,
      no isSplitRequired/requiredSplitTypes/split attrs
   3. arsc: the 5 vpn_pro strings read back as " "
-  4. bytecode proof (androguard): wdn.a()Z / r65.l(Z)Z = const/4+return,
+  4. bytecode proof (androguard): wdn.a()Z = const/4+return,
+     r65.l(Z)Z = const/4 v0,0 head with all paths false (G-rung form),
      mm6.e site = const/4 v13,0, WelcomeActivity 4 sites = const/4 vN,1
+  5. structural integrity: every method of classes3.dex walks clean the
+     way ART's MethodVerifier instruction walk does (the E-rung shipped a
+     phantom sparse-switch in r65.l's dead code and crashed on device)
 """
+import os
 import sys
 import zipfile
 
-sys.path.insert(0, '/home/z/my-project/scripts')
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from v131_binary_patch import (parse_manifest, BLANK_NAMES, VPN_COMPONENTS,
-                               WELCOME, R65, MM6, WDN, DEFBR_KEY, EULA_KEY)
+                               WELCOME, R65, MM6, WDN, DEFBR_KEY, EULA_KEY,
+                               Dex, structural_walk_dex)
 
 from loguru import logger
 logger.remove()
@@ -104,13 +110,21 @@ def disasm(cls_desc, name, want=None, max_lines=200):
     return None
 
 
-# wdn.a()Z and r65.l(Z)Z
-for cls_desc, mname in ((WDN, 'a'), (R65, 'l')):
-    lines = disasm(cls_desc, mname)
-    ok = lines is not None and lines[0].startswith('const/4') and \
-        lines[0].endswith('0') and lines[1].startswith('return')
-    check(f'bytecode {cls_desc}->{mname} = const/4 v0,0; return v0', ok,
-          ' | '.join(lines[:2]) if lines else 'missing')
+# wdn.a()Z (03b): const/4 v0,0 + return v0 head
+lines = disasm(WDN, 'a')
+ok = lines is not None and lines[0].startswith('const/4') and \
+    lines[0].rstrip().endswith('0') and lines[1].startswith('return')
+check(f'bytecode {WDN}->a = const/4 v0,0; return v0', ok,
+      ' | '.join(lines[:2]) if lines else 'missing')
+
+# r65.l(Z)Z (02b, G-rung fixed form): head = const/4 v0,0, every path false
+# through the ORIGINAL control flow (v0 is the method's only "true" source:
+# returned at :cond_0 and passed as the getBoolean default).
+lines = disasm(R65, 'l')
+ok = lines is not None and lines[0].startswith('const/4 v0, 0') \
+    and 'const/4 v0, 1' not in lines
+check('bytecode Lr65;->l = const/4 v0,0 head, all paths false', ok,
+      ' | '.join(lines[:4]) if lines else 'missing')
 
 # mm6.e around the default-browser key
 lines = disasm(MM6, 'e')
@@ -147,6 +161,13 @@ for mname in ('onStop', 'startActivityForResult'):
     lines = disasm(WELCOME, mname)
     hit = [t for t in lines if t == 'const/4 v0, 1']
     check(f'bytecode WelcomeActivity.{mname}: forced-true site', bool(hit), str(hit))
+
+# structural integrity: every method of classes3.dex must linear-walk clean
+# (the E-rung's r65.l failed exactly this check and crashed on device)
+dobj = Dex(dexbytes, 'classes3.dex')
+sfails = structural_walk_dex(dobj)
+check('structural walk: classes3.dex 0 failures', not sfails,
+      f'{len(sfails)} failure(s): {sfails[:3]}')
 
 print()
 print('RESULT:', 'ALL PASS' if not fails else f'{len(fails)} FAILURES: {fails}')

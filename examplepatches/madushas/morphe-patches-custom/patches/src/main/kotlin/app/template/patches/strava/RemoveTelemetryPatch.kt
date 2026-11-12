@@ -141,6 +141,7 @@ val removeTelemetryPatch = bytecodePatch(
     description = "Strips Sentry, Embrace and Facebook analytics, disables Firebase analytics, and empties the advertising ID (push notifications keep working).",
     default = true,
 ) {
+    category("Privacy")
     compatibleWith(STRAVA_COMPATIBILITY)
 
     dependsOn(removeTelemetryManifestPatch)

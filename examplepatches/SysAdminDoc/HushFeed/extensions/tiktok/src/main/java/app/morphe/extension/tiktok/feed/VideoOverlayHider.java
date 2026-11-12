@@ -334,6 +334,7 @@ public final class VideoOverlayHider {
     private static final ViewTreeObserver.OnPreDrawListener RESCALE = () -> {
         reapplyScale();
         reapplyFade();
+        refill();
         return true;
     };
     /** The row under each rail button holding its count, without the button itself. */
@@ -503,6 +504,8 @@ public final class VideoOverlayHider {
      * the cleared video as the page opened (#84, Login2 emulator 2026-10-15).
      */
     private static boolean topBarHeld;
+    /** Whether the last pass held the controls for a carried clear, so the log says when that changes. */
+    private static boolean carriedLast;
 
     /**
      * How long a status bar may stay visible before it is hidden again on Android 11 and
@@ -665,6 +668,11 @@ public final class VideoOverlayHider {
             // the tabs and (with the controls hidden) TikTok's ordinary progress bar (#84).
             // Carried over, they stay away across the swipe.
             boolean carry = !HushfeedPause.isPaused() && RememberClearDisplayPatch.isCarryingClear();
+            if (carry != carriedLast) {
+                carriedLast = carry;
+                Logger.printDebug(() -> "Video overlay: " + (carry ? "holding" : "letting go of")
+                        + " the controls for a carried clear");
+            }
             boolean clearLive = !HushfeedPause.isPaused()
                     && (RememberClearDisplayPatch.isClearDisplayNow() || carry);
             // The fade belongs to the overlay patch: a value saved before a repatch without it
@@ -1006,7 +1014,8 @@ public final class VideoOverlayHider {
      * Keeps the scaled icons for the pre-draw pass, and the pass itself on the root while
      * anything is scaled or faded. The fade needs it too: Clear display ending animates the
      * caption, the rail and the search bar back to full opacity, and no layout follows, so
-     * they stayed at full until the next video (S22, 2026-10-08).
+     * they stayed at full until the next video (S22, 2026-10-08). So does a grown picture,
+     * which TikTok puts back to 1 or resizes with no layout pass as a video starts (#390).
      */
     private static void rememberScaled(List<View> scaled, float touchScale, View root) {
         SCALED.clear();
@@ -1018,7 +1027,7 @@ public final class VideoOverlayHider {
         }
         View watched = rescaleRoot.get();
         if (touchScale != 1f || !FADED_TO.isEmpty() || !FADED_HERE.isEmpty()
-                || ClearDisplayShownControls.anyKept()) {
+                || ClearDisplayShownControls.anyKept() || SeeThroughStatusBar.anyFilled()) {
             if (watched != root && root != null) {
                 if (watched != null && watched.getViewTreeObserver().isAlive()) {
                     watched.getViewTreeObserver().removeOnPreDrawListener(RESCALE);
@@ -1056,6 +1065,19 @@ public final class VideoOverlayHider {
             final int put = corrected;
             final int held = seen;
             Logger.printDebug(() -> "Rail scale " + scale + " put back on " + put + " of " + held + " icons");
+        }
+    }
+
+    /** When the frame pass last said it filled a picture again, so the log is not written per frame. */
+    private static long refillLoggedAt;
+
+    /** The pre-draw pass: grown pictures and covers filled again for the frame about to be drawn (#390). */
+    private static void refill() {
+        int written = SeeThroughStatusBar.refill();
+        long now = SystemClock.uptimeMillis();
+        if (written > 0 && now - refillLoggedAt > 2000L) {
+            refillLoggedAt = now;
+            Logger.printDebug(() -> "Fill set again on " + written + " views before the frame was drawn");
         }
     }
 

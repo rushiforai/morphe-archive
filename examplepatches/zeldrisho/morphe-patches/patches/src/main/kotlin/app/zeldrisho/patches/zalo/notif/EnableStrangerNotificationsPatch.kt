@@ -14,7 +14,7 @@ import com.android.tools.smali.dexlib2.AccessFlags
 @Suppress("unused")
 val enableZaloStrangerNotificationsPatch = bytecodePatch(
     name = "Enable stranger notifications",
-    description = "Adds an in-app switch to allow Stranger Box notifications, enabled by default. " +
+    description = "Adds an initially off in-app switch to allow Stranger Box notifications. " +
         "Off uses Zalo's native gate; other settings and delivery restrictions still apply.",
     default = true,
 ) {

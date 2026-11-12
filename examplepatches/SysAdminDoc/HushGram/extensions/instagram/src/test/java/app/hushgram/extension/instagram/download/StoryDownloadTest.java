@@ -11,6 +11,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Looper;
 import android.text.SpannableString;
@@ -24,19 +26,24 @@ import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.Shadows;
+import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.Implementation;
 import org.robolectric.annotation.Implements;
+import org.robolectric.shadows.ShadowAlertDialog;
 import org.robolectric.shadows.ShadowToast;
 
 import app.hushgram.extension.instagram.settings.Settings;
 import app.hushgram.extension.instagram.settings.SettingsStatus;
 import app.hushgram.extension.instagram.stories.StoryLoop;
 import app.hushgram.extension.shared.SettingsContextRule;
+import app.hushgram.extension.shared.Utils;
 import app.hushgram.extension.shared.diagnostics.HookStatus;
 import app.hushgram.extension.shared.settings.BaseSettings;
+import app.hushgram.extension.shared.settings.HushgramPause;
 import app.hushgram.extension.shared.settings.PauseForTests;
 
 /** What the story menu's hooks answer, and what a tap on Download does with them. */
@@ -52,12 +59,20 @@ public class StoryDownloadTest {
         Story.flagged = null;
         Story.posted = null;
         Story.id = null;
+        Story.account = null;
         Built.storyLoop = false;
+        Built.storySpeed = false;
+        Built.storyDownload = false;
+        Built.storyPriority = false;
         StoryLoop.forget();
         StoryDownload.building(null);
         HookStatus.clear();
         Settings.DOWNLOAD_STORIES.save(true);
         Settings.LOOP_STORIES.resetToDefault();
+        Settings.STORY_SPEED_IN_MENU.resetToDefault();
+        Settings.STORY_PRIORITY.resetToDefault();
+        Settings.STORY_PRIORITY_ACCOUNTS.resetToDefault();
+        Utils.setActivity(null);
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
     }
@@ -268,14 +283,96 @@ public class StoryDownloadTest {
         static String id;
 
         @Implementation protected static String mediaId(Object media) { return media == null ? null : id; }
+
+        /** The username of whoever posted the story, or null for one whose account can't be read. */
+        static String account;
+
+        @Implementation protected static Object owner(Object media) { return media == null || account == null ? null : "user"; }
+        @Implementation protected static String username(Object user) { return user == null ? null : account; }
     }
 
-    /** Whether this build has Loop a story, as the patch writes its status method. */
+    /** Whether this build has Loop a story, the story speed button, Download any story and Stories priority, as the patches write their status methods. */
     @Implements(value = SettingsStatus.class, isInAndroidSdk = false)
     public static class Built {
         static boolean storyLoop;
+        static boolean storySpeed;
+        static boolean storyDownload;
+        static boolean storyPriority;
 
         @Implementation protected static boolean storyLoop() { return storyLoop; }
+        @Implementation protected static boolean storySpeed() { return storySpeed; }
+        @Implementation protected static boolean storyDownload() { return storyDownload; }
+        @Implementation protected static boolean storyPriority() { return storyPriority; }
+    }
+
+    /**
+     * #641: with Stories priority in the build, a story's menu gets Add to Stories priority last,
+     * with its switch and Download off. A tap puts the story's account at the end of the list, turns
+     * the switch on, says so and turns the row to Remove from Stories priority, and a second tap
+     * takes just that account off. A list too long for its row stays as it was and says so. Your
+     * own highlights' menu, a story whose account can't be read, a paused HushGram and a build
+     * without the patch get no row, and the label is Instagram's again.
+     */
+    @Test
+    @Config(shadows = {Story.class, Built.class})
+    public void aStoryGetsAddToStoriesPriority() {
+        BaseSettings.PAUSED.save(false);
+        PauseForTests.resume();
+        Built.storyPriority = true;
+        Settings.DOWNLOAD_STORIES.save(false);
+        Settings.STORY_PRIORITY.save(false);
+        Settings.STORY_PRIORITY_ACCOUNTS.save("@Zed");
+        Object menu = new Object();
+        StoryDownload.building(menu);
+        Story.media = new Object();
+        Story.account = "nasa";
+
+        assertArrayEquals(new CharSequence[] {"Report", "Add to Stories priority"},
+                StoryDownload.labels(new CharSequence[] {"Report"}));
+        CharSequence[] already = {"Report", new SpannableString("Add to Stories priority")};
+        assertSame("added twice", already, StoryDownload.labels(already));
+
+        ShadowToast.reset();
+        assertTrue(StoryDownload.save(new SpannableString("Add to Stories priority"), menu));
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals("Added to Stories priority", String.valueOf(ShadowToast.getTextOfLatestToast()));
+        assertEquals("@Zed\nnasa", Settings.STORY_PRIORITY_ACCOUNTS.savedValue());
+        assertTrue("adding someone turns the switch on", Settings.STORY_PRIORITY.savedValue());
+        assertArrayEquals(new CharSequence[] {"Report", "Remove from Stories priority"},
+                StoryDownload.labels(new CharSequence[] {"Report"}));
+
+        List<Object> list = new ArrayList<>(Arrays.asList("Edit highlight"));
+        StoryDownload.labelList(list);
+        assertEquals("your own highlights' menu", Arrays.asList("Edit highlight"), list);
+
+        assertTrue(StoryDownload.save("Remove from Stories priority", menu));
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals("Removed from Stories priority", String.valueOf(ShadowToast.getTextOfLatestToast()));
+        assertEquals("@Zed", Settings.STORY_PRIORITY_ACCOUNTS.savedValue());
+        assertTrue(Settings.STORY_PRIORITY.savedValue());
+
+        StringBuilder full = new StringBuilder();
+        while (full.length() < 4094) full.append("someone\n");
+        Settings.STORY_PRIORITY_ACCOUNTS.save(full.toString());
+        assertTrue(StoryDownload.save("Add to Stories priority", menu));
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals("Stories priority didn't change", String.valueOf(ShadowToast.getTextOfLatestToast()));
+        assertEquals(full.toString(), Settings.STORY_PRIORITY_ACCOUNTS.savedValue());
+
+        Story.account = null;
+        CharSequence[] noAccount = {"Report"};
+        assertSame("a story whose account can't be read", noAccount, StoryDownload.labels(noAccount));
+
+        Story.account = "nasa";
+        PauseForTests.pause(HushgramPause.Reason.SWITCH);
+        CharSequence[] paused = {"Report"};
+        assertSame("paused", paused, StoryDownload.labels(paused));
+        assertFalse("the label is Instagram's again", StoryDownload.save("Add to Stories priority", menu));
+        PauseForTests.resume();
+
+        Built.storyPriority = false;
+        CharSequence[] unpatched = {"Report"};
+        assertSame("without the patch", unpatched, StoryDownload.labels(unpatched));
     }
 
     /**
@@ -335,6 +432,82 @@ public class StoryDownloadTest {
         Built.storyLoop = false;
         CharSequence[] unpatched = {"Report"};
         assertSame("without the patch", unpatched, StoryDownload.labels(unpatched));
+    }
+
+    /**
+     * #621: with Speed in the story menu on, in a build with the speed button and Download any
+     * story, a video story's menu gets Playback speed last, once, with Download on or off. A tap
+     * opens the speeds, and the menu's close, which plays the story again, waits for the pick. A
+     * photo gets no row, and neither does a story with the switch off or the patch missing.
+     */
+    @Test
+    @Config(shadows = {Story.class, Built.class})
+    public void aVideoStoryGetsPlaybackSpeed() {
+        BaseSettings.PAUSED.save(false);
+        PauseForTests.resume();
+        Built.storySpeed = true;
+        Built.storyDownload = true;
+        Settings.STORY_SPEED_IN_MENU.save(true);
+        Object menu = new Object();
+        StoryDownload.building(menu);
+        Story.media = new Object();
+        Story.video = true;
+
+        assertArrayEquals(new CharSequence[] {"Report", "Download", "Download as photo", "Playback speed"},
+                StoryDownload.labels(new CharSequence[] {"Report"}));
+        CharSequence[] already = {"Report", "Download", "Download as photo", new SpannableString("Playback speed")};
+        assertSame("added twice", already, StoryDownload.labels(already));
+        List<Object> list = new ArrayList<>(Arrays.asList("Edit highlight"));
+        StoryDownload.labelList(list);
+        assertEquals(Arrays.asList("Edit highlight", "Download", "Download as photo", "Playback speed"), list);
+        StoryDownload.labelList(list);
+        assertEquals("added twice", 4, list.size());
+
+        ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup();
+        try {
+            Utils.setActivity(controller.get());
+            List<DialogInterface> closed = new ArrayList<>();
+            assertTrue(StoryDownload.save(new SpannableString("Playback speed"), menu));
+            StoryDownload.menuClosed((DialogInterface.OnDismissListener) closed::add);
+            assertTrue("the story waits for the pick", closed.isEmpty());
+            AlertDialog speeds = ShadowAlertDialog.getLatestAlertDialog();
+            assertTrue(speeds.isShowing());
+            assertEquals("Playback speed", String.valueOf(Shadows.shadowOf(speeds).getTitle()));
+            assertArrayEquals(new CharSequence[] {"1x", "1.5x", "2x"}, Shadows.shadowOf(speeds).getItems());
+            Shadows.shadowOf(speeds).clickOnItem(1);
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertFalse(speeds.isShowing());
+            assertEquals("the story plays again once the list closes", Collections.singletonList(null), closed);
+            String report = String.valueOf(HookStatus.report());
+            assertTrue(report, report.contains("speed picked in the story menu 1"));
+
+            // Back to normal speed, as the next test class expects it.
+            assertTrue(StoryDownload.save("Playback speed", menu));
+            AlertDialog again = ShadowAlertDialog.getLatestAlertDialog();
+            assertEquals("the kept speed is checked", 1, again.getListView().getCheckedItemPosition());
+            Shadows.shadowOf(again).clickOnItem(0);
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            StoryDownload.menuClosed((DialogInterface.OnDismissListener) closed::add);
+            assertEquals("no list open, the close runs at once", 2, closed.size());
+        } finally {
+            controller.pause().stop().destroy();
+        }
+
+        Story.video = false;
+        assertArrayEquals("a photo has no video to speed up", new CharSequence[] {"Report", "Download"},
+                StoryDownload.labels(new CharSequence[] {"Report"}));
+        Story.video = true;
+        Settings.DOWNLOAD_STORIES.save(false);
+        assertArrayEquals("with Download off", new CharSequence[] {"Report", "Playback speed"},
+                StoryDownload.labels(new CharSequence[] {"Report"}));
+        Settings.STORY_SPEED_IN_MENU.save(false);
+        CharSequence[] off = {"Report"};
+        assertSame(off, StoryDownload.labels(off));
+        assertFalse("the label is Instagram's again", StoryDownload.save("Playback speed", menu));
+        Settings.STORY_SPEED_IN_MENU.save(true);
+        Built.storyDownload = false;
+        CharSequence[] unpatched = {"Report"};
+        assertSame("without Download any story", unpatched, StoryDownload.labels(unpatched));
     }
 
     /** Each of HushGram's rows is HushGram's to handle, however the menu styled it, and Instagram's aren't. */

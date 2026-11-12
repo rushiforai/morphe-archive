@@ -53,7 +53,7 @@ private val readWithoutReceiptSessionGetterFingerprint = Fingerprint(
 
 /** super の直後で閲覧セッションを開始します。getter の反射契約も確定するまで DEX は変更しません。 */
 val readWithoutReceiptSessionPatch = bytecodePatch(
-    name = "既読をつけずに読むの閲覧セッション",
+    name = "Read without receipt session",
     description = "トーク画面の生成時に閲覧セッションを開始し、一時的な離脱で既読抑制が解除されないようにします。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

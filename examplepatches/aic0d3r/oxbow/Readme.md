@@ -11,7 +11,7 @@
 <p align="center">
   <a href="https://github.com/aic0d3r/oxbow/releases/latest"><img src="https://img.shields.io/github/v/release/aic0d3r/oxbow?color=2ea44f" alt="Release"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License: GPL-3.0"></a>
-  <a href="https://github.com/aic0d3r/oxbow/releases"><img src="https://img.shields.io/badge/works%20with-Instagram%20454.0.0.54.77-8a2be2" alt="Instagram 454.0.0.54.77"></a>
+  <a href="https://github.com/aic0d3r/oxbow/releases"><img src="https://img.shields.io/badge/works%20with-Instagram%20455.0.0.51.72-8a2be2" alt="Instagram 455.0.0.51.72"></a>
 </p>
 
 Oxbow is a free, open-source patched Instagram for Android that is calm from the first
@@ -207,7 +207,8 @@ you want. Oxbow is the other way round, set up calm on first launch.
 | Ghost mode | No | Yes | Yes | **Yes** |
 | Tracker-free links | No | Yes | Yes | **Yes** |
 | Comments off | No | Yes | Yes | **Yes** |
-| Latest Instagram supported | 454.0 | 452.1, pre-release (447.0 stable) | 454.0 | **454.0** |
+| Patch Instagram yourself in Morphe Manager | No, APKs only | Yes, `patches-3.11.1.mpp` | Yes, patch source | **Yes**, patch source and `.mpp` in every release |
+| Latest Instagram supported | 455.0 | 452.1, pre-release (447.0 stable) | 454.0 | **455.0** |
 
 *Compared from each project's README, patch list and releases in November 2026. Spot an error? [Open an
 issue](https://github.com/aic0d3r/oxbow/issues/new/choose).*
@@ -238,9 +239,12 @@ updates: [OXBOW.md](OXBOW.md).
 
 ## Credits and license
 
-Oxbow is a fork of [FeurStagram](https://github.com/jean-voila/FeurStagram) by Jean
-Herail. Its blocking, settings page and update system come from there, and Oxbow follows
-it for new Instagram versions. Some patch techniques (network blocking, clone, the hooks
-behind downloads and ghost mode) are adapted from [piko](https://github.com/crimera/piko).
-Built with [Morphe](https://morphe.software). GPL-3.0: see [LICENSE](LICENSE) and
-[NOTICE](NOTICE).
+Oxbow started as a fork of [FeurStagram](https://github.com/jean-voila/FeurStagram) by Jean
+Herail; upstream merges still bring the shared patches, but Instagram versions are ported
+independently and upstream features can be skipped. Much of the patch set is Oxbow's own:
+downloads, Copy caption, HD avatars, hide screenshots.
+
+Patch techniques adapted from other GPLv3 works: network blocking, clone and the download
+and ghost-mode hooks from [piko](https://github.com/crimera/piko); Hide Meta AI and the
+hide-screenshots approach from [HushGram](https://github.com/SysAdminDoc/HushGram). Built
+with [Morphe](https://morphe.software). GPL-3.0: see [LICENSE](LICENSE) and [NOTICE](NOTICE).

@@ -10,7 +10,7 @@ import dev.utaa.linimal.patches.shared.Constants
  * このパッチは対象アプリのコンパイル済み Android resources を変更しません。
  */
 val patchStatusResourcePatch = rawResourcePatch(
-    name = "Linimal のパッチ適用状況",
+    name = "Linimal patch status",
     description = "各パッチの適用結果を APK 内の asset として書き出します。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

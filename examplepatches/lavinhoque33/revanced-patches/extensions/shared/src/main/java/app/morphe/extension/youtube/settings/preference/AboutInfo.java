@@ -2,6 +2,7 @@
  * Copyright (C) 2026 lavinhoque33
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-11
  * Written by lavinhoque33, 2026-11-06
  */
 
@@ -9,7 +10,7 @@ package app.morphe.extension.youtube.settings.preference;
 
 import java.util.Locale;
 
-/** Pure, Android-independent About card data formatting. */
+/** Pure, Android-independent About data formatting. */
 public final class AboutInfo {
     public enum Link {
         GITHUB,

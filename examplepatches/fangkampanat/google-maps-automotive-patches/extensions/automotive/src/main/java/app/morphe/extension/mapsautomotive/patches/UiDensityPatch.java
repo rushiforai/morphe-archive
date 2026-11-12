@@ -12,6 +12,8 @@ import android.hardware.display.DisplayManager;
 import android.view.Display;
 import android.view.View;
 
+import java.util.Locale;
+
 import app.morphe.extension.shared.Utils;
 
 /**
@@ -97,28 +99,32 @@ public final class UiDensityPatch {
     /**
      * Injection point: attachBaseContext of the Application and of AppCompatActivity.
      * <p>
-     * The override sets densityDpi only. The framework keeps such a delta when it updates the
-     * configuration (MapsActivity handles screen-size changes, such as entering split screen,
-     * without being recreated). Screen sizes in dp are left to the system, so they stay current.
+     * The override sets densityDpi and, with a language chosen ({@link AppLanguage}), the locale. The
+     * framework keeps such a delta when it updates the configuration (MapsActivity handles screen-size
+     * changes, such as entering split screen, without being recreated). Screen sizes in dp are left to the
+     * system, so they stay current.
      */
     public static Context wrap(Context base) {
         if (base == null) return null;
-        if (!SafeMode.on(base, SafeMode.UI_DENSITY)) return base;
-        int target = getTargetDensityDpi(base);
-        if (target <= 0) return base;
+        int target = SafeMode.on(base, SafeMode.UI_DENSITY) ? getTargetDensityDpi(base) : 0;
+        // The chosen language rides in the same override; null keeps the system's.
+        Locale locale = AppLanguage.locale(base);
+        if (target <= 0 && locale == null) return base;
         try {
             int system = base.getResources().getConfiguration().densityDpi;
-            if (system == target) return base;
+            boolean density = target > 0 && system != target;
+            if (!density && locale == null) return base;
             Configuration override = new Configuration();
-            override.densityDpi = target;
+            if (density) override.densityDpi = target;
+            if (locale != null) override.setLocale(locale);
             Context wrapped = base.createConfigurationContext(override);
-            if (!logged) {
+            if (density && !logged) {
                 logged = true;
                 ReportLog.i(TAG, "UI density " + target + " dpi (system " + system + " dpi)");
             }
             return wrapped;
         } catch (RuntimeException exception) {
-            ReportLog.w(TAG, "Could not apply UI density " + target, exception);
+            ReportLog.w(TAG, "Could not apply UI density " + target + (locale == null ? "" : " and language " + locale), exception);
             return base;
         }
     }
@@ -210,7 +216,10 @@ public final class UiDensityPatch {
         return hint == null ? choiceLabel(context, densityDpi) : choiceLabel(context, densityDpi) + " · " + hint;
     }
 
-    static boolean isThai(Context context) {
+    /** Whether the extension's own texts are Thai: the language chosen in Settings, else the context's. */
+    public static boolean isThai(Context context) {
+        Boolean chosen = AppLanguage.thai(context);
+        if (chosen != null) return chosen;
         try {
             return "th".equals(context.getResources().getConfiguration().getLocales().get(0).getLanguage());
         } catch (RuntimeException exception) {

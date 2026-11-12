@@ -1,0 +1,4 @@
+9e75640a5307979c2152c606bede55550e93e64052d6a01c01abc108ae48b66f  X1-rung-universal_signed.apk
+45d60f9a4674f21366e1e0d039fe9a3abbbf6b764cfaf7765bb0e00d10bdc410  X2-rung-universal_signed.apk
+ded619184bdb5314ab228260ef3665a5fbc31c0d463fab1e075c1571555289e4  X-rung-rebuilt-classes3-X1.dex
+503678a3b46888d28d50bc3d8393d62d907358671f12e46f2f0116ba22171cbd  X-rung-rebuilt-classes3-X2.dex

@@ -233,7 +233,7 @@ final class Stories {
         return best;
     }
 
-    private static void tap(final View root, float x, float y) {
+    static void tap(final View root, float x, float y) {
         long down = SystemClock.uptimeMillis();
         MotionEvent press = MotionEvent.obtain(down, down, MotionEvent.ACTION_DOWN, x, y, 0);
         press.setSource(InputDevice.SOURCE_TOUCHSCREEN);
@@ -286,6 +286,13 @@ final class Stories {
      * fields of the view and the app objects below it. Component parents are not followed, or the whole screen's
      * texts would be reached.
      */
+    /** The lower-case texts the view's components hold. */
+    static List<String> viewTexts(View view) {
+        List<String> out = new ArrayList<>();
+        for (Text text : textsOf(view)) out.add(text.value.toLowerCase(java.util.Locale.ROOT));
+        return out;
+    }
+
     private static List<Text> textsOf(View view) {
         List<Text> out = new ArrayList<>();
         if (view instanceof TextView) {

@@ -2,6 +2,7 @@ package app.zeldrisho.patches.zalo.misc
 
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
+import java.io.File
 import java.util.zip.CRC32
 import java.util.zip.DeflaterOutputStream
 import kotlin.test.Test
@@ -38,19 +39,23 @@ class LauncherPngTest {
     }
 
     @Test fun acceptsCompleteSupportedSquarePngs() {
-        for (size in listOf(48, 512, 2048)) validateLauncherPng(png(size))
+        for (size in listOf(48, 512)) validateLauncherPng(png(size))
+    }
+
+    @Test fun acceptsDocumentedExampleIcon() {
+        validateLauncherPng(File("../docs/images/example-launcher-icon.png").readBytes())
     }
 
     @Test fun rejectsInvalidDimensions() {
         assertFailsWith<IllegalArgumentException> { validateLauncherPng(png(47)) }
         assertFailsWith<IllegalArgumentException> { validateLauncherPng(png(48, 49)) }
-        assertFailsWith<IllegalArgumentException> { validateLauncherPng(png(2049)) }
+        assertFailsWith<IllegalArgumentException> { validateLauncherPng(png(513)) }
     }
 
     @Test fun rejectsHeaderOnlyTruncationAndExcessBytes() {
         val valid = png()
         for (bytes in listOf(ByteArray(0), valid.copyOf(33), valid.copyOf(valid.size - 1),
-            valid + byteArrayOf(1), ByteArray(8 * 1024 * 1024 + 1))) {
+            valid + byteArrayOf(1), ByteArray(1024 * 1024 + 1))) {
             assertFailsWith<IllegalArgumentException> { validateLauncherPng(bytes) }
         }
     }

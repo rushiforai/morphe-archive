@@ -38,6 +38,28 @@
         <item>PODCASTS</item>
         <item>SAMPLES</item>
     </string-array>
+    <string-array name="morphe_music_download_method_entries">
+        <item>@string/morphe_music_download_method_entry_stream</item>
+        <item>@string/morphe_music_download_method_entry_device_files</item>
+        <item>@string/morphe_music_download_method_entry_delegated</item>
+    </string-array>
+    <string-array name="morphe_music_download_method_entry_values">
+        <item>STREAM</item>
+        <item>DEVICE_FILES</item>
+        <item>DELEGATED</item>
+    </string-array>
+    <string-array name="morphe_music_download_quality_entries">
+        <item>@string/morphe_music_download_quality_highest</item>
+        <item>@string/morphe_music_download_quality_high</item>
+        <item>@string/morphe_music_download_quality_normal</item>
+        <item>@string/morphe_music_download_quality_low</item>
+    </string-array>
+    <string-array name="morphe_music_download_quality_entry_values">
+        <item>HIGHEST</item>
+        <item>HIGH</item>
+        <item>NORMAL</item>
+        <item>LOW</item>
+    </string-array>
     <string-array name="revanced_disable_music_video_in_album_redirect_type_entries">
         <item>@string/revanced_disable_music_video_in_album_redirect_type_entry_redirect</item>
         <item>@string/revanced_disable_music_video_in_album_redirect_type_entry_on_click</item>
@@ -531,5 +553,13 @@
         <item>CANTONESE</item>
         <item>PINYIN</item>
         <item>NONE</item>
+    </string-array>
+    <string-array name="morphe_music_lyrics_ruby_style_entries">
+        <item>@string/morphe_music_lyrics_ruby_style_entry_hiragana</item>
+        <item>@string/morphe_music_lyrics_ruby_style_entry_katakana</item>
+    </string-array>
+    <string-array name="morphe_music_lyrics_ruby_style_entry_values">
+        <item>HIRAGANA</item>
+        <item>KATAKANA</item>
     </string-array>
 </resources>

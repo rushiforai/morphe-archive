@@ -24,7 +24,7 @@ val unlockDonateTierPatch = bytecodePatch(
     name = "Unlock Pro Plus / Donate",
     description = "Marks the Pro Plus / Donate (e6) tier as owned. It does not add any " +
         "feature beyond Pro Plus - the only visible effect is the 'Pro Plus / Donate' label " +
-        "and the supporter badge. Requires Unlock Pro.",
+        "and the supporter badge. Requires Unlock Pro. Disabled by default.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_LTEDISCOVERY)

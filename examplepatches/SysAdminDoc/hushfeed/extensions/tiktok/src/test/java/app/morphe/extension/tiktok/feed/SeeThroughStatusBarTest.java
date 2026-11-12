@@ -254,6 +254,108 @@ public class SeeThroughStatusBarTest {
     }
 
     /**
+     * #390: with the bars see through, the picture shrank to TikTok's size for four frames just
+     * after a swipe, then grew again. TikTok writes 1 back on the scale as a video starts, and a
+     * scale is no layout, so the fill waited for the next layout pass, which took the 1 for a zoom
+     * of TikTok's own and let the picture go until the pass after. The picture and its cover are
+     * grown again before the frame is drawn, and a zoom TikTok sets itself still stays.
+     */
+    @Test
+    public void aScaleTikTokPutsBackIsGrownAgainBeforeTheFrameIsDrawn() {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup().visible()) {
+            Activity activity = controller.get();
+            Utils.setContext(activity);
+            feedCell(activity, View.INVISIBLE);
+            FrameLayout cell = activity.findViewById(CELL_ID);
+            FrameLayout player = new FrameLayout(activity);
+            player.setId(PLAYER_ID);
+            SurfaceView surface = new SurfaceView(activity);
+            player.addView(surface);
+            cell.addView(player, new FrameLayout.LayoutParams(1080, 2181));
+            View cover = new View(activity);
+            cover.setId(COVER_ID);
+            cell.addView(cover, new FrameLayout.LayoutParams(1080, 2181));
+            showVideo(player, surface, 1107, 1968);
+            layOut(cover, 1080, 2181);
+
+            Settings.SEE_THROUGH_STATUS_BAR.save(true);
+            VideoOverlayHider.applyTo(activity);
+            float scale = surface.getScaleY();
+            assertTrue("the picture didn't fill", scale > 1f);
+            assertEquals(scale, cover.getScaleY(), 0f);
+
+            // TikTok's reset with no layout after it: the next frame is drawn straight away.
+            surface.setScaleX(1f);
+            surface.setScaleY(1f);
+            cover.setScaleX(1f);
+            cover.setScaleY(1f);
+            surface.getViewTreeObserver().dispatchOnPreDraw();
+            assertEquals("the picture was drawn at TikTok's size", scale, surface.getScaleY(), 0f);
+            assertEquals(scale, surface.getScaleX(), 0f);
+            assertEquals("the cover was drawn at TikTok's size", scale, cover.getScaleY(), 0f);
+
+            // A layout pass right after the reset grows it again too, rather than letting it go.
+            surface.setScaleX(1f);
+            surface.setScaleY(1f);
+            VideoOverlayHider.applyTo(activity);
+            assertEquals("the pass let the picture go", scale, surface.getScaleY(), 0f);
+            assertEquals(scale, cover.getScaleY(), 0f);
+
+            surface.setScaleX(1.5f);
+            surface.setScaleY(1.5f);
+            surface.getViewTreeObserver().dispatchOnPreDraw();
+            assertEquals("TikTok's own zoom was overwritten before the frame", 1.5f, surface.getScaleY(), 0f);
+            VideoOverlayHider.applyTo(activity);
+            assertEquals("TikTok's own zoom was overwritten", 1.5f, surface.getScaleY(), 0f);
+        }
+    }
+
+    /**
+     * #390 on the S22: as a video starts TikTok lays the player out 138 px short for one pass and
+     * back to full height with no pass after it, so the picture kept the scale worked out for the
+     * short player and was drawn 6% small for two to four frames, then grew. The pre-draw pass
+     * fills it again for the size the player has when the frame is drawn.
+     */
+    @Test
+    public void aPlayerResizedWithNoLayoutPassIsFilledForItsNewSizeBeforeTheFrame() {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup().visible()) {
+            Activity activity = controller.get();
+            Utils.setContext(activity);
+            feedCell(activity, View.INVISIBLE);
+            FrameLayout cell = activity.findViewById(CELL_ID);
+            FrameLayout player = new FrameLayout(activity);
+            player.setId(PLAYER_ID);
+            SurfaceView surface = new SurfaceView(activity);
+            player.addView(surface);
+            cell.addView(player, new FrameLayout.LayoutParams(1080, 2181));
+            View cover = new View(activity);
+            cover.setId(COVER_ID);
+            cell.addView(cover, new FrameLayout.LayoutParams(1080, 2181));
+            surface.setLayoutParams(new FrameLayout.LayoutParams(1107, 1968, Gravity.CENTER));
+            layOut(player, 1080, 2043);
+            layOut(cover, 1080, 2181);
+
+            Settings.SEE_THROUGH_STATUS_BAR.save(true);
+            VideoOverlayHider.applyTo(activity);
+            assertEquals("the short player wasn't filled", (2043 + 2f) / 1968, surface.getScaleY(), 1e-5f);
+
+            // Back to full height, and the next frame is drawn with no layout pass first.
+            layOut(player, 1080, 2181);
+            surface.getViewTreeObserver().dispatchOnPreDraw();
+            float full = (2181 + 2f) / 1968;
+            assertEquals("the picture was drawn grown for the short player", full, surface.getScaleY(), 1e-5f);
+            assertEquals(full, surface.getScaleX(), 1e-5f);
+            assertEquals("the cover was drawn grown for the short player", full, cover.getScaleY(), 1e-5f);
+
+            Settings.SEE_THROUGH_STATUS_BAR.save(false);
+            VideoOverlayHider.applyTo(activity);
+            surface.getViewTreeObserver().dispatchOnPreDraw();
+            assertEquals("the frame pass grew a picture the switch put back", 1f, surface.getScaleY(), 0f);
+            assertEquals(1f, cover.getScaleY(), 0f);
+        }
+    }
+
+    /**
      * #218: with only See-through bottom bar on, the strip under the video goes and the player
      * reaches the bottom edge, but TikTok centers the 9:16 picture in it, so the bottom of the
      * floating bar sat over black. The bottom bar asks for the same fill; off puts it back.
@@ -328,6 +430,88 @@ public class SeeThroughStatusBarTest {
             assertFalse("off kept the moved pivot", surface.isPivotSet());
             assertFalse(SeeThroughStatusBar.anyFilled());
         }
+    }
+
+    /**
+     * The cover still beside that lifted surface lands on the grown picture. The still sits in the
+     * middle of its cell-sized cover and the picture grows from {@code fillPivot}, so a cover grown
+     * from its center left the still 70 px off the picture when TikTok lifted the cover with the
+     * surface. A cover TikTok left in place keeps its center, and so does one beside a centered surface.
+     */
+    @Test
+    public void theCoverStillLandsOnALiftedPicture() {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup().visible()) {
+            Activity activity = controller.get();
+            Utils.setContext(activity);
+            feedCell(activity, View.INVISIBLE);
+            FrameLayout cell = activity.findViewById(CELL_ID);
+            FrameLayout player = new FrameLayout(activity);
+            player.setId(PLAYER_ID);
+            SurfaceView surface = new SurfaceView(activity);
+            player.addView(surface, new FrameLayout.LayoutParams(1080, 1920, Gravity.CENTER));
+            cell.addView(player, new FrameLayout.LayoutParams(1080, 2199));
+            FrameLayout wrapper = new FrameLayout(activity);
+            View cover = new View(activity);
+            cover.setId(COVER_ID);
+            wrapper.addView(cover, new FrameLayout.LayoutParams(1080, 2199));
+            cell.addView(wrapper, new FrameLayout.LayoutParams(1080, 2199));
+            layOut(player, 1080, 2199);
+            layOut(wrapper, 1080, 2199);
+            surface.setTranslationY(-70.5f);
+            cover.setTranslationY(-70.5f);
+            Settings.SEE_THROUGH_BOTTOM_BAR.save(true);
+
+            VideoOverlayHider.applyTo(activity);
+            assertTheStillIsOnThePicture(surface, cover, cell);
+
+            // Lifted one view up: TikTok moving the cover's wrapper rather than the cover itself.
+            cover.setTranslationY(0f);
+            wrapper.setTranslationY(-70.5f);
+            VideoOverlayHider.applyTo(activity);
+            assertTheStillIsOnThePicture(surface, cover, cell);
+
+            wrapper.setTranslationY(0f);
+            VideoOverlayHider.applyTo(activity);
+            assertTheStillIsOnThePicture(surface, cover, cell);
+            assertFalse("a cover in place left its center", cover.isPivotSet());
+
+            surface.setTranslationY(0f);
+            VideoOverlayHider.applyTo(activity);
+            assertTheStillIsOnThePicture(surface, cover, cell);
+            assertFalse("the cover by a centered picture left its center", cover.isPivotSet());
+
+            Settings.SEE_THROUGH_BOTTOM_BAR.save(false);
+            VideoOverlayHider.applyTo(activity);
+            assertEquals("off didn't put the cover back", 1f, cover.getScaleY(), 0f);
+            assertFalse(SeeThroughStatusBar.anyFilled());
+        }
+    }
+
+    /** The still, as tall as the picture and fitted in the middle of its cover, is drawn where the grown picture is in {@code space}. */
+    private static void assertTheStillIsOnThePicture(View picture, View cover, View space) {
+        float scale = picture.getScaleY();
+        assertTrue("the picture didn't fill", scale > 1f);
+        assertEquals("the cover kept TikTok's size", scale, cover.getScaleY(), 0f);
+        float top = above(picture, space) + pivotY(picture) * (1f - scale);
+        float pivot = pivotY(cover);
+        float inside = (cover.getHeight() - picture.getHeight()) / 2f;
+        float still = above(cover, space) + pivot + scale * (inside - pivot);
+        // Same height, same scale: tops that meet put the bottoms together too.
+        assertEquals("the still is off the picture", top, still, 2f);
+    }
+
+    /** How far down {@code space} the unscaled top of {@code view} sits, its own place and every view's between. */
+    private static float above(View view, View space) {
+        float top = 0f;
+        for (View at = view; at != space; at = (View) at.getParent()) {
+            top += at.getTop() + at.getTranslationY();
+        }
+        return top;
+    }
+
+    /** Robolectric reads 0 for a pivot nothing set, where Android follows the view's center. */
+    private static float pivotY(View view) {
+        return view.isPivotSet() ? view.getPivotY() : view.getHeight() / 2f;
     }
 
     /**
@@ -469,6 +653,12 @@ public class SeeThroughStatusBarTest {
             nextCover.setScaleY(1f);
             VideoOverlayHider.applyTo(activity);
             assertEquals(nextScale, nextCover.getScaleY(), 0f);
+
+            // TikTok places that player for the space it had before the spacer went, so it can sit
+            // low, and the still beside it lands where the grown player does.
+            nextPlayer.setTranslationY(120f);
+            VideoOverlayHider.applyTo(activity);
+            assertTheStillIsOnThePicture(nextPlayer, nextCover, space);
 
             Settings.SEE_THROUGH_STATUS_BAR.save(false);
             VideoOverlayHider.applyTo(activity);

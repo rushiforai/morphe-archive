@@ -117,7 +117,7 @@ public enum PatchFamily {
     MESSAGE_BOX(FamilyNames.MESSAGE_BOX, "messageBox", null),
     PLUS_MENU(FamilyNames.PLUS_MENU, "plusMenu", null, Settings.HIDE_PLUS_SAVED, Settings.HIDE_PLUS_AI_IMAGES,
             Settings.HIDE_PLUS_DRAW, Settings.MOVE_TO_PLUS_MENU),
-    GLASS_CHAT(FamilyNames.GLASS_CHAT, "glassChat", null, Settings.GLASS_CHAT),
+    GLASS_CHAT(FamilyNames.GLASS_CHAT, "glassChat", null, Settings.GLASS_CHAT, Settings.GLASS_STORY_REPLY_BOX),
     ASK_BEFORE_LIKE(FamilyNames.ASK_BEFORE_LIKE, "askBeforeLike", null, Settings.ASK_BEFORE_LIKE),
     ASK_BEFORE_REFRESH(FamilyNames.ASK_BEFORE_REFRESH, "askBeforeRefresh", null, Settings.ASK_BEFORE_REFRESH),
     ASK_BEFORE_FOLLOW(FamilyNames.ASK_BEFORE_FOLLOW, "askBeforeFollow", null, Settings.ASK_BEFORE_FOLLOW),
@@ -129,7 +129,7 @@ public enum PatchFamily {
     STORY_RING(FamilyNames.STORY_RING, "storyRingSize", null, Settings.STORY_RING),
     STORY_PROGRESS_BAR(FamilyNames.STORY_PROGRESS_BAR, "storyProgressBar", null, Settings.THICKER_STORY_BAR),
     STORY_SEEK_BAR(FamilyNames.STORY_SEEK_BAR, "storySeekBar", null, Settings.STORY_SEEK_BAR),
-    STORY_SPEED(FamilyNames.STORY_SPEED, "storySpeed", null, Settings.STORY_SPEED_BUTTON),
+    STORY_SPEED(FamilyNames.STORY_SPEED, "storySpeed", null, Settings.STORY_SPEED_BUTTON, Settings.STORY_SPEED_IN_MENU),
     FEED_REELS(FamilyNames.FEED_REELS, "feedReels", null, Settings.HIDE_FEED_REELS),
     FEED_SUGGESTIONS(FamilyNames.FEED_SUGGESTIONS, "feedSuggestions", null, Settings.HIDE_SUGGESTED_ACCOUNTS,
             Settings.HIDE_SUGGESTED_POSTS, Settings.HIDE_THREADS_POSTS, Settings.HIDE_FEED_SURVEYS,
@@ -138,7 +138,7 @@ public enum PatchFamily {
             Settings.HIDDEN_IN_FAVORITES),
     HOME_FEED(FamilyNames.HOME_FEED, "homeFeed", null, Settings.HIDE_HOME_FEED),
     FOLLOWING_FEED(FamilyNames.FOLLOWING_FEED, "followingFeed", null, Settings.START_ON_FOLLOWING,
-            Settings.ONLY_FOLLOWING, Settings.LOGO_ON_FOLLOWING, Settings.FOLLOWING_FALLBACK, Settings.FOLLOWING_MIX),
+            Settings.ONLY_FOLLOWING, Settings.LOGO_ON_FOLLOWING, Settings.FOLLOWING_FALLBACK, Settings.FOLLOWING_MIX, Settings.FAVORITES_TAB_BAR),
     SWIPE_TO_CREATE(FamilyNames.SWIPE_TO_CREATE, "swipeToCreate", null, Settings.STOP_SWIPE_TO_CREATE),
     TAB_SWIPE(FamilyNames.TAB_SWIPE, "tabSwipe", null, Settings.STOP_TAB_SWIPING),
     TAB_BAR_LAYOUT(FamilyNames.TAB_BAR_LAYOUT, "tabBarLayout", null),
@@ -167,18 +167,19 @@ public enum PatchFamily {
             Settings.GLASS_TAB_BAR_BLUR, Settings.GLASS_TAB_BAR_FLOAT, Settings.GLASS_TAB_BAR_HAPTICS,
             Settings.GLASS_TAB_BAR_HIDE_ON_SCROLL, Settings.GLASS_TAB_BAR_SLIDE, Settings.GLASS_TAB_BAR_LIQUID,
             Settings.GLASS_TAB_BAR_KEEP_SIZE, Settings.GLASS_TAB_BAR_REFRACT,
-            Settings.GLASS_TAB_BAR_REELS_BEHIND),
+            Settings.GLASS_TAB_BAR_REELS_BEHIND, Settings.GLASS_TAB_BAR_TAP_SOUND),
     FULL_SCREEN_BARS(FamilyNames.FULL_SCREEN_BARS, "fullScreenBars", null, Settings.FULL_SCREEN_REELS,
             Settings.FILL_REEL_SCREEN, Settings.FIT_REEL_SCREEN, Settings.FULL_SCREEN_HOME, Settings.FULL_SCREEN_MESSAGES,
             Settings.FILL_STORY_SCREEN),
-    SAVED_ON_PROFILE(FamilyNames.SAVED_ON_PROFILE, "savedOnProfile", null, Settings.SAVED_ON_PROFILE),
+    SAVED_ON_PROFILE(FamilyNames.SAVED_ON_PROFILE, "savedOnProfile", null, Settings.SAVED_ON_PROFILE,
+            Settings.SAVED_FAST_SCROLL),
     STOP_HEARTBEAT(FamilyNames.STOP_HEARTBEAT, "stopHeartbeat", null, Settings.STOP_HEARTBEAT,
             Settings.STOP_UPLOAD_ALARM, Settings.STOP_BACKGROUND_FETCH),
     REFRESH_RATE(FamilyNames.REFRESH_RATE, "refreshRate", null, Settings.HIGHEST_REFRESH_RATE),
     EMOJI_STYLE(FamilyNames.EMOJI_STYLE, "emojiStyle", null, Settings.NOTO_EMOJI),
     ACCENT_COLOR(FamilyNames.ACCENT_COLOR, "accentColor", null, Settings.ACCENT_COLOR, Settings.ACCENT_BADGES,
             Settings.ACCENT_ICONS, Settings.ACCENT_RINGS, Settings.ACCENT_RINGS_SOLID, Settings.ACCENT_BACKGROUNDS),
-    LAUNCH_SCREEN(FamilyNames.LAUNCH_SCREEN, "launchScreen", null, Settings.LAUNCH_SCREEN),
+    LAUNCH_SCREEN(FamilyNames.LAUNCH_SCREEN, "launchScreen", null, Settings.LAUNCH_SCREEN, Settings.LAUNCH_SCREEN_ACCENT),
     HEADER_TEXT(FamilyNames.HEADER_TEXT, "headerText", null),
     APP_ICON(FamilyNames.APP_ICON, "appIcon", "the home screen icon you picked"),
     SETTINGS_ROWS(FamilyNames.SETTINGS_ROWS, "settingsRows", null),
@@ -187,7 +188,7 @@ public enum PatchFamily {
     HDR_BOOST(FamilyNames.HDR_BOOST, "hdrBoost", null, Settings.TURN_OFF_HDR_BOOSTS),
     STOP_LOOPING(FamilyNames.STOP_LOOPING, "stopLooping", null, Settings.STOP_VIDEO_LOOPING),
     BACKGROUND_PLAY(FamilyNames.BACKGROUND_PLAY, "backgroundPlay", null, Settings.KEEP_PLAYING_IN_BACKGROUND,
-            Settings.REELS_PICTURE_IN_PICTURE),
+            Settings.REELS_PICTURE_IN_PICTURE, Settings.STORIES_PICTURE_IN_PICTURE),
     MEDIA_CACHE(FamilyNames.MEDIA_CACHE, "mediaCache", null, Settings.CLEAR_MEDIA_CACHE),
     FRIENDSHIP_STATUS(FamilyNames.FRIENDSHIP_STATUS, "friendshipStatus", null, Settings.SHOW_FRIENDSHIP_STATUS,
             Settings.MARK_FOLLOWING_LIST, Settings.FOLLOW_MARK_ON_PICTURE, Settings.FRIENDSHIP_STATUS_CHIP,
@@ -221,7 +222,7 @@ public enum PatchFamily {
     COMMENT_KEYBOARD(FamilyNames.COMMENT_KEYBOARD, "commentKeyboard", null, Settings.COMMENT_KEYBOARD_DOWN),
     COMMENT_GIFS(FamilyNames.COMMENT_GIFS, "commentGifs", null, Settings.HIDE_COMMENT_GIFS),
     COMMENT_SEARCH(FamilyNames.COMMENT_SEARCH, "commentSearch", null, Settings.COMMENT_SEARCH),
-    FEED_FOLLOW(FamilyNames.FEED_FOLLOW, "feedFollow", null, Settings.HIDE_FEED_FOLLOW),
+    FEED_FOLLOW(FamilyNames.FEED_FOLLOW, "feedFollow", null, Settings.HIDE_FEED_FOLLOW, Settings.HIDE_FEED_SUBSCRIBE),
     EDITS_LABEL(FamilyNames.EDITS_LABEL, "editsLabel", null, Settings.HIDE_EDITS_LABEL),
     FEED_SAVE(FamilyNames.FEED_SAVE, "feedSave", null, Settings.SAVE_IN_POST_MENU, Settings.HIDE_FEED_SAVE_BUTTON),
     WATCH_AGAIN(FamilyNames.WATCH_AGAIN, "watchAgain", null, Settings.WATCH_AGAIN_IN_FEED),
@@ -235,7 +236,8 @@ public enum PatchFamily {
             Settings.HIDE_REEL_POLL_PILLS, Settings.HIDE_REEL_SOCIAL_FOOTER, Settings.HIDE_REEL_COMMENT_BAR,
             Settings.HIDE_REEL_COMMENT_BAR_EVERYWHERE, Settings.KEEP_REEL_COMMENT_BAR_SPACE, Settings.HIDE_REEL_REPLY_BAR,
             Settings.HIDE_REELS_TOP_BAR,
-            Settings.HIDE_REELS_CREATE_BUTTON, Settings.HIDE_REELS_YOUR_ALGORITHM, Settings.HIDE_REELS_FRIENDS_TAB,
+            Settings.HIDE_REELS_CREATE_BUTTON, Settings.HIDE_SAVED_REELS_CREATE_BUTTON,
+            Settings.HIDE_REELS_YOUR_ALGORITHM, Settings.HIDE_REELS_FRIENDS_TAB,
             Settings.HIDE_REEL_SAVE_BUTTON, Settings.KEEP_REEL_CLEAR_MODE, Settings.QUIET_REEL_CLEAR_MODE,
             Settings.CLEAR_MODE_SEEK_BAR, Settings.SHOW_REELS_FRIENDS_TAB, Settings.PICK_FRIENDS_TAB),
     KEEP_REELS_TOP_BAR(FamilyNames.KEEP_REELS_TOP_BAR, "keepReelsTopBar", null, Settings.KEEP_REELS_TOP_BAR),
@@ -261,6 +263,7 @@ public enum PatchFamily {
             Settings.HIDE_OTHER_LANGUAGE_REELS),
     LOW_VIEW_REELS(FamilyNames.LOW_VIEW_REELS, "lowViewReels", null, Settings.HIDE_LOW_VIEW_REELS),
     KEEP_REEL_SPEED(FamilyNames.KEEP_REEL_SPEED, "keepReelSpeed", null, Settings.KEEP_REEL_SPEED),
+    REEL_LINKS(FamilyNames.REEL_LINKS, "reelLinks", null, Settings.OPEN_REEL_LINKS_FIRST),
     REEL_POST_TIME(FamilyNames.REEL_POST_TIME, "reelPostTime", null, Settings.SHOW_REEL_POST_TIME),
     REEL_SEEK_BAR(FamilyNames.REEL_SEEK_BAR, "reelSeekBar", null, Settings.REEL_SEEK_BAR, Settings.REEL_SEEK_THUMB, Settings.BIG_REEL_SEEK_BAR,
             Settings.DM_REEL_SEEK_BAR, Settings.PHOTO_REEL_SEEK_BAR),
@@ -496,6 +499,23 @@ public enum PatchFamily {
         return FOLLOWING_FEED.inBuild() && SettingsStatus.followingMix();
     }
 
+    /** Whether a test says this build has Favorites from the tab bar, instead of asking {@link SettingsStatus}. */
+    @Nullable
+    static volatile Boolean favoritesFeedForTests;
+
+    /**
+     * Whether this build keeps the tab bar on Favorites and opens it from a tab (#643). Start Home on
+     * Following goes in without it when Home's feed switch or the tab bar has moved, so its rows
+     * aren't offered then.
+     */
+    public static boolean favoritesFeedInBuild() {
+        Boolean forced = favoritesFeedForTests;
+        if (forced != null) return forced;
+        Set<PatchFamily> families = inBuildForTests;
+        if (families != null) return families.contains(FOLLOWING_FEED);
+        return FOLLOWING_FEED.inBuild() && SettingsStatus.favoritesFeed();
+    }
+
     /** The families this build carries, in declaration order. */
     public static Set<PatchFamily> inThisBuild() {
         Set<PatchFamily> found = EnumSet.noneOf(PatchFamily.class);
@@ -556,6 +576,9 @@ public enum PatchFamily {
                 }
                 if (family == FOLLOWING_FEED && !followingMixInBuild()) {
                     lines.add("  Mix in Following: not in this build (Home's paging didn't match)");
+                }
+                if (family == FOLLOWING_FEED && !favoritesFeedInBuild()) {
+                    lines.add("  Favorites from the tab bar: not in this build (Home's feed switch or the tab bar didn't match)");
                 }
                 if (family == COMMENT_PHOTO && !commentGifReplyInBuild()) {
                     lines.add("  Reply with a comment's GIF: not in this build (the comment screen's Reply or GIF send didn't match)");

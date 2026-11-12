@@ -285,17 +285,26 @@ function Set-ManagerIndex {
     .SYNOPSIS
         Writes patches-bundle.json, the index Morphe Manager reads, for a published release.
     .DESCRIPTION
-        Its five keys in the order the file has always kept them. created_at is the release's
-        publish time in UTC with no Z, which is how Manager's parser wants it, and download_url is
-        the release's .mpp asset.
+        Its five keys in the order the file has always kept them, then public_key. created_at is
+        the release's publish time in UTC with no Z, which is how Manager's parser wants it, and
+        download_url is the release's .mpp asset. public_key is the bundle signing key Manager pins
+        for the source: -PublicKey, or else morphe-signing.pub beside the index. The build stage
+        holds the bundle to that key and the publish stage holds the hosted copy to the built one.
+        An empty -PublicKey leaves the key out.
     #>
     param(
         [Parameter(Mandatory = $true)][string]$Path,
         [Parameter(Mandatory = $true)][string]$Version,
         [Parameter(Mandatory = $true)][string]$CreatedAt,
         [Parameter(Mandatory = $true)][string]$Description,
-        [Parameter(Mandatory = $true)][string]$Repository
+        [Parameter(Mandatory = $true)][string]$Repository,
+        [string]$PublicKey
     )
+    if (-not $PSBoundParameters.ContainsKey('PublicKey')) {
+        $published = Join-Path (Split-Path -Parent ([IO.Path]::GetFullPath($Path))) 'morphe-signing.pub'
+        if (Test-Path -LiteralPath $published -PathType Leaf) { $PublicKey = (Get-Content -LiteralPath $published -Raw).Trim() }
+    }
+    if ($PublicKey -and $PublicKey -notmatch '^[A-Za-z0-9+/]{43}=$') { throw "$PublicKey isn't a Base64 Ed25519 public key." }
     if ($Version -notmatch '^\d+\.\d+\.\d+$') { throw "$Version isn't a version like 0.0.12." }
     if ($CreatedAt -notmatch '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$') {
         throw "created_at is the UTC publish time with no Z, like 2026-10-08T23:35:35, not $CreatedAt."
@@ -308,7 +317,8 @@ function Set-ManagerIndex {
         "  ""description"": $(ConvertTo-JsonText $text),`n" +
         "  ""download_url"": $(ConvertTo-JsonText $url),`n" +
         "  ""signature_download_url"": """",`n" +
-        "  ""version"": $(ConvertTo-JsonText $Version)`n" +
+        "  ""version"": $(ConvertTo-JsonText $Version)" +
+        $(if ($PublicKey) { ",`n  ""public_key"": $(ConvertTo-JsonText $PublicKey)" }) + "`n" +
         "}`n"
     Write-ReleaseText -Path $Path -Text $json
 }

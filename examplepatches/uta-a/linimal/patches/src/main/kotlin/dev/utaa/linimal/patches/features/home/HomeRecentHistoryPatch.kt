@@ -109,7 +109,7 @@ private val recentlyUsedServiceCardFingerprint = Fingerprint(
  * `endRestartGroup` の経路です。設定 OFF・未初期化・例外時は元の結果をそのまま使います。</p>
  */
 val homeRecentHistoryPatch = bytecodePatch(
-    name = "ホームの最近の履歴",
+    name = "Home recent history",
     description = "ホーム上部にある最近使用したサービスの枠を、実行時設定で非表示にできるようにします。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

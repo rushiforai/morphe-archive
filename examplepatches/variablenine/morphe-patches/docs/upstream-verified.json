@@ -1,0 +1,9 @@
+{
+  "official_patches_version": "2.2.0",
+  "official_patcher_version": "2.3.0",
+  "verified_on": "2026-11-12",
+  "youtube_version": "21.30.216",
+  "reddit_version": "2026.40.0",
+  "result": "compatible",
+  "notes": "Combined run with the official default patches: YouTube 114 patches applied, Reddit 31, none failed. The official YouTube theme patch wraps the one setTextColor call in app.variablenine.nudge.ui.Ui with ThemeColorPatch.getForegroundColor, which returns our colours unchanged."
+}

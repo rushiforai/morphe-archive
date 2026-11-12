@@ -149,7 +149,7 @@ internal data class LabelDonorShape(
  * <p>どの段でも導出に失敗した場合は何も注入せず、Patch Status を記録して終了します。</p>
  */
 val readWithoutReceiptComposeMenuPatch = bytecodePatch(
-    name = "既読をつけずに読む",
+    name = "Read without receipt",
     description = "トーク一覧の長押しメニューへ「既読をつけずに読む」の行を追加します。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

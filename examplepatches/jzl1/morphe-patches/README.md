@@ -7,7 +7,7 @@ Patches for some apps I use myself.
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.4.0](https://github.com/jzl1/morphe-patches/releases/tag/v1.4.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;13 patches total
+> **[v1.5.0](https://github.com/jzl1/morphe-patches/releases/tag/v1.5.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;15 patches total
 <details open>
 <summary>📦 Network Signal Guru&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
@@ -22,6 +22,23 @@ Patches for some apps I use myself.
 | [Bundle QuickTest configuration](#bundle-quicktest-configuration) | Adds the stock QTRUN-signed configuration.xml and skips the native config-integrity mismatch gate, so the app can start without a fresh /cgi/report response. |  |
 | [Export AdvancedActivity (test only)](#export-advancedactivity-test-only) | Marks AdvancedActivity as exported for adb-based license-state verification. Disabled by default; not needed for normal use. |  |
 | [Unlock Ultimate](#unlock-ultimate) | Unlocks all Ultimate features and makes the app usable on a clean install by bundling a signed config and bypassing the native config-integrity gate. |  |
+
+</details>
+
+<details open>
+<summary>📦 LTE Discovery&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 7.6.33 | 7.6.34 |
+| :---: | :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Disable emulator check](#disable-emulator-check) | Allows LTE Discovery to run on virtual Android devices by forcing the single Build.*-based emulator predicate to false. Opt-in; only needed on emulators. |  |
+| [Unlock Pro](#unlock-pro) | Unlocks Pro and Pro Plus features by forcing the two client-side BillingEntitlements predicates to true. Also disables Google PairIP App Licensing so the repackaged build can start. |  |
+| [Unlock Pro Plus / Donate](#unlock-pro-plus-donate) | Marks the Pro Plus / Donate (e6) tier as owned. It does not add any feature beyond Pro Plus - the only visible effect is the 'Pro Plus / Donate' label and the supporter badge. Requires Unlock Pro. Disabled by default. |  |
 
 </details>
 
@@ -61,6 +78,21 @@ Patches for some apps I use myself.
 </details>
 
 <details open>
+<summary>📦 Hutch App&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 4.4.1 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Remove environment checks](#remove-environment-checks) | Forces every JailMonkey / RootBeer / device-info device-trust check to false (root, developer options, USB debugging, emulator, hook frameworks, debugger, mock location, external storage) and disables the force-quit used by the refusal dialog. |  |
+
+</details>
+
+<details open>
 <summary>📦 JuiceSSH&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
@@ -72,22 +104,6 @@ Patches for some apps I use myself.
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Unlock Pro](#unlock-pro) | Unlocks JuiceSSH Pro features without a Play purchase by forcing the client-side entitlement and signature checks. Online features (CloudSync, TeamShare, EC2 Link, plugin repository, purchase/restore) will not work because api.sonelli.com is offline. |  |
-
-</details>
-
-<details open>
-<summary>📦 LTE Discovery&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 7.6.33 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Unlock Pro](#unlock-pro) | Unlocks Pro and Pro Plus features by forcing the two client-side BillingEntitlements predicates to true. Also disables Google PairIP App Licensing so the repackaged build can start. |  |
-| [Unlock Pro Plus / Donate](#unlock-pro-plus-donate) | Marks the Pro Plus / Donate (e6) tier as owned. It does not add any feature beyond Pro Plus - the only visible effect is the 'Pro Plus / Donate' label and the supporter badge. Requires Unlock Pro. |  |
 
 </details>
 

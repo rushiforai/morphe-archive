@@ -3,6 +3,7 @@ package app.zeldrisho.patches.shared
 import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
+import app.morphe.patcher.patch.SupportedAbi
 
 object Constants {
     /** Tested build: APKMirror versionCode 510406926 (APKMirror ships the same
@@ -84,17 +85,17 @@ object Constants {
     /** Zalo 26.08.01 target, shared by the version-pinned and aggregate compatibility entries. */
     private val ZALO_260801_TARGET = AppTarget(
         version = "26.08.01",
-        versionCode = TESTED_ZALO_VERSION_CODE,
+        versionCodes = mapOf(SupportedAbi.ARM64_V8A to TESTED_ZALO_VERSION_CODE),
         minSdk = 24,
-        description = "Only arm64-v8a has been validated; ABI is not restricted by compatibility metadata.",
+        description = "Only arm64-v8a has been validated; patching may retain other ABIs.",
     )
 
     /** Zalo 26.10.02 target, shared by the version-pinned and aggregate compatibility entries. */
     private val ZALO_261002_TARGET = AppTarget(
         version = "26.10.02",
-        versionCode = TESTED_ZALO_VERSION_CODE_261002,
+        versionCodes = mapOf(SupportedAbi.ARM64_V8A to TESTED_ZALO_VERSION_CODE_261002),
         minSdk = 24,
-        description = "Only arm64-v8a has been validated; ABI is not restricted by compatibility metadata.",
+        description = "Only arm64-v8a has been validated; patching may retain other ABIs.",
     )
 
     val COMPATIBILITY_ZALO_260801 = Compatibility(

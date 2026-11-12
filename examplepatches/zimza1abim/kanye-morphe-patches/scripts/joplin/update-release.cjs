@@ -1,0 +1,30 @@
+// Port the adapter to a new official release. Unknown source layouts stop safely.
+// Usage: ANDROID_HOME=/path/to/sdk node scripts/joplin/update-release.cjs 3.x.y /path/to/source /path/to/original.apk
+const fs = require('node:fs');
+const path = require('node:path');
+const os = require('node:os');
+const crypto = require('node:crypto');
+const { execFileSync } = require('node:child_process');
+const [version, sourceArg, apkArg] = process.argv.slice(2);
+if (!/^\d+\.\d+\.\d+$/.test(version || '') || !sourceArg || !apkArg) throw Error('Supply version, official source checkout, and original APK');
+const source = path.resolve(sourceArg), apk = path.resolve(apkArg);
+const git = args => execFileSync('git', args, { cwd: source, encoding: 'utf8' }).trim();
+const commit = git(['rev-parse', 'HEAD']);
+if (commit !== git(['rev-parse', 'refs/tags/android-v' + version + '^{commit}'])) throw Error('Source must match the official Android release tag');
+const sdk = process.env.ANDROID_HOME || process.env.ANDROID_SDK_ROOT;
+if (!sdk) throw Error('Set ANDROID_HOME');
+const buildTools = fs.readdirSync(path.join(sdk, 'build-tools')).sort((a,b) => a.localeCompare(b, undefined, { numeric: true })).pop();
+const aapt = path.join(sdk, 'build-tools', buildTools, 'aapt2');
+const badging = execFileSync(aapt, ['dump', 'badging', apk], { encoding: 'utf8' });
+if (!badging.includes("package: name='net.cozic.joplin'") || !badging.includes("versionName='" + version + "'")) throw Error('APK package/version mismatch');
+if (badging.includes('app.fontism.extension')) throw Error('Use an unmodified APK');
+const xml = execFileSync(aapt, ['dump', 'xmltree', apk, '--file', 'AndroidManifest.xml'], { encoding: 'utf8' });
+if (xml.includes('app.fontism.extension')) throw Error('Already patched APK');
+const bundle = execFileSync('unzip', ['-p', apk, 'assets/index.android.bundle'], { maxBuffer: 128 * 1024 * 1024 });
+const originalSha256 = crypto.createHash('sha256').update(bundle).digest('hex');
+const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'joplin-release-adapter-'));
+const candidate = path.join(temp, 'candidate.json');
+fs.writeFileSync(candidate, JSON.stringify({ version, commit, originalSha256 }));
+execFileSync(process.execPath, [path.join(__dirname, 'build-bundle.cjs'), source, candidate], { stdio: 'inherit' });
+execFileSync(process.execPath, [path.join(__dirname, 'register-adapter.cjs')], { stdio: 'inherit' });
+console.log('Adapter registered alongside previous releases. Build MPP and check native patch application on this APK before distributing.');

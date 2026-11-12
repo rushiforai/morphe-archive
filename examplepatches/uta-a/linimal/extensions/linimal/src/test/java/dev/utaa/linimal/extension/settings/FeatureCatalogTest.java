@@ -1,6 +1,7 @@
 package dev.utaa.linimal.extension.settings;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -72,7 +73,7 @@ public final class FeatureCatalogTest {
     }
 
     @Test
-    public void agentIPageGroupsTheEightEntryPointsByLocation() {
+    public void agentIPageGroupsTheNineEntryPointsByLocation() {
         List<FeatureCatalog.Group> groups = FeatureCatalog.installedGroupsForPage(
                 SettingsPage.AGENT_I, allCatalogFeatureIds());
 
@@ -84,6 +85,7 @@ public final class FeatureCatalogTest {
         assertGroup(groups.get(1), SettingsSection.AGENT_I_CHAT,
                 "linimal.agent-i-chat-information",
                 "linimal.agent-i-chat-composer",
+                "linimal.agent-i-chat-plus-menu",
                 "linimal.line-ai-message-context-menu",
                 "linimal.line-ai-gallery-viewer");
         assertGroup(groups.get(2), SettingsSection.AGENT_I_SETTINGS,
@@ -117,6 +119,7 @@ public final class FeatureCatalogTest {
                 "linimal.home-trending",
                 "linimal.home-feed-post-cards",
                 "linimal.home-featured-collections",
+                "linimal.home-feed-live",
                 "linimal.home-recent-history");
         assertEquals("下部タブ", groups.get(0).getSection().getTitle());
         assertEquals("トーク一覧の上部", groups.get(1).getSection().getTitle());
@@ -156,13 +159,47 @@ public final class FeatureCatalogTest {
         assertGroup(groups.get(0), null,
                 "linimal.premium",
                 "linimal.premium-settings-row",
+                "linimal.preview-disable",
                 "linimal.premium-preview-promotion",
                 "linimal.preview-scroll",
                 "linimal.external-browser",
                 "linimal.push-notifications",
                 "linimal.google-drive-backup");
         assertEquals("設定のプレミアムを表示しない", groups.get(0).getEntries().get(1).getTitle());
-        assertEquals("プレビューの Premium の案内を表示しない", groups.get(0).getEntries().get(2).getTitle());
+        assertEquals("トークのプレビューを無効にする", groups.get(0).getEntries().get(2).getTitle());
+        assertEquals("プレビューの Premium の案内を表示しない", groups.get(0).getEntries().get(3).getTitle());
+    }
+
+    @Test
+    public void previewSettingsAreBlockedOnlyWhilePreviewDisableIsOn() {
+        FeatureCatalog.Entry disable = entryFor("linimal.preview-disable");
+        FeatureCatalog.Entry scroll = entryFor("linimal.preview-scroll");
+        FeatureCatalog.Entry promotion = entryFor("linimal.premium-preview-promotion");
+
+        assertNull(disable.getBlockedBy());
+        assertFalse(disable.isBlocked(true, true));
+        for (FeatureCatalog.Entry entry : java.util.Arrays.asList(scroll, promotion)) {
+            assertEquals(LinimalFeature.PREVIEW_DISABLE, entry.getBlockedBy());
+            assertEquals("「トークのプレビューを無効にする」が ON の間は変更できません。", entry.getBlockedSummary());
+            assertTrue(entry.isBlocked(true, true));
+            assertFalse(entry.isBlocked(true, false));
+            // 無効化のパッチが適用されていない・設定を読めない場合は止めません。
+            assertFalse(entry.isBlocked(false, true));
+        }
+        for (FeatureCatalog.Entry entry : FeatureCatalog.entries()) {
+            if (entry != scroll && entry != promotion) {
+                assertNull(entry.getFeatureId(), entry.getBlockedBy());
+            }
+        }
+    }
+
+    private static FeatureCatalog.Entry entryFor(String featureId) {
+        for (FeatureCatalog.Entry entry : FeatureCatalog.entries()) {
+            if (entry.getFeatureId().equals(featureId)) {
+                return entry;
+            }
+        }
+        throw new AssertionError(featureId);
     }
 
     @Test
@@ -173,6 +210,36 @@ public final class FeatureCatalogTest {
         assertEquals(1, groups.size());
         assertGroup(groups.get(0), null, "linimal.amoled-theme");
         assertEquals("ダークモードの背景を黒にする", groups.get(0).getEntries().get(0).getTitle());
+    }
+
+    @Test
+    public void readersPageGroupsOwnOthersOpeningAndSync() {
+        List<FeatureCatalog.Group> groups = FeatureCatalog.installedGroupsForPage(
+                SettingsPage.READ_RECEIPT_READERS, allCatalogFeatureIds());
+
+        assertEquals(4, groups.size());
+        assertGroup(groups.get(0), SettingsSection.READ_RECEIPT_READERS_OWN,
+                "linimal.read-receipt-readers-icons");
+        assertGroup(groups.get(1), SettingsSection.READ_RECEIPT_READERS_OTHERS,
+                "linimal.read-receipt-readers-others-count",
+                "linimal.read-receipt-readers-others-icons");
+        assertGroup(groups.get(2), SettingsSection.READ_RECEIPT_READERS_OPEN,
+                "linimal.read-receipt-readers-tap",
+                "linimal.read-receipt-readers-menu");
+        assertGroup(groups.get(3), SettingsSection.READ_RECEIPT_READERS_DATA,
+                "linimal.read-receipt-readers-server-sync");
+        assertEquals("既読マークの横にアイコンを並べる", groups.get(0).getEntries().get(0).getTitle());
+    }
+
+    @Test
+    public void readersPageHidesTheSyncSectionWhenItsPatchIsMissing() {
+        List<FeatureCatalog.Group> groups = FeatureCatalog.installedGroupsForPage(
+                SettingsPage.READ_RECEIPT_READERS,
+                Arrays.asList("linimal.read-receipt-readers-menu"));
+
+        assertEquals(1, groups.size());
+        assertGroup(groups.get(0), SettingsSection.READ_RECEIPT_READERS_OPEN,
+                "linimal.read-receipt-readers-menu");
     }
 
     /** 見出しだけが残らないよう、項目がすべて消えた小見出しは Group を作りません。 */

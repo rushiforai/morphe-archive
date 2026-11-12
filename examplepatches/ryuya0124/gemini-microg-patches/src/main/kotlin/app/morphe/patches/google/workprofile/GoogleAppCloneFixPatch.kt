@@ -1,5 +1,6 @@
 package app.morphe.patches.google.workprofile
 
+import app.morphe.patches.google.common.googleClonePermissionSupport
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
@@ -16,10 +17,11 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
  */
 val googleAppCloneFixPatch = bytecodePatch(
     name = "Google App Package Clone Support",
-    description = "クローン版 Google アプリ内の完全一致パッケージ名を .morphe へリダイレクトします。",
+    description = "Redirects Google package and owned permission references to .morphe. Automatic Clone Setup handles package, permission and provider isolation with the default selection.",
     default = true
 ) {
     compatibleWith("com.google.android.googlequicksearchbox")
+    dependsOn(googleClonePermissionSupport)
 
     execute {
         val originalPackage = VersionHookRegistry.target(HookId.PACKAGE_CLONE_REDIRECT, packageMetadata).anchorStrings.single()

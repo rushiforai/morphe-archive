@@ -6,6 +6,7 @@
  *
  * Modified by lavinhoque33, 2026-10-24: ported to the RVX fork (fork extension, version check and utility
  * packages; skipped with a warning before YouTube Music 9.15, where the Android Auto classes differ).
+ * Modified by lavinhoque33, 2026-11-10: resolve stored queues outside the media-session thread.
  */
 
 package app.morphe.patches.music.misc.androidauto
@@ -76,6 +77,8 @@ private const val FOLDER_RELOAD =
     $$"Lapp/morphe/extension/music/patches/androidauto/AndroidAutoPatch$FolderReload;"
 private const val PHONE_BROWSE_ITEM =
     $$"Lapp/morphe/extension/music/patches/androidauto/AndroidAutoPatch$PhoneBrowseItem;"
+private const val PLAYBACK_CALLBACK =
+    $$"Lapp/morphe/extension/music/patches/androidauto/AndroidAutoPatch$PlaybackCallback;"
 private const val MUSIC_BROWSER_SERVICE_CLASS =
     "Lcom/google/android/apps/youtube/music/mediabrowser/MusicBrowserService;"
 
@@ -158,11 +161,11 @@ val androidAutoPatch = bytecodePatch(
             return@execute
         }
 
+        // No XML dependency: it needs Download in app or Play downloads locally, which Settings.java decides.
         addSwitchPreference(
             CategoryType.MISC,
             "morphe_music_android_auto_downloaded_playlists",
             "true",
-            "morphe_music_in_app_downloads",
         )
 
         // region Bypass certificate checks
@@ -1057,13 +1060,25 @@ private fun BytecodePatchContext.patchDownloadedPlaylistPlayback(
     }
     if (!patchSignedOutDownloads()) return
 
-    callback.addInstructions(
-        0,
-        """
-            invoke-static/range { p1 .. p1 }, $EXTENSION_CLASS->onPlayFromMediaId(Ljava/lang/String;)Ljava/lang/String;
-            move-result-object p1
-        """
-    )
+    val callbackClass = mutableClassDefBy(callback.definingClass)
+    callbackClass.interfaces.add(PLAYBACK_CALLBACK)
+    runCatching { installAutoQueue() }.onFailure {
+        printWarn("Android Auto ordered saved queue is unavailable on this version: ${it.message}")
+    }
+    callbackClass.methods.add(callback.cloneMutable(
+        name = "rvxPlayFromMediaId",
+        accessFlags = AccessFlags.PUBLIC.value,
+    ))
+    val playHook = "$EXTENSION_CLASS->onPlayFromMediaId(" +
+            "${PLAYBACK_CALLBACK}Ljava/lang/String;Landroid/os/Bundle;)Ljava/lang/String;"
+    callback.addInstructionsWithLabels(0, """
+        invoke-static/range {p0 .. p2}, $playHook
+        move-result-object p1
+        if-nez p1, :native_auto_play
+        return-void
+        :native_auto_play
+        nop
+    """)
     mutableClassDefBy(EXTENSION_CLASS).methods.single {
         it.name == "downloadedPlaylistsSupported"
     }.returnEarly(true)

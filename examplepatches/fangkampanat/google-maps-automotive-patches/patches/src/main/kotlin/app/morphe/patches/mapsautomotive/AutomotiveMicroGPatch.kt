@@ -24,6 +24,7 @@ import com.android.tools.smali.dexlib2.builder.BuilderInstruction
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21c
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction31c
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction21c
@@ -81,6 +82,8 @@ private const val EXTENSION_CLASS = "Lapp/morphe/extension/shared/patches/GmsCor
 private const val UTILS_CLASS = "Lapp/morphe/extension/shared/Utils;"
 private const val CRASH_LOG_CLASS = "Lapp/morphe/extension/mapsautomotive/patches/CrashLogPatch;"
 internal const val UI_DENSITY_CLASS = "Lapp/morphe/extension/mapsautomotive/patches/UiDensityPatch;"
+// The "Language" row: the app's language (0.1.7). Its locale rides in the UI density's context override.
+private const val LANGUAGE_CLASS = "Lapp/morphe/extension/mapsautomotive/patches/AppLanguage;"
 internal const val REPORT_CLASS = "Lapp/morphe/extension/mapsautomotive/patches/ReportPatch;"
 internal const val SAFE_MODE_CLASS = "Lapp/morphe/extension/mapsautomotive/patches/SafeMode;"
 // The "Updates" row: whether a newer release is out (0.1.6).
@@ -160,7 +163,7 @@ internal object IncludedFeatures {
 val automotiveMicroGPatch = bytecodePatch(
     name = "Google Maps Automotive for MicroG-RE",
     description = "Runs Google Maps for Android Automotive on Android 10 with MicroG-RE 7.3.0, named " +
-        "\"$DEFAULT_APP_NAME\" unless the App name option says otherwise. Adds UI density, driver side and color scheme settings, " +
+        "\"$DEFAULT_APP_NAME\" unless the App name option says otherwise. Adds UI density, language, driver side and color scheme settings, " +
         "a problem report, an update check and a safe mode.",
     default = true,
 ) {
@@ -173,6 +176,7 @@ val automotiveMicroGPatch = bytecodePatch(
         // The separate patches execute after this one, which they depend on.
         IncludedFeatures.reset()
         IncludedFeatures.settingsRows += UI_DENSITY_CLASS
+        IncludedFeatures.settingsRows += LANGUAGE_CLASS
         IncludedFeatures.settingsRows += DRIVER_SIDE_CLASS
         IncludedFeatures.settingsRows += COLOR_SCHEME_CLASS
         rewriteGmsCoreStrings()
@@ -1107,9 +1111,9 @@ private fun BytecodePatchContext.injectWindowRefresh() {
 }
 
 // UI density. The Application and AppCompatActivity (the first attachBaseContext in
-// MapsActivity's hierarchy, shared by the app's activities) receive a density-only configuration
-// context for the density chosen in Settings (200 dpi until one is chosen; the system density keeps
-// the context unchanged).
+// MapsActivity's hierarchy, shared by the app's activities) receive a configuration context with the
+// density chosen in Settings (200 dpi until one is chosen) and the language chosen there; the system's
+// density and language keep the context unchanged.
 private fun BytecodePatchContext.applyUiDensity() {
     listOf(
         APPLICATION_CLASS to "Maps application attachBaseContext",
@@ -1126,4 +1130,109 @@ private fun BytecodePatchContext.applyUiDensity() {
             """.trimIndent(),
         )
     }
+    applyLanguageToCarContext()
+}
+
+// Maps' car UI views use their own context, a ContextWrapper that dumps itself as "OverrideDensityContextWrapper".
+// In its constructor and on a configuration change it builds a Configuration from scratch (a static (IIIF) helper:
+// density and screen size only) and passes it to createConfigurationContext. That context gets only this
+// configuration, not the override applyUiDensity put on the activity (AOSP ContextImpl on Android 10 and 11; later
+// versions not checked), so Maps' own texts kept the system's language. The chosen language is added to the
+// configuration right after the helper returns it. Required: the language row would otherwise change only this app's
+// own texts. The checks fail the patch when the wrapper, its two builds, their contexts or the helper's callers differ
+// from what was inspected in 26.10.120003.E.
+private val carContextDumpFingerprint = Fingerprint(
+    returnType = "V",
+    parameters = listOf("Ljava/lang/String;", "Ljava/io/PrintWriter;"),
+    strings = listOf("OverrideDensityContextWrapper: "),
+)
+
+private const val CONFIGURATION = "Landroid/content/res/Configuration;"
+
+private fun Instruction.createsConfigurationContext(): Boolean {
+    val reference = methodReferenceOrNull() ?: return false
+    return reference.name == "createConfigurationContext" && reference.returnType == "Landroid/content/Context;" &&
+        reference.parameterTypes.map { it.toString() } == listOf(CONFIGURATION)
+}
+
+private fun BytecodePatchContext.applyLanguageToCarContext() {
+    requireExtensionMethod(LANGUAGE_CLASS, "carConfiguration", listOf(CONFIGURATION), "V")
+    val dump = uniqueMapsHook(carContextDumpFingerprint, "Maps' car UI context dump")!!
+    val wrapper = mutableClassDefBy(dump.definingClass)
+    if (wrapper.superclass != "Landroid/content/ContextWrapper;") {
+        throw PatchException("Maps' car UI context ${wrapper.type} is not a ContextWrapper")
+    }
+
+    class Site(val method: MutableMethod, val moveResult: Int, val register: Int, val helper: String)
+    val sites = wrapper.methods.mapNotNull { method ->
+        val instructions = method.implementation?.instructions?.toList() ?: return@mapNotNull null
+        val calls = instructions.indices.filter { index ->
+            val reference = instructions[index].methodReferenceOrNull()
+            instructions[index].opcode in setOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE) &&
+                reference != null && reference.returnType == CONFIGURATION &&
+                reference.parameterTypes.map { it.toString() } == listOf("I", "I", "I", "F")
+        }
+        if (calls.isEmpty()) return@mapNotNull null
+        if (calls.size != 1) throw PatchException("Several configuration builds in $method")
+        val call = calls.single()
+        val moveResult = instructions.getOrNull(call + 1)
+        if (moveResult?.opcode != Opcode.MOVE_RESULT_OBJECT) {
+            throw PatchException("Configuration build in $method is not followed by move-result-object")
+        }
+        val register = (moveResult as OneRegisterInstruction).registerA
+        // The built configuration must reach createConfigurationContext unchanged: one such call after the build,
+        // taking this register, with no write to it in between.
+        val contexts = (call + 2 until instructions.size).filter { instructions[it].createsConfigurationContext() }
+        val context = contexts.singleOrNull()
+            ?: throw PatchException("Configuration build in $method is used for ${contexts.size} contexts")
+        val argument = (instructions[context] as? FiveRegisterInstruction)
+            ?.takeIf { it.registerCount == 2 }?.registerD
+        if (argument != register || (call + 2 until context).any {
+                instructions[it].opcode.setsRegister() && (instructions[it] as? OneRegisterInstruction)?.registerA == register
+            }
+        ) {
+            throw PatchException("Configuration built in $method is not the one passed to createConfigurationContext")
+        }
+        Site(method, call + 1, register, instructions[call].methodReferenceOrNull().toString())
+    }
+    // Inspected in 26.10.120003.E: the constructor and the configuration-change method (Configuration)V, one helper.
+    val constructors = sites.count { it.method.name == "<init>" }
+    val changes = sites.count {
+        it.method.name != "<init>" && it.method.returnType == "V" &&
+            it.method.parameterTypes.map { type -> type.toString() } == listOf(CONFIGURATION)
+    }
+    if (sites.size != 2 || constructors != 1 || changes != 1) {
+        throw PatchException("Expected two configuration builds in ${wrapper.type}, found ${sites.map { it.method }}")
+    }
+    if (sites.map { it.helper }.distinct().size != 1) {
+        throw PatchException("Configuration builds in ${wrapper.type} use different helpers: ${sites.map { it.helper }}")
+    }
+    // No other context of the wrapper, and no other caller of the helper anywhere in Maps.
+    val wrapperContexts = wrapper.methods.sumOf { method ->
+        method.implementation?.instructions?.count { it.createsConfigurationContext() } ?: 0
+    }
+    if (wrapperContexts != sites.size) {
+        throw PatchException("${wrapper.type} creates $wrapperContexts configuration contexts, expected ${sites.size}")
+    }
+    val helper = sites.first().helper
+    var helperCalls = 0
+    classDefForEach { classDef ->
+        if (classDef.type.startsWith("Lapp/morphe/extension/")) return@classDefForEach
+        classDef.methods.forEach { method ->
+            helperCalls += method.implementation?.instructions?.count {
+                it.methodReferenceOrNull()?.toString() == helper
+            } ?: 0
+        }
+    }
+    if (helperCalls != sites.size) {
+        throw PatchException("$helper is called $helperCalls times in Maps, expected ${sites.size} (in ${wrapper.type})")
+    }
+    sites.forEach { site ->
+        site.method.addInstruction(
+            site.moveResult + 1,
+            "invoke-static/range { v${site.register} .. v${site.register} }, " +
+                "$LANGUAGE_CLASS->carConfiguration($CONFIGURATION)V",
+        )
+    }
+    logger.info("Language for Maps' car UI context: ${wrapper.type}, ${sites.size} configuration builds (${sites.first().helper})")
 }

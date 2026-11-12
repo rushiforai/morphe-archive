@@ -56,13 +56,17 @@ public final class Download {
         try {
             for (Method m : creator.getClass().getDeclaredMethods()) {
                 Class<?>[] p = m.getParameterTypes();
-                if (p.length != 6 || p[2] != creator.getClass() || p[4] != ArrayList.class
-                        || p[5] != boolean.class || !p[1].isEnum()
-                        || !p[1].getName().endsWith("MediaOption$Option")) continue;
+                // (state, Option, creator, CharSequence label, ArrayList, boolean); since 455 a
+                // nullable analytics object sits between the creator and the label, which our
+                // rows (plain option + label) never need — pass null there.
+                if (p.length < 6 || p.length > 7 || p[2] != creator.getClass()
+                        || p[p.length - 2] != ArrayList.class || p[p.length - 1] != boolean.class
+                        || !p[1].isEnum() || !p[1].getName().endsWith("MediaOption$Option")) continue;
                 @SuppressWarnings({"unchecked", "rawtypes"})
                 Object option = Enum.valueOf((Class) p[1], name);
                 m.setAccessible(true);
-                m.invoke(null, null, option, creator, label, options, false);
+                if (p.length == 6) m.invoke(null, null, option, creator, label, options, false);
+                else m.invoke(null, null, option, creator, null, label, options, false);
                 return;
             }
             Log.w(TAG, "menu row adder not found");

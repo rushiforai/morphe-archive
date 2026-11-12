@@ -7,6 +7,7 @@ package app.morphe.extension.shared.diagnostics;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,6 +39,10 @@ import app.morphe.extension.shared.Utils;
  * Hushfeed's came from another bundle. A bundle that only rewrites TikTok's own classes adds
  * nothing here and cannot be seen this way.
  *
+ * <p>Which classes are Hushfeed's comes from the list the patch writes into the APK, since another
+ * bundle can put classes under the same packages or ship its own copy of the shared library. An
+ * APK patched before that list existed goes by package name.
+ *
  * <p>The scan reads each dex file's sorted string table out of the installed APK and stops once
  * it is past the {@code Lapp/} names, so it never holds a dex file in memory. It still inflates a
  * good part of a few hundred megabytes, so it never runs on the main thread: a report copied
@@ -52,6 +57,12 @@ public final class OtherBundles {
     };
     /** Libraries Hushfeed's extension ships under their own names (the MP3 encoder). */
     private static final String[] OWN_LIBRARIES = {"de.sciss.jump3r."};
+    /** The patch's list of the classes Hushfeed's extension adds under app/, one descriptor a line. */
+    private static final String OWN_CLASSES_ASSET = "hushfeed-classes-v1.txt";
+    /** Over ten times the list's size in 0.81, so only a damaged asset trips it. */
+    private static final int OWN_CLASSES_MAX_BYTES = 4 << 20;
+    /** An APK patched before the list existed, or one whose list can't be read. */
+    private static final Set<String> NOT_LISTED = Collections.unmodifiableSet(new HashSet<>());
     private static final byte[] PREFIX = {'L', 'a', 'p', 'p', '/'};
     /** Longer than any class name a bundle ships; a longer string is not a class. */
     private static final int NAME_MAX_BYTES = 512;
@@ -61,8 +72,10 @@ public final class OtherBundles {
     private static final java.util.regex.Pattern SECTION = java.util.regex.Pattern.compile("\\[[A-Z][A-Z ]*\\]");
 
     private static final Object SCAN_LOCK = new Object();
+    private static final Object OWN_LOCK = new Object();
     private static final AtomicBoolean SCAN_STARTED = new AtomicBoolean();
     private static volatile Scan result;
+    private static volatile Set<String> ownClasses;
     private static volatile List<File> apksForTests;
     /** The scanning thread's id while it runs at background priority, else 0. */
     private static volatile int scanThread;
@@ -123,7 +136,7 @@ public final class OtherBundles {
         if (scan == null) prefetch();
         List<String> lines = new ArrayList<>();
         lines.add("extension_packages: " + describe(scan));
-        lines.addAll(crashLines(crashReport));
+        lines.addAll(crashLines(crashReport, scan));
         return lines;
     }
 
@@ -184,9 +197,7 @@ public final class OtherBundles {
                 for (Enumeration<? extends ZipEntry> entries = zip.entries(); entries.hasMoreElements(); ) {
                     ZipEntry entry = entries.nextElement();
                     if (!isDexEntry(entry.getName())) continue;
-                    try (InputStream input = zip.getInputStream(entry)) {
-                        scanDex(input, classes);
-                    }
+                    scanDex(() -> zip.getInputStream(entry), classes);
                 }
             }
         }
@@ -208,31 +219,56 @@ public final class OtherBundles {
         return true;
     }
 
-    /** Adds this dex file's foreign class descriptors to {@code classes}. */
-    static void scanDex(InputStream raw, Set<String> classes) throws IOException {
-        Reader in = new Reader(raw);
-        byte[] header = in.read(0x70);
-        if (header[0] != 'd' || header[1] != 'e' || header[2] != 'x' || header[3] != '\n') {
-            throw new IOException("not a dex file");
-        }
-        int count = le(header, 0x38);
-        int idsOffset = le(header, 0x3C);
-        if (count == 0) return;
-        if (count < 0 || count > STRINGS_MAX || idsOffset < 0x70) throw new IOException("bad string table");
-        in.skipTo(idsOffset);
-        int[] offsets = new int[count];
-        byte[] chunk = new byte[4096];
-        for (int i = 0; i < count; ) {
-            int take = Math.min(chunk.length / 4, count - i);
-            in.readFully(chunk, take * 4);
-            for (int j = 0; j < take; j++) offsets[i++] = le(chunk, j * 4);
-        }
-        // The ids are sorted by content and the data is laid out in id order, which is what lets
-        // the read stop once it is past "Lapp/". Data in any other order is read whole.
-        boolean inIdOrder = true;
-        for (int i = 1; i < count && inIdOrder; i++) inIdOrder = offsets[i] > offsets[i - 1];
-        if (!inIdOrder) Arrays.sort(offsets);
+    /** A dex file's bytes from the start, each time it's opened. */
+    interface DexSource {
+        InputStream open() throws IOException;
+    }
 
+    /** Adds this dex file's foreign class descriptors to {@code classes}. */
+    static void scanDex(DexSource dex, Set<String> classes) throws IOException {
+        int[] offsets;
+        boolean inIdOrder;
+        try (InputStream raw = dex.open()) {
+            Reader in = new Reader(raw);
+            byte[] header = in.read(0x70);
+            if (header[0] != 'd' || header[1] != 'e' || header[2] != 'x' || header[3] != '\n') {
+                throw new IOException("not a dex file");
+            }
+            int count = le(header, 0x38);
+            int idsOffset = le(header, 0x3C);
+            if (count == 0) return;
+            if (count < 0 || count > STRINGS_MAX || idsOffset < 0x70) throw new IOException("bad string table");
+            in.skipTo(idsOffset);
+            offsets = new int[count];
+            byte[] chunk = new byte[4096];
+            for (int i = 0; i < count; ) {
+                int take = Math.min(chunk.length / 4, count - i);
+                in.readFully(chunk, take * 4);
+                for (int j = 0; j < take; j++) offsets[i++] = le(chunk, j * 4);
+            }
+            // The ids are sorted by content and the data is laid out in id order, which is what
+            // lets the read stop once it is past "Lapp/". Data in any other order is read whole.
+            inIdOrder = true;
+            for (int i = 1; i < count && inIdOrder; i++) inIdOrder = offsets[i] > offsets[i - 1];
+            if (!inIdOrder) Arrays.sort(offsets);
+            // No string can start inside the header, and a negative one is past 2 GB: either is a
+            // broken table, not a reason to inflate the whole file a second time.
+            if (offsets[0] < 0x70) throw new IOException("bad string table");
+            // d8 and dx put the string data after the ids, so it is read on in the same pass.
+            if (offsets[0] >= in.position) {
+                readNames(in, offsets, inIdOrder, classes);
+                return;
+            }
+        }
+        // A valid dex file can put string data before the ids table, which a forward-only read
+        // has already passed, so it is read again from the start.
+        try (InputStream raw = dex.open()) {
+            readNames(new Reader(raw), offsets, inIdOrder, classes);
+        }
+    }
+
+    private static void readNames(Reader in, int[] offsets, boolean inIdOrder, Set<String> classes)
+            throws IOException {
         byte[] name = new byte[NAME_MAX_BYTES];
         for (int offset : offsets) {
             if (offset < in.position) continue;
@@ -270,12 +306,54 @@ public final class OtherBundles {
     }
 
     private static boolean isOwn(String descriptor) {
+        Set<String> listed = ownClasses();
+        return listed != null ? listed.contains(descriptor) : ownByName(descriptor);
+    }
+
+    /** Under Hushfeed's package names, which a bundle built from the same template shares. */
+    private static boolean ownByName(String descriptor) {
         for (String own : OWN_PACKAGES) {
             if (descriptor.startsWith(own)) return true;
         }
         // The extension's own R class sits directly in app/morphe/extension.
         return descriptor.startsWith("Lapp/morphe/extension/")
                 && descriptor.indexOf('/', "Lapp/morphe/extension/".length()) < 0;
+    }
+
+    /** The classes the patch listed as Hushfeed's, or null when there is no list to go by. */
+    private static Set<String> ownClasses() {
+        Set<String> listed = ownClasses;
+        if (listed == null) {
+            Context context = Utils.getContext();
+            if (context == null) return null;
+            synchronized (OWN_LOCK) {
+                listed = ownClasses;
+                if (listed == null) {
+                    try (InputStream input = context.getAssets().open(OWN_CLASSES_ASSET)) {
+                        listed = readOwnClasses(input);
+                    } catch (IOException unavailable) {
+                        listed = NOT_LISTED;
+                    }
+                    ownClasses = listed;
+                }
+            }
+        }
+        return listed == NOT_LISTED ? null : listed;
+    }
+
+    /** One descriptor a line. An empty or oversized list counts as no list. */
+    static Set<String> readOwnClasses(InputStream input) throws IOException {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        byte[] buffer = new byte[8192];
+        for (int count; (count = input.read(buffer)) != -1; ) {
+            if (bytes.size() + count > OWN_CLASSES_MAX_BYTES) return NOT_LISTED;
+            bytes.write(buffer, 0, count);
+        }
+        Set<String> names = new HashSet<>();
+        for (String line : bytes.toString("ISO-8859-1").split("\n")) {
+            if (line.startsWith("Lapp/") && line.endsWith(";")) names.add(line);
+        }
+        return names.isEmpty() ? NOT_LISTED : names;
     }
 
     /** "Lapp/ftl/extension/dpi/DensityPatch;" groups as "app.ftl.extension.dpi". */
@@ -293,15 +371,22 @@ public final class OtherBundles {
         return packagePath.replace('/', '.');
     }
 
-    /** Whose code a class name is, for one stack frame. */
-    static String owner(String className) {
+    /** Whose code a class name is, for one stack frame, with the APK's scan when there is one. */
+    static String owner(String className, Scan scan) {
         String descriptor = "L" + className.replace('.', '/') + ";";
         if (isOwn(descriptor)) return "Hushfeed";
         for (String library : OWN_LIBRARIES) {
             if (className.startsWith(library)) return "Hushfeed";
         }
         if (className.startsWith("app.") && className.indexOf('.', 4) > 0) {
-            return "another patch bundle (" + group(descriptor) + ")";
+            String group = group(descriptor);
+            // A saved crash outlives an update, so its frames can name a class an earlier Hushfeed
+            // had and this one renamed, which no list holds. When no bundle in this APK has
+            // classes under that name, it was Hushfeed's.
+            if (scan != null && scan.failure == null && !scan.packages.containsKey(group) && ownByName(descriptor)) {
+                return "Hushfeed (an earlier build)";
+            }
+            return "another patch bundle (" + group + ")";
         }
         return "TikTok's own classes, which a bundle may have rewritten";
     }
@@ -322,7 +407,7 @@ public final class OtherBundles {
      * first. Until the first suppressed one, each "Caused by" block is the next link of the chain,
      * so the deepest cause is the last of those blocks with an app frame.
      */
-    static List<String> crashLines(String crashReport) {
+    static List<String> crashLines(String crashReport, Scan scan) {
         if (crashReport == null || crashReport.isEmpty()) return Collections.emptyList();
         int stack = crashReport.indexOf("[STACK TRACE]\n");
         if (stack < 0) return Collections.emptyList();
@@ -364,15 +449,15 @@ public final class OtherBundles {
                 causeClass = className;
                 causeTaken = true;
             }
-            if (owner(className).startsWith("another") && seen.put(frame, Boolean.TRUE) == null) foreign++;
+            if (owner(className, scan).startsWith("another") && seen.put(frame, Boolean.TRUE) == null) foreign++;
         }
         if (top == null) return Collections.emptyList();
         List<String> lines = new ArrayList<>();
         lines.add("latest_crash_top_app_frame: " + top);
-        lines.add("latest_crash_top_app_frame_from: " + owner(topClass));
+        lines.add("latest_crash_top_app_frame_from: " + owner(topClass, scan));
         if (cause != null && !cause.equals(top)) {
             lines.add("latest_crash_cause_app_frame: " + cause);
-            lines.add("latest_crash_cause_app_frame_from: " + owner(causeClass));
+            lines.add("latest_crash_cause_app_frame_from: " + owner(causeClass, scan));
         }
         lines.add("latest_crash_frames_from_other_bundles: " + foreign);
         return lines;
@@ -386,9 +471,20 @@ public final class OtherBundles {
         }
     }
 
+    /** Stands in for the APK's list; null reads the APK's own again. */
+    static void useOwnClassesForTests(Set<String> listed) {
+        synchronized (OWN_LOCK) {
+            ownClasses = listed == null ? null : listed.isEmpty() ? NOT_LISTED : listed;
+        }
+    }
+
     /** Runs the scan now, as a report saved to a file would. */
     static void scanForTests() {
         scanNow();
+    }
+
+    static boolean startedForTests() {
+        return SCAN_STARTED.get();
     }
 
     private static int le(byte[] bytes, int at) {

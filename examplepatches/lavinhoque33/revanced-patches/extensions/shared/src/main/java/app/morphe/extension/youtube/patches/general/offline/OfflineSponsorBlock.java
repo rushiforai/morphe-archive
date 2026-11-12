@@ -5,7 +5,7 @@
  * https://github.com/anddea/revanced-patches
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-05.
+ * Modified by lavinhoque33, 2026-11-10.
  * Written by lavinhoque33, 2026-11-05.
  */
 package app.morphe.extension.youtube.patches.general.offline;
@@ -127,7 +127,8 @@ final class OfflineSponsorBlock {
                 box.setText(category.title.toString());
                 box.setTextColor(foreground);
                 box.setButtonTintList(ColorStateList.valueOf(Color.parseColor(category.colorSetting.get())));
-                box.setPadding(Utils.dipToPixels(48), 0, Utils.dipToPixels(16), 0);
+                int startPadding = Settings.OFFLINE_SHOW_OPTION_ICONS.get() ? 48 : 16;
+                box.setPadding(Utils.dipToPixels(startPadding), 0, Utils.dipToPixels(16), 0);
                 box.setChecked(categories.contains(key));
                 box.setOnCheckedChangeListener((button, checked) -> {
                     if (checked) categories.add(key);

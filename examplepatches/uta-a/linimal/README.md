@@ -1,175 +1,195 @@
 # Linimal
 
-Linimal は、公式 LINE Android クライアント向けの Morphe パッチバンドルです（GPL-3.0）。広告や使わない機能の表示を消し、既読の送信を制御できるようにします。すべての機能は LINE の設定画面から個別に ON / OFF でき、OFF のときは公式 LINE と同じ動作になります。
+**English** | [日本語](README.ja.md) | [繁體中文](README.zh-TW.md) | [ภาษาไทย](README.th.md) | [Bahasa Indonesia](README.id.md)
 
-![Linimal の紹介動画（49 秒、音声なし）](docs/media/linimal-promo.webp)
+Linimal is a Morphe patch bundle for the official LINE Android client (GPL-3.0). It hides ads and features you don't use, and lets you control when read receipts are sent. Every feature can be turned on or off individually from LINE's settings screen, and when a feature is off, LINE behaves exactly like the official app.
 
-紹介動画の画面に出てくる名前やトークの内容は架空のものです。
+![Linimal promo video (32 seconds, no audio)](docs/media/linimal-promo.webp)
 
-Linimal は独立したプロジェクトであり、LINE および Morphe の公式プロジェクトではありません。
+The names and chat content shown in the promo video are fictional.
 
-## できること
+Linimal is an independent project and is not an official project of LINE or Morphe.
 
-- **広告を消す**：トーク一覧の Smart Channel と、ホームの広告。
-- **Agent i・LINE AI の入口を消す**：ホーム、ウォレット、トーク一覧の検索欄、チャット、写真・動画の表示画面、設定画面の 8 か所。
-- **使わない表示を消す**：下部タブ、トーク一覧上部のアイコン、トークの ＋ メニュー、ホームの各枠。
-- **既読をつけずに読む**：長押しメニューや通知から開いたトークを、未読のまま読めます。読み終えたら「すべて既読にする」で既読にできます。
-- **ダークモードを真っ黒にする**：有機 EL 向けに、背景と下部タブを黒（`#000000`）にします。
-- **その他**：LINE Premium の案内を消す、プレビューのスクロール、リンクを外部ブラウザで開く、通知と Google ログイン・バックアップへの対応。
+## Features
 
-広告、Premium、Agent i・LINE AI は表示を消すだけで、広告の配信、課金、LINE の通信は変更しません。
+- **Hide ads**: the Smart Channel in the chat list and ads on Home.
+- **Hide Agent i and LINE AI entry points**: in 9 places, including Home, Wallet, the chat list search bar, chats, the chat + menu, the photo and video viewer, and Settings.
+- **Hide things you don't use**: bottom tabs, icons at the top of the chat list, the chat + menu, and sections on Home.
+- **Read without receipt**: read chats opened from the long-press menu or from notifications while keeping them unread. When you're done, use "Mark all as read" to mark them as read.
+- **See who read a message in groups**: show the number of readers and their icons next to "Read" or on others' messages, and open a list of members who have and haven't read it by tapping "Read" or from the long-press menu.
+- **Pure black dark mode**: makes the background and bottom tabs black (`#000000`) for OLED screens.
+- **Other**: hide LINE Premium prompts, disable chat previews or make them scrollable, open links in an external browser, and support for notifications and Google login and backup.
 
-## 対象
+Ads, Premium, and Agent i / LINE AI are only hidden. Ad delivery, billing, and LINE's network traffic are not changed.
 
-| 項目 | 値 |
+## Supported version
+
+| Item | Value |
 | --- | --- |
-| アプリ | LINE（`jp.naver.line.android`） |
-| バージョン | 26.16.0（versionCode 261600106） |
-| アーキテクチャ | arm64-v8a |
-| 入力形式 | APKM |
+| App | LINE (`jp.naver.line.android`) |
+| Version | 26.16.0 (versionCode 261600106) |
+| Architecture | arm64-v8a |
+| Input format | APKM |
 
-上記以外のバージョンには対応していません。Morphe には APKM をそのまま渡してください。`--force` での適用は想定していません。
+Other versions are not supported. Pass the APKM to Morphe as is. Applying with `--force` is not supported.
 
-## 導入
+## Installation
 
-### Morphe Manager（Android）
+### Morphe Manager (Android)
 
-Android 端末で次のリンクを開くと、Morphe Manager に Linimal がパッチソースとして追加されます。新しいリリースは Morphe が自動で検出します。
+Open the following link on your Android device to add Linimal to Morphe Manager as a patch source. Morphe detects new releases automatically.
 
-[**➕ Linimal を Morphe に追加**](https://morphe.software/add-source?github=uta-a/linimal)
+[**➕ Add Linimal to Morphe**](https://morphe.software/add-source?github=uta-a/linimal)
 
-`.mpp` ファイルから追加する場合は、パッチソース画面の `+` から `Local` を選び、[リリース](https://github.com/uta-a/linimal/releases)の `patches-*.mpp` を指定します。この方法では自動更新されません。
+To add it from an `.mpp` file instead, tap `+` on the patch sources screen, choose `Local`, and select `patches-*.mpp` from the [releases](https://github.com/uta-a/linimal/releases). This method does not update automatically.
 
-LINE の APKM を選び、`Linimal` を適用します。
+Select the LINE APKM and apply `Linimal`.
 
-### Morphe Desktop（CLI）
+### Morphe Desktop (CLI)
 
-Java 21 以上が必要です。
+Requires Java 21 or later.
 
 ```sh
 java -jar morphe-desktop-*-all.jar patch \
   --patches patches-*.mpp \
   --out line-linimal.apk \
-  <LINE の APKM>
+  <LINE APKM>
 ```
 
-### 公式 LINE からの移行
+### Migrating from the official LINE app
 
-パッチを当てた LINE は公式版と署名が違うため、公式アプリに上書きインストールできません。次の順で移行します。
+The patched LINE has a different signature from the official app, so it cannot be installed over it. Migrate in this order:
 
-1. [MicroG-RE の準備](#microg-re-で-google-ログインとバックアップを行う)を済ませる。
-2. 公式 LINE で、トークを Google ドライブへバックアップする。
-3. 公式 LINE をアンインストールし、Linimal を適用した LINE をインストールする。
-4. ログインし、Google ドライブから復元する。
+1. Complete the [MicroG-RE setup](#use-microg-re-for-google-login-and-backup).
+2. In the official LINE app, back up your chats to Google Drive.
+3. Uninstall the official LINE app and install the LINE patched with Linimal.
+4. Log in and restore from Google Drive.
 
-## 使い方
+## Usage
 
-LINE の設定画面の一番下に `Linimal` が追加されます。設定は `広告`、`Agent i・LINE AI`、`表示を消す`、`既読`、`テーマ`、`一般` の 6 ページに分かれています。
+`Linimal` is added at the bottom of LINE's settings screen. Its settings are split into 7 pages: `Ads`, `Agent i & LINE AI`, `Hide items`, `Read receipts`, `Readers`, `Theme`, and `General`.
 
-Linimal の設定画面・案内・通知は、LINE の表示言語に合わせて日本語、英語、繁体字中国語、タイ語、インドネシア語で表示します。そのほかの言語では英語になります。
+Linimal's settings screen, messages, and notifications follow LINE's display language and are shown in Japanese, English, Traditional Chinese, Thai, or Indonesian. Other languages fall back to English.
 
-初期値は新規インストール時の値です。更新しても、それまでの設定は引き継がれます。LINE の変更などで対象を特定できなかった機能は、自動で無効になり、設定画面でも操作できなくなります。
+The defaults below apply to new installs. Your settings are kept when you update. If a feature can't find its target (for example, because LINE changed), it is disabled automatically and can't be changed on the settings screen.
 
-画面の要素を隠す表示系の設定は、アプリの再起動後に反映されます。切り替えると再起動するかを確認します。
+Display settings that hide parts of the screen take effect after the app restarts. When you change one, Linimal asks whether to restart.
 
-## 設定一覧
+## Settings
 
-| ページ | 設定 | 初期値 | 内容 |
+| Page | Setting | Default | Description |
 | --- | --- | --- | --- |
-| 広告 | Smart Channel の広告を表示しない | ON | トーク一覧上部の Smart Channel を表示しません。 |
-| 広告 | ホーム内の広告を表示しない | ON | ホームの広告枠とフィード内の広告カードを表示しません。 |
-| Agent i・LINE AI | ホーム上部の Agent i を表示しない | ON | |
-| Agent i・LINE AI | ウォレット上部の Agent i を表示しない | ON | |
-| Agent i・LINE AI | トーク一覧の検索欄の Agent i を表示しない | ON | 検索欄がその分だけ広がります。 |
-| Agent i・LINE AI | チャット情報の Agent i を表示しない | ON | |
-| Agent i・LINE AI | チャット入力欄の Agent i を表示しない | ON | 入力欄の Agent i と AI の返信提案を表示しません。 |
-| Agent i・LINE AI | メッセージ長押しメニューの LINE AI を表示しない | ON | 画像メッセージ横の LINE AI ボタンも消えます。 |
-| Agent i・LINE AI | 写真・動画表示画面の LINE AI を表示しない | ON | |
-| Agent i・LINE AI | 設定画面の Agent i を表示しない | ON | |
-| 表示を消す | ショッピング / ニュース / ウォレット / アプリ を表示しない | OFF | 下部タブから取り除きます。VOOM はサービス終了に伴い、設定によらず常に取り除きます。 |
-| 表示を消す | AI Friends / カレンダー / オープンチャット を表示しない | OFF | トーク一覧上部のアイコンを表示しません。 |
-| 表示を消す | カレンダー / LINE ギフト / LINE Pay を表示しない | OFF | トークの ＋ メニューから取り除きます。 |
-| 表示を消す | おすすめ / 話題 / ホームの投稿カード / 特集枠 / 最近の履歴 を表示しない | OFF | ホームの各枠を表示しません。 |
-| 既読 | 既読をつけずに読むをメニューに追加 | OFF | 長押しメニュー（スクロールプレビューではプレビューのメニュー）から開いたトークは未読を維持します。受信メッセージごとの手動既読と、現在のトークの全体既読ボタンを表示します。既定では送信すると既読になります。 |
-| 既読 | 通知から既読をつけずに開く | OFF | 通知から開いた通常トークにも、未読維持と手動既読ボタンを適用します。既定では送信すると既読になります。メニューの設定とは独立です。 |
-| 既読 | 送信しても既読を有効にしない | OFF | 既読なしで開いたトークでは送信後も抑制を維持します。閲覧・返信と相手側の既読表示が一致せず、誤解やトラブルにつながる可能性があります。 |
-| 既読 | 通常チャットの自動既読を停止 | OFF | 通常のトークでは手動の既読操作だけ送信します。既読なし閲覧中でも、送信後も無効にする設定が OFF なら送信時の既読反映を一回許可します。オープンチャットなどは対象外です。 |
-| テーマ | ダークモードの背景を黒にする | OFF | 端末がダークモードのとき、画面の背景、下部タブ、ナビゲーションバーを真っ黒（`#000000`）にします。カードや吹き出しは元の色のままです。着せかえが色を決めている部分は変わりません。再起動後に反映されます。 |
-| 一般 | Premium の案内を表示しない | OFF | 送信取消時の LINE Premium の案内を表示しません。 |
-| 一般 | 設定のプレミアムを表示しない | OFF | LINE の設定画面のプレミアムの行を表示しません。 |
-| 一般 | プレビューの Premium の案内を表示しない | OFF | スクロールプレビューにある LINE Premium の案内とメニューの行を表示しません。「画面をスクロールできます」の案内は残ります。 |
-| 一般 | プレビューをスクロール可能にする | OFF | 長押しで開いたトークのプレビューをスクロール可能にします。プレビュー自体の提供条件は変更しません。再起動後に反映されます。 |
-| 一般 | リンクを外部ブラウザで開く | OFF | トークの本文、リッチメッセージ、リッチメニュー、カードにある http / https のリンクを端末のブラウザで開きます。LINE のログインや決済のリンクは元のままです。 |
-| 一般 | アプリを閉じていても通知を受け取る | ON | 下記を参照してください。 |
-| 一般 | MicroG-RE で Google ログインとバックアップを行う | ON | 下記を参照してください。 |
+| Ads | Hide Smart Channel ads | ON | Hides the Smart Channel at the top of the chat list. |
+| Ads | Hide ads on Home | ON | Hides ad slots on Home and ad cards in the feed. |
+| Agent i & LINE AI | Hide Agent i at the top of Home | ON | |
+| Agent i & LINE AI | Hide Agent i at the top of Wallet | ON | |
+| Agent i & LINE AI | Hide Agent i in the chat list search bar | ON | The search bar widens to fill the space. |
+| Agent i & LINE AI | Hide Agent i in chat info | ON | |
+| Agent i & LINE AI | Hide Agent i in the message box | ON | Hides Agent i and AI reply suggestions in the message box. |
+| Agent i & LINE AI | Hide Agent i in the + menu | ON | Hides the "Show Agent i in chat" toggle at the top of the chat + menu. |
+| Agent i & LINE AI | Hide LINE AI in the message long-press menu | ON | Also removes the LINE AI button next to image messages. |
+| Agent i & LINE AI | Hide LINE AI in the photo and video viewer | ON | |
+| Agent i & LINE AI | Hide Agent i in Settings | ON | |
+| Hide items | Hide Shopping / News / Wallet / Apps | OFF | Removes them from the bottom tabs. VOOM is always removed regardless of settings because the service has ended. |
+| Hide items | Hide AI Friends / Calendar / OpenChat | OFF | Hides the icons at the top of the chat list. |
+| Hide items | Hide Calendar / LINE Gift / LINE Pay | OFF | Removes them from the chat + menu. |
+| Hide items | Hide recommendations / trending / post cards on Home / live streams / featured collections / recent history | OFF | Hides each section on Home. |
+| Read receipts | Add "Read without receipt" to the menu | OFF | Chats opened from the long-press menu (or from the preview's menu when scroll previews are shown) stay unread. Shows a manual read button for each received message and a button to mark the whole chat as read. By default, sending a message marks the chat as read. |
+| Read receipts | Open from notifications without read receipt | OFF | Applies the same unread handling and manual read buttons to regular chats opened from notifications. By default, sending a message marks the chat as read. Independent of the menu setting. |
+| Read receipts | Keep unread after sending | OFF | In chats opened without read receipts, receipts stay off even after you send a message. What you actually read and reply to won't match what the other person sees, which may cause misunderstandings or trouble. |
+| Read receipts | Stop automatic read receipts in chats | OFF | In regular chats, only manual read actions are sent. While reading without receipts, if "Keep unread after sending" is off, a read receipt is allowed once when you send a message. OpenChat and similar chats are not covered. |
+| Readers | Show icons next to the read mark | OFF | In groups and multi-person chats, shows icons of up to 4 members who read your message next to "Read". |
+| Readers | Show read count on others' messages | OFF | Shows "Read N" above the time on others' messages, counting readers other than the sender and you. |
+| Readers | Show reader icons on others' messages | OFF | Shows the icons of members who read it above the time on others' messages. When both this and the read count are on, the icons appear outside the read count (farther from the bubble). |
+| Readers | Tap the read mark to open the list | OFF | Tapping "Read" on your messages, or the read count or icons on others' messages, opens a list of members who have and haven't read it. |
+| Readers | Add "Readers" to the long-press menu | OFF | Opens the same list from the message long-press menu. Also works on others' messages. |
+| Readers | Sync with the server when opening the list | OFF | See below. |
+| Theme | Pure black background in dark mode | OFF | When the device is in dark mode, makes the screen background, bottom tabs, and navigation bar pure black (`#000000`). Cards and bubbles keep their original colors. Parts colored by themes don't change. Takes effect after a restart. |
+| General | Hide Premium prompts | OFF | Hides the LINE Premium prompt shown when you unsend a message. |
+| General | Hide Premium in Settings | OFF | Hides the Premium row on LINE's settings screen. |
+| General | Disable chat previews | OFF | Long-pressing a chat in the chat list opens the classic long-press menu instead of the preview. While on, the two preview settings below can't be changed (their saved values are kept). LINE Labs and your Premium subscription don't change. Takes effect after a restart. |
+| General | Hide Premium prompts in previews | OFF | Hides the LINE Premium prompt and menu row in the scroll preview. The "You can scroll the screen" message stays. |
+| General | Make previews scrollable | OFF | Lets you scroll the chat preview opened by a long press. Does not change when previews are offered. Takes effect after a restart. |
+| General | Open links in an external browser | OFF | Opens http / https links in chat text, rich messages, rich menus, and cards in your device's browser. LINE login and payment links open as before. |
+| General | Get notifications while the app is closed | ON | See below. |
+| General | Use MicroG-RE for Google login and backup | ON | See below. |
 
-## 既読をつけずに読む
+## Read without receipt
 
-長押しメニューから開いた通常トークの閲覧セッションだけ、既読の送信とローカル未読の解除を止めます。
+Read receipts and clearing the local unread state are paused only for the reading session of a regular chat opened from the long-press menu.
 
-### 開き方
+### Opening a chat
 
-LINE 26.16.0 では、スクロールプレビューが使えるアカウントでトークを長押しすると、メニューではなくプレビュー画面が開きます。この場合はプレビュー下部のメニューの先頭に同じ行を追加します。押すとプレビューを閉じて、既読をつけずにトークを開きます。プレビューのスクロール可否は、初期値では公式の処理に従います。「一般」の「プレビューをスクロール可能にする」を ON にして再起動すると、スクロールできるようになります。プレビューが提供されていないアカウントに画面を追加する設定ではなく、課金・通信は変更しません。一時的なバックグラウンド移行、画面ロック、写真・動画の表示、長時間の閲覧では抑制を解除しません。構成変更による画面の再生成は、保存したセッションの印が一致する場合だけ引き継ぎます。
+In LINE 26.16.0, on accounts that have scroll previews, long-pressing a chat opens a preview screen instead of the menu. In that case, Linimal adds the same row at the top of the menu at the bottom of the preview. If you turn on "Disable chat previews" under General and restart, a long press opens the classic menu again, and the same row appears in that menu. Tapping it closes the preview and opens the chat without sending a read receipt. By default, whether the preview can be scrolled follows LINE's own logic. Turn on "Make previews scrollable" under General and restart to make it scrollable. This does not add previews to accounts that don't have them, and billing and network traffic are not changed. Read receipts stay paused when the app briefly goes to the background, the screen locks, you view photos or videos, or you keep reading for a long time. When the screen is recreated because of a configuration change, the session continues only if its saved marker matches.
 
-### 閲覧中の表示と「すべて既読にする」
+### What you see while reading and "Mark all as read"
 
-既読が無効な間は、トーク名のヘッダー直下に「現在、既読は無効です。メッセージを送信すると既読になります」と表示し続けます。ヘッダー自体の位置は変更しません。バックグラウンドや画面ロックから戻った際も再表示し、送信で既読が有効になったときや退室時に消します。通常操作で開いたトークでは表示しません。
+While read receipts are off, "Read receipts are off. Sending a message will mark this chat as read" stays visible right below the chat name header. The header itself doesn't move. The message reappears when you return from the background or the lock screen, and disappears when sending turns read receipts back on or when you leave the chat. It isn't shown in chats opened normally.
 
-「すべて既読にする」は、入力欄の上にフローティング表示します。
-一覧の下端にはボタンの高さに応じた余白を確保し、最新メッセージがボタンに隠れないようにしています。
+"Mark all as read" floats above the message box.
+Space matching the button's height is added at the bottom of the list so the latest message isn't hidden behind the button.
 
-押すと公式の既読処理と未読解除を実行し、成功すると閲覧セッションを終えて通常の LINE に戻します。
-送信前に中断した場合はセッションを続けます。通信の失敗は公式の既読処理が保持して再送するため、そのまま通常の LINE に戻します。
-「送信しても既読を有効にしない」や「通常チャットの自動既読を停止」が ON でも、この操作は実行できます。
+Tapping it runs LINE's own read and unread-clearing logic, and on success ends the reading session and returns to normal LINE behavior.
+If it is interrupted before sending, the session continues. If the network fails, LINE's own read logic keeps the request and retries it, so Linimal returns to normal behavior.
+This works even when "Keep unread after sending" or "Stop automatic read receipts in chats" is on.
 
-途中のメッセージまでを既読にする操作はありません。押した位置だけを送っても、相手の公式 Web 版 LINE では全行に既読が付くことを実機で確認したため廃止しました。
+There is no way to mark messages as read only up to a certain point. Sending only the tapped position still marked every message as read in the other person's official LINE for web, as confirmed on a real device, so this was removed.
 
-### メッセージを送信したとき
+### When you send a message
 
-既定では、閲覧中にメッセージを送信すると抑制を終了し、その時点のローカル未読と相手への既読を LINE の既存処理で反映します。テキスト・スタンプ・画像など、確認済みのチャット UI から送信キューへ投入された操作が対象です。入力の取り消しや投入前の失敗では解除しません。ネットワークの送信完了は待ちません。「通常チャットの自動既読を停止」が ON でも、この既読反映だけは一回許可し、その後は既存の設定に従います。
+By default, sending a message while reading ends the pause, and LINE's existing logic applies the local unread state and the read receipt at that moment. This covers text, stickers, images, and other sends queued from verified parts of the chat UI. Canceling input or failing before the message is queued does not end the pause. Linimal doesn't wait for the network send to finish. Even when "Stop automatic read receipts in chats" is on, this one read receipt is allowed once, after which your existing settings apply.
 
-「送信しても既読を有効にしない」は初期 OFF です。ON にすると、メニュー・通知から既読なしで開いたトークでは送信後も抑制と未読バッジを維持し、上部案内も「現在、既読は無効です。送信しても既読はつきません」に変わります。通常操作で開いたトークの既読は変更しません。既存の設定値は引き継ぎ、更新時にこの新設定を勝手に ON にはしません。
+"Keep unread after sending" is off by default. When on, chats opened without read receipts from the menu or notifications stay paused and keep their unread badge even after you send, and the banner changes to "Read receipts are off. Sending a message won't mark this chat as read". Read receipts in chats opened normally are not changed. Existing settings are kept, and updates never turn this setting on by themselves.
 
-**注意：閲覧・返信していても相手側は未読表示のままになります。実際のやり取りと既読表示が一致せず、誤解やトラブルにつながる可能性があるため、必要な場合だけ有効にしてください。**
+**Caution: even if you read and reply, the other person still sees your messages as unread. What actually happens won't match the read status, which may cause misunderstandings or trouble, so only turn this on when you need it.**
 
-### 閲覧の終わり
+### When reading ends
 
-トークを閉じる、別のトークへ切り替える、または入室に使った既読なし機能の設定を OFF にすると抑制を解除します。同じトークを通常操作で開き直しても以前の抑制は復活しません。「送信しても既読を有効にしない」だけを OFF にした場合は、次の送信で既読を反映します。トーク画面の生成を確認できない予約だけは、単調時計で30分後に破棄します。所有者の確認や終了の観測に失敗した場合は、公式の既読処理へ戻します。
+The pause ends when you close the chat, switch to another chat, or turn off the read-without-receipt setting you used to open it. Reopening the same chat normally doesn't bring the pause back. If you turn off only "Keep unread after sending", the read receipt is applied on your next send. Only a pending reservation for a chat screen that was never confirmed to open is discarded after 30 minutes on a monotonic clock. If Linimal can't confirm the owner or observe the end of the session, it falls back to LINE's own read logic.
 
-### 通知から開く
+### Opening from notifications
 
-「通知から既読をつけずに開く」を ON にすると、メッセージ通知から開いた通常トークにも同じ閲覧セッションの抑制を適用します。通知を受け取っただけでは抑制を開始しません。トーク一覧などから通常操作で開く場合や、通知の返信・既読アクションはこの設定の対象ではありません。オープンチャットなどの別経路は対象外です。通知側の設定を OFF にすると通知由来のセッションだけを解除します。
+When "Open from notifications without read receipt" is on, the same reading session pause applies to regular chats opened from message notifications. Merely receiving a notification doesn't start a pause. Chats opened normally, such as from the chat list, and the reply and mark-as-read actions in notifications are not covered. Other paths, such as OpenChat, are not covered either. Turning off the notification setting ends only sessions started from notifications.
 
-## 通知と Google 連携
+## Readers
 
-### アプリを閉じていても通知を受け取る
+The list is built from the read records LINE saves on this device to show "Read N", so the count matches "Read N". Linimal never records read status on its own or sends read receipts.
 
-パッチを当てた LINE は署名が変わるため、そのままではアプリを閉じている間に通知が届きません。この設定は、通知の登録時に Google へ送る署名情報を公式 LINE のものに置き換えます。特別な準備は不要です。
+- Groups and multi-person chats are supported. Nothing is shown in one-on-one chats or OpenChat.
+- Members who haven't read it are the current members minus those who have. You and the sender are not included in the list.
+- Display names prefer the names you set. Icons are fetched as thumbnails from the same public CDN LINE uses (`profile.line-scdn.net`) and kept only in memory.
+- When `Sync with the server when opening the list` is on, each time you open the list Linimal runs the same read sync LINE runs periodically, for that chat only, and then refreshes the list. When off, only the records on the device are used and nothing is sent for syncing.
 
-### MicroG-RE で Google ログインとバックアップを行う
+## Notifications and Google integration
 
-パッチを当てた LINE は、そのままでは Google アカウントでのログインと、Google ドライブへのバックアップ・復元ができません。この設定は、その認証だけを [MicroG-RE](https://github.com/MorpheApp/MicroG-RE) 経由で行います。使うには次の準備が必要です。
+### Get notifications while the app is closed
 
-1. [MicroG-RE の公式リリース](https://github.com/MorpheApp/MicroG-RE/releases)をインストールする。公式リリース以外（別の fork や自分でビルドしたもの）は使われません。
-2. MicroG-RE に、LINE のログインやバックアップに使う Google アカウントを追加する。バックアップでは MicroG-RE に追加したアカウントだけが選択肢に出ます。以前に別のアカウントで自動バックアップを設定していた場合は、バックアップの設定でアカウントを選び直してください。
+Because the patched LINE has a different signature, it doesn't receive notifications while the app is closed as is. This setting replaces the signature info sent to Google when registering for notifications with that of the official LINE app. No extra setup is needed.
 
-MicroG-RE がない状態で Google アカウントでのログイン、バックアップ、復元をしようとすると、導入を案内するメッセージと通知が表示されます。新規インストール直後で通知が許可されていなくても、メッセージは表示されます。
+### Use MicroG-RE for Google login and backup
 
-バックアップや復元が「LINEにアクセスできません」で失敗するときは、MicroG-RE への接続の失敗か、MicroG-RE が返したエラー（`NetworkError` など）を「Google ドライブの認証に失敗しました」という通知で表示します。通知には MicroG-RE、LINE、Android の version も載ります（メールアドレスは載りません）。不具合を報告するときは、この通知の内容を添えてください。通知が出ないまま失敗する場合は、まず LINE の通知が許可されているか（カテゴリ「Linimal: バックアップの認証エラー」を含む）を確認してください。許可されていても通知が出ないときは、token の取得以外（Google ドライブとの通信など）で失敗している可能性があります。
+As is, the patched LINE can't log in with a Google account or back up to and restore from Google Drive. This setting performs only that authorization through [MicroG-RE](https://github.com/MorpheApp/MicroG-RE). To use it, you need to:
+
+1. Install an [official MicroG-RE release](https://github.com/MorpheApp/MicroG-RE/releases). Anything other than an official release (another fork or your own build) is not used.
+2. Add the Google account you use for LINE login and backup to MicroG-RE. For backups, only accounts added to MicroG-RE appear as choices. If you previously set up automatic backup with a different account, choose the account again in the backup settings.
+
+If you try to log in with a Google account, back up, or restore without MicroG-RE, a message and a notification explain how to install it. The message is shown even right after a fresh install when notifications aren't allowed yet.
+
+If a backup or restore fails with "Can't access LINE", a "Google Drive authorization failed" notification shows either a failure to connect to MicroG-RE or the error MicroG-RE returned (such as `NetworkError`). The notification also includes the MicroG-RE, LINE, and Android versions (but not your email address). Please include its content when reporting a problem. If it fails without a notification, first check that LINE notifications are allowed (including the "Linimal: Backup authorization errors" category). If notifications are allowed and none appears, the failure may be somewhere other than getting the token, such as communicating with Google Drive.
 
 > [!WARNING]
-> 通知と、この Google 連携の機能は、Google に対してアプリの署名を公式版と偽って申告します。Google や LINE の利用規約に抵触する可能性があり、Google アカウントへの影響も否定できません。また、Google 側や MicroG-RE の変更で使えなくなることがあります。
+> The notification and Google integration features misreport the app's signature to Google as the official one. This may violate Google's or LINE's terms of service, and effects on your Google account can't be ruled out. They may also stop working due to changes on Google's side or in MicroG-RE.
 
-## 開発
+## Development
 
-ビルドには Java 17 と、Morphe の GitHub Packages を読むための認証情報が必要です。`~/.gradle/gradle.properties` に `gpr.user` と `gpr.key` を設定するか、環境変数 `GITHUB_ACTOR` と `GITHUB_TOKEN` で渡します。認証情報はリポジトリに置かないでください。
+Building requires Java 17 and credentials to read Morphe's GitHub Packages. Set `gpr.user` and `gpr.key` in `~/.gradle/gradle.properties`, or pass them with the `GITHUB_ACTOR` and `GITHUB_TOKEN` environment variables. Don't put credentials in the repository.
 
 ```sh
 ./gradlew test buildAndroid
 ```
 
-パッチバンドルは `patches/build/libs/patches-*.mpp` に出力されます。APK、APKM、署名鍵、逆コンパイル結果はコミットしません。設計判断は [docs/adr](docs/adr)、解析は [docs/analysis](docs/analysis) にあります。
+The patch bundle is written to `patches/build/libs/patches-*.mpp`. APKs, APKMs, signing keys, and decompiled output are not committed. Design decisions are in [docs/adr](docs/adr) and analyses in [docs/analysis](docs/analysis) (both in Japanese).
 
-## ライセンス
+## License
 
-[GNU General Public License v3.0](LICENSE) で提供します。Morphe の名称と商標に関する追加条件は [NOTICE](NOTICE) を参照してください。
+Licensed under the [GNU General Public License v3.0](LICENSE). See [NOTICE](NOTICE) for additional terms regarding the Morphe name and trademarks.

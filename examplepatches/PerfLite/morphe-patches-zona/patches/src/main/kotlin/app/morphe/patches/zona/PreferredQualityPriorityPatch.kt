@@ -24,7 +24,7 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 private object StreamSelectionFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.CONSTRUCTOR),
     filters = listOf(
-        // Turns the remembered resolution into a filter (3.0.75: Fg.s$a.a, 3.0.76: zg.p$a.a, 3.0.77: LCg/r$a.a).
+        // Turns the remembered resolution into a filter (3.0.75: Fg.s$a.a, 3.0.76: zg.p$a.a, 3.0.77: LCg/r$a.a, 3.0.78: Ly1c$a.a).
         anyInstruction(
             methodCall(
                 definingClass = "LFg/s\$a;",
@@ -44,8 +44,14 @@ private object StreamSelectionFingerprint : Fingerprint(
                 parameters = listOf("Ljava/lang/String;"),
                 returnType = "LCg/r;",
             ),
+            methodCall(
+                definingClass = "Ly1c\$a;",
+                name = "a",
+                parameters = listOf("Ljava/lang/String;"),
+                returnType = "Ly1c;",
+            ),
         ),
-        // The constructor that receives the quality from the app settings (3.0.75: Hg.o.<init>, 3.0.76: Bg.r.<init>, 3.0.77: LEg/r.<init>).
+        // The constructor that receives the quality from the app settings (3.0.75: Hg.o.<init>, 3.0.76: Bg.r.<init>, 3.0.77: LEg/r.<init>, 3.0.78: Lv5e.<init>).
         anyInstruction(
             methodCall(
                 definingClass = "LHg/o;",
@@ -65,17 +71,28 @@ private object StreamSelectionFingerprint : Fingerprint(
                 parameters = listOf("LDe/b;", "LCg/e\$c;"),
                 returnType = "V",
             ),
+            methodCall(
+                definingClass = "Lv5e;",
+                name = "<init>",
+                parameters = listOf("Lznb;", "Ls97\$c;"),
+                returnType = "V",
+            ),
         ),
     ),
 )
 
 /**
- * Stream selection evaluation loop (Fg.o.g in 3.0.75, zg.l.g in 3.0.76, Cg.n.h in 3.0.77), which decides whether to play
+ * Stream selection evaluation loop (Fg.o.g in 3.0.75, zg.l.g in 3.0.76, Cg.n.h in 3.0.77, gya.j in 3.0.78), which decides whether to play
  * the strict stream or immediately fall back to a lower quality upon receiving fast streams.
  */
 private object StreamWaitDecisionFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
     strings = listOf(") All streams are processed, need to choose a stream to play"),
+)
+
+private object StreamWaitDecision3078Fingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
+    strings = listOf("Choose an available stream to play"),
 )
 
 @Suppress("unused")
@@ -114,10 +131,11 @@ val preferredQualityPriorityPatch = bytecodePatch(
             addInstruction(parseResolution.index + 2, "move-result-object v$register")
         }
 
-        // 2. Prevent premature fallback to lower quality in Fg.o.g/zg.l.g/Cg.n.h when the first fast provider finishes.
+        // 2. Prevent premature fallback to lower quality in Fg.o.g/zg.l.g/Cg.n.h/gya.j when the first fast provider finishes.
         // Instead of falling back immediately on status == Loaded, route through the timeout check.
-        StreamWaitDecisionFingerprint.method.apply {
-            val stringMatchIndex = StreamWaitDecisionFingerprint.stringMatches[0].index
+        val waitDecision = StreamWaitDecisionFingerprint.matchOrNull() ?: StreamWaitDecision3078Fingerprint.match()
+        waitDecision.method.apply {
+            val stringMatchIndex = waitDecision.stringMatches[0].index
             val branchIndex = (stringMatchIndex downTo 0).first {
                 implementation!!.instructions[it] is BuilderInstruction22t
             }

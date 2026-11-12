@@ -42,7 +42,7 @@ internal val lineApplicationInitializeFingerprint = Fingerprint(
 
 /** LINE の process 判定を通過した後に、Linimal の設定を初期化します。 */
 val linimalBootstrapPatch = bytecodePatch(
-    name = "Linimal の初期化",
+    name = "Linimal bootstrap",
     description = "LINE の起動処理へ Linimal の初期化を差し込みます。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

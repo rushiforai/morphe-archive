@@ -8,7 +8,6 @@ import app.morphe.util.names.origDefiningClass
 import app.morphe.util.names.origName
 import app.morphe.util.names.origParameterTypes
 import app.morphe.util.names.origReturnType
-import app.morphe.util.names.TelegramNames
 import app.morphe.util.names.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
@@ -94,8 +93,13 @@ internal const val PHOTO_SIZE = "$ANDROID_UTILITIES->getPhotoSize()I"
 internal const val CLOSEST_PHOTO_SIZE = "$FILE_LOADER->getClosestPhotoSizeWithSize(Ljava/util/ArrayList;I)Lorg/telegram/tgnet/TLRPC\$PhotoSize;"
 /** What the two-argument form forwards to with (false, null, false); 13.2 inlines the short forms into their callers. */
 internal const val CLOSEST_PHOTO_SIZE_FULL = "$FILE_LOADER->getClosestPhotoSizeWithSize(Ljava/util/ArrayList;IZLorg/telegram/tgnet/TLRPC\$PhotoSize;Z)Lorg/telegram/tgnet/TLRPC\$PhotoSize;"
-internal const val PATH_SAVE_DATA = "$LOAD_OPERATION->pathSaveData:Lorg/telegram/messenger/FilePathDatabase\$PathData;"
+/** The downloader's name for the file, which FileLoader also hands fileDidLoaded. */
+internal const val LOAD_FILE_NAME = "$LOAD_OPERATION->fileName:$STRING"
 internal const val CACHE_FILE_TEMP = "$LOAD_OPERATION->cacheFileTemp:$FILE"
+/** The account FileLoader made the operation for, which its fileDidLoaded hands the delegate. */
+internal const val LOAD_ACCOUNT = "$LOAD_OPERATION->currentAccount:I"
+/** Set for a video preload, which like a finish told it's a preload never reaches fileDidLoaded. */
+internal const val PRELOAD_VIDEO = "$LOAD_OPERATION->isPreloadVideoOperation:Z"
 private const val SET_TYPE = "setType"
 private const val MESSAGE_TYPE = "$MESSAGE_OBJECT->type:I"
 private const val IS_VOICE_MESSAGE = "$MESSAGE_OBJECT->isVoiceMessage(${TL_MESSAGE})Z"
@@ -182,42 +186,57 @@ internal fun insertSaveDownloadsHook(method: MutableMethod, callback: DownloadCa
 }
 
 /**
- * Ahead of anything in onFinishLoadingFile, the extension sees whether Telegram stores the document
- * under its own name with no path saved, the file a download went into, and the finished file.
- * v0 to v2 are locals the method writes before it reads, below p0.
+ * Ahead of anything in onFinishLoadingFile, the extension sees the operation's account, the
+ * downloader's name for the file, the file a download went into, the finished file, and whether
+ * it's a preload: the operation's flag or the method's last argument, either of which skips
+ * fileDidLoaded. v0 to v4 are locals the method writes before it reads, below p0.
  */
 internal fun insertFoundFileHook(method: MutableMethod) {
     method.addInstructions(0, """
         move-object/from16 v2, p0
-        iget-object v0, v2, $PATH_SAVE_DATA
+        iget-boolean v3, v2, $PRELOAD_VIDEO
+        move/from16 v1, p${method.parameterTypes.size}
+        or-int/2addr v3, v1
+        iget v4, v2, $LOAD_ACCOUNT
+        iget-object v0, v2, $LOAD_FILE_NAME
         iget-object v1, v2, $CACHE_FILE_TEMP
         iget-object v2, v2, $STORAGE_CACHE_FINAL
-        invoke-static {v0, v1, v2}, $SAVE_DOWNLOADS->finishing($OBJECT$FILE$FILE)V
+        invoke-static {v4, v0, v1, v2, v3}, $SAVE_DOWNLOADS->finishing(I$STRING$FILE${FILE}I)V
     """)
 }
 
 /**
  * FileLoadOperation.start counts a file as downloaded when one is already at its path at the size
- * Telegram expects, and for a document with no path saved that path is its own name in Telegram
- * Files, which another document of that name and size can have. It then calls
- * onFinishLoadingFile(increment, code, preload) with nothing in cacheFileTemp, which only start
- * sets, to the file a download goes into. The extension keeps such a file out of Downloads when
- * fileDidLoaded comes for it, since it may be another document's.
+ * Telegram expects. For a document with no path saved that path is its own name in Telegram Files,
+ * which another document of that name and size can have, and Telegram then saves that file as the
+ * other document's path. It calls onFinishLoadingFile(increment, code, preload) with nothing in
+ * cacheFileTemp, which only start sets, to the file a download goes into. An operation started
+ * again after a video preload still holds the preload's cacheFileTemp, so the extension also counts
+ * a finish whose file is already there, since a download is moved into it only after this. It keeps
+ * such a file out of Downloads when fileDidLoaded comes for it under the same account and name,
+ * since it may be another document's. The next download starts before that fileLoaded, so the name
+ * tells each finish's own fileLoaded apart. FileLoader hands fileDidLoaded the name it gave
+ * setPaths, the one place the operation's name is set (13.2 inlines it into loadFileInternal). A
+ * preload's finish has no fileLoaded, so it isn't counted.
  */
 internal fun BytecodePatchContext.resolveFoundFiles(): MutableMethod {
-    controlHook(SAVE_DOWNLOADS, "finishing", listOf(OBJECT, FILE, FILE), "V")
+    controlHook(SAVE_DOWNLOADS, "finishing", listOf("I", STRING, FILE, FILE, "I"), "V")
     val owner = tgMutableClassDefByOrNull(LOAD_OPERATION)
     controlShape(owner != null, "FileLoadOperation is missing")
-    val fields = owner!!.instanceFields.map { "${it.origDefiningClass}->${it.origName}:${it.origType}" }.toSet()
-    // The build merges FilePathDatabase.PathData into another class, so its field keeps only the
-    // table's own name for it.
-    val pathData = TelegramNames.of(this).field(LOAD_OPERATION, "pathSaveData", PATH_SAVE_DATA.substringAfter(':'))
-    val pathSaved = PATH_SAVE_DATA in fields || owner.instanceFields.any { field ->
-        field.name == pathData.name && field.type == pathData.descriptor &&
-            field.origDefiningClass == LOAD_OPERATION && field.origName == "pathSaveData"
+    val fields = owner!!.fields.filter { !AccessFlags.STATIC.isSet(it.accessFlags) }
+        .map { "${it.origDefiningClass}->${it.origName}:${it.origType}" }.toSet()
+    controlShape(LOAD_FILE_NAME in fields && CACHE_FILE_TEMP in fields && STORAGE_CACHE_FINAL in fields &&
+        PRELOAD_VIDEO in fields && LOAD_ACCOUNT in fields, "FileLoadOperation's file fields changed")
+    // setPaths(account, name, ...), which the build doesn't name, or loadFileInternal when it's inlined there.
+    val loader = tgMutableClassDefByOrNull(FILE_LOADER)
+    controlShape(loader != null, "FileLoader is missing")
+    val namers = (owner.methods + loader!!.methods).filter { method ->
+        method.controlBody().any { it.opcode == Opcode.IPUT_OBJECT && it.controlRef() == LOAD_FILE_NAME }
     }
-    controlShape(pathSaved && CACHE_FILE_TEMP in fields && STORAGE_CACHE_FINAL in fields,
-        "FileLoadOperation's file fields changed")
+    controlShape(namers.size == 1 && namers[0].let {
+        if (it.origDefiningClass == FILE_LOADER) it.origName == "loadFileInternal"
+        else it.parameterTypes.take(2).map(CharSequence::toString) == listOf("I", STRING)
+    }, "FileLoadOperation's name isn't set in setPaths alone")
     // The build drops onFinishLoadingFile's unused result code: (increment, code, preload) or (increment, preload).
     val finishing = owner.methods.filter {
         it.origName == "onFinishLoadingFile" && it.origReturnType == "V" &&
@@ -225,7 +244,7 @@ internal fun BytecodePatchContext.resolveFoundFiles(): MutableMethod {
     }.controlSingle("FileLoadOperation.onFinishLoadingFile")
     controlShape(!AccessFlags.STATIC.isSet(finishing.accessFlags) && finishing.controlBody().isNotEmpty(),
         "FileLoadOperation.onFinishLoadingFile has no body of its own")
-    controlShape(finishing.localRegisterCount() >= 3, "FileLoadOperation.onFinishLoadingFile's registers changed")
+    controlShape(finishing.localRegisterCount() >= 5, "FileLoadOperation.onFinishLoadingFile's registers changed")
     val writers = owner.methods.filter { method ->
         method.controlBody().any { it.opcode == Opcode.IPUT_OBJECT && it.controlRef() == CACHE_FILE_TEMP }
     }

@@ -58,6 +58,7 @@ val pdbDisableTrackersPatch = resourcePatch(
         "turns off Crashlytics/Analytics data collection via their official opt-out flags.",
     default = true,
 ) {
+    category("Privacy")
     compatibleWith(PDB_COMPATIBILITY)
 
     execute {

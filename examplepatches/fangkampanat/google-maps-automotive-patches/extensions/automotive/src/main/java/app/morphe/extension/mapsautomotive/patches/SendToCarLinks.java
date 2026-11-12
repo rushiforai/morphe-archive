@@ -1,5 +1,6 @@
 package app.morphe.extension.mapsautomotive.patches;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -8,12 +9,16 @@ import android.os.Looper;
 import android.os.SystemClock;
 import android.widget.Toast;
 
+import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -37,6 +42,11 @@ import app.morphe.extension.shared.Utils;
  * where every start is a cold start the trip came back each time. Once a sent trip's link is open,
  * Maps' own clear call forgets it; a trip that was not opened (notification not tapped, or a link
  * that could not be expanded) is still shown at the next start.
+ * <p>
+ * From 0.1.7: a link is retried for up to 30 s (a cold start right after the car wakes may have no network yet);
+ * a link whose expansion failed in an unexpected way no longer blocks the same link until the app restarts; and
+ * when the Maps screen that asked for the link is gone by the time it is expanded, the trip goes to the new
+ * screen, else it is neither opened on the old one nor forgotten.
  */
 @SuppressWarnings("unused")
 public final class SendToCarLinks {
@@ -44,16 +54,24 @@ public final class SendToCarLinks {
     private static final String SHORT_LINK_HOST = "maps.app.goo.gl";
     private static final String ORIGINAL_PACKAGE = "com.google.android.apps.maps";
     private static final int TIMEOUT_MS = 6000;
-    // A link sent from the phone a moment ago can answer 404 for a few seconds; retry for up to 15 s.
-    private static final long RETRY_UNTIL_MS = 15000;
-    private static final long FIRST_RETRY_MS = 1000;
+    // A link sent from the phone a moment ago can answer 404 for a few seconds, and a cold start right after the
+    // car wakes may have no network yet: retry for up to 30 s, 1, 2, then every 4 s.
+    static final long RETRY_UNTIL_MS = 30_000, FIRST_RETRY_MS = 1000, MAX_RETRY_MS = 4000;
+    /**
+     * A link being expanded blocks the same link for at most this long from when the worker took it up (a try takes
+     * up to 12 s, the last starts before 30 s), whatever happened to its expansion.
+     */
+    static final long EXPANDING_MS = 120_000;
     private static final Pattern GOOGLE_SUFFIX = Pattern.compile("[a-z]{2,3}(\\.[a-z]{2,3})?");
     /** Maps' extra for a sent trip and its values in 120003.E (its enum of how the trip is shown). */
     private static final String SEND_TO_CAR_EXTRA = "SEND_TO_CAR_INTENT";
     private static final Set<String> SEND_TO_CAR_TYPES = new HashSet<>(Arrays.asList("NONE", "NOTIFICATION_TAP",
             "FIRST_SHOW_ON_ACTIVITY_RESUME", "FIRST_SHOW_ACTIVITY_IN_FOREGROUND", "FIRST_SHOW_ACTIVITY_IN_BACKGROUND",
             "FIRST_SHOW_AFTER_RESTART", "RESHOW"));
-    private static final Set<String> expanding = Collections.synchronizedSet(new HashSet<>());
+    /** Ours, on a trip handed to a new Maps screen, so it is handed on only once. */
+    private static final String HANDED_ON = "morphe_send_to_car_handed_on";
+    /** The links being expanded and their entries. Guarded by itself. */
+    private static final Map<String, InFlight> expanding = new HashMap<>();
     private static ExecutorService worker;
     private static Handler main;
 
@@ -89,27 +107,80 @@ public final class SendToCarLinks {
             if (!Intent.ACTION_VIEW.equals(action) && !"android.nfc.action.NDEF_DISCOVERED".equals(action)) return false;
             String link = intent.getDataString();
             if (!isShortLink(intent.getData())) return false;
-            if (!expanding.add(link)) {
+            InFlight entry = startExpanding(expanding, link, SystemClock.elapsedRealtime());
+            if (entry == null) {
                 ReportLog.i(TAG, "short link already being expanded");
                 return true;
             }
-            Target target = (Target) processor;
-            boolean sentTrip = intent.hasExtra(SEND_TO_CAR_EXTRA);
-            ReportLog.i(TAG, "expanding a " + SHORT_LINK_HOST + " link"
-                    + sendToCarSuffix(sentTrip, sentTrip ? intent.getStringExtra(SEND_TO_CAR_EXTRA) : null));
-            worker().execute(() -> {
-                Result result = resolve(link);
-                mainHandler().post(() -> deliver(target, intent, referrer, link, result));
-            });
-            return true;
+            try {
+                Target target = (Target) processor;
+                // The Maps screen asking now, if it is alive; null when Send to car's activity watch is not running.
+                Activity screen = SendToCarPush.mapsActivity();
+                if (screen != null && (screen.isFinishing() || screen.isDestroyed())) screen = null;
+                WeakReference<Activity> asking = screen == null ? null : new WeakReference<>(screen);
+                boolean sentTrip = intent.hasExtra(SEND_TO_CAR_EXTRA);
+                // A sent trip reached Maps' screen: Send to car's status no longer calls a newer trip push unopened.
+                if (sentTrip) SendToCarStatus.recordTripSeen(Utils.getContext());
+                ReportLog.i(TAG, "expanding a " + SHORT_LINK_HOST + " link"
+                        + sendToCarSuffix(sentTrip, sentTrip ? intent.getStringExtra(SEND_TO_CAR_EXTRA) : null));
+                worker().execute(() -> {
+                    entry.since = SystemClock.elapsedRealtime();
+                    Result result;
+                    try {
+                        result = resolve(link);
+                    } catch (Throwable error) {
+                        result = new Result(null, error.getClass().getSimpleName());
+                    }
+                    Result resolved = result;
+                    if (!mainHandler().post(() -> deliver(target, asking, intent, referrer, link, entry, resolved))) {
+                        finishExpanding(expanding, link, entry);
+                    }
+                });
+                return true;
+            } catch (Throwable error) {
+                // Not handed to the worker: the same link must not stay blocked.
+                finishExpanding(expanding, link, entry);
+                throw error;
+            }
         } catch (Throwable error) {
             ReportLog.w(TAG, "short link left to Dynamic Links", error);
             return false;
         }
     }
 
-    private static void deliver(Target target, Intent intent, Uri referrer, String link, Result result) {
-        expanding.remove(link);
+    /** A link's expansion: when it was queued, then when the worker took it up (SystemClock.elapsedRealtime). */
+    static final class InFlight {
+        volatile long since;
+
+        InFlight(long since) {
+            this.since = since;
+        }
+    }
+
+    /**
+     * A new entry when [link] may be expanded now: not already being expanded, or its entry is older than
+     * {@link #EXPANDING_MS} (an expansion that never finished); else null. Plain Java.
+     */
+    static InFlight startExpanding(Map<String, InFlight> links, String link, long nowMs) {
+        synchronized (links) {
+            InFlight current = links.get(link);
+            if (current != null && nowMs - current.since >= 0 && nowMs - current.since < EXPANDING_MS) return null;
+            InFlight entry = new InFlight(nowMs);
+            links.put(link, entry);
+            return entry;
+        }
+    }
+
+    /** Removes [link]'s entry if it is still [entry] (a later expansion of the same link keeps its own). Plain Java. */
+    static void finishExpanding(Map<String, InFlight> links, String link, InFlight entry) {
+        synchronized (links) {
+            if (links.get(link) == entry) links.remove(link);
+        }
+    }
+
+    private static void deliver(Target target, WeakReference<Activity> asking, Intent intent, Uri referrer, String link,
+                                InFlight entry, Result result) {
+        finishExpanding(expanding, link, entry);
         // For Send to car's status; the extras were already read in expand.
         boolean sentTrip;
         String type;
@@ -124,6 +195,18 @@ public final class SendToCarLinks {
             ReportLog.w(TAG, "short link not expanded: " + result.detail);
             if (sentTrip) SendToCarStatus.recordTrip(Utils.getContext(), type, SendToCarStatus.LINK_FAILED + result.detail);
             toast();
+            return;
+        }
+        // The screen that asked is gone (closed, or recreated by a configuration change Maps does not handle): its
+        // processor would open the trip on nothing, and the trip would then be forgotten.
+        Activity screen = asking == null ? null : asking.get();
+        if (asking != null && (screen == null || screen.isFinishing() || screen.isDestroyed())) {
+            if (handToNewScreen(screen, intent)) {
+                ReportLog.i(TAG, "Maps' screen changed while the link was expanded; the trip went to the new screen");
+            } else {
+                ReportLog.w(TAG, "Maps' screen closed before the link was expanded; the trip was not opened and is kept");
+                if (sentTrip) SendToCarStatus.recordTrip(Utils.getContext(), type, SendToCarStatus.SCREEN_CLOSED);
+            }
             return;
         }
         try {
@@ -143,6 +226,28 @@ public final class SendToCarLinks {
             ReportLog.i(TAG, "sent trip opened; Maps will not show it again at the next start");
         } catch (Throwable error) {
             ReportLog.w(TAG, "sent trip not cleared", error);
+        }
+    }
+
+    /**
+     * The trip to the Maps screen that replaced [gone] (MapsActivity is single-task, so the intent reaches its
+     * onNewIntent and is expanded again there), once per trip, and only while a Maps screen is in view: Android 10
+     * drops a screen started from the background without an error. False when the trip was not handed on.
+     */
+    private static boolean handToNewScreen(Activity gone, Intent intent) {
+        try {
+            Activity now = SendToCarPush.mapsActivity();
+            if (now == null || now == gone || now.isFinishing() || now.isDestroyed() || !SendToCarPush.screenVisible()
+                    || intent.getBooleanExtra(HANDED_ON, false)) {
+                return false;
+            }
+            Intent again = new Intent(intent).putExtra(HANDED_ON, true);
+            if (again.getComponent() == null && again.getPackage() == null) again.setPackage(now.getPackageName());
+            now.startActivity(again);
+            return true;
+        } catch (Throwable error) {
+            ReportLog.w(TAG, "trip not handed to the new screen", error);
+            return false;
         }
     }
 
@@ -197,7 +302,7 @@ public final class SendToCarLinks {
     private static Result resolve(String link) {
         long start = SystemClock.elapsedRealtime();
         long delay = FIRST_RETRY_MS;
-        StringBuilder attempts = new StringBuilder();
+        List<String> attempts = new ArrayList<>();
         while (true) {
             HttpURLConnection connection = null;
             boolean retry;
@@ -209,26 +314,46 @@ public final class SendToCarLinks {
                 connection.setReadTimeout(TIMEOUT_MS);
                 int code = connection.getResponseCode();
                 String location = connection.getHeaderField("Location");
+                attempts.add("HTTP " + code);
                 if (code >= 300 && code < 400 && location != null) {
-                    attempts.append("HTTP ").append(code);
                     return isMapsUrl(location)
-                            ? new Result(location, attempts.toString())
-                            : new Result(null, attempts + " to another site");
+                            ? new Result(location, attemptsText(attempts))
+                            : new Result(null, attemptsText(attempts) + " to another site");
                 }
-                attempts.append("HTTP ").append(code).append(", ");
                 retry = code == 404 || code == 408 || code == 429 || code >= 500;
             } catch (Exception error) {
-                attempts.append(error.getClass().getSimpleName()).append(", ");
+                attempts.add(error.getClass().getSimpleName());
                 retry = true;
             } finally {
                 if (connection != null) connection.disconnect();
             }
-            if (!retry || SystemClock.elapsedRealtime() - start + delay > RETRY_UNTIL_MS) {
-                return new Result(null, attempts + "gave up after " + (SystemClock.elapsedRealtime() - start) + " ms");
+            long elapsed = SystemClock.elapsedRealtime() - start;
+            if (!retry || elapsed + delay > RETRY_UNTIL_MS) {
+                return new Result(null, attemptsText(attempts) + ", gave up after " + elapsed + " ms");
             }
             SystemClock.sleep(delay);
-            delay *= 2;
+            delay = nextDelay(delay);
         }
+    }
+
+    /** The wait before the next try: doubled, at most {@link #MAX_RETRY_MS}. Plain Java. */
+    static long nextDelay(long delay) {
+        return Math.min(delay * 2, MAX_RETRY_MS);
+    }
+
+    /** The tries joined by ", ", a run of the same answer as one with "x3": "HTTP 404 x2, HTTP 302". Plain Java. */
+    static String attemptsText(List<String> attempts) {
+        StringBuilder text = new StringBuilder();
+        for (int i = 0; i < attempts.size(); ) {
+            String attempt = attempts.get(i);
+            int run = 1;
+            while (i + run < attempts.size() && attempts.get(i + run).equals(attempt)) run++;
+            if (text.length() > 0) text.append(", ");
+            text.append(attempt);
+            if (run > 1) text.append(" x").append(run);
+            i += run;
+        }
+        return text.toString();
     }
 
     private static void toast() {

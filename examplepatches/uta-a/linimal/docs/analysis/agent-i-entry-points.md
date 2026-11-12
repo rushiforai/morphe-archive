@@ -576,6 +576,38 @@ Agent i product entryとしてのresourceとclick pathは確認できなかっ�
 
 一回限りのView hideでは不十分である。各presentation stateの供給位置へgateを入れる。
 
+## Chat ＋ menu toggle（2026-11-11）
+
+トークの ＋ メニュー（`chat_ui_attach_menu`）の格子の上に、ComposeView
+`chat_ui_attach_menu_ai_talk_chip_switch`（`0x7f0b068d`）の「トークルームのAgent iを表示」
+（`chat_agentiinchat_toggle_hideagentiinchat`）が出る。＋ メニューの項目 enum（`sn1/c$b`）には含まれず、
+既存の ＋ メニュー patch と入力欄 patch のどちらの対象でもなかった。
+
+表示可否は `sm1/f1.invoke` の 1 か所で決まる。Agent i in chat が使える構成（`cn1/a.a()`）で、
+`mz1/a.a()` が true でないときに `v3 = 1` になり、`setVisibility(v3 ? VISIBLE : GONE)` と、
+同じ `v3` で中身の `setContent` を組み立てるかを決める。
+
+```smali
+:goto_7c                                       # v3 が決まる合流点
+iget-object v7, v0, Lsn1/f;->b:Landroid/view/View;
+const v8, 0x7f0b068d
+invoke-virtual {v7, v8}, Landroid/view/View;->findViewById(I)Landroid/view/View;
+move-result-object v7
+check-cast v7, Landroidx/compose/ui/platform/ComposeView;
+invoke-static {v3}, ...AgentIChatPlusMenuHooks;->adjustToggleVisibility(Z)Z   # 注入
+move-result v3                                                                  # 注入
+if-nez v7, :cond_8a
+...
+invoke-virtual {v7, v6}, Landroid/view/View;->setVisibility(I)V
+if-eqz v3, :cond_b0                            # 同じ v3 で setContent を省く
+```
+
+label 名は注入前のもの（注入後は baksmali が `:cond_8e` などへ振り直す）。
+`:goto_7c` の命令の前に入れると、label が元の命令に残るため true 側の `goto :goto_7c` が注入を飛び越す。
+そのため label のない check-cast の直後へ入れる。抑制時は LINE 自身の「使えない構成」と同じく GONE で中身を作らない。
+Agent i in chat の設定値・通信は変更しない。feature は `linimal.agent-i-chat-plus-menu`、patch は
+`linimal.patch.agent-i-chat-plus-menu`（expected 1）。
+
 ## 実機で確認する事項
 
 - remote configにより各入口が実際に表示されるaccount

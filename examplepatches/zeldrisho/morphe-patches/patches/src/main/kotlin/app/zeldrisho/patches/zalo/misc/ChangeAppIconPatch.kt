@@ -1,9 +1,6 @@
 package app.zeldrisho.patches.zalo.misc
 
-import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourceFile
-import app.morphe.patcher.util.returnEarly
-import app.zeldrisho.patches.zalo.navigation.zeldrisSettingsPatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.patch.stringOption
 import app.zeldrisho.patches.shared.Constants.COMPATIBILITY_ZALO_261002
@@ -16,9 +13,14 @@ import org.w3c.dom.Element
 
 private const val ANDROID_NS = "http://schemas.android.com/apk/res/android"
 
-/** Validates a complete, non-interlaced PNG including CRCs and bounded decompressed scanlines. */
+/**
+ * Validates a complete, non-interlaced square PNG of 48–512 pixels per side, at most 1 MiB.
+ * Checks chunk CRCs, chunk order, and decompressed scanline lengths and filter bytes.
+ *
+ * @throws IllegalArgumentException if the PNG is malformed, unsupported, or exceeds these limits.
+ */
 internal fun validateLauncherPng(bytes: ByteArray) {
-    require(bytes.size in 33..8 * 1024 * 1024) { "Icon must be a PNG at most 8 MiB" }
+    require(bytes.size in 33..1024 * 1024) { "Icon must be a PNG at most 1 MiB" }
     require(bytes.copyOfRange(0, 8).contentEquals(byteArrayOf(-119, 80, 78, 71, 13, 10, 26, 10))) {
         "Icon must be a PNG"
     }
@@ -51,7 +53,7 @@ internal fun validateLauncherPng(bytes: ByteArray) {
                 require(offset == 8 && length == 13) { "Invalid PNG IHDR" }
                 width = number(start)
                 height = number(start + 4)
-                require(width == height && width in 48..2048) { "Icon must be square, 48–2048 pixels" }
+                require(width == height && width in 48..512) { "Icon must be square, 48–512 pixels" }
                 val depth = bytes[start + 8].toInt() and 0xff
                 val color = bytes[start + 9].toInt() and 0xff
                 colorType = color
@@ -116,41 +118,32 @@ internal fun validateLauncherPng(bytes: ByteArray) {
     }
 }
 
-private val customIconSettingsPatch = bytecodePatch {
-    compatibleWith(COMPATIBILITY_ZALO_261002)
-    dependsOn(zeldrisSettingsPatch)
-    execute {
-        mutableClassDefBy("Lapp/zeldrisho/zalo/extension/ZeldrisSettingsContent;")
-            .methods.single { it.name == "hasCustomIconSettings" && it.parameterTypes.isEmpty() && it.returnType == "Z" }
-            .returnEarly(true)
-    }
-}
-
 @Suppress("unused")
 val changeZaloAppIconPatch = resourcePatch(
     name = "Change Zalo app icon",
-    description = "Adds a user-supplied PNG icon and an in-app switch between the original and custom launcher icons.",
+    description = "Replaces the launcher icon with a user-supplied PNG.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_ZALO_261002)
-    dependsOn(customIconSettingsPatch)
     val iconPath by stringOption(
         key = "iconPath", title = "PNG icon path",
-        description = "Path accessible to the patcher. Use a square, non-interlaced 48–2048 px PNG, with padding for adaptive masking.",
+        description = "Path accessible to the patcher. Use a square, non-interlaced 48–512 px PNG, at most 1 MiB, with padding for adaptive masking.",
         required = true,
     )
     execute {
         val input = File(requireNotNull(iconPath) { "Choose a PNG icon path" })
-        require(input.isFile && input.length() <= 8 * 1024 * 1024) { "Icon is missing or exceeds 8 MiB" }
+        require(input.isFile && input.length() <= 1024 * 1024) { "Icon is missing or exceeds 1 MiB" }
         val bytes = input.readBytes()
         validateLauncherPng(bytes)
         resourceFile("res/drawable-nodpi/zeldris_launcher_image.png", false).apply {
             parentFile.mkdirs()
             writeBytes(bytes)
         }
-        resourceFile("res/mipmap-nodpi/zeldris_launcher.png", false).apply {
+        resourceFile("res/mipmap-nodpi/zeldris_launcher.xml", false).apply {
             parentFile.mkdirs()
-            writeBytes(bytes)
+            writeText("""
+                <bitmap xmlns:android="$ANDROID_NS" android:src="@drawable/zeldris_launcher_image" />
+            """.trimIndent())
         }
         resourceFile("res/mipmap-anydpi-v26/zeldris_launcher.xml", false).apply {
             parentFile.mkdirs()
@@ -176,6 +169,9 @@ val changeZaloAppIconPatch = resourcePatch(
             check((0 until categories.length).any {
                 (categories.item(it) as Element).getAttributeNS(ANDROID_NS, "name") == "android.intent.category.LAUNCHER"
             }) { "Zalo launcher category changed" }
+            original.setAttributeNS(ANDROID_NS, "android:icon", "@mipmap/zeldris_launcher")
+            original.setAttributeNS(ANDROID_NS, "android:roundIcon", "@mipmap/zeldris_launcher")
+            // Keep the old alias for updates where Android persisted it as enabled and the original as disabled.
             val alternate = original.cloneNode(true) as Element
             alternate.setAttributeNS(ANDROID_NS, "android:name", "com.zing.zalo.ui.ZeldrisCustomIcon")
             alternate.setAttributeNS(ANDROID_NS, "android:enabled", "false")

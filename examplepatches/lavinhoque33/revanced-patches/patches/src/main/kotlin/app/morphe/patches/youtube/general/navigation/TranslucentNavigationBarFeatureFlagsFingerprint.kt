@@ -1,6 +1,6 @@
 /*
  * Copyright 2026 Morphe.
- * Modified by lavinhoque33, 2026-11-06.
+ * Modified by lavinhoque33, 2026-11-10
  * https://github.com/MorpheApp/morphe-patches
  *
  * Original hard forked code:
@@ -39,6 +39,10 @@ internal const val NAVIGATION_BAR_COVERS_SYSTEM_BUTTONS_FLAG = 45632194L
  */
 internal const val FEED_BEHIND_NAVIGATION_BAR_FLAG = 45631257L
 
+/**
+ * Translucent style of the navigation bar before Android 12, which tells the pages that they can be seen
+ * through the bar, so they are laid out behind it. From Android 12 the blurred background tells it instead.
+ */
 internal const val TRANSLUCENT_NAVIGATION_BAR_STYLE_FLAG = 45633329L
 
 internal object TranslucentNavigationBarFeatureFlagsFingerprint : Fingerprint(

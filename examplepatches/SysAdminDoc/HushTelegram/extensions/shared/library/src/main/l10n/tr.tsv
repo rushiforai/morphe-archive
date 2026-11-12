@@ -414,7 +414,7 @@ When someone reacts to a message, the emoji doesn't fly across the screen and bu
 Hide folder tab counters	Klasör sekmesi sayaçlarını gizle
 Folder tabs above the chat list show just their names, without unread counts. Chats stay unread and the app icon badge doesn't change.	Sohbet listesinin üstündeki klasör sekmeleri okunmamış sayısı olmadan yalnızca adlarını gösterir. Sohbetler okunmamış kalır ve uygulama simgesindeki rozet değişmez.
 Hide sender names when forwarding	İletirken gönderen adlarını gizle
-Each new forward starts with Hide sender's name turned on, so copies arrive without the original author. You can still turn it off before sending.	Her yeni iletme, Gönderen adını gizle açık olarak başlar; böylece kopyalar asıl yazar olmadan ulaşır. Göndermeden önce yine kapatabilirsiniz.
+Each new forward starts with Hide sender's name turned on, so copies arrive without the original author, even when you pick several chats at once. You can still turn it off in the forward preview, or by holding the send button in the Share sheet. Forwards to Saved Messages keep the sender.	Her yeni iletme, Gönderen adını gizle açık olarak başlar; böylece kopyalar asıl yazar olmadan ulaşır, birkaç sohbeti birden seçtiğinizde bile. Yine de iletme önizlemesinde ya da Paylaş penceresinde gönder düğmesine basılı tutarak kapatabilirsiniz. Kayıtlı Mesajlar'a iletilenler göndereni korur.
 Voice messages in the music player	Sesli mesajlar müzik çalarda
 While a voice message plays, tapping the bar above the chat opens the full music player, where you can drag to skip around, instead of jumping to the message.	Bir sesli mesaj çalarken sohbetin üstündeki çubuğa dokunmak, mesaja atlamak yerine, ileri geri sarabileceğiniz tam müzik çaları açar.
 Silence people outside your contacts	Kişileriniz dışındakileri sessize al
@@ -1285,8 +1285,13 @@ the hidden accounts	gizli hesaplar
 Fit all folder tabs	Tüm klasör sekmelerini sığdır
 # context: Summary of the Fit all folder tabs switch. The folder tabs shrink so none of them scrolls out of sight; with few folders nothing changes
 Shrinks the folder tabs above the chat list until all of them fit on the screen, so you never scroll sideways to find one. With only a few folders nothing changes.	Sohbet listesinin üstündeki klasör sekmelerini hepsi ekrana sığana kadar küçültür, böylece birini bulmak için yana kaydırman gerekmez. Klasör azsa hiçbir şey değişmez.
+# context: Switch title on the Chat list page under Hide folder tab counters, off by default. It puts an icon for the kind of folder in front of each folder tab's name above the chat list
+Folder icons on tabs	Klasör sekmelerinde simgeler
+# context: Summary of the Folder icons on tabs switch. All Chats gets two speech bubbles, a folder of only private chats a person, of only groups a group, of only channels a channel, of only bots a bot. All Chats is Telegram's FilterAllChats label
+Puts a small icon in front of each folder tab's name: a chat bubble for All Chats, and a person, group, channel or bot for a folder of that kind of chat. Other folders get a folder icon. With a pack picked under Folder icons, the tabs use that pack instead.	Her klasör sekmesinin adının önüne küçük bir simge koyar: Tüm Sohbetler için bir balon, o türden sohbetlerin olduğu bir klasör için kişi, grup, kanal ya da bot. Diğer klasörler klasör simgesi alır. Klasör simgeleri'nde bir paket seçiliyse sekmeler o paketi kullanır.
 # context: Lowercase noun phrase naming a part of Hide folder tab counters in a diagnostic line. It names the switch that shrinks the folder tabs to fit the screen
 the fitted folder tabs	sığdırılmış klasör sekmeleri
+the folder tab icons	klasör sekmesi simgeleri
 # context: Switch under Privacy for Receive only mode, per account (#53).
 Receive only mode	Yalnızca alma modu
 The accounts you pick below can read but not write. Messages, reactions, drafts and typing stay on this phone and show an error. Reading, files and read receipts work. Works with this switch on.	Aşağıda seçtiğiniz hesaplar okuyabilir ama yazamaz. Mesajlar, tepkiler, taslaklar ve yazıyor bilgisi bu telefonda kalır ve hata gösterir. Okuma, dosyalar ve okundu bilgisi çalışır. Bu anahtar açıkken geçerlidir.
@@ -1348,6 +1353,8 @@ None	Yok
 Couldn't save the choice. Try again in a moment.	Seçim kaydedilemedi. Birazdan tekrar dene.
 # context: Summary of the Folder icons row. %1$s is the chosen pack (Regular, Bold, Filled or None).
 %1$s. Icons show beside folder names in HushTelegram's own lists. Telegram's folder tabs stay as they are.	%1$s. Simgeler, HushTelegram'ın kendi listelerinde klasör adlarının yanında görünür. Telegram'ın klasör sekmeleri olduğu gibi kalır.
+# context: Summary of the Folder icons row in a build that can put icons on the folder tabs. %1$s is the chosen pack (Regular, Bold, Filled or None). Folder icons on tabs is the switch above it
+%1$s. Icons show beside folder names in HushTelegram's own lists, and on the folder tabs with Folder icons on tabs on.	%1$s. Simgeler, HushTelegram'ın kendi listelerinde klasör adlarının yanında görünür, Klasör sekmelerinde simgeler açıkken klasör sekmelerinde de.
 # context: Settings row that makes downloads run one at a time. Its list is in the side menu.
 Download manager	İndirme yöneticisi
 # context: Summary of the Download manager row.
@@ -1545,3 +1552,252 @@ channels restricted for copyright or local law	telif hakkı veya yerel yasalar n
 Send photos and videos in the best quality	Fotoğraf ve videoları en iyi kalitede gönder
 Photos go out in HD and videos at their own size and quality, without touching the quality button first. You can still lower one before sending. Only sending as a file keeps a photo exactly as it is.	Fotoğraflar HD, videolar kendi boyutu ve kalitesiyle gider, önce kalite düğmesine dokunmana gerek kalmaz. Göndermeden önce birinin kalitesini yine düşürebilirsin. Bir fotoğrafı tam olduğu gibi yalnızca dosya olarak göndermek korur.
 photos and videos in their best quality	en iyi kalitede fotoğraf ve videolar
+# context: Never send an uncropped photo. A switch on Conversations, on by default, and the toast shown when Telegram's photo editor can't finish a crop and stays open.
+Never send an uncropped photo	Kırpılmamış fotoğrafı asla gönderme
+When Telegram can't finish a crop, the editor stays open and asks you to try again, so the part you cropped out never gets sent. Covers photos and profile pictures. Videos crop as usual.	Telegram bir kırpmayı bitiremezse düzenleyici açık kalır ve tekrar denemeni ister, böylece kırptığın kısım asla gönderilmez. Fotoğrafları ve profil fotoğraflarını kapsar. Videolar her zamanki gibi kırpılır.
+Couldn't crop the photo. Try again.	Fotoğraf kırpılamadı. Tekrar dene.
+# context: Keep captions with their photos. A switch on Conversations, on by default, for the attach menu: when several picked photos each have their own caption, unpicking or reordering them keeps each caption on its own photo.
+Keep captions with their photos	Açıklamaları fotoğraflarıyla tut
+When you remove or reorder photos that each have a caption, every caption stays with its own photo.	Her birinin kendi açıklaması olan fotoğrafları kaldırdığında veya yeniden sıraladığında, her açıklama kendi fotoğrafında kalır.
+# context: a switch under Ghost mode (#69). With it on, sending a message in a chat also sends the read receipt Ghost mode held back for that chat.
+Read after you reply	Yanıt verince okundu
+# context: that switch's summary. No read receipts is the switch title under Ghost mode, translated the same as that row.
+When you send a message in a chat, the read receipt Ghost mode held back there goes out too, so your other devices stop showing it unread. Works with Ghost mode and No read receipts on.	Bir sohbette mesaj gönderdiğinizde Hayalet modunun orada tuttuğu okundu bilgisi de gönderilir ve diğer cihazlarınız sohbeti okunmamış göstermeyi bırakır. Hayalet modu ve Okundu bilgisi gönderme açıkken çalışır.
+# context: a switch under Ghost mode (#69). With it on, a double check button sits at the top of the chat list, next to the ghost.
+Read receipts button	Okundu bilgisi düğmesi
+# context: that switch's summary. A double check is the two tick marks Telegram shows on a read message.
+A double check at the top of the chat list sends the read receipts Ghost mode is holding for the account you're on, from chats read since Telegram last started. Shows with Ghost mode and No read receipts on.	Sohbet listesinin üstündeki çift tik, Hayalet modunun kullandığınız hesap için tuttuğu okundu bilgilerini, Telegram son açıldığından beri okunan sohbetlerden gönderir. Hayalet modu ve Okundu bilgisi gönderme açıkken görünür.
+# context: what a screen reader says for the chat list's double check button.
+Send read receipts	Okundu bilgilerini gönder
+# context: short message after a tap on the chat list's double check button sent the held read receipts.
+Read receipts sent	Okundu bilgileri gönderildi
+# context: short message after a tap on the chat list's double check button found no held read receipts.
+No read receipts waiting	Bekleyen okundu bilgisi yok
+# context: short message after a tap on the chat list's double check button couldn't send the held read receipts.
+Couldn't send read receipts	Okundu bilgileri gönderilemedi
+# context: Proxy in the chat list menu (#67). A switch on Chat list, off by default: the menu that opens from the top of the chat list (New Group, Saved Messages and so on) always gets Telegram's own Proxy row, which Telegram otherwise shows only while a proxy is on or where Telegram is blocked.
+Proxy in the chat list menu	Sohbet listesi menüsünde Proxy
+The menu at the top of the chat list always has Proxy, so your proxies are one tap away even where Telegram isn't blocked.	Sohbet listesinin üstündeki menüde her zaman Proxy bulunur, böylece Telegram'ın engellenmediği yerlerde bile proxy'leriniz bir dokunuş uzaklıkta olur.
+# context: Free proxies (#66), on Chat list. A switch, off by default, that every 6 hours downloads a public list of MTProto proxies, times a connect to each and puts the 10 fastest in Telegram's own proxy list. A row runs it now and says what the last try found. A second switch, on by default, keeps Telegram's proxy button on the phone number screen before sign-in.
+Free proxies	Ücretsiz proxy'ler
+Every 6 hours, downloads a public list of proxies and adds the 10 fastest to Telegram's proxy list, and Telegram connects through them unless you use a proxy of your own. Whoever runs a proxy can see your IP address. Turning this off leaves them in the list.	Her 6 saatte bir herkese açık bir proxy listesi indirir ve en hızlı 10 tanesini Telegram'ın proxy listesine ekler. Kendi proxy'nizi kullanmıyorsanız Telegram bunlar üzerinden bağlanır. Bir proxy'yi işleten kişi IP adresinizi görebilir. Bunu kapatmak, proxy'leri listede bırakır.
+Find free proxies now	Ücretsiz proxy'leri şimdi bul
+Proxy button when signing in	Giriş yaparken proxy düğmesi
+The phone number screen always has the proxy button, so you can add a proxy before you sign in.	Telefon numarası ekranında her zaman proxy düğmesi bulunur, böylece giriş yapmadan önce proxy ekleyebilirsiniz.
+Looking for free proxies now.	Ücretsiz proxy'ler aranıyor.
+Downloads a public list of proxies now, times them and adds the fastest to Telegram's proxy list, even with the switch above off.	Şimdi herkese açık bir proxy listesi indirir, proxy'lerin hızını ölçer ve en hızlılarını Telegram'ın proxy listesine ekler, yukarıdaki anahtar kapalı olsa bile.
+Proxies added last time: %1$s. They're in Telegram's proxy list.	Geçen sefer eklenen proxy'ler: %1$s. Telegram'ın proxy listesindeler.
+Couldn't download a proxy list last time. Check your connection and try again.	Geçen sefer proxy listesi indirilemedi. Bağlantınızı kontrol edip tekrar deneyin.
+None of the listed proxies answered last time. Try again later.	Geçen sefer listedeki proxy'lerin hiçbiri yanıt vermedi. Daha sonra tekrar deneyin.
+Telegram didn't take the proxies last time.	Geçen sefer Telegram proxy'leri kabul etmedi.
+# context: Ghost mode exceptions (#71), a switch under Ghost mode, off by default. The chats picked for it get the opposite of Ghost mode: with Ghost mode on they act as in stock Telegram, with it off they keep back what the Ghost mode switches keep back. Online status stays with Ghost mode.
+Ghost mode exceptions	Hayalet modu istisnaları
+# context: that switch's summary. The three dots are the menu Telegram's chat list shows after a long press, where Ghost mode exception sits
+The chats you pick work the other way around. While Ghost mode is on they act as usual, and while it's off the Ghost mode switches above apply there. Long press chats in the chat list and use the three dots to add them. Online status follows Ghost mode everywhere.	Seçtiğiniz sohbetler tersine çalışır. Hayalet modu açıkken her zamanki gibi davranırlar, kapalıyken ise yukarıdaki Hayalet modu anahtarları orada geçerli olur. Sohbet listesinde sohbetlere uzun basın ve eklemek için üç noktayı kullanın. Çevrimiçi durumu her yerde Hayalet modunu izler.
+# context: Row under Ghost mode exceptions, and the title of the list it opens. Its summary names the picked chats, and a tap lists the account's chats to tick
+Exception chats	İstisna sohbetler
+# context: Summary of Exception chats when no chat is ticked
+No chats picked yet.	Henüz seçilen sohbet yok.
+# context: Item in the chat list's long press menu (the three dots, under Hide from chat list), shown while Ghost mode exceptions is on. It adds the selected chats to the exceptions, or takes them out when they all were
+Ghost mode exception	Hayalet modu istisnası
+# context: Toast after Ghost mode exception took the selected chats back out of the exceptions
+These chats follow Ghost mode again.	Bu sohbetler yine Hayalet modunu izliyor.
+# context: Toast after Ghost mode exception added the selected chats while Ghost mode is on, so it no longer applies there
+Ghost mode is off in these chats.	Bu sohbetlerde Hayalet modu kapalı.
+# context: Toast after Ghost mode exception added the selected chats while Ghost mode is off, so it applies there
+Ghost mode is on in these chats.	Bu sohbetlerde Hayalet modu açık.
+# context: Fake typing (#71), a switch under Ghost mode, off by default, and the item it adds to the chat list's long press menu (the three dots). The picked chats show the account as typing, the way Telegram's own typing status shows
+Fake typing	Sahte yazıyor
+# context: that switch's summary. The status keeps going out every few seconds until ten minutes pass or the chats are picked again
+Adds Fake typing to the three dots menu when you long press chats in the chat list. The chats you pick show you typing for 10 minutes, or until you pick them again, even with Ghost mode on.	Sohbet listesinde sohbetlere uzun bastığınızda üç nokta menüsüne Sahte yazıyor ekler. Seçtiğiniz sohbetlerde 10 dakika boyunca ya da onları yeniden seçene kadar, Hayalet modu açıkken bile yazıyormuş gibi görünürsünüz.
+# context: Toast after Fake typing started the selected chats typing
+Typing in these chats for 10 minutes.	Bu sohbetlerde 10 dakika yazıyorsunuz.
+# context: Toast after Fake typing stopped the selected chats, which were all typing
+Stopped typing in these chats.	Bu sohbetlerde yazma durdu.
+# context: Toast when only secret chats (or archive folders) were selected for Fake typing, which can't carry it
+Secret chats can't show typing.	Gizli sohbetler yazıyor göstermez.
+# context: Switch title on the Privacy page (#71), off by default. With a Telegram passcode set, the app locks about a second after you leave it instead of after the Auto-lock time picked in Telegram
+Instant lock	Anında kilit
+# context: Summary of Instant lock. Auto-lock is Telegram's own passcode setting; the user's Auto-lock choice is kept and comes back when the switch is off
+With a Telegram passcode set, Telegram locks a second or two after you leave it instead of waiting for Auto-lock. Turning this off brings your Auto-lock time back.	Bir Telegram parolası ayarlıysa Telegram, otomatik kilidi beklemek yerine çıktıktan bir iki saniye sonra kilitlenir. Kapatırsan otomatik kilit süren geri gelir.
+# context: Lowercase noun phrase naming the Instant lock switch (#71) in the patch status list
+instant lock	anında kilit
+# context: Switch title on the Privacy page (#71), off by default. Signing up a phone number new to Telegram normally tells everyone who has that number saved that it joined; with this on, they aren't told
+Don't notify contacts	Kişilere bildirim gönderme
+# context: Summary of Don't notify contacts. It only matters when a new account is created, for example through Add account with a number that has never used Telegram
+When you sign up a phone number that's new to Telegram, people who have it saved aren't told you joined. Accounts that already exist aren't affected.	Telegram'da yeni olan bir telefon numarasıyla kaydolduğunda, onu kayıtlı tutan kişilere katıldığın bildirilmez. Zaten var olan hesaplar etkilenmez.
+# context: Lowercase noun phrase naming the Don't notify contacts switch (#71) in the patch status list
+quiet sign-up	sessiz kayıt
+# context: Lowercase noun phrase naming Proxy order (#71) in the patch status list
+proxy order	proxy sırası
+# context: Title of the Proxy order row on the Chat list page and of its editor dialog (#71). It sets the order of the proxies on Telegram's own proxy screen
+Proxy order	Proxy sırası
+# context: Summary of the Proxy order row when nothing has been arranged yet
+Drag the proxies in Telegram's proxy list into your own order, or pin some on top.	Telegram'ın proxy listesindeki proxy'leri sürükleyip kendi sırana koy ya da bazılarını en üste sabitle.
+# context: Summary of the Proxy order row once the person has dragged proxies into an order of their own
+Telegram's proxy list is in your order. Tap to change it.	Telegram'ın proxy listesi senin sıranda. Değiştirmek için dokun.
+# context: Summary of the Proxy order row, singular form: the person's own order with this many proxies pinned at the top
+Telegram's proxy list is in your order, with %1$d proxy pinned on top.	Telegram'ın proxy listesi senin sıranda, en üstte %1$d sabitlenmiş proxy var.
+# context: Summary of the Proxy order row, plural form: the person's own order with this many proxies pinned at the top
+Telegram's proxy list is in your order, with %1$d proxies pinned on top.	Telegram'ın proxy listesi senin sıranda, en üstte %1$d sabitlenmiş proxy var.
+# context: Summary of the Proxy order row, singular form: only pins are set, and the other proxies keep Telegram's own speed order
+%1$d proxy pinned on top of Telegram's proxy list. The rest keep Telegram's order.	Telegram'ın proxy listesinin en üstünde %1$d proxy sabitlendi. Geri kalanlar Telegram'ın sırasında kalır.
+# context: Summary of the Proxy order row, plural form: only pins are set, and the other proxies keep Telegram's own speed order
+%1$d proxies pinned on top of Telegram's proxy list. The rest keep Telegram's order.	Telegram'ın proxy listesinin en üstünde %1$d proxy sabitlendi. Geri kalanlar Telegram'ın sırasında kalır.
+# context: Name shown in the Proxy order editor for a proxy whose address couldn't be read
+Proxy	Proxy
+# context: Button that closes the Proxy order editor; every change was already kept
+Done	Tamam
+# context: Button in the Proxy order editor that drops the person's own order, keeping only pins, so the rest go back to Telegram's speed order
+Sort by speed	Hıza göre sırala
+# context: Short toast after Sort by speed, at most two short lines
+Unpinned proxies sort by speed again.	Sabitlenmeyenler yine hıza göre.
+# context: Short toast when the proxy order couldn't be saved, at most two short lines
+Couldn't save the order. Try again.	Sıra kaydedilemedi. Tekrar dene.
+# context: Note in the Proxy order editor when Telegram has no saved proxies. Find free proxies is a row on the same page
+Telegram's proxy list is empty. Add a proxy in Telegram's proxy settings, or find free proxies, then come back here.	Telegram'ın proxy listesi boş. Telegram'ın proxy ayarlarından bir proxy ekle ya da ücretsiz proxy bul, sonra buraya dön.
+# context: Note at the top of the Proxy order editor. Each proxy has a handle (three short lines) to drag it by and a Pin button
+Drag a proxy by its handle to move it, and pin the ones you want on top. Telegram's proxy screen shows them in this order. Once you've moved one, proxies added later go below in Telegram's order.	Bir proxy'yi taşımak için tutamacından sürükle, en üstte olmasını istediklerini sabitle. Telegram'ın proxy ekranı onları bu sırada gösterir. Bir tanesini taşıdıktan sonra, sonradan eklenen proxy'ler Telegram'ın sırasıyla altta yer alır.
+# context: Screen reader action on a proxy in the Proxy order editor that moves it one place up
+Move up	Yukarı taşı
+# context: Screen reader action on a proxy in the Proxy order editor that moves it one place down
+Move down	Aşağı taşı
+# context: Button on a proxy in the Proxy order editor that keeps it at the top of Telegram's proxy list
+Pin	Sabitle
+# context: Button on a pinned proxy in the Proxy order editor that lets it go back among the others
+Unpin	Sabitlemeyi kaldır
+# context: Short toast after a proxy is pinned in the Proxy order editor
+Pinned on top.	En üste sabitlendi.
+# context: Short toast after a proxy is unpinned in the Proxy order editor
+Unpinned.	Sabitleme kaldırıldı.
+# context: State line under a proxy in the Proxy order editor: it's pinned and Telegram connects through it now
+Pinned, in use	Sabitlendi, kullanımda
+# context: State line under a pinned proxy in the Proxy order editor
+Pinned	Sabitlendi
+# context: State line under the proxy Telegram connects through now, in the Proxy order editor
+In use	Kullanımda
+# context: Title of the My messages row on the Conversations page (#71), and the item it adds to a group's menu at the top (the three dots), which searches the group for the messages the person sent
+My messages	Mesajlarım
+# context: Summary of the My messages row on the Conversations page. My messages is the name of the item it adds
+A group's menu at the top gets My messages, which shows the messages you sent there in the chat's search.	Bir grubun üstteki menüsüne Mesajlarım eklenir. Orada gönderdiğin mesajları sohbet aramasında gösterir.
+# context: Short toast when My messages couldn't open the chat's search on the person's messages, at most two short lines
+Couldn't open your messages here.	Mesajların burada açılamadı.
+# context: Title of the Text direction row on the Conversations page (#71), which adds Right to left, Left to right and Control character to the text selection menu of the message box
+Text direction	Metin yönü
+# context: Summary of the Text direction row on the Conversations page. Right to left, Left to right and Control character are the names of the items it adds to the message box's text selection menu; RLM and ZWJ stay as they are
+The message box's text menu gets Right to left and Left to right for the lines you selected, and Control character for invisible marks like RLM or ZWJ.	Mesaj kutusunun metin menüsüne seçtiğin satırlar için Sağdan sola ve Soldan sağa, RLM veya ZWJ gibi görünmez işaretler için Kontrol karakteri eklenir.
+# context: Item in the message box's text selection menu, next to Telegram's Bold and Italic, that makes the selected lines read from right to left
+Right to left	Sağdan sola
+# context: Item in the message box's text selection menu, next to Telegram's Bold and Italic, that makes the selected lines read from left to right
+Left to right	Soldan sağa
+# context: Item in the message box's text selection menu that opens a list of invisible Unicode control characters, and the title of that list
+Control character	Kontrol karakteri
+# context: Short toast when Text direction couldn't change the message box's text, at most two short lines
+Couldn't change the text.	Metin değiştirilemedi.
+# context: Name of an invisible Unicode control character in the Text direction feature's Control character list, shown after its short code (for example LRM). Keep it close to the character's Unicode name
+Left-to-right mark	Soldan sağa işareti
+# context: Name of an invisible Unicode control character in the Text direction feature's Control character list, shown after its short code (for example LRM). Keep it close to the character's Unicode name
+Right-to-left mark	Sağdan sola işareti
+# context: Name of an invisible Unicode control character in the Text direction feature's Control character list, shown after its short code (for example LRM). Keep it close to the character's Unicode name
+Zero width joiner	Sıfır genişlikli birleştirici
+# context: Name of an invisible Unicode control character in the Text direction feature's Control character list, shown after its short code (for example LRM). Keep it close to the character's Unicode name
+Zero width non-joiner	Sıfır genişlikli ayırıcı
+# context: Name of an invisible Unicode control character in the Text direction feature's Control character list, shown after its short code (for example LRM). Keep it close to the character's Unicode name
+Zero width space	Sıfır genişlikli boşluk
+# context: Name of an invisible Unicode control character in the Text direction feature's Control character list, shown after its short code (for example LRM). Keep it close to the character's Unicode name
+Start of left-to-right embedding	Soldan sağa gömme başlangıcı
+# context: Name of an invisible Unicode control character in the Text direction feature's Control character list, shown after its short code (for example LRM). Keep it close to the character's Unicode name
+Start of right-to-left embedding	Sağdan sola gömme başlangıcı
+# context: Name of an invisible Unicode control character in the Text direction feature's Control character list, shown after its short code (for example LRM). Keep it close to the character's Unicode name
+Start of left-to-right override	Soldan sağa zorlama başlangıcı
+# context: Name of an invisible Unicode control character in the Text direction feature's Control character list, shown after its short code (for example LRM). Keep it close to the character's Unicode name
+Start of right-to-left override	Sağdan sola zorlama başlangıcı
+# context: Name of an invisible Unicode control character in the Text direction feature's Control character list, shown after its short code (for example LRM). Keep it close to the character's Unicode name
+Pop directional formatting	Yön biçimlendirmesi sonu
+# context: Name of an invisible Unicode control character in the Text direction feature's Control character list, shown after its short code (for example LRM). Keep it close to the character's Unicode name
+Left-to-right isolate	Soldan sağa yalıtım
+# context: Name of an invisible Unicode control character in the Text direction feature's Control character list, shown after its short code (for example LRM). Keep it close to the character's Unicode name
+Right-to-left isolate	Sağdan sola yalıtım
+# context: Name of an invisible Unicode control character in the Text direction feature's Control character list, shown after its short code (for example LRM). Keep it close to the character's Unicode name
+First strong isolate	İlk güçlü karaktere göre yalıtım
+# context: Name of an invisible Unicode control character in the Text direction feature's Control character list, shown after its short code (for example LRM). Keep it close to the character's Unicode name
+Pop directional isolate	Yalıtım sonu
+# context: Item in a message's long-press menu that takes the message out of the chat on this phone only. Nothing is sent, and everyone else still sees it
+Hide for me	Benim için gizle
+# context: Short toast right after Hide for me took a message out of the chat, at most two short lines
+Hidden on this phone.	Bu telefonda gizlendi.
+# context: Short toast after tapping Show hidden messages when nothing was hidden, at most two short lines
+No messages are hidden.	Gizli mesaj yok.
+# context: Short toast after tapping Show hidden messages, with how many hidden messages will show again. At most two short lines
+%1$d message shows again.	%1$d mesaj yeniden görünür.
+%1$d messages show again.	%1$d mesaj yeniden görünür.
+# context: Title of the switch on the Conversations page that adds Hide for me to a message's long-press menu
+Add Hide for me to the message menu	Mesaj menüsüne Benim için gizle ekle
+# context: Summary of the Add Hide for me to the message menu switch. Hide for me is the menu item's name
+Adds Hide for me to a message. It leaves the chat on this phone only, with nothing sent to Telegram, so everyone else still sees it. Turn this off and hidden messages show again.	Mesaja Benim için gizle ekler. Mesaj yalnızca bu telefonda sohbetten çıkar, Telegram'a hiçbir şey gitmez, yani herkes onu görmeye devam eder. Bunu kapatırsan gizli mesajlar yeniden görünür.
+# context: Title of the row on the Conversations page that brings back every message hidden with Hide for me
+Show hidden messages	Gizli mesajları göster
+# context: Summary of the Show hidden messages row. Hide for me is the message menu item's name
+Brings back every message you hid with Hide for me, in every account. Open the chat again to see them.	Benim için gizle ile gizlediğin her mesajı her hesapta geri getirir. Görmek için sohbeti yeniden aç.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names Hide for me in the message menu
+hiding messages for you	mesajları yalnızca kendin için gizleme
+# context: Item in a message's long-press menu, and the title of the chat picker it opens. It sends the message's text to the picked chat as a new message, with no formatting
+Forward as plain text	Düz metin olarak ilet
+# context: Title of the switch on the Conversations page that adds Forward as plain text to a message's long-press menu
+Add Forward as plain text to the message menu	Mesaj menüsüne Düz metin olarak ilet ekle
+# context: Summary of the Add Forward as plain text to the message menu switch. Forward as plain text is the menu item's name. Custom emoji are Telegram's Premium emoji. Regular ones are the phone's own emoji
+Adds Forward as plain text to a message you can forward. Pick a chat and its text is sent there as a new message, with no formatting or sender name. Custom emoji become regular ones.	İletebileceğiniz bir mesaja Düz metin olarak ilet ekler. Bir sohbet seçin; mesajın metni oraya biçimlendirme ve gönderen adı olmadan yeni bir mesaj olarak gönderilir. Özel emojiler normal emojilere dönüşür.
+# context: Item in the long-press menu of your own message. It deletes the message for everyone else in the chat and keeps it on this phone
+Delete for them	Diğerleri için sil
+# context: Title of the switch on the Conversations page that adds Delete for them to the long-press menu of your own messages
+Add Delete for them to the message menu	Mesaj menüsüne Diğerleri için sil ekle
+# context: Summary of the Add Delete for them to the message menu switch. Delete for them is the menu item's name. Marked deleted means the word deleted next to the message's time. Clear kept messages is the name of a row in settings
+Adds Delete for them to your own messages in chats and groups. It deletes the message for everyone else and keeps it on this phone, marked deleted. Clear kept messages removes it here too.	Sohbetlerdeki ve gruplardaki kendi mesajlarınıza Diğerleri için sil ekler. Mesaj diğer herkes için silinir ve bu telefonda silindi olarak işaretlenmiş şekilde kalır. Saklanan mesajları temizle onu buradan da kaldırır.
+# context: Short message shown after Delete for them: the message is gone for everyone else in the chat and stays on this phone
+Deleted for them, kept here.	Diğerleri için silindi, burada kaldı.
+# context: Item in the music player's menu (the three dots, #71) that opens the song's lyrics over the player
+Lyrics	Şarkı sözleri
+# context: Line in the lyrics panel while the song's lyrics load
+Looking for the lyrics.	Şarkı sözleri aranıyor.
+# context: Line in the lyrics panel when the lyrics couldn't be loaded. Tapping the line tries again
+Couldn't load the lyrics. Tap to try again.	Şarkı sözleri yüklenemedi. Tekrar denemek için dokunun.
+# context: Line in the lyrics panel when the lyrics library has nothing for the song playing
+No lyrics found for this song.	Bu şarkı için söz bulunamadı.
+# context: Line in the lyrics panel when the lyrics library lists the song as having no words
+This song is instrumental.	Bu şarkı enstrümantal.
+# context: Small credit line at the bottom of the lyrics panel. lrclib.net is the website's name and stays as it is
+Lyrics from lrclib.net	Sözler lrclib.net'ten
+# context: Title of the switch on the Playback page (#71) that adds Lyrics to the music player's menu
+Lyrics in the music player	Müzik çalarda şarkı sözleri
+# context: Summary of the Lyrics in the music player switch. Lyrics is the name of the menu item it adds; lrclib.net stays as it is. Timed lyrics are ones that know when each line is sung
+The music player's menu gets Lyrics. They come from lrclib.net, and timed ones follow along with the song.	Müzik çaların menüsüne Şarkı sözleri eklenir. Sözler lrclib.net'ten gelir ve zamanlı olanlar şarkıyla birlikte ilerler.
+# context: Title of the switch on the Playback page (#71) that shows the day each song was added to your profile's song list
+Dates on your profile songs	Profil şarkılarınızda tarihler
+# context: Summary of the Dates on your profile songs switch. The day is shown after the song's artist in your profile's song list
+Songs you add to your profile from now on show the day you added them, after the artist. The days are kept on this phone only.	Bundan sonra profilinize eklediğiniz şarkılar, sanatçıdan sonra eklediğiniz günü gösterir. Tarihler yalnızca bu telefonda tutulur.
+# context: Lowercase noun phrase naming Dates on your profile songs (#71) in the patch status list
+dates on your profile songs	profil şarkılarında tarihler
+# context: Item at the end of the menu under a chat's preview (press and hold a chat, #71) that opens the previewed chat fully
+Open chat	Sohbeti aç
+# context: Item at the end of the menu under a chat's preview (press and hold a chat, #71) that closes the preview
+Close preview	Önizlemeyi kapat
+# context: Title of the switch on the Chat list page (#71) that adds Open chat and Close preview to the menu under a chat's preview
+Buttons in chat previews	Sohbet önizlemesinde düğmeler
+# context: Summary of the Buttons in chat previews switch. Open chat and Close preview are the names of the two menu items it adds
+Pressing and holding a chat adds Open chat and Close preview to the menu under its preview.	Bir sohbete basılı tuttuğunuzda önizlemesinin altındaki menüye Sohbeti aç ve Önizlemeyi kapat eklenir.
+# context: Title of a switch under Add Repeat to the message menu (#71). Turned on, the bar that shows while messages are selected gets a Screenshot button that saves a picture of them.
+Screenshot selected messages	Seçili mesajların ekran görüntüsü
+# context: Summary of the Screenshot selected messages switch. Screenshot is the button's own label. Pictures/Telegram is a folder name on the phone, keep it as it is.
+Adds a Screenshot button to the bar that shows while you pick messages. It saves a picture of them as the chat shows them, background, dates and times included, to Pictures/Telegram.	Mesaj seçerken beliren çubuğa Ekran görüntüsü düğmesi ekler. Mesajların sohbette göründüğü hâliyle, arka plan, tarih ve saatlerle birlikte bir resmini Pictures/Telegram klasörüne kaydeder.
+# context: Label of the button in the bar that shows while messages are selected (#71). Tapping it saves a picture of the selected messages.
+Screenshot	Ekran görüntüsü
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the Screenshot button for selected messages.
+screenshots of selected messages	seçili mesajların ekran görüntüleri
+# context: Toast from the Screenshot button when a selected message isn't on screen, so it can't be pictured. Two short lines at most.
+Scroll so they're all on screen	Hepsi görünene kadar kaydır
+# context: Toast from the Screenshot button in a secret chat, where it never takes a picture. Two short lines at most.
+Not in secret chats	Gizli sohbetlerde olmaz
+# context: Toast from the Screenshot button in a chat whose owner turned off saving and copying. Two short lines at most.
+This chat doesn't allow saving	Bu sohbet kaydetmeye izin vermiyor
+# context: Toast once the Screenshot button's picture is saved. Pictures is the phone's pictures folder. Two short lines at most.
+Screenshot saved to Pictures	Ekran görüntüsü Resimler'e kaydedildi

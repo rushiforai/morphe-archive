@@ -316,6 +316,8 @@ The Reels tab only shows reels from people and Pages you follow, starting with t
 Facebook has no more reels your filters would keep, so these reels aren't filtered for now.	Facebook tidak punya reel lagi yang lolos filter kamu, jadi reel ini tidak disaring untuk sementara.
 Hush hid the suggested posts after this, so Home ends here.	Hush menyembunyikan postingan yang disarankan setelah ini, jadi Beranda berakhir di sini.
 Download quality	Kualitas unduhan
+Choose quality on each save	Pilih kualitas setiap menyimpan
+A reel's Download button and a video's Download to phone show the qualities first, and the save takes the one you pick. Download quality stays as it is.	Tombol Unduh pada reel dan "Unduh ke ponsel" pada video menampilkan pilihan kualitas dulu, lalu yang Anda pilih yang disimpan. Kualitas unduhan tetap seperti semula.
 Best	Terbaik
 Smallest	Terkecil
 Each video saves at the best quality the player streams.	Setiap video disimpan dengan kualitas streaming terbaik dari pemutar.
@@ -463,6 +465,10 @@ The Also from Meta section leaves Facebook's Menu, with its links to Meta's othe
 Hide Help and support	Sembunyikan “Bantuan & dukungan”
 # context: summary of that switch; Settings and privacy is Facebook's own Menu section
 The Help and support section leaves Facebook's Menu, header and all. Settings and privacy stays.	Bagian “Bantuan & dukungan” hilang dari Menu Facebook, beserta judulnya. “Pengaturan dan privasi” tetap ada.
+Hide Your shortcuts	Sembunyikan “Pintasan Anda”
+The Your shortcuts row leaves Facebook's Menu, with the groups and Pages Facebook keeps putting back in it. The Menu tiles under it stay.	Baris “Pintasan Anda” hilang dari Menu Facebook, beserta grup dan Halaman yang terus dimasukkan kembali oleh Facebook. Ubin Menu di bawahnya tetap ada.
+Hide Create Facebook Page	Sembunyikan “Buat Halaman Facebook”
+The Create Facebook Page row leaves the top of Facebook's Menu. Your profile above it stays.	Baris “Buat Halaman Facebook” hilang dari bagian atas Menu Facebook. Profil Anda di atasnya tetap ada.
 # context: switch title under Menu; Settings and privacy is a section of Facebook's own Menu that folds and unfolds when its header is tapped
 Keep Settings and privacy expanded	Biarkan “Pengaturan dan privasi” terbuka
 # context: summary of that switch
@@ -490,6 +496,8 @@ Hide dislike on comments	Sembunyikan jempol ke bawah di komentar
 Takes the thumbs-down off comments. Like and Reply stay.	Menghapus jempol ke bawah dari komentar. Suka dan Balas tetap ada.
 Hide Like on comments	Sembunyikan Suka di komentar
 Takes Like off the row under comments. Reply and the reaction count stay.	Menghapus Suka dari baris di bawah komentar. Balas dan jumlah reaksi tetap ada.
+Hide Reply on comments	Sembunyikan Balas di komentar
+Takes Reply off the row under comments. View replies, Like and the reaction count stay.	Menghapus Balas dari baris di bawah komentar. Lihat balasan, Suka, dan jumlah reaksi tetap ada.
 # context: switch title under Comments; Like is the button under a post or a comment
 Like only	Hanya Suka
 # context: summary of that switch; the reactions are the row of Love, Haha, Wow and the rest that a long press on Like opens
@@ -1104,6 +1112,10 @@ Hides the Stories tray card that asks to upload your contacts. Applies when Face
 Hide story prompts	Sembunyikan ide cerita
 # context: summary of that switch; Share music you love is the name of one such card
 Hides cards beside Create story that suggest a story to make, like Share music you love. Applies when Facebook next loads the tray.	Menyembunyikan kartu di samping Buat cerita yang menyarankan cerita untuk dibuat, seperti Bagikan musik favoritmu. Berlaku saat Facebook memuat baris itu lagi.
+# context: switch title under Stories; Create story is the first tile of the Stories tray, the one that starts a new story of your own
+Hide Create story	Sembunyikan Buat cerita
+# context: summary of that switch
+Takes the Create story tile off the start of the Stories tray. The stories stay. Applies when Facebook next loads the tray.	Menghapus kotak Buat cerita dari awal baris Cerita. Ceritanya tetap ada. Berlaku saat Facebook memuat baris itu lagi.
 # context: summary of Hide "People you may know" when the build also hides tray cards; Add is the card's button
 Hides friend suggestions between posts, on your own profile, and as cards with an Add button in the Stories tray.	Menyembunyikan saran teman di antara postingan, di profilmu sendiri, dan sebagai kartu dengan tombol Tambah di baris Cerita.
 Feeds opens on	Feed dibuka di
@@ -2703,3 +2715,18 @@ Playback speed in the post menu	Kecepatan putar di menu postingan
 A feed or Watch video's 3-dot menu gets Playback speed, from 0.5x to 3x, live videos too. Off by default, since it hasn't been tried on a real account yet.	Menu titik tiga video feed atau Watch mendapat Kecepatan putar, dari 0,5x sampai 3x, juga untuk video siaran langsung. Mati secara bawaan, karena belum dicoba di akun sungguhan.
 Double tap to skip on feed videos	Ketuk dua kali untuk melompat di video feed
 Double tap the right side of a playing feed video to jump ahead 10 seconds, or the left side to go back 10. Keep tapping to go further. Live videos work too when they can be rewound. One tap on a side still opens the video, a moment later than usual. With Tap to play on, it needs Inline feed video controls on too.	Ketuk dua kali sisi kanan video feed yang sedang diputar untuk maju 10 detik, atau sisi kiri untuk mundur 10 detik. Terus ketuk untuk melompat lebih jauh. Video live juga bisa jika dapat diputar mundur. Satu ketukan di sisi tetap membuka video, hanya sedikit lebih lambat dari biasanya. Jika “Ketuk untuk memutar” aktif, “Kontrol video di beranda” juga harus aktif.
+Show only comments that match	Tampilkan hanya komentar yang cocok
+While the search box holds words, comments without them are hidden. Clearing the box brings them back.	Selama kotak pencarian berisi kata, komentar tanpa kata itu disembunyikan. Mengosongkan kotak akan menampilkannya lagi.
+Queue reel saves	Antrekan penyimpanan reel
+Each reel you tap Download on joins a queue that saves one reel at a time in the background. Pause or cancel it from its notification or from Downloads here. A reel already in the queue is skipped, and one that fails gets one more try. The queue lasts until Facebook closes.	Setiap reel yang kamu ketuk Unduh masuk ke antrean yang menyimpan satu reel dalam satu waktu di latar belakang. Jeda atau batalkan dari notifikasinya atau dari Unduhan di sini. Reel yang sudah ada di antrean dilewati, dan reel yang gagal dicoba sekali lagi. Antrean bertahan sampai Facebook ditutup.
+Added to the reel queue	Ditambahkan ke antrean reel
+Added to the reel queue. To pause or cancel it, open Downloads in Hushfacebook settings.	Ditambahkan ke antrean reel. Untuk menjeda atau membatalkannya, buka Unduhan di pengaturan Hushfacebook.
+Already in the reel queue	Sudah ada di antrean reel
+That reel is already saved	Reel itu sudah disimpan
+The reel queue is full. Try again when it's shorter.	Antrean reel penuh. Coba lagi saat antreannya lebih pendek.
+Saving queued reels	Menyimpan reel dalam antrean
+Reel queue paused	Antrean reel dijeda
+Reel queue done	Antrean reel selesai
+%1$d saved, %2$d waiting, %3$d failed	%1$d tersimpan, %2$d menunggu, %3$d gagal
+Reel queue canceled	Antrean reel dibatalkan
+Cancel the reel queue	Batalkan antrean reel

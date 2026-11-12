@@ -66,7 +66,7 @@ internal data class CertificateHeaderInjection(val insertionIndex: Int, val valu
  * 認証と通信、FIS 以外の Firebase client には触れません。
  */
 val fisCertificateHeaderPatch = bytecodePatch(
-    name = "アプリを閉じていても通知を受け取る",
+    name = "Push notifications while closed",
     description = "Firebase Installations の登録で送る署名情報を、実行時設定で公式 LINE のものに置き換えられるようにします。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

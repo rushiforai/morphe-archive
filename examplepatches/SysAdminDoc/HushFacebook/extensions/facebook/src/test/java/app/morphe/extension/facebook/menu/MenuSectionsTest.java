@@ -52,6 +52,7 @@ public class MenuSectionsTest {
         Settings.HIDE_MENU_UPGRADES.resetToDefault();
         Settings.HIDE_MENU_ALSO_FROM_META.resetToDefault();
         Settings.HIDE_MENU_HELP.resetToDefault();
+        Settings.HIDE_MENU_SHORTCUTS.resetToDefault();
         Settings.KEEP_MENU_SETTINGS_EXPANDED.resetToDefault();
         MenuSectionsForTests.newProcess();
         FeedFilterCounters.clear();
@@ -83,10 +84,61 @@ public class MenuSectionsTest {
             assertFalse(group + " was hidden", MenuSections.hideSection(group));
             assertFalse(group + "'s server part was hidden", MenuSections.hideServerSection(group));
             assertNull(group + " has a switch", MenuSections.switchFor(group.name()));
+            if (group == Group.PROFILE) continue;
+            assertNull(group + "'s folder has a switch", MenuSections.folderSwitchFor(group.name()));
         }
         assertSame(Settings.HIDE_MENU_UPGRADES, MenuSections.switchFor("UPSELL"));
         assertSame(Settings.HIDE_MENU_ALSO_FROM_META, MenuSections.switchFor("PRODUCTS_FROM_FACEBOOK"));
         assertSame(Settings.HIDE_MENU_HELP, MenuSections.switchFor("HELP"));
+        assertNull("Help and support's folder has a switch", MenuSections.folderSwitchFor("HELP"));
+        assertSame(Settings.HIDE_MENU_SHORTCUTS, MenuSections.folderSwitchFor("PROFILE"));
+    }
+
+    /**
+     * Your shortcuts, the folder Facebook draws in the PROFILE group's server section, stays until
+     * its own switch is on (issue #445). Then only that folder goes, counted under its Menu title,
+     * while the rest of that server section (the profile card and Create Facebook Page), the
+     * PROFILE group's native section, the FEATURED folder after it and the Menu tiles' group stay,
+     * and it waits for a restart like the others.
+     */
+    @Test
+    public void yourShortcutsGoesOnlyByItsOwnSwitch() {
+        assertFalse("the Your shortcuts switch starts off", Settings.HIDE_MENU_SHORTCUTS.get());
+        assertFalse(MenuSections.hideFolder(Group.PROFILE));
+
+        Settings.HIDE_MENU_SHORTCUTS.save(true);
+        assertTrue(MenuSections.hideFolder(Group.PROFILE));
+        assertFalse("the profile card went with it", MenuSections.hideServerSection(Group.PROFILE));
+        assertFalse("the PROFILE group's own section went with it", MenuSections.hideSection(Group.PROFILE));
+        assertFalse("the folder after Your shortcuts went with it", MenuSections.hideFolder(Group.FEATURED));
+        assertFalse("the Menu tiles went with it", MenuSections.hideFolder(Group.PRODUCTS));
+        assertTrue("an open Menu keeps Your shortcuts until Facebook restarts", Settings.HIDE_MENU_SHORTCUTS.rebootApp);
+        assertEquals(MenuSections.FOLDER_ROUTE + ": 4 lists, 4 items, 1 removed. Last reason: "
+                        + MenuSections.SHORTCUTS_HIDDEN + ". Removed: " + MenuSections.SHORTCUTS_HIDDEN
+                        + " 1. Kinds: PROFILE 2, FEATURED 1, PRODUCTS 1",
+                line(FeedFilterCounters.report(), MenuSections.FOLDER_ROUTE));
+        assertEquals(MenuSections.SERVER_ROUTE + ": 1 lists, 1 items, 0 removed. Kinds: PROFILE 1",
+                line(FeedFilterCounters.report(), MenuSections.SERVER_ROUTE));
+        assertEquals(MenuSections.ROUTE + ": 1 lists, 1 items, 0 removed. Kinds: PROFILE 1",
+                line(FeedFilterCounters.report(), MenuSections.ROUTE));
+
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        assertFalse("paused, Your shortcuts comes back", MenuSections.hideFolder(Group.PROFILE));
+    }
+
+    /**
+     * The folder hook leaves every hidden group's folder to that group's server section, which
+     * already builds nothing, so Upgrades, Also from Meta and Help and support never count there.
+     */
+    @Test
+    public void onlyYourShortcutsGoesByTheFolderHook() {
+        Settings.HIDE_MENU_HELP.save(true);
+        assertFalse(MenuSections.hideFolder(Group.UPSELL));
+        assertFalse(MenuSections.hideFolder(Group.PRODUCTS_FROM_FACEBOOK));
+        assertFalse(MenuSections.hideFolder(Group.HELP));
+        assertEquals(MenuSections.FOLDER_ROUTE + ": 3 lists, 3 items, 0 removed. "
+                        + "Kinds: HELP 1, PRODUCTS_FROM_FACEBOOK 1, UPSELL 1",
+                line(FeedFilterCounters.report(), MenuSections.FOLDER_ROUTE));
     }
 
     /**

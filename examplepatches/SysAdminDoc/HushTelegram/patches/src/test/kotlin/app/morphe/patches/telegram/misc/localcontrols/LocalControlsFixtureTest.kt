@@ -83,7 +83,8 @@ class LocalControlsFixtureTest {
         for (build in Fixtures.declaredBuilds()) {
             val context = context(build)
             val sites = context.resolveDoubleTapReactions()
-            assertEquals("no gesture state", 0, context.tgMutableClassDefBy(DOUBLE_TAP_REACTIONS).fields.size)
+            // The one field is the hidden reaction row's unread flag, handed to the row's own setter; no gesture is remembered.
+            assertEquals("no gesture state", listOf("hiddenUnread"), context.tgMutableClassDefBy(DOUBLE_TAP_REACTIONS).fields.map { it.name })
             val originals = sites.associate { key(it.method) to ImmutableMethod.of(it.method) }
             val untouched = hostState(build, context, sites.map { it.method }.toSet())
             // The emoji pack line's own class is outside this slice (HideReactionsFixtureTest covers that switch),

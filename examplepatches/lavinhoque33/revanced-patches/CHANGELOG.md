@@ -1,3 +1,163 @@
+## Unreleased
+
+## [1.34.1](https://github.com/lavinhoque33/revanced-patches/compare/v1.34.0...v1.34.1) (2026-11-11)
+
+### Bug Fixes
+
+* **Music - Downloads:** Keep the three Download method choices short and move their explanations to an Info
+  dialog. Show only the selected method name in settings.
+* **Music - Downloads:** Make Download in a Library playlist's three-dot menu follow the selected download method
+  instead of opening the Premium offer. YouTube Music / external app mode keeps Music's own behavior.
+
+## [1.34.0](https://github.com/lavinhoque33/revanced-patches/compare/v1.33.0...v1.34.0) (2026-11-11)
+
+### Bug Fixes
+
+* **Music - Track crossfade:** Keep the incoming track quiet until its fade starts and preserve its volume
+  normalization. Keep equalizers attached to the outgoing track until it finishes playing.
+* **YouTube - Unlock queue:** Make Play next in queue in the feed menu use YouTube's own queue when Unlock queue is on.
+  Add to RVX queue still opens the RVX queue dialog. Turn Unlock queue off to override the feed queue button.
+  Premium-style queue takes priority when you turn it on, and keeps working for users who already use it.
+* **YouTube - Navigation bar:** Fix the navigation buttons sitting too high, with a black strip below them, with the
+  Translucent or Transparent navigation bar style and gesture navigation, also when Glass navigation bar is off.
+  Fix the extra space below the glass bar with system navigation buttons or a visible gesture indicator.
+* **YouTube - Navigation bar:** The blurred background of the Translucent navigation bar and of Glass navigation bar
+  is now drawn only on Android 14 and newer. On Android 12 and 13 the bar keeps a plain translucent color, because the
+  blur could crash the app while the player moves.
+* **YouTube - Feed card layout:** Fix the cards with some accounts, where the thumbnails had black gutters on both
+  sides, the corners were not rounded, the cards looked small, and an inline preview broke the layout of the cards
+  around it. The margins and the corners now follow the screen density, also after it changes, and the cards of
+  grids, such as the channel pages, are clipped in their own columns. The dynamic colors tint the whole card below the
+  thumbnail also on these accounts.
+* **YouTube - Feed card layout:** Add the fixes of Morphe for the cards: playlists, mixes and podcasts of the feed
+  and of the channel home use the Classic layout or the card background like the videos, the Classic layout keeps the
+  Save to Watch later and Save to playlist items in the menu, mixes and the movie shelf keep their own layout when
+  they are hidden, and the cards keep their layout while the app updates its templates.
+* **YouTube - Toolbar:** Fix the Create button of the toolbar so it opens the upload menu again.
+* **Music - Stream download:** Fix loading the regular song menu of earlier copies while online, and keep just one
+  Download or Remove download action when Music supplies its newer menu rows. Other stock actions stay intact.
+  No Playlist opens the tapped song's full native menu, also from its saved renderer offline. Looking up or opening
+  another song's menu does not change the current queue or what Next plays.
+* **Music - Downloads:** With Device files selected, the Downloads chip uses Music's device-files library, not the
+  stream-copy list. Existing stream copies are kept.
+* **Music - Android Auto:** Fix a crash when starting a track from Downloaded Playlists, including No Playlist.
+  Newer selections take priority, and online playback keeps radio and lyrics while using the local stream.
+  No Playlist uses one native Play next request and its complete response after the selected song is committed,
+  inserting the following songs as one ordered batch before radio. Menu lookups cannot overwrite that queue context.
+  Changing the selection or reconnecting cancels old work before it can change that queue.
+  Queue work follows Music's current-item updates without blocking its playback thread.
+
+### Features
+
+* **Music - Downloads:** Add one Download quality setting for new song, album and playlist downloads: Highest,
+  High, Normal and Low. Highest uses the best source the available clients offer to your account, including 256 kbps
+  when available, without unlocking Premium. High prefers standard high Opus, Normal 128 kbps AAC, and Low 48 kbps
+  AAC or about 50 kbps Opus. Missing tiers fall back to available sources. Existing downloads remain unchanged.
+  Stream download and Device files share this setting; YouTube Music and external apps use their own settings.
+  Playlist video remains 360p, with the selected audio quality. Local playback uses each copy's own codec and ranges.
+* **Music - Stream download:** Stream download is now the main way to download in YouTube Music. A fresh install saves
+  a private copy of a song, playlist or album inside the app that plays with or without internet and keeps radio and
+  lyrics online. One Download method setting applies to every song, playlist and album: Stream download (default),
+  Device files (older method), or YouTube Music / external app. External overrides in the last mode handle single
+  songs only; albums and playlists stay with Music. Earlier mixed choices prefer Stream, then Device files.
+  Changing the method never deletes anything you already downloaded.
+* **Music - Stream download:** A song downloaded from the Video display, or from an album row that shows the music
+  video, is saved as the song's audio, so it plays and shows its green check everywhere. A failed song download now
+  says why.
+* **Music - Stream download:** Remove download. For a downloaded song the Download item of the menu and the player
+  Download button become Remove download with a confirmation, and so does the Download button of a downloaded
+  playlist or album. Songs that another downloaded list or your own download still needs are kept.
+* **Music - Stream download:** Songs you downloaded one by one and that are in no downloaded playlist or album are no
+  longer listed as songs in Library, Downloads. They are in one playlist called No Playlist, which opens as its own
+  page with a green check on every song. It plays in the shown order from the song you tap, online and offline.
+  Online the songs are queued after the one you tap, so radio and lyrics stay, and the audio comes from your copies.
+  It also appears in Android Auto in the downloaded playlists.
+* **Music - Stream download:** The Downloads chip refreshes itself the way a pull to refresh does after you download
+  or remove a song, an album or a playlist, also when you come back to it with Back from a list or a player, so the
+  rows and the No Playlist count are current without pulling. Nothing is opened by itself and the Library still
+  opens first after a restart.
+* **Music - Stream download:** The three dot menu of a No Playlist song opens the app's regular song menu for that
+  song, with the usual available actions and Remove download. Removing a copy updates the row and count; the green
+  check stays at the right end.
+  The complete stock menu is saved for offline use. Earlier copies need this page opened online once to load it.
+* **Music - Stream download:** A playlist or album download that was cut off, for example by closing the app, no longer
+  leaves its songs in No Playlist and no longer counts as saved. Its Download button finishes the job and the green
+  check and Remove download appear once every song is in.
+* **Music - Stream download:** Accounts whose song menu has no Download item now get one, so a single song can be
+  downloaded from any song menu. It reads Remove download once the song is saved.
+* **Music - Settings:** The download options are now together in a Downloads group of Miscellaneous.
+* **Music - Library:** After the app is restarted, the Library tab opens the Library again and not the Downloads view
+  that was selected last. The Downloads chip itself works as before.
+* **Music - Stream download:** Album song lists show the green check for songs you downloaded one by one, even when the
+  album was never downloaded.
+* **Sync with anddea/revanced-patches dev:** Merge the changes up to v4.4.0-dev.6 (anddea dev, b2f29faa6) into this
+  fork.
+* **YouTube - Settings:** Keep About at the end of RVX settings, with icon rows for app information, links, credits
+  and copying debug information.
+* **YouTube - Downloads:** Add Show download option icons, off by default. Turn it on to show icons beside Include
+  subtitles and Include SponsorBlock in the built-in downloader.
+* **YouTube - Downloads:** Use rounded, sentence-case buttons in the playlist selection menu, with wrapping labels
+  and a full-width Download button. Keep selection controls and videos visible in landscape while options scroll.
+* **YouTube - Enable debug logging:** Add a Feature flags manager in Miscellaneous > Debugging, with Binary search to
+  find which YouTube feature flag causes a problem. Reset the overrides if the app repeatedly fails to start.
+* **YouTube - Glass navigation bar:** Add a bottom spacing slider to the Glass navigation bar size dialog, to set how
+  far the capsule floats above the bottom of the screen, and show the snackbars right above the navigation bar.
+* **YouTube - Watch later improvements:** Add a patch with options to widen the drag handles of the Watch later videos
+  and to hide the snackbar shown after removing a video.
+* **YouTube - Post buttons:** Add a Post buttons screen to hide the like, share and comment buttons of posts, and an
+  option to give every post the same grouped layout of buttons.
+* **YouTube - Captions:** Show captions in stable blocks and as two languages at once, on YouTube 21.15 and newer.
+* **YouTube - Spoof video streams:** Fetch the streams of a video sooner, so videos start faster, and keep inline
+  previews in the feed muted.
+* **YouTube Music - Lyrics:** Add a dynamic background to the lyrics, and show the reading of each Japanese word
+  above the text (furigana).
+* **YouTube Music - Downloads:** Private stream copies keep radio, lyrics and the queue online while there is a
+  connection, and play without internet. A download uses only the global method: it never writes a device file and
+  a stream copy together. Stream downloads shows their size and can remove them without touching device files.
+  Downloaded songs start in audio mode (a sub-setting, on by default); the Song/Video switch still reaches the
+  online video and continues at the same position.
+* **YouTube Music - Downloads:** Play the stream copies with no network. Each copy keeps the details of its song,
+  and the Downloads chip of the Library lists downloaded albums, playlists and the No Playlist aggregate. A tap
+  starts playback from the local copy, and Next and the end of a song continue through the list offline too.
+  An album or playlist opens its normal page online. Lyrics, comments and related stay blank offline.
+  Songs downloaded before this version fill in by
+  themselves in the background while you are online, and Open downloaded songs shows how many are Offline ready and
+  opens the Downloads chip. Albums and playlists downloaded earlier appear in the list too, in their recorded order,
+  and fetch their title while online. Android Auto lists the copies in a Stream copies folder inside Downloaded
+  playlists, with their covers, independently of the device-file method. A song tapped
+  while offline starts at once. The No connection sheet no longer covers the player controls while a downloaded song
+  plays offline. After a restart the Library tab opens the Library, not the Downloads chip. A row decides whether
+  to open an online page or start local playback when tapped, so network changes take effect immediately. Opening a
+  downloaded playlist or album online records the app's own page of it (about 90 KB for a playlist, 22 KB for an
+  album), and with no network the page opens as it does online, with its header, cover and track rows, also when the
+  album is opened from the Albums chip; tapping a track plays it from its copy and goes on through the list. A
+  downloaded list that was not opened online since this version plays from its first song, as before.
+* **YouTube Music - Downloads:** Add green downloaded checkmarks, on by default for stream copies.
+  Songs and playlists saved for local playback show a check at the end of the song row, next to its menu or drag
+  handle, on playlist pages, on the track rows of an album page, in the Search songs filter and in the player queue,
+  and a playlist or album page whose every track has a stream copy shows one on its Download button. Songs saved only
+  as device files are not marked, and neither are the search All cards.
+* **YouTube Music - Downloads:** Download the rest of a playlist or album that has unavailable tracks (deleted,
+  private or blocked songs, shown greyed out) instead of failing the whole download. The finished message says how
+  many were skipped, the Download button's check turns on when every available track has a copy, and a failed
+  download now names the reason in a one-line message.
+* **YouTube Music - Downloads:** Songs that have a music video also save that video's stream: its 360p picture and
+  its own audio, about 10 to 12 MB for the pair, next to the song's audio copy of about 3.4 MB. The videos are found
+  and saved when an album is downloaded, one at a time after the songs: each song is matched to the video with the
+  same title, or with about the same length, and a song with no certain match saves none. A song downloaded on its
+  own saves no video, and a playlist whose songs the server does not link to a music video saves none either. A
+  video that cannot be saved never fails the song or the list. The finished message and the Stream downloads action
+  count the videos and their size (for example "49 songs and 10 videos saved for local playback, 236.4 MB"),
+  tapping Download on a saved list fetches the videos it is missing, and deleting the stream downloads deletes the
+  videos too.
+* **YouTube Music - Downloads:** A song with a saved video plays that saved stream in both display modes, online or
+  offline, and the Song/Video switch is the app's own switch: it flips in place at once, with no reload, no gap in
+  the sound and no change of position, and the Song display plays the sound of the video itself. A tap on any song
+  in an album, a playlist or the Downloads view starts that song that way, and Next and the end of a song go on in
+  the display you chose. Offline, the Song display shows the song's album cover. Songs without a saved video keep
+  their audio copy, and Android Auto keeps playing the audio copies. For the saved videos to play offline, play one
+  saved video online once after installing this version; the app then keeps the player settings the videos need.
+
 ## [1.33.0](https://github.com/lavinhoque33/revanced-patches/compare/v1.32.2...v1.33.0) (2026-11-06)
 
 ### Features

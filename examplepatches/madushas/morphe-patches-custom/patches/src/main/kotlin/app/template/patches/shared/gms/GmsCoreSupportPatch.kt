@@ -303,6 +303,7 @@ val gmsCorePatch = bytecodePatch(
     """.trimIndent(),
     default = false,
 ) {
+    category("GmsCore")
     extendWith("extensions/extension.mpe")
 
     // Optional — if left blank, SPOOFED_PACKAGE_SIGNATURE meta-data is not injected.

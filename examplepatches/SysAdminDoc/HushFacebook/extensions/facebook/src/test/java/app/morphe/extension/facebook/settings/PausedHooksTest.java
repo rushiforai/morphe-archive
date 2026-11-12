@@ -373,6 +373,8 @@ public class PausedHooksTest {
         probes.put(Settings.DOWNLOAD_CONVERT, SaveRulesForTests::convertsTheFullSize);
         // A finished save goes without its Saved to toast.
         probes.put(Settings.DOWNLOAD_QUIET, SaveRulesForTests::finishesQuietly);
+        // A reel's or a video's save asks for the quality before it starts.
+        probes.put(Settings.DOWNLOAD_QUALITY_ASK, SaveRulesForTests::asksForTheQuality);
         return probes;
     }
 
@@ -591,9 +593,10 @@ public class PausedHooksTest {
         // A tray of a friend's bucket, a suggested one and one labelled SUGGESTED keeps only the friend's,
         // a Page's bucket leaves it, and so does a bucket you've watched.
         // With Show only watched stories on, the tray keeps only what you've watched (#340).
+        // The Create story tile leaves the tray's tile list (#445).
         probes.put(PatchFamily.SUGGESTED_STORIES, Arrays.asList(allStories(SuggestedStoriesForTests::hidesSuggestions),
                 allStories(SuggestedStoriesForTests::hidesPageStories), allStories(SuggestedStoriesForTests::hidesSeenStories),
-                SuggestedStoriesForTests::keepsOnlyWatchedStories));
+                SuggestedStoriesForTests::keepsOnlyWatchedStories, SuggestedStoriesForTests::hidesCreateStory));
         // A forward tap on a bucket's last card gets the completion's reason (#380).
         probes.put(PatchFamily.STORY_AUTO_ADVANCE, Arrays.asList(StoryAdvance::waitForTap, StoryAdvance::loop,
                 () -> StoryAdvance.lastCardTap(NavigationReason.TAP_FORWARD)));
@@ -1010,6 +1013,7 @@ public class PausedHooksTest {
                 () -> !CommentSheetOptions.viewMoreRepliesTextOnly(true),
                 () -> CommentSheetOptions.holdsBottomContent(CommentSheetOptions.RELATED_GROUPS),
                 () -> CommentSheetOptions.holdsPostComments(CommentSheetOptions.INLINE_COMMENTS),
+                () -> CommentSheetOptions.holdsCommentReply(CommentSheetOptions.REPLY_PLUGIN),
                 () -> {
                     // Block button on comments keeps the dislike it redraws (#271).
                     Settings.COMMENT_BLOCK_BUTTON.save(false);

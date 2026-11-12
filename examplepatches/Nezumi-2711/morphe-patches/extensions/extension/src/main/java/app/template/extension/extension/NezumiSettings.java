@@ -155,10 +155,8 @@ public final class NezumiSettings {
         try {
             String uid = (String) conversation.getClass().getField("b").get(conversation);
             if (uid == null || uid.isEmpty() || uid.startsWith("group_")) return false;
-            Object profile = conversation.getClass().getField("a").get(conversation);
-            if (profile == null) {
-                profile = Class.forName("rz.p3").getMethod("l", String.class).invoke(null, uid);
-            }
+            Object profile = Class.forName("rz.p3").getMethod("l", String.class).invoke(null, uid);
+            if (profile == null) profile = conversation.getClass().getField("a").get(conversation);
             return profile != null && Boolean.TRUE.equals(profile.getClass().getMethod("P1").invoke(profile));
         } catch (ReflectiveOperationException | RuntimeException | LinkageError ignored) {
             return false;

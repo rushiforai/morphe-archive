@@ -1,6 +1,6 @@
 /*
  * Copyright 2026 Morphe.
- * Modified by lavinhoque33, 2026-11-06.
+ * Modified by lavinhoque33, 2026-11-10.
  * https://github.com/MorpheApp/morphe-patches/pull/4338
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
@@ -59,9 +59,10 @@ import app.morphe.extension.youtube.shared.ShortsPlayerState;
  * Draws the bottom navigation bar as a floating, rounded, translucent capsule.
  * <p>
  * No extra copy of the content behind the bar is made. If the app draws its own blurred background
- * (the translucent navigation bar style, Android 12 and later), that background is kept and clipped
- * to the capsule. The frosted look otherwise comes from a tinted fill, a soft gradient, a gradient
- * edge and a shadow, all drawn by one drawable that is set as the background of the navigation bar.
+ * (the translucent navigation bar style, Android 12 and later, blurred only from Android 14), that
+ * background is kept and clipped to the capsule. The frosted look otherwise comes from a tinted fill,
+ * a soft gradient, a gradient edge and a shadow, all drawn by one drawable that is set as the
+ * background of the navigation bar.
  * The bar keeps its height and vertical layout, and everything outside the capsule is left transparent.
  */
 @SuppressWarnings("unused")
@@ -116,9 +117,11 @@ public final class GlassNavigationBar {
 
     /**
      * The least room between the bottom of the capsule and the bottom of the bar,
-     * so the capsule floats above the bottom of the screen.
+     * so the capsule floats above the bottom of the screen, from the bottom spacing slider.
+     * The room for the system navigation buttons is kept when it is larger than this room.
      */
-    private static final int FLOATING_ROOM = Dim.dp10;
+    private static final int FLOATING_ROOM =
+            Dim.dp(SeekBarPreference.clampToRange(Settings.NAVIGATION_BAR_GLASS_BOTTOM_SPACING));
 
     /**
      * The most alpha of the tint the app draws over its blurred background.
@@ -361,6 +364,22 @@ public final class GlassNavigationBar {
     }
 
     /**
+     * Called from {@link SnackBarPatch}. The app lays the snackbars out above the height it
+     * gives the navigation bar, so they would overlap the room added to it.
+     *
+     * @return The room added to the height of the navigation bar on screen.
+     */
+    static int getAddedRoomOnScreen() {
+        if (!ENABLED) return 0;
+
+        View pivotBar = currentPivotBar.get();
+        if (pivotBar == null || !pivotBar.isShown()) return 0;
+
+        ViewGroup.LayoutParams params = pivotBar.getLayoutParams();
+        return params != null && params.height > 0 ? getAddedRoom(pivotBar, params.height) : 0;
+    }
+
+    /**
      * @param height The height the app gives the bar.
      * @return The room below the buttons that the app did not add to the height of the bar, and the
      *         height the capsule adds to the bar (less than zero if the capsule is lower), in proportion
@@ -500,12 +519,25 @@ public final class GlassNavigationBar {
                                 int[] location = new int[2];
                                 pivotBar.getLocationInWindow(location);
                                 View parent = (View) pivotBar.getParent();
+                                View rootLayout = pivotBar.getRootView().findViewById(ResourceUtils.getIdentifier(
+                                        ResourceType.ID, "navigation_bar_divider_frame"));
+                                int rootBottomMargin = rootLayout != null
+                                        && rootLayout.getLayoutParams() instanceof ViewGroup.MarginLayoutParams margins
+                                        ? margins.bottomMargin : -1;
                                 return "Glass navigation bar applied, height: " + pivotBar.getHeight()
                                         + " bottom padding: " + pivotBar.getPaddingBottom()
-                                        + " room below: " + (pivotBar.getRootView().getHeight() - location[1] - pivotBar.getHeight())
+                                        + " room below: "
+                                        + (pivotBar.getRootView().getHeight() - location[1] - pivotBar.getHeight())
+                                        + " root height: " + pivotBar.getRootView().getHeight()
+                                        + " bar top: " + location[1]
+                                        + " bar bottom: " + (location[1] + pivotBar.getHeight())
+                                        + " root bottom margin: " + rootBottomMargin
+                                        + " covers system buttons: "
+                                        + NavigationButtonsPatch.isNavigationBarCoveringSystemButtons()
                                         + " container height: " + parent.getHeight()
                                         + " container bottom padding: " + parent.getPaddingBottom()
-                                        + " app background: " + (background == null ? null : background.getClass().getName());
+                                        + " app background: "
+                                        + (background == null ? null : background.getClass().getName());
                             });
                         }
                     }

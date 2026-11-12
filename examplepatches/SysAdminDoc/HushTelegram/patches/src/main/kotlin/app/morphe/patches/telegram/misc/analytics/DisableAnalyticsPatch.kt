@@ -23,9 +23,11 @@ import app.morphe.patches.telegram.misc.extension.patchLog
 import app.morphe.patches.telegram.misc.extension.requireStatusMethod
 import app.morphe.patches.telegram.misc.extension.resolveSendRequestGate
 import app.morphe.patches.telegram.misc.extension.telegramExtensionPatch
+import app.morphe.patches.telegram.misc.extension.writeStub
 import app.morphe.patches.telegram.misc.localcontrols.Mention
 import app.morphe.patches.telegram.misc.localcontrols.controlHook
 import app.morphe.patches.telegram.misc.localcontrols.forEachClassMentioning
+import app.morphe.patches.telegram.misc.localcontrols.requireReachable
 import app.morphe.patches.telegram.misc.settings.settingsPatch
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.ControlFlow
@@ -63,6 +65,12 @@ private const val ANALYTICS = "$EXTENSION_PACKAGE/misc/Analytics;"
  */
 internal const val GHOST_MODE = "$EXTENSION_PACKAGE/misc/GhostMode;"
 internal const val GHOST_MODE_DROP = "$GHOST_MODE->drop(Ljava/lang/Object;Ljava/lang/Object;)Z"
+
+/** How a held read goes out: ConnectionsManager.getInstance(account).sendRequest(request, callback, 0). */
+private const val CONNECTIONS = "Lorg/telegram/tgnet/ConnectionsManager;"
+private const val CONNECTIONS_INSTANCE = "$CONNECTIONS->getInstance(I)$CONNECTIONS"
+private const val CONNECTIONS_SEND =
+    "$CONNECTIONS->sendRequest(Lorg/telegram/tgnet/TLObject;Lorg/telegram/tgnet/RequestDelegate;I)I"
 
 /**
  * Power off account and Receive only mode: the connection manager, the request and its callback, and
@@ -111,7 +119,8 @@ val disableAnalyticsPatch = bytecodePatch(
     description = "Stops Telegram from reporting how you use the app, like how long you read channel posts and what you" +
         " tap on Premium screens, and keeps the camera from reporting your phone's maker and model. " +
         "Messages, calls and notifications work as before. On by default. Turn it off in " +
-        "HushTelegram settings > Privacy, where Receive only mode and Power off accounts also live, both off by default.",
+        "HushTelegram settings > Privacy, where Receive only mode, Power off accounts, Instant lock and Don't notify " +
+        "contacts also live, all off by default.",
     default = true,
 ) {
     category("Privacy")
@@ -125,7 +134,12 @@ val disableAnalyticsPatch = bytecodePatch(
         requireStatusMethod("ghostMode")
         requireStatusMethod("receiveOnly")
         requireStatusMethod("powerOff")
+        requireStatusMethod("instantLock")
+        controlHook(INSTANT_LOCK, "autoLockIn", listOf("I"), "I")
+        requireStatusMethod("quietSignUp")
+        controlHook(QUIET_SIGN_UP, "noJoinedNotifications", listOf("I"), "Z")
         controlHook(GHOST_MODE, "drop", listOf("Ljava/lang/Object;", "Ljava/lang/Object;"), "Z")
+        controlHook(GHOST_MODE, "sendRequest", listOf("I", "Ljava/lang/Object;", "Ljava/lang/Object;"), "Z")
         controlHook(ACCOUNT_GUARD, "drop", listOf("Ljava/lang/Object;", "Ljava/lang/Object;", "Ljava/lang/Object;"), "Z")
 
         val metrics = SendReadMetricsFingerprint.methodOrNull
@@ -167,6 +181,7 @@ val disableAnalyticsPatch = bytecodePatch(
         if (ghost.missing == null) {
             ghost.apply(GHOST_MODE_DROP)
             enableCapability("ghostMode")
+            writeHeldReadSend()
         } else {
             patchLog.warning("$PATCH: ${ghost.missing}. The patch goes on without Ghost mode.")
         }
@@ -181,7 +196,54 @@ val disableAnalyticsPatch = bytecodePatch(
             patchLog.warning("$PATCH: ${guard.missing}. The patch goes on without Receive only mode and Power off accounts.")
         }
 
+        // Instant lock stands on its own as well: a build whose lock checks moved keeps the rest.
+        val lock = try {
+            resolveInstantLock()
+        } catch (unfit: PatchException) {
+            patchLog.warning("$PATCH: ${unfit.message}. The patch goes on without Instant lock.")
+            null
+        }
+        if (lock != null) {
+            lock.forEach { it.apply() }
+            enableCapability("instantLock")
+        }
+
+        // So does Don't notify contacts, which only touches the sign-up request.
+        val quiet = try {
+            resolveQuietSignUp()
+        } catch (unfit: PatchException) {
+            patchLog.warning("$PATCH: ${unfit.message}. The patch goes on without Don't notify contacts.")
+            null
+        }
+        if (quiet != null) {
+            quiet.apply()
+            enableCapability("quietSignUp")
+        }
+
         enableStatus("disableAnalytics")
+    }
+}
+
+/**
+ * Lets Ghost mode send a read it held back, after a reply or from the read receipts button (#69).
+ * A build whose send can't be reached keeps Ghost mode, with held reads staying held.
+ */
+private fun BytecodePatchContext.writeHeldReadSend() {
+    try {
+        requireReachable(CONNECTIONS_INSTANCE, true)
+        requireReachable(CONNECTIONS_SEND, false)
+        writeStub(GHOST_MODE, "sendRequest", 5, """
+            invoke-static { p0 }, $CONNECTIONS_INSTANCE
+            move-result-object v0
+            check-cast p1, Lorg/telegram/tgnet/TLObject;
+            check-cast p2, Lorg/telegram/tgnet/RequestDelegate;
+            const/4 v1, 0x0
+            invoke-virtual { v0, p1, p2, v1 }, $CONNECTIONS_SEND
+            const/4 v0, 0x1
+            return v0
+        """)
+    } catch (unreachable: PatchException) {
+        patchLog.warning("$PATCH: ${unreachable.message}. Ghost mode keeps held reads on the phone.")
     }
 }
 

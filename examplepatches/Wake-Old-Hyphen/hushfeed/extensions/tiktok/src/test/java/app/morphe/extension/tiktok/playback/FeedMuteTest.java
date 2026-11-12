@@ -8,20 +8,26 @@ import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
 import android.content.Context;
+import android.os.Bundle;
+import android.os.Looper;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.PausedProcess;
+import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.tiktok.blockauthor.FeedVisibility;
 import app.morphe.extension.tiktok.navigation.BottomTabLabels;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
+import app.morphe.extension.tiktok.settings.preference.BackupRuns;
+import app.morphe.extension.tiktok.settings.preference.TikTokPreferenceFragment;
 import com.ss.android.ugc.aweme.feed.model.Aweme;
 import com.ss.android.ugc.aweme.live.LivePlayActivity;
 import java.lang.ref.WeakReference;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +41,7 @@ import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
+import org.robolectric.Shadows;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
 import org.robolectric.util.ReflectionHelpers;
@@ -411,6 +418,56 @@ public class FeedMuteTest {
         assertEquals(List.of(), calls);
         FeedMute.setMuted(true);
         assertTrue(calls.toString(), calls.contains("A mute"));
+    }
+
+    @Test public void aResetThatMutesTheFeedMutesThePlayingVideo() throws Exception {
+        FeedMute.onEnginePlay(engine("A", "731"));
+        FeedMute.onControllerPlay(new Controller(feed.get()), video("731"));
+        // A restore, a reset or an undo writes every setting at once, past the switch's redraw.
+        Setting.saveAll(Collections.singletonMap(Settings.FEED_MUTED, true));
+        assertEquals("the batch write alone muted the video", List.of(), calls);
+        BackupRuns.finish(BackupRuns.BACKUP);
+        assertEquals("a backup only reads the settings, so it redraws nothing", List.of(), calls);
+        BackupRuns.finish(BackupRuns.RESET);
+        assertTrue("a reset that muted the feed left the playing video's sound on", calls.contains("A mute"));
+    }
+
+    /** A settings page that can't redraw, like one the rebuild left half made. */
+    public static final class BrokenPage extends TikTokPreferenceFragment {
+        static boolean broken;
+        static int attempts;
+
+        @Override protected void updateUIToSettingValues() {
+            if (broken) {
+                attempts++;
+                throw new IllegalStateException("injected redraw failure");
+            }
+            super.updateUIToSettingValues();
+        }
+    }
+
+    @Test public void aSettingsPageThatFailsToRedrawStillLetsAResetMuteTheFeed() throws Exception {
+        FeedMute.onEnginePlay(engine("A", "732"));
+        FeedMute.onControllerPlay(new Controller(feed.get()), video("732"));
+        try (var settings = Robolectric.buildActivity(OtherScreen.class).setup()) {
+            BrokenPage page = new BrokenPage();
+            Bundle arguments = new Bundle();
+            arguments.putString("morphe_settings_section", "BACKUP");
+            page.setArguments(arguments);
+            settings.get().getFragmentManager().beginTransaction()
+                    .replace(android.R.id.content, page).commit();
+            settings.get().getFragmentManager().executePendingTransactions();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            BrokenPage.broken = true;
+            BrokenPage.attempts = 0;
+
+            Setting.saveAll(Collections.singletonMap(Settings.FEED_MUTED, true));
+            BackupRuns.finish(BackupRuns.RESET);
+            assertEquals("the open page was never asked to redraw", 1, BrokenPage.attempts);
+            assertTrue("the open page's failed redraw kept the feed from muting", calls.contains("A mute"));
+        } finally {
+            BrokenPage.broken = false;
+        }
     }
 
     @Test public void aVideoSeenInTheFeedKeepsSoundWhenOpenedFromAnotherScreen() {

@@ -43,7 +43,7 @@ private val lineAiEntryFingerprint = Fingerprint(
 )
 
 val lineAiEntryPatch = bytecodePatch(
-    name = "チャット情報の Agent i",
+    name = "Agent i in chat information",
     description = "チャット情報画面にある Agent i の入口を、実行時設定で非表示にできるようにします。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

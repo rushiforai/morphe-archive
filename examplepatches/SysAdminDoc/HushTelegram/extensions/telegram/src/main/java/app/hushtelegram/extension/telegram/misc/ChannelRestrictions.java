@@ -17,8 +17,8 @@ import java.util.ArrayList;
  * {@code MessagesController.isPeerNoForwards} and the {@code noforwards} field on messages.
  * When the switch is on, all three answer false so forwarding, copying and saving work as if
  * the restriction was never set. The existing Allow screenshots patch handles FLAG_SECURE
- * separately. Its Open restricted channels switch also drops the restriction reason Telegram
- * shows for copyright or local law blocks.
+ * separately, except in stories (see {@link #storyAllowed}). Its Open restricted channels switch
+ * also drops the restriction reason Telegram shows for copyright or local law blocks.
  */
 public final class ChannelRestrictions {
     private ChannelRestrictions() {
@@ -54,6 +54,24 @@ public final class ChannelRestrictions {
         }
         HookStatus.counted(FamilyNames.BYPASS_CHANNEL_RESTRICTIONS, "message restriction bypassed");
         return 0;
+    }
+
+    /**
+     * Called with each answer the story viewer gets to whether a story may be shared, saved or
+     * screenshot, which the story or its channel can turn off (#52). Returns 1 (true) when the
+     * switch is on, so a protected story gets the same menu, share and screenshots as any other.
+     * Telegram asks this one method for all of them, so screenshots of these stories come with it.
+     */
+    public static int storyAllowed(int stockAnswer) {
+        if (stockAnswer != 0) return stockAnswer;
+        try {
+            if (!Utils.settingsReady() || !Settings.BYPASS_CHANNEL_RESTRICTIONS.get()) return stockAnswer;
+        } catch (Throwable t) {
+            HookStatus.threw(FamilyNames.BYPASS_CHANNEL_RESTRICTIONS, "switch read", t);
+            return stockAnswer;
+        }
+        HookStatus.counted(FamilyNames.BYPASS_CHANNEL_RESTRICTIONS, "story restriction bypassed");
+        return 1;
     }
 
     /**

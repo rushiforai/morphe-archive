@@ -18,7 +18,7 @@ import app.morphe.extension.shared.Utils;
  * those two taps, and the Watch later row the first one checked is unchecked again in the sheet, leaving the choice
  * to the user. The button is found by its description (English and Spanish), each time the window lays out.
  */
-final class SaveChooser {
+public final class SaveChooser {
 
     private static final String[] UNSAVED = {"save to playlist", "guardar en playlist", "guardar en una playlist", "guardar"};
     private static final String[] SAVED = {"saved", "guardado", "guardada"};
@@ -169,6 +169,30 @@ final class SaveChooser {
             }
         }
         return null;
+    }
+
+    /**
+     * Injection point, on the command Morphe's feed card save button runs (the menu's Save to Watch later): with the
+     * option on, the button opens Save to... for the card's video instead.
+     */
+    public static Object cardSaveCommand(Object command) {
+        try {
+            if (!XSettings.SAVE_OPENS_CHOOSER.get()
+                    || !(command instanceof app.morphe.extension.youtube.innertube.queue.PlaylistQueueRenderer.NavigationEndpoint e)) {
+                return command;
+            }
+            var edit = e.getPlaylistEditEndpoint();
+            String id = edit.getActionsCount() > 0 ? edit.getActions(0).getAddedVideoId() : null;
+            if (id == null || id.isEmpty()) return command;
+            if (XSettings.DEBUG.get()) Logger.printDebug(() -> "YouTube Extras: card save button opens Save to... for " + id);
+            return app.morphe.extension.youtube.innertube.queue.PlaylistQueueRenderer.NavigationEndpoint.newBuilder()
+                    .setAddToPlaylistEndpoint(app.morphe.extension.youtube.innertube.queue.PlaylistQueueRenderer
+                            .AddToPlaylistEndpoint.newBuilder().setVideoId(id))
+                    .build();
+        } catch (Throwable t) {
+            Logger.printDebug(() -> "YouTube Extras: card save command kept: " + t);
+            return command;
+        }
     }
 
     private static final class Callbacks implements Application.ActivityLifecycleCallbacks {

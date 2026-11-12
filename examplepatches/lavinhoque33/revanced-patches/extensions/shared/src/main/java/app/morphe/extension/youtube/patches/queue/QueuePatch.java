@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Reseam contributors <https://reseam.app>
 // SPDX-License-Identifier: AGPL-3.0-or-later
+// Modified by lavinhoque33, 2026-11-10
 
 package app.morphe.extension.youtube.patches.queue;
 
@@ -21,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import app.morphe.extension.shared.utils.Logger;
+import app.morphe.extension.youtube.patches.LocalQueuePatch;
 import app.morphe.extension.youtube.settings.Settings;
 import app.morphe.extension.youtube.shared.VideoInformation;
 
@@ -65,13 +67,20 @@ public final class QueuePatch {
     private record QueueItem(String playlistId, String itemId) { }
     private static final LruCache<String, QueueItem> queueItems = new LruCache<>(TRACKED_VIDEOS);
 
-    public static boolean isEnabled() { return Settings.UNLOCK_QUEUE.get(); }
+    public static boolean isPatchIncluded() {
+        return false; // Modified during patching.
+    }
+
+    public static boolean isEnabled() {
+        return QueuePrecedence.isUnlockEnabled(
+                isPatchIncluded(), Settings.UNLOCK_QUEUE.get(), LocalQueuePatch.isEnabled());
+    }
 
     /** Implemented using the app's parser with its generated extension registry. */
     private static MessageLite parse(MessageLite prototype, byte[] bytes) { return null; }
 
     public static MessageLite unlockMenu(MessageLite command) {
-        if (!Settings.UNLOCK_QUEUE.get()) return command;
+        if (!isEnabled()) return command;
         try {
             byte[] bytes = command.toByteArray();
             String videoId = menuVideoId(bytes);
@@ -141,7 +150,7 @@ public final class QueuePatch {
     }
 
     public static ListenableFuture<Object> wrap(ListenableFuture<Object> response, String params) {
-        if (!Settings.UNLOCK_QUEUE.get()) return response;
+        if (!isEnabled()) return response;
         byte[] command = queueCommand(params);
         return command == null ? response : new QueueResponse(response, command);
     }
@@ -222,7 +231,7 @@ public final class QueuePatch {
     }
 
     public static void watched(MessageLite currentVideo) {
-        if (!Settings.UNLOCK_QUEUE.get() || currentVideo == null) return;
+        if (!isEnabled() || currentVideo == null) return;
         byte[] endpoint = Proto.bytes(currentVideo.toByteArray(), WATCH);
         if (endpoint == null) return;
         String videoId = Proto.string(endpoint, WATCH_VIDEO_ID);
@@ -237,7 +246,7 @@ public final class QueuePatch {
     }
 
     public static byte[] complete(byte[] current) {
-        if (!Settings.UNLOCK_QUEUE.get()) return null;
+        if (!isEnabled()) return null;
         String videoId = VideoInformation.getVideoId();
         if (videoId.isEmpty()) return null;
         boolean hasVideo = current != null && Proto.bytes(current, CONTEXT_VIDEO) != null;

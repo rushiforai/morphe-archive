@@ -29,6 +29,7 @@ import java.io.File
 import app.morphe.util.names.origName
 import app.morphe.util.names.origReturnType
 import app.morphe.util.names.origType
+import app.morphe.util.names.tgClassDefByOrNull
 import app.morphe.util.names.tgMutableClassDefBy
 
 /** The selection bar's builder, its click handler, the chat's select method and the stubs that reach them, on the pinned builds. */
@@ -108,6 +109,40 @@ class SelectBetweenFixtureTest {
             assertEquals("Lorg/telegram/messenger/MessageObject;->contentType:I", stub("contentType").single { it.opcode == Opcode.IGET }.controlRef())
             val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "selectBetween" }.controlBody()
             assertEquals(1L, (status.first() as WideLiteralInstruction).wideLiteral)
+
+            // Screenshot: the chat screen's whole view, the message row's message, and its own icon.
+            val shot = { n: String -> context.tgMutableClassDefBy(SELECTION_SCREENSHOT).methods.single { it.origName == n }.controlBody() }
+            // No build's table names the base screen class, so its getter is matched among the chat's superclasses.
+            val view = shot("fragmentView").single { it.opcode == Opcode.INVOKE_VIRTUAL }.controlRef()!!
+            val screens = generateSequence(context.tgClassDefByOrNull(chat.type)) { c -> c.superclass?.let { context.tgClassDefByOrNull(it) } }.drop(1)
+            assertTrue("$name: the chat's view $view", view.endsWith(";->getFragmentView()Landroid/view/View;") &&
+                screens.any { c -> view.substringBefore("->") in setOf(c.type, c.origType) })
+            // The message row isn't named in the tables either, so it's known by having an album as well as a message.
+            val row = shot("cellMessage").single { it.opcode == Opcode.INSTANCE_OF }.controlRef()!!
+            assertTrue("$name: only message rows $row", context.tgClassDefByOrNull(row)?.methods?.any { it.origName == "getCurrentMessagesGroup" } == true)
+            assertEquals("$name: the row's message", "$row->getMessageObject()Lorg/telegram/messenger/MessageObject;",
+                shot("cellMessage").single { it.opcode == Opcode.INVOKE_VIRTUAL }.controlRef())
+            assertEquals("Lorg/telegram/messenger/R\$drawable;->msg_gallery:I", shot("icon").first().controlRef())
+            val shotStatus = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "selectionScreenshot" }.controlBody()
+            assertEquals(1L, (shotStatus.first() as WideLiteralInstruction).wideLiteral)
+        }
+    }
+
+    @Test fun `without the message row the bar keeps Select between and leaves Screenshot out`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val name = build.name
+            val hosts = MessageMenuFixtureTest().hosts(build)
+            val context = PatchContexts.of(ExtensionDex.classes() + hosts)
+            // The message row loses its album getter, so no row the chat checks has both. The rest of the menu still reads the row.
+            val rows = hosts.filter { c -> c.methods.any { it.origName == "getCurrentMessagesGroup" } }
+            assertTrue("$name: a message row", rows.isNotEmpty())
+            for (row in rows) context.tgMutableClassDefBy(row).methods.removeIf { it.origName == "getCurrentMessagesGroup" }
+            val warnings = PatchLogCapture.warnings { messageMenuPatch.execute(context) }
+            assertEquals("$name: $warnings", 1, warnings.size)
+            assertTrue(warnings.single(), "goes on without the Screenshot button" in warnings.single())
+            val flag = { n: String -> (context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == n }.controlBody().first() as? WideLiteralInstruction)?.wideLiteral }
+            assertEquals("$name: Select between", 1L, flag("selectBetween"))
+            assertTrue("$name: the Screenshot flag stays off", flag("selectionScreenshot") != 1L)
         }
     }
 
@@ -129,6 +164,8 @@ class SelectBetweenFixtureTest {
             assertTrue("$name: no hook in the bar", context.tgMutableClassDefBy(chat.type).methods.none { m -> m.controlBody().any { it.controlRef() == SELECT_SELECTING } })
             val flag = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "selectBetween" }.controlBody()
             assertTrue("$name: the build flag stays off", (flag.first() as? WideLiteralInstruction)?.wideLiteral != 1L)
+            val shot = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "selectionScreenshot" }.controlBody()
+            assertTrue("$name: Screenshot stays off with it", (shot.first() as? WideLiteralInstruction)?.wideLiteral != 1L)
             val menu = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "messageMenuRepeat" }.controlBody()
             assertEquals(1L, (menu.first() as WideLiteralInstruction).wideLiteral)
         }
@@ -156,7 +193,10 @@ class SelectBetweenFixtureTest {
     }
 }
 
-/** The classes the selection bar's button needs beside the menu's own: the click handler, the list adapter and the action bar's classes. */
+/**
+ * The classes the selection bar's buttons need beside the menu's own: the click handler, the list
+ * adapter, the action bar's classes, and every row class the chat checks for that carries a message.
+ */
 internal fun selectBetweenHosts(build: File, base: List<ClassDef>): List<ClassDef> = FixtureDex.namedBy(build) {
     val list = "Ljava/util/ArrayList;"
     val chat = base.first { cls ->
@@ -172,5 +212,7 @@ internal fun selectBetweenHosts(build: File, base: List<ClassDef>): List<ClassDe
     val bar = chat.methods.flatMap { it.controlBody() }.mapNotNull { it.controlRef()?.substringBefore("->") }
         .filter { it.startsWith("Lorg/telegram/ui/ActionBar/") }.toSet() + setOfNotNull(chat.superclass)
     val barClasses = FixtureDex.classes(build, bar).values.map(ImmutableClassDef::of)
-    (owned + barClasses).filter { found -> base.none { it.origType == found.origType } }
+    val checked = chat.methods.flatMap { it.controlBody() }.filter { it.opcode == Opcode.INSTANCE_OF }.mapNotNull { it.controlRef() }.toSet()
+    val rows = FixtureDex.classes(build, checked).values.filter { c -> c.methods.any { it.origName == "getMessageObject" } }.map(ImmutableClassDef::of)
+    (owned + barClasses + rows).filter { found -> base.none { it.origType == found.origType } }.distinctBy { it.origType }
 }

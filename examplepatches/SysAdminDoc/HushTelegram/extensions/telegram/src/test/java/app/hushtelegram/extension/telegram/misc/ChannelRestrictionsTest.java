@@ -93,6 +93,27 @@ public class ChannelRestrictionsTest {
         SettingsContextRule.withoutContext(() -> assertFalse(ChannelRestrictions.ignoreRestrictionReason(COPYRIGHT)));
     }
 
+    @Test public void aProtectedStoryOpensUpWithTheForwardingSwitchAndCountsEach() {
+        assertEquals("off by default the story stays protected", 0, ChannelRestrictions.storyAllowed(0));
+        Settings.BYPASS_CHANNEL_RESTRICTIONS.save(true);
+        try {
+            assertEquals(1, ChannelRestrictions.storyAllowed(0));
+            assertEquals(1, ChannelRestrictions.storyAllowed(0));
+            assertEquals("an open story goes as Telegram says", 1, ChannelRestrictions.storyAllowed(1));
+            String report = String.join("\n", HookStatus.report());
+            assertTrue(report, report.contains("story restriction bypassed 2"));
+            for (HushTelegramPause.Reason reason : HushTelegramPause.Reason.values()) {
+                if (reason == HushTelegramPause.Reason.NONE) continue;
+                PauseForTests.pause(reason);
+                assertEquals(reason.name(), 0, ChannelRestrictions.storyAllowed(0));
+                PauseForTests.resume();
+            }
+            SettingsContextRule.withoutContext(() -> assertEquals(0, ChannelRestrictions.storyAllowed(0)));
+        } finally {
+            Settings.BYPASS_CHANNEL_RESTRICTIONS.resetToDefault();
+        }
+    }
+
     @Test public void unreadableSettingFailsClosedAndReportsItsStateFailure() {
         Settings.OPEN_RESTRICTED_CHATS.save(true);
         SettingReadsForTests.breakReads(Settings.OPEN_RESTRICTED_CHATS);

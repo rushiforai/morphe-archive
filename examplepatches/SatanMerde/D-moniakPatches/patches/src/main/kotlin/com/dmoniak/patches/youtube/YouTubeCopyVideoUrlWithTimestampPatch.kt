@@ -7,7 +7,6 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.dmoniak.patches.shared.Constants.COMPATIBILITY_YOUTUBE
 import java.util.logging.Logger
 
-@Suppress("unused")
 val youtubeCopyVideoUrlWithTimestampPatch = bytecodePatch(
     name = "Copy Video URL With Timestamp - YouTube (Experimental)",
     description = "⚠️ [Experimental / Untested] Adds a convenient option to copy the current video URL with the exact playback timestamp (?t=...) directly to the clipboard.",
@@ -26,7 +25,7 @@ fun BytecodePatchContext.executeYouTubeCopyVideoUrlWithTimestampLogic(logger: Lo
 
     classDefForEach { classDef ->
         val tl = classDef.type.lowercase()
-        if (tl.contains("androidx") || tl.contains("android/support")) return@classDefForEach
+        if (!tl.contains("androidx") && !tl.contains("android/support")) {
 
         val mutableClass by lazy { mutableClassDefBy(classDef) }
 
@@ -57,6 +56,7 @@ fun BytecodePatchContext.executeYouTubeCopyVideoUrlWithTimestampLogic(logger: Lo
                     logger.warning("[YouTube Copy URL] Failed to hook ${method.name}: ${e.message}")
                 }
             }
+        }
         }
     }
 

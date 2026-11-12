@@ -6,7 +6,6 @@ import com.dmoniak.patches.shared.Constants.COMPATIBILITY_YOUTUBE
 import com.dmoniak.patches.universal.executeUniversalGmsCoreSupportLogic
 import java.util.logging.Logger
 
-@Suppress("unused")
 val youtubeGmsCoreSupportPatch = bytecodePatch(
     name = "GmsCore Support - YouTube (Experimental)",
     description = "⚠️ [Experimental / Untested] Redirects Google Play Services and account authentication calls to GmsCore (MicroG / app.revanced.android.gms) to allow logging in to YouTube without root.",

@@ -72,7 +72,7 @@ internal data class LegacyTalkServiceRpcShape(val chatIdRegister: Int)
  * 両 patch が同じメソッドを競合して書き換えることはありません。</p>
  */
 val readWithoutReceiptMarkAsReadBlockPatch = bytecodePatch(
-    name = "既読をつけずに読むの既読停止",
+    name = "Read without receipt receipt block",
     description = "「既読をつけずに読む」で開いたトークだけ、既読送信の RPC を実行しないようにします。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

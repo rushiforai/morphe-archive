@@ -21,9 +21,9 @@ Or add `https://github.com/SledgeSune/morphe-patches` as a patch source in Morph
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.1.0](https://github.com/SledgeSune/morphe-patches/releases/tag/v1.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
+> **[v1.3.0](https://github.com/SledgeSune/morphe-patches/releases/tag/v1.3.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;9 patches total
 <details open>
-<summary>📦 Waze&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<summary>📦 Waze&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
 
 **Package name:** `com.waze`
@@ -36,7 +36,9 @@ Or add `https://github.com/SledgeSune/morphe-patches` as a patch source in Morph
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Disable reroute auto-accept](#disable-reroute-auto-accept) | Removes the countdown from the "faster route found" prompt while driving, so the route only changes when you tap the button yourself. |  |
-| [Trip history](#trip-history) | Shows the start and end time of each drive under Settings > Privacy > Navigation history. Uses the drive list from Waze's servers, and trips recorded on the phone when not signed in. |  |
+| [Keep Waze alive](#keep-waze-alive) | Lets Waze stay open in the background longer before it closes itself (Waze's "background timeout", normally set by Waze's servers). | • Time in the background |
+| [Remove ads](#remove-ads) | Removes sponsored pins on the map, sponsored search results, the full-screen ad when stopped and promotional launch screens. |  |
+| [Trip history](#trip-history) | Records how long each drive took and how far you drove. Shows it next to each place under Recent in "Where to?", and lists all drives under "Trip history" in the side menu. |  |
 
 </details>
 

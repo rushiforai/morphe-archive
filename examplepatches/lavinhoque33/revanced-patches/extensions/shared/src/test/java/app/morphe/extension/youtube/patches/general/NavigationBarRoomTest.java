@@ -2,6 +2,7 @@
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
  * Written by lavinhoque33, 2026-11-06.
+ * Modified by lavinhoque33, 2026-11-10.
  */
 package app.morphe.extension.youtube.patches.general;
 
@@ -30,5 +31,19 @@ public class NavigationBarRoomTest {
         assertEquals(48, NavigationBarRoom.keyboardRoom(true, true, 900, 48));
         assertEquals(0, NavigationBarRoom.keyboardRoom(true, true, 0, 48));
         assertEquals(900, NavigationBarRoom.keyboardRoom(true, false, 900, 48));
+    }
+
+    @Test public void blurIsOnlyDrawnFromAndroid14() {
+        // Android 12 (31) and 13 (33) crash while the player moves, also with the plain translucent style.
+        assertFalse(NavigationBarRoom.useBlur(31, true, false));
+        assertFalse(NavigationBarRoom.useBlur(33, true, false));
+        assertTrue(NavigationBarRoom.useBlur(34, true, false));
+        assertTrue(NavigationBarRoom.useBlur(36, true, false));
+    }
+
+    @Test public void blurNeedsAHardwareCanvasAndAStyleThatKeepsIt() {
+        assertFalse(NavigationBarRoom.useBlur(34, false, false));
+        assertFalse(NavigationBarRoom.useBlur(34, true, true));
+        assertFalse(NavigationBarRoom.useBlur(34, false, true));
     }
 }

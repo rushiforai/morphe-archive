@@ -45,7 +45,11 @@ val disableDoubleTapReactionsPatch = bytecodePatch(
         controlHook(DOUBLE_TAP_REACTIONS, "spoken", listOf("Ljava/lang/Object;"), "Ljava/lang/Object;")
         controlHook(DOUBLE_TAP_REACTIONS, "selection", listOf("Ljava/util/List;"), "Ljava/util/List;")
         controlHook(DOUBLE_TAP_REACTIONS, "packNote", listOf("I"), "Z")
+        controlHook(DOUBLE_TAP_REACTIONS, "unreadRow", listOf("I"), "Z")
+        controlHook(DOUBLE_TAP_REACTIONS, "hideEffect", emptyList(), "Z")
         val rows = resolveReactionRows()
+        val unread = resolveHiddenRowUnread()
+        val effect = resolveReactionEffect()
         val speech = resolveReactionSpeech()
         val picker = resolveReactionPicker()
         val selection = resolveReactionSelection()
@@ -57,6 +61,10 @@ val disableDoubleTapReactionsPatch = bytecodePatch(
         if (rows.missing == null) {
             rows.apply()
             enableCapability("reactionRows")
+            if (unread.missing == null) unread.apply()
+            else patchLog.warning("Disable double-tap reactions: ${unread.missing}. Reactions on a hidden row may stay unread.")
+            if (effect.missing == null) effect.apply()
+            else patchLog.warning("Disable double-tap reactions: ${effect.missing}. A reaction's animation may still play over a hidden row.")
             if (speech.missing == null) speech.apply()
             else patchLog.warning("Disable double-tap reactions: ${speech.missing}. Hidden reaction rows still show in what TalkBack reads.")
         } else {

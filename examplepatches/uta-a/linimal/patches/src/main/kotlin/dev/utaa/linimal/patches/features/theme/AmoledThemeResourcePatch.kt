@@ -3,7 +3,7 @@ package dev.utaa.linimal.patches.features.theme
 import app.morphe.patcher.patch.ApkArchitecture
 import app.morphe.patcher.patch.PatchAvailability
 import app.morphe.patcher.patch.resourcePatch
-import dev.utaa.linimal.patches.features.preview.previewScrollPatch
+import dev.utaa.linimal.patches.features.preview.previewDisablePatch
 import dev.utaa.linimal.patches.shared.Constants
 import dev.utaa.linimal.patches.status.PatchId
 import dev.utaa.linimal.patches.status.recordFeatureStatus
@@ -52,14 +52,14 @@ private val BITMAP_EXTENSIONS = setOf("png", "webp", "jpg")
  * TARGET_NOT_FOUND、色の値が想定と違う場合は ERROR を記録し、runtime はこの機能を無効にします。</p>
  */
 val amoledThemeResourcePatch = resourcePatch(
-    name = "AMOLED テーマの対象",
+    name = "AMOLED theme targets",
     description = "ダークモードの背景を黒にするため、対象の色と下部タブの背景を確認します。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)
     availability { _, architecture ->
         if (architecture == ApkArchitecture.ARM64_V8A) PatchAvailability.REQUIRED else PatchAvailability.UNAVAILABLE
     }
-    dependsOn(previewScrollPatch)
+    dependsOn(previewDisablePatch)
 
     execute {
         val defaults = try {

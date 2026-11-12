@@ -316,6 +316,8 @@ The Reels tab only shows reels from people and Pages you follow, starting with t
 Facebook has no more reels your filters would keep, so these reels aren't filtered for now.	Facebook'ta filtrelerinin tutacağı başka reel kalmadı, bu yüzden bu reeller şimdilik filtrelenmiyor.
 Hush hid the suggested posts after this, so Home ends here.	Hush bundan sonraki önerilen gönderileri gizledi, bu yüzden Ana Sayfa burada bitiyor.
 Download quality	İndirme kalitesi
+Choose quality on each save	Her kaydetmede kaliteyi seç
+A reel's Download button and a video's Download to phone show the qualities first, and the save takes the one you pick. Download quality stays as it is.	Bir Reels videosunun İndir düğmesi ve bir videonun Telefona indir seçeneği önce kaliteleri gösterir, seçtiğiniz kalite kaydedilir. İndirme kalitesi olduğu gibi kalır.
 Best	En iyi
 Smallest	En küçük
 Each video saves at the best quality the player streams.	Her video, oynatıcının sunduğu en iyi kalitede kaydedilir.
@@ -463,6 +465,10 @@ The Also from Meta section leaves Facebook's Menu, with its links to Meta's othe
 Hide Help and support	“Yardım ve destek” bölümünü gizle
 # context: summary of that switch; Settings and privacy is Facebook's own Menu section
 The Help and support section leaves Facebook's Menu, header and all. Settings and privacy stays.	“Yardım ve destek” bölümü başlığıyla birlikte Facebook menüsünden kalkar. “Ayarlar ve gizlilik” yerinde kalır.
+Hide Your shortcuts	“Kısayolların” satırını gizle
+The Your shortcuts row leaves Facebook's Menu, with the groups and Pages Facebook keeps putting back in it. The Menu tiles under it stay.	“Kısayolların” satırı, Facebook'un oraya tekrar tekrar koyduğu gruplar ve Sayfalarla birlikte Facebook menüsünden kalkar. Altındaki menü kutucukları yerinde kalır.
+Hide Create Facebook Page	“Facebook Sayfası Oluştur” satırını gizle
+The Create Facebook Page row leaves the top of Facebook's Menu. Your profile above it stays.	“Facebook Sayfası Oluştur” satırı Facebook menüsünün üst kısmından kalkar. Üstündeki profilin kalır.
 # context: switch title under Menu; Settings and privacy is a section of Facebook's own Menu that folds and unfolds when its header is tapped
 Keep Settings and privacy expanded	“Ayarlar ve gizlilik” açık kalsın
 # context: summary of that switch
@@ -490,6 +496,8 @@ Hide dislike on comments	Yorumlarda beğenmemeyi gizle
 Takes the thumbs-down off comments. Like and Reply stay.	Yorumlardaki aşağı başparmağı kaldırır. Beğen ve Yanıtla kalır.
 Hide Like on comments	Yorumlarda Beğen'i gizle
 Takes Like off the row under comments. Reply and the reaction count stay.	Yorumların altındaki satırdan Beğen'i kaldırır. Yanıtla ve tepki sayısı kalır.
+Hide Reply on comments	Yorumlarda Yanıtla'yı gizle
+Takes Reply off the row under comments. View replies, Like and the reaction count stay.	Yorumların altındaki satırdan Yanıtla'yı kaldırır. Yanıtları gör, Beğen ve tepki sayısı kalır.
 # context: switch title under Comments; Like is the button under a post or a comment
 Like only	Yalnızca Beğen
 # context: summary of that switch; the reactions are the row of Love, Haha, Wow and the rest that a long press on Like opens
@@ -1104,6 +1112,10 @@ Hides the Stories tray card that asks to upload your contacts. Applies when Face
 Hide story prompts	Hikaye fikirlerini gizle
 # context: summary of that switch; Share music you love is the name of one such card
 Hides cards beside Create story that suggest a story to make, like Share music you love. Applies when Facebook next loads the tray.	Hikaye oluştur'un yanındaki, Sevdiğin müziği paylaş gibi hikaye önerilerini gizler. Facebook çubuğu bir sonraki yüklediğinde geçerli olur.
+# context: switch title under Stories; Create story is the first tile of the Stories tray, the one that starts a new story of your own
+Hide Create story	Hikaye oluştur'u gizle
+# context: summary of that switch
+Takes the Create story tile off the start of the Stories tray. The stories stay. Applies when Facebook next loads the tray.	Hikaye oluştur kutucuğunu Hikayeler çubuğunun başından kaldırır. Hikayeler kalır. Facebook çubuğu bir sonraki yüklediğinde geçerli olur.
 # context: summary of Hide "People you may know" when the build also hides tray cards; Add is the card's button
 Hides friend suggestions between posts, on your own profile, and as cards with an Add button in the Stories tray.	Gönderilerin arasındaki, kendi profilinizdeki ve Hikayeler çubuğunda Ekle düğmeli kartlar olarak görünen arkadaş önerilerini gizler.
 Feeds opens on	Akışlar şurada açılır
@@ -2703,3 +2715,18 @@ Playback speed in the post menu	Gönderi menüsünde oynatma hızı
 A feed or Watch video's 3-dot menu gets Playback speed, from 0.5x to 3x, live videos too. Off by default, since it hasn't been tried on a real account yet.	Akıştaki veya Watch'taki bir videonun üç nokta menüsüne 0,5x ile 3x arasında Oynatma hızı eklenir, canlı videolarda da. Varsayılan olarak kapalı, çünkü gerçek bir hesapta henüz denenmedi.
 Double tap to skip on feed videos	Akış videolarında atlamak için çift dokun
 Double tap the right side of a playing feed video to jump ahead 10 seconds, or the left side to go back 10. Keep tapping to go further. Live videos work too when they can be rewound. One tap on a side still opens the video, a moment later than usual. With Tap to play on, it needs Inline feed video controls on too.	Oynayan bir akış videosunun sağ tarafına iki kez dokunarak 10 saniye ileri, sol tarafına dokunarak 10 saniye geri atlayın. Daha ileri gitmek için dokunmaya devam edin. Geri sarılabildiğinde canlı videolarda da çalışır. Bir kenara tek dokunuş videoyu yine açar, yalnızca her zamankinden biraz geç. “Oynatmak için dokun” açıksa “Akış videosu denetimleri” de açık olmalıdır.
+Show only comments that match	Yalnızca eşleşen yorumları göster
+While the search box holds words, comments without them are hidden. Clearing the box brings them back.	Arama kutusunda kelime olduğu sürece, bu kelimeleri içermeyen yorumlar gizlenir. Kutuyu temizlemek onları geri getirir.
+Queue reel saves	Reel kaydetmelerini sıraya al
+Each reel you tap Download on joins a queue that saves one reel at a time in the background. Pause or cancel it from its notification or from Downloads here. A reel already in the queue is skipped, and one that fails gets one more try. The queue lasts until Facebook closes.	İndir'e dokunduğunuz her reel, arka planda reelleri tek tek kaydeden bir sıraya girer. Sırayı bildiriminden veya buradaki İndirmeler bölümünden duraklatabilir ya da iptal edebilirsiniz. Zaten sırada olan bir reel atlanır, kaydedilemeyen bir reel bir kez daha denenir. Sıra, Facebook kapanana kadar sürer.
+Added to the reel queue	Reel sırasına eklendi
+Added to the reel queue. To pause or cancel it, open Downloads in Hushfacebook settings.	Reel sırasına eklendi. Duraklatmak veya iptal etmek için Hushfacebook ayarlarında İndirmeler'i açın.
+Already in the reel queue	Zaten reel sırasında
+That reel is already saved	Bu reel zaten kaydedildi
+The reel queue is full. Try again when it's shorter.	Reel sırası dolu. Sıra kısaldığında tekrar deneyin.
+Saving queued reels	Sıradaki reeller kaydediliyor
+Reel queue paused	Reel sırası duraklatıldı
+Reel queue done	Reel sırası tamamlandı
+%1$d saved, %2$d waiting, %3$d failed	%1$d kaydedildi, %2$d bekliyor, %3$d başarısız
+Reel queue canceled	Reel sırası iptal edildi
+Cancel the reel queue	Reel sırasını iptal et

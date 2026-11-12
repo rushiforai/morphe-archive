@@ -44,7 +44,13 @@ import java.util.logging.Logger
 // Required: a missing anchor, an ambiguity or an unknown layout fails the patch.
 
 private const val SEND_TO_CAR_LINKS_CLASS = "Lapp/morphe/extension/mapsautomotive/patches/SendToCarLinks;"
+private const val SEND_TO_CAR_PUSH_CLASS = "Lapp/morphe/extension/mapsautomotive/patches/SendToCarPush;"
 private const val CAR_NAME_CLASS = "Lapp/morphe/extension/mapsautomotive/patches/CarName;"
+// Firebase's message service (unobfuscated: the manifest names it), whose intent handler takes each push.
+private const val FIREBASE_MESSAGING_SERVICE = "Lcom/google/firebase/messaging/FirebaseMessagingService;"
+// Maps' Send to car push handler asks for it before it opens a trip from the background.
+private const val START_ACTIVITIES_FROM_BACKGROUND = "android.permission.START_ACTIVITIES_FROM_BACKGROUND"
+private const val OBJECT = "Ljava/lang/Object;"
 // Maps' name for a car whose make and model it does not know (DiLink reports neither).
 private const val FALLBACK_VEHICLE_NAME = "Vehicle 1"
 private const val LINK_TARGET_INTERFACE = "Lapp/morphe/extension/mapsautomotive/patches/SendToCarLinks\$Target;"
@@ -110,8 +116,10 @@ val sendToCarPatch = bytecodePatch(
 
     execute {
         routePushStrings()
+        logPushArrivals()
         useOriginalPackageForChime()
-        expandSendToCarLinks()
+        val sentTripHelper = expandSendToCarLinks()
+        logTripPushes(sentTripHelper)
         useCarName()
         IncludedFeatures.settingsRows += CAR_NAME_CLASS
         IncludedFeatures.features += "send_to_car"
@@ -238,12 +246,96 @@ private fun BytecodePatchContext.useOriginalPackageForChime() {
     )
 }
 
+// Firebase's message intake: the service's one (Intent)V method that checks the push RECEIVE action (routed
+// above). Its start passes the intent to SendToCarPush.pushReceived, which logs when each push arrived against
+// Google's send time (only times, nothing of the content); Maps' handling is unchanged.
+private fun BytecodePatchContext.logPushArrivals() {
+    requireExtensionMethod(SEND_TO_CAR_PUSH_CLASS, "pushReceived", listOf(INTENT), "V")
+    val service = classDefByOrNull(FIREBASE_MESSAGING_SERVICE) ?: throw PatchException("Missing $FIREBASE_MESSAGING_SERVICE")
+    val receive = pushActionRoutes.getValue(PUSH_RECEIVE_ACTION)
+    // Either name, whichever view of the class this is (the literal was routed just before).
+    val intakes = service.methods.filter { method ->
+        method.returnType == "V" && method.parameterTypes.map { it.toString() } == listOf(INTENT) &&
+            !AccessFlags.STATIC.isSet(method.accessFlags) &&
+            method.implementation?.instructions?.any { it.stringLiteral() == receive || it.stringLiteral() == PUSH_RECEIVE_ACTION } == true
+    }
+    val intake = intakes.singleOrNull()
+        ?: throw PatchException("Expected one push intake with $receive in $FIREBASE_MESSAGING_SERVICE, found ${intakes.map { it.key() }}")
+    val mutable = mutableMethodOf(intake)
+    if (mutable.implementation!!.instructions.first().location.labels.isNotEmpty()) {
+        throw PatchException("The start of the push intake $intake is a branch target")
+    }
+    mutable.addInstructions(0, "invoke-static/range { p1 .. p1 }, $SEND_TO_CAR_PUSH_CLASS->pushReceived($INTENT)V")
+    sendToCarLogger.info("Push arrivals: ${intake.key()} passes each intent to SendToCarPush.pushReceived")
+}
+
+// Maps' Send to car push handler: the one method outside the extension that both builds the trip's intent with
+// the sent-trip helper (a helper call returning an Intent) and asks for START_ACTIVITIES_FROM_BACKGROUND, a
+// (?, ?, Object)V payload callback. Its start passes SendToCarPush.tripPushReceived. It then calls one private
+// (?, Z)V method of its class twice, with true before opening the trip at once and with false before posting
+// only the notification; each call passes that boolean to SendToCarPush.tripShown first. A duplicate of the route
+// on screen returns before either. Returns nothing; a missing or ambiguous anchor fails the patch.
+private fun BytecodePatchContext.logTripPushes(helper: String) {
+    requireExtensionMethod(SEND_TO_CAR_PUSH_CLASS, "tripPushReceived", emptyList(), "V")
+    requireExtensionMethod(SEND_TO_CAR_PUSH_CLASS, "tripShown", listOf("Z"), "V")
+    val sites = mutableListOf<Method>()
+    classDefForEach { classDef ->
+        if (classDef.type.startsWith(EXTENSION_PREFIX)) return@classDefForEach
+        classDef.methods.forEach { method ->
+            val code = method.implementation?.instructions ?: return@forEach
+            if (code.any { it.stringLiteral() == START_ACTIVITIES_FROM_BACKGROUND } && code.any { instruction ->
+                    instruction.opcode == Opcode.INVOKE_VIRTUAL && ((instruction as ReferenceInstruction).reference as MethodReference)
+                        .let { it.definingClass == helper && it.returnType == INTENT }
+                }
+            ) sites += method
+        }
+    }
+    val handler = sites.singleOrNull()
+        ?: throw PatchException("Expected one Send to car push handler (helper $helper), found ${sites.map { it.key() }}")
+    if (handler.returnType != "V" || handler.parameterTypes.size != 3 || handler.parameterTypes.last().toString() != OBJECT ||
+        AccessFlags.STATIC.isSet(handler.accessFlags)
+    ) throw PatchException("Unexpected Send to car push handler ${handler.key()}")
+
+    val mutable = mutableMethodOf(handler)
+    val code = mutable.implementation!!.instructions
+    val shows = code.indices.filter { index ->
+        val instruction = code[index]
+        instruction.opcode == Opcode.INVOKE_DIRECT && ((instruction as ReferenceInstruction).reference as MethodReference).let {
+            it.definingClass == handler.definingClass && it.name != "<init>" && it.returnType == "V" &&
+                it.parameterTypes.size == 2 && it.parameterTypes[1].toString() == "Z"
+        }
+    }
+    val shown = shows.map { memberKey(code[it]) }.toSet()
+    if (shows.size != 2 || shown.size != 1) {
+        throw PatchException("Expected two calls of one (?, Z)V method in ${handler.key()}, found ${shows.size} of $shown")
+    }
+    if (code[0].location.labels.isNotEmpty()) throw PatchException("The start of ${handler.key()} is a branch target")
+    val flags = shows.map { index ->
+        // Inserted code before a branch target would be skipped by that branch.
+        if (code[index].location.labels.isNotEmpty()) throw PatchException("The show call at $index in ${handler.key()} is a branch target")
+        val call = code[index] as? FiveRegisterInstruction
+            ?: throw PatchException("Unexpected show call at $index in ${handler.key()}")
+        if (call.registerCount != 3) throw PatchException("Unexpected show call at $index in ${handler.key()}")
+        index to call.registerE
+    }
+    // From the last, so the earlier indices stay valid.
+    flags.sortedByDescending { it.first }.forEach { (index, flag) ->
+        mutable.addInstructions(index, "invoke-static/range { v$flag .. v$flag }, $SEND_TO_CAR_PUSH_CLASS->tripShown(Z)V")
+    }
+    mutable.addInstructions(0, "invoke-static { }, $SEND_TO_CAR_PUSH_CLASS->tripPushReceived()V")
+    sendToCarLogger.info(
+        "Send to car pushes: ${handler.key()} passes SendToCarPush.tripPushReceived, and tripShown before " +
+            "${shown.single()} at ${flags.joinToString { "${it.first} (v${it.second})" }}",
+    )
+}
+
 // Maps' legacy intent processor hands a maps.app.goo.gl link to FirebaseDynamicLinks.getDynamicLink(Intent)
 // and continues, in the success listener, with its own Maps-URL handler (processor, Intent, Uri, URL).
 // Before that call the processor asks SendToCarLinks, which follows the link's redirect itself and then
 // calls the same handler through a bridge the processor gets here; Dynamic Links is then skipped. Any
-// other link, or a "no" from the extension, takes Maps' Dynamic Links path as before.
-private fun BytecodePatchContext.expandSendToCarLinks() {
+// other link, or a "no" from the extension, takes Maps' Dynamic Links path as before. Returns the type of
+// the processor's sent-trip helper.
+private fun BytecodePatchContext.expandSendToCarLinks(): String {
     requireSendToCarExtension()
     val getter = dynamicLinkGetter()
     val pattern = shortLinkPatternField()
@@ -297,6 +389,7 @@ private fun BytecodePatchContext.expandSendToCarLinks() {
         "Send to car links: $site at $call (getDynamicLink $getter, pattern $pattern), " +
             "listener ${block.listener}, continuation $url + $open, sent-trip clear $tripHelper + $clearTrip",
     )
+    return tripHelper.type
 }
 
 // Phone Maps names this car (its vehicle chip and the Send to car list) with the name Maps puts into its

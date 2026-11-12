@@ -102,7 +102,7 @@ final class TrackMetadata {
 
     /** @return The cover, or null: a missing cover must not fail the download. */
     @Nullable
-    private static byte[] artwork(String videoId, String url) {
+    static byte[] artwork(String videoId, String url) {
         HttpURLConnection connection = null;
         try {
             connection = (HttpURLConnection) new URL(url).openConnection();
@@ -139,7 +139,7 @@ final class TrackMetadata {
     }
 
     /** Music uploads are owned by an "Artist - Topic" channel, which is not the artist name. */
-    private static String stripTopic(String channelName) {
+    static String stripTopic(String channelName) {
         return channelName.endsWith(" - Topic")
                 ? channelName.substring(0, channelName.length() - " - Topic".length())
                 : channelName;

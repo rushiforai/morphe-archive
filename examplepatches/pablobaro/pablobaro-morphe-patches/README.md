@@ -7,6 +7,22 @@ Spotify patches for use with Morphe.
 This repository provides patches for Spotify, such as removing ads, hiding upsells and
 removing tracking parameters from shared links.
 
+### ⚠️ Known limitation: "Something went wrong" and no playback
+
+Spotify currently refuses to serve content to any build that is not signed by Spotify.
+A patched app is always re-signed, so after logging in it may show "Something went wrong"
+on the Home tab and fail to play tracks, or skip them after a few seconds.
+
+- This does not depend on which patches are enabled. The official APK, re-signed and with
+  no patches applied, fails the same way, while the Play Store install works with the same account.
+- It was reproduced on Spotify 9.1.94.1929 and 9.1.98.621.
+- Spotify's server answers the Home request with an empty response. The catalog appears to
+  require a Google Play Integrity attestation tied to the app's signing certificate.
+- There is no known fix that works without root. To get a working app back, uninstall the
+  patched app and install the official one from the Play Store.
+
+See [issue #9](https://github.com/pablobaro/pablobaro-morphe-patches/issues/9) for details and updates.
+
 ### How to use these patches
 
 Click the button below, or manually add this repo url to Morphe Manager: https://github.com/pablobaro/pablobaro-morphe-patches
@@ -18,7 +34,7 @@ Click the button below, or manually add this repo url to Morphe Manager: https:/
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.1.2](https://github.com/pablobaro/pablobaro-morphe-patches/releases/tag/v1.1.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;13 patches total
+> **[v1.1.3](https://github.com/pablobaro/pablobaro-morphe-patches/releases/tag/v1.1.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;13 patches total
 <details open>
 <summary>📦 Spotify&nbsp;&nbsp;•&nbsp;&nbsp;13 patches</summary>
 <br>
@@ -40,7 +56,7 @@ Click the button below, or manually add this repo url to Morphe Manager: https:/
 | [Hide Premium tab](#hide-premium-tab) | Removes the "Premium" tab from the bottom navigation bar. |  |
 | [Hide ad sections](#hide-ad-sections) | Removes brand ad sections from the home and search page. |  |
 | [Hide ad views](#hide-ad-views) | Hides ad banners, ad labels, ad overlay controls, the ad player and the audio and embedded ad layouts of the now playing view. |  |
-| [Hide context menu upsells](#hide-context-menu-upsells) | Removes "Premium" entries from the context menus of songs, albums and playlists. (Only works on older Spotify versions.) |  |
+| [Hide context menu upsells](#hide-context-menu-upsells) | Removes "Premium" entries from the context menus of songs, albums and playlists. |  |
 | [Hide playlist ads](#hide-playlist-ads) | Removes ads embedded into playlists. |  |
 | [Hide video ads](#hide-video-ads) | Disables the video ad plugin of the now playing view. |  |
 | [Mute audio ads](#mute-audio-ads) | Mutes the music stream while an audio ad plays and restores the volume afterwards. Enabling "Device broadcast status" in the Spotify settings improves the ad detection. |  |

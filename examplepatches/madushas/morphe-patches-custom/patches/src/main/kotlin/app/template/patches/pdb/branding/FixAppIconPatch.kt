@@ -27,6 +27,7 @@ val pdbFixAppIconPatch = resourcePatch(
         "alias enabled at runtime).",
     default = true,
 ) {
+    category("Branding")
     compatibleWith(PDB_COMPATIBILITY)
 
     execute {

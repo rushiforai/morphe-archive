@@ -10,6 +10,9 @@ import static app.morphe.extension.shared.settings.Setting.parentsAll;
 import static app.morphe.extension.shared.settings.Setting.parentsAny;
 import static app.morphe.extension.shared.utils.StringRef.str;
 
+import app.morphe.extension.music.patches.downloads.DownloadMethodMigration;
+import app.morphe.extension.music.patches.downloads.DownloadMethod;
+import app.morphe.extension.music.patches.downloads.DownloadQuality;
 import app.morphe.extension.music.patches.lyrics.LyricsFilterDefaults;
 
 import android.os.Build;
@@ -20,6 +23,7 @@ import java.util.Collections;
 import java.util.List;
 
 import app.morphe.extension.music.patches.lyrics.AiProviders;
+import app.morphe.extension.music.patches.lyrics.LyricsRubyGenerator.RubyStyle;
 import app.morphe.extension.music.patches.lyrics.OpenAIClient;
 import app.morphe.extension.music.patches.CrossfadeManager.CrossFadeDuration;
 import app.morphe.extension.music.patches.CrossfadeManager.FadeCurve;
@@ -319,6 +323,10 @@ public class Settings extends SharedYouTubeSettings {
      * Japanese song. Off accepts only Latin letters, accented letters and tone digits.
      */
     public static final BooleanSetting LYRICS_ALLOW_TRANSLITERATION = new BooleanSetting("morphe_music_lyrics_allow_transliteration", FALSE, false, parentsAll(parent(LYRICS_ENABLED), parent(LYRICS_SHOW_ROMANIZE_BUTTON)));
+    public static final BooleanSetting LYRICS_SHOW_RUBY_BUTTON = new BooleanSetting("morphe_music_lyrics_show_ruby_button", TRUE, false, parent(LYRICS_ENABLED));
+    public static final StringSetting LYRICS_RUBY_PROVIDERS = new StringSetting("morphe_music_lyrics_ruby_provider", AiProviders.DEFAULT_RUBY_ORDER, false, parentsAll(parent(LYRICS_ENABLED), parent(LYRICS_SHOW_RUBY_BUTTON)));
+    public static final EnumSetting<RubyStyle> LYRICS_RUBY_STYLE = new EnumSetting<>("morphe_music_lyrics_ruby_style", RubyStyle.HIRAGANA, false, parentsAll(parent(LYRICS_ENABLED), parent(LYRICS_SHOW_RUBY_BUTTON)));
+    public static final StringSetting LYRICS_AI_RUBY_PROMPT = new StringSetting("morphe_music_lyrics_ai_ruby_prompt", OpenAIClient.RUBY_PROMPT, false, parentsAll(parent(LYRICS_ENABLED), parent(LYRICS_SHOW_RUBY_BUTTON)));
 
     public static final StringSetting LYRICS_DEEPL_API_KEY = new StringSetting("morphe_music_lyrics_deepl_api_key", "", false, parent(LYRICS_ENABLED));
     public static final BooleanSetting LYRICS_SHOW_REFRESH_BUTTON = new BooleanSetting("morphe_music_lyrics_show_refresh_button", TRUE, false, parent(LYRICS_ENABLED));
@@ -341,6 +349,8 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting LYRICS_FORCE_CENTER = new BooleanSetting("morphe_music_lyrics_force_center", FALSE, false, parent(LYRICS_ENABLED));
     public static final BooleanSetting LYRICS_ROMANIZE = new BooleanSetting("morphe_music_lyrics_romanize", FALSE, false, parent(LYRICS_ENABLED));
     public static final BooleanSetting LYRICS_ROMANIZE_ONLY = new BooleanSetting("morphe_music_lyrics_romanize_only", FALSE, false, parent(LYRICS_ENABLED));
+    /** Shows the ruby reading above each word. */
+    public static final BooleanSetting LYRICS_RUBY = new BooleanSetting("morphe_music_lyrics_ruby", FALSE, false, parent(LYRICS_ENABLED));
     public static final BooleanSetting LYRICS_WORD_SYNC = new BooleanSetting("morphe_music_lyrics_word_sync", TRUE, false, parent(LYRICS_ENABLED));
     /** Shrinks every line that is not the one being sung. */
     public static final BooleanSetting LYRICS_LINE_SCALE = new BooleanSetting("morphe_music_lyrics_line_scale", TRUE, false, parent(LYRICS_ENABLED));
@@ -348,6 +358,8 @@ public class Settings extends SharedYouTubeSettings {
     /** Master switch for separating background vocals and harmony from the lead line. */
     public static final BooleanSetting LYRICS_SPLIT_BACKGROUND = new BooleanSetting("morphe_music_lyrics_split_background", TRUE, false, parent(LYRICS_ENABLED));
     public static final BooleanSetting LYRICS_HIDE_UNPLAYED = new BooleanSetting("morphe_music_lyrics_hide_unplayed", FALSE, false, parent(LYRICS_ENABLED));
+    public static final BooleanSetting LYRICS_DYNAMIC_BACKGROUND = new BooleanSetting("morphe_music_lyrics_dynamic_background", TRUE, false, parent(LYRICS_ENABLED));
+    public static final BooleanSetting LYRICS_DYNAMIC_BACKGROUND_ANIMATED = new BooleanSetting("morphe_music_lyrics_dynamic_background_animated", TRUE, false, parent(LYRICS_DYNAMIC_BACKGROUND));
     public static final IntegerSetting LYRICS_TEXT_SIZE = new IntegerSetting(
             "morphe_music_lyrics_text_size", 28, true,
             new Setting.SliderConfig(18, 36, 2, "sp"), parent(LYRICS_ENABLED));
@@ -402,12 +414,28 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting DISABLE_MUSIC_VIDEO_IN_ALBUM = new BooleanSetting("revanced_disable_music_video_in_album", FALSE, true);
     public static final EnumSetting<RedirectType> DISABLE_MUSIC_VIDEO_IN_ALBUM_REDIRECT_TYPE = new EnumSetting<>("revanced_disable_music_video_in_album_redirect_type", RedirectType.REDIRECT, true);
     public static final BooleanSetting PLAY_ALBUMS_SONGS = new BooleanSetting("morphe_music_play_album_songs", FALSE, true, parent(SPOOF_VIDEO_STREAMS));
-    public static final BooleanSetting EXTERNAL_DOWNLOADER_ACTION_BUTTON = new BooleanSetting("revanced_external_downloader_action", FALSE, true);
-    public static final BooleanSetting EXTERNAL_DOWNLOADER_FLYOUT_MENU = new BooleanSetting("revanced_external_downloader_flyout_menu", FALSE, true, parent(EXTERNAL_DOWNLOADER_ACTION_BUTTON));
-    public static final StringSetting EXTERNAL_DOWNLOADER_PACKAGE_NAME = new StringSetting("revanced_external_downloader_package_name", "com.deniscerri.ytdl");
-    public static final BooleanSetting IN_APP_DOWNLOADS = new BooleanSetting("morphe_music_in_app_downloads", FALSE, false, "morphe_music_in_app_downloads_user_dialog_message", parent(EXTERNAL_DOWNLOADER_ACTION_BUTTON));
+    // One method for songs, albums and playlists. External overrides apply only in delegated mode.
+    public static final EnumSetting<DownloadMethod> DOWNLOAD_METHOD =
+            new EnumSetting<>("morphe_music_download_method", DownloadMethod.STREAM);
+    public static final EnumSetting<DownloadQuality> DOWNLOAD_QUALITY = new EnumSetting<>(
+            "morphe_music_download_quality", DownloadQuality.HIGHEST, false, downloadsKept());
+    public static final BooleanSetting EXTERNAL_DOWNLOADER_ACTION_BUTTON = new BooleanSetting(
+            "revanced_external_downloader_action", FALSE, true, downloadMethodIs(DownloadMethod.DELEGATED));
+    public static final BooleanSetting EXTERNAL_DOWNLOADER_FLYOUT_MENU = new BooleanSetting(
+            "revanced_external_downloader_flyout_menu", FALSE, true,
+            parentsAll(downloadMethodIs(DownloadMethod.DELEGATED), parent(EXTERNAL_DOWNLOADER_ACTION_BUTTON)));
+    public static final StringSetting EXTERNAL_DOWNLOADER_PACKAGE_NAME = new StringSetting(
+            "revanced_external_downloader_package_name", "com.deniscerri.ytdl",
+            downloadMethodIs(DownloadMethod.DELEGATED));
+    // These still apply to existing copies after changing the download method.
+    public static final BooleanSetting DOWNLOADED_CHECKMARKS = new BooleanSetting(
+            "morphe_music_downloaded_checkmarks", TRUE, false, downloadMethodIs(DownloadMethod.STREAM));
+    public static final BooleanSetting START_DOWNLOADED_IN_AUDIO = new BooleanSetting(
+            "morphe_music_start_downloaded_in_audio", TRUE, false, downloadMethodIs(DownloadMethod.STREAM));
     public static final BooleanSetting ANDROID_AUTO_DOWNLOADED_PLAYLISTS = new BooleanSetting(
-            "morphe_music_android_auto_downloaded_playlists", TRUE, false, parent(IN_APP_DOWNLOADS));
+            "morphe_music_android_auto_downloaded_playlists", TRUE, false, downloadsKept());
+    private static final BooleanSetting DOWNLOAD_METHOD_MIGRATED =
+            new BooleanSetting("morphe_music_download_method_migrated", FALSE, false, false);
     public static final StringSetting DOWNLOADS_SORT = new StringSetting("morphe_music_downloads_sort", "ARTIST", false, false);
     public static final BooleanSetting SETTINGS_IMPORT_EXPORT = new BooleanSetting("revanced_settings_import_export", FALSE, false);
     public static final BooleanSetting SPOOF_VIDEO_STREAMS_SIGN_IN_ANDROID_VR_ABOUT =
@@ -551,12 +579,68 @@ public class Settings extends SharedYouTubeSettings {
         DEPRECATED_LYRICS_DISPLAY_ARTIST_FIRST.resetToDefault();
     }
 
+    /** The global list is the parent that refreshes dependent settings. */
+    private static Setting.Availability downloadMethodIs(DownloadMethod method) {
+        return new Setting.Availability() {
+            @Override
+            public boolean isAvailable() {
+                return DOWNLOAD_METHOD.get() == method;
+            }
+
+            @Override
+            public List<Setting<?>> getParentSettings() {
+                return Collections.singletonList(DOWNLOAD_METHOD);
+            }
+        };
+    }
+
+
+    /** Downloaded lists remain accessible even after changing the method. */
+    private static Setting.Availability downloadsKept() {
+        return new Setting.Availability() {
+            @Override
+            public boolean isAvailable() {
+                return DOWNLOAD_METHOD.get() != DownloadMethod.DELEGATED;
+            }
+
+            @Override
+            public List<Setting<?>> getParentSettings() {
+                return Collections.singletonList(DOWNLOAD_METHOD);
+            }
+        };
+    }
+
+    /** Consumes old preferences, without leaving independent song or playlist choices behind. */
+    private static void migrateDownloadMethods() {
+        var prefs = Setting.preferences.preferences;
+        DownloadMethod method = DownloadMethodMigration.resolve(
+                prefs.contains(DOWNLOAD_METHOD.key) ? DOWNLOAD_METHOD.get() : null,
+                DOWNLOAD_METHOD_MIGRATED.get(),
+                prefs.getString("morphe_music_song_download_method", null),
+                prefs.getString("morphe_music_playlist_download_method", null),
+                prefs.getBoolean("morphe_music_download_methods_migrated", false),
+                prefs.getBoolean("morphe_music_in_app_downloads", false),
+                prefs.getBoolean("morphe_music_play_downloads_locally", false),
+                EXTERNAL_DOWNLOADER_ACTION_BUTTON.get(), EXTERNAL_DOWNLOADER_FLYOUT_MENU.get());
+        DOWNLOAD_METHOD.save(method);
+        DOWNLOAD_METHOD_MIGRATED.save(true);
+
+        prefs.edit()
+                .remove("morphe_music_song_download_method")
+                .remove("morphe_music_playlist_download_method")
+                .remove("morphe_music_download_methods_migrated")
+                .remove("morphe_music_in_app_downloads")
+                .remove("morphe_music_play_downloads_locally")
+                .apply();
+    }
+
     static {
         // region Migration
         migrateLyricsArtistFirstToTrackFormat();
 
         migrateQuickLrcEnabled();
         migrateLyricsProviderSwitches();
+        migrateDownloadMethods();
 
         // Old spoof versions that no longer work reliably.
         String spoofAppVersionTarget = SPOOF_APP_VERSION_TARGET.get();

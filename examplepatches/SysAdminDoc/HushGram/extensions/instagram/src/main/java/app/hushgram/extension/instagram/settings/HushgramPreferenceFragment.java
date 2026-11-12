@@ -121,6 +121,7 @@ import app.hushgram.extension.instagram.misc.SpoofLocation;
 import app.hushgram.extension.instagram.share.ShareSheetActions;
 import app.hushgram.extension.instagram.share.SharingDomain;
 import app.hushgram.extension.instagram.stories.StoryBarThickness;
+import app.hushgram.extension.instagram.stories.StorySeekBarPosition;
 import app.hushgram.extension.instagram.stories.StoryPriority;
 import app.hushgram.extension.instagram.stories.StoryEmoji;
 import app.hushgram.extension.instagram.stories.StoryFonts;
@@ -332,6 +333,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     @Nullable private Row gridToggle;
     /** The tiles, one row of the page, while the grid is on and nothing is searched. */
     @Nullable private CategoryGrid categoryGrid;
+    /** The chips under Search on a category's own page, one for each category (#642). */
+    @Nullable private CategoryStrip categoryStrip;
     /** HushGram's name over the page while the black look is on and nothing is searched (#455). */
     @Nullable private Preference header;
     /** Before you sign in, while no tap has hidden it. The home page's, like the status card. */
@@ -590,6 +593,9 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         categoryGrid = new CategoryGrid(context, this::openFromGrid);
         // Before the first section, after the notice and recovery notes above it.
         categoryGrid.setOrder(-10);
+        categoryStrip = new CategoryStrip(context, this::switchPage);
+        // Right under Search, the only other row a category's page has above its own.
+        categoryStrip.setOrder(-49);
         header = new SettingsHeader(context);
         header.setOrder(-60);
         Preference status = statusCard(context);
@@ -749,13 +755,19 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     belongs |= family == PatchFamily.STORY_MENTIONS && Settings.STORY_MENTIONS_LOOK.key.equals(key);
                     belongs |= family == PatchFamily.CAROUSEL_ARROWS && Settings.CAROUSEL_PILL_LOOK.key.equals(key);
                     belongs |= family == PatchFamily.FEED_SEEK_BAR && (Settings.FEED_SEEK_BAR_LOOK.key.equals(key)
-                            || Settings.SEEK_BAR_SHAPE.key.equals(key));
-                    belongs |= family == PatchFamily.STORY_SEEK_BAR && Settings.STORY_SEEK_BAR_LOOK.key.equals(key);
+                            || Settings.SEEK_BAR_SHAPE.key.equals(key)
+                            || Settings.FEED_DOUBLE_TAP_SKIP_SECONDS.key.equals(key));
+                    belongs |= family == PatchFamily.REEL_DOUBLE_TAP_SKIP
+                            && Settings.DOUBLE_TAP_SKIP_REELS_SECONDS.key.equals(key);
+                    belongs |= family == PatchFamily.STORY_SEEK_BAR && (Settings.STORY_SEEK_BAR_LOOK.key.equals(key)
+                            || Settings.STORY_SEEK_BAR_POSITION.key.equals(key));
                     belongs |= family == PatchFamily.REEL_POST_TIME && (Settings.REEL_POST_TIME_SECONDS.key.equals(key)
                             || Settings.REEL_POST_TIME_AGO.key.equals(key));
                     belongs |= family == PatchFamily.FRIENDSHIP_STATUS && Settings.FOLLOW_LABEL_PLACE.key.equals(key);
                     belongs |= family == PatchFamily.FULL_SCREEN_BARS && Settings.FULL_SCREEN_HIDES.key.equals(key);
-                    belongs |= family == PatchFamily.GLASS_TAB_BAR && Settings.GLASS_TAB_BAR_HAPTIC_STYLE.key.equals(key);
+                    belongs |= family == PatchFamily.GLASS_TAB_BAR && (Settings.GLASS_TAB_BAR_HAPTIC_STYLE.key.equals(key)
+                            || Settings.GLASS_TAB_BAR_HAPTIC_STRENGTH.key.equals(key)
+                            || Settings.GLASS_TAB_BAR_TAP_SOUND_VOLUME.key.equals(key));
                     belongs |= family == PatchFamily.GLASS_TAB_BAR && (Settings.GLASS_TAB_BAR_OPACITY.key.equals(key) || Settings.GLASS_TAB_BAR_REFRACT_STRENGTH.key.equals(key)
                             || Settings.GLASS_TAB_BAR_BLUR_RADIUS.key.equals(key)
                             || Settings.GLASS_TAB_BAR_HEIGHT.key.equals(key) || Settings.GLASS_TAB_BAR_LIFT.key.equals(key)
@@ -803,7 +815,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                             && (Settings.MIN_REEL_VIEWS.key.equals(key) || Settings.MIN_REEL_LIKES.key.equals(key));
                     belongs |= family == PatchFamily.STORY_UPLOAD_QUALITY && (Settings.UPLOAD_QUALITY_APPLIES_TO.key.equals(key)
                             || Settings.UPLOAD_VIDEO_BITRATE.key.equals(key) || Settings.UPLOAD_VIDEO_RESOLUTION.key.equals(key)
-                            || Settings.UPLOAD_FRAME_RATE.key.equals(key) || Settings.UPLOAD_PHOTO_QUALITY.key.equals(key));
+                            || Settings.UPLOAD_FRAME_RATE.key.equals(key) || Settings.UPLOAD_PHOTO_QUALITY.key.equals(key)
+                            || Settings.UPLOAD_PHOTO_SIZE.key.equals(key));
                     belongs |= family == PatchFamily.STORY_PRIORITY && Settings.STORY_PRIORITY_ACCOUNTS.key.equals(key);
                     belongs |= family == PatchFamily.CALL_BLOCKER
                             && (Settings.CALL_BLOCK_MODE.key.equals(key) || Settings.CALL_BLOCK_ACCOUNTS.key.equals(key));
@@ -825,7 +838,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                             || VIEWING_HISTORY_ROW.equals(key) || CLEAR_VIEWING_HISTORY.equals(key));
                     belongs |= family == PatchFamily.PROFILE_PICTURE
                             && (PROFILE_HISTORY_ROW.equals(key) || CLEAR_PROFILE_HISTORY.equals(key)
-                            || SAVED_PROFILES_ROW.equals(key));
+                            || SAVED_PROFILES_ROW.equals(key) || Settings.SAVED_PROFILES_TAB_TARGET.key.equals(key));
+                    belongs |= family == PatchFamily.FOLLOWING_FEED && Settings.FAVORITES_TAB_TARGET.key.equals(key);
                     belongs |= family == PatchFamily.RESTORE_TRUST && L10n.t("Instagram accepts this build").equals(row.getTitle());
                     belongs |= family == PatchFamily.REMOVE_AD_ID && L10n.t("Advertising ID removed").equals(row.getTitle());
                     belongs |= family == PatchFamily.PURE_BLACK && L10n.t("Pure black dark mode").equals(row.getTitle());
@@ -840,7 +854,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     }
                     if (family == PatchFamily.REEL_DECLUTTER || family == PatchFamily.REEL_DOWNLOAD
                             || family == PatchFamily.REEL_WATCH_HISTORY || family == PatchFamily.REELS_TAB
-                            || family == PatchFamily.KEEP_REEL_SPEED || family == PatchFamily.TAP_TO_PLAY
+                            || family == PatchFamily.KEEP_REEL_SPEED || family == PatchFamily.REEL_LINKS
+                            || family == PatchFamily.TAP_TO_PLAY
                             || family == PatchFamily.PLAYBACK_QUALITY || family == PatchFamily.RESUME_LONG_VIDEOS
                             || family == PatchFamily.REEL_TAP_AND_VOLUME || family == PatchFamily.BACKGROUND_PLAY
                             || Settings.TURN_OFF_DOUBLE_TAP_LIKE_ON_REELS.key.equals(key)) aliases.append(" reels");
@@ -907,6 +922,24 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         lastCategory = pageCategory;
         focusPage();
         filterSettings();
+        if (list != null) list.post(() -> {
+            if (list == listView()) list.setSelection(0);
+        });
+    }
+
+    /**
+     * A chip under Search put [section] on the page in place of the one showing (#642). The list's
+     * place is the one kept when the first page opened, so Back still lands where the reader was.
+     */
+    private void switchPage(Heading section) {
+        PreferenceCategory shown = shownPage();
+        if (shown == null || shown == section || !searchText(searchQuery).trim().isEmpty()) return;
+        NewRowDots.left(shown);
+        pageCategory = section.getKey();
+        lastCategory = pageCategory;
+        focusPage();
+        filterSettings();
+        ListView list = listView();
         if (list != null) list.post(() -> {
             if (list == listView()) list.setSelection(0);
         });
@@ -1558,13 +1591,14 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         if (screen == null || search == null || screen.findPreference(search.getKey()) != search) return;
         String normalized = searchText(searchQuery).trim();
         String[] terms = normalized.isEmpty() ? new String[0] : normalized.split("\\s+");
+        String[][] needs = SearchWords.needs(terms);
         boolean pages = categoryPages();
         NewRowDots.searching(terms.length > 0);
         if (DescriptionInfo.searching != terms.length > 0) {
             DescriptionInfo.searching = terms.length > 0;
             rebindRows();
         }
-        rankForSearch(terms);
+        rankForSearch(needs);
         // Search reveals matching rows without changing the sections the person expanded.
         boolean listing = pages && terms.length == 0;
         // A category on its own page shows Search and its own rows, nothing of the home page (#525).
@@ -1606,6 +1640,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         // Tiles stand in for the folded sections' headings, so those headings stay off the page.
         boolean gridOn = listing && page == null && Settings.CATEGORY_GRID.savedValue();
         List<Heading> tiles = new ArrayList<>();
+        List<Heading> chips = new ArrayList<>();
         int matches = 0;
         for (Map.Entry<PreferenceCategory, List<Preference>> section : searchableRows.entrySet()) {
             PreferenceCategory group = section.getKey();
@@ -1621,8 +1656,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             for (Preference row : section.getValue()) {
                 String text = searchText(group.getTitle()) + " " + searchText(row.getTitle()) + " "
                         + searchText(row.getSummary()) + " " + searchText(searchAliases.get(row));
-                boolean match = true;
-                for (String term : terms) if (!text.contains(term)) { match = false; break; }
+                boolean match = SearchWords.holdsAll(text, needs);
                 if (match) matches++;
                 filled |= match || group == recovery;
                 if (expanded && (match || group == recovery)) {
@@ -1645,6 +1679,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             if (group instanceof Heading) ((Heading) group).display(listing && !held && page == null, expanded, black);
             boolean tile = gridOn && filled && group instanceof Heading;
             if (tile) tiles.add((Heading) group);
+            if (page != null && filled && group instanceof Heading) chips.add((Heading) group);
             if (filled && !(tile && !expanded) && (page == null || group == page)) {
                 if (group.getParent() != screen) screen.addPreference(group);
             } else if (group.getParent() == screen) screen.removePreference(group);
@@ -1655,6 +1690,12 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 if (categoryGrid.getParent() != screen) screen.addPreference(categoryGrid);
             } else if (categoryGrid.getParent() == screen) screen.removePreference(categoryGrid);
         }
+        if (categoryStrip != null) {
+            if (page instanceof Heading && chips.size() > 1) {
+                categoryStrip.show(chips, (Heading) page);
+                if (categoryStrip.getParent() != screen) screen.addPreference(categoryStrip);
+            } else if (categoryStrip.getParent() == screen) screen.removePreference(categoryStrip);
+        }
         // Actions below the categories remain on the same page.
         Row[] loose = {report, support};
         String[] looseAliases = {" github bug issue", " ko-fi kofi donate coffee"};
@@ -1662,8 +1703,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             Row row = loose[i];
             if (row == null) continue;
             String text = searchText(row.getTitle()) + " " + searchText(row.getSummary()) + looseAliases[i];
-            boolean match = true;
-            for (String term : terms) if (!text.contains(term)) { match = false; break; }
+            boolean match = SearchWords.holdsAll(text, needs);
             boolean shown = match && page == null;
             if (terms.length > 0 && match) matches++;
             if (shown) {
@@ -1780,7 +1820,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         return allowMutation(row, false);
     }
 
-    /** Whether the Saved profiles page may take an account off its list now. The settings lock holds it too. */
+    /** Whether the Saved profiles page may change its list now, an account or a folder. The settings lock holds it too. */
     static boolean savedProfilesChangeAllowed(Preference row) {
         return allowMutation(row, false);
     }
@@ -1945,15 +1985,15 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
      * anywhere in a word, because German and Korean write compounds as one word. Rows only ever
      * move down, so Search stays first, and with no terms everything is back where it was built.
      */
-    private void rankForSearch(String[] terms) {
-        if (terms.length == 0) {
+    private void rankForSearch(String[][] needs) {
+        if (needs.length == 0) {
             restoreOrders();
             return;
         }
         for (Map.Entry<PreferenceCategory, List<Preference>> section : searchableRows.entrySet()) {
-            boolean named = holdsAll(searchText(section.getKey().getTitle()), terms);
+            boolean named = SearchWords.holdsAll(searchText(section.getKey().getTitle()), needs);
             for (Preference row : section.getValue()) {
-                boolean inTitle = holdsAll(searchText(row.getTitle()), terms);
+                boolean inTitle = SearchWords.holdsAll(searchText(row.getTitle()), needs);
                 named |= inTitle;
                 rank(row, !inTitle);
             }
@@ -1981,11 +2021,6 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         }
         int order = later ? built + RANKED_LATER : built;
         if (item.getOrder() != order) item.setOrder(order);
-    }
-
-    private static boolean holdsAll(String text, String[] terms) {
-        for (String term : terms) if (!text.contains(term)) return false;
-        return true;
     }
 
     /** Every row in the categories, on the screen or kept off it by a folded category or a search. */
@@ -2765,6 +2800,9 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                         boolean owed = false;
                         for (var changed : result.before.entrySet()) owed |= noteRestartPending(changed.getKey(), changed.getValue());
                         showImportFeedback(owed ? message + " " + L10n.t("Restart Instagram to apply these choices.") : message);
+                        // The list's row read the accounts when the page opened.
+                        Preference saved = result.profiles > 0 && isAdded() ? findPreference(SAVED_PROFILES_ROW) : null;
+                        if (saved != null) readSavedProfiles(saved);
                     });
                 }
             } catch (ConfigurationBackup.Held held) {
@@ -2786,13 +2824,14 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
      * What an import or an Undo reports, before any restart note. Lock switches a HushGram PIN (or a
      * lock that came back) kept as they are get their own sentence: they're known settings, and
      * counting them as ones this version doesn't know hid why they didn't change. Skipped settings
-     * are only mentioned when there are some.
+     * are only mentioned when there are some, and saved profiles a file added when it added some.
      */
     static String configurationReceipt(boolean undo, ConfigurationBackup.Result result) {
         String message = undo ? result.skipped == 0 ? L10n.t("Settings restored.")
                 : L10n.f("Restored %1$d settings. Kept %2$d newer choices.", result.applied, result.skipped)
                 : result.skipped == 0 ? L10n.f("Imported %1$d settings.", result.applied)
                 : L10n.f("Imported %1$d settings. Skipped %2$d that this version doesn't know.", result.applied, result.skipped);
+        if (!undo && result.profiles > 0) message += " " + L10n.f("Saved profiles added: %d.", result.profiles);
         return result.held == 0 ? message
                 : message + " " + L10n.t("Lock switches stay as they are until you change them here.");
     }
@@ -4109,13 +4148,28 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         return tabRow(context, NavigationRow.Use.GHOST);
     }
 
+    /** The row choosing the tab whose long press opens Your saved profiles (#629). */
+    static NavigationRow savedProfilesTabRow(Context context) {
+        return tabRow(context, NavigationRow.Use.SAVED_PROFILES);
+    }
+
+    /** The row choosing the tab whose long press opens Favorites (#643). */
+    static NavigationRow favoritesTabRow(Context context) {
+        return tabRow(context, NavigationRow.Use.FAVORITES);
+    }
+
     private static NavigationRow tabRow(Context context, NavigationRow.Use use) {
         EnumSetting<NavigationTarget> setting = use == NavigationRow.Use.QUALITY ? Settings.QUALITY_TAB_TARGET
-                : use == NavigationRow.Use.GHOST ? Settings.GHOST_TAB_TARGET : Settings.NAVIGATION_SETTINGS_TARGET;
+                : use == NavigationRow.Use.GHOST ? Settings.GHOST_TAB_TARGET
+                : use == NavigationRow.Use.SAVED_PROFILES ? Settings.SAVED_PROFILES_TAB_TARGET
+                : use == NavigationRow.Use.FAVORITES ? Settings.FAVORITES_TAB_TARGET
+                : Settings.NAVIGATION_SETTINGS_TARGET;
         NavigationRow row = new NavigationRow(context, use);
         row.setKey(setting.key);
         row.setTitle(use == NavigationRow.Use.QUALITY ? L10n.t("Pick the playback quality with a tab long press")
                 : use == NavigationRow.Use.GHOST ? L10n.t("Turn Ghost mode on or off with a tab long press")
+                : use == NavigationRow.Use.SAVED_PROFILES ? L10n.t("Open Saved profiles with a tab long press")
+                : use == NavigationRow.Use.FAVORITES ? L10n.t("Open Favorites with a tab long press")
                 : L10n.t("Open settings with a tab long press"));
         row.setDialogTitle(L10n.t("Choose a tab"));
         row.setNegativeButtonText(L10n.t("Cancel"));
@@ -4579,6 +4633,13 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             SavedProfilesPage.open(tapped.getContext(), tapped);
             return true;
         });
+        readSavedProfiles(row);
+        return mark(row, SettingsIcons.PERSON);
+    }
+
+    /** Names the newest saved accounts on [row], read off the main thread. */
+    static void readSavedProfiles(Preference row) {
+        Context context = row.getContext();
         Context application = context.getApplicationContext() != null ? context.getApplicationContext() : context;
         if (!Utils.runOnBackgroundThread(() -> {
             String summary = savedProfilesSummary(SavedProfiles.all(application));
@@ -4586,7 +4647,6 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         })) {
             row.setSummary(savedProfilesSummary(SavedProfiles.all(application)));
         }
-        return mark(row, SettingsIcons.PERSON);
     }
 
     /** What the Saved profiles row says for [profiles], newest first. */
@@ -4738,6 +4798,19 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 Settings.UPLOAD_PHOTO_QUALITY.savedValue().name());
     }
 
+    /** The longest side a photo being prepared may keep (#37). */
+    static UploadChoiceRow uploadPhotoSizeRow(Context context) {
+        app.hushgram.extension.instagram.stories.UploadPhotoSize[] sizes = app.hushgram.extension.instagram.stories.UploadPhotoSize.values();
+        CharSequence[] entries = new CharSequence[sizes.length];
+        CharSequence[] values = new CharSequence[sizes.length];
+        for (int i = 0; i < sizes.length; i++) {
+            entries[i] = sizes[i].edge == 0 ? L10n.t("Instagram's own") : sizes[i].edge + " px";
+            values[i] = sizes[i].name();
+        }
+        return uploadChoiceRow(context, Settings.UPLOAD_PHOTO_SIZE.key, L10n.t("Photo size"), entries, values,
+                Settings.UPLOAD_PHOTO_SIZE.savedValue().name());
+    }
+
     private static UploadChoiceRow uploadChoiceRow(Context context, String key, String title, CharSequence[] entries, CharSequence[] values, String value) {
         UploadChoiceRow row = new UploadChoiceRow(context);
         row.setKey(key);
@@ -4751,10 +4824,21 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         return row;
     }
 
-    /** A plain choice row for the upload quality settings. Its summary is the chosen entry, set by the base class. */
+    /** A plain choice row for the upload quality settings. Its summary is the chosen entry. */
     static final class UploadChoiceRow extends ListPreference {
         UploadChoiceRow(Context context) {
             super(context);
+        }
+
+        /**
+         * The chosen entry as written. ListPreference's own summary runs through String.format, and
+         * a Photo quality entry such as "100%" ends in a bare %, which threw and kept the whole page
+         * from opening once a percent was picked.
+         */
+        @Override
+        public CharSequence getSummary() {
+            CharSequence entry = getEntry();
+            return entry != null ? entry : getValue();
         }
 
         @Override
@@ -5030,6 +5114,38 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         row.setEntries(entries);
         row.setEntryValues(values);
         row.setValue(Settings.GLASS_TAB_BAR_HAPTIC_STYLE.savedValue().name());
+        return row;
+    }
+
+    /** How hard the glass tab bar's tick is, from a slider in percent of its style's own tick (#640). */
+    static SliderRow hapticStrengthRow(Context context) {
+        SliderRow row = new SliderRow(context, Settings.GLASS_TAB_BAR_HAPTIC_STRENGTH, 25, L10n.t("%1$d%%"));
+        row.setTitle(L10n.t("Haptic strength"));
+        row.setText(String.valueOf(Settings.GLASS_TAB_BAR_HAPTIC_STRENGTH.savedValue()));
+        return row;
+    }
+
+    /** How loud the glass tab bar's click is, from a slider in percent (#640). */
+    static SliderRow tapSoundVolumeRow(Context context) {
+        SliderRow row = new SliderRow(context, Settings.GLASS_TAB_BAR_TAP_SOUND_VOLUME, 10, L10n.t("%1$d%%"));
+        row.setTitle(L10n.t("Tap sound volume"));
+        row.setText(String.valueOf(Settings.GLASS_TAB_BAR_TAP_SOUND_VOLUME.savedValue()));
+        return row;
+    }
+
+    /** How far a double tap moves a feed video, from a slider in seconds under Double tap to skip on feed videos (#645). */
+    static SliderRow feedSkipLengthRow(Context context) {
+        SliderRow row = new SliderRow(context, Settings.FEED_DOUBLE_TAP_SKIP_SECONDS, 5, L10n.t("%1$d seconds"));
+        row.setTitle(L10n.t("Skip length"));
+        row.setText(String.valueOf(Settings.FEED_DOUBLE_TAP_SKIP_SECONDS.savedValue()));
+        return row;
+    }
+
+    /** How far a double tap moves a reel, from a slider in seconds under Double tap to skip (#645). */
+    static SliderRow reelSkipLengthRow(Context context) {
+        SliderRow row = new SliderRow(context, Settings.DOUBLE_TAP_SKIP_REELS_SECONDS, 5, L10n.t("%1$d seconds"));
+        row.setTitle(L10n.t("Skip length"));
+        row.setText(String.valueOf(Settings.DOUBLE_TAP_SKIP_REELS_SECONDS.savedValue()));
         return row;
     }
 
@@ -6259,6 +6375,21 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 L10n.t("Turn on Seek bar on stories to use this choice."));
     }
 
+    /** Where the seek bar on stories sits (#636). Its values are the positions' own names. */
+    static ChoiceRow<StorySeekBarPosition> storySeekBarPositionRow(Context context) {
+        ChoiceRow<StorySeekBarPosition> row = new ChoiceRow<>(context, Settings.STORY_SEEK_BAR_POSITION,
+                StorySeekBarPosition.values(), new String[] {
+                        L10n.t("The bar sits just above the Send message box at the bottom of a story."),
+                        L10n.t("The bar sits in the space under the Send message box. Where there's no room "
+                                + "under it, the bar stays above it."),
+                }, L10n.t("Turn on Seek bar on stories to use this choice."));
+        fill(row, Settings.STORY_SEEK_BAR_POSITION, StorySeekBarPosition.values(), new String[] {
+                L10n.t("Above the Send message box"),
+                L10n.t("Below the Send message box"),
+        }, L10n.t("Seek bar position"));
+        return row;
+    }
+
     /** What a seek bar looks like with each {@link OverlayLook}, in their order. */
     private static String[] seekBarLookSummaries() {
         return new String[] {
@@ -6282,7 +6413,10 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         return row;
     }
 
-    /** The shape every seek bar takes (#586, #592). Its values are the shapes' own names. */
+    /**
+     * The shape every seek bar takes (#586, #592), story progress segments and a chat video's bar
+     * included (#630), so it's there with no seek bar switch on. Its values are the shapes' own names.
+     */
     static ChoiceRow<SeekShape> seekShapeRow(Context context) {
         String title = L10n.t("Seek bar shape");
         ChoiceRow<SeekShape> row = new ChoiceRow<>(context, Settings.SEEK_BAR_SHAPE, SeekShape.values(), new String[] {
@@ -6291,7 +6425,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 L10n.t("A thicker rounded bar with no handle."),
                 L10n.t("A rounded bar split by a tall handle."),
                 L10n.t("A wavy line for the part played, with a tall handle."),
-        }, L10n.t("Turn on a seek bar on feed videos, stories or reels to use this choice."));
+        }, null);
         fill(row, Settings.SEEK_BAR_SHAPE, SeekShape.values(), new String[] {
                 L10n.t("Standard"),
                 L10n.t("Thin line"),
@@ -8100,8 +8234,11 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
      * shared page syncing it from the setting, or an import.
      */
     static final class NavigationRow extends ListPreference {
-        /** What the chosen tab's long press does: open HushGram, the quality picker (#93) or Ghost mode (#255). */
-        enum Use { SETTINGS, QUALITY, GHOST }
+        /**
+         * What the chosen tab's long press does: open HushGram, the quality picker (#93), Ghost mode
+         * (#255), Saved profiles (#629) or Favorites (#643).
+         */
+        enum Use { SETTINGS, QUALITY, GHOST, SAVED_PROFILES, FAVORITES }
         private String summary;
         private final Use use;
         NavigationRow(Context context) { this(context, Use.SETTINGS); }
@@ -8126,6 +8263,25 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                         : L10n.f("Long press %1$s to turn Ghost mode on or off instead of that tab's usual action, and a "
                                 + "toast says which way it went. Normal taps and other tabs stay the same. If the same tab "
                                 + "opens HushGram or picks the playback quality, that comes first.", navigationLabel(target));
+                setSummary(summary);
+                return;
+            }
+            if (use == Use.SAVED_PROFILES) {
+                summary = target == NavigationTarget.OFF
+                        ? L10n.t("Tab long presses keep Instagram's own action. Choose one to open Saved profiles instead.")
+                        : L10n.f("Long press %1$s to open Your saved profiles instead of that tab's usual action. "
+                                + "Normal taps and other tabs stay the same. Needs Saved profiles on. If the same tab "
+                                + "opens HushGram, picks the playback quality or turns Ghost mode, that comes first.",
+                                navigationLabel(target));
+                setSummary(summary);
+                return;
+            }
+            if (use == Use.FAVORITES) {
+                summary = target == NavigationTarget.OFF
+                        ? L10n.t("Tab long presses keep Instagram's own action. Choose one to open Favorites instead.")
+                        : L10n.f("Long press %1$s to open Favorites instead of that tab's usual action. Normal taps and "
+                                + "other tabs stay the same. If the same tab opens HushGram, picks the playback quality, "
+                                + "turns Ghost mode or opens Saved profiles, that comes first.", navigationLabel(target));
                 setSummary(summary);
                 return;
             }

@@ -61,7 +61,7 @@ val hutchDisableTrackersPatch = resourcePatch(
         "notifications keep working.",
     default = true,
 ) {
-    category("Telemetry")
+    category("Privacy")
     compatibleWith(HUTCH_COMPATIBILITY)
 
     execute {

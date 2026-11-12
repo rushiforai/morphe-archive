@@ -6,8 +6,10 @@ package org.telegram.messenger;
 
 import org.telegram.tgnet.TLRPC;
 
-/** Test stand-in for the peer-to-dialog rule the extension borrows. */
+/** Test stand-in for the peer-to-dialog rule the extension borrows, and the message a reaction row reads. */
 public class MessageObject {
+    public TLRPC.Message messageOwner;
+
     public static long getPeerId(TLRPC.Peer peer) {
         if (peer == null) return 0;
         if (peer.user_id != 0) return peer.user_id;

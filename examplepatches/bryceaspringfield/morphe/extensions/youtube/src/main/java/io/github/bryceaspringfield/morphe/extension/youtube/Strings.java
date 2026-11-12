@@ -68,6 +68,41 @@ final class Strings {
         put("hide_dots", "Hide dots on the subscribed channels bar", "Ocultar los puntos de la barra de canales suscritos");
         put("live_chat_all", "Live chat opens on all messages", "El chat en vivo abre en Todos los mensajes");
         put("live_chat_all_summary", "In place of Top chat", "En vez de Mensajes principales");
+        put("dearrow_tap", "Tap the DeArrow icon to switch titles", "Tocar el icono de DeArrow para cambiar el título");
+        put("dearrow_tap_summary", "A tap on the icon before a DeArrow title shows the video's own title, and a second tap the DeArrow title (needs Morphe's DeArrow titles and their icon)",
+                "Un toque en el icono que precede a un título de DeArrow muestra el título propio del video, y un segundo toque el de DeArrow (requiere los títulos de DeArrow de Morphe y su icono)");
+        put("dearrow_suggest", "Suggest DeArrow titles", "Sugerir títulos de DeArrow");
+        put("dearrow_suggest_summary", "A pencil before the open video's title sends a title to DeArrow",
+                "Un lápiz antes del título del video abierto envía un título a DeArrow");
+        put("dearrow_suggest_title", "Suggest a DeArrow title", "Sugerir un título de DeArrow");
+        put("dearrow_suggest_message", "Describe the video plainly, in sentence case, with no clickbait. DeArrow shows a title once enough users vote for it.",
+                "Describe el video con claridad, con mayúscula solo al inicio y sin clickbait. DeArrow muestra un título cuando suficientes usuarios lo votan.");
+        put("dearrow_send", "Send", "Enviar");
+        put("dearrow_sent", "Title sent to DeArrow", "Título enviado a DeArrow");
+        put("dearrow_refused", "DeArrow refused the title", "DeArrow rechazó el título");
+        put("dearrow_failed", "The title was not sent (no connection to DeArrow)", "No se envió el título (sin conexión con DeArrow)");
+        put("dearrow_no_original", "The video's own title was not found", "No se encontró el título propio del video");
+        put("live_catch_up", "Catch up to live streams", "Alcanzar el directo");
+        put("live_catch_up_summary", "A live stream more than 12 s behind its live edge plays faster until it is within 5 s, then returns to its speed",
+                "Un directo con más de 12 s de retraso respecto al momento en vivo se reproduce más rápido hasta quedar a menos de 5 s, y luego vuelve a su velocidad");
+        put("live_catch_up_speed", "Catch-up speed", "Velocidad para alcanzar el directo");
+        put("live_catch_up_speed_summary", "From 1.25 to 4; 2 by default", "De 1.25 a 4; 2 por defecto");
+        put("cat_playback", "Playback", "Reproducción");
+        put("keep_playing", "Keep playing when the screen turns off", "Seguir reproduciendo al apagar la pantalla");
+        put("keep_playing_summary", "A video playing when the screen turns off, which pauses within 8 s, plays again (in picture in picture too)",
+                "Un video que se pausa en los 8 s después de apagar la pantalla vuelve a reproducirse (también en imagen en imagen)");
+        put("audio_only_off", "Lowest quality while the screen is off", "Calidad mínima con la pantalla apagada");
+        put("audio_only_off_summary", "The video switches to its lowest quality when the screen turns off and back when it turns on",
+                "El video pasa a su calidad mínima al apagar la pantalla y vuelve a la anterior al encenderla");
+        put("vote_format", "Like and dislike counts", "Recuentos de me gusta y no me gusta");
+        put("vote_format_summary", "Return YouTube Dislike's counts as numbers, percentages of all votes, or both",
+                "Los recuentos de Return YouTube Dislike como números, porcentajes del total de votos o ambos");
+        put("vote_format_count", "Numbers", "Números");
+        put("vote_format_percent", "Percentages", "Porcentajes");
+        put("vote_format_both", "Numbers and percentages", "Números y porcentajes");
+        put("chat_avatar", "Live chat profile pictures open the channel", "Las fotos de perfil del chat en directo abren el canal");
+        put("chat_avatar_summary", "A tap on a message's profile picture opens its author's channel",
+                "Tocar la foto de perfil de un mensaje abre el canal de su autor");
         put("fix_nav", "Fix bottom bar buttons needing two taps", "Corregir los botones de la barra inferior que requieren dos toques");
         put("fix_network", "Recover playback after the connection changes",
                 "Recuperar la reproducción cuando cambia la conexión");

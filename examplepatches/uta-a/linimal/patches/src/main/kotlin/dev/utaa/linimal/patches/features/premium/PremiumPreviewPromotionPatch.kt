@@ -107,7 +107,7 @@ private fun previewScreenCandidateFingerprint(bannerType: String, menuItemType: 
  * Premium の機能を解放することもありません。</p>
  */
 val premiumPreviewPromotionPatch = bytecodePatch(
-    name = "スクロールプレビューの Premium 案内",
+    name = "Premium prompt in scroll preview",
     description = "スクロールプレビュー画面にある LINE Premium の案内を、実行時設定で非表示にできるようにします。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

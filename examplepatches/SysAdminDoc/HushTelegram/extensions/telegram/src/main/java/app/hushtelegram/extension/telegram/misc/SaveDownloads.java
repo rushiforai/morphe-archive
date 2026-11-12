@@ -32,11 +32,11 @@ import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
@@ -83,9 +83,12 @@ import app.hushtelegram.extension.telegram.settings.Settings;
  *
  * <p>Telegram keeps a document under its own name in Telegram Files, and a document it has no
  * saved path for counts as downloaded when a file of that name and size is already there. Another
- * document of the same name and size then opens the earlier one's file without downloading. The
- * patch reports that at FileLoadOperation.onFinishLoadingFile, see {@link #finishing}, and such a
- * file isn't copied, since it may not be this document's.
+ * document of the same name and size then opens the earlier one's file without downloading, and
+ * Telegram saves that file as its path, so the document's next load finds it there too. The patch
+ * reports every finish that downloaded nothing at FileLoadOperation.onFinishLoadingFile, see
+ * {@link #finishing}, and unless it carries the downloader's own name such a file isn't copied,
+ * since it may not be this document's. That holds back a document Telegram already had at the
+ * path it saved, too, while one it really downloads is still copied.
  */
 public final class SaveDownloads {
     /** Where the copies go, as MediaStore writes it: the shared Download folder's Telegram folder. */
@@ -197,10 +200,9 @@ public final class SaveDownloads {
     public static void fileLoaded(int account, String name, File file, Object parent) {
         HookStatus.invoked(FamilyNames.SAVE_DOWNLOADS);
         try {
-            boolean found = file != null && FOUND.remove(file.getPath());
+            boolean found = name != null && file != null && takeFound(account, name, file);
             if (name == null || file == null || !Utils.settingsReady() || !Settings.SAVE_DOWNLOADS.get()) return;
-            // Under the downloader's own name it can only be this document's file.
-            if (found && !file.getName().equals(name)) {
+            if (found) {
                 HookStatus.counted(FamilyNames.SAVE_DOWNLOADS, NOT_ITS_OWN);
                 return;
             }
@@ -222,34 +224,76 @@ public final class SaveDownloads {
         }
     }
 
-    static final String NOT_ITS_OWN = "file Telegram took by name and size without downloading, not copied";
+    static final String NOT_ITS_OWN = "file Telegram already had and didn't download, not copied";
 
-    /** More files than this waiting for their finished download means some never came, so the list starts over. */
+    /** Past this many found files waiting for their fileLoaded, the oldest goes, in case one never comes. */
     static final int MAX_FOUND = 64;
 
-    /** Files Telegram took by name and size instead of downloading, until their finished download comes. */
-    private static final Set<String> FOUND = ConcurrentHashMap.newKeySet();
+    /**
+     * Files Telegram found already there instead of downloading, under a name other than the
+     * downloader's, keyed by the account, the downloader's name for the document and the file's path,
+     * each with how many of its fileLoaded calls are still to come. Keyed by all three, since the next download starts before the last one's fileLoaded, a
+     * twin of one name and size may be downloading into the very file another twin found, and another
+     * account loading the same document may find the file this account just downloaded.
+     */
+    private static final Map<String, Integer> FOUND = new LinkedHashMap<String, Integer>() {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<String, Integer> eldest) {
+            return size() > MAX_FOUND;
+        }
+    };
 
     /**
      * Injected at the start of FileLoadOperation.onFinishLoadingFile, on Telegram's queues, ahead of
      * {@link #fileLoaded} for the same file.
      *
-     * @param pathSaveData set when Telegram stores the document under its own name and has no path saved for it
-     * @param temp         the file it downloaded into, null when it found the finished file already there
-     * @param file         the finished file
+     * @param account the account FileLoader made the operation for, the one {@link #fileLoaded} gets
+     * @param name the downloader's name for the file, the one {@link #fileLoaded} gets
+     * @param temp the file it downloaded into, null when it found the finished file already there.
+     *             An operation started again after a video preload keeps the preload's.
+     * @param file the finished file
+     * @param preload nonzero for a video preload, which Telegram finishes without a fileLoaded
      */
-    public static void finishing(Object pathSaveData, File temp, File file) {
-        if (pathSaveData == null || temp != null || file == null) return;
+    public static void finishing(int account, String name, File temp, File file, int preload) {
+        // Under the downloader's own name it can only be this document's file, and encrypted media is kept
+        // under that name plus ".enc", so neither was found by name and size. Leaving them off the list
+        // keeps the many cached files Telegram finds from pushing a waiting twin off it.
+        if (preload != 0 || name == null || file == null) return;
+        if (file.getName().equals(name) || file.getName().equals(name + ENCRYPTED)) return;
         try {
-            if (FOUND.size() >= MAX_FOUND) FOUND.clear();
-            FOUND.add(file.getPath());
+            // A download is moved into its finished file after this, so a file already there was found.
+            if (temp != null && !file.exists()) return;
+            String key = foundKey(account, name, file);
+            synchronized (FOUND) {
+                // Put back at the end, so the oldest to go is never one still waiting.
+                Integer count = FOUND.remove(key);
+                FOUND.put(key, count == null ? 1 : count + 1);
+            }
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.SAVE_DOWNLOADS, "found file", failure);
         }
     }
 
+    /** Whether [account]'s finish of [name] at [file] found it already there, taking that finish off the list. */
+    private static boolean takeFound(int account, String name, File file) {
+        String key = foundKey(account, name, file);
+        synchronized (FOUND) {
+            Integer count = FOUND.get(key);
+            if (count == null) return false;
+            if (count > 1) FOUND.put(key, count - 1);
+            else FOUND.remove(key);
+            return true;
+        }
+    }
+
+    private static String foundKey(int account, String name, File file) {
+        return account + "\n" + name + '\n' + file.getPath();
+    }
+
     static void forgetFound() {
-        FOUND.clear();
+        synchronized (FOUND) {
+            FOUND.clear();
+        }
     }
 
     /** Telegram's MessageObject.TYPE_FILE, TYPE_MUSIC, TYPE_PHOTO, TYPE_VIDEO, TYPE_VOICE and TYPE_ROUND_VIDEO, which the patch checks are still these. */
@@ -626,7 +670,7 @@ public final class SaveDownloads {
         Uri pending = resolver.insert(downloads, values);
         if (pending == null) throw new IOException("MediaStore didn't take the file");
         try {
-            try (InputStream in = open(context, file); OutputStream out = resolver.openOutputStream(pending, "w")) {
+            try (InputStream in = open(context, file, document); OutputStream out = resolver.openOutputStream(pending, "w")) {
                 if (out == null) throw new IOException("MediaStore gave no stream");
                 byte[] buffer = new byte[64 * 1024];
                 for (int read; (read = in.read(buffer)) != -1; ) out.write(buffer, 0, read);
@@ -652,15 +696,18 @@ public final class SaveDownloads {
     }
 
     /**
-     * The file's bytes, decrypted when Telegram keeps it encrypted ({@link #ENCRYPTED}, as it does
-     * view-once and timed media). FileLoadOperation encrypts those with AES-256 in CTR mode. The key
+     * The file's bytes, decrypted when Telegram keeps it encrypted, as it does view-once and timed
+     * media. FileLoadOperation encrypts those with AES-256 in CTR mode. The key
      * and IV sit in Telegram's internal cache as {@code <file>.key}, 32 bytes of key then 16 of IV,
      * and it writes the block number from the start of the file into the IV's last four bytes, which
      * is CTR counting from that IV with those four bytes zeroed.
+     *
+     * <p>Such a file is [document], the downloader's name, plus {@link #ENCRYPTED}. A document that's
+     * really named something.enc isn't, and is copied as it is.
      */
-    static InputStream open(Context context, File file) throws IOException {
+    static InputStream open(Context context, File file, String document) throws IOException {
         InputStream in = new FileInputStream(file);
-        if (!file.getName().endsWith(ENCRYPTED)) return in;
+        if (!file.getName().equals(document + ENCRYPTED)) return in;
         try {
             byte[] key = new byte[48];
             try (DataInputStream keyFile = new DataInputStream(

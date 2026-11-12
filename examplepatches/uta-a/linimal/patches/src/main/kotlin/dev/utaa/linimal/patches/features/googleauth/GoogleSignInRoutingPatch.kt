@@ -69,7 +69,7 @@ private val identitySignInActionFingerprint = Fingerprint(
  * パスキー・パスワード、他の GMS client、LINE の認証通信には触れません。
  */
 val googleSignInRoutingPatch = bytecodePatch(
-    name = "MicroG-RE で Google アカウントのログインを行う",
+    name = "Google sign-in via MicroG-RE",
     description = "Google アカウントでのログインを、実行時設定で MicroG-RE へ向けられるようにします。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

@@ -64,58 +64,20 @@ for tag,attr in [('provider','authorities'),('permission','name')]:
     nodes=list(manifest.iter(tag)); old_nodes=list(original_manifest.iter(tag))
     check(tag+' identities isolated',len(nodes)==len(old_nodes) and all(e.get(ns+attr) and e.get(ns+attr).startswith(a.package_name+'.') for e in nodes))
 check('MC Debug gate enabled',ops(method(patched,'Lcom/facebook/aura/utils/HatchUtil;','isInternalSettingsEnabled'))==[('const/4','v0, 1'),('return','v0')])
-if version=='14.0.0.4.149':
-    menu_desc='(Lcom/facebook/aura/header/view/HeaderLeadingButton;Lkotlin/jvm/functions/Function0;LX/2hU;ZLX/2yV;II)V'
-    surface_desc='(LX/2Pp;Ljava/lang/String;Lkotlin/jvm/functions/Function0;LX/2hU;ZFLcom/facebook/aura/vds/compose/icons/AuraIconSize;LX/C9Z;LX/2hU;ZLX/2yV;II)V'
-    menu=method(patched,'Lcom/facebook/aura/header/view/HatchHeaderLeadingButtonKt;','HatchHeaderLeadingButton',menu_desc)
-    surface=method(patched,'Lcom/facebook/aura/vds/compose/button/AuraElevatedButtonKt;','AuraElevatedIconSurface-7poYlZM',surface_desc)
-    callback='Lcom/facebook/aura/settings/internal/mcdebug/SidePanelShortcutCallback14;'
-    json_callback='AuraMCDebugJsonBridge'
-elif version=='15.0.0.3.156':
-    menu_desc='(Lcom/facebook/aura/header/view/HeaderLeadingButton;Lkotlin/jvm/functions/Function0;LX/5Ih;ZLX/5Ng;II)V'
-    surface_desc='(LX/4yE;Ljava/lang/String;Lkotlin/jvm/functions/Function0;LX/5Ih;ZFLcom/facebook/aura/vds/compose/icons/AuraIconSize;LX/GrK;LX/5Ih;ZLX/5Ng;II)V'
-    menu=method(patched,'Lcom/facebook/aura/header/view/HatchHeaderLeadingButtonKt;','HatchHeaderLeadingButton',menu_desc)
-    surface=method(patched,'Lcom/facebook/aura/vds/compose/button/AuraElevatedButtonKt;','AuraElevatedIconSurface-7poYlZM',surface_desc)
-    callback='Lcom/facebook/aura/settings/internal/mcdebug/SidePanelShortcutCallback15;'
-    json_callback='AuraMCDebugJsonBridge'
-else:
-    menu_desc='(Lcom/facebook/aura/header/view/HeaderLeadingButton;Lkotlin/jvm/functions/Function0;LX/2hz;ZLX/2Os;II)V'
-    surface_desc='(LX/2QG;Ljava/lang/String;Lkotlin/jvm/functions/Function0;LX/2hz;ZFLcom/facebook/aura/vds/compose/icons/AuraIconSize;LX/FMb;LX/2hz;ZLX/2Os;II)V'
-    menu=method(patched,'Lcom/facebook/aura/header/view/HatchHeaderLeadingButtonKt;','HatchHeaderLeadingButton',menu_desc)
-    surface=method(patched,'Lcom/facebook/aura/vds/compose/button/AuraElevatedButtonKt;','AuraElevatedIconSurface-7poYlZM',surface_desc)
-    callback='Lcom/facebook/aura/settings/internal/mcdebug/SidePanelShortcutCallback;'
-    json_callback='AuraMCDebugJsonBridge'
-check('Top-left menu long-press hook attached',callback+'->maybeWrap' in text(menu))
-check('Long-press preserves original tap callback',all(s in text(surface) for s in [callback+'->maybeAttachLongPress',callback+'->maybeKeepDefaultTap']))
-if version=='14.0.0.4.149':
-    nav_name='A0S'
-    nav_desc='(LX/2yV;Ljava/lang/Object;I)Lcom/facebook/aura/navigation/AuraNavigator;'
-    callback_desc='(Lcom/facebook/aura/header/view/HeaderLeadingButton;Lkotlin/jvm/functions/Function0;LX/2yV;)Lkotlin/jvm/functions/Function0;'
-    nav_class='LX/3NK;'
-elif version=='15.0.0.3.156':
-    nav_name='A0U'
-    nav_desc='(LX/5Ng;)Lcom/facebook/aura/navigation/AuraNavigator;'
-    callback_desc='(Lcom/facebook/aura/header/view/HeaderLeadingButton;Lkotlin/jvm/functions/Function0;LX/5Ng;)Lkotlin/jvm/functions/Function0;'
-    nav_class='LX/002;'
-else:
-    nav_name='A0M'
-    nav_desc='(LX/2Os;)Lcom/facebook/aura/navigation/AuraNavigator;'
-    callback_desc='(Lcom/facebook/aura/header/view/HeaderLeadingButton;Lkotlin/jvm/functions/Function0;LX/2Os;)Lkotlin/jvm/functions/Function0;'
-    nav_class='LX/3NK;'
-callback_wrap=method(patched,callback,'maybeWrap',callback_desc)
-nav_ref=nav_class+'->'+nav_name+nav_desc
-check('Long-press navigator accessor matches this Muse version',nav_ref.replace(' ','') in text(callback_wrap).replace(' ',''))
-method(original,nav_class,nav_name,nav_desc)
+if version=='15.0.0.9.156':
+    original_gate=text(method(original,'Lcom/facebook/aura/utils/HatchUtil;','isInternalSettingsEnabled'))
+    check('Original MC Debug gate checks the leak-prevention key','isLeakPreventionHashCorrect' in original_gate)
+    check('Shared leak-prevention hash verifier remains unchanged',ops(method(original,'Lcom/facebook/aura/utils/HatchLeakPreventionUtil;','isLeakPreventionHashCorrect'))==ops(method(patched,'Lcom/facebook/aura/utils/HatchLeakPreventionUtil;','isLeakPreventionHashCorrect')))
 json_menu=method(patched,'Lcom/facebook/aura/settings/internal/mcdebug/AuraMCDebugScreenKt$OptionsMenu$1$1$1;','invoke','(Lcom/facebook/aura/vds/compose/contextmenu/AuraContextMenuItem;)V')
-result_desc='(LX/5Ng;I)LX/HDM;' if version=='15.0.0.3.156' else ('(LX/2yV;I)LX/1dG;' if version=='14.0.0.4.149' else '(LX/2Os;I)LX/9IF;')
+result_desc='(LX/365;I)LX/75C;' if version=='15.0.0.9.156' else ('(LX/5Ng;I)LX/HDM;' if version=='15.0.0.3.156' else ('(LX/2yV;I)LX/1dG;' if version=='14.0.0.4.149' else '(LX/2Os;I)LX/9IF;'))
 json_result=method(patched,'Lcom/facebook/aura/settings/internal/mcdebug/AuraMCDebugScreenKt$OptionsMenu$1$2;','invoke',result_desc)
 json_activity=method(patched,'Lcom/facebook/aura/main/AuraMainActivity;','onActivityResult','(IILandroid/content/Intent;)V')
 check('Mobile Config import/export actions wired',all(s in text(json_menu) for s in ['exportOverrides','importOverrides']))
 check('Mobile Config import/export menu options exposed',all(s in text(json_result) for s in ['Export modified flags','Import flags']))
-check('Mobile Config document picker result wired',json_callback in text(json_activity))
+check('Mobile Config document picker result wired','AuraMCDebugJsonBridge' in text(json_activity))
 if not a.trust:
-    guard_name='guards-15.tsv' if version=='15.0.0.3.156' else ('guards-14.tsv' if version=='14.0.0.4.149' else 'guards.tsv')
-    trust_classes={'LX/AOc;','LX/AOC;','LX/Ezu;','LX/CZ3;','LX/AO7;','LX/AO8;','LX/CWm;','LX/CWl;','LX/DEW;','LX/DGu;','LX/DEh;','LX/DEi;','LX/DEk;','LX/DHj;','LX/DpF;','Lcom/facebook/aura/login/nativeflow/NativeLoginAccountResolver;'}
+    guard_name='guards-15.0.0.9.156.tsv' if version=='15.0.0.9.156' else ('guards-15.tsv' if version=='15.0.0.3.156' else ('guards-14.tsv' if version=='14.0.0.4.149' else 'guards.tsv'))
+    trust_classes={'LX/AOc;','LX/AOC;','LX/Ezu;','LX/CZ3;','LX/AO7;','LX/AO8;','LX/CWm;','LX/CWl;','LX/DEW;','LX/DGu;','LX/DEh;','LX/DEi;','LX/DEk;','LX/DHj;','LX/DpF;','LX/D2w;','LX/Cev;','LX/D3w;','LX/D3y;','LX/D3f;','LX/D3U;','LX/CeC;','Lcom/facebook/aura/login/nativeflow/NativeLoginAccountResolver;'}
     guards=Path(__file__).resolve().parents[1]/'src/main/resources/muse'/guard_name
     for row in guards.read_text().splitlines():
         cls,signature,*_=row.split('\t')
@@ -166,6 +128,41 @@ elif version=='14.0.0.4.149':
     check('CWm bypasses only the local metadata preflight',branch.get_name().startswith('goto') and target==cw[pos+4][0])
     cwl=text(method(patched,'LX/CWl;','A00','(Landroid/content/Context;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;Lkotlin/jvm/functions/Function0;LX/CWl;LX/CXI;LX/CVI;I)LX/CXg;'))
     check('Account transport uses self-package identity, not signer trust','LX/AOC;->A04' not in cwl and 'Context;->getPackageName()' in cwl and 'String;->equals' in cwl)
+    wa=method(patched,'Lcom/facebook/aura/login/nativeflow/NativeLoginAccountResolver;','readWhatsAppAccount')
+    seq=idx(wa);byoff=dict(seq);gotos=[(off,ins) for off,ins in seq if ins.get_name().startswith('goto')]
+    check('WhatsApp local owner check bypass reaches actual resolver',any('getContentResolver()' in byoff[off+ins.get_ref_off()*2].get_output() for off,ins in gotos))
+    check('WhatsApp response, expiry and token fields retained',all(s in text(wa) for s in ['response_code','wire_version','expiration_ts','restricted_token','currentTimeMillis']))
+elif version=='15.0.0.9.156':
+    trust_true=[
+        ('LX/D2w;','A03','(Landroid/content/Context;II)Z'),
+        ('LX/D2w;','A04','(Landroid/content/Context;Ljava/lang/String;)Z'),
+        ('LX/Cev;','A03','(LX/D2v;Z)Z'),
+        ('LX/D3w;','A01','(Landroid/content/Context;Landroid/content/pm/ApplicationInfo;Landroid/content/pm/ApplicationInfo;LX/D3w;)Z'),
+        ('LX/D3y;','A01','(Landroid/content/Context;Landroid/content/pm/ApplicationInfo;LX/D3y;)Z'),
+        ('LX/D3U;','A04','(Landroid/content/Context;LX/Cer;)Z')
+    ]
+    for cls,name,desc in trust_true:check(cls+'->'+name+' permits local caller',ops(method(patched,cls,name,desc))==[('const/4','v0, 1'),('return','v0')])
+    check('D2w production-routing decision remains disabled',ops(method(patched,'LX/D2w;','A02','(Landroid/content/Context;)Z'))==[('const/4','v0, 0'),('return','v0')])
+    for name in ['A00','A01']:
+        check('D3U.'+name+' initialization preserved',ops(method(original,'LX/D3U;',name,'()V'))==ops(method(patched,'LX/D3U;',name,'()V')))
+    d3f=text(method(patched,'LX/D3f;','A00','(Landroid/content/Context;Ljava/lang/String;)Z'))
+    check('D3f keeps Facebook Services allowlist and enabled check only','com.facebook.services' in d3f and 'com.facebook.services.dev' in d3f and 'getApplicationInfo' in d3f and '->enabled' in d3f and not any(s in d3f for s in ['MessageDigest','->signatures','requestedPermissions','LX/D2w;']))
+    provider_method=method(patched,'LX/Cev;','A02','(Landroid/content/Context;Landroid/net/Uri;)Landroid/content/ContentProviderClient;')
+    provider=text(provider_method)
+    check('Cev provider acquisition and platform rejection retained','acquireUnstableContentProviderClient' in provider and 'Ljava/lang/SecurityException;' in caught_types(a.patched,'LX/Cev;','A02') and 'LX/D2w;->A02' not in provider)
+    for cls in ['LX/D3w;','LX/D3y;']:
+        check(cls+' broadcast intent remains unchanged',ops(method(patched,cls,'AAf','(Landroid/content/BroadcastReceiver;Landroid/content/Context;Landroid/content/Intent;)Landroid/content/Intent;'))==[('return-object','v3')])
+    ce_original=idx(method(original,'LX/CeC;','ABI','(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;LX/CdO;)Ljava/util/ArrayList;'))
+    ce_patched=idx(method(patched,'LX/CeC;','ABI','(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;LX/CdO;)Ljava/util/ArrayList;'))
+    pos=next(i for i,(_,ins) in enumerate(ce_patched) if 'BaseBundle;->containsKey' in ins.get_output())
+    off,branch=ce_patched[pos+3];target=off+branch.get_ref_off()*2
+    patched_target_index={byte_offset:i for i,(byte_offset,_) in enumerate(ce_patched)}[target]
+    original_pos=next(i for i,(_,ins) in enumerate(ce_original) if 'BaseBundle;->containsKey' in ins.get_output())
+    original_off,original_branch=ce_original[original_pos+3];original_target=original_off+original_branch.get_ref_off()*2
+    original_target_index={byte_offset:i for i,(byte_offset,_) in enumerate(ce_original)}[original_target]
+    check('CeC bypasses only the local metadata preflight',branch.get_name().startswith('goto') and patched_target_index==original_target_index)
+    d3y=text(method(patched,'LX/D3y;','A00','(Landroid/content/Context;Landroid/content/Intent;Ljava/lang/String;Ljava/util/List;)Landroid/content/Intent;'))
+    check('Account transport uses self-package identity, not signer trust','LX/D2w;->A04' not in d3y and 'Context;->getPackageName()' in d3y and 'String;->equals' in d3y)
     wa=method(patched,'Lcom/facebook/aura/login/nativeflow/NativeLoginAccountResolver;','readWhatsAppAccount')
     seq=idx(wa);byoff=dict(seq);gotos=[(off,ins) for off,ins in seq if ins.get_name().startswith('goto')]
     check('WhatsApp local owner check bypass reaches actual resolver',any('getContentResolver()' in byoff[off+ins.get_ref_off()*2].get_output() for off,ins in gotos))

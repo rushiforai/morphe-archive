@@ -1583,6 +1583,16 @@ once-call Lapp/hushgram/extension/instagram/reels/ReelProfileTabBar;->open(Ljava
 once-call Lapp/hushgram/extension/instagram/reels/ReelProfileTabBar;->keepTabRoot(ILjava/lang/Object;)I in static (L*;)V calling instance Landroidx/fragment/app/Fragment;->getChildFragmentManager()L*; pooled class-holding IgTabHostFragment.loadFragment
 once-call Lapp/hushgram/extension/instagram/reels/ReelProfileTabBar;->keepTabRoot(ILjava/lang/Object;)I in static (L*;)V calling instance Landroidx/fragment/app/Fragment;->getChildFragmentManager()L*; pooled class-holding IgSwipeableTabHostFragment.loadFragment
 #
+# Favorites from the tab bar (#643), part of Start Home on Following: both tab hosts also let
+# FavoritesFeed.keepTabRoot answer the root check, in the same two methods. Home's feed switch built
+# for an activity (00OV on 454, the class whose feed type method holds feed_type and the remembered
+# feed flag) hands itself to FavoritesFeed.switchReady as its constructor returns. Left out, Favorites
+# hides the tab bar and a tab long press can't open it. Twice or elsewhere, it isn't the hook the
+# patch wrote. FavoritesFeedHookTest checks all of it on the fixture.
+once-call Lapp/hushgram/extension/instagram/feed/FavoritesFeed;->keepTabRoot(ILjava/lang/Object;)I in static (L*;)V calling instance Landroidx/fragment/app/Fragment;->getChildFragmentManager()L*; pooled class-holding IgTabHostFragment.loadFragment
+once-call Lapp/hushgram/extension/instagram/feed/FavoritesFeed;->keepTabRoot(ILjava/lang/Object;)I in static (L*;)V calling instance Landroidx/fragment/app/Fragment;->getChildFragmentManager()L*; pooled class-holding IgSwipeableTabHostFragment.loadFragment
+once-call Lapp/hushgram/extension/instagram/feed/FavoritesFeed;->switchReady(Ljava/lang/Object;)V in instance (Landroidx/fragment/app/FragmentActivity;Lcom/instagram/common/session/UserSession;*)V class-holding feed_type const:0x810dfb00064e49
+#
 # Tap to play: IgGrootPlayer's play asks allowDirectStart() first, its prepare tells rebound()
 # first, and the autoplay check hands its answer to autoplayAllowed() where it returns, once on
 # 449 and twice on 454, whose check has two returns. The touch dispatch feeds the tap clock first. IgVideoPlayerImpl's playInternal asks
@@ -1715,6 +1725,15 @@ start-call Lapp/hushgram/extension/instagram/media/ReelsPip;->on()Z in static (L
 once-call Lapp/hushgram/extension/instagram/media/ReelsPip;->on()Z in static (Lcom/instagram/common/session/UserSession;Z)Z pooled holding android_purge_26_q2_ClipsViewerExperimentUtil_isPictureInPictureEnabledPersistentVersion
 start-call Lapp/hushgram/extension/instagram/media/ReelsPip;->on()Z in static (Lcom/instagram/common/session/UserSession;Z)Z pooled holding android_purge_26_q2_ClipsViewerPipUtil_isClipsPipEnabled
 once-call Lapp/hushgram/extension/instagram/media/ReelsPip;->on()Z in static (Lcom/instagram/common/session/UserSession;Z)Z pooled holding android_purge_26_q2_ClipsViewerPipUtil_isClipsPipEnabled
+# Its Picture in picture for stories switch (#572) asks StoriesPip.pausing in the story viewer's
+# pause (ReelViewerFragment.A1B on 454, the static (viewer, String) method loading pause_story),
+# after Keep stories playing while zooming's report, and tells StoriesPip.resumed in its resume
+# (the instance (String, boolean) method loading resume_story_request_skipped), after that patch's
+# report and See who a story mentions' hold. Left out, a story in the window pauses as the screen
+# pauses, or never goes to the window; twice or elsewhere, it isn't the hook the patch wrote. The
+# pause stub the patch fills is the extension's own, so it gets no rule.
+once-call Lapp/hushgram/extension/instagram/media/StoriesPip;->pausing(Ljava/lang/Object;Ljava/lang/String;)Z in static (Linstagram/features/stories/fragment/ReelViewerFragment;Ljava/lang/String;)V pooled holding pause_story
+once-call Lapp/hushgram/extension/instagram/media/StoriesPip;->resumed(Ljava/lang/Object;)V in instance (Ljava/lang/String;Z)V pooled holding resume_story_request_skipped
 #
 # Default playback quality tells firstChoice() about the DASH format evaluator right after its
 # choice of a track first keeps its tracks, so the call isn't first. The choice is the one method
@@ -1881,6 +1900,21 @@ once-call Lapp/hushgram/extension/instagram/reels/ReelSpeed;->lockUpEnded(Ljava/
 once-call Lapp/hushgram/extension/instagram/reels/ReelSpeed;->resetSpeed(F)F in static (*)V holding android_purge_26_q2_ClipsLongPressToFeatureController_reset android_purge_26_q2_ClipsFastPlayLogger_logFastPlayLockUpEnd cancel_lock_up
 once-call Lapp/hushgram/extension/instagram/reels/ReelSpeed;->item(Ljava/lang/Object;)V in instance (*)V holding android_purge_26_q3_ClipsVideoPlayerController_maybeResumePlayer
 once-call Lapp/hushgram/extension/instagram/reels/ReelSpeed;->resuming(Ljava/lang/Object;)V in instance (*)V holding android_purge_26_q3_ClipsVideoPlayerController_maybeResumePlayer
+#
+# Open reel links on that reel (#606) asks the extension with the viewer's source right before the
+# config's check that skips the Reels viewer's kept-reels controller, in the one method building it,
+# which holds the controller's flag name and the sync flow's. Left out, a reel link opens on a reel
+# Instagram kept; twice or elsewhere, it isn't the hook the patch wrote. OpenReelLinksHookTest checks
+# where it lands on every declared build.
+once-call Lapp/hushgram/extension/instagram/reels/ReelLinks;->skipsCachedReels(Ljava/lang/Object;)I in instance (*)V pooled holding android_purge_26_q3_ClipsFlashMediaUseCase_getUiState android_purge_26_q2_ClipsFlashCacheExperimentUtil_shouldDisableFlashCacheCompletelyForSyncFlow
+#
+# The same patch asks the extension whether to hold each chunk of reels from the network right before
+# the viewer adds it, in the one static method logging the chunk and its add to the UI, and tells the
+# extension when the viewer inserts reels at a position, at the start of the one adapter method named
+# for that insert. Left out, a warm reel link plays a prefetched reel ahead of the linked one; twice or
+# elsewhere, it isn't the hook the patch wrote. OpenReelLinksHookTest checks both on every declared build.
+once-call Lapp/hushgram/extension/instagram/reels/ReelLinks;->holdsReels(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;IIIII)I in static (LX/*;LX/*;)V pooled holding Network\sChunk\sReceived Add\sto\sUI
+once-call Lapp/hushgram/extension/instagram/reels/ReelLinks;->linkedReelIn(Ljava/lang/Object;)V in instance (Ljava/util/List;I)V pooled holding android_purge_26_q2_ClipsViewerAdapter_insertClipsItemsAtPosition
 #
 # Open links in external browser asks the extension right after the in-app browser's own super
 # call, in onCreate and in onNewIntent. Both call the one redirect, so each rule is shared-call:
@@ -3052,15 +3086,31 @@ once-call Lapp/hushgram/extension/instagram/stories/StoryUploadQuality;->fullQua
 once-call Lapp/hushgram/extension/instagram/stories/StoryUploadQuality;->bitrate(Ljava/lang/Object;I)I in instance (LX/*;)V calling instance LX/*;->*()Z sites 3 pooled holding const:0x895440 ig_media_transcode_param null\stranscode\sparam
 # Its Video frame rate choice (#37) sits beside the bitrate call at each of those returns, reading and
 # writing the frame rate the setter falls back to 30 on. Fewer calls leave a path at Instagram's rate.
-once-call Lapp/hushgram/extension/instagram/stories/StoryUploadQuality;->frameRate(Ljava/lang/Object;I)I in instance (LX/*;)V calling instance LX/*;->*()Z sites 3 pooled holding const:0x895440 ig_media_transcode_param null\stranscode\sparam
+# The server's upload settings call it too (below), so it's shared.
+shared-call Lapp/hushgram/extension/instagram/stories/StoryUploadQuality;->frameRate(Ljava/lang/Object;I)I in instance (LX/*;)V calling instance LX/*;->*()Z sites 3 pooled holding const:0x895440 ig_media_transcode_param null\stranscode\sparam
+# The encode that goes up is built from the server's upload settings (0K64.A01 on 454, the instance
+# method reading transcode_dimension from the reply), 1080 on the short side at 30 fps (#37, traced
+# 2026-11-11). Right before its one call to the transcoder (0WeX.A00), StoryUploadQuality.uploadSize
+# takes the size and frameRate the frame rate. Left out, Video resolution and Video frame rate never
+# reach a story that goes up. Some 454 builds' method takes no int (0XNP.A02 on 386014704), hence the "*".
+once-call Lapp/hushgram/extension/instagram/stories/StoryUploadQuality;->uploadSize(Ljava/lang/Object;II)I in instance (Ljava/lang/String;*Ljava/util/Map;)V pooled holding transcode_dimension should_expand_to_transcode_dimension
+shared-call Lapp/hushgram/extension/instagram/stories/StoryUploadQuality;->frameRate(Ljava/lang/Object;I)I in instance (Ljava/lang/String;*Ljava/util/Map;)V pooled holding transcode_dimension should_expand_to_transcode_dimension
 # Its Video resolution choice (#37) hands StoryUploadQuality.resolution the width Instagram's width step
 # (0Wot.A00 on 454) was asked for, 1080, 1440 or 0, with the upload's share type, read just before it.
 # Left out, Video resolution does nothing.
 once-call Lapp/hushgram/extension/instagram/stories/StoryUploadQuality;->resolution(Ljava/lang/Object;I)I in static (Landroid/content/Context;Lcom/instagram/common/session/UserSession;LX/*;IZZZZ)LX/*; calling instance LX/*;->*()Lcom/instagram/pendingmedia/model/constants/ShareType; holding const:0x438 const:0x5a0
+# 2160p (#37) goes past the 1440 that step knows, so StoryUploadQuality.renderWidth takes the width its
+# cap (0MiN.A00 on 454) answered, with the clip's width, right after the cap. Left out, 2160p uploads at 1440.
+once-call Lapp/hushgram/extension/instagram/stories/StoryUploadQuality;->renderWidth(II)I in static (Landroid/content/Context;Lcom/instagram/common/session/UserSession;LX/*;IZZZZ)LX/*; calling static LX/*;->*(Landroid/content/Context;IZZZ)I holding const:0x438 const:0x5a0
 # Its Photo quality choice (#37) hands StoryUploadQuality.photoQuality the JPEG quality first in the static
 # factory (0BWX.A02 on 454) of the class that calls Bitmap.compress with it. Left out, Photo quality does nothing.
 start-call Lapp/hushgram/extension/instagram/stories/StoryUploadQuality;->photoQuality(I)I in static (Landroid/graphics/Bitmap;LX/*;II)LX/*; class-holding Landroid/graphics/Bitmap;->compress(Landroid/graphics/Bitmap$CompressFormat;ILjava/io/OutputStream;)Z
 once-call Lapp/hushgram/extension/instagram/stories/StoryUploadQuality;->photoQuality(I)I in static (Landroid/graphics/Bitmap;LX/*;II)LX/*; class-holding Landroid/graphics/Bitmap;->compress(Landroid/graphics/Bitmap$CompressFormat;ILjava/io/OutputStream;)Z
+# Its Photo size choice (#37) hands StoryUploadQuality.photoTier each of the 3072, 4096 and 8192 flags
+# first in Instagram's photo size step (0D3B.A01 on 454), the instance method loading the aspect ratio
+# error, so three calls. Fewer calls leave a size Photo size can't turn on.
+start-call Lapp/hushgram/extension/instagram/stories/StoryUploadQuality;->photoTier(II)I in instance (Landroid/graphics/Point;Lcom/instagram/common/session/UserSession;IIZZZZZZZ)Landroid/graphics/Point; pooled holding Output\saspect\sratio\serror:\s
+once-call Lapp/hushgram/extension/instagram/stories/StoryUploadQuality;->photoTier(II)I in instance (Landroid/graphics/Point;Lcom/instagram/common/session/UserSession;IIZZZZZZZ)Landroid/graphics/Point; sites 3 pooled holding Output\saspect\sratio\serror:\s
 
 # Full screen Reels and Home (#147) and Glass tab bar (#144) share one routing of both bar heights
 # Instagram's window insets listener keeps (00oX.F1L on 450, the decor's insets listener of
@@ -3089,6 +3139,12 @@ once-call Lapp/hushgram/extension/instagram/reels/FullScreenBars;->heightsDroppe
 # The method loads no string, so it's the class's one instance (I)V handing a view a visibility.
 start-call Lapp/hushgram/extension/instagram/reels/FullScreenBars;->keepsTabBarThroughATell(I)Z in instance (I)V calling static LX/*;->*(Landroid/view/View;II)V pooled class-holding tab_bar_migration_remove
 once-call Lapp/hushgram/extension/instagram/reels/FullScreenBars;->keepsTabBarThroughATell(I)Z in instance (I)V calling static LX/*;->*(Landroid/view/View;II)V pooled class-holding tab_bar_migration_remove
+# The camera's navigation bar (#646), under Glass tab bar: the camera's 9:16 layout, built from a
+# Context, reads the navigation bar's height Instagram keeps once and asks
+# GlassTabBar.cameraNavBarHeight about it right before it builds itself from it. The camera opens in
+# the main window, where a floating pill had Instagram answered 0. Left out, the gallery button and
+# the mode picker sit under the navigation bar.
+once-call Lapp/hushgram/extension/instagram/misc/GlassTabBar;->cameraNavBarHeight(I)I in instance (Landroid/content/Context;ZZ)V holding Lcom/instagram/creation/capture/quickcapture/aspectratioutil/targetviewsizeprovider/NineSixteenLayoutConfigImpl;-><init>(IIIZZIII)V
 # Fill the screen (#288), under Full screen Reels: Instagram's reel crop decision (08JU.A02 on 452,
 # the one method naming both purge flags below) asks ReelFill.fill with the viewer's source and the
 # crop percentage right after working it out, and returns true (fill) on a yes. Left out, reels close
@@ -3123,6 +3179,11 @@ once-call Lapp/hushgram/extension/instagram/reels/ReelFill;->storyBound(Ljava/la
 # Left out, a shared reel loses its sides on a tall phone; twice or elsewhere, it isn't the call the
 # patch wrote.
 once-call Lapp/hushgram/extension/instagram/reels/ReelFill;->storyFrame(Ljava/lang/Object;Ljava/lang/Object;)V in static (L*;)V calling instance Lcom/instagram/ui/widget/roundedcornerlayout/RoundedCornerFrameLayout;->setCornerRadius(I)V pooled class-holding ReelViewerMediaAspectRatioUtil.maybeAdjustLayoutBasedOnAspectRatio
+# Ambient light tells AmbientLight.cornerRadius the layout and the radius first in that rounded
+# layout's own setCornerRadius, since the story card's layout paints its corners solid black at it
+# and the glow covers them (#630). Left out, a lit story keeps black corner wedges; twice or
+# elsewhere, it isn't the call the patch wrote. AmbientLightHookTest checks where it lands.
+single-call Lapp/hushgram/extension/instagram/feed/AmbientLight;->cornerRadius(Landroid/view/View;I)V in setCornerRadius
 # Fill the screen on a screen wider than 9:16 (#491): the reel item layout (05DP.A0o on 453, the one
 # method opening the purge flag below) asks ReelFill.wide with the item's shape in front of its
 # compare with a bit over 9:16, and on a yes lays the reel out over the whole item as on a phone. Left
@@ -3187,6 +3248,26 @@ first-call Lapp/hushgram/extension/instagram/feed/FeedSeekReader;->view(Ljava/la
 first-call Lapp/hushgram/extension/instagram/feed/FeedSeekReader;->sheet(Ljava/lang/Object;)Ljava/util/Map; outside Lapp/hushgram/extension/
 first-call Lapp/hushgram/extension/instagram/feed/FeedSeekReader;->scrubberSheet(Ljava/lang/Object;)Ljava/util/Map; outside Lapp/hushgram/extension/
 first-call Lapp/hushgram/extension/instagram/feed/FeedSeekReader;->seekTo(Ljava/lang/Object;IZ)Z outside Lapp/hushgram/extension/
+# The seek bar shape on story progress segments (#630): the story bar's onDraw, the one (Canvas)
+# void method of SegmentedProgressBar that calls another of its (Canvas) methods, asks
+# SeekShapes.storyBar first thing, and each of the bar's ten Canvas.drawRoundRect calls on 454 is
+# SeekShapes.storySegment on the same registers: four in onDraw, three in A0A (the (Canvas) one
+# calling none), two in A0B and one in A00. Its class is told by the call to its own
+# getEllipsisWidth, which Redex leaves named. Left out, the segments keep Instagram's look whatever
+# the shape; twice or elsewhere, it isn't the call the patch wrote. SeekShapeSitesTest checks every
+# call and its registers on every build.
+start-call Lapp/hushgram/extension/instagram/feed/SeekShapes;->storyBar(Landroid/view/View;)V in instance (Landroid/graphics/Canvas;)V calling instance Lcom/instagram/ui/widget/segmentedprogressbar/SegmentedProgressBar;->*(Landroid/graphics/Canvas;)V class-holding Lcom/instagram/ui/widget/segmentedprogressbar/SegmentedProgressBar;->getEllipsisWidth()F
+once-call Lapp/hushgram/extension/instagram/feed/SeekShapes;->storyBar(Landroid/view/View;)V in instance (Landroid/graphics/Canvas;)V calling instance Lcom/instagram/ui/widget/segmentedprogressbar/SegmentedProgressBar;->*(Landroid/graphics/Canvas;)V class-holding Lcom/instagram/ui/widget/segmentedprogressbar/SegmentedProgressBar;->getEllipsisWidth()F
+once-call Lapp/hushgram/extension/instagram/feed/SeekShapes;->storySegment(Landroid/graphics/Canvas;Landroid/graphics/RectF;FFLandroid/graphics/Paint;)V in instance (Landroid/graphics/Canvas;)V calling instance Lcom/instagram/ui/widget/segmentedprogressbar/SegmentedProgressBar;->*(Landroid/graphics/Canvas;)V sites 4 class-holding Lcom/instagram/ui/widget/segmentedprogressbar/SegmentedProgressBar;->getEllipsisWidth()F
+once-call Lapp/hushgram/extension/instagram/feed/SeekShapes;->storySegment(Landroid/graphics/Canvas;Landroid/graphics/RectF;FFLandroid/graphics/Paint;)V in instance (Landroid/graphics/Canvas;)V lacking instance Lcom/instagram/ui/widget/segmentedprogressbar/SegmentedProgressBar;->*(Landroid/graphics/Canvas;)V sites 3 class-holding Lcom/instagram/ui/widget/segmentedprogressbar/SegmentedProgressBar;->getEllipsisWidth()F
+once-call Lapp/hushgram/extension/instagram/feed/SeekShapes;->storySegment(Landroid/graphics/Canvas;Landroid/graphics/RectF;FFLandroid/graphics/Paint;)V in instance (Landroid/graphics/Canvas;F)V sites 2 class-holding Lcom/instagram/ui/widget/segmentedprogressbar/SegmentedProgressBar;->getEllipsisWidth()F
+once-call Lapp/hushgram/extension/instagram/feed/SeekShapes;->storySegment(Landroid/graphics/Canvas;Landroid/graphics/RectF;FFLandroid/graphics/Paint;)V in instance (Landroid/graphics/Canvas;FFZ)F class-holding Lcom/instagram/ui/widget/segmentedprogressbar/SegmentedProgressBar;->getEllipsisWidth()F
+# The seek bar shape on a video opened from a chat (#630) hands the seek bar the chat media
+# viewer's onCreateView builds to SeekShapes.chatVideo right after it keeps it in a field, the one
+# onCreateView loading the viewer's reply thread key (0GOB on 454's 386014758, keeping it in
+# 0NHs.A0C). Left out, that seek bar keeps Instagram's look whatever the shape; twice or elsewhere,
+# it isn't the call the patch wrote. SeekShapeSitesTest checks the call and its register.
+once-call Lapp/hushgram/extension/instagram/feed/SeekShapes;->chatVideo(Landroid/widget/SeekBar;)V in instance (Landroid/view/LayoutInflater;Landroid/view/ViewGroup;Landroid/os/Bundle;)Landroid/view/View; pooled holding sparse_media_viewer_reply_thread_key
 # Double tap to skip on feed videos (#562) asks FeedDoubleTapSkip.doubleTap first thing in the
 # onDoubleTap of the media frame's gesture listener, the one Long press to zoom finds, with the
 # holder's MediaFrameLayout and the event. Left out, a double tap only likes the post; twice or in

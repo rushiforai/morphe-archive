@@ -94,7 +94,7 @@ internal data class ExplicitFactoryCallShape(
  * ここで許可しても送られません。その場合に許可が次へ残らないよう、呼び出しの後で必ず破棄します。</p>
  */
 val readReceiptExplicitMarkAsReadPatch = bytecodePatch(
-    name = "明示的な既読操作",
+    name = "Explicit mark as read",
     description = "すべて既読、長押しの既読、通知の既読を、手動の既読操作として識別します。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

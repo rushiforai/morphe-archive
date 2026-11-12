@@ -260,7 +260,7 @@ class StorageFolderFixtureTest {
             assertEquals(why, listOf("Save downloaded files: $why. Photos and videos from before the storage folder moved download again."), warnings)
             assertEquals(why, untouched, context.loader())
             val finishing = context.tgMutableClassDefBy(LOAD_OPERATION).methods.single { it.origName == "onFinishLoadingFile" }
-            assertEquals(why, 1, finishing.controlBody().count { it.controlRef() == "$SAVE_DOWNLOADS->finishing(Ljava/lang/Object;Ljava/io/File;Ljava/io/File;)V" })
+            assertEquals(why, 1, finishing.controlBody().count { it.controlRef() == "$SAVE_DOWNLOADS->finishing(ILjava/lang/String;Ljava/io/File;Ljava/io/File;I)V" })
             assertEquals(why, 1, context.mediaPaths().controlBody().count { it.controlRef() == STORAGE_TELEGRAM_FOLDER })
             assertEquals(why, 1, context.attachPath().controlBody().count { it.controlRef() == STORAGE_OLDER_FILE })
             assertEquals(why, 1L, context.flag("storageFolder"))

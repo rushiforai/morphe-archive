@@ -72,7 +72,7 @@ internal val settingsItemConstructorFingerprint = Fingerprint(
 
 /** LINE の既存項目を差し替えず、Linimal の設定項目を 1 件だけ追加します。 */
 val settingsEntryPatch = bytecodePatch(
-    name = "Linimal 設定の追加",
+    name = "Linimal settings entry",
     description = "LINE の設定画面へ Linimal の設定項目を追加します。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

@@ -58,12 +58,43 @@ message ElementModel {
     ShortsVideoCellModel shortsVideoCellModel = 519005951;
     // Shelf of Shorts in a carousel, with its header (shorts_shelf.eml), such as in the search results.
     ShortsShelfModel shortsShelfModel = 315733268;
-    // Video of the vertical shelves below a shelf header, such as in the channel home (grid_video_wrapper.eml).
+    // Video of the vertical shelves below a shelf header, such as in the channel home (grid_video_wrapper.eml),
+    // and playlist or podcast of these shelves (grid_video.eml).
     GridVideoModel gridVideoModel = 234662488;
+    // Playlist or podcast in a row of a list, such as in the vertical shelves of the channel home (compact_playlist.eml).
+    CompactPlaylistModel compactPlaylistModel = 202672916;
+}
+
+message CompactPlaylistModel {
+    CompactPlaylistData data = 16;
+}
+
+message CompactPlaylistData {
+    string accessibilityText = 5;
 }
 
 message GridVideoModel {
+    GridVideoData data = 1;
     string accessibilityText = 19;
+}
+
+// Texts are bytes, as the fields are not all texts in every element.
+message GridVideoData {
+    GridVideoThumbnail thumbnail = 1;
+    GridVideoMetadata metadata = 2;
+}
+
+message GridVideoThumbnail {
+    // Text of the badge of a playlist or a podcast, such as "249 episodes".
+    bytes collectionCountText = 6;
+}
+
+message GridVideoMetadata {
+    bytes title = 1;
+    // Such as "Channel · Playlist".
+    bytes subtitle = 2;
+    // Such as "Updated 2 days ago".
+    bytes details = 3;
 }
 
 message ShortsShelfModel {
@@ -152,12 +183,14 @@ message VideoWithContextData {
     bytes inlinePlayback = 6; // Commands that start and stop the inline playback (feed autoplay).
     bool compact = 22; // Thumbnail beside the title, such as the videos of the playlists and the rows of the library.
     bytes attachment = 43; // Content below the video, such as the description and the 'Buy or rent' button of the movies.
+    int32 collectionStack = 38; // Draws a stack behind the thumbnail of the playlists and the mixes.
     bool horizontal = 57; // Thumbnail beside the title and the metadata, such as the search results on tablets.
 }
 
 message VideoData {
     VideoThumbnail thumbnail = 1;
     ChannelAvatar avatar = 3;
+    string url = 6;
     LockupMetadata lockupMetadata = 21;
     LockupImage decoratedAvatar = 23; // Avatar with a ring, such as the avatar of live channels.
     LockupImage avatarStack = 24; // Avatars of the channels of a collaboration.
@@ -169,8 +202,23 @@ message VideoThumbnail {
     int32 badgeStyle = 4; // Same values of the badge style of the cards.
     float progress = 5; // Watched fraction, from 0 to 1.
     string videoCountText = 6; // Playlists.
+    // Only the playlists and the mixes have the following fields.
+    bool isPlaylist = 7;
+    bool isMix = 8;
+    int32 collectionStyle1 = 13;
+    int32 collectionStyle2 = 16;
+    uint32 badgeColor = 22;
+    uint32 badgeDarkColor = 24;
+    int32 badgeIconType = 36;
+    int32 collectionStyle3 = 42;
+    CollectionStackColors stackColors = 55;
     string timestampAccessibilityText = 11;
     string badgeIcon = 19; // Drawable name, such as the live icon.
+}
+
+message CollectionStackColors {
+    uint32 frontColor = 1;
+    uint32 backColor = 2;
 }
 
 message ChannelAvatar {
@@ -339,6 +387,15 @@ message LockupInlinePlayback {
 
 message ContentImage {
     ThumbnailViewModel thumbnailViewModel = 1036;
+    CollectionThumbnailViewModel collectionThumbnailViewModel = 1035; // Playlists and mixes.
+}
+
+message CollectionThumbnailViewModel {
+    CollectionPrimaryThumbnail primaryThumbnail = 1;
+}
+
+message CollectionPrimaryThumbnail {
+    ThumbnailViewModel thumbnailViewModel = 1036;
 }
 
 message ThumbnailViewModel {
@@ -349,6 +406,7 @@ message ThumbnailViewModel {
 message ThumbnailOverlay {
     // Only the badges are shown by lockup_thumbnail.eml.
     ThumbnailBottomOverlayViewModel thumbnailBottomOverlayViewModel = 1214;
+    ThumbnailOverlayBadgeViewModel thumbnailOverlayBadgeViewModel = 1295; // Badges of playlists and mixes.
     ThumbnailElementOverlay thumbnailElementOverlay = 36905;
 }
 
@@ -370,6 +428,10 @@ message ThumbnailOverlayProgressBar {
 message ThumbnailOverlayProgressBarViewModel {
     float progress = 1; // Watched fraction, from 0 to 1.
     int32 style = 6; // 3: at the bottom edge of the thumbnail, without the space below.
+}
+
+message ThumbnailOverlayBadgeViewModel {
+    repeated ThumbnailBadge thumbnailBadges = 1;
 }
 
 message ThumbnailBadge {
@@ -538,6 +600,13 @@ message InnertubeCommandHolder {
 message InnertubeCommand {
     BrowseEndpoint browseEndpoint = 48687626;
     LikeEndpoint likeEndpoint = 63158558;
+    OpenPopupAction openPopupAction = 98150882;
+}
+
+// Command of the menu button of the feed videos.
+message OpenPopupAction {
+    // Menu (PlaylistQueueRenderer.Menu), parsed only where it is read, because every feed video has one.
+    bytes popup = 1;
 }
 
 message BrowseEndpoint {
@@ -566,9 +635,15 @@ message ElementContext {
 
 message ElementsExperiments {
     CardLayoutExperiments cardLayoutExperiments = 5;
+    // Experiments read by lockup_metadata_ue.eml.
+    bytes lockupMetadataExperiments = 26;
+    // Experiments read by lockup.eml and lockup_thumbnail.eml (field 524937).
+    bytes lockupExperiments = 42;
 }
 
-// Experiments read by lockup.eml.
+// Experiments read by the cards and the classic layout. Besides these, lockup_metadata_ue.eml reads
+// 516593 (leaves out the menu button) and 520547, video_lockup_with_attachment.eml 475852 and 513889,
+// video_lockup_attachments.eml 445511.
 message CardLayoutExperiments {
     // Background in the color sampled from the thumbnail.
     bool enableColorSampledBackground = 491718;

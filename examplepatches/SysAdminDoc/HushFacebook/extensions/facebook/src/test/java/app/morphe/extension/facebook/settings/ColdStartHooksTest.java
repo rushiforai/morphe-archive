@@ -247,6 +247,8 @@ public class ColdStartHooksTest {
         assertFalse(FeedFilter.hideSponsoredStories());
         assertFalse("a Stories tray fetched before the context lost its suggestions",
                 SuggestedStoriesForTests.hidesSuggestions());
+        assertFalse("a Stories tray built before the context lost its Create story tile",
+                SuggestedStoriesForTests.hidesCreateStory());
         VideoAd reelAd = new VideoAd();
         assertTrue(ReelsAdFilter.withoutAds(Arrays.asList(new Reel(), reelAd), ad).contains(reelAd));
         VideoAd sectionAd = new VideoAd();
@@ -437,6 +439,8 @@ public class ColdStartHooksTest {
                 CommentSheetOptions.holdsPostComments(CommentSheetOptions.INLINE_COMMENTS));
         assertFalse("a comment drawn before the context lost its dislike",
                 CommentSheetOptions.holdsCommentDislike());
+        assertFalse("a comment drawn before the context lost Reply",
+                CommentSheetOptions.holdsCommentReply(CommentSheetOptions.REPLY_PLUGIN));
         assertFalse("a comment with a shop link drawn before the context was left out",
                 CommentSheetOptions.hidesComment(new GraphQLComment("https://s.shopee.vn/9zKs")));
         assertFalse("a comment sheet built before the context opened at full height",

@@ -990,6 +990,7 @@
     },
     {
       "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/stories/CreateStoryTile.java",
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/stories/StoriesTrayPaging.java",
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/stories/SuggestedStories.java",
         "patches/src/main/kotlin/app/morphe/patches/facebook/stories/suggested/**"
@@ -997,7 +998,7 @@
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
-      "changes": "Written for Hushfacebook: the stories Facebook suggests in the Stories tray. In Facebook 577 and 580 every answer of the tray's fetch goes through the one method holding StoriesTrayLightFetchControllerQueryOps.postProcessResult, which hands the buckets as an ImmutableList to the one constructor of the tray data class it answers, and the classic tray's receiver, the one method holding optimistic_data_adapter_receives, reads that list. The patch goes first in that constructor and hands the list to the extension, which leaves out a bucket whose is_story_bucket_suggested flag is true or whose first label is SUGGESTED, the two things the tray's card reads before it writes Suggested. The flag is read through the bucket interface method the receiver calls and a tree class answers with that field's key, and the label through the one static helper answering the label enum, which also names NEWFRIEND and TRENDING, for that interface. Every other bucket and anything that isn't a bucket stays. For issue #317 Home's tray, which never goes through that constructor, is filtered in the parser that turns its buckets into tiles, and when the filter leaves its row too short to drag the extension asks the tray's scroll listener, made a Pager by the patch, for the next page the way a drag would."
+      "changes": "Written for Hushfacebook: the stories Facebook suggests in the Stories tray. In Facebook 577 and 580 every answer of the tray's fetch goes through the one method holding StoriesTrayLightFetchControllerQueryOps.postProcessResult, which hands the buckets as an ImmutableList to the one constructor of the tray data class it answers, and the classic tray's receiver, the one method holding optimistic_data_adapter_receives, reads that list. The patch goes first in that constructor and hands the list to the extension, which leaves out a bucket whose is_story_bucket_suggested flag is true or whose first label is SUGGESTED, the two things the tray's card reads before it writes Suggested. The flag is read through the bucket interface method the receiver calls and a tree class answers with that field's key, and the label through the one static helper answering the label enum, which also names NEWFRIEND and TRENDING, for that interface. Every other bucket and anything that isn't a bucket stays. For issue #317 Home's tray, which never goes through that constructor, is filtered in the parser that turns its buckets into tiles, and when the filter leaves its row too short to drag the extension asks the tray's scroll listener, made a Pager by the patch, for the next page the way a drag would. For issue #445 the tray's tile list builder hands the list it makes to CreateStoryTile, which leaves out the tiles whose kind Facebook's tile namer calls ADD_TO_STORY_TILE or ADD_TO_STORY_SPLIT_TILE when Hide Create story is on."
     },
     {
       "paths": [
@@ -1593,6 +1594,15 @@
     },
     {
       "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/ReelQueue.java"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook for issue #449: an optional queue for reel saves. With its switch on, each tap on a reel's Download button takes down that reel's addresses, manifest, picked quality and post details and adds them to an in-memory queue, which saves one reel at a time on its own thread through the ordinary save path, waiting for a free save slot instead of giving up. A notification and a Downloads row count saved, waiting and failed reels with Pause, Resume and Cancel. A reel already waiting or saved in the run is skipped, a failed one gets one retry, and nothing outlives Facebook's process."
+    },
+    {
+      "paths": [
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/ReelCaption.java",
         "patches/src/main/kotlin/app/morphe/patches/facebook/downloads/reel/ReelCaptionRow.kt"
       ],
@@ -1830,6 +1840,15 @@
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
       "changes": "Written for Hushfacebook for issue #404: Play saved videos in a row, a switch of Clean up Reels. Facebook 585 has no route that plays Saved in order (its saved reels link bounces to the main screen, and Saved and Your library both play the tapped reel, then suggestions). The patch puts a static call first in the touch dispatch of FbFragmentActivity and of DelegatingFbFragmentFrameworkActivity, the base of the Saved page and its viewer, whose own dispatch hands touches to its delegate without running FbFragmentActivity's. The extension keeps the card a press landed on (a child of a scrolling list with a same-width sibling), starts a chain when the Reels viewer opens with a saved:: player origin soon after, and when the reel ends or a second player binds after the viewer settles, finishes the viewer, waits for the Saved page to resume, scrolls the next card into view if it has to and taps it with a synthesized finger press through the page's own dispatch."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/QualityChooser.java"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook for issue #448: Choose quality on each save. With the switch on, a reel's Download button and a video's Download to phone show a single-choice list of the Download quality values first, checked at the current one. A pick starts that save with the picked quality held in a thread-local that MediaDownload.quality() reads on the tap, so Download quality itself keeps its value. Cancel saves nothing."
     }
   ]
 }

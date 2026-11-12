@@ -21,6 +21,11 @@ import com.android.tools.smali.dexlib2.AccessFlags
  *
  * RevenueCat SDK class/method names and JSON keys are never obfuscated, so this
  * survives app updates.
+ *
+ * Shared with MacroFactor (`com.sbs.diet`), which ships the same RevenueCat build:
+ * re-verified unchanged in 5.8.11 (method at line 376 of
+ * `smali/classes6/com/revenuecat/purchases/common/CustomerInfoFactory.smali`,
+ * same `.registers 20` and same filter order).
  */
 object BuildCustomerInfoFingerprint : Fingerprint(
     // Class match by suffix; ENDS_WITH semantics.

@@ -23,7 +23,16 @@ public enum SettingsSection {
     /** 表示を消すページ。トークの ＋ メニューの項目です。 */
     HIDE_CHAT_PLUS_MENU("トークの ＋ メニュー"),
     /** 表示を消すページ。ホーム画面の項目です。 */
-    HIDE_HOME("ホーム");
+    HIDE_HOME("ホーム"),
+
+    /** 既読者ページ。自分が送ったメッセージへの表示です。 */
+    READ_RECEIPT_READERS_OWN("自分のメッセージ"),
+    /** 既読者ページ。他人が送ったメッセージへの表示です。 */
+    READ_RECEIPT_READERS_OTHERS("他人のメッセージ"),
+    /** 既読者ページ。一覧を開く操作です。 */
+    READ_RECEIPT_READERS_OPEN("一覧の開き方"),
+    /** 既読者ページ。既読情報の取得方法です。 */
+    READ_RECEIPT_READERS_DATA("取得");
 
     private final String title;
 

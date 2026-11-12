@@ -7,7 +7,6 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.dmoniak.patches.shared.Constants.COMPATIBILITY_YOUTUBE
 import java.util.logging.Logger
 
-@Suppress("unused")
 val youtubeHideEndscreenCardsPatch = bytecodePatch(
     name = "Hide Endscreen Cards & Suggestions - YouTube (Experimental)",
     description = "⚠️ [Experimental / Untested] Hides floating endscreen cards, suggested video boxes, channel stickers, and overlay elements that clutter the end of videos.",
@@ -26,7 +25,7 @@ fun BytecodePatchContext.executeYouTubeHideEndscreenCardsLogic(logger: Logger) {
 
     classDefForEach { classDef ->
         val tl = classDef.type.lowercase()
-        if (tl.contains("androidx") || tl.contains("android/support")) return@classDefForEach
+        if (!tl.contains("androidx") && !tl.contains("android/support")) {
 
         val mutableClass by lazy { mutableClassDefBy(classDef) }
 
@@ -59,6 +58,7 @@ fun BytecodePatchContext.executeYouTubeHideEndscreenCardsLogic(logger: Logger) {
                     logger.warning("[YouTube Endscreen] Failed to hook ${method.name}: ${e.message}")
                 }
             }
+        }
         }
     }
 

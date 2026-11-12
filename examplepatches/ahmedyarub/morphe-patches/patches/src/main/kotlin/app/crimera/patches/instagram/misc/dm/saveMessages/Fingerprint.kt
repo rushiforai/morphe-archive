@@ -57,7 +57,7 @@ internal object DirectItemDbHideFingerprint : Fingerprint(
     returnType = "V",
 )
 
-// DM thread deserializer dispatch.
+// DM thread deserializer dispatch. 455 moved "thread_v2_id" out of it.
 internal object ThreadUsersDispatchFingerprint : Fingerprint(
-    strings = listOf("users", "admin_user_ids", "left_users", "thread_v2_id", "input_mode"),
+    strings = listOf("users", "admin_user_ids", "left_users", "input_mode"),
 )

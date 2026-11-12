@@ -11,6 +11,7 @@ enum class FeatureId(val value: String) {
     PREMIUM_SETTINGS_ROW("linimal.premium-settings-row"),
     PREMIUM_PREVIEW_PROMOTION("linimal.premium-preview-promotion"),
     PREVIEW_SCROLL("linimal.preview-scroll"),
+    PREVIEW_DISABLE("linimal.preview-disable"),
     AMOLED_THEME("linimal.amoled-theme"),
     SMART_CHANNEL_ADS("linimal.smart-channel-ads"),
     HOME_TOP_AD("linimal.home-top-ad"),
@@ -19,6 +20,7 @@ enum class FeatureId(val value: String) {
     AGENT_I_WALLET_HEADER("linimal.agent-i-wallet-header"),
     AGENT_I_SETTINGS("linimal.agent-i-settings"),
     AGENT_I_CHAT_COMPOSER("linimal.agent-i-chat-composer"),
+    AGENT_I_CHAT_PLUS_MENU("linimal.agent-i-chat-plus-menu"),
     AGENT_I_CHAT_LIST_SEARCH("linimal.agent-i-chat-list-search"),
     LINE_AI_MESSAGE_CONTEXT_MENU("linimal.line-ai-message-context-menu"),
     LINE_AI_GALLERY_VIEWER("linimal.line-ai-gallery-viewer"),
@@ -31,6 +33,7 @@ enum class FeatureId(val value: String) {
     HOME_FEED_POST_CARDS("linimal.home-feed-post-cards"),
     HOME_FEATURED_COLLECTIONS("linimal.home-featured-collections"),
     HOME_FEED_LOADING_INDICATOR("linimal.home-feed-loading-indicator"),
+    HOME_FEED_LIVE("linimal.home-feed-live"),
     HOME_RECENT_HISTORY("linimal.home-recent-history"),
     CHAT_CALENDAR("linimal.chat-calendar"),
     CHAT_LINE_GIFT("linimal.chat-line-gift"),
@@ -39,6 +42,12 @@ enum class FeatureId(val value: String) {
     READ_RECEIPTS_MAIN_CHAT("linimal.read-receipts-main-chat"),
     READ_WITHOUT_RECEIPT("linimal.read-without-receipt"),
     NOTIFICATION_READ_WITHOUT_RECEIPT("linimal.chat.notification-read-without-receipt"),
+    READ_RECEIPT_READERS_ICONS("linimal.read-receipt-readers-icons"),
+    READ_RECEIPT_READERS_TAP("linimal.read-receipt-readers-tap"),
+    READ_RECEIPT_READERS_OTHERS_COUNT("linimal.read-receipt-readers-others-count"),
+    READ_RECEIPT_READERS_OTHERS_ICONS("linimal.read-receipt-readers-others-icons"),
+    READ_RECEIPT_READERS_MENU("linimal.read-receipt-readers-menu"),
+    READ_RECEIPT_READERS_SERVER_SYNC("linimal.read-receipt-readers-server-sync"),
     CHAT_LIST_HEADER_AI_FRIENDS("linimal.chat-list-header-ai-friends"),
     CHAT_LIST_HEADER_CALENDAR("linimal.chat-list-header-calendar"),
     CHAT_LIST_HEADER_OPEN_CHAT("linimal.chat-list-header-open-chat"),
@@ -62,6 +71,7 @@ enum class PatchId(val value: String, val featureId: FeatureId) {
         FeatureId.PREMIUM_PREVIEW_PROMOTION,
     ),
     PREVIEW_SCROLL("linimal.patch.preview-scroll", FeatureId.PREVIEW_SCROLL),
+    PREVIEW_DISABLE("linimal.patch.preview-disable", FeatureId.PREVIEW_DISABLE),
     AMOLED_THEME_COLORS("linimal.patch.amoled-theme-colors", FeatureId.AMOLED_THEME),
     MAIN_TAB_SHOPPING("linimal.patch.main-tab-shopping", FeatureId.SHOPPING),
     MAIN_TAB_NEWS("linimal.patch.main-tab-news", FeatureId.NEWS),
@@ -90,6 +100,10 @@ enum class PatchId(val value: String, val featureId: FeatureId) {
         "linimal.patch.agent-i-chat-composer",
         FeatureId.AGENT_I_CHAT_COMPOSER,
     ),
+    AGENT_I_CHAT_PLUS_MENU(
+        "linimal.patch.agent-i-chat-plus-menu",
+        FeatureId.AGENT_I_CHAT_PLUS_MENU,
+    ),
     AGENT_I_CHAT_LIST_SEARCH(
         "linimal.patch.agent-i-chat-list-search",
         FeatureId.AGENT_I_CHAT_LIST_SEARCH,
@@ -117,6 +131,7 @@ enum class PatchId(val value: String, val featureId: FeatureId) {
         "linimal.patch.home-feed-loading-indicator",
         FeatureId.HOME_FEED_LOADING_INDICATOR,
     ),
+    HOME_FEED_LIVE("linimal.patch.home-feed-live", FeatureId.HOME_FEED_LIVE),
     HOME_RECENT_HISTORY("linimal.patch.home-recent-history", FeatureId.HOME_RECENT_HISTORY),
     SMART_CHANNEL_ADS("linimal.patch.smart-channel-ads", FeatureId.SMART_CHANNEL_ADS),
     HOME_TOP_AD_MODULE_GATE(
@@ -226,6 +241,30 @@ enum class PatchId(val value: String, val featureId: FeatureId) {
     NOTIFICATION_READ_WITHOUT_RECEIPT_MANUAL_READ(
         "linimal.patch.notification-read-without-receipt-manual-read",
         FeatureId.NOTIFICATION_READ_WITHOUT_RECEIPT,
+    ),
+    READ_RECEIPT_READERS_ICONS_ROW_BIND(
+        "linimal.patch.read-receipt-readers-icons-row-bind",
+        FeatureId.READ_RECEIPT_READERS_ICONS,
+    ),
+    READ_RECEIPT_READERS_TAP_ROW_BIND(
+        "linimal.patch.read-receipt-readers-tap-row-bind",
+        FeatureId.READ_RECEIPT_READERS_TAP,
+    ),
+    READ_RECEIPT_READERS_OTHERS_COUNT_MESSAGE_BIND(
+        "linimal.patch.read-receipt-readers-others-count-message-bind",
+        FeatureId.READ_RECEIPT_READERS_OTHERS_COUNT,
+    ),
+    READ_RECEIPT_READERS_OTHERS_ICONS_MESSAGE_BIND(
+        "linimal.patch.read-receipt-readers-others-icons-message-bind",
+        FeatureId.READ_RECEIPT_READERS_OTHERS_ICONS,
+    ),
+    READ_RECEIPT_READERS_CONTEXT_MENU(
+        "linimal.patch.read-receipt-readers-context-menu",
+        FeatureId.READ_RECEIPT_READERS_MENU,
+    ),
+    READ_RECEIPT_READERS_SERVER_SYNC(
+        "linimal.patch.read-receipt-readers-server-sync",
+        FeatureId.READ_RECEIPT_READERS_SERVER_SYNC,
     ),
     CHAT_LIST_HEADER_AI_FRIENDS(
         "linimal.patch.chat-list-header-ai-friends",

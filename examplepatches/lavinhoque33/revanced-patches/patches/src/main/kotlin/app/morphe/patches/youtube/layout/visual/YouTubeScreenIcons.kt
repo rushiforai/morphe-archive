@@ -5,6 +5,7 @@
  * https://github.com/anddea/revanced-patches
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-11
  * Written by lavinhoque33, 2026-10-30
  *
  * ------------------------------------------------------------------------
@@ -81,6 +82,10 @@ internal val youtubeScreenIconsBytecodePatch = bytecodePatch {
 
 private fun Element.preferenceKey() = getAttribute("android:key").removePrefix("@string/")
 
+/** About is informational UI, not a collection of leaf settings. Its rows retain their own icons. */
+private fun Element.isIconRow() =
+    tagName.endsWith("PreferenceScreen") || preferenceKey().startsWith("revanced_about_")
+
 /** Categories belong to their enclosing screen; nested screens are rows, not inline groups. */
 private fun screenRows(screen: Element): List<Element> = buildList {
     fun collect(group: Element) {
@@ -103,9 +108,7 @@ internal fun ResourcePatchContext.applyYouTubeScreenIcons(resourceMap: Map<Strin
     val iconKeys = linkedSetOf<String>()
     document(RVX_PREFERENCES).use { document ->
         document.doRecursively { node ->
-            if (node is Element && node.tagName.endsWith("PreferenceScreen") &&
-                node.preferenceKey().isNotEmpty()
-            ) {
+            if (node is Element && node.isIconRow() && node.preferenceKey().isNotEmpty()) {
                 iconKeys.add(node.preferenceKey())
             }
         }
@@ -151,13 +154,13 @@ private fun ResourcePatchContext.setRvxScreenIcons() {
             if (node !is Element || !node.tagName.endsWith("PreferenceScreen")) return@doRecursively
 
             val rows = screenRows(node)
-            val iconCount = rows.count { it.tagName.endsWith("PreferenceScreen") }
+            val iconCount = rows.count { it.isIconRow() }
             val hasIcons = iconCount != 0
             printInfo("YouTube icon rows: ${node.preferenceKey().ifEmpty { "RVX root" }} = $iconCount")
 
             rows.forEach { row ->
                 row.removeAttribute("android:icon")
-                if (row.tagName.endsWith("PreferenceScreen")) {
+                if (row.isIconRow()) {
                     val key = row.preferenceKey()
                     check(get("res/drawable/${key}_icon.xml").exists()) { "Missing screen icon for $key" }
                     row.setAttribute("android:icon", "@drawable/${key}_icon")

@@ -85,10 +85,16 @@ object VersionHookRegistry {
         requireProfile(metadata.packageName, metadata.versionName, metadata.versionCode)
 
     fun getTargetSpec(hookId: HookId, packageName: String, versionName: String): TargetSpec =
-        requireProfile(packageName, versionName).hooks.getValue(hookId)
+        requireEnabled(hookId, requireProfile(packageName, versionName).hooks.getValue(hookId))
 
     fun target(hookId: HookId, metadata: PackageMetadata): TargetSpec =
-        requireProfile(metadata).hooks.getValue(hookId)
+        requireEnabled(hookId, requireProfile(metadata).hooks.getValue(hookId))
+
+    private fun requireEnabled(id: HookId, spec: TargetSpec): TargetSpec = spec.also {
+        check(it.enabled) {
+            "Unsupported historical experiment: ${id.name}. Deselect Account ID Fallback for Clone, Account Switch Lock Bypass, and Account Sync Binder Loop Fix. Use the default patches only."
+        }
+    }
 
     fun logHook(hookId: HookId, tier: String, status: String, detail: String = "") {
         val detailPart = if (detail.isNotEmpty()) " - $detail" else ""

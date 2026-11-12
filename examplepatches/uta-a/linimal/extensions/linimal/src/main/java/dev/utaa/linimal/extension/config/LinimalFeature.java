@@ -41,19 +41,28 @@ public enum LinimalFeature {
     AGENT_I_WALLET_HEADER("linimal.agent-i-wallet-header"),
     AGENT_I_SETTINGS("linimal.agent-i-settings"),
     AGENT_I_CHAT_COMPOSER("linimal.agent-i-chat-composer"),
+    AGENT_I_CHAT_PLUS_MENU("linimal.agent-i-chat-plus-menu"),
     AGENT_I_CHAT_LIST_SEARCH("linimal.agent-i-chat-list-search"),
     LINE_AI_MESSAGE_CONTEXT_MENU("linimal.line-ai-message-context-menu"),
     LINE_AI_GALLERY_VIEWER("linimal.line-ai-gallery-viewer"),
     SHOPPING("linimal.shopping"),
     HOME_FEED_POST_CARDS("linimal.home-feed-post-cards"),
     HOME_FEATURED_COLLECTIONS("linimal.home-featured-collections"),
+    HOME_FEED_LIVE("linimal.home-feed-live"),
     HOME_RECENT_HISTORY("linimal.home-recent-history"),
     PREMIUM_SETTINGS_ROW("linimal.premium-settings-row"),
     PREMIUM_PREVIEW_PROMOTION("linimal.premium-preview-promotion"),
     PREVIEW_SCROLL("linimal.preview-scroll"),
+    PREVIEW_DISABLE("linimal.preview-disable"),
     AMOLED_THEME("linimal.amoled-theme"),
     READ_WITHOUT_RECEIPT("linimal.read-without-receipt"),
     NOTIFICATION_READ_WITHOUT_RECEIPT("linimal.chat.notification-read-without-receipt"),
+    READ_RECEIPT_READERS_ICONS("linimal.read-receipt-readers-icons"),
+    READ_RECEIPT_READERS_TAP("linimal.read-receipt-readers-tap"),
+    READ_RECEIPT_READERS_OTHERS_COUNT("linimal.read-receipt-readers-others-count"),
+    READ_RECEIPT_READERS_OTHERS_ICONS("linimal.read-receipt-readers-others-icons"),
+    READ_RECEIPT_READERS_MENU("linimal.read-receipt-readers-menu"),
+    READ_RECEIPT_READERS_SERVER_SYNC("linimal.read-receipt-readers-server-sync"),
     MINI("linimal.mini"),
     CHAT_LIST_HEADER_AI_FRIENDS("linimal.chat-list-header-ai-friends"),
     CHAT_LIST_HEADER_CALENDAR("linimal.chat-list-header-calendar"),
@@ -85,6 +94,13 @@ public enum LinimalFeature {
             case READ_WITHOUT_RECEIPT:
             case NOTIFICATION_READ_WITHOUT_RECEIPT:
             case EXTERNAL_BROWSER:
+            // 既読者の表示は次の bind・長押しから反映され、画面の構造を途中で変えません。
+            case READ_RECEIPT_READERS_ICONS:
+            case READ_RECEIPT_READERS_TAP:
+            case READ_RECEIPT_READERS_OTHERS_COUNT:
+            case READ_RECEIPT_READERS_OTHERS_ICONS:
+            case READ_RECEIPT_READERS_MENU:
+            case READ_RECEIPT_READERS_SERVER_SYNC:
             case PUSH_NOTIFICATIONS:
             case GOOGLE_DRIVE_BACKUP:
                 return false;

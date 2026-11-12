@@ -48,6 +48,10 @@ public final class XFilter extends Filter {
         addPathCallbacks(feedItems, comments, progressBar);
         SaveChooser.register();
         NavTapFix.register();
+        if (!"off".equals(XSettings.AUTO_WATCHED.get())) AccountHistory.refresh();
+        SuggestedCard.register();
+        PlaybackExtras.register();
+        ChatAvatar.register();
         NetworkRecovery.register();
     }
 
@@ -69,17 +73,20 @@ public final class XFilter extends Filter {
             return false;
         }
         WatchHistory.sample();
+        if (!"off".equals(XSettings.AUTO_WATCHED.get())) AccountHistory.refresh();
         if (matchedGroup == comments) {
             return isTopLevel(path.subSequence(contentIndex, path.length())) && filterComment(buffer, path);
         }
         if (contentIndex != 0 || !isTopLevel(path)) return false;
 
         Place place = place(contextInterface);
-        if (!applies(place)) return false;
+        // Mark watched videos is its own option: it applies on Home and under the player whatever the filters' places.
+        boolean filters = applies(place);
+        if (!filters && ("off".equals(XSettings.AUTO_WATCHED.get()) || !watchedPlace(contextInterface))) return false;
         VideoItem item = VideoItem.parse(buffer, path);
         Channels.learn(item);
         LAST_ITEM.set(item);
-        String found = reason(item, place);
+        String found = filters ? reason(item, place) : null;
         final String reason = found != null ? found
                 : watchedPlace(contextInterface) && watchedItem(item, buffer) ? "watched" : null;
         if ("watched".equals(reason)) Feedback.onWatched(item);
@@ -99,9 +106,16 @@ public final class XFilter extends Filter {
     /** An item whose own buffer states a red progress bar (any, or 90% with Fully), or one seen with one before. */
     private static boolean watchedItem(VideoItem item, byte[] buffer) {
         String mode = XSettings.AUTO_WATCHED.get();
-        if ("off".equals(mode) || item.videoId == null) return false;
+        // A playlist or mix names its first video, whose watch says nothing of the list.
+        if ("off".equals(mode) || item.videoId == null || item.playlist || item.mix) return false;
+        boolean fully = "fully".equals(mode);
         float p = VideoItem.progress(buffer);
-        if (p >= ("fully".equals(mode) ? 0.9f : 0.005f)) return true;
+        if (p >= (fully ? 0.9f : 0.005f)) return true;
+        // A feed item's data has no progress on most layouts: YouTube draws the red bar from the account's history.
+        int account = AccountHistory.percent(item.videoId);
+        if (account >= (fully ? 90 : 1)) return true;
+        if (!item.videoId.equals(app.morphe.extension.youtube.patches.VideoInformation.getStartingOrPlayingVideoId())
+                && WatchHistory.fraction(item.videoId) >= (fully ? 0.9f : 0.02f)) return true;
         return Feedback.isWatched(item.videoId);
     }
 

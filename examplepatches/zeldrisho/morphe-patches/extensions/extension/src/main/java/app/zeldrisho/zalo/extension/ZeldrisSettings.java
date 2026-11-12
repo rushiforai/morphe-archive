@@ -68,13 +68,13 @@ public final class ZeldrisSettings {
   }
 
   /**
-   * Returns the stranger-notification preference, defaulting to true when unset and false when
+   * Returns the stranger-notification preference, defaulting to false when unset and when
    * the app context is unavailable. Preference access errors propagate.
    */
   public static boolean strangerNotificationsEnabled() {
     Context context = appContext();
     return context != null && context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        .getBoolean("stranger_notifications", true);
+        .getBoolean("stranger_notifications", false);
   }
 
   /**

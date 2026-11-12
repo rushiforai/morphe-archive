@@ -15,8 +15,8 @@ final class Strings {
     static final String HIDE_REVIEW_PROMPT_SUMMARY = "不再跳出「喜歡這個App嗎？」請你評分的彈窗。重新啟動 App 後生效。";
     static final String HIDE_UPGRADE_BUTTON = "隱藏付費推廣按鈕";
     static final String HIDE_UPGRADE_BUTTON_SUMMARY = "台鐵與高鐵搜尋頁不再顯示「付費移除廣告」之類的訂閱按鈕。重新啟動 App 後生效。";
-    static final String HIDE_PROMOTIONS = "隱藏付費推廣彈窗";
-    static final String HIDE_PROMOTIONS_SUMMARY = "不再跳出訂閱優惠、節日特價與「解鎖新功能：桌面小工具」之類的推廣彈窗，介面和付費版一樣乾淨。只隱藏推廣，不會解鎖付費功能。重新啟動 App 後生效。";
+    static final String HIDE_PROMOTIONS = "隱藏付費推廣彈窗與連結";
+    static final String HIDE_PROMOTIONS_SUMMARY = "不再跳出訂閱優惠、節日特價與「解鎖新功能：桌面小工具」之類的推廣彈窗，免費版桌面小工具也不再顯示「升級即時看板」連結。只隱藏推廣，不會解鎖付費功能。彈窗在重新啟動 App 後生效，小工具在下次更新時生效。";
     static final String FIX_RECENT_APPS_TITLE = "修正最近使用的 App 標題";
     static final String FIX_RECENT_APPS_TITLE_SUMMARY = "最近使用的 App 畫面顯示「火車時刻表」，而不是 app.titleTra。";
     static final String EXPAND_SEARCH_HISTORY = "展開搜尋歷史";

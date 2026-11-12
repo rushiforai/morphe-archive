@@ -25,6 +25,9 @@ _Avoid_: piece, part
 **BTR**:
 [Bilibili-thread-ripper](https://github.com/MrTangLuyao/Bilibili-thread-ripper), the userscript whose split-download-deliver-in-order idea the download patch follows.
 
+**Stray flow** (殘留連線):
+A connection the app opened on the normal network before the WARP VPN came up; Android then routes it into the VPN still carrying the Wi-Fi source address, so WARP drops it. `StrayFlows` answers it with a reset so the app retries through the tunnel.
+
 ## Buffer
 
 **LoadControl**:

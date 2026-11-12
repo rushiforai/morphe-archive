@@ -13,6 +13,7 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import org.w3c.dom.Document
 import org.w3c.dom.Element
 
 internal const val AMOLED_GUARD = """
@@ -26,8 +27,6 @@ internal const val AMOLED_GUARD = """
 """
 
 private val amoledDarkColors = setOf(
-    // Palette surfaces shared by the design-system themes (Me tab root, layer backgrounds).
-    "ng95",
     // Legacy dark-theme surfaces used by themes that predate the design-system attributes.
     "Dark_PrimaryBackgroundColor", "Dark_BottomNav", "Dark_TabBackgroundColor",
     "Dark_ChatBarBackgroundColor", "Dark_FooterBackgroundColor", "Dark_ProfilePrimaryBackgroundColor",
@@ -37,6 +36,29 @@ private val amoledDarkColors = setOf(
     "Dark_GalleryPickerViewBackgroundColor", "Dark_ChatFooterBackgroundNormal",
     "Dark_CSCPrimaryBackground",
 )
+
+/**
+ * Sets `bgCSC_Background` and `layer_background` in `BaseThemeDefault.Dark` to opaque black.
+ *
+ * @throws IllegalStateException before mutation if the theme is not unique, either item is not
+ * unique, or either item's trimmed value is not `@color/ng95`.
+ */
+internal fun blackenDesignSystemDarkSurfaces(document: Document) {
+    val styles = document.getElementsByTagName("style")
+    val themes = (0 until styles.length).map { styles.item(it) as Element }
+        .filter { it.getAttribute("name") == "BaseThemeDefault.Dark" }
+    check(themes.size == 1) { "AMOLED design-system dark theme changed" }
+    val items = themes.single().getElementsByTagName("item")
+    val targets = listOf("bgCSC_Background", "layer_background").map { name ->
+        val matches = (0 until items.length).map { items.item(it) as Element }
+            .filter { it.getAttribute("name") == name }
+        check(matches.size == 1 && matches.single().textContent.trim() == "@color/ng95") {
+            "AMOLED design-system surface changed: $name"
+        }
+        matches.single()
+    }
+    targets.forEach { it.textContent = "#ff000000" }
+}
 
 /**
  * Rewrites dark surface colors, not only the overlay style: activity themes are created before the
@@ -64,6 +86,7 @@ private val amoledOverlayResources = resourcePatch {
             // inherited from the framework theme; the overlay style alone cannot reach it.
             val darkThemes = mutableSetOf<String>()
             val styles = document.getElementsByTagName("style")
+            blackenDesignSystemDarkSurfaces(document)
             for (index in 0 until styles.length) {
                 val candidate = styles.item(index) as Element
                 val items = candidate.getElementsByTagName("item")

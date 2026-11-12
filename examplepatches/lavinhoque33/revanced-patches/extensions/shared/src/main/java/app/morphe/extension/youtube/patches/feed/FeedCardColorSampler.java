@@ -5,7 +5,7 @@
  * https://github.com/anddea/revanced-patches
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-04
+ * Modified by lavinhoque33, 2026-11-10
  * Written by lavinhoque33, 2026-10-26.
  */
 
@@ -48,7 +48,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
-import app.morphe.extension.shared.ui.Dim;
 import app.morphe.extension.shared.utils.BaseThemeUtils;
 import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.youtube.settings.Settings;
@@ -331,7 +330,7 @@ final class FeedCardColorSampler {
     static void setCardItem(View view, boolean card) {
         cardItems.put(view, card);
 
-        if (!card && !FeedCardLayoutPatch.isCardLabel(view.getContentDescription())) {
+        if (!card && FeedCardLayoutPatch.findCardLabel(view) == null) {
             // A recycled view must not keep the tint of the card it showed.
             CardState state = cardStates.remove(view);
             if (state != null) {
@@ -348,7 +347,7 @@ final class FeedCardColorSampler {
     static void onCardLayoutChanged(View view) {
         try {
             CardState state = cardStates.get(view);
-            if (state != null && state.bind(view.getContentDescription())) {
+            if (state != null && state.bind(getCardLabel(view))) {
                 state.reset();
             }
         } catch (Exception ex) {
@@ -362,7 +361,7 @@ final class FeedCardColorSampler {
     static boolean isCardItem(View item) {
         // The cards converted by the patch have the label of the cards, also when the element of the item
         // is not a video, such as when the video plays in the card.
-        if (FeedCardLayoutPatch.isCardLabel(item.getContentDescription())) {
+        if (FeedCardLayoutPatch.findCardLabel(item) != null) {
             return true;
         }
 
@@ -487,6 +486,16 @@ final class FeedCardColorSampler {
     }
 
     /**
+     * @return The label of the card of the item, which the server experiments of the account can put on a
+     *         view inside the item, or the label of the item if it has no card label.
+     */
+    @Nullable
+    private static CharSequence getCardLabel(View item) {
+        CharSequence label = FeedCardLayoutPatch.findCardLabel(item);
+        return label != null ? label : item.getContentDescription();
+    }
+
+    /**
      * @return The state of the card of the item, which is reset when the view shows another card.
      */
     private static CardState getCardState(View item) {
@@ -497,7 +506,7 @@ final class FeedCardColorSampler {
             cardStates.put(item, state);
         }
 
-        if (state.bind(item.getContentDescription())) {
+        if (state.bind(getCardLabel(item))) {
             state.reset();
         }
         return state;
@@ -1018,8 +1027,8 @@ final class FeedCardColorSampler {
      */
     private static int getVideoZoneBottom(View item, CardState state) {
         return FeedCardFill.getVideoZoneBottom(measureThumbnailBottom(item, state), item.getWidth(),
-                Dim.dp(FeedCardLayoutPatch.CARD_HORIZONTAL_PADDING_DP),
-                Dim.dp(FeedCardLayoutPatch.CARD_VERTICAL_PADDING_DP));
+                FeedCardLayoutPatch.cardPx(FeedCardLayoutPatch.CARD_HORIZONTAL_PADDING_DP),
+                FeedCardLayoutPatch.cardPx(FeedCardLayoutPatch.CARD_VERTICAL_PADDING_DP));
     }
 
     private static int getTopInItem(View view, View item) {
@@ -1697,9 +1706,11 @@ final class FeedCardColorSampler {
     private static final class CardFillDrawable extends Drawable {
         private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final RectF rect = new RectF();
-        private final float radius = FeedCardLayoutPatch.CARD_CORNER_RADIUS;
-        private final int horizontalPadding = Dim.dp(FeedCardLayoutPatch.CARD_HORIZONTAL_PADDING_DP);
-        private final int verticalPadding = Dim.dp(FeedCardLayoutPatch.CARD_VERTICAL_PADDING_DP);
+        private final float radius = FeedCardLayoutPatch.getCardCornerRadius();
+        private final int horizontalPadding =
+                FeedCardLayoutPatch.cardPx(FeedCardLayoutPatch.CARD_HORIZONTAL_PADDING_DP);
+        private final int verticalPadding =
+                FeedCardLayoutPatch.cardPx(FeedCardLayoutPatch.CARD_VERTICAL_PADDING_DP);
         private int color;
         /**
          * Bottom of the zone of the thumbnail, relative to the top of the bounds of the drawable.

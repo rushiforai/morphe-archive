@@ -14,7 +14,6 @@ import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction11x
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21c
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction31c
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21t
-import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction22x
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction22t
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction35c
 import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile
@@ -68,7 +67,8 @@ private fun requireInput(metadata: PackageMetadata) {
     if (metadata.packageName != ORIGINAL || !(
         metadata.versionName == "13.0.0.4.159" && metadata.versionCode == "1061801514" ||
         metadata.versionName == "14.0.0.4.149" && metadata.versionCode == "1061901406" ||
-        metadata.versionName == "15.0.0.3.156" && metadata.versionCode == "1062001464"
+        metadata.versionName == "15.0.0.3.156" && metadata.versionCode == "1062001464" ||
+        metadata.versionName == "15.0.0.9.156" && metadata.versionCode == "1062001524"
     )) {
         throw PatchException("Requires a supported original Muse APK.")
     }
@@ -78,7 +78,8 @@ private val museCompatibility = Compatibility(
     targets = listOf(
         AppTarget(version = "13.0.0.4.159", versionCode = 1061801514, minSdk = 29),
         AppTarget(version = "14.0.0.4.149", versionCode = 1061901406, minSdk = 29),
-        AppTarget(version = "15.0.0.3.156", versionCode = 1062001464, minSdk = 29)
+        AppTarget(version = "15.0.0.3.156", versionCode = 1062001464, minSdk = 29),
+        AppTarget(version = "15.0.0.9.156", versionCode = 1062001524, minSdk = 29)
     )
 )
 private fun BytecodePatchContext.method(type: String, id: String): MutableMethod =
@@ -113,6 +114,7 @@ private val validateMuse = bytecodePatch {
     execute {
         requireInput(packageMetadata)
         val guardFile = when (packageMetadata.versionName) {
+            "15.0.0.9.156" -> "guards-15.0.0.9.156.tsv"
             "15.0.0.3.156" -> "guards-15.tsv"
             "14.0.0.4.149" -> "guards-14.tsv"
             else -> "guards.tsv"
@@ -237,7 +239,7 @@ val museClone = bytecodePatch(
                 }
             }
         }
-        val expectedFields = if (packageMetadata.versionName == "15.0.0.3.156") 4 else 3
+        val expectedFields = if (packageMetadata.versionName in setOf("15.0.0.3.156", "15.0.0.9.156")) 4 else 3
         if (fields != expectedFields || strings == 0) throw PatchException("Unexpected identity occurrences: $strings strings, $fields fields")
         println("Changed $strings identity strings and $fields fields.")
     }
@@ -278,80 +280,6 @@ val museMcDebug = bytecodePatch(
     execute { replaceBodies("mcdebug") }
 }
 
-val museDebugLongPress = bytecodePatch(
-    name = "Debug settings long-press",
-    description = "Open Internal Settings by long-pressing the top-left menu button.",
-    default = true
-) {
-    compatibleWith(museCompatibility)
-    dependsOn(museMcDebug)
-    extendWith("muse/hatchdebug.dex")
-    extendWith("muse/hatchdebug15.dex")
-    execute {
-        val is14 = packageMetadata.versionName == "14.0.0.4.149"
-        val is15 = packageMetadata.versionName == "15.0.0.3.156"
-        val viewModifier = when {
-            is15 -> "LX/5Ih;"
-            is14 -> "LX/2hU;"
-            else -> "LX/2hz;"
-        }
-        val composer = when {
-            is15 -> "LX/5Ng;"
-            is14 -> "LX/2yV;"
-            else -> "LX/2Os;"
-        }
-        val callbackName = when {
-            is15 -> "SidePanelShortcutCallback15"
-            is14 -> "SidePanelShortcutCallback14"
-            else -> "SidePanelShortcutCallback"
-        }
-        val callbackType = "Lcom/facebook/aura/settings/internal/mcdebug/$callbackName;"
-        val menuMethod = when {
-            is15 -> "HatchHeaderLeadingButton(Lcom/facebook/aura/header/view/HeaderLeadingButton;Lkotlin/jvm/functions/Function0;LX/5Ih;ZLX/5Ng;II)V"
-            is14 -> "HatchHeaderLeadingButton(Lcom/facebook/aura/header/view/HeaderLeadingButton;Lkotlin/jvm/functions/Function0;LX/2hU;ZLX/2yV;II)V"
-            else -> "HatchHeaderLeadingButton(Lcom/facebook/aura/header/view/HeaderLeadingButton;Lkotlin/jvm/functions/Function0;LX/2hz;ZLX/2Os;II)V"
-        }
-        val menuButton = method("Lcom/facebook/aura/header/view/HatchHeaderLeadingButtonKt;", menuMethod)
-        val menuImpl = menuButton.implementation!!
-        val iconButtonCall = menuImpl.instructions.indices.singleOrNull { index ->
-            ref(menuImpl.instructions[index])?.startsWith(
-                "Lcom/facebook/aura/vds/compose/button/AuraElevatedButtonKt;->AuraElevatedIconButton-Xjqr6CI("
-            ) == true
-        } ?: throw PatchException("Side Panel icon-button call changed; unsupported build")
-        menuButton.addStaticObjectCall(iconButtonCall, ImmutableMethodReference(
-            callbackType, "maybeWrap",
-            listOf("Lcom/facebook/aura/header/view/HeaderLeadingButton;", "Lkotlin/jvm/functions/Function0;", composer),
-            "Lkotlin/jvm/functions/Function0;"
-        ), intArrayOf(4, if (is15) 9 else 11, 3), if (is15) 9 else 11)
-
-        val surfaceMethod = when {
-            is15 -> "AuraElevatedIconSurface-7poYlZM(LX/4yE;Ljava/lang/String;Lkotlin/jvm/functions/Function0;LX/5Ih;ZFLcom/facebook/aura/vds/compose/icons/AuraIconSize;LX/GrK;LX/5Ih;ZLX/5Ng;II)V"
-            is14 -> "AuraElevatedIconSurface-7poYlZM(LX/2Pp;Ljava/lang/String;Lkotlin/jvm/functions/Function0;LX/2hU;ZFLcom/facebook/aura/vds/compose/icons/AuraIconSize;LX/C9Z;LX/2hU;ZLX/2yV;II)V"
-            else -> "AuraElevatedIconSurface-7poYlZM(LX/2QG;Ljava/lang/String;Lkotlin/jvm/functions/Function0;LX/2hz;ZFLcom/facebook/aura/vds/compose/icons/AuraIconSize;LX/FMb;LX/2hz;ZLX/2Os;II)V"
-        }
-        val elevatedSurface = method("Lcom/facebook/aura/vds/compose/button/AuraElevatedButtonKt;", surfaceMethod)
-        val surfaceImpl = elevatedSurface.implementation!!
-        val surfaceCall = surfaceImpl.instructions.indices.singleOrNull { index ->
-            ref(surfaceImpl.instructions[index])?.startsWith(
-                "Lcom/facebook/aura/vds/compose/surface/AuraElevatedSurfaceKt;->auraElevatedSurface("
-            ) == true
-        } ?: throw PatchException("Elevated icon surface call changed; unsupported build")
-        surfaceImpl.addInstruction(surfaceCall, BuilderInstruction22x(
-            Opcode.MOVE_OBJECT_FROM16, 15, elevatedSurface.parameterRegister(2)
-        ))
-        elevatedSurface.addStaticObjectCall(surfaceCall + 1, ImmutableMethodReference(
-            callbackType, "maybeAttachLongPress",
-            listOf(viewModifier, "Lkotlin/jvm/functions/Function0;", composer), viewModifier
-        ), intArrayOf(12, 15, 6), 12)
-        elevatedSurface.addStaticObjectCall(surfaceCall + 3, ImmutableMethodReference(
-            callbackType, "maybeKeepDefaultTap",
-            listOf("Lkotlin/jvm/functions/Function0;", "Lkotlin/jvm/functions/Function0;"),
-            "Lkotlin/jvm/functions/Function0;"
-        ), intArrayOf(11, 15), 11)
-        println("Debug long-press added to the Side Panel menu; tap behavior remains delegated to the original callback.")
-    }
-}
-
 val museJsonFlags = bytecodePatch(
     name = "Import/export Mobile Config overrides",
     description = "Copy the app's mc_overrides.json file in and out.",
@@ -362,6 +290,7 @@ val museJsonFlags = bytecodePatch(
     extendWith("muse/jsonbridge.dex")
     execute {
         val group = when (packageMetadata.versionName) {
+            "15.0.0.9.156" -> "jsonhooks15_9"
             "15.0.0.3.156" -> "jsonhooks15"
             "14.0.0.4.149" -> "jsonhooks14"
             else -> "jsonhooks"
@@ -380,7 +309,9 @@ val museLocalTrust = bytecodePatch(
     execute {
         val is14 = packageMetadata.versionName == "14.0.0.4.149"
         val is15 = packageMetadata.versionName == "15.0.0.3.156"
+        val is159 = packageMetadata.versionName == "15.0.0.9.156"
         replaceBodies(when {
+            is159 -> "trust15_9"
             is15 -> "trust15"
             is14 -> "trust14"
             else -> "trust"
@@ -408,6 +339,44 @@ val museLocalTrust = bytecodePatch(
             ))
             cwlImpl.addInstruction(cwlCall + 1, BuilderInstruction11x(Opcode.MOVE_RESULT_OBJECT, contextReg))
             cwlImpl.addInstruction(cwlCall + 2, BuilderInstruction35c(
+                Opcode.INVOKE_VIRTUAL, 2, contextReg, packageReg, 0, 0, 0,
+                ImmutableMethodReference("Ljava/lang/String;", "equals", listOf("Ljava/lang/Object;"), "Z")
+            ))
+
+            val wa = method("Lcom/facebook/aura/login/nativeflow/NativeLoginAccountResolver;",
+                "readWhatsAppAccount(Landroid/content/Context;)Lcom/facebook/aura/login/nativeflow/NativeLoginSsoAccount;")
+            val wi = wa.implementation!!
+            val owner = wi.instructions.indices.single { ref(wi.instructions[it]) == "Landroid/content/pm/PackageItemInfo;->packageName:Ljava/lang/String;" }
+            val equalsCall = wi.instructions.indices.firstOrNull { it > owner && ref(wi.instructions[it]) == "Ljava/lang/String;->equals(Ljava/lang/Object;)Z" }
+                ?: throw PatchException("WhatsApp provider package comparison changed")
+            val ownerBranchIndex = equalsCall + 2
+            val ownerBranch = wi.instructions[ownerBranchIndex] as? BuilderInstruction21t ?: throw PatchException("WhatsApp provider check branch changed")
+            if (ownerBranch.opcode != Opcode.IF_EQZ) throw PatchException("WhatsApp provider check is not IF_EQZ")
+            val query = wi.instructions.indices.single { ref(wi.instructions[it]) == "Landroid/content/Context;->getContentResolver()Landroid/content/ContentResolver;" }
+            if (query <= ownerBranchIndex) throw PatchException("WhatsApp query moved before provider check")
+            wi.replaceInstruction(ownerBranchIndex, BuilderInstruction30t(Opcode.GOTO_32, wi.newLabelForIndex(query)))
+        } else if (is159) {
+            val ceC = method("LX/CeC;", "ABI(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;LX/CdO;)Ljava/util/ArrayList;")
+            val ceCImpl = ceC.implementation!!
+            val containsKey = ceCImpl.instructions.indices.single { ref(ceCImpl.instructions[it]) == "Landroid/os/BaseBundle;->containsKey(Ljava/lang/String;)Z" }
+            val gate = containsKey + 3
+            val branch = ceCImpl.instructions[gate] as? BuilderInstruction22t ?: throw PatchException("CeC permission preflight branch changed")
+            if (branch.opcode != Opcode.IF_NE) throw PatchException("CeC permission branch is not IF_NE")
+            ceCImpl.replaceInstruction(gate, BuilderInstruction30t(Opcode.GOTO_32, branch.target))
+
+            val d3y = method("LX/D3y;", "A00(Landroid/content/Context;Landroid/content/Intent;Ljava/lang/String;Ljava/util/List;)Landroid/content/Intent;")
+            val d3yImpl = d3y.implementation!!
+            val trustCall = d3yImpl.instructions.indices.single { ref(d3yImpl.instructions[it]) == "LX/D2w;->A04(Landroid/content/Context;Ljava/lang/String;)Z" }
+            val trustInvoke = d3yImpl.instructions[trustCall] as? FiveRegisterInstruction ?: throw PatchException("D3y trust call format changed")
+            val contextReg = trustInvoke.registerC
+            val packageReg = trustInvoke.registerD
+            d3yImpl.removeInstruction(trustCall)
+            d3yImpl.addInstruction(trustCall, BuilderInstruction35c(
+                Opcode.INVOKE_VIRTUAL, 1, contextReg, 0, 0, 0, 0,
+                ImmutableMethodReference("Landroid/content/Context;", "getPackageName", emptyList(), "Ljava/lang/String;")
+            ))
+            d3yImpl.addInstruction(trustCall + 1, BuilderInstruction11x(Opcode.MOVE_RESULT_OBJECT, contextReg))
+            d3yImpl.addInstruction(trustCall + 2, BuilderInstruction35c(
                 Opcode.INVOKE_VIRTUAL, 2, contextReg, packageReg, 0, 0, 0,
                 ImmutableMethodReference("Ljava/lang/String;", "equals", listOf("Ljava/lang/Object;"), "Z")
             ))

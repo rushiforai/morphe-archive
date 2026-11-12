@@ -111,31 +111,51 @@ public final class SettingsActivity extends Activity {
         buttons.addView(apply);
         root.addView(buttons);
 
-        root.addView(toggle(MorpheSettings.VIDEO_DOWNLOAD,
+        addToggle(root, MorpheSettings.VIDEO_DOWNLOAD,
                 vi ? "Tải video" : "Download videos",
                 vi ? "Hiện nút tải khi đang xem video hoặc reel. Video được lưu vào thư mục Movies/Facebook Lite."
-                        : "Shows a download button while a video or reel is playing. Videos are saved to Movies/Facebook Lite."));
-        root.addView(toggle(MorpheSettings.ASK_DOWNLOAD_QUALITY,
+                        : "Shows a download button while a video or reel is playing. Videos are saved to Movies/Facebook Lite.");
+        addToggle(root, MorpheSettings.ASK_DOWNLOAD_QUALITY,
                 vi ? "Chọn chất lượng khi tải" : "Choose quality when downloading",
                 vi ? "Hỏi chất lượng (HD, SD...) mỗi lần tải. Tắt thì luôn lưu chất lượng cao nhất."
-                        : "Asks for the quality (HD, SD...) each time you download. Off: always saves the highest quality available."));
-        root.addView(toggle(MorpheSettings.AUTO_NEXT_REEL,
+                        : "Asks for the quality (HD, SD...) each time you download. Off: always saves the highest quality available.");
+        addToggle(root, MorpheSettings.AUTO_NEXT_REEL,
                 vi ? "Tự chuyển reel tiếp theo" : "Auto next reel",
                 vi ? "Khi một reel phát hết, tự chuyển sang reel tiếp theo thay vì phát lại."
-                        : "When a reel ends, moves on to the next one instead of playing it again."));
+                        : "When a reel ends, moves on to the next one instead of playing it again.");
 
-        root.addView(toggle(MorpheSettings.REELS_HIDE_ADS,
+        addToggle(root, MorpheSettings.SHORT_VIDEO_CONTROLS,
+                vi ? "Thanh tua cho video ngắn" : "Seek bar for short videos",
+                vi ? "Hiện thanh tua và nút tua lùi/tiến 10 giây cho reel và video dưới 1 phút khi điều khiển của Facebook Lite không hiện."
+                        : "Shows a seek bar and the back and forward 10 second buttons on reels and videos under a minute whenever the app's own controls are not showing.");
+        addToggle(root, MorpheSettings.DOUBLE_TAP_SEEK,
+                vi ? "Chạm đúp để tua" : "Double tap to seek",
+                vi ? "Chạm đúp vào bên trái hoặc bên phải video để tua lùi hoặc tiến 10 giây. Giữa video không đổi."
+                        : "Double tap the left or right side of a reel or video to go back or forward 10 seconds. The middle is left to the app.");
+        addToggle(root, MorpheSettings.REELS_HIDE_ADS,
                 vi ? "Xóa reel quảng cáo" : "Remove sponsored reels",
                 vi ? "Gỡ reel quảng cáo ngay khi tải, nên vuốt đi thẳng sang reel kế tiếp mà không bị cuộn tự động. Áp dụng cho reel tải sau khi mở tab Reels."
-                        : "Collapses sponsored reels as they load, so a swipe goes straight to the next real reel with no automatic scrolling. Applies to reels loaded after the Reels tab is opened."));
-        root.addView(toggle(MorpheSettings.STORIES_HIDE_ADS,
+                        : "Collapses sponsored reels as they load, so a swipe goes straight to the next real reel with no automatic scrolling. Applies to reels loaded after the Reels tab is opened.");
+        addToggle(root, MorpheSettings.STORIES_HIDE_ADS,
                 vi ? "Bỏ qua story quảng cáo" : "Skip sponsored stories",
                 vi ? "Khi một story được tài trợ hiện ra, tự chuyển sang story tiếp theo và không hiện nút tải."
-                        : "When a sponsored story shows up, moves on to the next story and shows no download button."));
-        root.addView(toggle(MorpheSettings.DEBUG_LOG,
+                        : "When a sponsored story shows up, moves on to the next story and shows no download button.");
+        addToggle(root, MorpheSettings.PROFILE_WHEN_NO_REELS,
+                vi ? "Mở hồ sơ khi không có reel" : "Open profile when no reels",
+                vi ? "Khi trang Reels của một người đăng chưa có reel nào, tự mở hồ sơ chính của họ (menu 3 chấm > Xem hồ sơ chính)."
+                        : "When a creator's Reels page says \"No reels yet\", opens their main profile for you (3 dot menu > View main profile).");
+        addToggle(root, MorpheSettings.PROFILE_ALWAYS,
+                vi ? "Bỏ qua trang Reels của người đăng" : "Skip creator's Reels page",
+                vi ? "Khi mở trang Reels của một người đăng (bấm tên họ trong reel), luôn mở hồ sơ chính của họ, kể cả khi trang có reel."
+                        : "When a creator's Reels page opens (tapping their name in a reel), always opens their main profile, even when the page has reels.");
+        addToggle(root, MorpheSettings.HIDE_OVER_COMMENTS,
+                vi ? "Ẩn nút khi mở bình luận" : "Hide buttons over comments",
+                vi ? "Ẩn nút tải và thanh tua khi bảng bình luận hoặc menu mở trên video. Tắt nếu nút biến mất nhầm."
+                        : "Hides the download button and the seek bar while the comment sheet or a menu is open over the video. Turn off if the buttons vanish by mistake.");
+        addToggle(root, MorpheSettings.DEBUG_LOG,
                 vi ? "Ghi nhật ký gỡ lỗi" : "Debug logging",
                 vi ? "Ghi cách Facebook tải quảng cáo (bảng tin, Reels, Marketplace) và nguồn video vào một tệp nhật ký. Nhật ký có chữ hiện trên màn hình. Chỉ bật khi cần."
-                        : "Logs how Facebook loads ads (feed, Reels, Marketplace) and where videos come from. The log holds on-screen text. Keep off unless needed."));
+                        : "Logs how Facebook loads ads (feed, Reels, Marketplace) and where videos come from. The log holds on-screen text. Keep off unless needed.");
 
         LinearLayout logButtons = new LinearLayout(this);
         logButtons.setGravity(Gravity.END);
@@ -162,6 +182,10 @@ public final class SettingsActivity extends Activity {
         });
         setContentView(scroll);
         update();
+    }
+
+    private void addToggle(LinearLayout root, String key, String title, String summary) {
+        if (PatchedFeatures.allowed(key)) root.addView(toggle(key, title, summary));
     }
 
     private LinearLayout toggle(final String key, String title, String summary) {

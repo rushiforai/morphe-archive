@@ -4,7 +4,6 @@ import app.morphe.patcher.patch.bytecodePatch
 import com.dmoniak.patches.shared.Constants.COMPATIBILITY_YOUTUBE
 import java.util.logging.Logger
 
-@Suppress("unused")
 val youtubeHidePlayerOverlayButtons = bytecodePatch(
     name = "Hide player overlay buttons - YouTube (Experimental)",
     description = "\u26A0\uFE0F [En cours de d\u00E9veloppement / Non test\u00E9] Adds options to hide the player Cast, Autoplay, Captions, Previous & Next buttons, and to hide or change the opacity of the player control buttons background.",
@@ -17,7 +16,6 @@ val youtubeHidePlayerOverlayButtons = bytecodePatch(
     }
 }
 
-@Suppress("unused")
 val youtubeHideRelatedVideoOverlay = bytecodePatch(
     name = "Hide related video overlay - YouTube (Experimental)",
     description = "\u26A0\uFE0F [En cours de d\u00E9veloppement / Non test\u00E9] Adds an option to hide the related video overlay shown when swiping up in fullscreen.",
@@ -30,7 +28,6 @@ val youtubeHideRelatedVideoOverlay = bytecodePatch(
     }
 }
 
-@Suppress("unused")
 val youtubeHideRelatedVideos = bytecodePatch(
     name = "Hide related videos - YouTube (Experimental)",
     description = "\u26A0\uFE0F [En cours de d\u00E9veloppement / Non test\u00E9] Adds options to hide related videos.",
@@ -43,7 +40,6 @@ val youtubeHideRelatedVideos = bytecodePatch(
     }
 }
 
-@Suppress("unused")
 val youtubeHideStatusBar = bytecodePatch(
     name = "Hide status bar - YouTube (Experimental)",
     description = "\u26A0\uFE0F [En cours de d\u00E9veloppement / Non test\u00E9] Adds an option to hide the system status bar. Swipe down from the top edge to show it for a moment.",
@@ -56,7 +52,6 @@ val youtubeHideStatusBar = bytecodePatch(
     }
 }
 
-@Suppress("unused")
 val youtubeHideTimestamp = bytecodePatch(
     name = "Hide timestamp - YouTube (Experimental)",
     description = "\u26A0\uFE0F [En cours de d\u00E9veloppement / Non test\u00E9] Adds an option to hide the timestamp in the bottom left of the video player.",
@@ -69,7 +64,6 @@ val youtubeHideTimestamp = bytecodePatch(
     }
 }
 
-@Suppress("unused")
 val youtubeHideVideoActionButtons = bytecodePatch(
     name = "Hide video action buttons - YouTube (Experimental)",
     description = "\u26A0\uFE0F [En cours de d\u00E9veloppement / Non test\u00E9] Adds options to hide video action buttons in fullscreen and portrait modes.",
@@ -82,7 +76,6 @@ val youtubeHideVideoActionButtons = bytecodePatch(
     }
 }
 
-@Suppress("unused")
 val youtubeLoopVideo = bytecodePatch(
     name = "Loop video - YouTube (Experimental)",
     description = "\u26A0\uFE0F [En cours de d\u00E9veloppement / Non test\u00E9] Adds an option to loop videos and display loop video button in the video player.",
@@ -95,7 +88,6 @@ val youtubeLoopVideo = bytecodePatch(
     }
 }
 
-@Suppress("unused")
 val youtubeMediaNotificationControls = bytecodePatch(
     name = "Media notification controls - YouTube (Experimental)",
     description = "\u26A0\uFE0F [En cours de d\u00E9veloppement / Non test\u00E9] Adds options to disable the seekbar and previous/next buttons in the media notification and headphone controls.",
@@ -108,7 +100,6 @@ val youtubeMediaNotificationControls = bytecodePatch(
     }
 }
 
-@Suppress("unused")
 val youtubeMiniplayer = bytecodePatch(
     name = "Miniplayer - YouTube (Experimental)",
     description = "\u26A0\uFE0F [En cours de d\u00E9veloppement / Non test\u00E9] Adds options to change the in-app minimized player. Patching 21.28.206 and lower has more miniplayer types to choose from.",
@@ -121,7 +112,6 @@ val youtubeMiniplayer = bytecodePatch(
     }
 }
 
-@Suppress("unused")
 val youtubeMuteButton = bytecodePatch(
     name = "Mute button - YouTube (Experimental)",
     description = "\u26A0\uFE0F [En cours de d\u00E9veloppement / Non test\u00E9] Adds an option to show a player button that mutes the video audio.",
@@ -134,7 +124,6 @@ val youtubeMuteButton = bytecodePatch(
     }
 }
 
-@Suppress("unused")
 val youtubeNavigationBar = bytecodePatch(
     name = "Navigation bar - YouTube (Experimental)",
     description = "\u26A0\uFE0F [En cours de d\u00E9veloppement / Non test\u00E9] Adds options to hide and change the bottom navigation bar (such as the Shorts button) and the upper navigation toolbar.",
@@ -147,7 +136,6 @@ val youtubeNavigationBar = bytecodePatch(
     }
 }
 
-@Suppress("unused")
 val youtubeNetworkProxy = bytecodePatch(
     name = "Network proxy - YouTube (Experimental)",
     description = "\u26A0\uFE0F [En cours de d\u00E9veloppement / Non test\u00E9] Adds settings to route supported network requests through an HTTP or HTTPS proxy. Including this patch may cause connectivity problems on certain devices",
@@ -160,7 +148,6 @@ val youtubeNetworkProxy = bytecodePatch(
     }
 }
 
-@Suppress("unused")
 val youtubeOpenShortsInRegularPlayer = bytecodePatch(
     name = "Open Shorts in regular player - YouTube (Experimental)",
     description = "\u26A0\uFE0F [En cours de d\u00E9veloppement / Non test\u00E9] Adds options to open Shorts in the regular video player.",
@@ -173,7 +160,6 @@ val youtubeOpenShortsInRegularPlayer = bytecodePatch(
     }
 }
 
-@Suppress("unused")
 val youtubeOpenChannelOfLiveAvatar = bytecodePatch(
     name = "Open channel of live avatar - YouTube (Experimental)",
     description = "\u26A0\uFE0F [En cours de d\u00E9veloppement / Non test\u00E9] Adds an option to prevent a channel's current live video from opening when tapping its avatar.",
@@ -186,7 +172,6 @@ val youtubeOpenChannelOfLiveAvatar = bytecodePatch(
     }
 }
 
-@Suppress("unused")
 val youtubeOpenLinksExternally = bytecodePatch(
     name = "Open links externally - YouTube (Experimental)",
     description = "\u26A0\uFE0F [En cours de d\u00E9veloppement / Non test\u00E9] Adds an option to always open links in your browser instead of with the in-app browser.",
@@ -199,7 +184,6 @@ val youtubeOpenLinksExternally = bytecodePatch(
     }
 }
 
-@Suppress("unused")
 val youtubeOpenSystemShareSheet = bytecodePatch(
     name = "Open system share sheet - YouTube (Experimental)",
     description = "\u26A0\uFE0F [En cours de d\u00E9veloppement / Non test\u00E9] Adds an option to always open the system share sheet instead of the in-app share sheet.",
@@ -212,7 +196,6 @@ val youtubeOpenSystemShareSheet = bytecodePatch(
     }
 }
 
-@Suppress("unused")
 val youtubeOpenVideosFullscreen = bytecodePatch(
     name = "Open videos fullscreen - YouTube (Experimental)",
     description = "\u26A0\uFE0F [En cours de d\u00E9veloppement / Non test\u00E9] Adds options to automatically open videos in fullscreen portrait or landscape mode.",
@@ -225,7 +208,6 @@ val youtubeOpenVideosFullscreen = bytecodePatch(
     }
 }
 
-@Suppress("unused")
 val youtubeOverrideYoutubeMusicButtons = bytecodePatch(
     name = "Override YouTube Music buttons - YouTube (Experimental)",
     description = "\u26A0\uFE0F [En cours de d\u00E9veloppement / Non test\u00E9] Overrides YouTube Music buttons to open Morphe Music or any compatible third-party client.",
@@ -238,7 +220,6 @@ val youtubeOverrideYoutubeMusicButtons = bytecodePatch(
     }
 }
 
-@Suppress("unused")
 val youtubePictureInPictureButton = bytecodePatch(
     name = "Picture-in-picture button - YouTube (Experimental)",
     description = "\u26A0\uFE0F [En cours de d\u00E9veloppement / Non test\u00E9] Adds an option to display a picture-in-picture button in the video player.",
@@ -251,7 +232,6 @@ val youtubePictureInPictureButton = bytecodePatch(
     }
 }
 
-@Suppress("unused")
 val youtubePlayAll = bytecodePatch(
     name = "Play all - YouTube (Experimental)",
     description = "\u26A0\uFE0F [En cours de d\u00E9veloppement / Non test\u00E9] Adds an option to play all the videos from a channel and to display play all button in the video player.",
@@ -264,7 +244,6 @@ val youtubePlayAll = bytecodePatch(
     }
 }
 
-@Suppress("unused")
 val youtubePlaybackBuffer = bytecodePatch(
     name = "Playback buffer - YouTube (Experimental)",
     description = "\u26A0\uFE0F [En cours de d\u00E9veloppement / Non test\u00E9] Adds an option to change the video playback buffer size.",
@@ -277,7 +256,6 @@ val youtubePlaybackBuffer = bytecodePatch(
     }
 }
 
-@Suppress("unused")
 val youtubePlaybackInFeeds = bytecodePatch(
     name = "Playback in feeds - YouTube (Experimental)",
     description = "\u26A0\uFE0F [En cours de d\u00E9veloppement / Non test\u00E9] Adds the 'Playback in feeds' setting of YouTube to the Morphe settings, where it is always available even if YouTube hides it.",
@@ -290,7 +268,6 @@ val youtubePlaybackInFeeds = bytecodePatch(
     }
 }
 
-@Suppress("unused")
 val youtubePlaybackSpeed = bytecodePatch(
     name = "Playback speed - YouTube (Experimental)",
     description = "\u26A0\uFE0F [En cours de d\u00E9veloppement / Non test\u00E9] Adds options to customize available playback speeds, set a default playback speed, and show a speed dialog button in the video player.",
@@ -303,7 +280,6 @@ val youtubePlaybackSpeed = bytecodePatch(
     }
 }
 
-@Suppress("unused")
 val youtubePlayerIconStyle = bytecodePatch(
     name = "Player icon style - YouTube (Experimental)",
     description = "\u26A0\uFE0F [En cours de d\u00E9veloppement / Non test\u00E9] Adds an option to change the style of the player button icons.",
@@ -316,7 +292,6 @@ val youtubePlayerIconStyle = bytecodePatch(
     }
 }
 
-@Suppress("unused")
 val youtubePotokenProvider = bytecodePatch(
     name = "PoToken provider - YouTube (Experimental)",
     description = "\u26A0\uFE0F [En cours de d\u00E9veloppement / Non test\u00E9] Adds option to get PoToken using an external PoToken minter app.",
@@ -329,7 +304,6 @@ val youtubePotokenProvider = bytecodePatch(
     }
 }
 
-@Suppress("unused")
 val youtubeReloadVideo = bytecodePatch(
     name = "Reload video - YouTube (Experimental)",
     description = "\u26A0\uFE0F [En cours de d\u00E9veloppement / Non test\u00E9] Adds an option to display reload video button in the video player.",
@@ -342,7 +316,6 @@ val youtubeReloadVideo = bytecodePatch(
     }
 }
 
-@Suppress("unused")
 val youtubeRememberLiveStreamPlaybackPosition = bytecodePatch(
     name = "Remember live stream playback position - YouTube (Experimental)",
     description = "\u26A0\uFE0F [En cours de d\u00E9veloppement / Non test\u00E9] Adds an option to remember the playback position of an ongoing live stream and resume from there when reopening that live stream.",
@@ -355,7 +328,6 @@ val youtubeRememberLiveStreamPlaybackPosition = bytecodePatch(
     }
 }
 
-@Suppress("unused")
 val youtubeRemoveBackgroundPlaybackRestrictions = bytecodePatch(
     name = "Remove background playback restrictions - YouTube (Experimental)",
     description = "\u26A0\uFE0F [En cours de d\u00E9veloppement / Non test\u00E9] Removes restrictions on background playback, including playing kids videos in the background.",
@@ -368,7 +340,6 @@ val youtubeRemoveBackgroundPlaybackRestrictions = bytecodePatch(
     }
 }
 
-@Suppress("unused")
 val youtubeRemoveViewerDiscretionDialog = bytecodePatch(
     name = "Remove viewer discretion dialog - YouTube (Experimental)",
     description = "\u26A0\uFE0F [En cours de d\u00E9veloppement / Non test\u00E9] Adds an option to remove the dialog that appears when opening a video that has been age-restricted by accepting it automatically. This does not bypass the age restriction.",
@@ -381,7 +352,6 @@ val youtubeRemoveViewerDiscretionDialog = bytecodePatch(
     }
 }
 
-@Suppress("unused")
 val youtubeRestoreOriginalTitles = bytecodePatch(
     name = "Restore original titles - YouTube (Experimental)",
     description = "\u26A0\uFE0F [En cours de d\u00E9veloppement / Non test\u00E9] Adds an option to show the original video titles, video descriptions and channel descriptions instead of the auto-translated ones.",
@@ -394,7 +364,6 @@ val youtubeRestoreOriginalTitles = bytecodePatch(
     }
 }
 
-@Suppress("unused")
 val youtubeSanitizeSharingLinks = bytecodePatch(
     name = "Sanitize sharing links - YouTube (Experimental)",
     description = "\u26A0\uFE0F [En cours de d\u00E9veloppement / Non test\u00E9] Removes the tracking query parameters from shared links.",
@@ -407,7 +376,6 @@ val youtubeSanitizeSharingLinks = bytecodePatch(
     }
 }
 
-@Suppress("unused")
 val youtubeSaveToWatchLater = bytecodePatch(
     name = "Save to Watch later - YouTube (Experimental)",
     description = "\u26A0\uFE0F [En cours de d\u00E9veloppement / Non test\u00E9] Adds an option to display save to Watch later button in the video player.",
@@ -420,7 +388,6 @@ val youtubeSaveToWatchLater = bytecodePatch(
     }
 }
 
-@Suppress("unused")
 val youtubeSeekbar = bytecodePatch(
     name = "Seekbar - YouTube (Experimental)",
     description = "\u26A0\uFE0F [En cours de d\u00E9veloppement / Non test\u00E9] Adds options to show old seekbar thumbnails, disable precise seeking when swiping up on the seekbar, slide to seek instead of playing at 2x speed when pressing and holding, tapping the player seekbar to seek, hiding the video player seekbar, enabling seeking in live streams, and expanding the live stream DVR duration.",
@@ -433,7 +400,6 @@ val youtubeSeekbar = bytecodePatch(
     }
 }
 
-@Suppress("unused")
 val youtubeSettingsMenuFilter = bytecodePatch(
     name = "Settings menu filter - YouTube (Experimental)",
     description = "\u26A0\uFE0F [En cours de d\u00E9veloppement / Non test\u00E9] Adds an option to hide items on the standard YouTube settings screen by their visible name.",
@@ -446,7 +412,6 @@ val youtubeSettingsMenuFilter = bytecodePatch(
     }
 }
 
-@Suppress("unused")
 val youtubeShortsAutoplay = bytecodePatch(
     name = "Shorts autoplay - YouTube (Experimental)",
     description = "\u26A0\uFE0F [En cours de d\u00E9veloppement / Non test\u00E9] Adds options to automatically play the next Short.",
@@ -459,7 +424,6 @@ val youtubeShortsAutoplay = bytecodePatch(
     }
 }
 
-@Suppress("unused")
 val youtubeShortsIconStyle = bytecodePatch(
     name = "Shorts icon style - YouTube (Experimental)",
     description = "\u26A0\uFE0F [En cours de d\u00E9veloppement / Non test\u00E9] Adds an option to change the style of the Shorts action button icons.",
@@ -472,7 +436,6 @@ val youtubeShortsIconStyle = bytecodePatch(
     }
 }
 
-@Suppress("unused")
 val youtubeSpoofAppVersion = bytecodePatch(
     name = "Spoof app version - YouTube (Experimental)",
     description = "\u26A0\uFE0F [En cours de d\u00E9veloppement / Non test\u00E9] Adds an option to trick the app into thinking you are running an older version.",
@@ -485,7 +448,6 @@ val youtubeSpoofAppVersion = bytecodePatch(
     }
 }
 
-@Suppress("unused")
 val youtubeSpoofDeviceDimensions = bytecodePatch(
     name = "Spoof device dimensions - YouTube (Experimental)",
     description = "\u26A0\uFE0F [En cours de d\u00E9veloppement / Non test\u00E9] Adds an option to spoof the device dimensions which can unlock higher video qualities.",
@@ -498,7 +460,6 @@ val youtubeSpoofDeviceDimensions = bytecodePatch(
     }
 }
 
-@Suppress("unused")
 val youtubeSpoofVideoStreams = bytecodePatch(
     name = "Spoof video streams - YouTube (Experimental)",
     description = "\u26A0\uFE0F [En cours de d\u00E9veloppement / Non test\u00E9] Adds options to spoof the client video streams to fix playback.",
@@ -511,7 +472,6 @@ val youtubeSpoofVideoStreams = bytecodePatch(
     }
 }
 
-@Suppress("unused")
 val youtubeTheme = bytecodePatch(
     name = "Theme - YouTube (Experimental)",
     description = "\u26A0\uFE0F [En cours de d\u00E9veloppement / Non test\u00E9] Adds options for theming, and settings to change the app foreground and background colors.",
@@ -524,7 +484,6 @@ val youtubeTheme = bytecodePatch(
     }
 }
 
-@Suppress("unused")
 val youtubeVideoQuality = bytecodePatch(
     name = "Video quality - YouTube (Experimental)",
     description = "\u26A0\uFE0F [En cours de d\u00E9veloppement / Non test\u00E9] Adds options to set default video qualities and always use the advanced video quality menu.",
@@ -537,7 +496,6 @@ val youtubeVideoQuality = bytecodePatch(
     }
 }
 
-@Suppress("unused")
 val youtubeVoiceOverTranslation = bytecodePatch(
     name = "Voice over translation - YouTube (Experimental)",
     description = "\u26A0\uFE0F [En cours de d\u00E9veloppement / Non test\u00E9] Adds additional voice over languages using text-to-speech synchronized to the video playback.",
@@ -550,7 +508,6 @@ val youtubeVoiceOverTranslation = bytecodePatch(
     }
 }
 
-@Suppress("unused")
 val youtubeWideSearchBar = bytecodePatch(
     name = "Wide search bar - YouTube (Experimental)",
     description = "\u26A0\uFE0F [En cours de d\u00E9veloppement / Non test\u00E9] Adds a wide search bar to the top of the home and subscription feed.",

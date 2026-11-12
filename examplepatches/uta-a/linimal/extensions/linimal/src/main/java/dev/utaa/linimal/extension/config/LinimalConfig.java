@@ -150,6 +150,10 @@ public final class LinimalConfig {
         return isEnabled(LinimalFeature.AGENT_I_CHAT_COMPOSER);
     }
 
+    public boolean isAgentIChatPlusMenuSuppressionEnabled() {
+        return isEnabled(LinimalFeature.AGENT_I_CHAT_PLUS_MENU);
+    }
+
     public boolean isAgentIChatListSearchSuppressionEnabled() {
         return isEnabled(LinimalFeature.AGENT_I_CHAT_LIST_SEARCH);
     }
@@ -180,6 +184,10 @@ public final class LinimalConfig {
 
     public boolean isPreviewScrollEnabled() {
         return isEnabled(LinimalFeature.PREVIEW_SCROLL);
+    }
+
+    public boolean isPreviewDisableEnabled() {
+        return isEnabled(LinimalFeature.PREVIEW_DISABLE);
     }
 
     public boolean isAmoledThemeEnabled() {
@@ -214,6 +222,10 @@ public final class LinimalConfig {
         return isEnabled(LinimalFeature.HOME_FEATURED_COLLECTIONS);
     }
 
+    public boolean isHomeFeedLiveSuppressionEnabled() {
+        return isEnabled(LinimalFeature.HOME_FEED_LIVE);
+    }
+
     public boolean isHomeRecentHistorySuppressionEnabled() {
         return isEnabled(LinimalFeature.HOME_RECENT_HISTORY);
     }
@@ -236,6 +248,36 @@ public final class LinimalConfig {
 
     public boolean isNotificationReadWithoutReceiptEnabled() {
         return isEnabled(LinimalFeature.NOTIFICATION_READ_WITHOUT_RECEIPT);
+    }
+
+    /** 既読ラベルの横に、既読したメンバーのアイコンを並べます。 */
+    public boolean isReadReceiptReadersIconsEnabled() {
+        return isEnabled(LinimalFeature.READ_RECEIPT_READERS_ICONS);
+    }
+
+    /** 既読ラベルのタップで、既読したメンバーの一覧を開きます。 */
+    public boolean isReadReceiptReadersTapEnabled() {
+        return isEnabled(LinimalFeature.READ_RECEIPT_READERS_TAP);
+    }
+
+    /** 他人のメッセージの時刻の上に「既読 N」を表示します。 */
+    public boolean isReadReceiptReadersOthersCountEnabled() {
+        return isEnabled(LinimalFeature.READ_RECEIPT_READERS_OTHERS_COUNT);
+    }
+
+    /** 他人のメッセージの時刻の上に、既読したメンバーのアイコンを並べます。 */
+    public boolean isReadReceiptReadersOthersIconsEnabled() {
+        return isEnabled(LinimalFeature.READ_RECEIPT_READERS_OTHERS_ICONS);
+    }
+
+    /** メッセージの長押しメニューに、既読したメンバーの一覧を開く項目を追加します。 */
+    public boolean isReadReceiptReadersMenuEnabled() {
+        return isEnabled(LinimalFeature.READ_RECEIPT_READERS_MENU);
+    }
+
+    /** 一覧を開いたとき、LINE 自身の既読範囲の同期を 1 トーク分だけ実行します。 */
+    public boolean isReadReceiptReadersServerSyncEnabled() {
+        return isEnabled(LinimalFeature.READ_RECEIPT_READERS_SERVER_SYNC);
     }
 
     /** 既読なし閲覧中の送信操作で、抑制を解除しない設定です。通常入室の既読には作用しません。 */

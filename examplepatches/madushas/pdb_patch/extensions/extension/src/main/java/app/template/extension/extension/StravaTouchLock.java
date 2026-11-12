@@ -111,26 +111,41 @@ public final class StravaTouchLock implements Application.ActivityLifecycleCallb
         }
     }
 
-    private TextView makePill(Activity activity, boolean isLocked,
-                              View.OnClickListener onClick) {
+    /**
+     * Pill wrapped in a full-width bar. Center the pill inside OUR OWN
+     * FrameLayout: some OEM DecorViews ignore gravity in the LayoutParams the
+     * caller passes, which parked the bare pill at the top-left (observed on
+     * the ZTE). A full-width bar always works because the centering happens
+     * in a FrameLayout we control.
+     */
+    private View makePill(Activity activity, boolean isLocked,
+                          View.OnClickListener onClick) {
         float d = activity.getResources().getDisplayMetrics().density;
         TextView pill = new TextView(activity);
-        pill.setText(isLocked ? "tap to unlock" : "tap to lock");
-        pill.setTextSize(11);
+        pill.setText(isLocked ? "\uD83D\uDD12  Tap to unlock" : "\uD83D\uDD13  Tap to lock");
+        pill.setTextSize(12);
+        pill.setTypeface(pill.getTypeface(), android.graphics.Typeface.BOLD);
         pill.setTextColor(Color.WHITE);
         pill.setGravity(Gravity.CENTER);
-        pill.setPadding((int) (14 * d), (int) (7 * d), (int) (14 * d), (int) (7 * d));
+        pill.setPadding((int) (18 * d), (int) (9 * d), (int) (18 * d), (int) (9 * d));
         GradientDrawable bg = new GradientDrawable();
-        bg.setColor(isLocked ? 0xCC1C1C1E : 0x661C1C1E);
-        bg.setCornerRadius(18 * d);
+        bg.setColor(isLocked ? 0xE61C1C1E : 0x991C1C1E);
+        bg.setCornerRadius(22 * d);
         pill.setBackgroundDrawable(bg);
-        FrameLayout.LayoutParams pl = new FrameLayout.LayoutParams(
+        FrameLayout.LayoutParams inner = new FrameLayout.LayoutParams(
             ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        pl.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
-        pl.topMargin = (int) (116 * d);
-        pill.setLayoutParams(pl);
+        inner.gravity = Gravity.CENTER_HORIZONTAL | Gravity.TOP;
+        pill.setLayoutParams(inner);
         pill.setOnClickListener(onClick);
-        return pill;
+
+        FrameLayout bar = new FrameLayout(activity);
+        bar.setClipChildren(false);
+        bar.addView(pill);
+        FrameLayout.LayoutParams outer = new FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        outer.topMargin = (int) (92 * d);
+        bar.setLayoutParams(outer);
+        return bar;
     }
 
     private void flip(final Activity activity, boolean lock) {

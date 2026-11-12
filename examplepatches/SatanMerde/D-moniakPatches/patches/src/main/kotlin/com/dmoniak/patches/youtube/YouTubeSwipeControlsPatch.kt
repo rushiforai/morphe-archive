@@ -7,7 +7,6 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.dmoniak.patches.shared.Constants.COMPATIBILITY_YOUTUBE
 import java.util.logging.Logger
 
-@Suppress("unused")
 val youtubeSwipeControlsPatch = bytecodePatch(
     name = "Swipe Controls - YouTube (Experimental)",
     description = "⚠️ [Experimental / Untested] Enables intuitive vertical swipe gestures during fullscreen video playback to adjust volume (right side) and brightness (left side).",
@@ -26,7 +25,7 @@ fun BytecodePatchContext.executeYouTubeSwipeControlsLogic(logger: Logger) {
 
     classDefForEach { classDef ->
         val tl = classDef.type.lowercase()
-        if (tl.contains("androidx") || tl.contains("android/support")) return@classDefForEach
+        if (!tl.contains("androidx") && !tl.contains("android/support")) {
 
         val mutableClass by lazy { mutableClassDefBy(classDef) }
 
@@ -59,6 +58,7 @@ fun BytecodePatchContext.executeYouTubeSwipeControlsLogic(logger: Logger) {
                     logger.warning("[YouTube Swipe] Failed to hook ${method.name}: ${e.message}")
                 }
             }
+        }
         }
     }
 

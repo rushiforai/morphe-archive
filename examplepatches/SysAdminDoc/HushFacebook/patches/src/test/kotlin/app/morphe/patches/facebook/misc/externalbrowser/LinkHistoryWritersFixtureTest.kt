@@ -15,6 +15,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstructio
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import org.junit.Assert.assertEquals
@@ -28,7 +29,8 @@ import org.junit.Test
  * null on its own somewhere, which is what makes null a value its callers already handle, and needs a
  * local register for the hook to borrow. Each build also has one link history upload, which the
  * switch has return before it builds or sends anything, and one of each autofill report, which it
- * has return before it logs.
+ * has return before it logs. And one browser event logger, where the extension gets the last word on
+ * each answer Facebook's sampling gives.
  */
 class LinkHistoryWritersFixtureTest {
     @Test
@@ -157,6 +159,201 @@ class LinkHistoryWritersFixtureTest {
                     assertEquals("$name: the rest is Facebook's",
                         code.map { it.opcode }.filter { it != Opcode.NOP }, patched.drop(4).map { it.opcode }.filter { it != Opcode.NOP })
                 }
+                checked += version
+            }
+        }
+        assertEquals("a declared build has no fixture", versions, checked)
+        assertEquals("an ABI went unchecked", Fixtures.declaredAbis(), Fixtures.abisOf(abis))
+    }
+
+    @Test
+    fun `each declared build has one ad event callback, and the hook returns before it logs`() {
+        val versions = AppCompatibilities.facebook().single().targets.mapNotNull { it.version }.toSet()
+        val checked = mutableSetOf<String>()
+        val abis = mutableSetOf<String>()
+        for (version in versions) {
+            for (bundle in Fixtures.files { it.extension == "apkm" && it.name.contains("-$version-") }) {
+                val name = bundle.name
+                abis += name.substringAfter("-$version-").substringBefore(".apkm")
+                val classes = FixtureDex.classesHolding(bundle, AD_EVENT_CALLBACK_ANCHOR)
+                    .filterNot { it.type.startsWith("Lapp/morphe/") }.distinctBy { it.type }
+                val context = PatchContexts.of(classes)
+                val callback = context.adEventCallback()
+                val code = callback.implementation!!.instructions.toList()
+                println("$name: ad event callback ${callback.definingClass}->${callback.name}")
+                // Positive control, from the 586 dex read: the attention events and the call button's
+                // render and tap each ask isSampled, and the confirm dialog's steps go to the
+                // click-to-call app state logger.
+                val strings = code.mapNotNull { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string }
+                assertTrue("$name: no attention events", "ATTENTION_FRAMEWORK" in strings)
+                assertTrue("$name: no call button tap", "CALL_EXTENSION_CTA_CLICKED" in strings)
+                val calls = code.mapNotNull { ((it as? ReferenceInstruction)?.reference as? MethodReference) }
+                assertEquals("$name: sampling checks", 3, calls.count { it.name == "isSampled" })
+                assertTrue("$name: no click-to-call app state logger",
+                    calls.any { it.definingClass == "Lcom/facebook/clicktocall/CTCAppStateLogger;" })
+                val locals = callback.implementation!!.registerCount - callback.parameterTypes.size - 1
+                assertTrue("$name: no local to borrow", locals >= 1)
+                assertTrue("$name: a jump lands on the first instruction", 0 !in branchTargets(code))
+                // Negative control: the other method of its shape on that class names no call button.
+                val shaped = context.mutableClassDefBy(callback.definingClass).methods.filter {
+                    it.parameterTypes.map(CharSequence::toString) == listOf("Landroid/os/Bundle;", "Ljava/lang/String;", "Ljava/util/Map;")
+                }
+                assertTrue("$name: only ${shaped.size} methods of its shape", shaped.size >= 2)
+                assertEquals("$name: callbacks among them", 1, shaped.count(::isAdEventCallback))
+
+                val types = callback.parameterTypes.map(CharSequence::toString)
+                context.mutableClassDefBy(callback.definingClass).findMutableMethodOf(callback).holdAdEvent()
+                val patched = context.mutableClassDefBy(callback.definingClass).methods.single {
+                    it.name == callback.name && it.parameterTypes.map(CharSequence::toString) == types
+                }.implementation!!.instructions.toList()
+                assertEquals("$name: the gate",
+                    listOf(Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.RETURN_VOID),
+                    patched.take(4).map { it.opcode })
+                assertEquals("$name: the gate asks holdAdEvent", HOLD_AD_EVENT,
+                    ((patched[0] as ReferenceInstruction).reference as MethodReference).toString())
+                assertEquals("$name: the gate tests the answer it kept",
+                    (patched[1] as OneRegisterInstruction).registerA, (patched[2] as OneRegisterInstruction).registerA)
+                assertEquals("$name: where a no goes", patched[2].codeUnits + patched[3].codeUnits,
+                    (patched[2] as OffsetInstruction).codeOffset)
+                assertEquals("$name: the rest is Facebook's",
+                    code.map { it.opcode }.filter { it != Opcode.NOP }, patched.drop(4).map { it.opcode }.filter { it != Opcode.NOP })
+                checked += version
+            }
+        }
+        assertEquals("a declared build has no fixture", versions, checked)
+        assertEquals("an ABI went unchecked", Fixtures.declaredAbis(), Fixtures.abisOf(abis))
+    }
+
+    @Test
+    fun `each declared build has one integrity callback, and the hook asks with the event's name before anything else`() {
+        val versions = AppCompatibilities.facebook().single().targets.mapNotNull { it.version }.toSet()
+        val checked = mutableSetOf<String>()
+        val abis = mutableSetOf<String>()
+        for (version in versions) {
+            for (bundle in Fixtures.files { it.extension == "apkm" && it.name.contains("-$version-") }) {
+                val name = bundle.name
+                abis += name.substringAfter("-$version-").substringBefore(".apkm")
+                val classes = FixtureDex.classesHolding(bundle, INTEGRITY_CALLBACK_ANCHOR)
+                    .filterNot { it.type.startsWith("Lapp/morphe/") }.distinctBy { it.type }
+                val context = PatchContexts.of(classes)
+                val callback = context.integrityCallback()
+                val code = callback.implementation!!.instructions.toList()
+                println("$name: integrity callback ${callback.definingClass}->${callback.name}")
+                // Positive control, from the 586 dex read: it starts the cloaking check, the signals and
+                // outbound click events each ask isSampled, and it switches on the event name's hash.
+                // (The event names themselves can sit in Redex's string table.)
+                val strings = code.mapNotNull { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string }
+                assertTrue("$name: no cloaking check", "CloakingDetectionService.ACTION_MAYBE_IAB_CLASSIFICATION" in strings)
+                assertTrue("$name: no signals event", "invalid_event_decision_not_provided" in strings)
+                assertTrue("$name: no page hashes", "sim_hash_dom" in strings)
+                val calls = code.mapNotNull { ((it as? ReferenceInstruction)?.reference as? MethodReference) }
+                assertEquals("$name: sampling checks", 2, calls.count { it.name == "isSampled" })
+                assertTrue("$name: no switch on the name",
+                    calls.any { it.definingClass == "Ljava/lang/String;" && it.name == "hashCode" })
+                val locals = callback.implementation!!.registerCount - callback.parameterTypes.size - 1
+                assertTrue("$name: no local to borrow", locals >= 1)
+                assertTrue("$name: a jump lands on the first instruction", 0 !in branchTargets(code))
+                // Negative control: the ad event callback is the other method of its shape on that class.
+                val shaped = context.mutableClassDefBy(callback.definingClass).methods.filter {
+                    it.parameterTypes.map(CharSequence::toString) == listOf("Landroid/os/Bundle;", "Ljava/lang/String;", "Ljava/util/Map;")
+                }
+                assertTrue("$name: only ${shaped.size} methods of its shape", shaped.size >= 2)
+                assertEquals("$name: integrity callbacks among them", 1, shaped.count(::isIntegrityCallback))
+                assertEquals("$name: ad event callbacks among them", 1, shaped.count(::isAdEventCallback))
+                assertTrue("$name: the integrity callback names a call button", !isAdEventCallback(callback))
+
+                val types = callback.parameterTypes.map(CharSequence::toString)
+                context.mutableClassDefBy(callback.definingClass).findMutableMethodOf(callback).holdIntegrityReport()
+                val patchedMethod = context.mutableClassDefBy(callback.definingClass).methods.single {
+                    it.name == callback.name && it.parameterTypes.map(CharSequence::toString) == types
+                }
+                val patched = patchedMethod.implementation!!.instructions.toList()
+                assertEquals("$name: the gate",
+                    listOf(Opcode.INVOKE_STATIC_RANGE, Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.RETURN_VOID),
+                    patched.take(4).map { it.opcode })
+                assertEquals("$name: the gate asks holdIntegrityReport", HOLD_INTEGRITY_REPORT,
+                    ((patched[0] as ReferenceInstruction).reference as MethodReference).toString())
+                // The name: after this and the bundle, before the map, so the last register but one.
+                val ask = patched[0] as RegisterRangeInstruction
+                assertEquals("$name: the gate passes one register", 1, ask.registerCount)
+                assertEquals("$name: the gate passes the event's name", patchedMethod.implementation!!.registerCount - 2, ask.startRegister)
+                assertEquals("$name: the gate tests the answer it kept",
+                    (patched[1] as OneRegisterInstruction).registerA, (patched[2] as OneRegisterInstruction).registerA)
+                assertEquals("$name: where a no goes", patched[2].codeUnits + patched[3].codeUnits,
+                    (patched[2] as OffsetInstruction).codeOffset)
+                assertEquals("$name: the rest is Facebook's",
+                    code.map { it.opcode }.filter { it != Opcode.NOP }, patched.drop(4).map { it.opcode }.filter { it != Opcode.NOP })
+                checked += version
+            }
+        }
+        assertEquals("a declared build has no fixture", versions, checked)
+        assertEquals("an ABI went unchecked", Fixtures.declaredAbis(), Fixtures.abisOf(abis))
+    }
+
+    @Test
+    fun `each declared build has one browser event logger, and every sampling answer goes through the extension`() {
+        val versions = AppCompatibilities.facebook().single().targets.mapNotNull { it.version }.toSet()
+        val checked = mutableSetOf<String>()
+        val abis = mutableSetOf<String>()
+        for (version in versions) {
+            for (bundle in Fixtures.files { it.extension == "apkm" && it.name.contains("-$version-") }) {
+                val name = bundle.name
+                abis += name.substringAfter("-$version-").substringBefore(".apkm")
+                val holders = FixtureDex.classesHolding(bundle, BROWSER_EVENT_LOGGER_ANCHOR)
+                    .filterNot { it.type.startsWith("Lapp/morphe/") }.distinctBy { it.type }
+                val found = PatchContexts.of(holders).browserEventLogger()
+                // The classes of the static calls it asks a yes or no of one object, wrappers among them.
+                val owners = found.implementation!!.instructions.mapNotNull {
+                    if (it.opcode != Opcode.INVOKE_STATIC && it.opcode != Opcode.INVOKE_STATIC_RANGE) return@mapNotNull null
+                    val call = (it as ReferenceInstruction).reference as MethodReference
+                    call.definingClass.takeIf { call.returnType == "Z" && call.parameterTypes.size == 1 }
+                }.toSet()
+                val context = PatchContexts.of((holders + FixtureDex.classes(bundle, owners).values).distinctBy { it.type })
+                val logger = context.browserEventLogger()
+                val code = logger.implementation!!.instructions.toList()
+                val answers = context.browserEventSamplingAnswers(logger)
+                println("$name: ${logger.definingClass}->${logger.name}, ${answers.size} sampling answers")
+
+                // Positive control, from the 586 dex read: 39 sampling answers, 18 straight from isSampled
+                // and 21 through a static wrapper that only asks it.
+                val direct = answers.filter { at ->
+                    ((code[at - 1] as ReferenceInstruction).reference as MethodReference).name == "isSampled"
+                }
+                assertTrue("$name: ${answers.size} sampling answers", answers.size >= 30)
+                assertTrue("$name: no answer comes straight from isSampled", direct.isNotEmpty())
+                assertTrue("$name: no answer comes through a wrapper", answers.size > direct.size)
+                for (at in answers) {
+                    assertEquals("$name: answer $at", Opcode.MOVE_RESULT, code[at].opcode)
+                }
+                // Negative control: with no method taken for a wrapper, only isSampled's own answers are left.
+                assertEquals("$name: answers without wrappers", direct, samplingAnswers(code) { false })
+                assertTrue("$name: a jump lands right after an answer", answers.none { it + 1 in branchTargets(code) })
+
+                context.mutableClassDefBy(logger.definingClass).findMutableMethodOf(logger).holdBrowserEvents(answers)
+                val types = logger.parameterTypes.map(CharSequence::toString)
+                val patched = context.mutableClassDefBy(logger.definingClass).methods.single {
+                    it.name == logger.name && it.parameterTypes.map(CharSequence::toString) == types
+                }.implementation!!.instructions.toList()
+                assertEquals("$name: two instructions after each answer", code.size + 2 * answers.size, patched.size)
+                val added = mutableSetOf<Int>()
+                for ((n, at) in answers.sorted().withIndex()) {
+                    val moved = at + 2 * n
+                    val register = (code[at] as OneRegisterInstruction).registerA
+                    assertEquals("$name: answer $at moved", Opcode.MOVE_RESULT, patched[moved].opcode)
+                    val ask = patched[moved + 1]
+                    assertEquals("$name: after answer $at", Opcode.INVOKE_STATIC_RANGE, ask.opcode)
+                    assertEquals("$name: after answer $at", SEND_BROWSER_EVENT,
+                        ((ask as ReferenceInstruction).reference as MethodReference).toString())
+                    val handed = ask as RegisterRangeInstruction
+                    assertEquals("$name: answer $at is handed over", register to 1, handed.startRegister to handed.registerCount)
+                    assertEquals("$name: the reply to $at", Opcode.MOVE_RESULT, patched[moved + 2].opcode)
+                    assertEquals("$name: the reply to $at goes back in", register, (patched[moved + 2] as OneRegisterInstruction).registerA)
+                    added += moved + 1
+                    added += moved + 2
+                }
+                assertEquals("$name: the rest is Facebook's",
+                    code.map { it.opcode }.filter { it != Opcode.NOP },
+                    patched.filterIndexed { at, _ -> at !in added }.map { it.opcode }.filter { it != Opcode.NOP })
                 checked += version
             }
         }

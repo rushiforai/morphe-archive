@@ -36,6 +36,7 @@ val adidasDisableTrackerComponentsPatch = resourcePatch(
         "Adjust lifecycle provider, and sets the Firebase/Google Analytics collection opt-outs.",
     default = true,
 ) {
+    category("Privacy")
     compatibleWith(ADIDAS_RUNNING_COMPATIBILITY)
 
     execute {

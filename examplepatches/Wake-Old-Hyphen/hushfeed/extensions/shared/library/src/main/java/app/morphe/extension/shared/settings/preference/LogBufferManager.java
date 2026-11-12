@@ -167,15 +167,18 @@ public final class LogBufferManager {
 
     public static void exportToClipboard() {
         try {
-            String exportText = buildExportText();
+            String exportText = buildExportText(CLIPBOARD_MAX_CHARS);
             if (exportText.isEmpty()) {
                 Utils.showToastShort(say(nothingToExportMessage, "No matching diagnostics found."));
                 return;
             }
+            // Only when the sections around the events are over the limit on their own.
             if (exportText.length() > CLIPBOARD_MAX_CHARS) {
-                exportText = "MORPHE DIAGNOSTIC REPORT\n"
-                        + "clipboard_note: older content omitted; use Save full report for everything\n\n"
-                        + exportText.substring(exportText.length() - CLIPBOARD_MAX_CHARS);
+                String head = "MORPHE DIAGNOSTIC REPORT\n"
+                        + "clipboard_note: older content omitted; use Save full report for everything\n\n";
+                // The head counts toward the limit too.
+                exportText = head + exportText.substring(
+                        exportText.length() - (CLIPBOARD_MAX_CHARS - head.length()));
             }
             Utils.setClipboard(exportText);
             Utils.showToastShort(say(copiedMessage, "Diagnostic report copied to the clipboard."));
@@ -336,7 +339,21 @@ public final class LogBufferManager {
         REPORT_SECTIONS.clear();
     }
 
+    /** Whether the reader's choice in "Included diagnostics" puts this category in a report. */
+    static boolean includes(app.morphe.extension.shared.diagnostics.DiagnosticCategory category) {
+        Set<String> selected = LogExportFilterPreference.parse(BaseSettings.DEBUG_LOG_FILTERS.get());
+        return selected.isEmpty() || selected.contains("all") || selected.contains(category.value);
+    }
+
     public static String buildExportText() {
+        return buildExportText(Integer.MAX_VALUE);
+    }
+
+    /**
+     * The report, with the oldest selected events dropped when it would run past {@code limit}.
+     * The events are the one section that grows without bound, so every other section stays whole.
+     */
+    static String buildExportText(int limit) {
         Set<String> selected = LogExportFilterPreference.parse(BaseSettings.DEBUG_LOG_FILTERS.get());
         boolean includeAll = selected.isEmpty() || selected.contains("all");
         String crash = DiagnosticRedactor.redact(readCrashReport(Utils.getContext()));
@@ -344,9 +361,13 @@ public final class LogBufferManager {
 
         List<DiagnosticEvent> snapshot = new ArrayList<>(logBuffer);
         StringBuilder events = new StringBuilder();
+        // Where each event begins. An exception event carries its stack trace on the lines
+        // below it, so a line break is not always the start of the next event.
+        List<Integer> eventStarts = new ArrayList<>();
         for (DiagnosticEvent event : snapshot) {
             if (!includeAll && !selected.contains(event.category.value)) continue;
             if (events.length() > 0) events.append('\n');
+            eventStarts.add(events.length());
             events.append(DiagnosticRedactor.redact(event.format()));
         }
 
@@ -437,19 +458,25 @@ public final class LogBufferManager {
         if (!lastExits.isEmpty()) {
             report.append("\n[LAST EXITS]\n").append(lastExits).append('\n');
         }
-        // The same filter and the same reason to stay out of worthReporting: "none" is the
-        // answer on almost every phone, and it is still the answer a reader needs.
+        int sectionStart = -1;
+        int eventsStart = -1;
+        if (events.length() > 0) {
+            sectionStart = report.length();
+            report.append("\n\n[SELECTED EVENTS]\n")
+                    .append("category | timestamp | thread | source | level | message\n");
+            eventsStart = report.length();
+            report.append(events);
+        }
+        // The same filter as the hook table, and out of worthReporting for the same reason as the
+        // last exits: "none" is the answer on almost every phone, and it is still the answer a
+        // reader needs. After the events, so that when the sections around them are too long for
+        // the quick copy on their own, its tail cut still keeps this one.
         if (includeAll || selected.contains(
                 app.morphe.extension.shared.diagnostics.DiagnosticCategory.PATCH_ERRORS.value)) {
             report.append("\n[").append(OtherBundles.TITLE).append("]\n");
             for (String line : OtherBundles.lines(crash)) {
                 report.append(DiagnosticRedactor.redact(line)).append('\n');
             }
-        }
-        if (events.length() > 0) {
-            report.append("\n\n[SELECTED EVENTS]\n")
-                    .append("category | timestamp | thread | source | level | message\n")
-                    .append(events);
         }
         // Immutable facts ride along only after the existing no-matching decision.
         report.append("\n[BUILD DETAILS]\n").append(BuildDetails.section(Utils.getBuildMetadata()));
@@ -459,6 +486,30 @@ public final class LogBufferManager {
             report.append("\n\n[SCREEN LAYOUT]\n");
             for (String line : layout) {
                 report.append(DiagnosticRedactor.redact(line)).append('\n');
+            }
+        }
+        if (report.length() > limit && eventsStart >= 0) {
+            String note = "clipboard_note: older events omitted; use Save full report for everything\n";
+            int over = report.length() - limit + note.length();
+            // Whole events only, so the oldest event kept is never cut in half.
+            int from = -1;
+            for (int start : eventStarts) {
+                if (start >= over) {
+                    from = start;
+                    break;
+                }
+            }
+            if (from >= 0) {
+                report.replace(eventsStart, eventsStart + events.length(), note + events.substring(from));
+            } else {
+                // Not one event fits. Kept, the section's header and the note put the report over
+                // a limit the sections around it fit, and the quick copy then cut off its first
+                // lines. A shorter line takes the section's place when it fits, and nothing does
+                // when even that would push the report over.
+                String gone = "\nclipboard_note: events omitted; use Save full report for everything\n";
+                int sectionEnd = eventsStart + events.length();
+                boolean noteFits = report.length() - (sectionEnd - sectionStart) + gone.length() <= limit;
+                report.replace(sectionStart, sectionEnd, noteFits ? gone : "");
             }
         }
         return report.toString();

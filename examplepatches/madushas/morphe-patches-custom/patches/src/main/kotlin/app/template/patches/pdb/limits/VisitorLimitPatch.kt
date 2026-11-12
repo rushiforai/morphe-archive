@@ -68,6 +68,7 @@ val pdbVisitorLimitPatch = bytecodePatch(
         "limit'. The bytecode ships always-on and is inert until the switch is on.",
     default = true,
 ) {
+    category("Limits")
     compatibleWith(PDB_COMPATIBILITY)
 
     execute {

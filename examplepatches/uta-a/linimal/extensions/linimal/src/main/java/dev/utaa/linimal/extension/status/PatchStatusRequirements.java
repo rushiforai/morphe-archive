@@ -28,6 +28,7 @@ final class PatchStatusRequirements {
         requirements.put("linimal.premium-preview-promotion",
                 ids("linimal.patch.premium-preview-promotion"));
         requirements.put("linimal.preview-scroll", ids("linimal.patch.preview-scroll"));
+        requirements.put("linimal.preview-disable", ids("linimal.patch.preview-disable"));
         requirements.put("linimal.amoled-theme", ids("linimal.patch.amoled-theme-colors"));
         requirements.put("linimal.external-browser", ids("linimal.patch.external-browser-chat-text-link"));
         requirements.put("linimal.push-notifications", ids("linimal.patch.fis-certificate-header"));
@@ -42,6 +43,7 @@ final class PatchStatusRequirements {
         requirements.put("linimal.agent-i-wallet-header", ids("linimal.patch.agent-i-wallet-header"));
         requirements.put("linimal.agent-i-settings", ids("linimal.patch.agent-i-settings"));
         requirements.put("linimal.agent-i-chat-composer", ids("linimal.patch.agent-i-chat-composer"));
+        requirements.put("linimal.agent-i-chat-plus-menu", ids("linimal.patch.agent-i-chat-plus-menu"));
         requirements.put("linimal.agent-i-chat-list-search",
                 ids("linimal.patch.agent-i-chat-list-search"));
         requirements.put("linimal.line-ai-message-context-menu",
@@ -61,6 +63,7 @@ final class PatchStatusRequirements {
         requirements.put("linimal.home-feed-post-cards", ids("linimal.patch.home-feed-post-cards"));
         requirements.put("linimal.home-featured-collections",
                 ids("linimal.patch.home-featured-collections"));
+        requirements.put("linimal.home-feed-live", ids("linimal.patch.home-feed-live"));
         requirements.put("linimal.home-recent-history", ids("linimal.patch.home-recent-history"));
         // 読み込み表示は独立した patch。特集枠と feature を共有すると、片方の失敗で
         // もう片方の設定まで利用不可になる。
@@ -96,6 +99,20 @@ final class PatchStatusRequirements {
                 "linimal.patch.notification-read-without-receipt-session",
                 "linimal.patch.notification-read-without-receipt-send",
                 "linimal.patch.notification-read-without-receipt-manual-read"));
+        // アイコンとタップは同じ行の bind 注入を使うが、feature ごとに patch ID を分けて記録する。
+        requirements.put("linimal.read-receipt-readers-icons",
+                ids("linimal.patch.read-receipt-readers-icons-row-bind"));
+        requirements.put("linimal.read-receipt-readers-tap",
+                ids("linimal.patch.read-receipt-readers-tap-row-bind"));
+        // 他人のメッセージの既読数とアイコンも、同じ bind 入口の注入を feature ごとに記録する。
+        requirements.put("linimal.read-receipt-readers-others-count",
+                ids("linimal.patch.read-receipt-readers-others-count-message-bind"));
+        requirements.put("linimal.read-receipt-readers-others-icons",
+                ids("linimal.patch.read-receipt-readers-others-icons-message-bind"));
+        requirements.put("linimal.read-receipt-readers-menu",
+                ids("linimal.patch.read-receipt-readers-context-menu"));
+        requirements.put("linimal.read-receipt-readers-server-sync",
+                ids("linimal.patch.read-receipt-readers-server-sync"));
         requirements.put("linimal.chat-list-header-ai-friends",
                 ids("linimal.patch.chat-list-header-ai-friends"));
         requirements.put("linimal.chat-list-header-calendar",

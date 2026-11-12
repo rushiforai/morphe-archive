@@ -10,7 +10,6 @@
 
 package app.morphe.extension.shared.patches;
 
-import static app.morphe.extension.shared.StringRef.str;
 import static app.morphe.extension.shared.requests.Route.Method.GET;
 
 import android.annotation.SuppressLint;
@@ -35,6 +34,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Locale;
 
+import app.morphe.extension.mapsautomotive.patches.BydBatteryPatch;
+import app.morphe.extension.mapsautomotive.patches.UiDensityPatch;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.ResourceType;
 import app.morphe.extension.shared.ResourceUtils;
@@ -103,9 +104,18 @@ public class GmsCoreSupportPatch {
         System.exit(0);
     }
 
+    // The texts are here, in Thai and English like the extension's other screens: this bundle adds no
+    // gms_core_* string resources to Maps, so reading them by name showed the raw keys (issue #9).
+    private static String text(Context context, String thai, String english) {
+        return UiDensityPatch.isThai(context) ? thai : english;
+    }
+
+    /** MicroG-RE's package on the battery whitelist, the command of the README's install step 1. */
+    private static final String WHITELIST_COMMAND = "adb shell dumpsys deviceidle whitelist +" + GMS_CORE_PACKAGE_NAME;
+
     private static void showBatteryOptimizationDialog(Activity context,
-                                                      String dialogMessageRef,
-                                                      String positiveButtonTextRef,
+                                                      String dialogMessage,
+                                                      String positiveButtonText,
                                                       DialogInterface.OnClickListener onPositiveClickListener) {
         // Use a delay to allow the activity to finish initializing.
         // Otherwise, if device is in dark mode the dialog is shown with wrong color scheme.
@@ -113,10 +123,10 @@ public class GmsCoreSupportPatch {
             // Create the custom dialog.
             Pair<Dialog, LinearLayout> dialogPair = CustomDialog.create(
                     context,
-                    str("gms_core_dialog_title"), // Title.
-                    str(dialogMessageRef), // Message.
+                    text(context, "ต้องตั้งค่า MicroG-RE", "MicroG-RE needs a setting"), // Title.
+                    dialogMessage, // Message.
                     null, // No EditText.
-                    str(positiveButtonTextRef), // OK button text.
+                    positiveButtonText, // OK button text.
                     () -> onPositiveClickListener.onClick(null, 0), // Convert DialogInterface.OnClickListener to Runnable.
                     null, // No Cancel button action.
                     null, // No Neutral button text.
@@ -168,7 +178,8 @@ public class GmsCoreSupportPatch {
                 Logger.printInfo(() -> "GmsCore was not found");
                 // Cannot show a dialog and must show a toast,
                 // because on some installations the app crashes before a dialog can be displayed.
-                Utils.showToastLong(str("gms_core_toast_not_installed_message"));
+                Utils.showToastLong(text(context, "ยังไม่ได้ติดตั้ง MicroG-RE ติดตั้งก่อนเปิดแอปนี้",
+                        "MicroG-RE is not installed. Install it first."));
                 open(context, getGmsCoreDownload());
                 return;
             }
@@ -182,10 +193,20 @@ public class GmsCoreSupportPatch {
                 Logger.printInfo(() -> "GmsCore is not whitelisted from battery optimizations");
 
                 if (SharedSettings.GMS_CORE_BATTERY_OPTIMIZATION_DIALOG.get()) {
-                    showBatteryOptimizationDialog(context,
-                            "gms_core_dialog_not_whitelisted_using_battery_optimizations_message",
-                            "gms_core_dialog_continue_text",
-                            (dialog, id) -> openGmsCoreDisableBatteryOptimizationsIntent(context));
+                    String message = text(context,
+                            "MicroG-RE ยังไม่อยู่ใน whitelist แบต ตำแหน่งอาจหยุดอัปเดตและ Send to car อาจไม่ทำงาน"
+                                    + " บน BYD DiLink ตั้งจากหน้าจอไม่ได้ ให้สั่งครั้งเดียวผ่าน ADB (ขั้นตอนติดตั้งข้อ 1):",
+                            "MicroG-RE is not on the battery whitelist, so location can stop updating and Send to car may"
+                                    + " not work. BYD DiLink has no screen for this. Run once over ADB (Install step 1):")
+                            + "\n" + WHITELIST_COMMAND;
+                    // On a BYD the system's dialog opens but does not whitelist MicroG-RE (DiLink 3): only the ADB
+                    // command does, so the button only closes.
+                    if (BydBatteryPatch.isByd()) {
+                        showBatteryOptimizationDialog(context, message, text(context, "ตกลง", "OK"), (dialog, id) -> { });
+                    } else {
+                        showBatteryOptimizationDialog(context, message, text(context, "เปิดหน้าตั้งค่า", "Open settings"),
+                                (dialog, id) -> openGmsCoreDisableBatteryOptimizationsIntent(context));
+                    }
                     return;
                 }
             }
@@ -198,12 +219,19 @@ public class GmsCoreSupportPatch {
                     Logger.printInfo(() -> "GmsCore is not running in the background");
 
                     if (SharedSettings.GMS_CORE_BATTERY_OPTIMIZATION_DIALOG.get()) {
-                        checkIfDontKillMyAppSupportsManufacturer();
-
-                        showBatteryOptimizationDialog(context,
-                                "gms_core_dialog_not_whitelisted_not_allowed_in_background_message",
-                                "gms_core_dialog_open_website_text",
-                                (dialog, id) -> openDontKillMyApp(context));
+                        String message = text(context,
+                                "MicroG-RE ไม่ได้ทำงานเบื้องหลัง แอปนี้จึงใช้บัญชี Google และตำแหน่งไม่ได้"
+                                        + " เปิด MicroG-RE หนึ่งครั้ง และปิด MicroG-RE ใน BYD Disable Autostart",
+                                "MicroG-RE is not running in the background, so this app cannot use the Google account or"
+                                        + " location. Open MicroG-RE once, and turn MicroG-RE off in BYD Disable Autostart.");
+                        // A head unit seldom has a browser for the guide's page: on a BYD the button only closes.
+                        if (BydBatteryPatch.isByd()) {
+                            showBatteryOptimizationDialog(context, message, text(context, "ตกลง", "OK"), (dialog, id) -> { });
+                        } else {
+                            checkIfDontKillMyAppSupportsManufacturer();
+                            showBatteryOptimizationDialog(context, message, text(context, "เปิดคู่มือ", "Open the guide"),
+                                    (dialog, id) -> openDontKillMyApp(context));
+                        }
                     }
                 }
             } finally {

@@ -36,7 +36,7 @@
 - Do not hand-edit the generated patch-list section between `PATCHES_START` and `PATCHES_END` in `README.md`.
 - Make development changes on `dev` with semantic commits; merge `dev` into `main` without squashing for stable releases. See `docs/releasing.md`.
 - Use `.github/workflows/release.yml` and `.releaserc` for releases; do not create replacement release scripts or manually upload releases.
-- Keep CI to the existing workflows and Repo Assist; do not add other CI gates.
+- Keep CI to the existing workflows; do not add other CI gates.
 - Do not force-push semantic-release commits.
 
 ## References

@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MightyMich's Patches</title>
-  <meta name="description" content="Morphe patches by MightyMich — unlock premium features, privacy, and quality-of-life fixes." />
+  <meta name="description" content="Morphe patches by MightyMich. Add the GitHub source — do not use web1337.net." />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -13,31 +13,41 @@
       <p class="eyebrow">Morphe · Android</p>
       <h1>MightyMich's Patches</h1>
       <p class="lead">
-        Community patches for Morphe: premium unlocks, telemetry controls,
-        and practical fixes for apps you already use.
+        Community patches for Morphe. The old host
+        <code>mightymich.web1337.net</code> is blocked by many DNS / adblock lists
+        and is no longer reliable. Use the GitHub source below.
       </p>
     </header>
 
+    <section class="alert">
+      <strong>Working source (recommended)</strong>
+      <p>In Morphe Manager → Sources → + → Remote, paste:</p>
+      <pre>https://github.com/mich111discord/MightyMichs-Patches</pre>
+      <p>Or open this deep link on your phone:</p>
+      <p><a class="btn" href="https://morphe.software/add-source?github=mich111discord/MightyMichs-Patches">Add source in Morphe</a></p>
+      <p class="muted">Direct metadata (optional):</p>
+      <pre>https://raw.githubusercontent.com/mich111discord/MightyMichs-Patches/main/patches-bundle.json</pre>
+    </section>
+
     <section class="cards">
       <article class="card">
-        <h2>Get the patches</h2>
-        <p>Add this repository as a patch source in Morphe Manager.</p>
-        <a class="btn" href="https://github.com/mich111discord/MightyMichs-Patches">GitHub repository</a>
-      </article>
-      <article class="card">
         <h2>Releases</h2>
-        <p>Download the latest <code>.mpp</code> bundle from GitHub Releases.</p>
+        <p>Latest <code>.mpp</code> bundles are on GitHub Releases.</p>
         <a class="btn secondary" href="https://github.com/mich111discord/MightyMichs-Patches/releases">View releases</a>
       </article>
       <article class="card">
         <h2>Issues</h2>
-        <p>Bug reports and feature requests welcome.</p>
+        <p>Bugs and feature requests.</p>
         <a class="btn secondary" href="https://github.com/mich111discord/MightyMichs-Patches/issues">Open issues</a>
+      </article>
+      <article class="card">
+        <h2>Why web1337 fails</h2>
+        <p>Domain is on public DNS blocklists (e.g. HaGeZi). Use GitHub instead — YouTube links can keep the old URL as a landing note.</p>
       </article>
     </section>
 
     <footer>
-      <p>Site lives in <code>.website/</code> · not part of the patch release pipeline.</p>
+      <p>Site: <code>.website/</code> · patches are served from GitHub Releases, not this page.</p>
     </footer>
   </main>
 </body>

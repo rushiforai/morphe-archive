@@ -19,7 +19,7 @@ private const val CERT_BASE64 =
 @Suppress("unused")
 val signerPatch = patch(
     name = "Signer Identity",
-    description = "Forces the app's signer identity to match the original publisher certificate.",
+    description = "Forces the app's signer identity, signature checks, and signer-identity string to match the original publisher certificate.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY)
@@ -75,7 +75,7 @@ val signerPatch = patch(
 
         // --- jO2pqaX -> LUuxmVJjT: pX6SrQYLl(PackageInfo) -> GX9XN3ZIZ(PackageInfo) ---
         classDefForEach { classDef: ClassDef ->
-            if (classDef.type == "LuuxmVJjT;") {
+            if (classDef.type == "LUuxmVJjT;") {
                 val mutable = mutableClassDefBy(classDef)
 
                 // GX9XN3ZIZ(PackageInfo) -> return original cert as singleton list
@@ -91,6 +91,29 @@ val signerPatch = patch(
                 cloned.addInstructions(added, buildCertListSmali(chunks))
             }
         }
+
+        // --- LUuxmVJjT.yMQp6hm(String, Set) -> always report "trusted" ---
+        // mMDNzWiQL checks whether the app's certificate is trusted through
+        // this method. When it returns false the app treats itself as modified
+        // and resets/disables Pro.
+        classDefForEach { classDef: ClassDef ->
+            if (classDef.type != "LUuxmVJjT;") return@classDefForEach
+            val mutable = mutableClassDefBy(classDef)
+            mutable.methods.first { m ->
+                m.name == "yMQp6hm" &&
+                    m.parameters.size == 2 &&
+                    m.parameters[0].type == "Ljava/lang/String;" &&
+                    m.parameters[1].type == "Ljava/util/Set;" &&
+                    m.returnType == "Z" &&
+                    (m.accessFlags and AccessFlags.STATIC.value) != 0
+            }.returnEarly(true)
+        }
+
+        // --- byYKY0yXO.NMGZ06(Context, LyDPQAXIU) must NOT be stubbed ---
+        // This is not a signer check: it decrypts the premium effect payloads
+        // (GLSL shaders) held in EwQUfST73. The certificate-list override above
+        // makes its signer-key path succeed. Returning a dummy string here makes
+        // every shader effect render as identity in preview and export.
     }
 }
 

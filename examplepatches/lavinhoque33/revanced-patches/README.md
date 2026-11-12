@@ -62,7 +62,7 @@ Local imports do not update automatically; import the new `.mpp` for each update
 | `App refresh rate` | Adds an option to change the app refresh rate. | 21.39.525 ~ 20.05.46 |
 | `Bypass URL redirects` | Adds an option to bypass URL redirects and open the original URL directly. | 21.39.525 ~ 20.05.46 |
 | `Bypass image region restrictions` | Adds an option to use a different host for static images, so that images blocked in some countries can be received. | 21.39.525 ~ 20.05.46 |
-| `Captions` | Adds options to disable captions from being automatically enabled, select a preferred and a secondary caption language, add more auto-translate languages, and show captions in stable blocks. | 21.39.525 ~ 20.05.46 |
+| `Captions` | Adds options to disable captions from being automatically enabled, select a preferred and a secondary caption language, add more auto-translate languages, and show captions in stable blocks. Stable blocks and bilingual captions work with YouTube 21.15 and newer, on Android 10 and newer. | 21.39.525 ~ 20.05.46 |
 | `Change form factor` | Adds an option to change the UI appearance to a phone, tablet, or automotive device. | 21.39.525 ~ 20.05.46 |
 | `Change player flyout menu toggles` | Adds an option to use text toggles instead of switch toggles within the additional settings menu. | 21.39.525 ~ 20.05.46 |
 | `Change share sheet` | Adds an option to change the in-app share sheet to the system share sheet. | 21.39.525 ~ 20.05.46 |
@@ -87,11 +87,11 @@ Local imports do not update automatically; import the new `.mpp` for each update
 | `Disable scrolling speed limit` | Adds an option to remove limits of how fast the home and subscription feed can be scrolled. | 21.39.525 ~ 20.05.46 |
 | `Disable sign in to TV popup` | Adds an option to disable the popup asking to sign into a TV on the same local network. | 21.39.525 ~ 20.05.46 |
 | `Download post images` | Adds a button and a menu item to download the images and GIFs of posts. | 21.39.525 ~ 20.05.46 |
-| `Enable debug logging` | Adds an option for debugging and exporting RVX logs to the clipboard. | 21.39.525 ~ 20.05.46 |
+| `Enable debug logging` | Adds debugging, log export and a Feature flags manager with Binary search. | 21.39.525 ~ 20.05.46 |
 | `Enable gradient loading screen` | Adds an option to enable the gradient loading screen. | 21.39.525 ~ 20.05.46 |
 | `Feed card layout` | Adds an option to show or hide the card layout of feed videos, which YouTube sends as an A/B test. | 21.39.525 ~ 20.05.46 |
-| `Feed view count` | Adds an option to show the view count at the bottom left of the thumbnails of feed videos. | 21.39.525 ~ 20.05.46 |
 | `Feed video actions` | Adds a Watch later button to video thumbnails in feeds, and opens the video menu by tapping and holding anywhere on a video. | 21.39.525 ~ 20.05.46 |
+| `Feed view count` | Adds an option to show the view count at the bottom left of the thumbnails of feed videos. | 21.39.525 ~ 20.05.46 |
 | `Force animations` | Adds an option to always turn on or off the app animations that YouTube can turn off, such as the player transitions. | 21.39.525 ~ 20.05.46 |
 | `Force original audio` | Adds an option to disable audio tracks from being automatically enabled. | 21.39.525 ~ 20.05.46 |
 | `Force system font` | Adds an option to show the app with the device system font instead of YouTube Sans. | 21.39.525 ~ 20.05.46 |
@@ -132,7 +132,7 @@ Local imports do not update automatically; import the new `.mpp` for each update
 | `Remove background playback restrictions` | Removes restrictions on background playback, including for music and kids videos. | 21.39.525 ~ 20.05.46 |
 | `Remove viewer discretion dialog` | Adds an option to remove the dialog that appears when opening a video that has been age-restricted by accepting it automatically. This does not bypass the age restriction. | 21.39.525 ~ 20.05.46 |
 | `Restore original titles` | Adds an option to show the original video titles and descriptions instead of the auto-translated ones. | 21.39.525 ~ 20.05.46 |
-| `Return YouTube Dislike` | Adds an option to show the dislike count of videos using the Return YouTube Dislike API, and the like count and like percentage on the thumbnails of feed videos. | 21.39.525 ~ 20.05.46 |
+| `Return YouTube Dislike` | Adds an option to show the dislike count of videos using the Return YouTube Dislike API. | 21.39.525 ~ 20.05.46 |
 | `Return YouTube Username` | Adds an option to replace YouTube handles with usernames in comments using YouTube Data API v3. | 21.39.525 ~ 20.05.46 |
 | `Sanitize sharing links` | Adds an option to sanitize sharing links by removing tracking query parameters. | 21.39.525 ~ 20.05.46 |
 | `Save to Watch later` | Adds options to save videos to Watch later from the video player or feed flyout menu. | 21.39.525 ~ 20.05.46 |
@@ -160,6 +160,7 @@ Local imports do not update automatically; import the new `.mpp` for each update
 | `Video playback` | Adds options to customize settings related to video playback, such as default video quality and playback speed. | 21.39.525 ~ 20.05.46 |
 | `Visual preferences icons for YouTube` | Adds icons to specific preferences in the settings. | 21.39.525 ~ 20.05.46 |
 | `Voice Over Translation` | Adds an option to enable Yandex voice-over translation of video audio tracks. | 21.39.525 ~ 20.05.46 |
+| `Watch later improvements` | Adds options to widen the drag handles of the Watch later videos and to hide the snackbar shown after removing a video. | 21.39.525 ~ 20.05.46 |
 | `Wide search bar` | Adds a wide search bar to the top of the home and subscription feed. | 21.39.525 ~ 20.05.46 |
 </details>
 

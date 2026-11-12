@@ -1027,6 +1027,8 @@ object PixelCameraPatchUtils {
     <string name="pref_camera_sharpness_entry_natural_desc">Subtle edge contrast with film-like organic rolloff</string>
     <string name="pref_camera_sharpness_entry_standard">Standard (1.0x)</string>
     <string name="pref_camera_sharpness_entry_standard_desc">Default Google Camera edge sharpening</string>
+    <string name="pref_camera_raw_separate_folder_title">Save RAW to Separate Folder</string>
+    <string name="pref_camera_raw_separate_folder_summary">Save DNG files in Pictures/Raw to prevent Google Photos from backing them up</string>
                         """.trimIndent())
                         append("\n")
                     }
@@ -1047,6 +1049,20 @@ object PixelCameraPatchUtils {
     <string name="pref_video_noise_reduction_entry_minimal_desc">Minimal filtering (Fast) preserving fine texture</string>
     <string name="pref_video_noise_reduction_entry_off">Off (Sensor Grain)</string>
     <string name="pref_video_noise_reduction_entry_off_desc">Disables hardware noise reduction for organic sensor texture</string>
+    <string name="pref_video_bitrate_title">Video bitrate &amp; encoding</string>
+    <string name="pref_video_bitrate_entry_stock">Stock (Standard)</string>
+    <string name="pref_video_bitrate_entry_stock_desc">Standard Google Camera bitrate (~45-55 Mbps for 4K)</string>
+    <string name="pref_video_bitrate_entry_high">High (100 Mbps Pro)</string>
+    <string name="pref_video_bitrate_entry_high_desc">100 Mbps at 4K60 / 70 Mbps at 4K30; clamped QP 12-24 for reduced compression artifacts</string>
+    <string name="pref_video_bitrate_entry_ultra">Ultra (150 Mbps Cinema)</string>
+    <string name="pref_video_bitrate_entry_ultra_desc">150 Mbps at 4K60 / 110 Mbps at 4K30; clamped QP 10-20 for maximum mastering bit depth</string>
+    <string name="pref_video_stabilization_mode_title">Video stabilization mode</string>
+    <string name="pref_video_stabilization_mode_entry_standard">Standard (OIS + EIS)</string>
+    <string name="pref_video_stabilization_mode_entry_standard_desc">Full electronic and optical stabilization with dynamic cropping</string>
+    <string name="pref_video_stabilization_mode_entry_ois_only">OIS Only (Cinema Wide, 0% Crop)</string>
+    <string name="pref_video_stabilization_mode_entry_ois_only_desc">Hardware optical stabilization only; disables electronic warping and crop for maximum wide field of view</string>
+    <string name="pref_video_stabilization_mode_entry_off">Off (Gimbal / Tripod)</string>
+    <string name="pref_video_stabilization_mode_entry_off_desc">Disables both OIS and EIS; ideal for motorized gimbals and tripod shots</string>
                         """.trimIndent())
                         append("\n")
                     }
@@ -1187,6 +1203,36 @@ object PixelCameraPatchUtils {
         <item>minimal</item>
         <item>off</item>
     </string-array>
+    <string-array name="pref_video_bitrate_entries">
+        <item>@string/pref_video_bitrate_entry_stock</item>
+        <item>@string/pref_video_bitrate_entry_high</item>
+        <item>@string/pref_video_bitrate_entry_ultra</item>
+    </string-array>
+    <string-array name="pref_video_bitrate_entrydescriptions">
+        <item>@string/pref_video_bitrate_entry_stock_desc</item>
+        <item>@string/pref_video_bitrate_entry_high_desc</item>
+        <item>@string/pref_video_bitrate_entry_ultra_desc</item>
+    </string-array>
+    <string-array name="pref_video_bitrate_entryvalues">
+        <item>stock</item>
+        <item>high</item>
+        <item>ultra</item>
+    </string-array>
+    <string-array name="pref_video_stabilization_mode_entries">
+        <item>@string/pref_video_stabilization_mode_entry_standard</item>
+        <item>@string/pref_video_stabilization_mode_entry_ois_only</item>
+        <item>@string/pref_video_stabilization_mode_entry_off</item>
+    </string-array>
+    <string-array name="pref_video_stabilization_mode_entrydescriptions">
+        <item>@string/pref_video_stabilization_mode_entry_standard_desc</item>
+        <item>@string/pref_video_stabilization_mode_entry_ois_only_desc</item>
+        <item>@string/pref_video_stabilization_mode_entry_off_desc</item>
+    </string-array>
+    <string-array name="pref_video_stabilization_mode_entryvalues">
+        <item>standard</item>
+        <item>ois_only</item>
+        <item>off</item>
+    </string-array>
                         """.trimIndent())
                         append("\n")
                     }
@@ -1209,8 +1255,9 @@ object PixelCameraPatchUtils {
         <com.google.android.apps.camera.ui.preference.ManagedSwitchPreferenceCompat android:icon="@drawable/gs_photo_camera_vd_theme_24" android:title="@string/pref_camera_focal_length_cycling_title" android:key="pref_camera_focal_length_cycling_key" android:summary="@string/pref_camera_focal_length_cycling_summary" android:order="1" android:defaultValue="false" />
         <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_high_res_vd_theme_24" android:entries="@array/pref_camera_jpeg_quality_entries" android:title="@string/pref_camera_jpeg_quality_title" android:key="pref_camera_jpeg_quality_key" android:summary="%s" android:order="2" android:defaultValue="95" android:entryValues="@array/pref_camera_jpeg_quality_entryvalues" />
         <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_texture_vd_theme_24" android:entries="@array/pref_camera_noise_reduction_entries" android:title="@string/pref_camera_noise_reduction_title" android:key="pref_camera_noise_reduction_key" android:summary="%s" android:order="3" android:defaultValue="stock" android:entryValues="@array/pref_camera_noise_reduction_entryvalues" />
-        <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_raw_on_vd_theme_24" android:entries="@array/pref_camera_raw_compression_entries" android:title="@string/pref_camera_raw_compression_title" android:key="pref_camera_raw_compression_key" android:summary="%s" android:order="4" android:defaultValue="uncompressed" android:entryValues="@array/pref_camera_raw_compression_entryvalues" />
-        <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_details_vd_theme_24" android:entries="@array/pref_camera_sharpness_entries" android:title="@string/pref_camera_sharpness_title" android:key="pref_camera_sharpness_key" android:summary="%s" android:order="5" android:defaultValue="natural" android:entryValues="@array/pref_camera_sharpness_entryvalues" />
+        <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_details_vd_theme_24" android:entries="@array/pref_camera_sharpness_entries" android:title="@string/pref_camera_sharpness_title" android:key="pref_camera_sharpness_key" android:summary="%s" android:order="4" android:defaultValue="natural" android:entryValues="@array/pref_camera_sharpness_entryvalues" />
+        <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_raw_on_vd_theme_24" android:entries="@array/pref_camera_raw_compression_entries" android:title="@string/pref_camera_raw_compression_title" android:key="pref_camera_raw_compression_key" android:summary="%s" android:order="5" android:defaultValue="uncompressed" android:entryValues="@array/pref_camera_raw_compression_entryvalues" />
+        <com.google.android.apps.camera.ui.preference.ManagedSwitchPreferenceCompat android:icon="@drawable/gs_raw_on_vd_theme_24" android:title="@string/pref_camera_raw_separate_folder_title" android:key="pref_camera_raw_separate_folder_key" android:summary="@string/pref_camera_raw_separate_folder_summary" android:order="6" android:defaultValue="true" />
     </androidx.preference.PreferenceCategory>
                     """.trimIndent()
 
@@ -1242,6 +1289,8 @@ object PixelCameraPatchUtils {
     <androidx.preference.PreferenceCategory android:title="@string/pref_category_advanced_video_title" android:key="pref_category_advanced_video">
         <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_details_vd_theme_24" android:entries="@array/pref_video_sharpness_entries" android:title="@string/pref_video_sharpness_title" android:key="pref_video_sharpness_key" android:summary="%s" android:order="1" android:defaultValue="stock" android:entryValues="@array/pref_video_sharpness_entryvalues" />
         <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_texture_vd_theme_24" android:entries="@array/pref_video_noise_reduction_entries" android:title="@string/pref_video_noise_reduction_title" android:key="pref_video_noise_reduction_key" android:summary="%s" android:order="2" android:defaultValue="stock" android:entryValues="@array/pref_video_noise_reduction_entryvalues" />
+        <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_videocam_vd_theme_24" android:entries="@array/pref_video_bitrate_entries" android:title="@string/pref_video_bitrate_title" android:key="pref_video_bitrate_key" android:summary="%s" android:order="3" android:defaultValue="stock" android:entryValues="@array/pref_video_bitrate_entryvalues" />
+        <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_video_stable_vd_theme_24" android:entries="@array/pref_video_stabilization_mode_entries" android:title="@string/pref_video_stabilization_mode_title" android:key="pref_video_stabilization_mode_key" android:summary="%s" android:order="4" android:defaultValue="standard" android:entryValues="@array/pref_video_stabilization_mode_entryvalues" />
     </androidx.preference.PreferenceCategory>
                     """.trimIndent()
                     val videoCatMatch = Regex("""(<androidx\.preference\.PreferenceCategory[^>]*key="pref_category_resolution_video"[^>]*>[\s\S]*?</androidx\.preference\.PreferenceCategory>)""").find(content)
@@ -1266,8 +1315,9 @@ object PixelCameraPatchUtils {
         <com.google.android.apps.camera.ui.preference.ManagedSwitchPreference android:icon="@drawable/gs_photo_camera_vd_theme_24" android:layout="@layout/preference_with_margin" android:title="@string/pref_camera_focal_length_cycling_title" android:key="pref_camera_focal_length_cycling_key" android:summary="@string/pref_camera_focal_length_cycling_summary" android:order="1" android:defaultValue="false" />
         <ListPreference android:icon="@drawable/gs_high_res_vd_theme_24" android:entries="@array/pref_camera_jpeg_quality_entries" android:layout="@layout/preference_with_margin" android:title="@string/pref_camera_jpeg_quality_title" android:key="pref_camera_jpeg_quality_key" android:summary="%s" android:order="2" android:defaultValue="95" android:entryValues="@array/pref_camera_jpeg_quality_entryvalues" />
         <ListPreference android:icon="@drawable/gs_texture_vd_theme_24" android:entries="@array/pref_camera_noise_reduction_entries" android:title="@string/pref_camera_noise_reduction_title" android:key="pref_camera_noise_reduction_key" android:summary="%s" android:order="3" android:defaultValue="stock" android:entryValues="@array/pref_camera_noise_reduction_entryvalues" />
-        <ListPreference android:icon="@drawable/gs_raw_on_vd_theme_24" android:entries="@array/pref_camera_raw_compression_entries" android:layout="@layout/preference_with_margin" android:title="@string/pref_camera_raw_compression_title" android:key="pref_camera_raw_compression_key" android:summary="%s" android:order="4" android:defaultValue="uncompressed" android:entryValues="@array/pref_camera_raw_compression_entryvalues" />
-        <ListPreference android:icon="@drawable/gs_details_vd_theme_24" android:entries="@array/pref_camera_sharpness_entries" android:layout="@layout/preference_with_margin" android:title="@string/pref_camera_sharpness_title" android:key="pref_camera_sharpness_key" android:summary="%s" android:order="5" android:defaultValue="natural" android:entryValues="@array/pref_camera_sharpness_entryvalues" />
+        <ListPreference android:icon="@drawable/gs_details_vd_theme_24" android:entries="@array/pref_camera_sharpness_entries" android:layout="@layout/preference_with_margin" android:title="@string/pref_camera_sharpness_title" android:key="pref_camera_sharpness_key" android:summary="%s" android:order="4" android:defaultValue="natural" android:entryValues="@array/pref_camera_sharpness_entryvalues" />
+        <ListPreference android:icon="@drawable/gs_raw_on_vd_theme_24" android:entries="@array/pref_camera_raw_compression_entries" android:layout="@layout/preference_with_margin" android:title="@string/pref_camera_raw_compression_title" android:key="pref_camera_raw_compression_key" android:summary="%s" android:order="5" android:defaultValue="uncompressed" android:entryValues="@array/pref_camera_raw_compression_entryvalues" />
+        <com.google.android.apps.camera.ui.preference.ManagedSwitchPreference android:icon="@drawable/gs_raw_on_vd_theme_24" android:layout="@layout/preference_with_margin" android:title="@string/pref_camera_raw_separate_folder_title" android:key="pref_camera_raw_separate_folder_key" android:summary="@string/pref_camera_raw_separate_folder_summary" android:order="6" android:defaultValue="true" />
     </PreferenceCategory>
                     """.trimIndent()
 
@@ -1299,6 +1349,8 @@ object PixelCameraPatchUtils {
     <PreferenceCategory android:title="@string/pref_category_advanced_video_title" android:key="pref_category_advanced_video">
         <ListPreference android:icon="@drawable/gs_details_vd_theme_24" android:entries="@array/pref_video_sharpness_entries" android:layout="@layout/preference_with_margin" android:title="@string/pref_video_sharpness_title" android:key="pref_video_sharpness_key" android:summary="%s" android:order="1" android:defaultValue="stock" android:entryValues="@array/pref_video_sharpness_entryvalues" />
         <ListPreference android:icon="@drawable/gs_texture_vd_theme_24" android:entries="@array/pref_video_noise_reduction_entries" android:layout="@layout/preference_with_margin" android:title="@string/pref_video_noise_reduction_title" android:key="pref_video_noise_reduction_key" android:summary="%s" android:order="2" android:defaultValue="stock" android:entryValues="@array/pref_video_noise_reduction_entryvalues" />
+        <ListPreference android:icon="@drawable/gs_videocam_vd_theme_24" android:entries="@array/pref_video_bitrate_entries" android:layout="@layout/preference_with_margin" android:title="@string/pref_video_bitrate_title" android:key="pref_video_bitrate_key" android:summary="%s" android:order="3" android:defaultValue="stock" android:entryValues="@array/pref_video_bitrate_entryvalues" />
+        <ListPreference android:icon="@drawable/gs_video_stable_vd_theme_24" android:entries="@array/pref_video_stabilization_mode_entries" android:layout="@layout/preference_with_margin" android:title="@string/pref_video_stabilization_mode_title" android:key="pref_video_stabilization_mode_key" android:summary="%s" android:order="4" android:defaultValue="standard" android:entryValues="@array/pref_video_stabilization_mode_entryvalues" />
     </PreferenceCategory>
                     """.trimIndent()
                     val videoCatMatch = Regex("""(<PreferenceCategory[^>]*key="pref_category_resolution_video"[^>]*>[\s\S]*?</PreferenceCategory>)""").find(content)

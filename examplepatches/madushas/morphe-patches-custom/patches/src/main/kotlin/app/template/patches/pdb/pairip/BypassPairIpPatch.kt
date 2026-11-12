@@ -29,6 +29,7 @@ val pdbBypassPairIpPatch = bytecodePatch(
         "after Morphe re-signs it. Restores the real Application class (pdb.app.App).",
     default = true,
 ) {
+    category("PairIP")
     compatibleWith(PDB_COMPATIBILITY)
 
     dependsOn(

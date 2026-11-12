@@ -26,6 +26,8 @@
 
 .field public static final PREF_FOCAL_CYCLING:Ljava/lang/String; = "pref_camera_focal_length_cycling_key"
 
+.field public static final PREF_RAW_SEPARATE_FOLDER:Ljava/lang/String; = "pref_camera_raw_separate_folder_key"
+
 .field public static sCurrentActivity:Ljava/lang/ref/WeakReference;
 
 .field public static sFineTuneContrast:F
@@ -45,6 +47,10 @@
 .field public static sFineTuneGrain:F
 
 .field public static volatile lastExposureTimeNs:J
+
+.field public static sLastNightSightTimestamp:J
+
+.field public static sLastNightSightCaptureTime:J
 
 
 
@@ -99,6 +105,12 @@
     const-wide/32 v0, 0x1312d00
 
     sput-wide v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->lastExposureTimeNs:J
+
+    const-wide/16 v0, 0x0
+
+    sput-wide v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sLastNightSightTimestamp:J
+
+    sput-wide v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sLastNightSightCaptureTime:J
 
 
     :try_start_propatcher
@@ -1287,12 +1299,12 @@
 
     if-nez v0, :cond_custom
 
-    const-wide/16 v0, 0x922
+    const-wide/16 v0, 0x933
 
     return-wide v0
 
     :cond_custom
-    const-wide/16 v0, 0x22
+    const-wide/16 v0, 0x33
 
     or-long/2addr p0, v0
 
@@ -3240,6 +3252,304 @@
     return p0
 .end method
 
+.method public static getVideoStabilizationMode()I
+    .locals 2
+
+    :try_start_gvsm
+    const-string v0, "pref_video_stabilization_mode_key"
+
+    invoke-static {v0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getPrefEntry(Ljava/lang/String;)Ljava/lang/Object;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_vsm_default
+
+    invoke-virtual {v0}, Ljava/lang/Object;->toString()Ljava/lang/String;
+
+    move-result-object v0
+
+    const-string v1, "ois_only"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_vsm_ois
+
+    const-string v1, "1"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_vsm_check_off
+
+    :cond_vsm_ois
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_vsm_check_off
+    const-string v1, "off"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_vsm_off
+
+    const-string v1, "2"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_vsm_default
+
+    :cond_vsm_off
+    const/4 v0, 0x2
+
+    return v0
+
+    :cond_vsm_default
+    const/4 v0, 0x0
+
+    return v0
+    :try_end_gvsm
+    .catch Ljava/lang/Throwable; {:try_start_gvsm .. :try_end_gvsm} :catch_gvsm
+
+    :catch_gvsm
+    const/4 v0, 0x0
+
+    return v0
+.end method
+
+.method public static filterVideoBitrate(ILandroid/media/MediaFormat;)I
+    .locals 4
+
+    if-gtz p0, :cond_chk_pref
+
+    return p0
+
+    :cond_chk_pref
+    :try_start_fvb
+    const-string v0, "pref_video_bitrate_key"
+
+    invoke-static {v0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getPrefEntry(Ljava/lang/String;)Ljava/lang/Object;
+
+    move-result-object v0
+
+    if-nez v0, :cond_chk_val
+
+    return p0
+
+    :cond_chk_val
+    invoke-virtual {v0}, Ljava/lang/Object;->toString()Ljava/lang/String;
+
+    move-result-object v0
+
+    const-string v1, "high"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_high_bitrate
+
+    const-string v1, "1"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_chk_ultra
+
+    :cond_high_bitrate
+    if-eqz p1, :cond_high_mult
+
+    :try_start_high_fmt
+    const-string v0, "video-qp-max"
+
+    const/16 v1, 0x18
+
+    invoke-virtual {p1, v0, v1}, Landroid/media/MediaFormat;->setInteger(Ljava/lang/String;I)V
+
+    const-string v0, "video-qp-min"
+
+    const/16 v1, 0xc
+
+    invoke-virtual {p1, v0, v1}, Landroid/media/MediaFormat;->setInteger(Ljava/lang/String;I)V
+
+    const-string v0, "width"
+
+    invoke-virtual {p1, v0}, Landroid/media/MediaFormat;->getInteger(Ljava/lang/String;)I
+
+    move-result v0
+
+    const-string v1, "height"
+
+    invoke-virtual {p1, v1}, Landroid/media/MediaFormat;->getInteger(Ljava/lang/String;)I
+
+    move-result v1
+
+    mul-int/2addr v0, v1
+
+    const v1, 0x700000
+
+    if-lt v0, v1, :cond_high_1080
+
+    const-string v0, "frame-rate"
+
+    invoke-virtual {p1, v0}, Landroid/media/MediaFormat;->getInteger(Ljava/lang/String;)I
+
+    move-result v0
+
+    const/16 v1, 0x30
+
+    if-ge v0, v1, :cond_high_4k60
+
+    const v1, 0x344c200
+
+    if-le p0, v1, :cond_high_4k30
+
+    :cond_high_4k60
+    const p0, 0x5f5e100
+
+    return p0
+
+    :cond_high_4k30
+    const p0, 0x42c1d80
+
+    return p0
+
+    :cond_high_1080
+    const v1, 0x1c0000
+
+    if-lt v0, v1, :cond_high_mult
+
+    const p0, 0x2160ec0
+
+    return p0
+    :try_end_high_fmt
+    .catch Ljava/lang/Throwable; {:try_start_high_fmt .. :try_end_high_fmt} :catch_high_fmt
+
+    :catch_high_fmt
+    :cond_high_mult
+    shr-int/lit8 v0, p0, 0x1
+
+    shr-int/lit8 v1, p0, 0x3
+
+    add-int/2addr p0, v0
+
+    add-int/2addr p0, v1
+
+    return p0
+
+    :cond_chk_ultra
+    const-string v1, "ultra"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_ultra_bitrate
+
+    const-string v1, "2"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_ret_orig
+
+    :cond_ultra_bitrate
+    if-eqz p1, :cond_ultra_mult
+
+    :try_start_ultra_fmt
+    const-string v0, "video-qp-max"
+
+    const/16 v1, 0x14
+
+    invoke-virtual {p1, v0, v1}, Landroid/media/MediaFormat;->setInteger(Ljava/lang/String;I)V
+
+    const-string v0, "video-qp-min"
+
+    const/16 v1, 0xa
+
+    invoke-virtual {p1, v0, v1}, Landroid/media/MediaFormat;->setInteger(Ljava/lang/String;I)V
+
+    const-string v0, "width"
+
+    invoke-virtual {p1, v0}, Landroid/media/MediaFormat;->getInteger(Ljava/lang/String;)I
+
+    move-result v0
+
+    const-string v1, "height"
+
+    invoke-virtual {p1, v1}, Landroid/media/MediaFormat;->getInteger(Ljava/lang/String;)I
+
+    move-result v1
+
+    mul-int/2addr v0, v1
+
+    const v1, 0x700000
+
+    if-lt v0, v1, :cond_ultra_1080
+
+    const-string v0, "frame-rate"
+
+    invoke-virtual {p1, v0}, Landroid/media/MediaFormat;->getInteger(Ljava/lang/String;)I
+
+    move-result v0
+
+    const/16 v1, 0x30
+
+    if-ge v0, v1, :cond_ultra_4k60
+
+    const v1, 0x344c200
+
+    if-le p0, v1, :cond_ultra_4k30
+
+    :cond_ultra_4k60
+    const p0, 0x8f0d180
+
+    return p0
+
+    :cond_ultra_4k30
+    const p0, 0x68de980
+
+    return p0
+
+    :cond_ultra_1080
+    const v1, 0x1c0000
+
+    if-lt v0, v1, :cond_ultra_mult
+
+    const p0, 0x2faf080
+
+    return p0
+    :try_end_ultra_fmt
+    .catch Ljava/lang/Throwable; {:try_start_ultra_fmt .. :try_end_ultra_fmt} :catch_ultra_fmt
+
+    :catch_ultra_fmt
+    :cond_ultra_mult
+    shl-int/lit8 v0, p0, 0x1
+
+    shr-int/lit8 v1, p0, 0x3
+
+    add-int/2addr v0, v1
+
+    return v0
+
+    :cond_ret_orig
+    return p0
+    :try_end_fvb
+    .catch Ljava/lang/Throwable; {:try_start_fvb .. :try_end_fvb} :catch_fvb
+
+    :catch_fvb
+    return p0
+.end method
+
 .method public static isVideoMode()Z
     .locals 2
 
@@ -3327,7 +3637,7 @@
 
     move-result v0
 
-    if-ltz v0, :cond_done
+    if-ltz v0, :cond_chk_stab
 
     sget-object v1, Landroid/hardware/camera2/CaptureRequest;->NOISE_REDUCTION_MODE:Landroid/hardware/camera2/CaptureRequest$Key;
 
@@ -3340,6 +3650,58 @@
     .catch Ljava/lang/Throwable; {:try_start_avnr .. :try_end_avnr} :catch_avnr
 
     :catch_avnr
+    :cond_chk_stab
+    :try_start_avstab
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getVideoStabilizationMode()I
+
+    move-result v0
+
+    if-lez v0, :cond_done
+
+    const/4 v1, 0x1
+
+    if-ne v0, v1, :cond_stab_all_off
+
+    sget-object v0, Landroid/hardware/camera2/CaptureRequest;->CONTROL_VIDEO_STABILIZATION_MODE:Landroid/hardware/camera2/CaptureRequest$Key;
+
+    const/4 v1, 0x0
+
+    invoke-static {v1}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v1
+
+    invoke-virtual {p0, v0, v1}, Landroid/hardware/camera2/CaptureRequest$Builder;->set(Landroid/hardware/camera2/CaptureRequest$Key;Ljava/lang/Object;)V
+
+    sget-object v0, Landroid/hardware/camera2/CaptureRequest;->LENS_OPTICAL_STABILIZATION_MODE:Landroid/hardware/camera2/CaptureRequest$Key;
+
+    const/4 v1, 0x1
+
+    invoke-static {v1}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v1
+
+    invoke-virtual {p0, v0, v1}, Landroid/hardware/camera2/CaptureRequest$Builder;->set(Landroid/hardware/camera2/CaptureRequest$Key;Ljava/lang/Object;)V
+
+    goto :cond_done
+
+    :cond_stab_all_off
+    sget-object v0, Landroid/hardware/camera2/CaptureRequest;->CONTROL_VIDEO_STABILIZATION_MODE:Landroid/hardware/camera2/CaptureRequest$Key;
+
+    const/4 v1, 0x0
+
+    invoke-static {v1}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v1
+
+    invoke-virtual {p0, v0, v1}, Landroid/hardware/camera2/CaptureRequest$Builder;->set(Landroid/hardware/camera2/CaptureRequest$Key;Ljava/lang/Object;)V
+
+    sget-object v0, Landroid/hardware/camera2/CaptureRequest;->LENS_OPTICAL_STABILIZATION_MODE:Landroid/hardware/camera2/CaptureRequest$Key;
+
+    invoke-virtual {p0, v0, v1}, Landroid/hardware/camera2/CaptureRequest$Builder;->set(Landroid/hardware/camera2/CaptureRequest$Key;Ljava/lang/Object;)V
+    :try_end_avstab
+    .catch Ljava/lang/Throwable; {:try_start_avstab .. :try_end_avstab} :catch_avstab
+
+    :catch_avstab
     :cond_done
     return-void
 .end method
@@ -3432,7 +3794,7 @@
 
     move-result v0
 
-    if-ltz v0, :cond_done
+    if-ltz v0, :cond_check_stab
 
     invoke-interface {p0}, Ljava/util/Set;->iterator()Ljava/util/Iterator;
 
@@ -3479,6 +3841,115 @@
     new-instance v2, Lvaz;
 
     invoke-direct {v2, v1, v0}, Lvaz;-><init>(Landroid/hardware/camera2/CaptureRequest$Key;Ljava/lang/Object;)V
+
+    invoke-interface {p0, v2}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
+
+    :cond_check_stab
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getVideoStabilizationMode()I
+
+    move-result v0
+
+    if-lez v0, :cond_done
+
+    invoke-interface {p0}, Ljava/util/Set;->iterator()Ljava/util/Iterator;
+
+    move-result-object v1
+
+    :cond_stab_loop
+    invoke-interface {v1}, Ljava/util/Iterator;->hasNext()Z
+
+    move-result v2
+
+    if-eqz v2, :cond_stab_add
+
+    invoke-interface {v1}, Ljava/util/Iterator;->next()Ljava/lang/Object;
+
+    move-result-object v2
+
+    instance-of v3, v2, Lvaz;
+
+    if-eqz v3, :cond_stab_loop
+
+    check-cast v2, Lvaz;
+
+    iget-object v2, v2, Lvaz;->a:Landroid/hardware/camera2/CaptureRequest$Key;
+
+    sget-object v3, Landroid/hardware/camera2/CaptureRequest;->CONTROL_VIDEO_STABILIZATION_MODE:Landroid/hardware/camera2/CaptureRequest$Key;
+
+    invoke-virtual {v3, v2}, Landroid/hardware/camera2/CaptureRequest$Key;->equals(Ljava/lang/Object;)Z
+
+    move-result v3
+
+    if-nez v3, :cond_stab_rem
+
+    sget-object v3, Landroid/hardware/camera2/CaptureRequest;->LENS_OPTICAL_STABILIZATION_MODE:Landroid/hardware/camera2/CaptureRequest$Key;
+
+    invoke-virtual {v3, v2}, Landroid/hardware/camera2/CaptureRequest$Key;->equals(Ljava/lang/Object;)Z
+
+    move-result v2
+
+    if-eqz v2, :cond_stab_loop
+
+    :cond_stab_rem
+    invoke-interface {v1}, Ljava/util/Iterator;->remove()V
+
+    goto :cond_stab_loop
+
+    :cond_stab_add
+    const/4 v1, 0x1
+
+    if-ne v0, v1, :cond_stab_session_off
+
+    sget-object v0, Landroid/hardware/camera2/CaptureRequest;->CONTROL_VIDEO_STABILIZATION_MODE:Landroid/hardware/camera2/CaptureRequest$Key;
+
+    const/4 v1, 0x0
+
+    invoke-static {v1}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v1
+
+    new-instance v2, Lvaz;
+
+    invoke-direct {v2, v0, v1}, Lvaz;-><init>(Landroid/hardware/camera2/CaptureRequest$Key;Ljava/lang/Object;)V
+
+    invoke-interface {p0, v2}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
+
+    sget-object v0, Landroid/hardware/camera2/CaptureRequest;->LENS_OPTICAL_STABILIZATION_MODE:Landroid/hardware/camera2/CaptureRequest$Key;
+
+    const/4 v1, 0x1
+
+    invoke-static {v1}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v1
+
+    new-instance v2, Lvaz;
+
+    invoke-direct {v2, v0, v1}, Lvaz;-><init>(Landroid/hardware/camera2/CaptureRequest$Key;Ljava/lang/Object;)V
+
+    invoke-interface {p0, v2}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
+
+    goto :cond_done
+
+    :cond_stab_session_off
+    sget-object v0, Landroid/hardware/camera2/CaptureRequest;->CONTROL_VIDEO_STABILIZATION_MODE:Landroid/hardware/camera2/CaptureRequest$Key;
+
+    const/4 v1, 0x0
+
+    invoke-static {v1}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v1
+
+    new-instance v2, Lvaz;
+
+    invoke-direct {v2, v0, v1}, Lvaz;-><init>(Landroid/hardware/camera2/CaptureRequest$Key;Ljava/lang/Object;)V
+
+    invoke-interface {p0, v2}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
+
+    sget-object v0, Landroid/hardware/camera2/CaptureRequest;->LENS_OPTICAL_STABILIZATION_MODE:Landroid/hardware/camera2/CaptureRequest$Key;
+
+    new-instance v2, Lvaz;
+
+    invoke-direct {v2, v0, v1}, Lvaz;-><init>(Landroid/hardware/camera2/CaptureRequest$Key;Ljava/lang/Object;)V
 
     invoke-interface {p0, v2}, Ljava/util/Set;->add(Ljava/lang/Object;)Z
     :try_end_ivp
@@ -4932,9 +5403,163 @@
 
     move-result v0
 
-    if-eqz v0, :cond_not_found
+    if-eqz v0, :cond_check_24fps
 
     const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_24fps
+    const-string v0, "camcorder.24fps"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_video_smooth_filter
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_video_smooth_filter
+    const-string v0, "camera.video_smooth_zoom_filter"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_video_smooth_spring
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_video_smooth_spring
+    const-string v0, "camera.video_smooth_zoom_spring"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_video_prewarm
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_video_prewarm
+    const-string v0, "camera.video_prewarm"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_camcorder_scalable_vpipe
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_camcorder_scalable_vpipe
+    const-string v0, "camcorder.scalable_vpipe"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_camcorder_surface_share
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_camcorder_surface_share
+    const-string v0, "camcorder.surface_share"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_camcorder_peregrine
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_camcorder_peregrine
+    const-string v0, "camcorder.peregrine"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_camcorder_osprey
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_check_camcorder_osprey
+    const-string v0, "camcorder.osprey"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_camcorder_stokes_dyn
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_check_camcorder_stokes_dyn
+    const-string v0, "camcorder.stokes_dyn"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_camcorder_4k60fps
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_camcorder_4k60fps
+    const-string v0, "camcorder.4k60fps"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_raw_separate_folder
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_raw_separate_folder
+    const-string v0, "enable_camera_raw_folder_burst"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_not_found
+
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isRawSeparateFolderEnabled()Z
+
+    move-result v0
+
+    if-eqz v0, :cond_raw_separate_folder_disabled
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_raw_separate_folder_disabled
+    const/4 v0, 0x0
 
     return v0
 
@@ -5184,9 +5809,51 @@
 
     move-result v1
 
-    if-eqz v1, :cond_try_orig_a
+    if-eqz v1, :cond_check_video_zoom_anim_duration
 
     const/4 v1, 0x0
+
+    invoke-static {v1}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v1
+
+    invoke-static {v1}, Lj$/util/Optional;->of(Ljava/lang/Object;)Lj$/util/Optional;
+
+    move-result-object v1
+
+    return-object v1
+
+    :cond_check_video_zoom_anim_duration
+    const-string v1, "camera.video_zoom_animation_duration"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_zoom_curve_preset
+
+    const/16 v1, 0x17c
+
+    invoke-static {v1}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v1
+
+    invoke-static {v1}, Lj$/util/Optional;->of(Ljava/lang/Object;)Lj$/util/Optional;
+
+    move-result-object v1
+
+    return-object v1
+
+    :cond_check_zoom_curve_preset
+    const-string v1, "camera.zoom_curve_control_preset"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_try_orig_a
+
+    const/16 v1, 0x8
 
     invoke-static {v1}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
 
@@ -5602,6 +6269,69 @@
 
     :cond_check_boba_ext
     const-string v1, "camera.boba_jelly_ext_threshold"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_smooth_zoom_min_cutoff
+
+    const/high16 v0, 0x3f800000    # 1.0f
+
+    invoke-static {v0}, Ljava/lang/Float;->valueOf(F)Ljava/lang/Float;
+
+    move-result-object v0
+
+    invoke-static {v0}, Lj$/util/Optional;->of(Ljava/lang/Object;)Lj$/util/Optional;
+
+    move-result-object v0
+
+    return-object v0
+
+    :cond_check_smooth_zoom_min_cutoff
+    const-string v1, "camera.video_smooth_zoom_min_cutoff"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_smooth_zoom_beta
+
+    const v0, 0x3f99999a    # 1.2f
+
+    invoke-static {v0}, Ljava/lang/Float;->valueOf(F)Ljava/lang/Float;
+
+    move-result-object v0
+
+    invoke-static {v0}, Lj$/util/Optional;->of(Ljava/lang/Object;)Lj$/util/Optional;
+
+    move-result-object v0
+
+    return-object v0
+
+    :cond_check_smooth_zoom_beta
+    const-string v1, "camera.video_smooth_zoom_beta"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_smooth_zoom_deriv
+
+    const v0, 0x3c03126f    # 0.008f
+
+    invoke-static {v0}, Ljava/lang/Float;->valueOf(F)Ljava/lang/Float;
+
+    move-result-object v0
+
+    invoke-static {v0}, Lj$/util/Optional;->of(Ljava/lang/Object;)Lj$/util/Optional;
+
+    move-result-object v0
+
+    return-object v0
+
+    :cond_check_smooth_zoom_deriv
+    const-string v1, "camera.video_smooth_zoom_derivative_cutoff"
 
     invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
 
@@ -6976,6 +7706,58 @@
     return v0
 .end method
 
+.method public static isRawSeparateFolderEnabled()Z
+    .locals 3
+
+    :try_start_rsf
+    const-string v0, "pref_camera_raw_separate_folder_key"
+
+    invoke-static {v0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getPrefEntry(Ljava/lang/String;)Ljava/lang/Object;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_check_sp
+
+    const/4 v1, 0x1
+
+    invoke-static {v0, v1}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->checkPrefValue(Ljava/lang/Object;Z)Z
+
+    move-result v0
+
+    return v0
+
+    :cond_check_sp
+    const/4 v0, 0x0
+
+    invoke-static {v0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getSharedPrefs(Landroid/content/Context;)Landroid/content/SharedPreferences;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_ret_default
+
+    const-string v2, "pref_camera_raw_separate_folder_key"
+
+    const/4 v1, 0x1
+
+    invoke-interface {v0, v2, v1}, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String;Z)Z
+
+    move-result v0
+
+    return v0
+
+    :cond_ret_default
+    const/4 v0, 0x1
+
+    return v0
+    :try_end_rsf
+    .catchall {:try_start_rsf .. :try_end_rsf} :catchall_rsf
+
+    :catchall_rsf
+    const/4 v0, 0x1
+
+    return v0
+.end method
+
 .method public static isManualLensActive(Ljava/lang/Object;)Z
     .locals 4
 
@@ -7733,6 +8515,32 @@
     goto/16 :goto_ret
 
     :cond_1
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isNightSightActive()Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_dims
+
+    const-string v2, "com.google.android.apps.camera.gallery.specialtype.SpecialType-NIGHT"
+
+    invoke-static {p1, v2}, Lvoc;->m(Lgyn;Ljava/lang/String;)V
+
+    if-eqz p2, :cond_log_night
+
+    const/4 v0, 0x1
+
+    invoke-virtual {p2, v0}, Ljava/util/concurrent/atomic/AtomicBoolean;->set(Z)V
+
+    :cond_log_night
+    const-string p0, "PATCH_LOOKS"
+
+    const-string p1, "Injected SpecialTypeID: com.google.android.apps.camera.gallery.specialtype.SpecialType-NIGHT"
+
+    invoke-static {p0, p1}, Landroid/util/Log;->i(Ljava/lang/String;Ljava/lang/String;)I
+
+    goto/16 :goto_ret
+
+    :cond_check_dims
     invoke-static {p0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->parseJpegDimensions([B)[I
 
     move-result-object p0
@@ -7876,6 +8684,24 @@
     return-object p0
 
     :cond_0
+    sget-object v0, Lmhb;->f:Lmhb;
+
+    if-ne p0, v0, :cond_check_active_night
+
+    return-object p0
+
+    :cond_check_active_night
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isNightSightActive()Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_bytes
+
+    sget-object p0, Lmhb;->f:Lmhb;
+
+    return-object p0
+
+    :cond_check_bytes
     instance-of v0, p1, [B
 
     if-eqz v0, :cond_4
@@ -8011,13 +8837,13 @@
     return-object p0
 
     :cond_0
-    if-eqz p0, :cond_2
+    if-eqz p0, :cond_check_night
 
     invoke-virtual {p0}, Lyia;->h()Z
 
     move-result v0
 
-    if-eqz v0, :cond_2
+    if-eqz v0, :cond_check_night
 
     invoke-virtual {p0}, Lyia;->c()Ljava/lang/Object;
 
@@ -8025,13 +8851,24 @@
 
     check-cast v0, Lmhb;
 
+    sget-object v1, Lmhb;->f:Lmhb;
+
+    invoke-virtual {v0, v1}, Lmhb;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_not_night
+
+    return-object p0
+
+    :cond_not_night
     sget-object v1, Lmhb;->a:Lmhb;
 
     invoke-virtual {v0, v1}, Lmhb;->equals(Ljava/lang/Object;)Z
 
     move-result v1
 
-    if-nez v1, :cond_2
+    if-nez v1, :cond_check_night
 
     sget-object v1, Lmhb;->t:Lmhb;
 
@@ -8039,7 +8876,7 @@
 
     move-result v1
 
-    if-nez v1, :cond_2
+    if-nez v1, :cond_check_night
 
     sget-object v1, Lmhb;->e:Lmhb;
 
@@ -8066,7 +8903,44 @@
     :cond_1
     return-object p0
 
-    :cond_2
+    :cond_check_night
+    invoke-static {p1, p2}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isMediaNight(J)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_50
+
+    const-string v0, "PATCH_LOOKS"
+
+    new-instance v1, Ljava/lang/StringBuilder;
+
+    invoke-direct {v1}, Ljava/lang/StringBuilder;-><init>()V
+
+    const-string v2, "resolveSpecialTypeForMediaId: ID "
+
+    invoke-virtual {v1, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    invoke-virtual {v1, p1, p2}, Ljava/lang/StringBuilder;->append(J)Ljava/lang/StringBuilder;
+
+    const-string v2, " is Night Sight -> NIGHT"
+
+    invoke-virtual {v1, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    invoke-virtual {v1}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object v1
+
+    invoke-static {v0, v1}, Landroid/util/Log;->i(Ljava/lang/String;Ljava/lang/String;)I
+
+    sget-object p1, Lmhb;->f:Lmhb;
+
+    invoke-static {p1}, Lyia;->i(Ljava/lang/Object;)Lyia;
+
+    move-result-object p1
+
+    return-object p1
+
+    :cond_check_50
     invoke-static {p1, p2}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isMedia50MP(J)Z
 
     move-result v0
@@ -8213,6 +9087,289 @@
     const/4 p0, 0x0
 
     return p0
+.end method
+
+.method public static isMediaNight(J)Z
+    .locals 8
+
+    :try_start_0
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getApplicationContext()Landroid/content/Context;
+
+    move-result-object v0
+
+    if-nez v0, :cond_0
+
+    const/4 p0, 0x0
+
+    return p0
+
+    :cond_0
+    sget-object v1, Landroid/provider/MediaStore$Images$Media;->EXTERNAL_CONTENT_URI:Landroid/net/Uri;
+
+    invoke-static {v1, p0, p1}, Landroid/content/ContentUris;->withAppendedId(Landroid/net/Uri;J)Landroid/net/Uri;
+
+    move-result-object v3
+
+    invoke-virtual {v0}, Landroid/content/Context;->getContentResolver()Landroid/content/ContentResolver;
+
+    move-result-object v2
+
+    const-string p0, "_data"
+
+    const-string p1, "_display_name"
+
+    filled-new-array {p0, p1}, [Ljava/lang/String;
+
+    move-result-object v4
+
+    const/4 v5, 0x0
+
+    const/4 v6, 0x0
+
+    const/4 v7, 0x0
+
+    invoke-virtual/range {v2 .. v7}, Landroid/content/ContentResolver;->query(Landroid/net/Uri;[Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;Ljava/lang/String;)Landroid/database/Cursor;
+
+    move-result-object p0
+
+    if-eqz p0, :cond_3
+
+    invoke-interface {p0}, Landroid/database/Cursor;->moveToFirst()Z
+
+    move-result p1
+
+    if-eqz p1, :cond_2
+
+    const/4 p1, 0x0
+
+    invoke-interface {p0, p1}, Landroid/database/Cursor;->getString(I)Ljava/lang/String;
+
+    move-result-object p1
+
+    const/4 v0, 0x1
+
+    invoke-interface {p0, v0}, Landroid/database/Cursor;->getString(I)Ljava/lang/String;
+
+    move-result-object v1
+
+    invoke-interface {p0}, Landroid/database/Cursor;->close()V
+
+    const-string p0, "NIGHT"
+
+    if-eqz p1, :cond_1
+
+    invoke-virtual {p1, p0}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+
+    move-result p1
+
+    if-eqz p1, :cond_1
+
+    return v0
+
+    :cond_1
+    if-eqz v1, :cond_3
+
+    invoke-virtual {v1, p0}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+
+    move-result p0
+
+    if-eqz p0, :cond_3
+
+    return v0
+
+    :cond_2
+    invoke-interface {p0}, Landroid/database/Cursor;->close()V
+
+    :cond_3
+    const/4 p0, 0x0
+
+    return p0
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catch_all
+
+    :catch_all
+    move-exception p0
+
+    const-string p1, "PATCH_LOOKS"
+
+    const-string v0, "isMediaNight error"
+
+    invoke-static {p1, v0, p0}, Landroid/util/Log;->e(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)I
+
+    const/4 p0, 0x0
+
+    return p0
+.end method
+
+.method public static onNightSightSession(J)V
+    .locals 2
+
+    sput-wide p0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sLastNightSightTimestamp:J
+
+    invoke-static {}, Ljava/lang/System;->currentTimeMillis()J
+
+    move-result-wide v0
+
+    sput-wide v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sLastNightSightCaptureTime:J
+
+    const-string v0, "PATCH_LOOKS"
+
+    const-string v1, "onNightSightSession: recorded Night Sight session"
+
+    invoke-static {v0, v1}, Landroid/util/Log;->i(Ljava/lang/String;Ljava/lang/String;)I
+
+    return-void
+.end method
+
+.method public static isAutoNightOrHiRes(Ljava/lang/Object;)Z
+    .locals 2
+
+    const/4 v0, 0x0
+
+    if-nez p0, :cond_0
+
+    return v0
+
+    :cond_0
+    :try_start_0
+    instance-of v1, p0, Lpcl;
+
+    if-nez v1, :cond_1
+
+    return v0
+
+    :cond_1
+    check-cast p0, Lpcl;
+
+    iget-boolean v1, p0, Lpcl;->l:Z
+
+    if-nez v1, :cond_yes
+
+    iget-boolean p0, p0, Lpcl;->k:Z
+
+    if-eqz p0, :cond_no
+
+    :cond_yes
+    const/4 v0, 0x1
+
+    :cond_no
+    return v0
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catch_all
+
+    :catch_all
+    return v0
+.end method
+
+.method public static createPhotoCaptureSession(Lrbu;JLjava/lang/Object;Z)Lrbs;
+    .locals 8
+
+    if-nez p0, :cond_0
+
+    const/4 p0, 0x0
+
+    return-object p0
+
+    :cond_0
+    :try_start_0
+    instance-of v0, p3, Lpcl;
+
+    if-eqz v0, :cond_fallback
+
+    check-cast p3, Lpcl;
+
+    iget-boolean v0, p3, Lpcl;->l:Z
+
+    if-eqz v0, :cond_check_hi_res
+
+    iget-boolean v0, p3, Lpcl;->k:Z
+
+    const-string v1, "PATCH_LOOKS"
+
+    const-string v2, "createPhotoCaptureSession: Auto Night Sight active -> calling rbu.j"
+
+    invoke-static {v1, v2}, Landroid/util/Log;->i(Ljava/lang/String;Ljava/lang/String;)I
+
+    invoke-virtual {p0, p1, p2, p4, v0}, Lrbu;->j(JZZ)Lrbs;
+
+    move-result-object p0
+
+    return-object p0
+
+    :cond_check_hi_res
+    iget-boolean p3, p3, Lpcl;->k:Z
+
+    if-eqz p3, :cond_fallback
+
+    invoke-virtual {p0, p1, p2, p4}, Lrbu;->c(JZ)Lrbs;
+
+    move-result-object p0
+
+    return-object p0
+
+    :cond_fallback
+    const/4 p0, 0x0
+
+    return-object p0
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catch_all
+
+    :catch_all
+    move-exception p0
+
+    const-string p1, "PATCH_LOOKS"
+
+    const-string p2, "createPhotoCaptureSession error"
+
+    invoke-static {p1, p2, p0}, Landroid/util/Log;->e(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)I
+
+    const/4 p0, 0x0
+
+    return-object p0
+.end method
+
+.method public static isNightSightActive()Z
+    .locals 4
+
+    sget v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sCurrentModeOrdinal:I
+
+    const/16 v1, 0x9
+
+    if-ne v0, v1, :cond_check_recent
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_recent
+    invoke-static {}, Ljava/lang/System;->currentTimeMillis()J
+
+    move-result-wide v0
+
+    sget-wide v2, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sLastNightSightCaptureTime:J
+
+    sub-long/2addr v0, v2
+
+    const-wide/32 v2, 0xea60
+
+    cmp-long v2, v0, v2
+
+    if-gez v2, :cond_false
+
+    const-wide/16 v2, 0x0
+
+    cmp-long v0, v0, v2
+
+    if-ltz v0, :cond_false
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_false
+    const/4 v0, 0x0
+
+    return v0
 .end method
 
 .method public static isHighResShot(ZLomw;)Z

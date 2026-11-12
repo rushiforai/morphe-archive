@@ -4,15 +4,21 @@
  */
 package org.telegram.tgnet.tl;
 
+import org.telegram.tgnet.TLRPC;
+
 /** Test stand-ins named like Telegram's story requests, which the extension tells apart by name. */
 public final class TL_stories {
     private TL_stories() { }
 
     /** Marks stories up to an id seen. */
-    public static class TL_stories_readStories { }
+    public static class TL_stories_readStories {
+        public TLRPC.InputPeer peer;
+    }
 
     /** Adds this account to the viewers of the stories it opened. */
-    public static class TL_stories_incrementStoryViews { }
+    public static class TL_stories_incrementStoryViews {
+        public TLRPC.InputPeer peer;
+    }
 
     /** Any other story request. */
     public static class TL_stories_getAllStories { }

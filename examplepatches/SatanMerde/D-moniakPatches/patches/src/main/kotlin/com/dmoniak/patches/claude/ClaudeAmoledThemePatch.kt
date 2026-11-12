@@ -1,16 +1,15 @@
 package com.dmoniak.patches.claude
 
-import com.dmoniak.patches.shared.replaceMethod
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.dmoniak.patches.shared.Constants.COMPATIBILITY_CLAUDE
+import com.dmoniak.patches.shared.replaceMethod
 import java.util.logging.Logger
 
-@Suppress("unused")
 val claudeAmoledThemePatch = bytecodePatch(
     name = "AMOLED Dark Theme - Claude AI (Experimental)",
-    description = "⚠️ [Experimental / Untested] Forces deep AMOLED pure black theme for Claude AI, optimizing contrast and reducing battery consumption on OLED displays.",
+    description = "Forces deep AMOLED pure black theme for Claude AI, optimizing contrast and reducing battery consumption on OLED displays.",
 ) {
     compatibleWith(COMPATIBILITY_CLAUDE)
 
@@ -26,38 +25,36 @@ fun BytecodePatchContext.executeClaudeAmoledThemeLogic(logger: Logger) {
 
     classDefForEach { classDef ->
         val tl = classDef.type.lowercase()
-        if (tl.contains("androidx") || tl.contains("android/support") || tl.contains("com/google")) return@classDefForEach
+        if (!tl.contains("androidx") && !tl.contains("android/support") && !tl.contains("com/google")) {
+            val mutableClass by lazy { mutableClassDefBy(classDef) }
 
-        val mutableClass by lazy { mutableClassDefBy(classDef) }
+            for (method in classDef.methods.toList()) {
+                if (method.implementation == null) continue
+                val isStatic = AccessFlags.STATIC.isSet(method.accessFlags)
+                val mName = method.name.lowercase()
+                val retType = method.returnType
 
-        for (method in classDef.methods.toList()) {
-            if (method.implementation == null) continue
-            val isStatic = AccessFlags.STATIC.isSet(method.accessFlags)
-            val mName = method.name.lowercase()
-            val retType = method.returnType
-
-            // Force dark / AMOLED theme detection
-            if (!isStatic && (
-                mName == "isdarktheme" ||
-                mName == "isdarkmodeenabled" ||
-                mName == "shouldusedarktheme" ||
-                mName == "isnightmode"
-            ) && retType == "Z") {
-                try {
-                    mutableClass.replaceMethod(
-
-                        method,
-
-                        smaliCode = """
-                        const/4 v0, 0x1
-                        return v0
-                        """.trimIndent()
-
-                    )
-                    hookedPoints++
-                    logger.info("[Claude Theme] Forced dark theme in: ${classDef.type}->${method.name}")
-                } catch (e: Exception) {
-                    logger.warning("[Claude Theme] Failed to hook ${method.name}: ${e.message}")
+                // Force dark / AMOLED theme detection
+                if (!isStatic && (
+                    mName == "isdarktheme" ||
+                    mName == "isdarkmodeenabled" ||
+                    mName == "shouldusedarktheme" ||
+                    mName == "isnightmode"
+                ) && retType == "Z") {
+                    try {
+                        mutableClass.replaceMethod(
+                            method,
+                            registerCount = 3,
+                            smaliCode = """
+                                const/4 v0, 0x1
+                                return v0
+                            """.trimIndent(),
+                        )
+                        hookedPoints++
+                        logger.info("[Claude Theme] Forced dark theme in: ${classDef.type}->${method.name}")
+                    } catch (e: Exception) {
+                        logger.warning("[Claude Theme] Failed to hook ${method.name}: ${e.message}")
+                    }
                 }
             }
         }

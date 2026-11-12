@@ -61,6 +61,33 @@ LINE 26.16.0 の APK を JADX と dexdump で読んだ結果をまとめる。�
 - hook は元の結果または設定 ON なら true を返す。設定 OFF・未初期化・適用不可・設定エラー・例外では元の結果を維持する。元から true の結果を false にはしない。
 - プレビュー画面の提供条件、LINE ラボ、課金・購読 API、通信、既読の経路は変更しない。この設定だけで Premium の案内は消えない。
 
+### トークのプレビューを無効にする（`previewDisablePatch`）
+
+#### 長押しの分岐
+
+- トーク一覧の長押しは `z61/t1.e(k2, …)` が受け取り、`k2.n()` が true ならプレビュー用のイベント（`v1.j`）を発行し、false なら従来メニューを開く `k2.x(kVar)` を呼ぶ。
+- `k2` の実装はトークタブの `w42/z` と Square のスレッドホームの `v61/k` の 2 つで、どちらの `n()` も `ChatScrollPreviewAvailability.a()Z`（`u42/f.a`）をそのまま返す。
+- `a()` は端末側の前提（`u42/r0.d()`）とサーバー設定の mode（OFF / LABS / LYP）、LABS ならラボの切り替えを見て boolean を返す。`resolvePlan`（`u42/f.c`）も先頭で `a()` を呼び、false なら null を返す。
+- `a()` を false にしたときの影響は次のとおりで、すべて従来メニューの側にそろう。
+  - トークタブと Square スレッドホームの長押しが従来メニューを開く。
+  - 長押しのログ（`z61/u2.i`）は `CHAT_ROOM_LONG_PRESS` を記録する。
+  - プレビューの案内表示用にプランを求める `y61/r` は null を受け取り、案内を出さない。
+  - サーバー設定を読む `b()`（LINE ラボの画面などが使う）は変更しない。
+
+#### パッチ
+
+- DebugMetadata（`Ldt8/f;`）の `c` が `com.linecorp.line.chattab.ChatScrollPreviewAvailability`、`m` が `resolvePlan` の continuation を 1 つだけ見つけ、その `invokeSuspend` が呼ぶ `(L…;)Ljava/lang/Enum;` の invoke-virtual を 1 つだけ特定する（`u42/f.c`）。
+- `c` の中で同じ class の引数なし boolean method を呼ぶ箇所が 1 つだけなら、それを可否判定 `a()` とする。
+- `a()` の先頭命令が `p0` から読んで local register に書く `iget-object` で、先頭が分岐先・例外 handler でない場合だけ、先頭に `PreviewDisableHooks.shouldDisablePreview()Z` を挿入する。true なら `false` を返し、false なら元の先頭命令へ分岐する。26.16.0 では `registers=5`、`ins=1`、先頭は `iget-object v0, v4` で、`v0` を一時的に使う。
+- どの段階でも一意に決まらないときは書き換えず、ERROR / TARGET_NOT_FOUND を記録する。
+- プレビュー画面の中を書き換える既存の 3 パッチとは対象の method が重ならない。無効化が ON の間はプレビューが開かないため、それらは呼ばれないだけで、OFF に戻せば保存値どおりに効く。
+
+#### 設定
+
+- 初期 OFF の「トークのプレビューを無効にする」（`linimal.preview.disable`）。変更は再起動後に反映する。
+- hook は設定 OFF・未初期化・適用不可・設定エラー・例外のとき false を返し、公式の判定を使う。
+- ON の間は「プレビューをスクロール可能にする」と「プレビューの Premium の案内を表示しない」の行を操作不能にし、理由を説明に足す。保存値は書き換えず、そのまま表示する。無効化のパッチが適用されていない・設定を読めない場合は止めない。
+
 ## 確認状況
 
 - 全 DEX を判定関数で直接走査し、上記の一意性と形状を確認した。
@@ -68,3 +95,4 @@ LINE 26.16.0 の APK を JADX と dexdump で読んだ結果をまとめる。�
 - 生成 APK の命令列で、公式判定の `move-result v9` → `allowScroll(Z)Z` → `move-result v9` の注入を確認した。生成 APK の status を読み、実 runtime の設定保存・再起動・ON/OFF・適用不可を JVM smoke で確認した。
 - XIG07 上の独立検証アプリに実 runtime と生成 APK の status を入れ、実設定画面の独立スイッチ、初期 OFF、再起動案内、ON/OFF の保存とプロセス再起動後の hook の false→true→false を確認した。
 - XIG07 の LINE へデータを保持したまま上書きし、設定 ON・再起動後にプレビューが問題なくスクロールできることを利用者が実アカウントで確認した。起動後と操作後の FATAL EXCEPTION と VerifyError は 0件。
+- プレビュー無効化の追加後、全テスト・`buildAndroid`・Morphe 適用が成功。embedded status 81 件すべて OK、`linimal.patch.preview-disable` は 1/1。生成 APK の `u42/f.a()` 先頭への注入を確認し、XIG07 の LINE で ON/OFF・再起動・従来メニュー・プレビュー復帰・ライトテーマを確認した（`docs/testing/baseline-matrix.md`）。

@@ -106,7 +106,7 @@ internal fun isLdsSpinnerSignature(method: Method): Boolean {
  * だけで、新しい制御フローを作りません。設定が OFF のときは元の値へ戻します。</p>
  */
 val homeFeedLoadingIndicatorPatch = bytecodePatch(
-    name = "ホームの読み込み表示",
+    name = "Home feed loading indicator",
     description = "ホームのフィードが読み込み中に出る円形の読み込み表示を、実行時設定で非表示にできるようにします。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

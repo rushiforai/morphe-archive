@@ -17,9 +17,7 @@ Add this bundle to Morphe: https://morphe.software/add-source?github=commit-regr
 Apply it to your own copy of the YouTube VR APK. The easiest source is Morphe Manager itself:
 **Use installed app** at the APK step patches the build already on the headset — no extraction. If
 Manager is not an option, or you need a version your headset has not taken yet, see
-[docs/GETTING-THE-APK.md](docs/GETTING-THE-APK.md). **The defaults are the recommended
-configuration**: the ad-free streaming spoof is on and the development diagnostics are off.
-
+[docs/GETTING-THE-APK.md](docs/GETTING-THE-APK.md).
 ### Install as clone
 
 A patched APK is signed differently from Google's, so it cannot update the store app in place. The
@@ -47,15 +45,13 @@ official *Clone app* instead, which disables ours for that run). CLI traps and t
 
 **In Morphe Manager**, the link above is all you need: the clone is applied by this bundle, so **Simple
 mode** works. Do not also tick the official *Clone app* (with both renamers selected, the official one
-wins); skipping the clone means the build cannot coexist with the store app, and with Shizuku and "auto
-uninstall" enabled Manager may remove the installed app first. See
+wins). See
 [AGENTS.md](AGENTS.md#morphe-manager-the-mechanics-that-are-not-visible-from-here).
 
 While a cloned build runs, its Quest-library card shows `App name unavailable` plus Quit — that is
 Horizon OS naming a running immersive app from a package-keyed record, not a patch bug, and it is not
 fixable from inside the APK ([decompiled evidence](docs/APP-NAME-CARD.md)). **Quit is how you exit** (or
-`adb shell am force-stop app.morphe.android.youtube`); the app's **2D panel** entry shows the proper
-name.
+`adb shell am force-stop app.morphe.android.youtube`).
 
 ### Default video quality
 
@@ -74,10 +70,7 @@ the VR seek bar** in their category colours.
 
 Every decision logs under the `SponsorBlock:` tag: `adb logcat -d | rg -a "SponsorBlock:"`.
 
-Three behaviours surprise people: a skip is per *pass* (dragging back before a segment skips it again);
-dragging *into* a segment lets it play out; and a category set to **Disable** does nothing at all,
-silently — VR has no skip button, so a video whose only segments are `filler` or `music_offtopic` looks
-broken until that category is on. Design and measurements:
+Design and measurements:
 [docs/SPONSORBLOCK-NOTES.md](docs/SPONSORBLOCK-NOTES.md).
 
 ### Patch settings
@@ -181,5 +174,4 @@ bundle. Full attribution, including what came from where and what changed here, 
 YouTube VR Patches are licensed under the [GNU General Public License v3.0](LICENSE)
 
 This repository is derived from another GPL-3.0 project and builds on Morphe's own patches —
-see [ACKNOWLEDGEMENTS.md](ACKNOWLEDGEMENTS.md) for what came from where, and for the list of
-changes made here.
+see [ACKNOWLEDGEMENTS.md](ACKNOWLEDGEMENTS.md)

@@ -1648,7 +1648,7 @@ Stopped waiting for the file app. Nothing was exported.	Se dejó de esperar a la
 Stopped waiting for the file app. It hasn't said yet whether the export was saved.	Se dejó de esperar a la app de archivos. Todavía no ha dicho si la exportación se guardó.
 The export wasn't saved. Try again.	No se guardó la exportación. Reintenta.
 Hide unpersonalized For You videos	Ocultar vídeos de Para ti no personalizados
-Hide the fill-in videos TikTok sends to For You without picking them for you. When a whole batch is fill-in, it stays so the feed doesn't run dry.	Ocultar los vídeos de relleno que TikTok manda a Para ti sin elegirlos para ti. Si todo un lote es de relleno, se queda para que el feed no se quede vacío.
+Hide the fill-in videos TikTok sends to For You without picking them for you. When a whole batch is fill-in, only its first video stays so the feed doesn't run dry.	Ocultar los vídeos de relleno que TikTok manda a Para ti sin elegirlos para ti. Si todo un lote es de relleno, solo se queda su primer vídeo para que el feed no se quede vacío.
 Unpersonalized For You videos	Vídeos de Para ti no personalizados
 Reviewed presets for TikTok %1$s	Ajustes verificados para TikTok %1$s
 No reviewed presets for TikTok %1$s yet	Aún no hay ajustes revisados para TikTok %1$s
@@ -2692,3 +2692,21 @@ Search Liked and Favorites grids	Buscar en las cuadrículas de Me gusta y Favori
 Adds a Search button to the top of the Liked and Favorites grids. Type a word from a caption, a creator or a sound to see only the loaded videos that have it.	Añade un botón Búsqueda arriba de las cuadrículas de Me gusta y Favoritos. Escribe una palabra de una descripción, un creador o un sonido para ver solo los vídeos cargados que la tengan.
 # context: Hint in the search box over a Liked or Favorites grid
 Caption, creator or sound	Descripción, creador o sonido
+# context: Row title of the switch that makes holding the Profile tab open TikTok's account switcher
+Long-press Profile to switch accounts	Mantener pulsado Perfil para cambiar de cuenta
+# context: Summary under that switch; Long-press Profile for Watch history is the row just above it
+Press and hold the Profile tab to pick one of your other accounts, where TikTok left that out. A tap on Profile works as before. While Long-press Profile for Watch history is on, it takes the press. Restart TikTok to apply this.	Mantén pulsada la pestaña Perfil para elegir una de tus otras cuentas, donde TikTok lo quitó. Tocar Perfil funciona como antes. Mientras Mantener pulsado Perfil para abrir el historial de visualización esté activado, ocupa ese gesto. Reinicia TikTok para que se aplique.
+# context: Row title of the Comments switch that cuts long comments short with a tap to read the rest
+Fold long comments	Plegar comentarios largos
+# context: Summary under that switch; more is the word at the end of a cut comment (its own row below)
+A long comment shows its first few lines and more. Tap more to read the rest right where it is.	Un comentario largo muestra sus primeras líneas y más. Toca más para leer el resto ahí mismo.
+# context: Row title of the number under that switch; the row shows it followed by the count, as in Fold after 4 lines
+Fold after	Plegar tras
+# context: Summary under that number
+How many lines of a long comment show before more.	Cuántas líneas de un comentario largo se ven antes de más.
+# context: The count shown on that row for one line
+%1$s line	%1$s línea
+# context: The count shown on that row for several lines
+%1$s lines	%1$s líneas
+# context: The tappable word at the end of a cut comment, after an ellipsis, that opens the rest of it
+… more	… más

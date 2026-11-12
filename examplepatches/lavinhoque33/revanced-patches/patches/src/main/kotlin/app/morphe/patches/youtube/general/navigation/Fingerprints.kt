@@ -8,7 +8,7 @@
  * - anddea (https://github.com/anddea)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-06.
+ * Modified by lavinhoque33, 2026-11-10.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -80,58 +80,6 @@ internal const val UNKNOWN_STRING = "UNKNOWN"
 internal const val SEARCH_STRING = "SEARCH"
 internal const val TAB_ACTIVITY_STRING = "TAB_ACTIVITY"
 internal const val TAB_ACTIVITY_CAIRO_STRING = "TAB_ACTIVITY_CAIRO"
-
-/**
- * The inset is stored as the extra bar height before it is used as bottom padding.
- */
-internal object NavigationBarBottomPaddingFingerprint : Fingerprint(
-    filters = listOf(
-        fieldAccess(
-            opcode = Opcode.IPUT,
-            definingClass = YOUTUBE_PIVOT_BAR_CLASS_TYPE,
-            type = "I"
-        ),
-        methodCall(
-            opcode = Opcode.INVOKE_VIRTUAL,
-            definingClass = YOUTUBE_PIVOT_BAR_CLASS_TYPE,
-            parameters = listOf(),
-            returnType = "V",
-            location = MatchAfterImmediately()
-        ),
-        methodCall(
-            definingClass = YOUTUBE_PIVOT_BAR_CLASS_TYPE,
-            name = "setPadding",
-            location = MatchAfterWithin(10)
-        )
-    )
-)
-
-internal object NavigationBarBlurTintCallFingerprint : Fingerprint(
-    definingClass = YOUTUBE_PIVOT_BAR_CLASS_TYPE,
-    filters = listOf(
-        methodCall(smali = "Landroid/content/res/TypedArray;->getColor(II)I"),
-        opcode(Opcode.MOVE_RESULT, location = MatchAfterImmediately()),
-        methodCall(
-            opcode = Opcode.INVOKE_VIRTUAL,
-            parameters = listOf("I"),
-            returnType = "V",
-            location = MatchAfterImmediately()
-        ),
-        methodCall(
-            smali = "$YOUTUBE_PIVOT_BAR_CLASS_TYPE->setBackground(Landroid/graphics/drawable/Drawable;)V",
-            location = MatchAfterWithin(3)
-        )
-    )
-)
-
-internal object NavigationBarBlurTintFingerprint : Fingerprint(
-    returnType = "V",
-    parameters = listOf("I"),
-    filters = listOf(
-        methodCall(smali = "Landroid/graphics/Paint;->setColor(I)V"),
-        methodCall(smali = "Landroid/graphics/Paint;->setAlpha(I)V", location = MatchAfterWithin(4))
-    )
-)
 
 internal object AnimatedNavigationTabsFeatureFlagFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),

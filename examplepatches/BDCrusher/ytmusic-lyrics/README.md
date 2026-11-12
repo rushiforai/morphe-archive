@@ -1,3 +1,9 @@
+## Current prerelease
+
+[0.9.0-beta.2](https://github.com/BDCrusher/ytmusic-lyrics/releases/tag/v0.9.0-beta.2) targets original YouTube Music 9.45.51 / 94551240 arm64. It adds Spicy Lyrics, improves lyric lookup recovery, and integrates in-app downloads into Library. See the release for verification and remaining device checks. [Current source](https://github.com/BDCrusher/ytmusic-lyrics/tree/v0.9.0-beta.2).
+
+Enable **Pre-release patches** and **Experimental app versions** for this source in Morphe Manager, then refresh it and patch the supported original APK. The records below cover earlier releases and APK targets.
+
 # BDCrusher YT-Music personal patches
 
 **[Add to Morphe](https://morphe.software/add-source?github=BDCrusher%2Fytmusic-lyrics&name=BDCrusher%20YT-Music&app=com.google.android.apps.youtube.music)** | [Release 0.8.0-beta.2](https://github.com/BDCrusher/ytmusic-lyrics/releases/tag/v0.8.0-beta.2)

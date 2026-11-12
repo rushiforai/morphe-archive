@@ -88,7 +88,8 @@ public final class WarpVpnService extends VpnService {
                     Log.i("WARP: VPN permission missing");
                     return;
                 }
-                wireGuard = new WireGuard(account.privateKey, account.peerPublicKey, peer, new Tun(tun.getFileDescriptor()),
+                wireGuard = new WireGuard(account.privateKey, account.peerPublicKey, peer, new Tun(tun.getFileDescriptor(),
+                        new StrayFlows(account.v4, account.v6)),
                         p -> {
                             DatagramChannel ch = DatagramChannel.open();
                             if (!protect(ch.socket())) {
@@ -143,21 +144,28 @@ public final class WarpVpnService extends VpnService {
         super.onDestroy();
     }
 
-    /** The VPN interface; non-blocking (establish() default), polled while idle. */
+    /**
+     * The VPN interface; non-blocking (establish() default), polled while idle. Packets from
+     * connections opened before the tunnel came up go to {@link StrayFlows} first.
+     */
     private static final class Tun implements WireGuard.Tun {
         private final FileDescriptor fd;
+        private final StrayFlows stray;
         private final StructPollfd[] poll = {new StructPollfd()};
 
-        Tun(FileDescriptor fd) {
+        Tun(FileDescriptor fd, StrayFlows stray) {
             this.fd = fd;
+            this.stray = stray;
             poll[0].fd = fd;
             poll[0].events = (short) OsConstants.POLLIN;
         }
 
         @Override
         public int read(byte[] buf) throws IOException {
+            stray.tick();
             try {
-                return Os.read(fd, buf, 0, buf.length);
+                int n = Os.read(fd, buf, 0, buf.length);
+                return stray.handle(buf, n, this::writeQuietly) ? 0 : n;
             } catch (ErrnoException ex) {
                 if (ex.errno != OsConstants.EAGAIN) throw new IOException(ex);
             }
@@ -167,6 +175,14 @@ public final class WarpVpnService extends VpnService {
                 if (ex.errno != OsConstants.EINTR) throw new IOException(ex);
             }
             return 0;
+        }
+
+        private void writeQuietly(byte[] buf, int off, int len) {
+            try {
+                write(buf, off, len);
+            } catch (IOException ex) {
+                Log.e("WARP: answer failure", ex);
+            }
         }
 
         @Override

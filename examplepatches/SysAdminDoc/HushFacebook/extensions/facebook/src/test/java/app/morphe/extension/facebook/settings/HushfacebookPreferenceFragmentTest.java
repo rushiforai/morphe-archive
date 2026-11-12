@@ -717,6 +717,33 @@ public class HushfacebookPreferenceFragmentTest {
         }
     }
 
+    /** Queue reel saves (#449): off until chosen, right under the reel's Download button, and only with Download on. */
+    @Test
+    public void theReelQueueSwitchSitsUnderTheDownloadButtonAndNeedsDownload() {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.REEL_DOWNLOAD);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            List<Preference> rows = rowsOf(controller);
+            int buttonAt = indexOfKey(rows, Settings.SHOW_REEL_DOWNLOAD_BUTTON.key);
+            int queueAt = indexOfKey(rows, Settings.QUEUE_REEL_SAVES.key);
+            assertTrue("no Queue reel saves switch", queueAt >= 0);
+            assertEquals("the queue switch is not under the Download button", buttonAt + 1, queueAt);
+            SwitchPreference queue = (SwitchPreference) rows.get(queueAt);
+            assertEquals("Queue reel saves", String.valueOf(queue.getTitle()));
+            assertFalse("the queue is on before anyone chose it", queue.isChecked());
+            assertTrue(queue.isEnabled());
+
+            SwitchPreference main = (SwitchPreference) rows.get(indexOfKey(rows, Settings.DOWNLOAD_REELS.key));
+            main.setChecked(false);
+            ShadowLooper.idleMainLooper();
+            assertFalse("the queue is usable without downloads", queue.isEnabled());
+            main.setChecked(true);
+            ShadowLooper.idleMainLooper();
+            assertTrue(queue.isEnabled());
+        } finally {
+            Settings.QUEUE_REEL_SAVES.resetToDefault();
+        }
+    }
+
     /**
      * Send to an app (#41): with a reel or video download in the build, Downloads ends with what a
      * tap on Download does, saving by default, and the app the links go to. The app row keeps a
@@ -1164,7 +1191,7 @@ public class HushfacebookPreferenceFragmentTest {
                 Preference row = rows.get(compatible);
                 assertTrue(row instanceof SwitchPreference);
                 assertFalse(((SwitchPreference) row).isChecked());
-                assertEquals(indexOfKey(rows, Settings.DOWNLOAD_QUALITY.key) - 2, compatible);
+                assertEquals(indexOfKey(rows, Settings.DOWNLOAD_QUALITY.key) - 3, compatible);
                 assertEquals("Save videos other apps can open", String.valueOf(row.getTitle()));
                 assertEquals("Fixes saved videos that play without sound in WhatsApp, video editors such as CapCut and InShot, or "
                         + "some galleries and players. May lower quality.",
@@ -1183,6 +1210,14 @@ public class HushfacebookPreferenceFragmentTest {
                 assertEquals("Quiet saves", String.valueOf(quiet.getTitle()));
                 assertEquals("No toast when a save starts, finishes or is canceled. A save that fails still says why.",
                         String.valueOf(quiet.getSummary()));
+                // Choose quality on each save (issue #448) asks with Download quality's list, right above it
+                // (Save on stays right below the quality), so Convert, the ask and the quality run in that order.
+                Preference ask = rows.get(compatible + 2);
+                assertEquals(indexOfKey(rows, Settings.DOWNLOAD_QUALITY.key) - 1, compatible + 2);
+                assertEquals(download + ": choose quality on each save isn't right above Download quality",
+                        Settings.DOWNLOAD_QUALITY_ASK.key, ask.getKey());
+                assertFalse(((SwitchPreference) ask).isChecked());
+                assertEquals("Choose quality on each save", String.valueOf(ask.getTitle()));
             }
         }
 
@@ -1193,6 +1228,8 @@ public class HushfacebookPreferenceFragmentTest {
                     -1, indexOfKey(rows, Settings.DOWNLOAD_COMPATIBLE.key));
             assertEquals("a quiet-saves row with no download in the build", -1, indexOfKey(rows, Settings.DOWNLOAD_QUIET.key));
             assertEquals("a convert row with no download in the build", -1, indexOfKey(rows, Settings.DOWNLOAD_CONVERT.key));
+            assertEquals("a choose-quality row with no download in the build",
+                    -1, indexOfKey(rows, Settings.DOWNLOAD_QUALITY_ASK.key));
         }
     }
 

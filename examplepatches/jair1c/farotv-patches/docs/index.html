@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FaroTV Parches</title>
+<meta name="description" content="Parches de Morphe para YouTube en Android TV: sin anuncios, sin Shorts, SponsorBlock, Return YouTube Dislike y la marca FaroTV.">
+<meta property="og:title" content="FaroTV Parches">
+<meta property="og:description" content="YouTube en tu Android TV, a tu manera.">
+<meta property="og:image" content="img/inicio.jpg">
+<link rel="icon" href="img/icono.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b1220;
+    --bg-2: #0f1a2e;
+    --card: #131f35;
+    --card-2: #182844;
+    --line: #22355a;
+    --text: #eef2f8;
+    --muted: #9fb0c8;
+    --amber: #ffb43a;
+    --amber-2: #ff9f1c;
+    --teal: #19e3b1;
+    --cyan: #3fd3ff;
+    --navy: #0b1f3a;
+    --sea: #0e6e7a;
+    --radius: 18px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 400 16px/1.6 Roboto, system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--amber); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .wrap { width: min(1120px, 100% - 32px); margin-inline: auto; }
+
+  /* ---- top bar ---- */
+  .top {
+    position: sticky; top: 0; z-index: 10;
+    background: rgba(11, 18, 32, 0.85);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .top .wrap { display: flex; align-items: center; justify-content: space-between; height: 64px; gap: 16px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 20px; color: var(--text); }
+  .brand img { width: 34px; height: 34px; border-radius: 9px; }
+  .brand b { color: var(--amber); font-weight: 700; }
+  .brand:hover { text-decoration: none; }
+  .nav { display: flex; gap: 22px; font-size: 15px; }
+  .nav a { color: var(--muted); }
+  .nav a:hover { color: var(--text); text-decoration: none; }
+
+  /* ---- hero ---- */
+  .hero {
+    background:
+      radial-gradient(900px 420px at 85% -10%, rgba(255, 180, 58, 0.18), transparent 60%),
+      linear-gradient(160deg, var(--navy), var(--sea));
+    border-bottom: 1px solid var(--line);
+  }
+  .hero .wrap { display: grid; grid-template-columns: 1.05fr 1fr; gap: 48px; align-items: center; padding: 72px 0 80px; }
+  .eyebrow { display: inline-flex; gap: 8px; align-items: center; font-size: 13px; font-weight: 500; letter-spacing: 0.04em;
+    text-transform: uppercase; color: var(--amber); background: rgba(255, 180, 58, 0.12); padding: 6px 12px; border-radius: 999px; }
+  h1 { font-size: clamp(38px, 6vw, 62px); line-height: 1.05; margin: 18px 0 16px; font-weight: 900; letter-spacing: -0.02em; }
+  h1 span { color: var(--amber); }
+  .lead { font-size: 19px; color: #d6e2f2; max-width: 34em; margin: 0 0 28px; }
+  .cta { display: flex; flex-wrap: wrap; gap: 12px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 10px; padding: 14px 22px; border-radius: 999px;
+    font-weight: 700; font-size: 16px; border: 1px solid transparent; cursor: pointer;
+  }
+  .btn:hover { text-decoration: none; filter: brightness(1.06); }
+  .btn.primary { background: var(--amber); color: #1b1203; }
+  .btn.ghost { border-color: rgba(255, 255, 255, 0.28); color: var(--text); }
+  .hero-note { margin-top: 18px; font-size: 14px; color: #b9c8dc; }
+  .tv {
+    border-radius: 16px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+    aspect-ratio: 16 / 9; background: #000;
+  }
+  .tv img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+  /* ---- live strip ---- */
+  .strip { margin-top: -38px; position: relative; z-index: 2; }
+  .strip .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .stat {
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px;
+  }
+  .stat .n { font-size: 30px; font-weight: 900; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .stat .l { color: var(--muted); font-size: 14px; margin-top: 4px; }
+  .stat .n.amber { color: var(--amber); }
+
+  section { padding: 84px 0 0; scroll-margin-top: 48px; }
+  h2 { font-size: clamp(28px, 4vw, 38px); margin: 0 0 10px; font-weight: 900; letter-spacing: -0.01em; }
+  .sub { color: var(--muted); margin: 0 0 34px; font-size: 17px; max-width: 46em; }
+
+  /* ---- features ---- */
+  .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .feature {
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px;
+  }
+  .feature .ico {
+    width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; margin-bottom: 14px;
+    background: linear-gradient(140deg, rgba(63, 211, 255, 0.18), rgba(25, 227, 177, 0.12));
+  }
+  .feature .ico svg { width: 24px; height: 24px; }
+  .feature h3 { margin: 0 0 6px; font-size: 18px; }
+  .feature p { margin: 0; color: var(--muted); font-size: 15px; }
+  .tag { display: inline-block; font-size: 12px; font-weight: 700; color: var(--teal); margin-left: 6px; vertical-align: middle; }
+
+  /* ---- gallery ---- */
+  .gallery { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+  figure { margin: 0; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  figure button { all: unset; display: block; cursor: zoom-in; width: 100%; aspect-ratio: 16 / 9; }
+  figure img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  figcaption { padding: 14px 18px 16px; }
+  figcaption b { display: block; font-size: 16px; }
+  figcaption span { color: var(--muted); font-size: 14px; }
+  .lightbox {
+    position: fixed; inset: 0; background: rgba(0, 0, 0, 0.88); display: none; place-items: center; z-index: 50; padding: 16px;
+  }
+  .lightbox.open { display: grid; }
+  .lightbox img { max-width: min(1280px, 100%); max-height: 90vh; border-radius: 10px; }
+
+  /* ---- install ---- */
+  .steps { counter-reset: s; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .step { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px 22px 24px; position: relative; }
+  .step::before {
+    counter-increment: s; content: counter(s);
+    display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%;
+    background: var(--amber); color: #1b1203; font-weight: 900; margin-bottom: 14px;
+  }
+  .step h3 { margin: 0 0 6px; font-size: 18px; }
+  .step p { margin: 0 0 10px; color: var(--muted); font-size: 15px; }
+  .step p:last-child { margin-bottom: 0; }
+  code { background: var(--bg-2); border: 1px solid var(--line); padding: 2px 7px; border-radius: 6px; font-size: 14px; color: #dfe8f5; white-space: nowrap; }
+  .callout { margin-top: 16px; background: rgba(255, 180, 58, 0.08); border: 1px solid rgba(255, 180, 58, 0.3); border-radius: 14px; padding: 14px 18px; color: #f3dcb2; font-size: 15px; }
+
+  /* ---- stats ---- */
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; }
+  .panel-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+  .panel-head h3 { margin: 0; font-size: 18px; }
+  .seg { display: inline-flex; background: var(--bg-2); border: 1px solid var(--line); border-radius: 999px; padding: 3px; }
+  .seg button {
+    all: unset; cursor: pointer; padding: 7px 14px; border-radius: 999px; font-size: 14px; color: var(--muted); font-weight: 500;
+  }
+  .seg button[aria-pressed="true"] { background: var(--card-2); color: var(--text); }
+  .bars { display: grid; gap: 9px; }
+  .bar { display: grid; grid-template-columns: 112px 1fr 52px; align-items: center; gap: 12px; font-size: 14px; }
+  .bar .v { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .bar .v.latest { color: var(--text); font-weight: 700; }
+  .bar .track { height: 12px; background: var(--bg-2); border-radius: 999px; overflow: hidden; }
+  .bar .fill { height: 100%; background: linear-gradient(90deg, var(--sea), var(--cyan)); border-radius: 999px; min-width: 2px; }
+  .bar .fill.dev { background: linear-gradient(90deg, #7a5a12, var(--amber)); }
+  .bar .c { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
+  .stats-note { color: var(--muted); font-size: 14px; margin: 16px 0 0; }
+  .updated { color: var(--muted); font-size: 13px; }
+
+  /* ---- footer ---- */
+  footer { margin-top: 96px; border-top: 1px solid var(--line); padding: 36px 0 48px; color: var(--muted); font-size: 14px; }
+  footer .cols { display: grid; grid-template-columns: 1.2fr 1fr; gap: 32px; }
+  footer h4 { color: var(--text); margin: 0 0 8px; font-size: 15px; }
+  footer p { margin: 0 0 8px; }
+  .author { display: flex; gap: 14px; align-items: center; }
+  .author svg { width: 54px; height: 54px; flex: none; }
+  .author b { color: var(--text); font-size: 17px; }
+  .author b span { color: var(--amber); }
+
+  @media (max-width: 900px) {
+    .hero .wrap { grid-template-columns: 1fr; padding: 48px 0 72px; gap: 32px; }
+    .strip .grid { grid-template-columns: repeat(2, 1fr); }
+    .features, .steps { grid-template-columns: 1fr 1fr; }
+    .nav { display: none; }
+  }
+  @media (max-width: 600px) {
+    .features, .steps, .gallery, footer .cols { grid-template-columns: 1fr; }
+    .bar { grid-template-columns: 92px 1fr 40px; }
+    section { padding-top: 64px; }
+    .top .btn { padding: 10px 14px; font-size: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#"><img src="img/icono.png" alt=""><span>Faro<b>TV</b> Parches</span></a>
+    <nav class="nav">
+      <a href="#funciones">Funciones</a>
+      <a href="#capturas">Capturas</a>
+      <a href="#instalar">Instalar</a>
+      <a href="#estadisticas">Estadísticas</a>
+    </nav>
+    <a class="btn ghost" href="https://github.com/jair1c/farotv-patches">GitHub</a>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="wrap">
+    <div>
+      <span class="eyebrow">Parches de Morphe · Android TV</span>
+      <h1>YouTube en tu TV, <span>a tu manera.</span></h1>
+      <p class="lead">FaroTV Parches convierte la app de YouTube para Android TV en FaroTV: sin anuncios, sin Shorts,
+        con SponsorBlock, los «No me gusta» de vuelta y un reproductor que muestra solo lo que quieres.</p>
+      <div class="cta">
+        <a class="btn primary" href="https://morphe.software/add-source?github=jair1c/farotv-patches">＋ Agregar a Morphe</a>
+        <a class="btn ghost" href="#instalar">Cómo instalarlo</a>
+      </div>
+      <p class="hero-note">Para YouTube para Android TV <b id="hero-target">7.32.300</b> · Versión <b id="hero-version">—</b></p>
+    </div>
+    <div class="tv"><img src="img/inicio.jpg" alt="Pantalla de inicio de FaroTV en un televisor"></div>
+  </div>
+</div>
+
+<div class="wrap strip">
+  <div class="grid">
+    <div class="stat"><div class="n amber" id="s-total">—</div><div class="l">descargas en total</div></div>
+    <div class="stat"><div class="n" id="s-latest">—</div><div class="l" id="s-latest-l">de la versión actual</div></div>
+    <div class="stat"><div class="n" id="s-releases">—</div><div class="l">versiones estables</div></div>
+    <div class="stat"><div class="n" id="s-updated">—</div><div class="l">última actualización</div></div>
+  </div>
+</div>
+
+<main class="wrap">
+
+  <section id="funciones">
+    <h2>Qué trae</h2>
+    <p class="sub">Todo se activa o desactiva desde la propia Configuración de YouTube, en la sección
+      <b>FaroTV Parches</b>, con interruptores al estilo de la app.</p>
+    <div class="features">
+      <div class="feature">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#3fd3ff" stroke-width="2" stroke-linecap="round"><rect x="3" y="6" width="18" height="12" rx="3"/><path d="M4 4l16 16" stroke="#ff4e45"/></svg></div>
+        <h3>Sin anuncios</h3>
+        <p>Quita los anuncios de los videos y los videos «Patrocinado» de Inicio.</p>
+      </div>
+      <div class="feature">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#ffe27a" stroke-width="2" stroke-linecap="round"><path d="M3 16h18"/><path d="M8 16h8" stroke="#ff4e45" stroke-width="3"/><path d="M7 12c2-5 8-5 10 0"/><path d="M15 11l2 1.5 1.5-2"/></svg></div>
+        <h3>SponsorBlock</h3>
+        <p>Salta solo los patrocinios, la autopromoción y los «suscríbete» que marca la comunidad. Intros, créditos y relleno, si quieres.</p>
+      </div>
+      <div class="feature">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#3fd3ff" stroke-width="2" stroke-linejoin="round"><path d="M9 4h7c1.5 0 2.3.8 2.5 2l1 6c.2 1.2-.6 2-1.8 2H14l.8 3.5c.2 1-.5 1.8-1.4 1.5L10 14H9z"/><path d="M5 4h3v10H5z"/></svg></div>
+        <h3>«No me gusta» de vuelta</h3>
+        <p>Con Return YouTube Dislike, la cifra aparece al seleccionar el botón No me gusta.</p>
+      </div>
+      <div class="feature">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#19e3b1" stroke-width="2" stroke-linecap="round"><rect x="8" y="3" width="8" height="18" rx="2"/><path d="M4 5l16 14" stroke="#ff4e45"/></svg></div>
+        <h3>Sin Shorts ni distracciones</h3>
+        <p>Oculta los Shorts, las pestañas temáticas y las promociones de YouTube Premium.</p>
+      </div>
+      <div class="feature">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#3fd3ff" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M10 8l4 2-4 2z" fill="#ffe27a" stroke="#ffe27a"/><path d="M5 20h14"/><circle cx="9" cy="20" r="1.6" fill="#19e3b1" stroke="none"/></svg></div>
+        <h3>Reproductor a tu gusto</h3>
+        <p>Elige qué botones ocultar: Canal, Descripción, Suscribirse, Comentarios, Preguntar (IA) y más, y la fila de videos relacionados.</p>
+      </div>
+      <div class="feature">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#ffb43a" stroke-width="2" stroke-linejoin="round"><path d="M10 8h4l1 13H9z"/><path d="M9 8l3-4 3 4"/><path d="M15 9l6-3v7z" fill="#ffb43a" fill-opacity=".35"/></svg></div>
+        <h3>Marca FaroTV</h3>
+        <p>Nombre, icono, banner, pantalla de inicio y color ámbar en lugar del rojo de YouTube.</p>
+      </div>
+      <div class="feature">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#19e3b1" stroke-width="2" stroke-linecap="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 19h16"/></svg></div>
+        <h3>MicroG-RE incluido en el flujo</h3>
+        <p>Si falta MicroG-RE, la app lo avisa, lo descarga e instala desde GitHub y se reinicia sola.</p>
+      </div>
+      <div class="feature">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#ffe27a" stroke-width="2" stroke-linecap="round"><path d="M13 3L5 14h6l-1 7 8-11h-6z"/></svg></div>
+        <h3>Pensado para TVs modestos</h3>
+        <p>No se abre sola al encender el TV y mantiene vivo a MicroG-RE mientras la usas, para que no se cierre en TVs con 1 GB de RAM.</p>
+      </div>
+      <div class="feature">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#3fd3ff" stroke-width="2" stroke-linecap="round"><rect x="6" y="3" width="12" height="18" rx="2"/><path d="M10 17h4"/></svg></div>
+        <h3>Spoof device <span class="tag">OPCIONAL</span></h3>
+        <p>Para televisores que YouTube marca como «no compatibles»: hace pasar el TV por un Chromecast.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="capturas">
+    <h2>Así se ve</h2>
+    <p class="sub">Capturas reales en un Android TV de 1 GB de RAM.</p>
+    <div class="gallery" id="gallery">
+      <figure><button data-full="img/inicio.jpg"><img loading="lazy" src="img/inicio.jpg" alt=""></button>
+        <figcaption><b>Inicio</b><span>Sin Shorts ni pestañas temáticas, con el logo de FaroTV.</span></figcaption></figure>
+      <figure><button data-full="img/ajustes.jpg"><img loading="lazy" src="img/ajustes.jpg" alt=""></button>
+        <figcaption><b>Sección FaroTV Parches</b><span>Dentro de la Configuración de YouTube, con ilustraciones propias.</span></figcaption></figure>
+      <figure><button data-full="img/sponsorblock.jpg"><img loading="lazy" src="img/sponsorblock.jpg" alt=""></button>
+        <figcaption><b>SponsorBlock</b><span>Aviso «Se omitió: patrocinio» al saltar un segmento.</span></figcaption></figure>
+      <figure><button data-full="img/dislikes.jpg"><img loading="lazy" src="img/dislikes.jpg" alt=""></button>
+        <figcaption><b>Return YouTube Dislike</b><span>La cifra de «No me gusta» bajo el botón.</span></figcaption></figure>
+      <figure><button data-full="img/splash.jpg"><img loading="lazy" src="img/splash.jpg" alt=""></button>
+        <figcaption><b>Pantalla de inicio propia</b><span>El faro en lugar del logo de YouTube al abrir la app.</span></figcaption></figure>
+      <figure><button data-full="img/activar.jpg"><img loading="lazy" src="img/activar.jpg" alt=""></button>
+        <figcaption><b>Iniciar sesión</b><span>Con el teléfono o el código de yt.be/activate.</span></figcaption></figure>
+      <figure><button data-full="img/reproductor.jpg"><img loading="lazy" src="img/reproductor.jpg" alt=""></button>
+        <figcaption><b>Personalizar el reproductor</b><span>Cada botón tiene su propio interruptor.</span></figcaption></figure>
+      <figure><button data-full="img/version.jpg"><img loading="lazy" src="img/version.jpg" alt=""></button>
+        <figcaption><b>Acerca de</b><span>Versión y funciones activas, siempre al día.</span></figcaption></figure>
+    </div>
+  </section>
+
+  <section id="instalar">
+    <h2>Cómo instalarlo</h2>
+    <p class="sub">Necesitas <a href="https://morphe.software">Morphe Manager</a> y el APK de
+      <b>YouTube para Android TV 7.32.300</b> (armeabi-v7a). FaroTV Parches no distribuye el APK de YouTube, ni original ni parcheado.</p>
+    <div class="steps">
+      <div class="step">
+        <h3>Agrega la fuente</h3>
+        <p>Pulsa <a href="https://morphe.software/add-source?github=jair1c/farotv-patches">Agregar a Morphe</a>, o en Morphe Manager añade esta fuente:</p>
+        <p><code>github.com/jair1c/farotv-patches</code></p>
+        <p>También aparece en <a href="https://morphe-patches.software/?app=com.google.android.youtube.tv">morphe-patches.software</a>.</p>
+      </div>
+      <div class="step">
+        <h3>Parchea tu APK</h3>
+        <p>Elige tu APK de YouTube para Android TV 7.32.300. Los parches recomendados vienen marcados.</p>
+        <p>Activa <b>Spoof device</b> solo si YouTube dice que tu TV no es compatible.</p>
+      </div>
+      <div class="step">
+        <h3>Instala y abre FaroTV</h3>
+        <p>Instala el APK parcheado en el TV. Si no tienes MicroG-RE, FaroTV te ofrece descargarlo e instalarlo ahí mismo.</p>
+        <p>Inicia sesión con el teléfono o en <code>yt.be/activate</code>.</p>
+      </div>
+    </div>
+    <div class="callout">Los ajustes están en <b>Configuración → FaroTV Parches</b>. Las opciones que lo necesitan muestran un aviso para reiniciar la app.</div>
+  </section>
+
+  <section id="estadisticas">
+    <h2>Estadísticas</h2>
+    <p class="sub">Descargas del paquete de parches en GitHub, en vivo. Cada instalación o actualización desde Morphe Manager cuenta una descarga.</p>
+    <div class="panel">
+      <div class="panel-head">
+        <h3>Descargas por versión</h3>
+        <div class="seg" role="group" aria-label="Qué versiones mostrar">
+          <button type="button" data-filter="stable" aria-pressed="true">Estables</button>
+          <button type="button" data-filter="dev" aria-pressed="false">De prueba</button>
+          <button type="button" data-filter="all" aria-pressed="false">Todas</button>
+        </div>
+      </div>
+      <div class="bars" id="bars"><p class="updated">Cargando datos de GitHub…</p></div>
+      <p class="stats-note">Una persona que actualiza suma una descarga por cada versión, así que esto no es el número de usuarios.
+        Lo más parecido a usuarios activos son las descargas de la versión actual. <span class="updated" id="updated"></span></p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap cols">
+    <div>
+      <div class="author">
+        <svg viewBox="0 0 108 108" aria-hidden="true">
+          <circle cx="54" cy="54" r="52" fill="#ffb43a"/><circle cx="54" cy="54" r="47" fill="#000"/>
+          <g transform="translate(40 50) scale(-0.78 0.78)"><ellipse cx="0" cy="2" rx="14" ry="11" fill="#fff"/><circle cx="-3" cy="5" r="6" fill="#000"/><circle cx="-1" cy="3" r="1.8" fill="#fff"/><path d="M-18 4 L18 -6 L18 -14 L-18 -14 Z" fill="#000"/></g>
+          <g transform="translate(68 50) scale(0.78 0.78)"><ellipse cx="0" cy="2" rx="14" ry="11" fill="#fff"/><circle cx="-3" cy="5" r="6" fill="#000"/><circle cx="-1" cy="3" r="1.8" fill="#fff"/><path d="M-18 4 L18 -6 L18 -14 L-18 -14 Z" fill="#000"/></g>
+        </svg>
+        <div><b>Gabriel <span>Jair</span></b><br>Creador de FaroTV Parches · <a href="https://github.com/jair1c">github.com/jair1c</a></div>
+      </div>
+      <p style="margin-top:18px">Código bajo licencia GPLv3. Datos de <a href="https://sponsor.ajay.app">SponsorBlock</a> (CC BY-NC-SA 4.0) y
+        <a href="https://returnyoutubedislike.com">Return YouTube Dislike</a>.</p>
+    </div>
+    <div>
+      <h4>Aviso</h4>
+      <p>Proyecto independiente, compatible con Morphe. No está afiliado a Google ni a YouTube.
+        YouTube, los videos, imágenes y marcas pertenecen a Google y a sus respectivos titulares.</p>
+      <p>Basado en el trabajo de <a href="https://github.com/ysamjo/morphe-patches">ysamjo/morphe-patches</a> y
+        <a href="https://github.com/DylanDuff/utv-runtime">utv-runtime</a>.</p>
+    </div>
+  </div>
+</footer>
+
+<div class="lightbox" id="lightbox" role="dialog" aria-label="Captura ampliada"><img alt=""></div>
+
+<script>
+(function () {
+  var REPO = "jair1c/farotv-patches";
+  var nf = new Intl.NumberFormat("es");
+  var releases = [];
+  var filter = "stable";
+
+  function $(id) { return document.getElementById(id); }
+
+  function ago(date) {
+    var days = Math.round((Date.now() - date.getTime()) / 86400000);
+    if (days <= 0) return "hoy";
+    if (days === 1) return "ayer";
+    if (days < 30) return "hace " + days + " días";
+    return date.toLocaleDateString("es", { day: "numeric", month: "short", year: "numeric" });
+  }
+
+  function downloads(r) {
+    return (r.assets || []).filter(function (a) { return /\.mpp$/.test(a.name); })
+      .reduce(function (sum, a) { return sum + a.download_count; }, 0);
+  }
+
+  function render() {
+    var list = releases.filter(function (r) {
+      return filter === "all" || (filter === "dev" ? r.prerelease : !r.prerelease);
+    });
+    var max = Math.max.apply(null, list.map(function (r) { return r.count; }).concat([1]));
+    var latest = releases.filter(function (r) { return !r.prerelease; })[0];
+    var box = $("bars");
+    box.textContent = "";
+    if (!list.length) { box.innerHTML = '<p class="updated">Todavía no hay versiones de este tipo.</p>'; return; }
+    list.forEach(function (r) {
+      var row = document.createElement("div");
+      row.className = "bar";
+      var v = document.createElement("a");
+      v.className = "v" + (latest && r.tag === latest.tag ? " latest" : "");
+      v.href = r.url;
+      v.textContent = r.tag;
+      var track = document.createElement("div");
+      track.className = "track";
+      var fill = document.createElement("div");
+      fill.className = "fill" + (r.prerelease ? " dev" : "");
+      fill.style.width = (r.count / max * 100) + "%";
+      track.appendChild(fill);
+      var c = document.createElement("div");
+      c.className = "c";
+      c.textContent = nf.format(r.count);
+      row.appendChild(v); row.appendChild(track); row.appendChild(c);
+      box.appendChild(row);
+    });
+  }
+
+  document.querySelectorAll(".seg button").forEach(function (b) {
+    b.addEventListener("click", function () {
+      filter = b.getAttribute("data-filter");
+      document.querySelectorAll(".seg button").forEach(function (o) { o.setAttribute("aria-pressed", String(o === b)); });
+      render();
+    });
+  });
+
+  fetch("https://api.github.com/repos/" + REPO + "/releases?per_page=100", { headers: { Accept: "application/vnd.github+json" } })
+    .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    .then(function (data) {
+      releases = data.filter(function (r) { return !r.draft; }).map(function (r) {
+        return { tag: r.tag_name, prerelease: r.prerelease, count: downloads(r), url: r.html_url, date: new Date(r.published_at) };
+      }).sort(function (a, b) { return b.date - a.date; });
+      var stable = releases.filter(function (r) { return !r.prerelease; });
+      var total = releases.reduce(function (s, r) { return s + r.count; }, 0);
+      $("s-total").textContent = nf.format(total);
+      $("s-releases").textContent = nf.format(stable.length);
+      if (stable[0]) {
+        $("s-latest").textContent = nf.format(stable[0].count);
+        $("s-latest-l").textContent = "de la versión actual (" + stable[0].tag + ")";
+        $("s-updated").textContent = ago(stable[0].date);
+        $("hero-version").textContent = stable[0].tag;
+      }
+      $("updated").textContent = "Actualizado " + new Date().toLocaleTimeString("es", { hour: "2-digit", minute: "2-digit" }) + ".";
+      render();
+    })
+    .catch(function () {
+      $("bars").innerHTML = '<p class="updated">No se pudieron cargar los datos de GitHub (puede ser el límite de consultas por hora). Vuelve a intentarlo en un rato.</p>';
+    });
+
+  var lb = $("lightbox");
+  document.querySelectorAll("#gallery button").forEach(function (b) {
+    b.addEventListener("click", function () {
+      lb.querySelector("img").src = b.getAttribute("data-full");
+      lb.classList.add("open");
+    });
+  });
+  lb.addEventListener("click", function () { lb.classList.remove("open"); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") lb.classList.remove("open"); });
+})();
+</script>
+</body>
+</html>

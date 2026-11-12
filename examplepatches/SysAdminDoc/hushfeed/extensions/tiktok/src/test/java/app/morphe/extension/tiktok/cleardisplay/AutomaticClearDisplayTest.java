@@ -730,13 +730,17 @@ public class AutomaticClearDisplayTest {
             RememberClearDisplayPatch.firstFrame("first", () -> true, value -> true);
             assertTrue(RememberClearDisplayPatch.isCarryingClear());
 
-            // A first video whose clear TikTok's panel turned down carries until progress asks
-            // again, and turned down again it ends.
+            // A first video whose clear TikTok's panel turned down carries while progress asks
+            // again, turned down again included, and ends PAGE_LIMIT_MS after the first refusal.
             RememberClearDisplayPatch.resetForTests();
             assertTrue(RememberClearDisplayPatch.isCarryingClear());
             RememberClearDisplayPatch.firstFrame("refused", () -> true, value -> false);
             assertTrue("the controls showed before the retry", RememberClearDisplayPatch.isCarryingClear());
             RememberClearDisplayPatch.firstFrame("refused", () -> true, value -> false);
+            assertTrue("a retry turned down showed the controls before the limit",
+                    RememberClearDisplayPatch.isCarryingClear());
+            Shadows.shadowOf(Looper.getMainLooper())
+                    .idleFor(Duration.ofMillis(RememberClearDisplayPatch.PAGE_LIMIT_MS));
             assertFalse("a video TikTok won't clear kept its controls away", RememberClearDisplayPatch.isCarryingClear());
 
             // So does a LIVE preview or an ad, which TikTok never clears.
@@ -1124,8 +1128,13 @@ public class AutomaticClearDisplayTest {
             assertEquals("another video's progress asked again", List.of(true), events);
             assertTrue(RememberClearDisplayPatch.isCarryingClear());
 
-            if (handBack) RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(false, 2));
-            if (handBack) assertFalse("the controls brought back stayed away", RememberClearDisplayPatch.isCarryingClear());
+            if (handBack) {
+                RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(false, 2));
+                assertFalse("the controls brought back stayed away", RememberClearDisplayPatch.isCarryingClear());
+                // isCarryingClear also reads the saved choice, which the hand-back cleared.
+                assertFalse("the carry outlived the controls brought back", (Boolean)
+                        org.robolectric.util.ReflectionHelpers.getStaticField(RememberClearDisplayPatch.class, "carrying"));
+            }
             RememberClearDisplayPatch.onPlaybackProgress(controller, "first");
             Shadows.shadowOf(Looper.getMainLooper()).idle();
             assertEquals(handBack ? List.of(true) : List.of(true, true), events);
@@ -1136,6 +1145,223 @@ public class AutomaticClearDisplayTest {
             Shadows.shadowOf(Looper.getMainLooper()).idle();
             assertEquals("nothing left to ask for", handBack ? 1 : 2, events.size());
         }
+    }
+
+    /**
+     * A cold start's first frame can come before the window has focus, and the panel turns the
+     * remembered clear down then too. The controls showed for most of a second until focus asked
+     * again (S22, 2026-11-11), so the clear carries over that gap. The panel then turned down four
+     * more asks, focus's and progress's, before one landed about 0.9 s in, so a retry turned down
+     * keeps the carry. PAGE_LIMIT_MS after the first refusal, a clear never taken lets the
+     * controls back, and asking again on that video doesn't hide them again.
+     */
+    @Test public void aRememberedClearTurnedDownBeforeFocusCarriesUntilFocusAsksAgain() {
+        RememberClearDisplayPatch.resetForTests();
+        Settings.AUTOMATIC_CLEAR_DISPLAY.save(false);
+        Settings.CLEAR_DISPLAY.save(true);
+        RememberClearDisplayPatch.firstFrame("alone", () -> false, value -> false);
+        assertTrue(RememberClearDisplayPatch.isCarryingClear());
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(RememberClearDisplayPatch.PAGE_LIMIT_MS));
+        assertFalse("a clear never asked for again kept the controls away",
+                RememberClearDisplayPatch.isCarryingClear());
+
+        for (boolean takes : new boolean[] {true, false}) {
+            RememberClearDisplayPatch.resetForTests();
+            Settings.AUTOMATIC_CLEAR_DISPLAY.save(false);
+            Settings.CLEAR_DISPLAY.save(true);
+            java.util.concurrent.atomic.AtomicBoolean focused = new java.util.concurrent.atomic.AtomicBoolean();
+            List<Boolean> events = new ArrayList<>();
+            // Takes the third ask, the way the S22's panel took a later one at a cold start.
+            RememberClearDisplayPatch.ClearEvent panel = value -> {
+                events.add(value);
+                return takes && events.size() >= 3;
+            };
+            RememberClearDisplayPatch.firstFrame("first", focused::get, panel);
+            // The same video's first frame again before focus, as a player rebinds, is a retry.
+            RememberClearDisplayPatch.firstFrame("first", focused::get, panel);
+            assertEquals(List.of(true, true), events);
+            assertFalse(RememberClearDisplayPatch.isClearDisplayNow());
+            assertTrue("the controls showed while the window had no focus",
+                    RememberClearDisplayPatch.isCarryingClear());
+            Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(RememberClearDisplayPatch.PAGE_LIMIT_MS - 1500));
+            assertTrue(RememberClearDisplayPatch.isCarryingClear());
+            // Focus lost as the window settles asks nothing and ends nothing.
+            RememberClearDisplayPatch.cancel();
+            assertTrue(RememberClearDisplayPatch.isCarryingClear());
+
+            focused.set(true);
+            RememberClearDisplayPatch.firstFrame("first", focused::get, panel);
+            assertEquals(List.of(true, true, true), events);
+            assertEquals(takes, RememberClearDisplayPatch.isClearDisplayNow());
+            assertTrue(takes ? "focus asking again dropped the carry of a clear that landed"
+                    : "turned down again as focus asked, the controls showed before the limit",
+                    RememberClearDisplayPatch.isCarryingClear());
+
+            Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(1500));
+            assertEquals(takes ? "a clear that landed lost its carry" : "a retry turned down started the limit over",
+                    takes, RememberClearDisplayPatch.isCarryingClear());
+
+            // Focus coming back after the limit, as a dialog closes, asks again on the same video.
+            RememberClearDisplayPatch.cancel();
+            RememberClearDisplayPatch.firstFrame("first", focused::get, panel);
+            assertEquals(takes ? "a clear that landed lost its carry as focus came back"
+                    : "asked again after the limit, the controls went away with nothing taken",
+                    takes, RememberClearDisplayPatch.isCarryingClear());
+            Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(RememberClearDisplayPatch.PAGE_LIMIT_MS));
+            assertEquals(takes, RememberClearDisplayPatch.isCarryingClear());
+        }
+    }
+
+    /** TikTok's own exit during a turned-down carry ends it, and a later refused ask doesn't bring it back. */
+    @Test public void tikToksOwnExitEndsATurnedDownCarryForGood() {
+        RememberClearDisplayPatch.resetForTests();
+        Settings.AUTOMATIC_CLEAR_DISPLAY.save(false);
+        Settings.CLEAR_DISPLAY.save(true);
+        RememberClearDisplayPatch.firstFrame("first", () -> true, value -> false);
+        assertTrue(RememberClearDisplayPatch.isCarryingClear());
+        // OTHER_EXIT (6), as the share panel opens: TikTok's exit, not the reader's choice.
+        RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(false, 6));
+        assertFalse(RememberClearDisplayPatch.isCarryingClear());
+        RememberClearDisplayPatch.firstFrame("first", () -> true, value -> false);
+        assertFalse("a refused ask after TikTok's own exit hid the controls again",
+                RememberClearDisplayPatch.isCarryingClear());
+
+        // Turned down before focus, so nothing waits on progress and focus's ask reads as a first try.
+        RememberClearDisplayPatch.firstFrame("second", () -> false, value -> false);
+        assertTrue(RememberClearDisplayPatch.isCarryingClear());
+        RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(false, 6));
+        assertFalse(RememberClearDisplayPatch.isCarryingClear());
+        RememberClearDisplayPatch.firstFrame("second", () -> true, value -> false);
+        assertFalse("focus asking after TikTok's own exit hid the controls again",
+                RememberClearDisplayPatch.isCarryingClear());
+    }
+
+    /** The limit lets the controls back, but progress keeps asking, so a clear taken after it still lands. */
+    @Test public void aRememberedClearTakenAfterTheLimitStillLands() {
+        RememberClearDisplayPatch.resetForTests();
+        Settings.AUTOMATIC_CLEAR_DISPLAY.save(false);
+        Settings.CLEAR_DISPLAY.save(true);
+        Object controller = new Object();
+        org.robolectric.util.ReflectionHelpers.setStaticField(RememberClearDisplayPatch.class,
+                "currentController", new java.lang.ref.WeakReference<>(controller));
+        java.util.concurrent.atomic.AtomicBoolean ready = new java.util.concurrent.atomic.AtomicBoolean();
+        List<Boolean> events = new ArrayList<>();
+        RememberClearDisplayPatch.ClearEvent panel = value -> {
+            events.add(value);
+            return ready.get();
+        };
+        RememberClearDisplayPatch.firstFrame("late", () -> true, panel);
+        RememberClearDisplayPatch.onPlaybackProgress(controller, "late");
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals(List.of(true, true), events);
+        assertTrue(RememberClearDisplayPatch.isCarryingClear());
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(RememberClearDisplayPatch.PAGE_LIMIT_MS));
+        assertFalse(RememberClearDisplayPatch.isCarryingClear());
+
+        ready.set(true);
+        RememberClearDisplayPatch.onPlaybackProgress(controller, "late");
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals("progress stopped asking at the limit", 3, events.size());
+        assertTrue("a clear the panel took after the limit didn't land", RememberClearDisplayPatch.isClearDisplayNow());
+
+        // Landed, the limit is behind it: TikTok's own exit and a refused ask carry again.
+        RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(false, 6));
+        assertFalse(RememberClearDisplayPatch.isCarryingClear());
+        ready.set(false);
+        RememberClearDisplayPatch.firstFrame("late", () -> true, panel);
+        assertTrue("the limit from before the clear landed kept the next refused ask from carrying",
+                RememberClearDisplayPatch.isCarryingClear());
+    }
+
+    /** Past the limit a panel that never takes the clear is asked once a second, not on every tick. */
+    @Test public void pastTheLimitProgressAsksAtMostOncePerInterval() {
+        RememberClearDisplayPatch.resetForTests();
+        Settings.AUTOMATIC_CLEAR_DISPLAY.save(false);
+        Settings.CLEAR_DISPLAY.save(true);
+        Object controller = new Object();
+        org.robolectric.util.ReflectionHelpers.setStaticField(RememberClearDisplayPatch.class,
+                "currentController", new java.lang.ref.WeakReference<>(controller));
+        List<Boolean> events = new ArrayList<>();
+        RememberClearDisplayPatch.ClearEvent panel = value -> {
+            events.add(value);
+            return false;
+        };
+        RememberClearDisplayPatch.firstFrame("never", () -> true, panel);
+        RememberClearDisplayPatch.onPlaybackProgress(controller, "never");
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        RememberClearDisplayPatch.onPlaybackProgress(controller, "never");
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals("before the limit every tick asks", 3, events.size());
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(RememberClearDisplayPatch.PAGE_LIMIT_MS));
+
+        for (int tick = 0; tick < 3; tick++) {
+            RememberClearDisplayPatch.onPlaybackProgress(controller, "never");
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+        }
+        assertEquals("three ticks in a row past the limit asked more than once", 4, events.size());
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(RememberClearDisplayPatch.LATE_ASK_MS));
+        RememberClearDisplayPatch.onPlaybackProgress(controller, "never");
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals("a second later, progress stopped asking", 5, events.size());
+        assertFalse(RememberClearDisplayPatch.isCarryingClear());
+    }
+
+    /**
+     * An exit heard off the main thread ends the carry it was heard on. Swiped away and back
+     * before it ran, the video's new carry isn't that one.
+     */
+    @Test public void anExitHeardOffTheMainThreadLeavesALaterVisitsCarryAlone() throws Exception {
+        RememberClearDisplayPatch.resetForTests();
+        Settings.AUTOMATIC_CLEAR_DISPLAY.save(false);
+        Settings.CLEAR_DISPLAY.save(true);
+        RememberClearDisplayPatch.firstFrame("one", () -> true, value -> false);
+        assertTrue(RememberClearDisplayPatch.isCarryingClear());
+        Thread exit = new Thread(() -> RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(false, 6)));
+        exit.start();
+        exit.join();
+
+        RememberClearDisplayPatch.firstFrame("two", () -> true, value -> false);
+        RememberClearDisplayPatch.firstFrame("one", () -> true, value -> false);
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertTrue("an exit from an earlier visit ended the carry of the video's next one",
+                RememberClearDisplayPatch.isCarryingClear());
+    }
+
+    /** The limit stays with the video it ran out on: the next video, and the first one again, carry. */
+    @Test public void aTurnedDownLimitStaysWithItsVideo() {
+        RememberClearDisplayPatch.resetForTests();
+        Settings.AUTOMATIC_CLEAR_DISPLAY.save(false);
+        Settings.CLEAR_DISPLAY.save(true);
+        RememberClearDisplayPatch.firstFrame("one", () -> true, value -> false);
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(RememberClearDisplayPatch.PAGE_LIMIT_MS));
+        assertFalse(RememberClearDisplayPatch.isCarryingClear());
+        RememberClearDisplayPatch.firstFrame("one", () -> true, value -> false);
+        assertFalse("asked again on the same video after its limit, the controls went away again",
+                RememberClearDisplayPatch.isCarryingClear());
+
+        RememberClearDisplayPatch.firstFrame("two", () -> true, value -> false);
+        assertTrue("the next video's turned-down clear didn't carry", RememberClearDisplayPatch.isCarryingClear());
+        RememberClearDisplayPatch.firstFrame("one", () -> true, value -> false);
+        assertTrue("back on the first video, its turned-down clear didn't carry",
+                RememberClearDisplayPatch.isCarryingClear());
+    }
+
+    /** TikTok's own exit from a clear that landed doesn't keep the next turned-down ask from carrying. */
+    @Test public void anExitFromALandedClearLeavesTheNextCarryAlone() {
+        RememberClearDisplayPatch.resetForTests();
+        Settings.AUTOMATIC_CLEAR_DISPLAY.save(false);
+        Settings.CLEAR_DISPLAY.save(true);
+        java.util.concurrent.atomic.AtomicBoolean takes = new java.util.concurrent.atomic.AtomicBoolean(true);
+        RememberClearDisplayPatch.firstFrame("shared", () -> true, value -> takes.get());
+        assertTrue(RememberClearDisplayPatch.isClearDisplayNow());
+        // OTHER_EXIT (6), as the share panel opens over the clear that landed.
+        RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(false, 6));
+        assertFalse(RememberClearDisplayPatch.isClearDisplayNow());
+
+        takes.set(false);
+        RememberClearDisplayPatch.firstFrame("shared", () -> true, value -> takes.get());
+        assertTrue("a refused ask after the landed clear's exit showed the controls",
+                RememberClearDisplayPatch.isCarryingClear());
     }
 
     /**

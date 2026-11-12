@@ -29,11 +29,12 @@ class PatchCategoriesTest {
     /**
      * One name per group, and no more than fits on a phone screen without scrolling. The names are
      * the Hush family's: Chats is Telegram's chat list, Conversations is what happens inside a chat,
-     * and Notifications and Updates match the HushTelegram settings pages of the same name.
+     * Writing is the message box, and Notifications and Updates match the HushTelegram settings
+     * pages of the same name.
      */
     private val taxonomy = setOf(
         "Ads", "Chats", "Conversations", "Interface", "Notifications", "Playback", "Privacy", "Search",
-        "Stories", "Theme", "Updates", "Fixes", "Settings",
+        "Stories", "Theme", "Updates", "Writing", "Fixes", "Settings",
     )
 
     /**

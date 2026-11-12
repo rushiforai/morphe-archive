@@ -2839,3 +2839,33 @@ New style 2	Новый стиль 2
 Friends in the top tabs	«Друзья» во вкладках сверху
 # context: Summary under that switch; Friends and Following are TikTok's tab names
 Friends moves up to the tabs at the top of the feed, next to Following, and Discover takes its spot in the bottom bar, the way TikTok lays it out in some countries. Your region and your feed stay as they are.	«Друзья» переходит к вкладкам вверху ленты, рядом с «Подписки», а «Интересное» занимает её место в нижней панели, как TikTok делает в некоторых странах. Регион и лента остаются прежними.
+# context: Row title of the Inbox switch that lifts the app's cap on pinned chats
+Pin more chats	Закреплять больше чатов
+# context: Summary under that switch; 5 is the cap TikTok's app usually puts on pinned chats
+Lifts the app's limit on pinned chats in the Inbox, usually 5, so you can pin more.	Снимает ограничение приложения на закреплённые чаты во «Входящих», обычно 5, чтобы можно было закрепить больше.
+# context: Row title of the Comments switch that hides voice comments
+Hide voice comments	Скрывать голосовые комментарии
+# context: Summary under that switch
+Hide comments made of a voice recording instead of words.	Скрывать комментарии в виде голосовой записи вместо слов.
+# context: Row title of the switch, and the title of the chooser that opens after the Not interested button
+Also filter it	Также фильтровать
+# context: Summary under that switch; Not interested is the overlay button's name
+After you tap Not interested, offer to skip the video's creator, sound or hashtags from now on.	После нажатия «Не интересно» предлагать пропускать автора, звук или хештеги этого видео.
+# context: Chooser row; %1$s is the creator's @handle
+Videos from %1$s	Видео от %1$s
+# context: Chooser row; %1$s is the sound's name
+Videos with the sound %1$s	Видео со звуком %1$s
+# context: Chooser row; %1$s is a hashtag such as #cats
+Videos tagged %1$s	Видео с хештегом %1$s
+# context: Banner after a pick, with an Undo; %1$s is the creator's @handle
+Skipping videos from %1$s	Пропуск видео от %1$s
+# context: Banner after a pick, with an Undo; %1$s is a hashtag
+Skipping videos tagged %1$s	Пропуск видео с хештегом %1$s
+# context: Toast when the list a chooser pick goes on already holds as much as it can
+That list is full	Этот список заполнен
+# context: Row title of the switch that adds a search to the Liked and Favorites tabs of a profile
+Search Liked and Favorites grids	Поиск в сетках «Понравилось» и «Избранное»
+# context: Summary under that switch; Search is the button's own label
+Adds a Search button to the top of the Liked and Favorites grids. Type a word from a caption, a creator or a sound to see only the loaded videos that have it.	Добавляет кнопку «Поиск» вверху сеток «Понравилось» и «Избранное». Введите слово из подписи, имени автора или названия звука, чтобы видеть только загруженные видео с ним.
+# context: Hint in the search box over a Liked or Favorites grid
+Caption, creator or sound	Подпись, автор или звук

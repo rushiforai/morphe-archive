@@ -10,6 +10,8 @@ SIGNER="${APKSIGNER:-$ANDROID_HOME/build-tools/36.0.0/apksigner}"
 require_file "$KEYSTORE_PATH"
 [[ -x "$SIGNER" ]] || fail 'Install Android SDK Build Tools 36.0.0 or set APKSIGNER.'
 for name in google-login split_config.xxhdpi gemini-login; do require_file "$BUILD_DIR/$name-unsigned.apk"; done
+"$ROOT/scripts/verify-clone-contract.sh" "$ROOT/inputs/google-base.apk" "$BUILD_DIR/google-login-unsigned.apk"
+"$ROOT/scripts/verify-clone-contract.sh" "$ROOT/inputs/gemini-base.apk" "$BUILD_DIR/gemini-login-unsigned.apk"
 # Keep the last successful dist intact if signing or verification fails.
 staging="$(mktemp -d "$BUILD_DIR/sign.XXXXXX")"
 trap 'rm -rf "$staging"' EXIT

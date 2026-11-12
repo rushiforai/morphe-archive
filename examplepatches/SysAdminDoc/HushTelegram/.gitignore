@@ -75,3 +75,7 @@ Roadmap_Blocked.md
 !docs/telegram-app-reference.md
 !docs/telegram-audit-12.10.6.md
 !docs/telegram-runtime-audit-12.10.7.md
+
+# The bundle signing key's private half lives in HUSHTELEGRAM_BUNDLE_SIGNING_KEY, never here.
+morphe-signing.key
+*.signing.key

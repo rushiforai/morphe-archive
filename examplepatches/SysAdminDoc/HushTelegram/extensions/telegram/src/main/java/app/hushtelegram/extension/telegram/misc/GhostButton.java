@@ -50,8 +50,8 @@ public final class GhostButton {
     static final String NO_MENU = "ghost button found no menu on the chat list";
     static final String SWITCHED = "Ghost mode switched from the chat list";
     /** Telegram's own width for a top bar button. */
-    private static final int WIDTH_DP = 48;
-    private static final int ICON_DP = 24;
+    static final int WIDTH_DP = 48;
+    static final int ICON_DP = 24;
     /** Drawn when no button of Telegram's has a color to copy: a gray that shows on light and dark bars. */
     static final int FALLBACK_COLOR = 0xFF8E8E93;
 
@@ -198,7 +198,7 @@ public final class GhostButton {
         return now;
     }
 
-    private static int dp(Context context, float value) {
+    static int dp(Context context, float value) {
         return Math.round(value * context.getResources().getDisplayMetrics().density);
     }
 

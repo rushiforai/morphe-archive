@@ -93,7 +93,7 @@ public enum PatchFamily {
             Settings.HIDE_SPONSORED_STORIES),
     SUGGESTED_STORIES(FamilyNames.SUGGESTED_STORIES, "suggestedStories", null,
             Settings.HIDE_SUGGESTED_STORIES, Settings.HIDE_CONTACT_IMPORT_CARD, Settings.HIDE_STORY_PROMPTS,
-            Settings.HIDE_PAGE_STORIES, Settings.HIDE_SEEN_STORIES, Settings.SHOW_ONLY_WATCHED_STORIES),
+            Settings.HIDE_CREATE_STORY, Settings.HIDE_PAGE_STORIES, Settings.HIDE_SEEN_STORIES, Settings.SHOW_ONLY_WATCHED_STORIES),
     STORY_AUTO_ADVANCE(FamilyNames.STORY_AUTO_ADVANCE, "storyAutoAdvance", null,
             Settings.BLOCK_STORY_AUTO_ADVANCE, Settings.LOOP_STORIES),
     STORY_SEEN(FamilyNames.STORY_SEEN, "storySeen", null,
@@ -182,8 +182,8 @@ public enum PatchFamily {
             Settings.HIDE_INCOMING_COMMENT_TYPING, Settings.HIDE_NEW_COMMENTS_PILL,
             Settings.HIDE_VIDEO_COMMENT_COMPOSER, Settings.TAP_ANYWHERE_ON_VIEW_MORE_REPLIES,
             Settings.HIDE_POST_COMMENT_PREVIEWS, Settings.HIDE_COMMENT_DOWNVOTE_BUTTON,
-            Settings.HIDE_COMMENT_LIKE_BUTTON, Settings.HIDE_COMMENT_EMOJI_ROW, Settings.HIDE_COMMENT_BOX_LINE,
-            Settings.COMMENT_BLOCK_BUTTON, Settings.REACTOR_BLOCK_BUTTON),
+            Settings.HIDE_COMMENT_LIKE_BUTTON, Settings.HIDE_COMMENT_REPLY_BUTTON, Settings.HIDE_COMMENT_EMOJI_ROW, Settings.HIDE_COMMENT_BOX_LINE,
+            Settings.COMMENT_BLOCK_BUTTON, Settings.REACTOR_BLOCK_BUTTON, Settings.FILTER_COMMENT_SEARCH),
     // Open comments at is a list, Facebook's height, full or half (#179); the rest are switches.
     FULL_HEIGHT_COMMENTS(FamilyNames.FULL_HEIGHT_COMMENTS, "fullHeightComments", Settings.COMMENTS_HEIGHT,
             new BooleanSetting[]{Settings.PAUSE_REELS_UNDER_COMMENTS, Settings.TAP_REELS_ABOVE_COMMENTS,
@@ -238,7 +238,7 @@ public enum PatchFamily {
             Settings.DOWNLOAD_STORIES, Settings.SAVE_STORY_PHOTOS),
     REEL_DOWNLOAD(FamilyNames.REEL_DOWNLOAD, "reelDownload", null,
             Settings.DOWNLOAD_REELS, Settings.SHOW_REEL_DOWNLOAD_BUTTON, Settings.REEL_CAST_BUTTON,
-            Settings.COPY_REEL_CAPTION),
+            Settings.COPY_REEL_CAPTION, Settings.QUEUE_REEL_SAVES),
     VIDEO_DOWNLOAD(FamilyNames.VIDEO_DOWNLOAD, "videoDownload", null,
             Settings.DOWNLOAD_VIDEOS, Settings.CLIPBOARD_DOWNLOAD, Settings.POST_MENU_DOWNLOAD_FIRST,
             Settings.OPEN_IN_ANOTHER_APP),
@@ -285,7 +285,8 @@ public enum PatchFamily {
             Settings.OPEN_MESSENGER_APP, Settings.LEAVE_CALLS_AND_CHATS_TO_MESSENGER, Settings.OPEN_CHATS_IN_MESSENGER),
     MENU_PROMOTIONS(FamilyNames.MENU_PROMOTIONS, "menuPromotions", null,
             Settings.HIDE_MENU_UPGRADES, Settings.HIDE_MENU_ALSO_FROM_META, Settings.HIDE_MENU_HELP,
-            Settings.KEEP_MENU_SETTINGS_EXPANDED, Settings.HIDE_MENU_MUSE, Settings.HIDE_MENU_META_AI),
+            Settings.HIDE_MENU_SHORTCUTS, Settings.HIDE_MENU_CREATE_PAGE, Settings.KEEP_MENU_SETTINGS_EXPANDED,
+            Settings.HIDE_MENU_MUSE, Settings.HIDE_MENU_META_AI),
     META_UPSELLS(FamilyNames.META_UPSELLS, "metaUpsells", null,
             Settings.HIDE_EDITS_UPSELLS, Settings.HIDE_THREADS_CROSS_POSTING, Settings.HIDE_THREADS_SHARE_BUTTON,
             Settings.HIDE_MUSE_SHARE_BUTTON, Settings.HIDE_META_VERIFIED_UPSELLS, Settings.HIDE_AVATAR_UPSELLS, Settings.HIDE_META_AI_IMAGINE,
@@ -401,12 +402,13 @@ public enum PatchFamily {
      * The switches the download patches share and none of them owns: each shapes what every
      * save picks, a story's, a reel's or a feed video's, so it's on the screen under Downloads
      * whenever one of them is in the build. Today that's saves other apps can open, converting to
-     * keep the full size, and quiet saves.
+     * keep the full size, quiet saves, and choosing the quality on each save.
      * Pause turns them off like a family's switches, and a paused Facebook makes no Hushfacebook
      * saves anyway.
      */
     static final List<BooleanSetting> DOWNLOAD_SWITCHES = Collections.unmodifiableList(
-            java.util.Arrays.asList(Settings.DOWNLOAD_COMPATIBLE, Settings.DOWNLOAD_CONVERT, Settings.DOWNLOAD_QUIET));
+            java.util.Arrays.asList(Settings.DOWNLOAD_COMPATIBLE, Settings.DOWNLOAD_CONVERT, Settings.DOWNLOAD_QUIET,
+                    Settings.DOWNLOAD_QUALITY_ASK));
 
     /** The families whose saves read {@link #DOWNLOAD_SWITCHES}. */
     static final Set<PatchFamily> DOWNLOADS = Collections.unmodifiableSet(

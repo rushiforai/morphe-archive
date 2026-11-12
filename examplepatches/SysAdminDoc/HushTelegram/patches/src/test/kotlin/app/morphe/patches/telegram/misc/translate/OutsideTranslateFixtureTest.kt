@@ -74,7 +74,7 @@ class OutsideTranslateFixtureTest {
     private fun signature(m: Method) = "${m.definingClass}->${m.name}(${m.parameterTypes.joinToString("")})${m.returnType}"
 
     /** The chat screen, the header delegate and the item adder, plus what the message menu family reads when [neighbours]. */
-    private fun hosts(build: File, neighbours: Boolean = false): List<ClassDef> {
+    fun hosts(build: File, neighbours: Boolean = false): List<ClassDef> {
         val found = FixtureDex.classesWhere(build, { true }) { m ->
             val params = m.parameterTypes.map(CharSequence::toString)
             m.origParameterTypes == listOf("Lorg/telegram/messenger/MessageObject;", list, list, list) && m.controlBody().any { it.controlRef() == "Lorg/telegram/messenger/R\$string;->Forward:I" } ||

@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-JDK 21, an Android SDK with accepted licenses, the checked-in Gradle wrapper, and Node.js 22.14+ (22.x) or 24.10+ and pnpm; CI uses the latest Node.js LTS and latest pnpm. The Morphe plugin resolves from GitHub Packages with the credentials already configured in `~/.gradle/gradle.properties` as unquoted `gpr.user` and `gpr.key`; never commit them.
+JDK 21, an Android SDK with accepted licenses, the checked-in Gradle wrapper, Node.js LTS, and pnpm. CI uses the latest Node.js LTS and latest pnpm. The Morphe plugin resolves from GitHub Packages with credentials configured in `~/.gradle/gradle.properties` as unquoted `gpr.user` and `gpr.key`; never commit them.
 
 ## Build and validate
 

@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "Titanium custom font ligature keeper",
+  "description": "Keeps web-font ligature logos and icons visible while a custom webpage font is active.",
+  "version": "1.0",
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["ligature.js"],
+      "run_at": "document_idle",
+      "all_frames": true,
+      "match_about_blank": true
+    }
+  ]
+}

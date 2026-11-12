@@ -1,0 +1,40 @@
+--- wbuild/s3orig/smali/com/opera/android/startup/WelcomeActivity.smali	2026-11-11 16:22:57.048757059 +0000
++++ wbuild/s3new/smali/com/opera/android/startup/WelcomeActivity.smali	2026-11-11 16:23:02.662792384 +0000
+@@ -1796,9 +1796,7 @@
+ 
+     const-string v6, "eula_accepted.gdpr"
+ 
+-    invoke-virtual {v4, v6}, Lcom/opera/android/settings/SettingsManager;->i(Ljava/lang/String;)Z
+-
+-    move-result v4
++    const/4 v4, 0x1
+ 
+     if-eqz v4, :cond_7
+ 
+@@ -1904,25 +1902,7 @@
+     goto :goto_3
+ 
+     :cond_9
+-    invoke-virtual {v0}, Lcom/opera/android/startup/WelcomeActivity;->N()Lq0o;
+-
+-    move-result-object v1
+-
+-    iget-object v1, v1, Lq0o;->e:Lpde;
+-
+-    new-instance v2, Lk0o;
+-
+-    sget-object v4, Lj0o;->a:Lj0o;
+-
+-    new-instance v5, Lq0n;
+-
+-    const/16 v6, 0xe
+-
+-    invoke-direct {v5, v6}, Lq0n;-><init>(B)V
+-
+-    invoke-direct {v2, v4, v3, v5, v8}, Lk0o;-><init>(Lj0o;ZLkotlin/jvm/functions/Function1;I)V
+-
+-    invoke-virtual {v1, v2}, Lekc;->r(Ljava/lang/Object;)V
++    invoke-virtual {v0}, Lcom/opera/android/startup/WelcomeActivity;->X()V
+ 
+     goto :goto_3
+ 

@@ -1,0 +1,11 @@
+--- a/q0o.smali (W2 rebuilt dex, decoded)
++++ b/q0o.smali (X-rung, 02h)
+@@ -101,7 +101,7 @@
+ 
+     const/4 v1, 0x2
+ 
+-    if-eq v0, v1, :cond_2e
++    goto/16 :cond_2e
+ 
+     iget-object v0, p0, Lq0o;->f:Lpyl;
+ 

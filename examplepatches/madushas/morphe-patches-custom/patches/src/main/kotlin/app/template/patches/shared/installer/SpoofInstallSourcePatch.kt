@@ -111,6 +111,7 @@ val spoofInstallSourcePatch = bytecodePatch(
     """.trimIndent(),
     default = false,
 ) {
+    category("Signature")
     val installerPackageName by stringOption(
         key = "installerPackageName",
         default = "com.android.vending",

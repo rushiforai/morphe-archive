@@ -1,0 +1,5 @@
+*.apk
+*.apk.idsig
+*.jks
+java/out/
+__pycache__/

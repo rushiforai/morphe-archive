@@ -53,7 +53,7 @@ private val selectedAccountFingerprint = Fingerprint(
  * 設定 OFF、MicroG-RE が未導入、例外時は hook が元の値を返します。
  */
 val googleAccountPickerRoutingPatch = bytecodePatch(
-    name = "MicroG-RE でバックアップのアカウントを選ぶ",
+    name = "Backup account picker via MicroG-RE",
     description = "トークのバックアップで選ぶ Google アカウントを、実行時設定で MicroG-RE のアカウントにできるようにします。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Reseam contributors <https://reseam.app>
 // SPDX-License-Identifier: AGPL-3.0-or-later
+// Modified by lavinhoque33, 2026-11-10
 
 package app.morphe.patches.youtube.interaction.queue
 
@@ -27,6 +28,7 @@ import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.cloneMutable
 import app.morphe.util.cloneMutableAndPreserveParameters
 import app.morphe.util.getFreeRegisterProvider
+import app.morphe.util.setExtensionIsPatchIncluded
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
@@ -209,5 +211,7 @@ val unlockQueuePatch = bytecodePatch(
                 invoke-static {v$free}, $complete
             """
         )
+
+        setExtensionIsPatchIncluded(EXTENSION)
     }
 }

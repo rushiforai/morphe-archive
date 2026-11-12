@@ -18,6 +18,8 @@ import android.view.MenuItem;
 @SuppressWarnings("unused")
 public final class ReportActivity extends Activity {
     private Runnable refresh;
+    /** The language this screen was built in (AppLanguage), checked again when it comes back to the front. */
+    private String language;
 
     static void open(Context context) {
         try {
@@ -25,6 +27,13 @@ public final class ReportActivity extends Activity {
         } catch (RuntimeException error) {
             ReportLog.w(ReportPatch.TAG, "report screen not opened", error);
         }
+    }
+
+    @Override
+    protected void attachBaseContext(Context base) {
+        // No feature runs in this process, so nothing wrapped its Application: the language chosen in Settings for this screen.
+        super.attachBaseContext(AppLanguage.wrapReportScreen(base));
+        language = AppLanguage.reportScreenLanguage();
     }
 
     @Override
@@ -57,6 +66,15 @@ public final class ReportActivity extends Activity {
         // The screen is single-task: the notification reaches an open one here.
         setIntent(intent);
         if (UpdateCheck.ACTION_SHOW.equals(intent.getAction())) UpdateCheck.show(this, null);
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        // A language chosen in Maps' Settings while this single-task screen stayed open: built again in it once the
+        // screen itself has the focus, so not under a dialog (a report with a typed comment, the update dialog), and
+        // not while a switch change waits for its restart. Also after BYD's split screen, where it may stay resumed.
+        if (hasFocus && !ReportPatch.switchesChanged() && AppLanguage.reportScreenChanged(this, language)) recreate();
     }
 
     @Override

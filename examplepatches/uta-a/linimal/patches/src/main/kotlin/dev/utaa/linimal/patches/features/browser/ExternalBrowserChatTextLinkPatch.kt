@@ -243,7 +243,7 @@ private fun referrerFields(
  * LINE の web host は runtime 側で元の処理へ残します。
  */
 val externalBrowserChatTextLinkPatch = bytecodePatch(
-    name = "リンクを外部ブラウザで開く",
+    name = "Open links in external browser",
     description = "トークの本文、リッチメッセージ、リッチメニュー、カードの http/https リンクを、実行時設定で外部ブラウザへ渡せるようにします。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

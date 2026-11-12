@@ -322,6 +322,8 @@ The Reels tab only shows reels from people and Pages you follow, starting with t
 Facebook has no more reels your filters would keep, so these reels aren't filtered for now.	У Facebook больше нет роликов, которые оставили бы ваши фильтры, поэтому пока эти ролики не фильтруются.
 Hush hid the suggested posts after this, so Home ends here.	Hush скрыл рекомендованные публикации после этого места, поэтому лента «Главная» заканчивается здесь.
 Download quality	Качество скачивания
+Choose quality on each save	Выбирать качество при каждом сохранении
+A reel's Download button and a video's Download to phone show the qualities first, and the save takes the one you pick. Download quality stays as it is.	Кнопка «Скачать» у Reels и «Скачать на телефон» у видео сначала показывают варианты качества, и сохраняется выбранный. Качество скачивания остаётся прежним.
 Best	Наилучшее
 Smallest	Минимальный размер
 Each video saves at the best quality the player streams.	Каждое видео сохраняется в наилучшем качестве, доступном для воспроизведения.
@@ -469,6 +471,10 @@ The Also from Meta section leaves Facebook's Menu, with its links to Meta's othe
 Hide Help and support	Скрывать справку и поддержку
 # context: summary of that switch; Settings and privacy is Facebook's own Menu section
 The Help and support section leaves Facebook's Menu, header and all. Settings and privacy stays.	Раздел «Справка и поддержка» полностью удаляется из меню Facebook, включая заголовок. Раздел «Настройки и конфиденциальность» остается.
+Hide Your shortcuts	Скрывать «Ваши ярлыки»
+The Your shortcuts row leaves Facebook's Menu, with the groups and Pages Facebook keeps putting back in it. The Menu tiles under it stay.	Строка «Ваши ярлыки» удаляется из меню Facebook вместе с группами и страницами, которые Facebook снова и снова туда добавляет. Плитки меню под ней остаются.
+Hide Create Facebook Page	Скрывать «Создать страницу Facebook»
+The Create Facebook Page row leaves the top of Facebook's Menu. Your profile above it stays.	Строка «Создать страницу Facebook» удаляется из верхней части меню Facebook. Ваш профиль над ней остаётся.
 # context: switch title under Menu; Settings and privacy is a section of Facebook's own Menu that folds and unfolds when its header is tapped
 Keep Settings and privacy expanded	Не сворачивать «Настройки и конфиденциальность»
 # context: summary of that switch
@@ -496,6 +502,8 @@ Hide dislike on comments	Скрывать дизлайки в комментар
 Takes the thumbs-down off comments. Like and Reply stay.	Удаляет значок дизлайка из комментариев. Кнопки «Нравится» и «Ответить» остаются.
 Hide Like on comments	Скрывать «Нравится» в комментариях
 Takes Like off the row under comments. Reply and the reaction count stay.	Удаляет кнопку «Нравится» из строки под комментариями. Кнопка «Ответить» и счетчик реакций остаются.
+Hide Reply on comments	Скрывать «Ответить» в комментариях
+Takes Reply off the row under comments. View replies, Like and the reaction count stay.	Удаляет кнопку «Ответить» из строки под комментариями. «Посмотреть ответы», кнопка «Нравится» и счетчик реакций остаются.
 # context: switch title under Comments; Like is the button under a post or a comment
 Like only	Только «Нравится»
 # context: summary of that switch; the reactions are the row of Love, Haha, Wow and the rest that a long press on Like opens
@@ -1130,6 +1138,10 @@ Hides the Stories tray card that asks to upload your contacts. Applies when Face
 Hide story prompts	Скрывать подсказки для Историй
 # context: summary of that switch; Share music you love is the name of one such card
 Hides cards beside Create story that suggest a story to make, like Share music you love. Applies when Facebook next loads the tray.	Скрывает карточки рядом с кнопкой «Создать историю» с предложениями для новых Историй, например «Поделитесь любимой музыкой». Применяется при следующей загрузке панели Facebook.
+# context: switch title under Stories; Create story is the first tile of the Stories tray, the one that starts a new story of your own
+Hide Create story	Скрывать «Создать историю»
+# context: summary of that switch
+Takes the Create story tile off the start of the Stories tray. The stories stay. Applies when Facebook next loads the tray.	Убирает плитку «Создать историю» из начала панели Историй. Истории остаются. Применяется при следующей загрузке панели Facebook.
 # context: summary of Hide "People you may know" when the build also hides tray cards; Add is the card's button
 Hides friend suggestions between posts, on your own profile, and as cards with an Add button in the Stories tray.	Скрывает рекомендации друзей между публикациями, в вашем профиле и в виде карточек с кнопкой «Добавить» на панели Историй.
 Feeds opens on	Вкладка «Ленты» открывается на
@@ -2757,3 +2769,18 @@ Playback speed in the post menu	Скорость воспроизведения 
 A feed or Watch video's 3-dot menu gets Playback speed, from 0.5x to 3x, live videos too. Off by default, since it hasn't been tried on a real account yet.	В меню с тремя точками у видео в Ленте или Watch появляется пункт «Скорость воспроизведения» от 0,5x до 3x, в том числе для прямых эфиров. По умолчанию выключено, поскольку функция еще не проверялась на реальном аккаунте.
 Double tap to skip on feed videos	Перемотка двойным нажатием для видео в Ленте
 Double tap the right side of a playing feed video to jump ahead 10 seconds, or the left side to go back 10. Keep tapping to go further. Live videos work too when they can be rewound. One tap on a side still opens the video, a moment later than usual. With Tap to play on, it needs Inline feed video controls on too.	Дважды нажмите на правую часть воспроизводимого видео в Ленте, чтобы перемотать на 10 секунд вперед, или на левую, чтобы вернуться на 10 секунд назад. Продолжайте нажимать, чтобы перемотать дальше. Прямые эфиры тоже поддерживаются, если их можно перематывать назад. Одно нажатие на край по-прежнему открывает видео, но чуть позже обычного. Если включено воспроизведение по нажатию, необходимо также включить встроенные элементы управления видео в Ленте.
+Show only comments that match	Показывать только подходящие комментарии
+While the search box holds words, comments without them are hidden. Clearing the box brings them back.	Пока в поле поиска есть слова, комментарии без них скрыты. Если очистить поле, они вернутся.
+Queue reel saves	Очередь сохранения Reels
+Each reel you tap Download on joins a queue that saves one reel at a time in the background. Pause or cancel it from its notification or from Downloads here. A reel already in the queue is skipped, and one that fails gets one more try. The queue lasts until Facebook closes.	Каждое видео Reels, на котором вы нажимаете «Скачать», попадает в очередь, которая сохраняет видео по одному в фоновом режиме. Приостановить или отменить её можно из её уведомления или здесь, в разделе «Загрузки». Видео, которое уже есть в очереди, пропускается, а несохранившееся получает ещё одну попытку. Очередь существует, пока Facebook не закроется.
+Added to the reel queue	Добавлено в очередь Reels
+Added to the reel queue. To pause or cancel it, open Downloads in Hushfacebook settings.	Добавлено в очередь Reels. Чтобы приостановить или отменить её, откройте раздел «Загрузки» в настройках Hushfacebook.
+Already in the reel queue	Уже в очереди Reels
+That reel is already saved	Это видео уже сохранено
+The reel queue is full. Try again when it's shorter.	Очередь Reels заполнена. Повторите попытку, когда она станет короче.
+Saving queued reels	Сохранение видео из очереди
+Reel queue paused	Очередь Reels приостановлена
+Reel queue done	Очередь Reels завершена
+%1$d saved, %2$d waiting, %3$d failed	Сохранено: %1$d, в очереди: %2$d, с ошибкой: %3$d
+Reel queue canceled	Очередь Reels отменена
+Cancel the reel queue	Отменить очередь Reels

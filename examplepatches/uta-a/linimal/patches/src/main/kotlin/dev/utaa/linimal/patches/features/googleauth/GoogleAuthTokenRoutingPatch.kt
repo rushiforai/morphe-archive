@@ -67,7 +67,7 @@ internal val authServiceBindFingerprint = Fingerprint(
  * `<queries>` を加えます（ADR 0003）。MicroG-RE を使わない端末では何も参照しません。
  */
 val googleAuthMicrogManifestPatch = resourcePatch(
-    name = "MicroG-RE でトークをバックアップする（manifest）",
+    name = "Chat backup via MicroG-RE (manifest)",
     description = "MicroG-RE に公式 LINE の証明書を申告する meta-data を追加します。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)
@@ -119,7 +119,7 @@ val googleAuthMicrogManifestPatch = resourcePatch(
  * FCM、FIS など他の GMS、LINE の認証と通信、Drive REST の内容には触れません。
  */
 val googleAuthTokenRoutingPatch = bytecodePatch(
-    name = "MicroG-RE でトークをバックアップする",
+    name = "Chat backup via MicroG-RE",
     description = "Google ドライブ連携の token 要求を、実行時設定で MicroG-RE へ向けられるようにします。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

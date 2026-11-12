@@ -1037,11 +1037,13 @@
       "forks": [
         "jiuwei-huli/MightyMichs-Patches",
         "Mr-Rex69/MightyMichs-Patches",
-        "letsseemf2025-ship-it/MightyMichs-Patches"
+        "letsseemf2025-ship-it/MightyMichs-Patches",
+        "ozeroztas/MightyMichs-Patches",
+        "smed79/MightyMichs-Patches"
       ],
       "contentHashes": [],
       "mirrors": [],
-      "lastChecked": "2026-10-27"
+      "lastChecked": "2026-11-11"
     },
     {
       "id": "dmoniak",
@@ -2532,19 +2534,19 @@
       "branches": [
         {
           "name": "main",
-          "commit": "bbb9e88b289157ef981e9ab7cbd9672a67506785"
+          "commit": "e9f3173067a392acc95e2abe35a193df218d0340"
         }
       ],
       "watchPaths": [],
       "license": null,
       "contaminatedBy": null,
       "disposition": "behavior-only",
-      "reason": "An LSPosed module for Telegram 13.0.2, created 2026-10-13, with no licence, so none of its code can be read for porting. Its setup notes are in Persian. The hook file names show Fake Premium, Ghost mode, Allow save media, a download boost, secret media deletion prevention and deleted message display. The Premium, save-restriction and secret-media hooks are open ideas that could only come back as default-off switches. By 2026-11-10 the repository held no source any more, only its changelog, READMEs and the update manifests (module 1.5.90 for Telegram 13.2.1), so the hook names above are from the 2026-10-27 read.",
+      "reason": "An LSPosed module for Telegram 13.0.2, created 2026-10-13, with no licence, so none of its code can be read for porting. Its setup notes are in Persian. The hook file names show Fake Premium, Ghost mode, Allow save media, a download boost, secret media deletion prevention and deleted message display. The Premium, save-restriction and secret-media hooks are open ideas that could only come back as default-off switches. By 2026-11-10 the repository held no source any more, only its changelog, READMEs and the update manifests (module 1.5.90 for Telegram 13.2.1, pulled back to 1.5.89 for the same build on 2026-11-11), so the hook names above are from the 2026-10-27 read.",
       "archived": false,
       "forks": [],
       "contentHashes": [],
       "mirrors": [],
-      "lastChecked": "2026-10-27"
+      "lastChecked": "2026-11-11"
     },
     {
       "id": "re-televip",
@@ -2569,7 +2571,7 @@
       "branches": [
         {
           "name": "badges",
-          "commit": "7a358015cd681856e12594901e245659bd2368a8"
+          "commit": "dfd4778b1fe40cdcc6cdb13b4febeeda4420e180"
         },
         {
           "name": "main",
@@ -2585,13 +2587,13 @@
       "contaminatedBy": null,
       "disposition": "behavior-only",
       "reason": "An Xposed module shipped as release APKs, with no source in the repository. 1.5.4 and later are all rights reserved (1.5.3 and earlier were GPL-3.0), so nothing is taken. Its changelog is a useful warning list: 1.4 dropped its download speed-up because free accounts got slower, 1.5 had to repair its stories hook after 13.1 moved stories, and its ghost mode broke after a restart and with ads hidden. HushTelegram's research notes carry those cases into the matching items.",
-      "archived": false,
+      "archived": true,
       "forks": [
         "john-yu268/Re-TeleVIP"
       ],
       "contentHashes": [],
       "mirrors": [],
-      "lastChecked": "2026-11-10"
+      "lastChecked": "2026-11-11"
     },
     {
       "id": "gramsieve",
@@ -2899,10 +2901,12 @@
       "disposition": "rejected",
       "reason": "Morphe patches that adapt phone apps to a Zeekr car head unit's screen. Its DHU adapter patch is declared once per app, Telegram's store build among them with no version, and a second copy takes any app. There's no Telegram code in it, so there's nothing to watch or take.",
       "archived": false,
-      "forks": [],
+      "forks": [
+        "joeweee/zeekr-adapt-morphe-patches"
+      ],
       "contentHashes": [],
       "mirrors": [],
-      "lastChecked": "2026-11-10"
+      "lastChecked": "2026-11-11"
     }
   ],
   "outOfScope": [
@@ -3206,6 +3210,11 @@
       "repository": "https://github.com/faroquetech0/aospisland",
       "reason": "A System UI module (a Dynamic Island style status bar) that lists Telegram's package among the messaging apps whose notifications it shows. It patches nothing in Telegram.",
       "lastChecked": "2026-11-10"
+    },
+    {
+      "repository": "https://github.com/ambercaravalho/tcl-flip-2-apps",
+      "reason": "Magisk and LSPosed fixes for the TCL Flip 2 and Flip Go phones, with no licence. Telegram is only one package name in the list of apps its unhide module shows in the Dumbdown launcher; it never hooks Telegram itself.",
+      "lastChecked": "2026-11-11"
     }
   ],
   "elsewhere": [

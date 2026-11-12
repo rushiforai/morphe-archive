@@ -3,6 +3,8 @@
  * https://github.com/MorpheApp/morphe-patches/pull/4162
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
+ *
+ * Modified by lavinhoque33, 2026-11-11.
  */
 
 package app.morphe.extension.shared.settings.preference;
@@ -52,7 +54,7 @@ public final class NewSettingsIndicator {
     private static final int DOT_COLOR = 0xFF1DA1F2;
 
     // Give users time to notice the highlight before it starts fading.
-    private static final long FADE_DELAY_MILLIS = 2000;
+    private static final long FADE_DELAY_MILLIS = 1000;
     private static final long FADE_DURATION_MILLIS = 600;
 
     private static final SharedPreferences preferences =
@@ -182,8 +184,8 @@ public final class NewSettingsIndicator {
     }
 
     /** Acknowledges only list options actually displayed in the dialog. */
-    static void watchVisibleEntries(ListView listView, CustomDialogListPreference pref,
-                                    CharSequence[] entries, CharSequence[] values) {
+    public static void watchVisibleEntries(ListView listView, CustomDialogListPreference pref,
+                                           CharSequence[] entries, CharSequence[] values) {
         listView.getViewTreeObserver().addOnPreDrawListener(() -> {
             Set<String> ids = pending.get(pref);
             if (ids == null) return true;

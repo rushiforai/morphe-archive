@@ -3,6 +3,8 @@
  * https://github.com/MorpheApp/morphe-patches/pull/1881
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
+ *
+ * Modified by lavinhoque33, 2026-11-10
  */
 
 package app.morphe.extension.music.patches.actionbar;
@@ -23,6 +25,8 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.Map;
 import java.util.Locale;
 
+import app.morphe.extension.music.patches.downloads.LocalDownloadManager;
+import app.morphe.extension.music.patches.downloads.SongDownloadRoute;
 import app.morphe.extension.music.settings.Settings;
 import app.morphe.extension.music.shared.VideoInformation;
 import app.morphe.extension.music.utils.VideoUtils;
@@ -39,8 +43,6 @@ public class ActionBarPatch {
             Settings.HIDE_ACTION_BUTTON_LABEL.get();
     private static final boolean HIDE_ACTION_BUTTON_LIKE_DISLIKE =
             Settings.HIDE_ACTION_BUTTON_LIKE_DISLIKE.get() || PackageUtils.getAppVersionName().compareTo("7.25.00") >= 0;
-    private static final boolean EXTERNAL_DOWNLOADER_ACTION_BUTTON =
-            Settings.EXTERNAL_DOWNLOADER_ACTION_BUTTON.get();
     private static final boolean REPLACE_ACTION_BUTTON_LIKE =
             Settings.REPLACE_ACTION_BUTTON_LIKE.get();
     private static final boolean REPLACE_ACTION_BUTTON_LIKE_TYPE =
@@ -103,8 +105,8 @@ public class ActionBarPatch {
     }
 
     public static void inAppDownloadButtonOnClick(View view) {
-        if (EXTERNAL_DOWNLOADER_ACTION_BUTTON &&
-                buttonType.equals(ActionButton.DOWNLOAD.name)) {
+        if (buttonType.equals(ActionButton.DOWNLOAD.name)
+                && LocalDownloadManager.playerButtonRoute() != SongDownloadRoute.STOCK) {
             view.setOnClickListener(imageView -> VideoUtils.launchExternalDownloader());
         }
     }
@@ -137,12 +139,12 @@ public class ActionBarPatch {
         try {
             if (FlyoutPatch.isViewInsideDialog(map == null ? null : map.get(ELEMENTS_SENDER_VIEW))
                     || !isPlayerDownloadButton(map)) return false;
-            if (!EXTERNAL_DOWNLOADER_ACTION_BUTTON) {
+            if (LocalDownloadManager.playerButtonRoute() == SongDownloadRoute.STOCK) {
                 FlyoutPatch.onStockPlayerDownload();
                 return false;
             }
             String videoId = VideoInformation.getVideoId();
-            if (videoId == null || videoId.isEmpty()) return false;
+            if (videoId.isEmpty()) return false;
             return playerDownloadOnClick(videoId);
         } catch (Exception ex) {
             Logger.printException(() -> "inAppDownloadButtonOnClick failed", ex);
@@ -159,15 +161,13 @@ public class ActionBarPatch {
 
     private static boolean playerDownloadOnClick(String videoId) {
         try {
-            if (!EXTERNAL_DOWNLOADER_ACTION_BUTTON) {
+            if (LocalDownloadManager.playerButtonRoute() == SongDownloadRoute.STOCK) {
                 return false;
             }
-            Utils.verifyOnMainThread();
-
             long now = System.currentTimeMillis();
             if (now - lastMainPlayerDownloadTime < IGNORE_DOUBLE_CLICK_DURATION_MS) return true;
             lastMainPlayerDownloadTime = now;
-            VideoUtils.launchExternalDownloader(videoId);
+            Utils.runOnMainThreadNowOrLater(() -> VideoUtils.launchExternalDownloader(videoId));
             return true;
         } catch (Exception ex) {
             Logger.printException(() -> "offlineVideoEndpointOnClick failure", ex);
@@ -177,8 +177,7 @@ public class ActionBarPatch {
 
     public static CharSequence onLithoTextLoaded(@NonNull Object conversionContext,
                                                  @NonNull CharSequence original) {
-        if (EXTERNAL_DOWNLOADER_ACTION_BUTTON &&
-                downloadButtonLabel.isEmpty() &&
+        if (downloadButtonLabel.isEmpty() &&
                 conversionContext.toString().contains("music_download_button.")) {
             downloadButtonLabel = original.toString();
             Logger.printDebug(() -> "set download button label: " + original);

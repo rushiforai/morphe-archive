@@ -79,6 +79,9 @@ var is_9_26_or_greater : Boolean by Delegates.notNull()
 var is_9_35_or_greater : Boolean by Delegates.notNull()
     private set
 
+var is_9_39_or_greater: Boolean by Delegates.notNull()
+    private set
+
 val versionCheckPatch = resourcePatch(
     description = "versionCheckPatch",
 ) {
@@ -127,5 +130,6 @@ val versionCheckPatch = resourcePatch(
         is_9_20_or_greater = isEqualsOrGreaterThan("9.20.00")
         is_9_26_or_greater = isEqualsOrGreaterThan("9.26.00")
         is_9_35_or_greater = isEqualsOrGreaterThan("9.35.00")
+        is_9_39_or_greater = isEqualsOrGreaterThan("9.39.00")
     }
 }

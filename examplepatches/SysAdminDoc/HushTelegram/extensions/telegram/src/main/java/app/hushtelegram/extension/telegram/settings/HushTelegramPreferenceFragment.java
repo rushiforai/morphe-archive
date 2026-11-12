@@ -91,14 +91,18 @@ import app.hushtelegram.extension.telegram.misc.ChatTypeFolders;
 import app.hushtelegram.extension.telegram.misc.DataSaverDownloads;
 import app.hushtelegram.extension.telegram.misc.FirebasePush;
 import app.hushtelegram.extension.telegram.misc.FolderIcons;
+import app.hushtelegram.extension.telegram.misc.FreeProxies;
 import app.hushtelegram.extension.telegram.misc.GalleryFolder;
 import app.hushtelegram.extension.telegram.misc.HiddenAccounts;
+import app.hushtelegram.extension.telegram.misc.GhostChats;
 import app.hushtelegram.extension.telegram.misc.HiddenChats;
+import app.hushtelegram.extension.telegram.misc.HiddenMessages;
 import app.hushtelegram.extension.telegram.misc.KeepAlive;
 import app.hushtelegram.extension.telegram.misc.KeepDeleted;
 import app.hushtelegram.extension.telegram.misc.KeepEdits;
 import app.hushtelegram.extension.telegram.misc.LaunchFolder;
 import app.hushtelegram.extension.telegram.misc.OutsideTranslate;
+import app.hushtelegram.extension.telegram.misc.ProxyOrder;
 import app.hushtelegram.extension.telegram.misc.SaveDownloads;
 import app.hushtelegram.extension.telegram.misc.SpecialContacts;
 import app.hushtelegram.extension.telegram.misc.StickerSize;
@@ -117,7 +121,7 @@ import app.hushtelegram.extension.telegram.misc.UnifiedPush;
  */
 @SuppressWarnings("deprecation")
 public final class HushTelegramPreferenceFragment extends AbstractPreferenceFragment
-        implements ReleaseCheck.Listener {
+        implements ReleaseCheck.Listener, FreeProxies.Listener {
     /** The repository as a link, and as a person reads it. ExtensionHostsTest reads the link. */
     static final String SOURCE_URL = "https://github.com/SysAdminDoc/HushTelegram";
     static final String SOURCE_ADDRESS = SOURCE_URL.substring(SOURCE_URL.indexOf("://") + 3);
@@ -130,10 +134,13 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
     static final String STAYS_WHILE_PAUSED = "Stays in while paused";
     /** The Check now row's key. It stores nothing: no setting has this name. */
     static final String CHECK_NOW = "action_check_for_release";
+    static final String FIND_PROXIES_NOW = "action_find_free_proxies";
     /** The Supported links row's key. It stores nothing either. */
     static final String SUPPORTED_LINKS = "action_supported_links";
     /** The Clear kept messages row's key, which stores nothing. */
     static final String CLEAR_KEPT = "action_clear_kept_messages";
+    /** The Show hidden messages row's key, which stores nothing. */
+    static final String SHOW_HIDDEN = "action_show_hidden_messages";
     /** The Clear edit history row's key, which stores nothing. */
     static final String CLEAR_EDITS = "action_clear_edit_history";
     /** The Sticker size row's key. The size itself is saved under {@link Settings#STICKER_SIZE}. */
@@ -147,6 +154,7 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
     /** The Folder icons row's key. The choice itself is saved under {@link Settings#FOLDER_ICON_PACK}. */
     static final String FOLDER_ICON_ROW = "action_folder_icons";
     static final String HIDDEN_CHATS_ROW = "action_hidden_chats";
+    static final String GHOST_CHATS_ROW = "action_ghost_chats";
     static final String HIDDEN_ACCOUNTS_ROW = "action_hidden_accounts";
     /** The Forwarding rules row's key. The rules themselves are saved under {@link Settings#AUTO_FORWARDING_RULES}. */
     static final String FORWARDING_RULES_ROW = "action_forwarding_rules";
@@ -163,6 +171,10 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
     /** The row that asks GitHub for the newest release now, and says what the last try found. */
     @Nullable
     private Preference checkNowRow;
+
+    /** The row that looks for free proxies now, and says what the last try found. */
+    @Nullable
+    private Preference findProxiesRow;
 
     @Nullable
     private Preference localNotificationStatus;
@@ -266,6 +278,7 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
         for (Dialog dialog : new ArrayList<>(shownDialogs)) dialog.dismiss();
         shownDialogs.clear();
         ReleaseCheck.unwatch(this);
+        FreeProxies.unwatch(this);
         if (navigation != null) navigation.close();
         navigation = null;
         super.onDestroyView();
@@ -278,6 +291,13 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
         if (context == null) return;
         if (statusCard != null) showStatus(statusCard, context);
         if (checkNowRow != null) checkNowRow.setSummary(ReleaseCheck.checkNowSummary());
+    }
+
+    /** A free proxy try ended: the Find free proxies now row says what it found. */
+    @Override
+    public void freeProxiesFinished() {
+        if (getContext() == null) return;
+        if (findProxiesRow != null) findProxiesRow.setSummary(FreeProxies.summary());
     }
 
     /**
@@ -308,6 +328,8 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
         if (size != null) size.setSummary(stickerSizeSummary());
         Preference emoji = findPreference(TitleEmojiEditor.KEY);
         if (emoji != null) emoji.setSummary(TitleEmojiEditor.summary(Settings.TITLE_EMOJI.savedValue()));
+        Preference proxyOrder = findPreference(ProxyOrderEditor.KEY);
+        if (proxyOrder != null) proxyOrder.setSummary(ProxyOrder.summary());
         Preference gallery = findPreference(GALLERY_FOLDER_ROW);
         if (gallery != null) gallery.setSummary(galleryFolderSummary());
         Preference kinds = findPreference(SAVE_KINDS_ROW);
@@ -469,6 +491,11 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                     PatchFamily.DISABLE_CHAT_SWIPE.coverageSummary(L10n.t("Swiping a chat in your list no longer archives, mutes, pins, deletes or marks it"
                             + " read. Press and hold still offers every action."))));
         }
+        if (build.contains(PatchFamily.CHAT_PREVIEW_BUTTONS)) {
+            on(pages, PatchFamily.CHAT_PREVIEW_BUTTONS).addPreference(toggle(context, Settings.CHAT_PREVIEW_BUTTONS,
+                    L10n.t("Buttons in chat previews"), PatchFamily.CHAT_PREVIEW_BUTTONS.coverageSummary(L10n.t(
+                            "Pressing and holding a chat adds Open chat and Close preview to the menu under its preview."))));
+        }
         if (build.contains(PatchFamily.HIDE_FOLDER_COUNTERS)) {
             PreferenceCategory folderTabs = on(pages, PatchFamily.HIDE_FOLDER_COUNTERS);
             SwitchPreference counters = toggle(context, Settings.HIDE_FOLDER_COUNTERS, L10n.t("Hide folder tab counters"),
@@ -596,6 +623,12 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                 });
                 folderTabs.addPreference(fit);
             }
+            if (PatchFamily.Capability.TAB_ICONS.installed()) {
+                folderTabs.addPreference(toggle(context, Settings.FOLDER_TAB_ICONS, L10n.t("Folder icons on tabs"),
+                        L10n.t("Puts a small icon in front of each folder tab's name: a chat bubble for All Chats, and a person, "
+                                + "group, channel or bot for a folder of that kind of chat. Other folders get a folder icon. "
+                                + "With a pack picked under Folder icons, the tabs use that pack instead.")));
+            }
             if (PatchFamily.Capability.SORT_BY_DATE.installed()) {
                 SwitchPreference sort = toggle(context, Settings.SORT_BY_DATE, L10n.t("Sort chats by date"),
                         L10n.t("Orders your unpinned chats by the date of their last message. Pinned chats and the archive row keep "
@@ -659,6 +692,25 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                         L10n.t("Removes the round pencil button from the chat list. Start a chat from the menu or search. "
                                 + "Restart Telegram to see the change.")));
             }
+        }
+        if (build.contains(PatchFamily.PROXY_MENU)) {
+            on(pages, PatchFamily.PROXY_MENU).addPreference(toggle(context, Settings.PROXY_MENU, L10n.t("Proxy in the chat list menu"),
+                    PatchFamily.PROXY_MENU.coverageSummary(L10n.t("The menu at the top of the chat list always has Proxy, so your "
+                            + "proxies are one tap away even where Telegram isn't blocked."))));
+        }
+        if (build.contains(PatchFamily.FREE_PROXIES)) {
+            PreferenceGroup proxies = on(pages, PatchFamily.FREE_PROXIES);
+            proxies.addPreference(toggle(context, Settings.FREE_PROXIES, L10n.t("Free proxies"),
+                    PatchFamily.FREE_PROXIES.coverageSummary(L10n.t("Every 6 hours, downloads a public list of proxies and "
+                            + "adds the 10 fastest to Telegram's proxy list, and Telegram connects through them unless "
+                            + "you use a proxy of your own. Whoever runs a proxy can see your IP address. Turning this "
+                            + "off leaves them in the list."))));
+            proxies.addPreference(findProxiesRow(context));
+            if (PatchFamily.Capability.PROXY_ORDER.installed()) proxies.addPreference(proxyOrderRow(context));
+            proxies.addPreference(toggle(context, Settings.SIGN_IN_PROXY, L10n.t("Proxy button when signing in"),
+                    PatchFamily.FREE_PROXIES.coverageSummary(L10n.t("The phone number screen always has the proxy "
+                            + "button, so you can add a proxy before you sign in."))));
+            FreeProxies.watch(this);
         }
         if (build.contains(PatchFamily.TEST_SERVER_SIGN_IN)) {
             on(pages, PatchFamily.TEST_SERVER_SIGN_IN).addPreference(toggle(context, Settings.TEST_SERVER_SIGN_IN, L10n.t("Test server sign-in"),
@@ -730,10 +782,21 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                     PatchFamily.REVEAL_SPOILERS.coverageSummary(L10n.t("Spoiler text, photos and videos show right away without a tap. View-once media, "
                             + "sensitive content and login codes stay covered."))));
         }
+        if (build.contains(PatchFamily.MY_MESSAGES)) {
+            on(pages, PatchFamily.MY_MESSAGES).addPreference(toggle(context, Settings.MY_MESSAGES, L10n.t("My messages"),
+                    PatchFamily.MY_MESSAGES.coverageSummary(L10n.t("A group's menu at the top gets My messages, which shows the messages "
+                            + "you sent there in the chat's search."))));
+        }
+        if (build.contains(PatchFamily.TEXT_DIRECTION)) {
+            on(pages, PatchFamily.TEXT_DIRECTION).addPreference(toggle(context, Settings.TEXT_DIRECTION, L10n.t("Text direction"),
+                    PatchFamily.TEXT_DIRECTION.coverageSummary(L10n.t("The message box's text menu gets Right to left and Left to right "
+                            + "for the lines you selected, and Control character for invisible marks like RLM or ZWJ."))));
+        }
         if (build.contains(PatchFamily.FORWARD_HIDE_SENDER)) {
             on(pages, PatchFamily.FORWARD_HIDE_SENDER).addPreference(toggle(context, Settings.FORWARD_HIDE_SENDER, L10n.t("Hide sender names when forwarding"),
                     PatchFamily.FORWARD_HIDE_SENDER.coverageSummary(L10n.t("Each new forward starts with Hide sender's name turned on, so copies arrive "
-                            + "without the original author. You can still turn it off before sending."))));
+                            + "without the original author, even when you pick several chats at once. You can still turn it off in the "
+                            + "forward preview, or by holding the send button in the Share sheet. Forwards to Saved Messages keep the sender."))));
         }
         if (build.contains(PatchFamily.REAR_CAMERA_FIRST)) {
             on(pages, PatchFamily.REAR_CAMERA_FIRST).addPreference(toggle(context, Settings.REAR_CAMERA_FIRST, L10n.t("Start the camera on the rear lens"),
@@ -800,16 +863,37 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                     PatchFamily.MESSAGE_MENU_REPEAT.coverageSummary(L10n.t("Adds Fast forward to a message you can forward. Pick without the sender's name, without the caption, or both, then pick a chat."))));
             on(pages, PatchFamily.MESSAGE_MENU_REPEAT).addPreference(toggle(context, Settings.MESSAGE_MENU_FORWARD_SAVED, L10n.t("Add Forward to Saved Messages to the message menu"),
                     PatchFamily.MESSAGE_MENU_REPEAT.coverageSummary(L10n.t("Adds Forward to Saved Messages to a message you can forward. Pick as is, without the sender's name, without the caption, or both, and it lands in your Saved Messages at once."))));
+            on(pages, PatchFamily.MESSAGE_MENU_REPEAT).addPreference(toggle(context, Settings.MESSAGE_MENU_PLAIN_FORWARD, L10n.t("Add Forward as plain text to the message menu"),
+                    PatchFamily.MESSAGE_MENU_REPEAT.coverageSummary(L10n.t("Adds Forward as plain text to a message you can forward. Pick a chat and its text is sent there "
+                            + "as a new message, with no formatting or sender name. Custom emoji become regular ones."))));
             on(pages, PatchFamily.MESSAGE_MENU_REPEAT).addPreference(toggle(context, Settings.MESSAGE_MENU_SAVE_COVER, L10n.t("Add Save video cover to the message menu"),
                     PatchFamily.MESSAGE_MENU_REPEAT.coverageSummary(L10n.t("Adds Save video cover to a video message. The biggest cover or thumbnail Telegram has goes to Pictures, fetched first if it is not on the phone yet."))));
             on(pages, PatchFamily.MESSAGE_MENU_REPEAT).addPreference(toggle(context, Settings.MESSAGE_MENU_SAVE_ART, L10n.t("Add Save album art to the message menu"),
                     PatchFamily.MESSAGE_MENU_REPEAT.coverageSummary(L10n.t("Adds Save album art to a song that has art, inside the file or on Telegram. The picture goes to Pictures."))));
             on(pages, PatchFamily.MESSAGE_MENU_REPEAT).addPreference(toggle(context, Settings.MESSAGE_MENU_CLEAR_CACHE, L10n.t("Add Clear from cache to the message menu"),
                     PatchFamily.MESSAGE_MENU_REPEAT.coverageSummary(L10n.t("Adds Clear from cache to a video or file message. It stops a running download, deletes what Telegram kept of it and brings the download arrow back. Saved copies in Downloads or Pictures stay."))));
+            if (PatchFamily.Capability.HIDE_FOR_ME.installed()) {
+                on(pages, PatchFamily.MESSAGE_MENU_REPEAT).addPreference(toggle(context, Settings.MESSAGE_MENU_HIDE, L10n.t("Add Hide for me to the message menu"),
+                        L10n.t("Adds Hide for me to a message. It leaves the chat on this phone only, with nothing sent to Telegram, "
+                                + "so everyone else still sees it. Turn this off and hidden messages show again.")));
+                on(pages, PatchFamily.MESSAGE_MENU_REPEAT).addPreference(showHiddenRow(context));
+                if (build.contains(PatchFamily.KEEP_DELETED_MESSAGES)) {
+                    on(pages, PatchFamily.MESSAGE_MENU_REPEAT).addPreference(toggle(context, Settings.MESSAGE_MENU_DELETE_FOR_THEM,
+                            L10n.t("Add Delete for them to the message menu"),
+                            L10n.t("Adds Delete for them to your own messages in chats and groups. It deletes the message for everyone else "
+                                    + "and keeps it on this phone, marked deleted. Clear kept messages removes it here too.")));
+                }
+            }
             if (PatchFamily.Capability.SELECT_BETWEEN.installed()) {
                 on(pages, PatchFamily.MESSAGE_MENU_REPEAT).addPreference(toggle(context, Settings.SELECT_BETWEEN, L10n.t("Select between"),
                         L10n.t("Adds a Select between button to the bar that shows while you pick messages. It selects everything between the first and"
                                 + " last one you picked. Pick one past the end and the gap fills in.")));
+            }
+            if (PatchFamily.Capability.SELECTION_SCREENSHOT.installed()) {
+                on(pages, PatchFamily.MESSAGE_MENU_REPEAT).addPreference(toggle(context, Settings.SELECTION_SCREENSHOT,
+                        L10n.t("Screenshot selected messages"),
+                        L10n.t("Adds a Screenshot button to the bar that shows while you pick messages. It saves a picture of them as the chat"
+                                + " shows them, background, dates and times included, to Pictures/Telegram.")));
             }
         }
         if (build.contains(PatchFamily.KEEP_DELETED_MESSAGES)) {
@@ -849,6 +933,16 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
             on(pages, PatchFamily.ASK_BEFORE_STICKER).addPreference(toggle(context, Settings.ASK_BEFORE_CALL, L10n.t("Ask before starting a call"),
                     PatchFamily.ASK_BEFORE_STICKER.coverageSummary(L10n.t("Asks Call or Cancel before the call button in a chat or on a profile starts a "
                             + "call."))));
+        }
+        if (build.contains(PatchFamily.CROP_GUARD)) {
+            on(pages, PatchFamily.CROP_GUARD).addPreference(toggle(context, Settings.CROP_GUARD, L10n.t("Never send an uncropped photo"),
+                    PatchFamily.CROP_GUARD.coverageSummary(L10n.t("When Telegram can't finish a crop, the editor stays open and asks you to try "
+                            + "again, so the part you cropped out never gets sent. Covers photos and profile pictures. Videos crop as usual."))));
+        }
+        if (build.contains(PatchFamily.CAPTION_ORDER)) {
+            on(pages, PatchFamily.CAPTION_ORDER).addPreference(toggle(context, Settings.CAPTION_ORDER, L10n.t("Keep captions with their photos"),
+                    PatchFamily.CAPTION_ORDER.coverageSummary(L10n.t("When you remove or reorder photos that each have a caption, "
+                            + "every caption stays with its own photo."))));
         }
         if (build.contains(PatchFamily.OUTSIDE_TRANSLATE)) {
             SwitchPreference outside = toggle(context, Settings.OUTSIDE_TRANSLATE, L10n.t("Translate with an outside service"),
@@ -911,6 +1005,16 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                 on(pages, PatchFamily.VOICE_MUSIC_PLAYER).addPreference(toggle(context, Settings.PLAYBACK_POSITION,
                         L10n.t("Remember where playback stopped"), L10n.t("Videos, voice messages and music pick up where you left off, even short ones."
                                 + " Telegram only does that for long ones.")));
+            }
+        }
+        if (build.contains(PatchFamily.LYRICS)) {
+            on(pages, PatchFamily.LYRICS).addPreference(toggle(context, Settings.LYRICS, L10n.t("Lyrics in the music player"),
+                    PatchFamily.LYRICS.coverageSummary(L10n.t("The music player's menu gets Lyrics. They come from lrclib.net,"
+                            + " and timed ones follow along with the song."))));
+            if (PatchFamily.Capability.SONG_DATES.installed()) {
+                on(pages, PatchFamily.LYRICS).addPreference(toggle(context, Settings.SONG_DATES,
+                        L10n.t("Dates on your profile songs"), L10n.t("Songs you add to your profile from now on show the day"
+                                + " you added them, after the artist. The days are kept on this phone only.")));
             }
         }
         if (build.contains(PatchFamily.FASTER_DOWNLOADS)) {
@@ -1309,6 +1413,9 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                     privacy.addPreference(toggle(context, Settings.GHOST_READS, L10n.t("No read receipts"),
                             L10n.t("Messages you read stay unread for the people who sent them, in private chats, groups and secret "
                                     + "chats, and voice messages you play stay unplayed. Works with Ghost mode on.")));
+                    privacy.addPreference(toggle(context, Settings.GHOST_READ_AFTER_SEND, L10n.t("Read after you reply"),
+                            L10n.t("When you send a message in a chat, the read receipt Ghost mode held back there goes out too, so your "
+                                    + "other devices stop showing it unread. Works with Ghost mode and No read receipts on.")));
                     privacy.addPreference(toggle(context, Settings.GHOST_STORIES, L10n.t("View stories anonymously"),
                             L10n.t("Stories you watch don't add you to their viewer list. Works with Ghost mode on.")));
                     privacy.addPreference(toggle(context, Settings.GHOST_TYPING, L10n.t("Hide typing"),
@@ -1317,6 +1424,21 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                             L10n.t("Telegram isn't told that you're online while you use it. Going offline still goes out. Works with Ghost mode on.")));
                     privacy.addPreference(toggle(context, Settings.GHOST_BUTTON, L10n.t("Ghost mode button"),
                             L10n.t("A ghost at the top of the chat list turns Ghost mode on and off with a tap. It's filled while Ghost mode is on.")));
+                    privacy.addPreference(toggle(context, Settings.GHOST_READS_BUTTON, L10n.t("Read receipts button"),
+                            L10n.t("A double check at the top of the chat list sends the read receipts Ghost mode is holding for the "
+                                    + "account you're on, from chats read since Telegram last started. Shows with Ghost mode and No "
+                                    + "read receipts on.")));
+                    // The exceptions are picked from the hidden chats' list and long press item.
+                    if (PatchFamily.Capability.HIDDEN_CHATS.installed()) {
+                        privacy.addPreference(toggle(context, Settings.GHOST_CHATS, L10n.t("Ghost mode exceptions"),
+                                L10n.t("The chats you pick work the other way around. While Ghost mode is on they act as usual, "
+                                        + "and while it's off the Ghost mode switches above apply there. Long press chats in the chat "
+                                        + "list and use the three dots to add them. Online status follows Ghost mode everywhere.")));
+                        privacy.addPreference(ghostChatsRow(context));
+                        privacy.addPreference(toggle(context, Settings.FAKE_TYPING, L10n.t("Fake typing"),
+                                L10n.t("Adds Fake typing to the three dots menu when you long press chats in the chat list. The chats you "
+                                        + "pick show you typing for 10 minutes, or until you pick them again, even with Ghost mode on.")));
+                    }
                 }
                 if (PatchFamily.Capability.RECEIVE_ONLY.installed()) {
                     privacy.addPreference(toggle(context, Settings.RECEIVE_ONLY, L10n.t("Receive only mode"),
@@ -1334,6 +1456,16 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                     });
                     privacy.addPreference(powerOff);
                     addAccountRows(context, privacy, true);
+                }
+                if (PatchFamily.Capability.INSTANT_LOCK.installed()) {
+                    privacy.addPreference(toggle(context, Settings.INSTANT_LOCK, L10n.t("Instant lock"),
+                            L10n.t("With a Telegram passcode set, Telegram locks a second or two after you leave it instead "
+                                    + "of waiting for Auto-lock. Turning this off brings your Auto-lock time back.")));
+                }
+                if (PatchFamily.Capability.QUIET_SIGN_UP.installed()) {
+                    privacy.addPreference(toggle(context, Settings.QUIET_SIGN_UP, L10n.t("Don't notify contacts"),
+                            L10n.t("When you sign up a phone number that's new to Telegram, people who have it saved aren't "
+                                    + "told you joined. Accounts that already exist aren't affected.")));
                 }
             }
             if (build.contains(PatchFamily.DISABLE_CALL_DEBUG)) {
@@ -1556,6 +1688,10 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                 L10n.t("Settings look")));
         if (build.contains(PatchFamily.UNIFIED_PUSH)) leftOut.add(L10n.t("UnifiedPush notifications"));
         if (build.contains(PatchFamily.CHAT_TYPE_FOLDERS)) leftOut.add(L10n.t("Folders by chat type"));
+        if (build.contains(PatchFamily.FREE_PROXIES)) leftOut.add(L10n.t("Free proxies"));
+        if (build.contains(PatchFamily.FREE_PROXIES) && PatchFamily.Capability.PROXY_ORDER.installed()) {
+            leftOut.add(L10n.t("Proxy order"));
+        }
         if (build.contains(PatchFamily.OUTSIDE_TRANSLATE)) {
             leftOut.add(L10n.t("the translation service, its key and the chats you turned translation on for"));
         }
@@ -1914,6 +2050,44 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
     }
 
     /**
+     * Looks for free proxies now, and says what the last try found. The tap asks for that one try,
+     * so it runs with the Free proxies switch off too, and only adds them to the list then.
+     */
+    private Preference findProxiesRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(FIND_PROXIES_NOW);
+        row.setTitle(L10n.t("Find free proxies now"));
+        row.setPersistent(false);
+        row.actsAtOnce = true;
+        row.setSummary(FreeProxies.summary());
+        row.setOnPreferenceClickListener(p -> {
+            if (!FreeProxies.findNow()) Utils.showToastLong(L10n.t("Couldn't start that. Try again in a moment."));
+            p.setSummary(FreeProxies.summary());
+            return true;
+        });
+        findProxiesRow = row;
+        return row;
+    }
+
+    /** Telegram's proxy list in an order of the person's own: the row says what's kept, and a tap opens its editor. */
+    private Preference proxyOrderRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(ProxyOrderEditor.KEY);
+        row.setTitle(L10n.t("Proxy order"));
+        row.setPersistent(false);
+        row.setSummary(ProxyOrder.summary());
+        row.setOnPreferenceClickListener(p -> {
+            Activity activity = getActivity();
+            if (SettingsLock.refuses()) return true;
+            if (activity != null && !activity.isFinishing() && !activity.isDestroyed()) {
+                own(ProxyOrderEditor.open(activity, p));
+            }
+            return true;
+        });
+        return row;
+    }
+
+    /**
      * The way out of Keep deleted messages: a tap hands every message it kept, in every signed-in
      * account, to Telegram's own deletion and says how many are on their way, then again how many
      * went once Telegram has deleted them. The tap is the whole request, so nothing asks first and
@@ -1929,6 +2103,21 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
         row.actsAtOnce = true;
         row.setOnPreferenceClickListener(p -> {
             Utils.showToastLong(KeepDeleted.clearedMessage(KeepDeleted.clear()));
+            return true;
+        });
+        return row;
+    }
+
+    /** Brings back every message Hide for me hid, in every account, and says how many. */
+    private static Preference showHiddenRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(SHOW_HIDDEN);
+        row.setPersistent(false);
+        row.setTitle(L10n.t("Show hidden messages"));
+        row.setSummary(L10n.t("Brings back every message you hid with Hide for me, in every account. Open the chat again to see them."));
+        row.actsAtOnce = true;
+        row.setOnPreferenceClickListener(p -> {
+            Utils.showToastLong(HiddenMessages.shownMessage(HiddenMessages.showAll()));
             return true;
         });
         return row;
@@ -2259,8 +2448,13 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
     }
 
     static String folderIconSummary() {
+        String pack = folderIconLabel(Settings.FOLDER_ICON_PACK.savedValue());
+        if (PatchFamily.Capability.TAB_ICONS.installed()) {
+            return L10n.f("%1$s. Icons show beside folder names in HushTelegram's own lists, and on the folder tabs"
+                    + " with Folder icons on tabs on.", pack);
+        }
         return L10n.f("%1$s. Icons show beside folder names in HushTelegram's own lists."
-                + " Telegram's folder tabs stay as they are.", folderIconLabel(Settings.FOLDER_ICON_PACK.savedValue()));
+                + " Telegram's folder tabs stay as they are.", pack);
     }
 
     /** The folder the chat list opens on for the account shown now: the row says which, and a tap lists the others. */
@@ -2579,6 +2773,95 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
             }
         }
         return names.isEmpty() ? L10n.t("No chats hidden yet.") : TextUtils.join(", ", names);
+    }
+
+    /** The Ghost mode exceptions among the account shown now: the row names them, and a tap lists every chat to tick. */
+    private Preference ghostChatsRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(GHOST_CHATS_ROW);
+        row.setTitle(L10n.t("Exception chats"));
+        row.setPersistent(false);
+        row.setSummary(ghostChatsSummary(HiddenChats.shown(), GhostChats.chats(), passcodeOn()));
+        row.setOnPreferenceClickListener(p -> {
+            showGhostChats(context, p);
+            return true;
+        });
+        return row;
+    }
+
+    /**
+     * The account's chats with the exceptions ticked. Save writes the ticks, keeping the exceptions
+     * this account doesn't list, and the list closes once they're saved.
+     */
+    void showGhostChats(Context context, Preference row) {
+        if (SettingsLock.refuses()) return;
+        HiddenChats.Shown shown = HiddenChats.shown();
+        if (shown == null) {
+            Utils.showToastLong(L10n.t("Couldn't read your chats."));
+            return;
+        }
+        if (shown.user == 0) {
+            Utils.showToastLong(L10n.t("Sign in to Telegram first."));
+            return;
+        }
+        List<HiddenChats.Chat> chats = ghostChoices(shown, passcodeOn());
+        if (chats.isEmpty()) {
+            Utils.showToastLong(L10n.t("You don't have any chats yet."));
+            return;
+        }
+        Set<Long> before = GhostChats.chats();
+        CharSequence[] labels = new CharSequence[chats.size()];
+        boolean[] ticked = new boolean[chats.size()];
+        for (int i = 0; i < chats.size(); i++) {
+            labels[i] = chats.get(i).name;
+            ticked[i] = before.contains(chats.get(i).id);
+        }
+        AlertDialog dialog = show(new AlertDialog.Builder(context)
+                .setTitle(L10n.t("Exception chats"))
+                .setMultiChoiceItems(labels, ticked, (d, which, checked) -> ticked[which] = checked)
+                .setPositiveButton(L10n.t("Save"), null)
+                .setNegativeButton(L10n.t("Cancel"), null));
+        if (dialog == null) return;
+        // Set here rather than on the builder, so a tap waits for the save instead of closing the list.
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            Set<Long> picked = new LinkedHashSet<>(before);
+            for (int i = 0; i < ticked.length; i++) {
+                if (ticked[i]) picked.add(chats.get(i).id);
+                else picked.remove(chats.get(i).id);
+            }
+            save(dialog, () -> GhostChats.save(picked), landed -> {
+                if (landed) {
+                    row.setSummary(ghostChatsSummary(shown, GhostChats.chats(), passcodeOn()));
+                    dialog.dismiss();
+                } else {
+                    Utils.showToastLong(L10n.t("Couldn't save the chats. Try again in a moment."));
+                }
+            });
+        });
+    }
+
+    /**
+     * The chats the exceptions list offers: all of the account's, less the hidden ones while they're
+     * behind the passcode, so this list doesn't name them. Their exceptions stay as they were.
+     */
+    static List<HiddenChats.Chat> ghostChoices(HiddenChats.Shown shown, boolean locked) {
+        if (!locked) return shown.chats;
+        List<HiddenChats.Chat> open = new ArrayList<>();
+        for (HiddenChats.Chat chat : shown.chats) {
+            if (!shown.hidden.contains(chat.id)) open.add(chat);
+        }
+        return open;
+    }
+
+    /** The exceptions' names among the chats the account shown now offers, or that there are none. */
+    static String ghostChatsSummary(@Nullable HiddenChats.Shown shown, Set<Long> exceptions, boolean locked) {
+        List<String> names = new ArrayList<>();
+        if (shown != null) {
+            for (HiddenChats.Chat chat : ghostChoices(shown, locked)) {
+                if (exceptions.contains(chat.id)) names.add(chat.name);
+            }
+        }
+        return names.isEmpty() ? L10n.t("No chats picked yet.") : TextUtils.join(", ", names);
     }
 
     /** The forwarding rules for the account shown now: the row names them, and a tap lists them to add to or take from. */

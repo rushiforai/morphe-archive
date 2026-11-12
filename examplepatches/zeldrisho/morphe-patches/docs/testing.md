@@ -31,6 +31,8 @@ morphe list-patches --patches patches/build/libs/patches-<version>.mpp --with-pa
 
 Use the original APK or split bundle with Morphe Desktop. Ask the owner to choose an original or clone output package ID before patching. Normal validation uses the default-enabled patches; exclusive single-patch runs are diagnostic only. For unsupported versions `--force` skips compatibility checks; it does not establish support. Use `--validate` to check fingerprint uniqueness for `match()`; it does not validate `matchAll()`. Use `--verify-with-sdk` for optional SDK verification. Consult the installed CLI help and the [Morphe Desktop CLI reference](https://github.com/MorpheApp/morphe-desktop/blob/main/docs/documentation.md) for current options.
 
+Zalo's default native startup bypass removes non-arm64 native libraries because its binary edits are arm64-only. If the bypass is deselected for a diagnostic run, compatibility metadata does not remove other ABIs: pass `--striplibs arm64-v8a` to the Desktop CLI and inspect the output APK's `lib/` entries. This does not apply the bypass or establish that a re-signed app can launch. An arm64-only output cannot be installed on a 32-bit-only device.
+
 ## Device and regression checks
 
 Before installation, inspect the output package with `aapt dump badging` and confirm it matches the chosen ID. Never install over an original user-owned app without explicit approval for that exact in-place update; never uninstall or clear data without explicit approval. Check the signing identity before any update.

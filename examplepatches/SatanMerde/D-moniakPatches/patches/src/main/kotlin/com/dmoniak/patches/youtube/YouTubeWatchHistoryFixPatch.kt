@@ -7,7 +7,6 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.dmoniak.patches.shared.Constants.COMPATIBILITY_YOUTUBE
 import java.util.logging.Logger
 
-@Suppress("unused")
 val youtubeWatchHistoryFixPatch = bytecodePatch(
     name = "Fix Watch History & DNS Resolution - YouTube (Experimental)",
     description = "⚠️ [Experimental / Untested] Fixes broken or paused watch history when using private DNS, Pi-hole, or adblocking resolvers by rerouting playback tracking endpoints directly to fallback servers.",
@@ -26,7 +25,7 @@ fun BytecodePatchContext.executeYouTubeWatchHistoryFixLogic(logger: Logger) {
 
     classDefForEach { classDef ->
         val tl = classDef.type.lowercase()
-        if (tl.contains("androidx") || tl.contains("android/support")) return@classDefForEach
+        if (!tl.contains("androidx") && !tl.contains("android/support")) {
 
         val mutableClass by lazy { mutableClassDefBy(classDef) }
 
@@ -58,6 +57,7 @@ fun BytecodePatchContext.executeYouTubeWatchHistoryFixLogic(logger: Logger) {
                     logger.warning("[YouTube Watch History] Failed to hook ${method.name}: ${e.message}")
                 }
             }
+        }
         }
     }
 

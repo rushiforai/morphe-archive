@@ -1,0 +1,11 @@
+.class public interface abstract Lmya;
+.super Ljava/lang/Object;
+.source "SourceFile"
+
+
+# virtual methods
+.method public abstract m(Landroid/graphics/Bitmap;Z)V
+.end method
+
+.method public abstract u(I)V
+.end method

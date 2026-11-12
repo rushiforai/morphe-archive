@@ -8,7 +8,7 @@
  * - anddea (https://github.com/anddea)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-10-29
+ * Modified by lavinhoque33, 2026-11-10
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -1209,6 +1209,11 @@ private val rvxPreferenceKey = mapOf(
     "morphe_music_lyrics_romanization_provider" to "morphe_music_lyrics_romanize_language",
     "morphe_music_lyrics_strip_trailing_punctuation" to "morphe_music_lyrics_text_size",
     "morphe_music_lyrics_translation_provider" to "morphe_music_lyrics_translation_language",
+    "morphe_music_lyrics_dynamic_background" to "morphe_music_lyrics_split_background",
+    "morphe_music_lyrics_dynamic_background_animated" to "morphe_music_lyrics_split_background",
+    "morphe_music_lyrics_ruby_provider" to "morphe_music_lyrics_romanize_language",
+    "morphe_music_lyrics_ruby_style" to "morphe_music_lyrics_text_size",
+    "morphe_music_lyrics_show_ruby_button" to "morphe_music_lyrics_show_romanize_button",
     // Material Symbols: format_color_fill.
     "revanced_enable_custom_navigation_bar_color" to 
         "m 267.31 96.85 21.46 -23 327.69 326.91 q 19.46 20.24 19.46 46.94 0 26.71 -19.15 45.61 L 465.69 " +
@@ -1695,7 +1700,13 @@ private val rvxPreferenceKey = mapOf(
         "-16.92 v -224.39 H 800 v 224.39 q 0 23.05 -16.16 39.22 Q 767.67 800 744.62 800 H 215.38 Z m 171.24 " +
         "-204.38 -22 -22.24 382.61 -382.61 H 541.31 V 160 H 800 v 258.69 h -30.77 V 213 L 386.62 595.62 Z",
     "morphe_dark_theme_custom_color" to "revanced_custom_navigation_bar_color_value",
-    "morphe_music_in_app_downloads" to "morphe_music_jam_download",
+    "morphe_music_download_method" to "morphe_music_jam_download",
+    "morphe_music_download_quality" to "morphe_music_jam_download",
+    "morphe_music_downloaded_checkmarks" to "morphe_music_jam_download",
+    "morphe_music_start_downloaded_in_audio" to "morphe_music_jam_download",
+    "morphe_music_open_downloads" to "morphe_music_jam_download",
+    // Stream downloads: the trash icon of Delete playlist, as for Clear stored lyrics.
+    "morphe_music_stream_downloads" to "revanced_hide_flyout_menu_delete_playlist",
     "morphe_music_android_auto_downloaded_playlists" to "morphe_music_jam_download",
     // Material Symbols: notifications.
     "morphe_notification_dot_color" to 

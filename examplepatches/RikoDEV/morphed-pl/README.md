@@ -39,7 +39,7 @@
 All patches are enabled by default.
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.7.0](https://github.com/RikoDEV/morphed-pl/releases/tag/v1.7.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;35 patches total
+> **[v1.7.1](https://github.com/RikoDEV/morphed-pl/releases/tag/v1.7.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;36 patches total
 <details open>
 <summary>📦 Lidl Plus&nbsp;&nbsp;•&nbsp;&nbsp;16 patches</summary>
 <br>
@@ -156,6 +156,16 @@ All patches are enabled by default.
 | [Block telemetry](#block-telemetry) | Blocks the Żabka CDP event pipeline (device, root, network and carrier data attached to every event), Sentry, AppsFlyer, Synerise event tracking, Firebase Analytics, Facebook app events and Google datatransport uploads. |  |
 | [Custom Google Maps key](#custom-google-maps-key) | Replaces the app's Google Maps API key. The original key is locked to the developer's signing certificate, so maps stay grey in a re-signed app. Use a key you own that allows the app's package name and the SHA-1 of the key the patched app is signed with. | • Google Maps API key |
 | [Spoof signing certificate](#spoof-signing-certificate) | Reports Żabka's original signing certificate to Firebase, so login works after the app is re-signed by patching. |  |
+
+</details>
+
+<details open>
+<summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Change app name](#change-app-name) | Changes the name of the app shown in the Android launcher. | • App name |
 
 </details>
 

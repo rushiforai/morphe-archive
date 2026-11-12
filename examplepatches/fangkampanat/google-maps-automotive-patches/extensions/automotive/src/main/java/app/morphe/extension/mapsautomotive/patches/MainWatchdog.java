@@ -46,6 +46,8 @@ final class MainWatchdog {
                     });
                 }
                 Thread.sleep(CHECK_MS);
+                // A crash on the main thread keeps it in the crash handler (the crash log, then the toast): not a stall.
+                if (CrashLogPatch.handlingCrash()) continue;
                 long answered = lastAnswer, silent = SystemClock.uptimeMillis() - answered;
                 if (stalledSince == 0 && silent >= STALL_MS) {
                     stalledSince = answered;

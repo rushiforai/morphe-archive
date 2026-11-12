@@ -180,7 +180,8 @@ public final class MessageMenu {
     private static String failureMessage(Context context, int option) {
         return option == COPY_PHOTO || option == COPY_TEXT ? L10n.t(context, "Couldn't copy that. Try again.")
                 : option == SAVE_DOWNLOAD || option == MessageMenuTools.SAVE_COVER ? L10n.t(context, "Couldn't save that. Try again.")
-                : option == QUICK_FORWARD || option == FORWARD_COPY || option == MessageMenuTools.FAST_FORWARD || option == MessageMenuTools.FORWARD_SAVED ? L10n.t(context, "Can't forward there")
+                : option == QUICK_FORWARD || option == FORWARD_COPY || option == MessageMenuTools.FAST_FORWARD || option == MessageMenuTools.FORWARD_SAVED
+                        || option == MessageMenuTools.PLAIN ? L10n.t(context, "Can't forward there")
                 : L10n.t(context, "Couldn't complete that action. Try again.");
     }
 

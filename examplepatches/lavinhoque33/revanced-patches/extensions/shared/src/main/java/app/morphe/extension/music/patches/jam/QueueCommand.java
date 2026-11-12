@@ -3,6 +3,8 @@
  * https://github.com/MorpheApp/morphe-patches/pull/3014
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ *
+ * Modified by lavinhoque33, 2026-11-10.
  */
 
 package app.morphe.extension.music.patches.jam;
@@ -77,24 +79,6 @@ public final class QueueCommand {
             endpoint = new ByteArrayOutputStream();
         bytes(body, VIDEO_ID_FIELD, video.getBytes(StandardCharsets.US_ASCII));
         bytes(endpoint, WATCH_ENDPOINT_FIELD, body.toByteArray());
-        return endpoint.toByteArray();
-    }
-
-    /** Native music/get_queue context used to load the selected track's participant-side options. */
-    public static byte[] menuRequest(String video) {
-        if (
-            video == null || !video.matches("[A-Za-z0-9_-]{11}")
-        ) throw new IllegalArgumentException("Invalid video ID");
-        ByteArrayOutputStream context = new ByteArrayOutputStream(),
-            request = new ByteArrayOutputStream(),
-            endpoint = new ByteArrayOutputStream();
-        bytes(
-            context,
-            VIDEO_ID_FIELD,
-            video.getBytes(StandardCharsets.US_ASCII)
-        );
-        bytes(request, QUEUE_EDIT_TARGET_FIELD, context.toByteArray());
-        bytes(endpoint, QUEUE_EDIT_ENDPOINT_FIELD, request.toByteArray());
         return endpoint.toByteArray();
     }
 

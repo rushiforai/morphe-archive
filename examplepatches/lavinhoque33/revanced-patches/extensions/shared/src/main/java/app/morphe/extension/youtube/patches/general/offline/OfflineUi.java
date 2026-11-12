@@ -5,7 +5,7 @@
  * https://github.com/anddea/revanced-patches
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-05.
+ * Modified by lavinhoque33, 2026-11-10.
  * Written by lavinhoque33, 2026-10-20.
  */
 
@@ -34,6 +34,7 @@ import java.util.function.BiConsumer;
 import java.util.function.IntConsumer;
 
 import app.morphe.extension.shared.utils.Utils;
+import app.morphe.extension.youtube.settings.Settings;
 
 /**
  * Icons and dialogs shared by the offline library and player, drawn like the rest of the RVX screens.
@@ -56,7 +57,7 @@ final class OfflineUi {
         return drawable;
     }
 
-    /** Icon, wrapping title/summary and a textless switch, shared by download pickers. */
+    /** Optional icon, wrapping title/summary and a textless switch, shared by download pickers. */
     static Switch toggleRow(Context context, LinearLayout parent, String iconName, String title,
                             String summary, int foreground, boolean enabled, boolean checked) {
         int padding = Utils.dipToPixels(16);
@@ -65,14 +66,17 @@ final class OfflineUi {
         row.setPadding(padding, Utils.dipToPixels(10), padding, Utils.dipToPixels(10));
         row.setAlpha(enabled ? 1f : 0.4f);
 
-        ImageView image = new ImageView(context);
-        image.setImageDrawable(icon(context, iconName, foreground));
-        int iconSize = Utils.dipToPixels(24);
-        row.addView(image, new LinearLayout.LayoutParams(iconSize, iconSize));
+        boolean showIcons = Settings.OFFLINE_SHOW_OPTION_ICONS.get();
+        if (showIcons) {
+            ImageView image = new ImageView(context);
+            image.setImageDrawable(icon(context, iconName, foreground));
+            int iconSize = Utils.dipToPixels(24);
+            row.addView(image, new LinearLayout.LayoutParams(iconSize, iconSize));
+        }
 
         LinearLayout labels = new LinearLayout(context);
         labels.setOrientation(LinearLayout.VERTICAL);
-        labels.setPadding(padding, 0, padding, 0);
+        labels.setPadding(showIcons ? padding : 0, 0, padding, 0);
         TextView heading = new TextView(context);
         heading.setText(title);
         heading.setTextSize(16);

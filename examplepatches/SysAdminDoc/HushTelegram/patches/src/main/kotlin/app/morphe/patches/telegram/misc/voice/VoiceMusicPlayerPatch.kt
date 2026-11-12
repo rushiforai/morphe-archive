@@ -210,7 +210,7 @@ internal fun BytecodePatchContext.resolveVoiceMusicPlayer(): VoiceMusicPlayerSit
  * The read of the message MediaController plays, from the controller in v0 into v0: its getter, or
  * where the build inlines the getter everywhere (13.2), the field it read, which the build makes public.
  */
-private fun BytecodePatchContext.resolvePlayingRead(): String {
+internal fun BytecodePatchContext.resolvePlayingRead(): String {
     val controller = tgClassDefByOrNull(MEDIA_CONTROLLER)
     controlShape(controller != null && controller.methods.any { it.origName == "getInstance" && it.parameterTypes.isEmpty() &&
         it.origReturnType == MEDIA_CONTROLLER && AccessFlags.STATIC.isSet(it.accessFlags) && AccessFlags.PUBLIC.isSet(it.accessFlags) },
@@ -252,7 +252,7 @@ private fun BytecodePatchContext.resolveProfileButtons(player: String): Pair<Str
 }
 
 /** AudioPlayerAlert keeps its listener interfaces and its saved-music field through R8. */
-private fun isPlayer(cls: ClassDef?) = cls != null && PLAYER_TRAITS.all { it in cls.origInterfaces } &&
+internal fun isPlayer(cls: ClassDef?) = cls != null && PLAYER_TRAITS.all { it in cls.origInterfaces } &&
     cls.fields.any { it.origType == SAVED_MUSIC && !AccessFlags.STATIC.isSet(it.accessFlags) }
 
 /** Whether the music check at [index] leads within a few instructions into a cast to [player]. */

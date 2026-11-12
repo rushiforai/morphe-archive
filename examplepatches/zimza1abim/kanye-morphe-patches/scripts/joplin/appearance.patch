@@ -1,0 +1,32 @@
+diff --git a/packages/app-mobile/components/screens/ConfigScreen/ConfigScreen.tsx b/packages/app-mobile/components/screens/ConfigScreen/ConfigScreen.tsx
+--- a/packages/app-mobile/components/screens/ConfigScreen/ConfigScreen.tsx
++++ b/packages/app-mobile/components/screens/ConfigScreen/ConfigScreen.tsx
+@@ -552,1 +552,7 @@
++		if (section.name === 'appearance') {
++			addSettingButton('morphe_custom_font', 'Custom font', () => {
++				void Linking.openURL('joplin-font://settings').catch(error => Alert.alert('Font settings unavailable', String(error)));
++			}, { description: 'Font for all Joplin text. Icons and emoji keep theirs.' });
++		}
++
+ 		if (section.name === 'sync') {
+diff --git a/packages/lib/models/Setting.ts b/packages/lib/models/Setting.ts
+--- a/packages/lib/models/Setting.ts
++++ b/packages/lib/models/Setting.ts
+@@ -242,1 +242,2 @@
+ 	public static THEME_OLED_DARK = 22;
++	public static THEME_BLUSH_PINK = 23;
+diff --git a/packages/lib/models/settings/builtInMetadata.ts b/packages/lib/models/settings/builtInMetadata.ts
+--- a/packages/lib/models/settings/builtInMetadata.ts
++++ b/packages/lib/models/settings/builtInMetadata.ts
+@@ -83,1 +83,2 @@
+ 		output[Setting.THEME_OLED_DARK] = _('OLED Dark');
++		output[Setting.THEME_BLUSH_PINK] = 'Blush Pink';
+diff --git a/packages/lib/theme.ts b/packages/lib/theme.ts
+--- a/packages/lib/theme.ts
++++ b/packages/lib/theme.ts
+@@ -8,1 +8,2 @@
+ import theme_oledDark from './themes/oledDark';
++import theme_blushPink from './themes/blushPink';
+@@ -22,1 +23,2 @@
+ 	[Setting.THEME_OLED_DARK]: theme_oledDark,
++	[Setting.THEME_BLUSH_PINK]: theme_blushPink,

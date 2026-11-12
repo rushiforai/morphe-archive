@@ -27,7 +27,7 @@ internal const val MANUAL_READ = "linimalMarkReadManually"
 
 /** 公式 executor へ「すべて既読にする」の入口を追加します。通信と既存メソッドの本文は変更しません。 */
 val readWithoutReceiptManualReadPatch = bytecodePatch(
-    name = "既読なし閲覧中の手動既読入口",
+    name = "Manual read while reading without receipt",
     description = "現在のトーク全体を、公式の既読処理へ渡す入口を追加します。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

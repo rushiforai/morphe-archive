@@ -13,8 +13,12 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -35,11 +39,13 @@ private fun ClassDef.originalName(): String? =
     fields.firstOrNull { it.name == "__redex_internal_original_name" }
         ?.initialValue?.let { (it as? StringEncodedValue)?.value }
 
-/** Instagram's static menu-row adder: (state, Option, creator, CharSequence, ArrayList, boolean). */
+/** Instagram's static menu-row adder: (state, Option, creator, CharSequence, ArrayList, boolean);
+ *  since 455 a nullable analytics object sits between the creator and the label. */
 private fun MethodReference.isRowAdder() =
-    parameterTypes.size == 6 && parameterTypes[1].toString() == MEDIA_OPTION &&
-        parameterTypes[3].toString() == "Ljava/lang/CharSequence;" &&
-        parameterTypes[4].toString() == "Ljava/util/ArrayList;" && parameterTypes[5].toString() == "Z"
+    parameterTypes.size in 6..7 && parameterTypes[1].toString() == MEDIA_OPTION &&
+        parameterTypes[parameterTypes.size - 3].toString() == "Ljava/lang/CharSequence;" &&
+        parameterTypes[parameterTypes.size - 2].toString() == "Ljava/util/ArrayList;" &&
+        parameterTypes[parameterTypes.size - 1].toString() == "Z"
 
 private fun Method.addsNativeDownloadRow(): Boolean {
     val insns = implementation?.instructions ?: return false
@@ -145,25 +151,54 @@ val downloadPatch = bytecodePatch(
         // 1. Add the DOWNLOAD row to every post's option list.
         PostOptionsBuilderFingerprint.method.apply {
             val insns = instructions.toList()
-            val adder = insns.firstNotNullOf { it.getReference<MethodReference>()?.takeIf { r -> r.isRowAdder() } }
-            val creatorType = adder.parameterTypes[2].toString()
-            val castIndex = insns.indexOfFirst {
-                it.opcode == Opcode.CHECK_CAST && it.getReference<TypeReference>()?.type == creatorType
+            // Since 455 the builder is a coroutine dispatcher whose per-row cases only run
+            // when Instagram itself adds that row (its Download row is own-posts-only), so
+            // the anchor is the menu list's single creation: right after its constructor
+            // the creator and the fresh list are both live and no rows exist yet.
+            val creatorType = insns.firstNotNullOfOrNull {
+                ((it as? ReferenceInstruction)?.reference as? MethodReference)
+                    ?.takeIf { r -> r.isRowAdder() }?.parameterTypes?.get(2)
+            } ?: throw PatchException("Post options builder has no row adder")
+            val newListAt = insns.indexOfFirst {
+                it.opcode == Opcode.NEW_INSTANCE &&
+                    ((it as? ReferenceInstruction)?.reference as? TypeReference)?.type == "Ljava/util/ArrayList;"
             }
-            val returns = insns.filter { it.opcode == Opcode.RETURN_OBJECT }
-            if (castIndex < 0 || returns.size != 1) throw PatchException("Post options builder changed shape")
-            val creatorReg = (insns[castIndex] as OneRegisterInstruction).registerA
-            val listReg = (returns.single() as OneRegisterInstruction).registerA
-            // The list must already be in its register when the creator is cast (it is created first).
-            val listMade = insns.subList(0, castIndex).any {
-                it.opcode == Opcode.MOVE_RESULT_OBJECT && (it as OneRegisterInstruction).registerA == listReg
+            if (newListAt < 0) throw PatchException("Post options list creation not found")
+            val listReg = (insns[newListAt] as OneRegisterInstruction).registerA
+            val initAt = ((newListAt + 1)..<minOf(newListAt + 5, insns.size)).firstOrNull {
+                val r = (insns[it] as? ReferenceInstruction)?.reference as? MethodReference
+                insns[it].opcode == Opcode.INVOKE_DIRECT &&
+                    r?.definingClass == "Ljava/util/ArrayList;" && r.parameterTypes.isEmpty()
+            } ?: throw PatchException("Post options list constructor not found")
+            // The creator's register: a creator-typed field read loads it into its
+            // destination. Take the nearest read before the list is built whose register
+            // survives to the constructor (where the injection goes); else the first read
+            // after it, with the injection right behind that read.
+            val creatorReads = insns.withIndex().mapNotNull { (index, insn) ->
+                if (insn.opcode == Opcode.IGET_OBJECT &&
+                    ((insn as? ReferenceInstruction)?.reference as? FieldReference)?.type == creatorType)
+                    index to (insn as TwoRegisterInstruction).registerA else null
             }
-            if (!listMade || creatorReg > 15 || listReg > 15) throw PatchException("Post options builder registers changed")
-
-            addInstructions(
-                castIndex + 1,
-                "invoke-static { v$creatorReg, v$listReg }, $DOWNLOAD_CLASS->addMenuItem(Ljava/lang/Object;Ljava/util/ArrayList;)V",
-            )
+            var pick: Triple<Int, Int, Int>? = null
+            for ((index, reg) in creatorReads.sortedByDescending { it.first }) {
+                if (index >= initAt || reg > 15) continue
+                if (insns.subList(index + 1, initAt + 1).none {
+                        (it as? OneRegisterInstruction)?.registerA == reg
+                    }) { pick = Triple(index, reg, initAt + 1); break }
+            }
+            if (pick == null) {
+                for ((index, reg) in creatorReads.sortedByDescending { it.first }) {
+                    if (index <= initAt || reg > 15) continue
+                    if (insns.subList(initAt + 1, index).none {
+                            (it as? OneRegisterInstruction)?.registerA == reg
+                        }) pick = Triple(index, reg, index + 1)
+                    break
+                }
+            }
+            val (readAt, creatorReg, injectAt) = pick ?: throw PatchException("Post options creator register not found")
+            if (creatorReg > 15 || listReg > 15) throw PatchException("Post options builder registers changed")
+            addInstructions(injectAt,
+                "invoke-static { v$creatorReg, v$listReg }, $DOWNLOAD_CLASS->addMenuItem(Ljava/lang/Object;Ljava/util/ArrayList;)V")
 
             // Instagram's localized "Download" label: the string id loaded right after the
             // native row's sget-object DOWNLOAD.

@@ -112,6 +112,11 @@ public final class CrashLogPatch {
      */
     private static volatile boolean handlingCrash;
 
+    /** For MainWatchdog: the handler keeps the crashed thread, often the main thread, for the crash log and its toast. */
+    static boolean handlingCrash() {
+        return handlingCrash;
+    }
+
     /**
      * Injection point. Called from Application.onCreate in every process of the app.
      */
@@ -146,8 +151,12 @@ public final class CrashLogPatch {
                 try {
                     if (!handlingCrash) {
                         handlingCrash = true;
+                        boolean notCounted = frameworkDisplayCrash(throwable);
                         // Keeps the problem report's last lines before the crash.
                         try {
+                            if (notCounted && !SafeMode.isReportProcess()) {
+                                ReportLog.w(SafeMode.TAG, "Crash not counted for safe mode: " + NOT_COUNTED);
+                            }
                             ReportLog.flush();
                         } catch (Throwable ignored) {
                             // The crash log comes first.
@@ -157,7 +166,7 @@ public final class CrashLogPatch {
                         // the report screen's own process, which cannot reopen itself.
                         try {
                             if (!SafeMode.isReportProcess()) {
-                                boolean safeModeStarts = SafeMode.recordCrash(appContext);
+                                boolean safeModeStarts = !notCounted && SafeMode.recordCrash(appContext);
                                 ReportNotice.crash(appContext, safeModeStarts);
                             }
                         } catch (Throwable ignored) {
@@ -355,8 +364,11 @@ public final class CrashLogPatch {
         throwable.printStackTrace(new PrintWriter(stackTrace));
 
         String crashLog = header(context, "Morphe crash log", time)
+                + "Displays: " + WindowRefreshPatch.describeDisplays(context) + "\n"
                 + "Process: " + Application.getProcessName() + " (" + (Process.is64Bit() ? "64-bit" : "32-bit") + ")\n"
                 + "Maps Car features: " + SafeMode.describe() + "\n"
+                + (frameworkDisplayCrash(throwable) && !SafeMode.isReportProcess()
+                ? "Safe mode: this crash is not counted (" + NOT_COUNTED + ")\n" : "")
                 + "RAM: " + getRamInfo(context) + "\n"
                 + "Heap: " + getHeapInfo() + "\n"
                 + "Thread: " + thread.getName() + "\n"
@@ -382,6 +394,32 @@ public final class CrashLogPatch {
                 .append("\nCrash log lines:\n");
         for (String line : crash.lines) text.append(line).append('\n');
         return text.toString();
+    }
+
+    private static final String NOT_COUNTED = "the activity's display could not be found when its window was added; framework frames only";
+
+    /**
+     * Seen in a problem report: an activity's own window could not be added at its resume because its display could not be
+     * found. The stack holds framework frames only and the crash came with every feature off too, so safe mode cannot
+     * avoid it: the crash is written and notified, not counted. A popup on a removed display (Maps' frames in the stack,
+     * seen in another report) still counts, since switching UI density off avoids that one. Never throws, not even an Error.
+     */
+    static boolean frameworkDisplayCrash(Throwable throwable) {
+        try {
+            if (!(throwable instanceof WindowManager.InvalidDisplayException)) return false;
+            boolean resume = false;
+            for (StackTraceElement frame : throwable.getStackTrace()) {
+                String type = frame.getClassName();
+                if (!(type.startsWith("android.") || type.startsWith("com.android.") || type.startsWith("java.")
+                        || type.startsWith("dalvik.") || type.startsWith("libcore."))) {
+                    return false;
+                }
+                if ("android.app.ActivityThread".equals(type) && "handleResumeActivity".equals(frame.getMethodName())) resume = true;
+            }
+            return resume;
+        } catch (Throwable error) {
+            return false;
+        }
     }
 
     /** "1920x1080 px, 240 dpi, landscape, smallest width 864 dp, normal mode, day; locale th-TH". */

@@ -107,13 +107,13 @@ import app.morphe.extension.shared.settings.StringSetting;
  */
 public final class SettingsBackup {
     /**
-     * Far more than a settings file needs: one is a few hundred bytes, or about 88 KB at most with
+     * Far more than a settings file needs: one is a few hundred bytes, or about 96 KB at most with
      * both word lists filling the room they share, the sources list filling its own and every
      * other value at its longest, switches and the 2 KB of share sheet items included. That leaves
      * about 8 KB for switches to come. SettingsBackupTest's longest-file check fails once they've
      * used it; raise this then.
      */
-    public static final int MAX_BYTES = 96 * 1024;
+    public static final int MAX_BYTES = 104 * 1024;
     public static final String FORMAT = "hushfacebook-settings";
     /** The file shape this build writes and the newest it reads. A file declaring more is refused. */
     static final int SCHEMA = 1;
@@ -195,6 +195,7 @@ public final class SettingsBackup {
             Settings.HIDE_SUGGESTED_STORIES,
             Settings.HIDE_CONTACT_IMPORT_CARD,
             Settings.HIDE_STORY_PROMPTS,
+            Settings.HIDE_CREATE_STORY,
             Settings.HIDE_PAGE_STORIES,
             Settings.HIDE_SEEN_STORIES,
             Settings.SHOW_ONLY_WATCHED_STORIES,
@@ -329,6 +330,7 @@ public final class SettingsBackup {
             Settings.HIDE_POST_COMMENT_PREVIEWS,
             Settings.HIDE_COMMENT_DOWNVOTE_BUTTON,
             Settings.HIDE_COMMENT_LIKE_BUTTON,
+            Settings.HIDE_COMMENT_REPLY_BUTTON,
             Settings.COMMENT_BLOCK_BUTTON,
             Settings.REACTOR_BLOCK_BUTTON,
             Settings.HIDE_RELATED_GROUPS_UNDER_COMMENTS,
@@ -340,6 +342,7 @@ public final class SettingsBackup {
             Settings.PAUSE_REELS_UNDER_COMMENTS,
             Settings.TAP_REELS_ABOVE_COMMENTS,
             Settings.SEARCH_COMMENTS,
+            Settings.FILTER_COMMENT_SEARCH,
             Settings.TAG_SUGGESTIONS_ONLY_AFTER_AT,
             Settings.TAP_TO_PLAY,
             Settings.TAP_TO_PLAY_REELS_AFTER_FIRST,
@@ -390,6 +393,7 @@ public final class SettingsBackup {
             Settings.SAVE_STORY_PHOTOS,
             Settings.DOWNLOAD_REELS,
             Settings.SHOW_REEL_DOWNLOAD_BUTTON,
+            Settings.QUEUE_REEL_SAVES,
             Settings.REEL_CAST_BUTTON,
             Settings.COPY_REEL_CAPTION,
             Settings.DOWNLOAD_VIDEOS,
@@ -402,6 +406,7 @@ public final class SettingsBackup {
             Settings.DOWNLOAD_COMPATIBLE,
             Settings.DOWNLOAD_CONVERT,
             Settings.DOWNLOAD_QUIET,
+            Settings.DOWNLOAD_QUALITY_ASK,
             Settings.OPEN_ON_CHOSEN_TAB,
             Settings.FOLLOWING_FEED_HOME,
             Settings.SAVED_SHORTCUT,
@@ -475,6 +480,8 @@ public final class SettingsBackup {
             Settings.HIDE_MENU_UPGRADES,
             Settings.HIDE_MENU_ALSO_FROM_META,
             Settings.HIDE_MENU_HELP,
+            Settings.HIDE_MENU_SHORTCUTS,
+            Settings.HIDE_MENU_CREATE_PAGE,
             Settings.KEEP_MENU_SETTINGS_EXPANDED,
             Settings.HIDE_MENU_MUSE,
             Settings.HIDE_MENU_META_AI,

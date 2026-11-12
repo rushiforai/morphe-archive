@@ -55,8 +55,10 @@ sleep 12
 
 echo "== account picker =="
 A shell dumpsys window 2>/dev/null | grep -oE 'mCurrentFocus=Window\{[^}]*\}' | head -1
-ACCOUNT="${2:-hello.madusha@gmail.com}"
-tap_text "$ACCOUNT" || tap_text "Madusha" || true
+# The account email is personal data and must never be committed as a default.
+# Pass it as the 2nd argument:  pdblogin <adb-alias> <google-account-email>
+ACCOUNT="${2:?usage: pdblogin <adb-alias> <google-account-email>}"
+tap_text "$ACCOUNT" || true
 sleep 25
 
 echo "== result =="

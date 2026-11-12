@@ -23,6 +23,7 @@ import app.hushgram.extension.instagram.media.TapToPlayScope;
 import app.hushgram.extension.instagram.profile.ProfileTabs;
 import app.hushgram.extension.instagram.stories.StoryBarThickness;
 import app.hushgram.extension.instagram.stories.StoryMentionsLook;
+import app.hushgram.extension.instagram.stories.StorySeekBarPosition;
 import app.hushgram.extension.instagram.stories.StoryRingColor;
 import app.hushgram.extension.instagram.stories.StoryRingSize;
 import app.hushgram.extension.instagram.stories.StoryTimeMode;
@@ -72,6 +73,23 @@ public class Settings extends BaseSettings {
      */
     public static final EnumSetting<NavigationTarget> GHOST_TAB_TARGET =
             new EnumSetting<>("hushgram_ghost_tab_target", NavigationTarget.OFF, false);
+
+    /**
+     * The tab whose long press opens Your saved profiles (#629) while {@link #SAVED_PROFILES} is on.
+     * It rides the same tab hooks as {@link #NAVIGATION_SETTINGS_TARGET}; when another choice names
+     * the same tab, opening HushGram, the quality picker and Ghost mode come first. Off to start.
+     */
+    public static final EnumSetting<NavigationTarget> SAVED_PROFILES_TAB_TARGET =
+            new EnumSetting<>("hushgram_saved_profiles_tab_target", NavigationTarget.OFF, false);
+
+    /**
+     * The tab whose long press opens Favorites (#643), through Home's own feed switch
+     * ({@link app.hushgram.extension.instagram.feed.FavoritesFeed}). It rides the same tab hooks as
+     * {@link #NAVIGATION_SETTINGS_TARGET}; when another choice names the same tab, those come first.
+     * Off to start.
+     */
+    public static final EnumSetting<NavigationTarget> FAVORITES_TAB_TARGET =
+            new EnumSetting<>("hushgram_favorites_tab_target", NavigationTarget.OFF, false);
 
     /**
      * Leaves the HushGram row out of Instagram's own settings menu while another way in works
@@ -445,6 +463,11 @@ public class Settings extends BaseSettings {
             new EnumSetting<>("hushgram_upload_photo_quality", app.hushgram.extension.instagram.stories.UploadPhotoQuality.INSTAGRAM,
                     parent(UPLOAD_STORIES_AT_FULL_QUALITY));
 
+    /** Under {@link #UPLOAD_STORIES_AT_FULL_QUALITY}: the longest side a photo being prepared may keep (#37). */
+    public static final EnumSetting<app.hushgram.extension.instagram.stories.UploadPhotoSize> UPLOAD_PHOTO_SIZE =
+            new EnumSetting<>("hushgram_upload_photo_size", app.hushgram.extension.instagram.stories.UploadPhotoSize.INSTAGRAM,
+                    parent(UPLOAD_STORIES_AT_FULL_QUALITY));
+
     /**
      * The first feed video of a Home session starts with its sound on, through the video's own sound
      * flag, when the phone's ringer is on and its volume is up
@@ -502,11 +525,19 @@ public class Settings extends BaseSettings {
 
     /**
      * A double tap on the left or right third of the video playing in a feed moves it back or ahead
-     * {@link app.hushgram.extension.instagram.feed.FeedDoubleTapSkip#SKIP_MS} instead of liking the
-     * post (#562, {@link app.hushgram.extension.instagram.feed.FeedDoubleTapSkip}). Off to start.
+     * {@link #FEED_DOUBLE_TAP_SKIP_SECONDS} instead of liking the post (#562,
+     * {@link app.hushgram.extension.instagram.feed.FeedDoubleTapSkip}). Off to start.
      */
     public static final BooleanSetting FEED_DOUBLE_TAP_SKIP =
             new BooleanSetting("hushgram_feed_double_tap_skip", FALSE);
+
+    /**
+     * Under {@link #FEED_DOUBLE_TAP_SKIP}: how many seconds a double tap moves a feed video, from a slider
+     * (#645). Read at each double tap, so a change shows without a restart.
+     */
+    public static final IntegerSetting FEED_DOUBLE_TAP_SKIP_SECONDS =
+            new IntegerSetting("hushgram_feed_double_tap_skip_seconds", 10, false, parent(FEED_DOUBLE_TAP_SKIP))
+                    .withRange(5, 30);
 
     /**
      * A long press on a feed photo shows it zoomed in around the finger until the finger lifts, in
@@ -979,6 +1010,8 @@ public class Settings extends BaseSettings {
      * ({@link app.hushgram.extension.instagram.direct.GlassChat}, #449). Off to start.
      */
     public static final BooleanSetting GLASS_CHAT = new BooleanSetting("hushgram_glass_chat", FALSE);
+    /** The Send message box on other people's stories takes the same glass, as a pill (#391). Off to start. */
+    public static final BooleanSetting GLASS_STORY_REPLY_BOX = new BooleanSetting("hushgram_glass_story_reply_box", FALSE);
 
     /** The message bar's gallery and microphone buttons move into the plus menu. Off to start. */
     public static final BooleanSetting MOVE_TO_PLUS_MENU = new BooleanSetting("hushgram_move_to_plus_menu", FALSE);
@@ -1331,6 +1364,13 @@ public class Settings extends BaseSettings {
             new EnumSetting<>("hushgram_story_seek_bar_look", OverlayLook.SOLID, parent(STORY_SEEK_BAR));
 
     /**
+     * Where {@link #STORY_SEEK_BAR}'s bar sits (#636): just above the Send message box, as it always did,
+     * or in the space under it, where there's room. Starts above. Read as the bar updates.
+     */
+    public static final EnumSetting<StorySeekBarPosition> STORY_SEEK_BAR_POSITION =
+            new EnumSetting<>("hushgram_story_seek_bar_position", StorySeekBarPosition.ABOVE, parent(STORY_SEEK_BAR));
+
+    /**
      * A speed button in a video story's header that plays it at 1x, 1.5x or 2x, kept for the next
      * video stories until Instagram restarts
      * ({@link app.hushgram.extension.instagram.stories.StorySpeed}, #469). The speed lives in memory
@@ -1338,6 +1378,15 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting STORY_SPEED_BUTTON =
             new BooleanSetting("hushgram_story_speed_button", FALSE);
+
+    /**
+     * Playback speed in a video story's three-dot menu instead of the speed button (#621): the same
+     * 1x, 1.5x and 2x, picked from a list and kept for the next video stories like the button's
+     * ({@link app.hushgram.extension.instagram.stories.StorySpeed}). On, the button stays hidden. The
+     * row rides on Download any story's menu hooks. Off to start.
+     */
+    public static final BooleanSetting STORY_SPEED_IN_MENU =
+            new BooleanSetting("hushgram_story_speed_in_menu", FALSE);
 
     /**
      * Home opening on the Following feed, with Instagram's For you and Following picker at its top,
@@ -1377,6 +1426,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting FOLLOWING_MIX =
             new BooleanSetting("hushgram_following_mix", FALSE, true);
+
+    /**
+     * The tab bar stays under Favorites (#643, {@link app.hushgram.extension.instagram.feed.FavoritesFeed}),
+     * so Search and Messages are a tap away there. Instagram hides it for any page pushed on a tab.
+     * Asked each time the tab bar is decided, so no restart. Off to start.
+     */
+    public static final BooleanSetting FAVORITES_TAB_BAR =
+            new BooleanSetting("hushgram_favorites_tab_bar", FALSE);
 
     /**
      * The ids of the accounts {@link #FOLLOWING_FALLBACK} moved to Following, a line each. Not a
@@ -1742,6 +1799,28 @@ public class Settings extends BaseSettings {
                     app.hushgram.extension.instagram.misc.HapticStyle.SYSTEM, parent(GLASS_TAB_BAR_HAPTICS));
 
     /**
+     * Under {@link #GLASS_TAB_BAR_HAPTICS}: how hard the tick is, in percent of the tick its style has always
+     * played, from a slider (#640). A motor that runs at only one strength gets a longer tick above 100%
+     * instead. Read at each tick, so a change shows without a restart.
+     */
+    public static final IntegerSetting GLASS_TAB_BAR_HAPTIC_STRENGTH =
+            new IntegerSetting("hushgram_glass_tab_bar_haptic_strength_percent", 100, false, parent(GLASS_TAB_BAR_HAPTICS))
+                    .withRange(25, 200);
+
+    /**
+     * Under {@link #GLASS_TAB_BAR}: the phone's key click each time the highlight moves to another tab (#640),
+     * whether the phone's own touch sounds are on or not. Silent and vibrate mode keep it quiet. Read at each
+     * tab change, so a change shows without a restart. Off to start.
+     */
+    public static final BooleanSetting GLASS_TAB_BAR_TAP_SOUND =
+            new BooleanSetting("hushgram_glass_tab_bar_tap_sound", FALSE, false, parent(GLASS_TAB_BAR));
+
+    /** Under {@link #GLASS_TAB_BAR_TAP_SOUND}: how loud the click is, in percent, from a slider (#640). */
+    public static final IntegerSetting GLASS_TAB_BAR_TAP_SOUND_VOLUME =
+            new IntegerSetting("hushgram_glass_tab_bar_tap_sound_volume_percent", 70, false, parent(GLASS_TAB_BAR_TAP_SOUND))
+                    .withRange(10, 100);
+
+    /**
      * Under {@link #GLASS_TAB_BAR}: how strong the pill's tint is, in percent of the look the bar has always
      * had, from a slider (#391). Lower is clearer, higher more frosted. Read as the pill draws, so a change
      * shows on the bar without a restart.
@@ -1843,6 +1922,13 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting SAVED_ON_PROFILE =
             new BooleanSetting("hushgram_saved_on_profile", FALSE, true);
+
+    /**
+     * A handle at the right edge of Saved and its collections while they scroll, to drag through them
+     * ({@link app.hushgram.extension.instagram.misc.SavedFastScroll}, #644). Read on every scroll, so it
+     * takes no restart. Off to start.
+     */
+    public static final BooleanSetting SAVED_FAST_SCROLL = new BooleanSetting("hushgram_saved_fast_scroll", FALSE);
 
     /**
      * Instagram stops waking itself with an alarm every minute or two to note that it is still running
@@ -1968,6 +2054,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting LAUNCH_SCREEN =
             new BooleanSetting("hushgram_launch_screen", FALSE, true);
+
+    /**
+     * That screen filled with the accent color, or Instagram's blue while Accent color is off (#528).
+     * A typed color shows as the nearest fixed one, since Android draws the screen from the theme
+     * alone. Shows from the next start. Off to start.
+     */
+    public static final BooleanSetting LAUNCH_SCREEN_ACCENT =
+            new BooleanSetting("hushgram_launch_screen_accent", FALSE, true, parent(LAUNCH_SCREEN));
 
     /**
      * Words of your own at the top of Home in place of Instagram's logo, with the Home header text
@@ -2617,6 +2711,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_hide_feed_follow", FALSE);
 
     /**
+     * Only the Subscribe button beside the author's name on a feed post, so Follow stays (#622,
+     * {@link app.hushgram.extension.instagram.feed.FeedFollowButton}). Read before each frame of a
+     * resumed screen, so it needs no restart. Off to start.
+     */
+    public static final BooleanSetting HIDE_FEED_SUBSCRIBE =
+            new BooleanSetting("hushgram_hide_feed_subscribe", FALSE);
+
+    /**
      * "Made with Edits" in the line under a feed post's author (#570,
      * {@link app.hushgram.extension.instagram.feed.EditsLabel}). Read as each post's header is built,
      * so it needs no restart. Off to start.
@@ -2681,7 +2783,8 @@ public class Settings extends BaseSettings {
     /**
      * Home's header showing the feed blurred under it, like frosted glass (#418,
      * {@link app.hushgram.extension.instagram.feed.GlassTopBar}). It takes the header as Home hands
-     * it over, so the restart card comes up. Off to start.
+     * it over, so the restart card comes up. With {@link #GLASS_TAB_BAR} on it takes the pill's sheen and
+     * rim too (#513). Off to start.
      */
     public static final BooleanSetting SEE_THROUGH_HOME_TOP_BAR =
             new BooleanSetting("hushgram_see_through_home_top_bar", FALSE, true);
@@ -2763,6 +2866,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HIDE_REELS_CREATE_BUTTON =
             new BooleanSetting("hushgram_hide_reels_create_button", FALSE);
+
+    /**
+     * The Create (+) button in the top bar of reels opened from Saved, the Reels grid and any
+     * collection (#620), leaving it on the Reels tab and everywhere else
+     * ({@link app.hushgram.extension.instagram.reels.ReelsTopBar}). Off to start.
+     */
+    public static final BooleanSetting HIDE_SAVED_REELS_CREATE_BUTTON =
+            new BooleanSetting("hushgram_hide_saved_reels_create_button", FALSE);
 
     /**
      * The Your algorithm button in the top bar of the Reels tab (#217). The rest of the bar stays
@@ -3198,6 +3309,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_keep_reel_speed", TRUE);
 
     /**
+     * A Reels viewer opened from a link skips the reels Instagram kept on the phone, so the linked
+     * reel is the first one it shows (#606, {@link app.hushgram.extension.instagram.reels.ReelLinks}).
+     * Read as each viewer sets up. Starts on.
+     */
+    public static final BooleanSetting OPEN_REEL_LINKS_FIRST =
+            new BooleanSetting("hushgram_open_reel_links_first", TRUE);
+
+    /**
      * Instagram's seek bar stays under every ordinary reel, short ones too, with the time played
      * and the reel's length above it
      * ({@link app.hushgram.extension.instagram.reels.ReelSeekBar}). The bar is decided as each reel
@@ -3240,11 +3359,12 @@ public class Settings extends BaseSettings {
 
     /**
      * The shape of the seek bars on feed videos, stories and reels (#586, #592), one choice for all
-     * of them. {@link SeekShape#STANDARD} to start, which leaves each bar as it's always been.
+     * of them, and of Instagram's own story progress segments and the seek bar of a video opened
+     * from a chat (#630). Those two are always there, so the choice needs no seek bar switch on.
+     * {@link SeekShape#STANDARD} to start, which leaves each bar as it's always been.
      */
     public static final EnumSetting<SeekShape> SEEK_BAR_SHAPE =
-            new EnumSetting<>("hushgram_seek_bar_shape", SeekShape.STANDARD,
-                    parentsAny(FEED_SEEK_BAR, FEED_SEEK_BUTTON, STORY_SEEK_BAR, REEL_SEEK_BAR, BIG_REEL_SEEK_BAR, DM_REEL_SEEK_BAR));
+            new EnumSetting<>("hushgram_seek_bar_shape", SeekShape.STANDARD);
 
     /**
      * A card above the finger while a seek bar on a feed video, story or reel is dragged (#567, #592):
@@ -3665,13 +3785,21 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_pinch_zoom_reels", FALSE, true);
 
     /**
-     * A double tap along the left edge of a reel goes back 10 seconds and one along the right edge
-     * goes ahead 10 seconds, through Instagram's own double tap to skip and its server flags
-     * ({@link app.hushgram.extension.instagram.reels.ReelSkip}). A double tap in the middle stays
+     * A double tap along the left edge of a reel goes back {@link #DOUBLE_TAP_SKIP_REELS_SECONDS} and one
+     * along the right edge goes ahead as far, through Instagram's own double tap to skip and its server
+     * flags ({@link app.hushgram.extension.instagram.reels.ReelSkip}). A double tap in the middle stays
      * Instagram's like. Off to start (#554).
      */
     public static final BooleanSetting DOUBLE_TAP_SKIP_REELS =
             new BooleanSetting("hushgram_double_tap_skip_reels", FALSE);
+
+    /**
+     * Under {@link #DOUBLE_TAP_SKIP_REELS}: how many seconds a double tap moves a reel, from a slider (#645).
+     * Instagram skips no reel that isn't longer than this.
+     */
+    public static final IntegerSetting DOUBLE_TAP_SKIP_REELS_SECONDS =
+            new IntegerSetting("hushgram_double_tap_skip_reels_seconds", 10, false, parent(DOUBLE_TAP_SKIP_REELS))
+                    .withRange(5, 30);
 
     /**
      * Keeps the "2x" label off a reel while a held finger plays it faster
@@ -3724,6 +3852,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting REELS_PICTURE_IN_PICTURE =
             new BooleanSetting("hushgram_reels_picture_in_picture", FALSE);
+
+    /**
+     * Leaving Instagram while a story plays shrinks it into a picture in picture window that keeps
+     * going through the stories (#572, {@link app.hushgram.extension.instagram.media.StoriesPip}).
+     * Read as you leave. Off to start.
+     */
+    public static final BooleanSetting STORIES_PICTURE_IN_PICTURE =
+            new BooleanSetting("hushgram_stories_picture_in_picture", FALSE);
 
     /**
      * Videos, reels and video stories start at the quality in {@link #PLAYBACK_QUALITY}, through

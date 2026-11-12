@@ -473,6 +473,43 @@ public class MaterialYouThemeTest {
     }
 
     /**
+     * Issue #34 with both themes: on AMOLED's lighter #5B513F the Menu card's #B0B3B8 and FDS's other
+     * secondary grey take the palette and then AMOLED's lift, to 4.5:1 on every surface AMOLED makes
+     * there. Without AMOLED in the build, over black, before Facebook answers and in light mode they
+     * get what Material You alone gives them.
+     */
+    @Test
+    public void withAmoledABloksSecondaryGreyLiftsOnALighterBackground() {
+        DarkMode.answer(true);
+        int grey = palette.sameLightness(TonePalette.NEUTRAL, 0xFFB0B3B8);
+        assertEquals("over black", grey, MaterialYouTheme.parseBloks("#B0B3B8", true));
+        int sand = 0xFF5B513F;
+        int[] surfaces = {sand, 0xFF5F5543, 0xFF615746, 0xFF625846, 0xFF645A48, 0xFF675D4B,
+                AmoledTheme.over(sand, AmoledTheme.UNREAD_ROW)};
+        try {
+            AmoledTheme.useBackground(sand, 12);
+            assertEquals("without AMOLED in the build", grey, MaterialYouTheme.parseBloks("#B0B3B8", false));
+            for (String text : new String[]{"#B0B3B8", "#FFA1A4A9"}) {
+                int drawn = MaterialYouTheme.parseBloks(text, true);
+                assertNotEquals("kept " + text, MaterialYouTheme.parseBloks(text, false), drawn);
+                for (int surface : surfaces) {
+                    assertTrue(text + " as " + Integer.toHexString(drawn) + " on " + Integer.toHexString(surface),
+                            AmoledThemeTest.contrast(drawn, surface) >= AmoledTheme.TEXT_CONTRAST);
+                }
+            }
+
+            DarkMode.forget();
+            assertEquals("before Facebook answers", MaterialYouTheme.parseBloks("#B0B3B8", false),
+                    MaterialYouTheme.parseBloks("#B0B3B8", true));
+            DarkMode.answer(false);
+            assertEquals("light mode", MaterialYouTheme.parseBloks("#B0B3B8", false),
+                    MaterialYouTheme.parseBloks("#B0B3B8", true));
+        } finally {
+            AmoledTheme.useBackground(AmoledTheme.backgroundColour());
+        }
+    }
+
+    /**
      * Issue #37: the Create story tile at the start of the stories tray is #333334 that Facebook
      * writes into its code right after its own dark check says yes. The patch sends that colour here:
      * a grey the dark theme lists takes the palette's neutral, before Facebook's first answer too, and
@@ -1026,6 +1063,48 @@ public class MaterialYouThemeTest {
     }
 
     /**
+     * In light mode the window is the light style's WASH, #C9CCD1, and See-through bars show it
+     * through the top bar over the feed's top: on 586 the S22 drew that strip #ECEDEF under the blue
+     * and the orange palette alike (#141). Once Facebook has said light, it takes the palette's
+     * neutral at the same lightness, as route one gives WASH. Before that answer, another light grey,
+     * white and AMOLED's Light background color keep theirs.
+     */
+    @Test
+    public void theWindowUnderTheSeeThroughTopBarTakesThePaletteInLightMode() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        Window window = activity.getWindow();
+        MaterialYouTheme.WindowBackgrounds callbacks = new MaterialYouTheme.WindowBackgrounds();
+        int themed = palette.sameLightness(TonePalette.NEUTRAL, 0xFFC9CCD1);
+        assertNotEquals("the palette moves #C9CCD1", 0xFFC9CCD1, themed);
+
+        window.setBackgroundDrawable(new ColorDrawable(0xFFC9CCD1));
+        assertFalse("dark mode, or before Facebook's answer", MaterialYouTheme.recolourWindow(window, false));
+        assertEquals(0xFFC9CCD1, windowColour(window));
+
+        DarkMode.answer(false);
+        assertEquals("route one gives WASH the same colour", themed, MaterialYouTheme.fdsNamed(0xFFC9CCD1, "WASH"));
+        callbacks.onActivityResumed(activity);
+        assertEquals("light mode", themed, windowColour(window));
+        assertFalse("the palette's colour is left as it is", MaterialYouTheme.recolourWindow(window, false));
+        window.setBackgroundDrawable(new ColorDrawable(0xFFC9CCD1));
+        assertTrue("AMOLED with no Light background color", MaterialYouTheme.recolourWindow(window, true));
+        assertEquals(themed, windowColour(window));
+
+        AmoledTheme.useLight(0xFFFFF8E7);
+        try {
+            window.setBackgroundDrawable(new ColorDrawable(0xFFC9CCD1));
+            assertFalse("AMOLED's Light background color", MaterialYouTheme.recolourWindow(window, true));
+            assertEquals(0xFFC9CCD1, windowColour(window));
+        } finally {
+            AmoledTheme.useLight(0);
+        }
+        window.setBackgroundDrawable(new ColorDrawable(0xFFF0F2F5));
+        assertFalse("another light grey", MaterialYouTheme.recolourWindow(window, false));
+        window.setBackgroundDrawable(new ColorDrawable(0xFFFFFFFF));
+        assertFalse("white", MaterialYouTheme.recolourWindow(window, false));
+    }
+
+    /**
      * On a cold start the feed's window had #101011 again after both callbacks ran, four starts of
      * four on 581. From the resume on, the window takes the palette before each frame too, and one
      * that has no decor yet as it resumes is watched once the framework has made it.
@@ -1154,6 +1233,142 @@ public class MaterialYouThemeTest {
         root.getViewTreeObserver().dispatchOnGlobalLayout();
         assertEquals("light mode", 0xFF252728, fill(inLightMode.getBackground()));
         sheet.dismiss();
+    }
+
+    /**
+     * Issue #141: in light mode the S22 (586) drew the comment sheet's composer field in stock
+     * #F0F2F5 with no token behind it. A sheet's plain background or shape fill in one of light
+     * mode's surface greys takes the palette's neutral at its lightness then, a drawable loaded in
+     * one too. White, a text grey and a dark surface keep theirs, and in dark mode and before
+     * Facebook answers the light greys stay.
+     */
+    @Test
+    public void inLightModeASheetsLightSurfaceGreysTakeThePalette() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        DarkMode.answer(false);
+        GradientDrawable pill = filled(0xFFF0F2F5);
+        pill.setCornerRadius(40f);
+        Dialog sheet = new Dialog(activity);
+        FrameLayout content = new FrameLayout(activity);
+        View composer = shaped(activity, pill);
+        View field = plain(activity, 0xFFF2F4F7);
+        View white = plain(activity, 0xFFFFFFFF);
+        View text = plain(activity, 0xFF65686C);
+        View dark = plain(activity, 0xFF252728);
+        for (View view : new View[] {composer, field, white, text, dark}) content.addView(view);
+        sheet.setContentView(content);
+        sheet.show();
+        View root = sheet.getWindow().getDecorView();
+        root.measure(View.MeasureSpec.makeMeasureSpec(1000, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(2000, View.MeasureSpec.EXACTLY));
+        root.layout(0, 0, 1000, 2000);
+
+        MaterialYouTheme.watchWindowsAbove(activity, activity.getWindow().getDecorView());
+        assertEquals("the composer's pill", palette.sameLightness(TonePalette.NEUTRAL, 0xFFF0F2F5), fill(composer.getBackground()));
+        assertEquals("a field's plain grey", palette.sameLightness(TonePalette.NEUTRAL, 0xFFF2F4F7),
+                ((ColorDrawable) field.getBackground()).getColor());
+        assertEquals("white", 0xFFFFFFFF, ((ColorDrawable) white.getBackground()).getColor());
+        assertEquals("a text grey", 0xFF65686C, ((ColorDrawable) text.getBackground()).getColor());
+        assertEquals("a dark surface", 0xFF252728, ((ColorDrawable) dark.getBackground()).getColor());
+        assertEquals("a drawable loaded in one", palette.sameLightness(TonePalette.NEUTRAL, 0xFFE8EAEE),
+                ((ColorDrawable) MaterialYouTheme.recolour(new ColorDrawable(0xFFE8EAEE))).getColor());
+
+        DarkMode.answer(true);
+        View inDarkMode = shaped(activity, filled(0xFFF0F2F5));
+        content.addView(inDarkMode);
+        root.getViewTreeObserver().dispatchOnGlobalLayout();
+        assertEquals("dark mode", 0xFFF0F2F5, fill(inDarkMode.getBackground()));
+        DarkMode.forget();
+        assertEquals("before Facebook answers", 0xFFE8EAEE,
+                ((ColorDrawable) MaterialYouTheme.recolour(new ColorDrawable(0xFFE8EAEE))).getColor());
+        sheet.dismiss();
+    }
+
+    /**
+     * Issue #141: a React or Bloks background in one of light mode's surface greys takes the palette
+     * once Facebook has said light, as a sheet's does. The routes that carry text as well, a server
+     * colour, a React text colour and a theme value, leave it, so the Video tab's light text on its
+     * dark page stays.
+     */
+    @Test
+    public void inLightModeABackgroundRouteTakesThePaletteOnALightSurfaceGrey() {
+        int themed = palette.sameLightness(TonePalette.NEUTRAL, 0xFFF0F2F5);
+        DarkMode.answer(false);
+        assertEquals("a React background", themed, MaterialYouTheme.reactBackground(0xFFF0F2F5));
+        assertEquals("a Bloks colour", themed, MaterialYouTheme.parseBloks("#F0F2F5"));
+        assertEquals("a server colour", 0xFFF0F2F5, MaterialYouTheme.parseColor("#F0F2F5"));
+        assertEquals("a React text colour", 0xFFF0F2F5, MaterialYouTheme.react(0xFFF0F2F5));
+        assertEquals("white", 0xFFFFFFFF, MaterialYouTheme.reactBackground(0xFFFFFFFF));
+
+        DarkMode.answer(true);
+        assertEquals("dark mode", 0xFFF0F2F5, MaterialYouTheme.parseBloks("#F0F2F5"));
+    }
+
+    /**
+     * Issue #141's Settings search field: a Bloks box whose #F0F2F5 fill the server sends as one hex
+     * string, which route four leaves, and the box builder paints as its background. In light mode
+     * the fill takes the palette; dark mode, white, colours and a grey AMOLED's Light background
+     * color row moves keep theirs.
+     */
+    @Test
+    public void inLightModeABloksBoxFillTakesThePaletteOnALightSurfaceGrey() {
+        DarkMode.answer(false);
+        int themed = palette.sameLightness(TonePalette.NEUTRAL, 0xFFF0F2F5);
+        assertNotEquals("the palette moves it", 0xFFF0F2F5, themed);
+        assertEquals("the search field", themed, MaterialYouTheme.bloksFill(0xFFF0F2F5, false));
+        assertEquals("white", 0xFFFFFFFF, MaterialYouTheme.bloksFill(0xFFFFFFFF, false));
+        assertEquals("a blue button", 0xFF0866FF, MaterialYouTheme.bloksFill(0xFF0866FF, false));
+        assertEquals("with AMOLED in the build and no Light background color", themed, MaterialYouTheme.bloksFill(0xFFF0F2F5, true));
+        AmoledTheme.useLight(0xFFFFF8E7);
+        try {
+            assertEquals("with AMOLED's Light background color", 0xFFF0F2F5, MaterialYouTheme.bloksFill(0xFFF0F2F5, true));
+        } finally {
+            AmoledTheme.useLight(0);
+        }
+
+        DarkMode.answer(true);
+        assertEquals("dark mode", 0xFFF0F2F5, MaterialYouTheme.bloksFill(0xFFF0F2F5, false));
+    }
+
+    /**
+     * Issue #37's place box under a check-in post: a Bloks box whose #333334 reaches the box builder
+     * unchanged, a grey route four leaves. In dark mode a grey the dark theme lists and a dark
+     * surface take the palette's neutral there, a dark one even before Facebook's first answer, as a
+     * feed unit rendered at a cold start needs. A lighter grey the dark theme lists waits for that
+     * answer. In light mode, for a dark grey the dark theme doesn't list, for white and blue, and with
+     * AMOLED in the build for a grey up to a card's, which AMOLED's rule takes, the fill stays.
+     */
+    @Test
+    public void inDarkModeABloksBoxFillTakesThePaletteOnADarkGrey() {
+        int card = palette.sameLightness(TonePalette.NEUTRAL, 0xFF333334);
+        int button = palette.sameLightness(TonePalette.NEUTRAL, 0xFF46484B);
+        assertNotEquals("the palette moves it", 0xFF333334, card);
+        assertNotEquals("the palette moves a secondary button", 0xFF46484B, button);
+        DarkMode.forget();
+        assertEquals("a cold start's place box", card, MaterialYouTheme.bloksFill(0xFF333334, false));
+        assertEquals("a secondary button before Facebook answers", 0xFF46484B, MaterialYouTheme.bloksFill(0xFF46484B, false));
+        assertEquals("an attachment footer's light grey before Facebook answers", 0xFFF2F4F7,
+                MaterialYouTheme.bloksFill(0xFFF2F4F7, false));
+
+        DarkMode.answer(true);
+        assertEquals("the place box", card, MaterialYouTheme.bloksFill(0xFF333334, false));
+        assertEquals("a secondary button", button, MaterialYouTheme.bloksFill(0xFF46484B, false));
+        assertEquals("a dark surface", palette.sameLightness(TonePalette.NEUTRAL, 0xFF242526),
+                MaterialYouTheme.bloksFill(0xFF242526, false));
+        assertEquals("a popover's grey", palette.sameLightness(TonePalette.NEUTRAL, 0xFF3B3C3E),
+                MaterialYouTheme.bloksFill(0xFF3B3C3E, false));
+        assertEquals("a sheet's grey the dark theme doesn't list", 0xFF1F1F20, MaterialYouTheme.bloksFill(0xFF1F1F20, false));
+        assertEquals("a grey the dark theme doesn't list", 0xFF3A3B3C, MaterialYouTheme.bloksFill(0xFF3A3B3C, false));
+        assertEquals("white", 0xFFFFFFFF, MaterialYouTheme.bloksFill(0xFFFFFFFF, false));
+        assertEquals("a blue button", 0xFF0866FF, MaterialYouTheme.bloksFill(0xFF0866FF, false));
+        assertEquals("a card's grey with AMOLED in the build", 0xFF333334, MaterialYouTheme.bloksFill(0xFF333334, true));
+        assertEquals("a dark surface AMOLED's rule takes", 0xFF252728, MaterialYouTheme.bloksFill(0xFF252728, true));
+        assertEquals("a grey AMOLED leaves", palette.sameLightness(TonePalette.NEUTRAL, 0xFF3B3C3E),
+                MaterialYouTheme.bloksFill(0xFF3B3C3E, true));
+
+        DarkMode.answer(false);
+        assertEquals("light mode", 0xFF333334, MaterialYouTheme.bloksFill(0xFF333334, false));
+        assertEquals("light mode's secondary button grey", 0xFF46484B, MaterialYouTheme.bloksFill(0xFF46484B, false));
     }
 
     /**

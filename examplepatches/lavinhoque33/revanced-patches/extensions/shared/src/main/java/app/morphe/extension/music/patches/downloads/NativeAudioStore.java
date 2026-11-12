@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-07.
  */
 package app.morphe.extension.music.patches.downloads;
 
@@ -27,7 +28,9 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -77,13 +80,24 @@ final class NativeAudioStore {
         String saved = preferences().getString(videoId, null);
         if (saved == null) return null;
         Uri uri = Uri.parse(saved);
-        try (ParcelFileDescriptor descriptor = Utils.getContext().getContentResolver().openFileDescriptor(uri, "r")) {
-            if (descriptor != null && descriptor.getStatSize() > 0) return uri;
-        } catch (Exception ignored) {
-            // Deleting a track from Music's native Library also invalidates the download lookup.
-        }
+        AudioLookup lookup = lookup(uri);
+        if (lookup == AudioLookup.PRESENT) return uri;
+        // A transient failure must neither forget the download nor delete its raw copy.
+        if (lookup == AudioLookup.UNKNOWN) return null;
+
+        // Deleting a track from Music's native Library also invalidates the download lookup.
         preferences().edit().remove(videoId).apply();
+        // The copy tied to this track goes with it; a stream-only copy never belonged to it and stays.
+        RawAudioStore.deleteWithNativeTrack(videoId);
         return null;
+    }
+
+    private static AudioLookup lookup(Uri uri) {
+        try (ParcelFileDescriptor descriptor = Utils.getContext().getContentResolver().openFileDescriptor(uri, "r")) {
+            return AudioLookup.of(descriptor != null, descriptor == null ? 0 : descriptor.getStatSize(), null);
+        } catch (Exception ex) {
+            return AudioLookup.of(false, 0, ex);
+        }
     }
 
     /**
@@ -111,6 +125,20 @@ final class NativeAudioStore {
             while (cursor != null && cursor.moveToNext()) ids.add(cursor.getLong(0));
         }
         return ids;
+    }
+
+    /** Remembered downloads by MediaStore id. */
+    static Map<Long, String> videoIdsByMediaId() {
+        Map<Long, String> videoIds = new HashMap<>();
+        for (Map.Entry<String, ?> entry : preferences().getAll().entrySet()) {
+            if (!(entry.getValue() instanceof String saved)) continue;
+            try {
+                videoIds.put(ContentUris.parseId(Uri.parse(saved)), entry.getKey());
+            } catch (RuntimeException ignored) {
+                // Not a media row.
+            }
+        }
+        return videoIds;
     }
 
     private static String displayName(String videoId, String title, String artist) {

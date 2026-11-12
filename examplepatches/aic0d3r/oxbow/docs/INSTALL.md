@@ -28,7 +28,7 @@ If you prefer not to trust a prebuilt APK, follow the [build-from-source guide](
 
 1. Choose oxbow.apk or oxbow-clone.apk.
 2. Download the APK from the official GitHub releases page.
-3. Check the release notes for the supported Instagram version (currently 454.0.0.54.77).
+3. Check the release notes for the supported Instagram version (currently 455.0.0.51.72).
 4. Install the APK on your Android device.
 5. Log in through Instagram as usual.
 6. Long-press the Home tab to open Oxbow settings.

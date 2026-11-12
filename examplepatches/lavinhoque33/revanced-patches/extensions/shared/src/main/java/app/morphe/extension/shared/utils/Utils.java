@@ -1,5 +1,7 @@
 package app.morphe.extension.shared.utils;
 
+import app.morphe.extension.shared.settings.preference.NewIndicatorSpan;
+
 import static android.text.Html.FROM_HTML_MODE_COMPACT;
 import static app.morphe.extension.shared.utils.BaseThemeUtils.getCancelOrNeutralButtonBackgroundColor;
 import static app.morphe.extension.shared.utils.BaseThemeUtils.getOkButtonBackgroundColor;
@@ -21,6 +23,8 @@ import android.graphics.Color;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RoundRectShape;
 import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
 import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
@@ -1012,6 +1016,37 @@ public class Utils {
     }
 
     /**
+     * Whether the device has a network that reaches the internet: unlike {@link #isNetworkConnected()}, a network
+     * that is up but not validated (a Wi-Fi without internet, a captive portal) counts as offline. An unknown state
+     * counts as reachable, so the stock behavior stays when this cannot tell.
+     * <p>
+     * Calling extension code must ensure the un-patched app has the permission
+     * <code>android.permission.ACCESS_NETWORK_STATE</code>,
+     * otherwise the app will crash if this method is used.
+     */
+    @SuppressLint("MissingPermission")
+    public static boolean isInternetReachable() {
+        try {
+            if (context == null || !(context.getSystemService(Context.CONNECTIVITY_SERVICE)
+                    instanceof ConnectivityManager manager)) {
+                return true;
+            }
+
+            Network active = manager.getActiveNetwork();
+            if (active == null) return false;
+
+            NetworkCapabilities capabilities = manager.getNetworkCapabilities(active);
+            if (capabilities == null) return false;
+
+            return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                    && capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED);
+        } catch (Exception ex) {
+            Logger.printDebug(() -> "Network state unknown, counted as reachable", ex);
+            return true;
+        }
+    }
+
+    /**
      * Calling extension code must ensure the un-patched app has the permission
      * <code>android.permission.ACCESS_NETWORK_STATE</code>,
      * otherwise the app will crash if this method is used.
@@ -1188,7 +1223,7 @@ public class Utils {
             final String sortValue;
             switch (preferenceSort) {
                 case BY_TITLE:
-                    sortValue = removePunctuationToLowercase(preference.getTitle());
+                    sortValue = removePunctuationToLowercase(NewIndicatorSpan.removeFrom(preference.getTitle()));
                     break;
                 case BY_KEY:
                     sortValue = preference.getKey();

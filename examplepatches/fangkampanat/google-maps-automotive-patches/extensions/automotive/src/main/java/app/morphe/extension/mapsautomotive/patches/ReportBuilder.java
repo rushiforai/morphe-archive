@@ -429,11 +429,14 @@ final class ReportBuilder {
                 .put("decor_width_px", width > 0 ? width : JSONObject.NULL)
                 .put("decor_height_px", height > 0 ? height : JSONObject.NULL)
                 .put("maps_measured_width_px", measured > 0 ? measured : JSONObject.NULL)
-                .put("multi_window", orNull(multiWindow));
+                .put("multi_window", orNull(multiWindow))
+                .put("display", WindowRefreshPatch.displayJson(WindowRefreshPatch.windowDisplay()))
+                .put("window_manager_display", WindowRefreshPatch.displayJson(WindowRefreshPatch.managerDisplay()));
         return new JSONObject()
                 .put("density_choice_dpi", orNull(UiDensityPatch.storedDensityDpi(context)))
                 .put("density_default_dpi", UiDensityPatch.defaultDensityDpi(context))
                 .put("density_applied_dpi", screen.densityDpi > 0 ? screen.densityDpi : JSONObject.NULL)
+                .put("language", AppLanguage.report(context))
                 .put("driver_side", DriverSide.report(context))
                 .put("color_scheme", ColorScheme.report(context))
                 .put("buildings_3d", SafeMode.included(SafeMode.BUILDINGS_3D) ? Buildings3d.report() : JSONObject.NULL)

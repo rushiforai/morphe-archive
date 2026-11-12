@@ -89,7 +89,7 @@ private fun moduleRendererFingerprint(payloadType: String) = Fingerprint(
  * `endRestartGroup` の経路です。設定 OFF・未初期化・例外時は元の結果をそのまま使います。</p>
  */
 val homeFeedPostCardsPatch = bytecodePatch(
-    name = "ホームの投稿カード",
+    name = "Home feed post cards",
     description = "ホーム下部にある投稿カードを、実行時設定で非表示にできるようにします。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

@@ -1,3 +1,25 @@
+## [1.69.2](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.69.1...v1.69.2) (2026-11-11)
+
+### 🐛 Bug Fixes
+
+* **pikaspot:** random in advertise token is 0..1000, not full-range ([17fe126](https://github.com/mwbra130/Retro-Bowl-College/commit/17fe126d98c765e4c80ef019c53efc0717a120a0))
+
+## [1.69.1](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.69.0...v1.69.1) (2026-11-11)
+
+### 🐛 Bug Fixes
+
+* **pikaspot:** emit cert SHA1 as colon-separated uppercase fingerprint ([8c83787](https://github.com/mwbra130/Retro-Bowl-College/commit/8c837871ec323ee8c3ce89261bad9ce80739e267))
+
+## [1.69.0](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.68.3...v1.69.0) (2026-11-11)
+
+### 🐛 Bug Fixes
+
+* **pikaspot:** replace Fingerprints.kt with the Pika Spot one ([1dcac7d](https://github.com/mwbra130/Retro-Bowl-College/commit/1dcac7d5ac6a6adcb512c5d06c1704503ffbf8de))
+
+### ✨ New Features
+
+* **pikaspot:** spoof app signature for server device login ([8e0d095](https://github.com/mwbra130/Retro-Bowl-College/commit/8e0d095e7d56b446851e86d1127678348516381f))
+
 ## [1.68.3](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.68.2...v1.68.3) (2026-11-09)
 
 ### 🐛 Bug Fixes

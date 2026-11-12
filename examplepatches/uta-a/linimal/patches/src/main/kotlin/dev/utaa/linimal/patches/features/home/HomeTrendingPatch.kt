@@ -86,7 +86,7 @@ private fun matomeRendererFingerprint(payloadType: String) = Fingerprint(
  * 設定 OFF・未初期化・例外時は元の結果をそのまま使います。</p>
  */
 val homeTrendingPatch = bytecodePatch(
-    name = "ホームの話題枠",
+    name = "Home trending",
     description = "ホームの話題・トレンド枠を、実行時設定で非表示にできるようにします。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

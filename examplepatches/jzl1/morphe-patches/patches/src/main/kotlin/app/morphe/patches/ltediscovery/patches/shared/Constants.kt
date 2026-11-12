@@ -14,5 +14,9 @@ val COMPATIBILITY_LTEDISCOVERY = Compatibility(
             version = "7.6.33",
             description = "versionCode 550",
         ),
+        AppTarget(
+            version = "7.6.34",
+            description = "versionCode 551",
+        ),
     ),
 )

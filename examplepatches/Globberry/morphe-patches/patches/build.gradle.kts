@@ -1,13 +1,13 @@
-group = "app.keyflow"
+group = "io.github.globberry"
 
 patches {
     about {
-        name = "Keyflow Patches"
-        description = "Patches for Keyflow (com.angkin.keyflow) 1.5.8: PairIP neutering, signer-identity matching, and Pro unlock."
+        name = "Morphe Patches"
+        description = "A collection of Morphe patches."
         source = "https://github.com/Globberry/morphe-patches"
-        author = "Keyflow Patches"
-        contact = "na"
-        website = "na"
+        author = "Globberry"
+        contact = "https://github.com/Globberry"
+        website = "https://github.com/Globberry/morphe-patches"
         license = "GPLv3"
     }
 }

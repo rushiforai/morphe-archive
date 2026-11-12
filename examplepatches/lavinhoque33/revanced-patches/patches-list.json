@@ -1,5 +1,5 @@
 {
-  "version": "v1.33.0",
+  "version": "v1.34.1",
   "patches": [
     {
       "name": "Add to queue",
@@ -182,7 +182,7 @@
     },
     {
       "name": "Captions",
-      "description": "Adds options to disable captions from being automatically enabled, select a preferred and a secondary caption language, add more auto-translate languages, and show captions in stable blocks.",
+      "description": "Adds options to disable captions from being automatically enabled, select a preferred and a secondary caption language, add more auto-translate languages, and show captions in stable blocks. Stable blocks and bilingual captions work with YouTube 21.15 and newer, on Android 10 and newer.",
       "use": true,
       "dependencies": [
         "ResourcePatch",
@@ -1043,7 +1043,7 @@
     },
     {
       "name": "Enable debug logging",
-      "description": "Adds an option for debugging and exporting RVX logs to the clipboard.",
+      "description": "Adds debugging, log export and a Feature flags manager with Binary search.",
       "use": true,
       "dependencies": [
         "ResourcePatch",
@@ -1194,6 +1194,7 @@
       "description": "Adds options to hide or change flyout menu components.",
       "use": true,
       "dependencies": [
+        "BytecodePatch",
         "BytecodePatch",
         "ResourcePatch",
         "ResourcePatch",
@@ -1777,6 +1778,7 @@
       "use": true,
       "dependencies": [
         "ResourcePatch",
+        "BytecodePatch",
         "BytecodePatch",
         "BytecodePatch",
         "ResourcePatch",
@@ -3888,7 +3890,7 @@
         {
           "key": "applyToAll",
           "title": "Apply to all settings menu",
-          "description": "Add icons to the native settings entry and the RVX settings screens.\n\nTrue (default): also add icons to individual settings inside RVX sub-screens.\n\nFalse: icons only on parent screens for Regular and Bold styles.\n\nYouTube style always shows icons only on rows that open a settings screen.",
+          "description": "Add icons to the native settings entry and the RVX settings screens.\n\nTrue (default): also add icons to individual settings inside RVX sub-screens.\n\nFalse: icons only on parent screens and About rows for Regular and Bold styles.\n\nYouTube style shows icons on rows that open a settings screen and on About rows.",
           "required": true,
           "type": "kotlin.Boolean",
           "default": true,
@@ -3897,7 +3899,7 @@
         {
           "key": "iconStyle",
           "title": "Icon style",
-          "description": "The icon design, weight and size. YouTube uses the app's rounded settings icons at stock size\nonly on rows that open a settings screen, with rounded RVX fallbacks where unavailable.\nIts RVX entry uses YouTube's magic wand when available.\n\nIndividual setting icons in Regular and Bold styles require Apply to all settings menu = true.",
+          "description": "The icon design, weight and size. YouTube uses the app's rounded settings icons at stock size\non rows that open a settings screen and on About rows, with rounded RVX fallbacks where unavailable.\nIts RVX entry uses YouTube's magic wand when available.\n\nIndividual setting icons in Regular and Bold styles require Apply to all settings menu = true.",
           "required": true,
           "type": "kotlin.String",
           "default": "regular",
@@ -4002,6 +4004,27 @@
           "8.30.54",
           "8.28.54",
           "8.12.54"
+        ]
+      },
+      "options": []
+    },
+    {
+      "name": "Watch later improvements",
+      "description": "Adds options to widen the drag handles of the Watch later videos and to hide the snackbar shown after removing a video.",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "BytecodePatch",
+        "ResourcePatch",
+        "BytecodePatch",
+        "BytecodePatch",
+        "ResourcePatch"
+      ],
+      "compatiblePackages": {
+        "com.google.android.youtube": [
+          "21.39.525",
+          "21.13.164",
+          "20.05.46"
         ]
       },
       "options": []

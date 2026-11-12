@@ -316,6 +316,8 @@ The Reels tab only shows reels from people and Pages you follow, starting with t
 Facebook has no more reels your filters would keep, so these reels aren't filtered for now.	Facebook no tiene más reels que tus filtros conservarían, así que por ahora estos reels no se filtran.
 Hush hid the suggested posts after this, so Home ends here.	Hush ocultó las publicaciones sugeridas que venían después, por eso Inicio termina aquí.
 Download quality	Calidad de descarga
+Choose quality on each save	Elegir la calidad en cada descarga
+A reel's Download button and a video's Download to phone show the qualities first, and the save takes the one you pick. Download quality stays as it is.	El botón Descargar de un reel y «Descargar en el teléfono» de un video muestran primero las calidades, y se guarda la que elijas. La calidad de descarga no cambia.
 Best	La mejor
 Smallest	La más pequeña
 Each video saves at the best quality the player streams.	Cada video se guarda con la mejor calidad que ofrece el reproductor.
@@ -463,6 +465,10 @@ The Also from Meta section leaves Facebook's Menu, with its links to Meta's othe
 Hide Help and support	Ocultar “Ayuda y soporte técnico”
 # context: summary of that switch; Settings and privacy is Facebook's own Menu section
 The Help and support section leaves Facebook's Menu, header and all. Settings and privacy stays.	La sección “Ayuda y soporte técnico” desaparece del menú de Facebook, con su encabezado. “Configuración y privacidad” se queda.
+Hide Your shortcuts	Ocultar “Tus accesos directos”
+The Your shortcuts row leaves Facebook's Menu, with the groups and Pages Facebook keeps putting back in it. The Menu tiles under it stay.	La fila “Tus accesos directos” desaparece del menú de Facebook, con los grupos y páginas que Facebook vuelve a poner ahí. Los mosaicos del menú de debajo se quedan.
+Hide Create Facebook Page	Ocultar “Crear página de Facebook”
+The Create Facebook Page row leaves the top of Facebook's Menu. Your profile above it stays.	La fila “Crear página de Facebook” desaparece de la parte de arriba del menú de Facebook. Tu perfil, encima de ella, se queda.
 # context: switch title under Menu; Settings and privacy is a section of Facebook's own Menu that folds and unfolds when its header is tapped
 Keep Settings and privacy expanded	Mantener abierta “Configuración y privacidad”
 # context: summary of that switch
@@ -490,6 +496,8 @@ Hide dislike on comments	Ocultar el pulgar abajo en los comentarios
 Takes the thumbs-down off comments. Like and Reply stay.	Quita el pulgar hacia abajo de los comentarios. Me gusta y Responder se quedan.
 Hide Like on comments	Ocultar Me gusta en los comentarios
 Takes Like off the row under comments. Reply and the reaction count stay.	Quita Me gusta de la fila bajo los comentarios. Responder y el número de reacciones se quedan.
+Hide Reply on comments	Ocultar Responder en los comentarios
+Takes Reply off the row under comments. View replies, Like and the reaction count stay.	Quita Responder de la fila bajo los comentarios. Ver respuestas, Me gusta y el número de reacciones se quedan.
 # context: switch title under Comments; Like is the button under a post or a comment
 Like only	Solo Me gusta
 # context: summary of that switch; the reactions are the row of Love, Haha, Wow and the rest that a long press on Like opens
@@ -1104,6 +1112,10 @@ Hides the Stories tray card that asks to upload your contacts. Applies when Face
 Hide story prompts	Ocultar ideas para historias
 # context: summary of that switch; Share music you love is the name of one such card
 Hides cards beside Create story that suggest a story to make, like Share music you love. Applies when Facebook next loads the tray.	Oculta las tarjetas junto a Crear historia que sugieren una historia, como Comparte la música que te encanta. Se aplica cuando Facebook cargue la bandeja de nuevo.
+# context: switch title under Stories; Create story is the first tile of the Stories tray, the one that starts a new story of your own
+Hide Create story	Ocultar Crear historia
+# context: summary of that switch
+Takes the Create story tile off the start of the Stories tray. The stories stay. Applies when Facebook next loads the tray.	Quita el recuadro Crear historia del inicio de la bandeja de historias. Las historias se quedan. Se aplica cuando Facebook cargue la bandeja de nuevo.
 # context: summary of Hide "People you may know" when the build also hides tray cards; Add is the card's button
 Hides friend suggestions between posts, on your own profile, and as cards with an Add button in the Stories tray.	Oculta las sugerencias de amistad entre publicaciones, en tu propio perfil y como tarjetas con un botón Añadir en la bandeja de historias.
 Feeds opens on	Feeds se abre en
@@ -2703,3 +2715,18 @@ Playback speed in the post menu	Velocidad de reproducción en el menú de la pub
 A feed or Watch video's 3-dot menu gets Playback speed, from 0.5x to 3x, live videos too. Off by default, since it hasn't been tried on a real account yet.	El menú de tres puntos de un vídeo del feed o de Watch incluye Velocidad de reproducción, de 0,5x a 3x, también en vídeos en directo. Apagado por defecto, porque aún no se ha probado en una cuenta real.
 Double tap to skip on feed videos	Tocar dos veces para saltar en videos del feed
 Double tap the right side of a playing feed video to jump ahead 10 seconds, or the left side to go back 10. Keep tapping to go further. Live videos work too when they can be rewound. One tap on a side still opens the video, a moment later than usual. With Tap to play on, it needs Inline feed video controls on too.	Toca dos veces el lado derecho de un video del feed en reproducción para adelantar 10 segundos, o el lado izquierdo para retroceder 10. Sigue tocando para saltar más. También funciona en videos en vivo cuando se pueden retroceder. Un solo toque en un lado sigue abriendo el video, un momento más tarde de lo habitual. Si “Toca para reproducir” está activado, también necesita “Controles de video en el feed”.
+Show only comments that match	Mostrar solo los comentarios que coinciden
+While the search box holds words, comments without them are hidden. Clearing the box brings them back.	Mientras el cuadro de búsqueda tenga palabras, se ocultan los comentarios que no las contienen. Al vaciar el cuadro, vuelven.
+Queue reel saves	Poner en cola las descargas de reels
+Each reel you tap Download on joins a queue that saves one reel at a time in the background. Pause or cancel it from its notification or from Downloads here. A reel already in the queue is skipped, and one that fails gets one more try. The queue lasts until Facebook closes.	Cada reel en el que tocas Descargar entra en una cola que guarda un reel a la vez en segundo plano. Pausa o cancela la cola desde su notificación o desde Descargas aquí. Un reel que ya está en la cola se omite, y uno que falla tiene un intento más. La cola dura hasta que se cierra Facebook.
+Added to the reel queue	Añadido a la cola de reels
+Added to the reel queue. To pause or cancel it, open Downloads in Hushfacebook settings.	Añadido a la cola de reels. Para pausarla o cancelarla, abre Descargas en los ajustes de Hushfacebook.
+Already in the reel queue	Ya está en la cola de reels
+That reel is already saved	Ese reel ya está guardado
+The reel queue is full. Try again when it's shorter.	La cola de reels está llena. Inténtalo de nuevo cuando sea más corta.
+Saving queued reels	Guardando reels de la cola
+Reel queue paused	Cola de reels en pausa
+Reel queue done	Cola de reels terminada
+%1$d saved, %2$d waiting, %3$d failed	%1$d guardados, %2$d en espera, %3$d con error
+Reel queue canceled	Cola de reels cancelada
+Cancel the reel queue	Cancelar la cola de reels

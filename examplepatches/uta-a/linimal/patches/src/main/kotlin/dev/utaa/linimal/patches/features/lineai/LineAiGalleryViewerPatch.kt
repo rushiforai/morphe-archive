@@ -147,7 +147,7 @@ private val lineAiGalleryViewerRebindFingerprint = Fingerprint(
  * and network path continue unchanged; each page rebind runs the adjusted binder value again.
  */
 val lineAiGalleryViewerPatch = bytecodePatch(
-    name = "写真・動画表示画面の LINE AI",
+    name = "LINE AI in photo and video viewer",
     description = "チャットの写真・動画表示画面にある LINE AI の入口を、実行時設定で非表示にできるようにします。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

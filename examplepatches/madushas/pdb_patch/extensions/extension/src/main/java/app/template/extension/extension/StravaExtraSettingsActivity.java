@@ -220,7 +220,6 @@ public final class StravaExtraSettingsActivity extends Activity {
 
         buildUpsellSection(root);
         buildRecordingSection(root);
-        buildPowerSection(root);
         buildAccentSection(root);
         buildAboutSection(root);
 
@@ -289,6 +288,10 @@ public final class StravaExtraSettingsActivity extends Activity {
                 "morphe.hide.data-peek-upsell", true);
         switchRow(root, "Hide Maps \"Explore anywhere\" card",
                 "morphe.hide.maps-data-peek", true);
+        switchRow(root, "Hide subscription upsell pop-ups",
+                "morphe.hide.upsell_sheets", true);
+        switchRow(root, "Hide upsell screens (Year in Sport, Best Efforts, Device Connect)",
+                "morphe.hide.upsell_screens", true);
 
         root.addView(header("Content"));
         switchRow(root, "Hide celebration popups",
@@ -412,16 +415,6 @@ public final class StravaExtraSettingsActivity extends Activity {
         row.addView(sw);
         root.addView(row);
         root.addView(divider());
-    }
-
-    private void buildPowerSection(LinearLayout root) {
-        root.addView(header("Power features"));
-        switchRow(root, "Highlight modular-UI modules (debug)",
-                "pref.modular_ui_dev_tools_type_overlay", false);
-        switchRow(root, "Show activity name overlay (debug)",
-                "pref.show_activity_name_enabled", false);
-        switchRow(root, "Debug font",
-                "pref.debug_font_enabled", false);
     }
 
     private void buildAboutSection(LinearLayout root) {

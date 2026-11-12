@@ -7,7 +7,6 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.dmoniak.patches.shared.Constants.COMPATIBILITY_YOUTUBE
 import java.util.logging.Logger
 
-@Suppress("unused")
 val youtubePlaybackBufferFixPatch = bytecodePatch(
     name = "Fix Video Playback Buffer & Freeze - YouTube (Experimental)",
     description = "⚠️ [Experimental / Untested] Bypasses Google's video stream throttling and 1:00 min playback buffering freezes by spoofing client payload parameters (iOS/Android VR/TV client identifiers).",
@@ -26,7 +25,7 @@ fun BytecodePatchContext.executeYouTubeBufferFixLogic(logger: Logger) {
 
     classDefForEach { classDef ->
         val tl = classDef.type.lowercase()
-        if (tl.contains("androidx") || tl.contains("android/support")) return@classDefForEach
+        if (!tl.contains("androidx") && !tl.contains("android/support")) {
 
         val mutableClass by lazy { mutableClassDefBy(classDef) }
 
@@ -82,6 +81,7 @@ fun BytecodePatchContext.executeYouTubeBufferFixLogic(logger: Logger) {
                     logger.warning("[YouTube Buffer Fix] Failed to hook ${method.name}: ${e.message}")
                 }
             }
+        }
         }
     }
 

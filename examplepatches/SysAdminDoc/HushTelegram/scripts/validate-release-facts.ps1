@@ -656,7 +656,10 @@ if ($VerifyPublishedAsset) {
         # Held together with the hash comparison above, this gives the whole claim: the hosted
         # bundle is byte-for-byte local and reproducible from the release tag. A hosted bundle
         # checked on its own gets the same pin, and the receipt at the end holds its bytes to the
-        # build the release was cut from.
+        # build the release was cut from. The bundle carries a MorpheSig1 signature, and Ed25519
+        # signs deterministically, so a rebuild reproduces it byte for byte only where
+        # HUSHTELEGRAM_BUNDLE_SIGNING_KEY is set; a build without the key comes out unsigned and
+        # differs only in its zip comment.
         #
         # SOURCE_DATE_EPOCH is deliberately not consulted. It is the same variable the build
         # reads, so accepting it as the expected value would compare the builder's own input

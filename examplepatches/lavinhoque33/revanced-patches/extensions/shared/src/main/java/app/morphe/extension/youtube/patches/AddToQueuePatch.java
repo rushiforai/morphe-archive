@@ -4,7 +4,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  *
- * Modified by lavinhoque33, 2026-10-24
+ * Modified by lavinhoque33, 2026-11-10
  */
 
 package app.morphe.extension.youtube.patches;
@@ -26,6 +26,8 @@ import app.morphe.extension.shared.utils.ResourceType;
 import app.morphe.extension.shared.utils.ResourceUtils;
 import app.morphe.extension.shared.utils.Utils;
 import app.morphe.extension.youtube.patches.general.DownloadActionsPatch;
+import app.morphe.extension.youtube.patches.queue.QueuePatch;
+import app.morphe.extension.youtube.patches.queue.QueuePrecedence;
 import app.morphe.extension.youtube.patches.utils.FlyoutUtils;
 import app.morphe.extension.youtube.patches.utils.LocalQueueSheet;
 import app.morphe.extension.youtube.patches.utils.PlaylistPatch;
@@ -138,7 +140,8 @@ public final class AddToQueuePatch {
     }
 
     private static boolean isFlyoutOverrideEnabled() {
-        return LocalQueuePatch.isEnabled() || Settings.QUEUE_OVERRIDE_FLYOUT_MENU.get();
+        return QueuePrecedence.isFlyoutOverrideEnabled(
+                LocalQueuePatch.isEnabled(), Settings.QUEUE_OVERRIDE_FLYOUT_MENU.get(), QueuePatch.isEnabled());
     }
 
     private static boolean hasFlyoutButton(String buttonName) {

@@ -49,7 +49,9 @@ import app.hushtelegram.extension.shared.Logger;
 import app.hushtelegram.extension.shared.Utils;
 import app.hushtelegram.extension.shared.settings.preference.ReopenSettingsAfterRestart;
 import app.hushtelegram.extension.telegram.misc.BlackTheme;
+import app.hushtelegram.extension.telegram.misc.FreeProxies;
 import app.hushtelegram.extension.telegram.misc.GhostButton;
+import app.hushtelegram.extension.telegram.misc.ReadsButton;
 import app.hushtelegram.extension.telegram.misc.UnifiedPush;
 
 /**
@@ -117,8 +119,8 @@ public final class SettingsEntry {
      * Injected before each return of the application's {@code onCreate}, after Telegram's own
      * startup. Watches every Telegram activity, so a pending open lands on whichever one resumes
      * next: signed out, the launcher hands straight over to the login screen. Also where the
-     * release check, when it's on, asks at most once a day, on a worker, and where a UnifiedPush
-     * sign-up is renewed. A start that the settings screen's restart row asked for opens the
+     * release check, when it's on, asks at most once a day, on a worker, where free proxies are
+     * looked for every six hours when that's on, and where a UnifiedPush sign-up is renewed. A start that the settings screen's restart row asked for opens the
      * screen again, on the page it was on.
      */
     public static void onApplicationCreate(Context context) {
@@ -133,6 +135,7 @@ public final class SettingsEntry {
             Logger.printException(() -> "Settings entry: could not watch activities", ex);
         }
         ReleaseCheck.onTelegramStart();
+        FreeProxies.onTelegramStart();
         UnifiedPush.onTelegramStart(context);
         publishShortcut(context);
     }
@@ -425,6 +428,7 @@ public final class SettingsEntry {
             Logger.printException(() -> "Settings entry: could not watch the chat list title", failure);
         }
         GhostButton.attach(bar);
+        ReadsButton.attach(bar);
     }
 
     /**

@@ -11,6 +11,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-10
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -84,6 +85,7 @@ import app.morphe.patches.music.utils.videotype.videoTypeHookPatch
 import app.morphe.patches.music.video.information.videoInformationPatch
 import app.morphe.patches.shared.litho.addLithoFilter
 import app.morphe.patches.shared.litho.lithoFilterPatch
+import app.morphe.patches.shared.misc.fix.proto.fixProtoLibraryPatch
 import app.morphe.util.ResourceGroup
 import app.morphe.util.cloneMutable
 import app.morphe.util.copyResources
@@ -155,6 +157,7 @@ val flyoutMenuComponentsPatch = bytecodePatch(
 
     dependsOn(
         actionBarComponentsPatch,
+        fixProtoLibraryPatch,
         settingsPatch,
         flyoutMenuComponentsResourcePatch,
         flyoutMenuHookPatch,
@@ -210,6 +213,9 @@ val flyoutMenuComponentsPatch = bytecodePatch(
                 """
                 )
             }
+
+            // Accounts the server offers no Download item get one from this patch.
+            installDownloadItem()
         }
 
         // endregion
@@ -308,7 +314,7 @@ val flyoutMenuComponentsPatch = bytecodePatch(
                 addInstructionsWithLabels(
                     enumIndex + 1,
                     """
-                        invoke-static {v$enumRegister, v$textViewRegister, v$imageViewRegister}, $FLYOUT_CLASS_DESCRIPTOR->replaceComponents(Ljava/lang/Enum;Landroid/widget/TextView;Landroid/widget/ImageView;)V
+                        invoke-static {v$enumRegister, v$textViewRegister, v$imageViewRegister, p0}, $FLYOUT_CLASS_DESCRIPTOR->replaceComponents(Ljava/lang/Enum;Landroid/widget/TextView;Landroid/widget/ImageView;Ljava/lang/Object;)V
                         invoke-static {v$enumRegister}, $FLYOUT_CLASS_DESCRIPTOR->hideComponents(Ljava/lang/Enum;)Z
                         move-result v$freeRegister
                         if-nez v$freeRegister, :hide

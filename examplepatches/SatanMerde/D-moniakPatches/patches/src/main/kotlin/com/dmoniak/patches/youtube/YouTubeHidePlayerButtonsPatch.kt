@@ -7,7 +7,6 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.dmoniak.patches.shared.Constants.COMPATIBILITY_YOUTUBE
 import java.util.logging.Logger
 
-@Suppress("unused")
 val youtubeHidePlayerButtonsPatch = bytecodePatch(
     name = "Hide Player Overlay Buttons (Cast, Autoplay, Remix) - YouTube (Experimental)",
     description = "⚠️ [Experimental / Untested] Hides unwanted player overlay buttons including Chromecast icon (prevents accidental casting), Autoplay toggle, Remix button, and Thanks button.",
@@ -26,7 +25,7 @@ fun BytecodePatchContext.executeYouTubeHidePlayerButtonsLogic(logger: Logger) {
 
     classDefForEach { classDef ->
         val tl = classDef.type.lowercase()
-        if (tl.contains("androidx") || tl.contains("android/support")) return@classDefForEach
+        if (!tl.contains("androidx") && !tl.contains("android/support")) {
 
         val mutableClass by lazy { mutableClassDefBy(classDef) }
 
@@ -61,6 +60,7 @@ fun BytecodePatchContext.executeYouTubeHidePlayerButtonsLogic(logger: Logger) {
                     logger.warning("[YouTube Player Buttons] Failed to hook ${method.name}: ${e.message}")
                 }
             }
+        }
         }
     }
 

@@ -9,7 +9,7 @@
 - **Hide ads**：讓 App 不再載入任何廣告（橫幅、插頁、原生、開啟應用程式廣告），並移除底部預留給橫幅廣告的空白欄位。
 - **Hide review prompt**：不再跳出「喜歡這個App嗎？」請你評分的彈窗。
 - **Hide upgrade button**：台鐵與高鐵搜尋頁不再顯示「付費移除廣告，免開app 直接查」之類的訂閱按鈕（只隱藏按鈕，不會解鎖付費功能）。
-- **Hide promotions**：不再跳出免費版才有的訂閱推廣彈窗（訂閱優惠、節日特價、「解鎖新功能：桌面小工具」），介面和付費版一樣乾淨（只隱藏推廣，不會解鎖付費功能）。
+- **Hide promotions**：不再跳出免費版才有的訂閱推廣彈窗（訂閱優惠、節日特價、「解鎖新功能：桌面小工具」），介面和付費版一樣乾淨；免費版桌面小工具也不再顯示「升級即時看板」連結（只隱藏推廣，不會解鎖付費功能）。
 - **Fix recent apps title**：最近使用的 App 畫面中，標題顯示「火車時刻表」而不是 `app.titleTra`。
 - **Expand search history**：搜尋頁的「最近搜尋」最多顯示 20 筆，而不是預設的 3 筆（筆數可在修補設定調整）。
 - **Fix search history count**：「搜尋歷史」旁的計數顯示實際的顯示筆數，例如 `(5/20)`，而不是 `(3/3) 升級`，並移除「升級」字樣。
@@ -25,7 +25,7 @@
 | 隱藏廣告 | 立即（已載入的廣告重新啟動後消失） |
 | 隱藏評分彈窗 | 重新啟動 App 後 |
 | 隱藏付費推廣按鈕 | 重新啟動 App 後 |
-| 隱藏付費推廣彈窗 | 重新啟動 App 後 |
+| 隱藏付費推廣彈窗與連結 | 彈窗：重新啟動 App 後；小工具連結：下次小工具更新時 |
 | 修正最近使用的 App 標題 | 立即（下次更新標題時） |
 | 展開搜尋歷史／顯示筆數（1–20） | 重新啟動 App 後（頁面下方有「重新啟動 App」按鈕） |
 | 修正搜尋歷史計數 | 重新啟動 App 後 |
@@ -88,6 +88,12 @@ Flutter 的 `--aot-shared-library-name` 參數優先載入副本（Flutter 只�
 `promo_enabled`、`holiday_active`／`holiday_show_popup`、`widget_intro_enabled` 參數決定。
 **Hide promotions** 攔截 firebase_remote_config 外掛把參數交給 Dart 的地方（`getAll` 與啟動時的 plugin constants），
 把這幾個參數改成 `false`，彈窗就不會出現；訂閱狀態與付費功能都不受影響。
+免費版的桌面小工具（通勤、車站、車次）底部另有一個「升級即時看板 ›」連結，點了會開訂閱頁。
+小工具是原生的 `RemoteViews`，免費版畫面由小工具共用基底類別中的一個方法建立（以它唯一用到的
+`trainschedule://widget/paywall` 網址找到）。patch 在這個方法建立 `RemoteViews` 之後插入呼叫，
+把整個底部列（`widget_footer`，免費版只剩這個連結）隱藏；付費版畫面每次都從 layout 重新建立，不受影響。
+小工具可能在沒有啟動 Flutter 的 process 中更新，所以這裡直接用小工具的 `Context` 讀取修補設定，
+設定變更在下次小工具更新時生效。
 
 側邊欄是 Dart 程式碼（AOT 編譯在 `libapp.so`），無法插入新的按鈕。**Patch settings** 改為：
 把側邊欄「廣告設定」的翻譯字串原地改成同樣長度的「修補設定」，
@@ -114,9 +120,9 @@ java -jar morphe-desktop-*-all.jar patch -p patches.mpp "$PWD/火車時刻表.xa
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.8.1](https://github.com/GahahaWang/TWRailway-patch/releases/tag/v1.8.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;8 patches total
+> **[v1.9.0](https://github.com/GahahaWang/TWRailway-patch/releases/tag/v1.9.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;9 patches total
 <details open>
-<summary>📦 火車時刻表&nbsp;&nbsp;•&nbsp;&nbsp;8 patches</summary>
+<summary>📦 火車時刻表&nbsp;&nbsp;•&nbsp;&nbsp;9 patches</summary>
 <br>
 
 **Package name:** `com.tsumii.trainschedule`
@@ -132,10 +138,11 @@ java -jar morphe-desktop-*-all.jar patch -p patches.mpp "$PWD/火車時刻表.xa
 | [Fix recent apps title](#fix-recent-apps-title) | Shows the app name instead of "app.titleTra" as the app's title in the recent apps screen. |  |
 | [Fix search history count](#fix-search-history-count) | Shows the expanded limit (such as "(5/20)") in the count next to 搜尋歷史, and removes the "升級" text. It can be turned off in the patch settings. |  |
 | [Hide ads](#hide-ads) | Stops the app from loading banner, interstitial, native and app open ads, and removes the empty space reserved for the banner. |  |
-| [Hide promotions](#hide-promotions) | Stops the subscription promotion popups (discount, holiday sale and widget intro) that only free users see. Paid features are not unlocked. |  |
+| [Hide promotions](#hide-promotions) | Stops the subscription promotion popups (discount, holiday sale and widget intro) that only free users see, and hides the "升級即時看板" link of the free home screen widgets. Paid features are not unlocked. |  |
 | [Hide review prompt](#hide-review-prompt) | Stops the "喜歡這個App嗎？" dialog asking to rate the app from showing. |  |
 | [Hide upgrade button](#hide-upgrade-button) | Hides the subscribe button (such as "付費移除廣告，免開app 直接查") of the search pages. It can be shown again in the patch settings. |  |
 | [Patch settings](#patch-settings) | Adds a "修補設定" page to turn the other patches on or off and adjust them while the app runs. It replaces the "廣告設定" item in the drawer's 設定 section, and is also a shortcut on the app icon. |  |
+| [premium](#premium) | enable premium widget |  |
 
 </details>
 

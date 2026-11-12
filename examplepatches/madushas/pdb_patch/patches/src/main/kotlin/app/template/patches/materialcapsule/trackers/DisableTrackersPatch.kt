@@ -48,6 +48,7 @@ val materialCapsuleDisableTrackersPatch = resourcePatch(
         "Firebase Analytics / Advertising-ID data collection via the official opt-out flags.",
     default = true,
 ) {
+    category("Privacy")
     compatibleWith(MATERIAL_CAPSULE_COMPATIBILITY)
 
     execute {

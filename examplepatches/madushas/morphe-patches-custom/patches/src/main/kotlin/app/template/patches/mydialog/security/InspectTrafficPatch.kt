@@ -35,6 +35,7 @@ val myDialogInspectTrafficPatch = bytecodePatch(
         "a trusted CA.",
     default = false,
 ) {
+    category("Security")
     compatibleWith(MYDIALOG_COMPATIBILITY)
 
     val proxyHost by stringOption(key = "Proxy host", default = "127.0.0.1")

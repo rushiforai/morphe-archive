@@ -787,7 +787,7 @@ Hide the caption,隐藏文案
 Hide the comment bar on opened videos,隐藏打开视频的评论栏
 Hide the description under the creator's name on the feed.,隐藏信息流中创建者姓名下的描述.
 Hide the event badge,隐藏活动徽章
-"Hide the fill-in videos TikTok sends to For You without picking them for you. When a whole batch is fill-in, it stays so the feed doesn't run dry.",隐藏 TikTok 发送给 For You 的填充视频，而不为你挑选。当整批信息流填满后，它会留下来，这样信息流就不会干涸.
+"Hide the fill-in videos TikTok sends to For You without picking them for you. When a whole batch is fill-in, only its first video stays so the feed doesn't run dry.",隐藏 TikTok 没有为你挑选就发到 For You 的填充视频。整批都是填充视频时，只保留第一个，这样信息流不会断.
 Hide the flag button TikTok puts above the creator's picture in some regions. You can still report a video from the share menu.,在某些地区隐藏创作者图片上方的标志按钮 TikTok。你仍然可以从共享菜单举报视频.
 Hide the floating promotional badge over the feed.,将浮动促销徽章隐藏在信息流上方.
 Hide the follow button on the feed,隐藏信息流上的关注按钮
@@ -2591,3 +2591,12 @@ That list is full,该列表已满
 Search Liked and Favorites grids,搜索“喜欢”和“收藏”网格
 "Adds a Search button to the top of the Liked and Favorites grids. Type a word from a caption, a creator or a sound to see only the loaded videos that have it.",在“喜欢”和“收藏”网格顶部添加一个搜索按钮。输入说明文字、创作者或音频中的一个词，只显示含有它的已加载视频.
 "Caption, creator or sound",说明文字、创作者或音频
+Long-press Profile to switch accounts,长按“个人主页”切换账号
+"Press and hold the Profile tab to pick one of your other accounts, where TikTok left that out. A tap on Profile works as before. While Long-press Profile for Watch history is on, it takes the press. Restart TikTok to apply this.",按住“个人主页”选项卡可选择你的其他账号，适用于 TikTok 去掉了此功能的情况。点击“个人主页”仍像以前一样工作。开启长按“个人主页”打开观看历史时，由它接管该操作。重新启动 TikTok 以应用此操作.
+Fold long comments,折叠长评论
+A long comment shows its first few lines and more. Tap more to read the rest right where it is.,长评论只显示前几行和“更多”。点“更多”即可在原处读完其余内容.
+Fold after,折叠前显示
+How many lines of a long comment show before more.,长评论在“更多”之前显示多少行.
+%1$s line,%1$s 行
+%1$s lines,%1$s 行
+… more,…更多

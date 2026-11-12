@@ -44,8 +44,8 @@ private fun Method.pOf(index: Int): Int =
         parameterTypes.take(index).sumOf { if (it.toString() == "J" || it.toString() == "D") 2 else 1 }
 
 // ShareUtil's intent builder: every "share to app" path ends here with the text in a Bundle.
+// Returned Integer on 455 (it became a suspend result), so the return type is left open.
 internal object ShareIntentBundleFingerprint : Fingerprint(
-    returnType = "V",
     strings = listOf("android.intent.extra.EXCLUDE_COMPONENTS", "image/jpeg"),
     custom = { method, _ -> method.parameterTypes.any { it.toString() == "Landroid/os/Bundle;" } },
 )

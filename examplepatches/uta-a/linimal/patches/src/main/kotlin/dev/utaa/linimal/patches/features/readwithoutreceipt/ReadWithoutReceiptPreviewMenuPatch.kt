@@ -184,7 +184,7 @@ internal data class PreviewLabelShape(
  * 記録して終了します。</p>
  */
 val readWithoutReceiptPreviewMenuPatch = bytecodePatch(
-    name = "既読をつけずに読む（スクロールプレビュー）",
+    name = "Read without receipt (scroll preview)",
     description = "スクロールプレビュー画面のメニューへ「既読をつけずに読む」の行を追加します。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

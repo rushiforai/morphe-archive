@@ -150,16 +150,28 @@ def versions_table(targets):
     return "\n".join(rows)
 
 
-def app_section(label, count, targets, tbl):
-    """Render an app heading, supported versions and patch table."""
+def app_section(label, count, targets, tbl, expanded):
+    """Return an app section with supported versions and the supplied patch table.
+
+    Use a Markdown heading when expanded is true; otherwise wrap the section in
+    a collapsed HTML details element. Omit supported versions when none render.
+    """
     noun = "patch" if count == 1 else "patches"
+    heading = f"{label} • {count} {noun}"
     vtbl = versions_table(targets)
     versions_section = f"**🎯 Supported versions:**\n\n{vtbl}\n\n" if vtbl else ""
-    return f"### {label} • {count} {noun}\n\n{versions_section}{tbl}"
+    body = f"{versions_section}{tbl}"
+    if expanded:
+        return f"### {heading}\n\n{body}"
+    return f"<details>\n<summary>{heading}</summary>\n\n{body}\n\n</details>"
 
 
-def build_content():
-    """Build the full generated patches section."""
+def build_content(expanded=False):
+    """Return the release summary and app sections, followed by universal patches.
+
+    App sections are collapsed by default; expanded opens all sections as
+    Markdown headings.
+    """
     lines = [
         f"> **[v{ver}](https://github.com/{owner}/{repo}/releases/tag/v{ver})**"
         f"&nbsp;&nbsp;•&nbsp;&nbsp;`{branch}`&nbsp;&nbsp;•&nbsp;&nbsp;"
@@ -170,14 +182,13 @@ def build_content():
     for key, entry in by_pkg.items():
         patches = list(entry["patches"].values())
         label   = f"{entry['emoji']} {entry['name']}"
-        lines.append(app_section(label, len(patches), entry["targets"], patches_table(patches, key)))
+        lines.append(app_section(label, len(patches), entry["targets"], patches_table(patches, key), expanded))
         lines.append("")
 
     # Universal patches (no specific app)
     if universal:
         uni_patches = list(universal.values())
-        noun = "patch" if len(uni_patches) == 1 else "patches"
-        lines.append(f"### 🌐 Universal • {len(uni_patches)} {noun}\n\n{patches_table(uni_patches)}")
+        lines.append(app_section("🌐 Universal", len(uni_patches), [], patches_table(uni_patches), expanded))
         lines.append("")
 
     return "\n".join(lines)
@@ -208,7 +219,7 @@ if not marker_match or END_MARKER not in readme:
 
 actual_start = marker_match.group(0)
 
-generated = build_content()
+generated = build_content(expanded="EXPANDED" in actual_start)
 
 # Replace template links if present
 readme = readme.replace("https://morphe.software/add-source?github=xyz-user/xyz-patches", f"https://morphe.software/add-source?github={repo_full}")

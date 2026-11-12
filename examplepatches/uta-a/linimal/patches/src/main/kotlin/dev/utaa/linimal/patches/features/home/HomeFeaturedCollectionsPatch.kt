@@ -83,7 +83,7 @@ private val featuredGridSourceMetadataFingerprint = Fingerprint(
  * `endRestartGroup` の経路です。設定 OFF・未初期化・例外時は元の結果をそのまま使います。</p>
  */
 val homeFeaturedCollectionsPatch = bytecodePatch(
-    name = "ホームの特集枠",
+    name = "Home featured collections",
     description = "ホームの特集枠にある動画のグリッドを、実行時設定で非表示にできるようにします。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

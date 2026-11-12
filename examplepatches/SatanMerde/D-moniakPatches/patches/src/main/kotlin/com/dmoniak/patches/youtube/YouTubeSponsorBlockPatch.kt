@@ -7,7 +7,6 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.dmoniak.patches.shared.Constants.COMPATIBILITY_YOUTUBE
 import java.util.logging.Logger
 
-@Suppress("unused")
 val youtubeSponsorBlockPatch = bytecodePatch(
     name = "SponsorBlock - YouTube (Experimental)",
     description = "⚠️ [Experimental / Untested] Automatically detects and skips sponsored video segments, sponsor intros/outros, self-promotions, interaction reminders, and filler music in YouTube videos via the community SponsorBlock API.",
@@ -26,7 +25,7 @@ fun BytecodePatchContext.executeYouTubeSponsorBlockLogic(logger: Logger) {
 
     classDefForEach { classDef ->
         val tl = classDef.type.lowercase()
-        if (tl.contains("androidx") || tl.contains("android/support")) return@classDefForEach
+        if (!tl.contains("androidx") && !tl.contains("android/support")) {
 
         val mutableClass by lazy { mutableClassDefBy(classDef) }
 
@@ -88,6 +87,7 @@ fun BytecodePatchContext.executeYouTubeSponsorBlockLogic(logger: Logger) {
                     logger.warning("[YouTube SponsorBlock] Failed to hook ${method.name}: ${e.message}")
                 }
             }
+        }
         }
     }
 

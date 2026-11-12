@@ -695,6 +695,11 @@ public class SettingsBackupPreference extends Preference {
         }
     }
 
+    /** The summary this row rests on, without a running line or the result of the last run. */
+    CharSequence restingSummary() {
+        return restingSummary;
+    }
+
     private void showBusy(int action, @Nullable String line) {
         busyLine = line;
         setEnabled(false);

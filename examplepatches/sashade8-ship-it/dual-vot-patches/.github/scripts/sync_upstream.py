@@ -165,6 +165,12 @@ STREAMING_DATA_REQUEST_DEV2110_CONFLICT_BLOBS = (
     "ee41c0a5dac90aabe26a7646eb7937ae663ef19c",
     "2cf69f37a4e5114ef2954228df0284db1b2103e6",
 )
+# Morphe 2.3.0-dev.1 gates playback fetches; direct Dual audio stays independent.
+STREAMING_DATA_REQUEST_DEV230_CONFLICT_BLOBS = (
+    "9fb14c32594ac97add05a6d50c05e1adccd632af",
+    "794a3a68bb32005fbebb62452bc472a305cad112",
+    "f39d702feea1ced9f7c157a37417d0ec58f69a82",
+)
 DEV210_ARRAYS_CONFLICT_BLOBS = (
     "9c228c35994fedf5a3d8b5b04f80e0a6b37b4355",
     "a3614bdfaf1b5e6acd2d9cac08dfe9403e9d635e",
@@ -1176,6 +1182,34 @@ def merge_streaming_data_request_stable210(source: str) -> str:
     return merged
 
 
+def merge_streaming_data_request_dev230(source: str) -> str:
+    """Preserve Morphe's playback gate and Dual's separate direct fetch path."""
+    pattern = r"(?m)^<<<<<<< [^\n]+\n(.*?)^=======\n(.*?)^>>>>>>> [^\n]+\n"
+    conflicts = list(re.finditer(pattern, source, re.DOTALL | re.MULTILINE))
+    if len(conflicts) != 1 or hashlib.sha256(
+        (conflicts[0].group(1) + "\0" + conflicts[0].group(2)).encode()
+    ).hexdigest() != "5f77af19c2872fc74f24fbf8a6a0be9b8ca7e02cfa4e6a5030303d1d6d499dba":
+        raise SyncError("Unexpected dev 2.3.0-dev.1 streaming conflict sides")
+    ours, theirs = conflicts[0].group(1, 2)
+    gate = theirs[:theirs.index("    private StreamingDataRequest(")]
+    constructor = replace_exact_once(
+        ours,
+        "        this.future = Utils.submitOnBackgroundThread(\n"
+        "                () -> fetch(resolveVideoIdToFetch(videoId), playerHeaders,\n"
+        "                        includeVideoDetails, clientOrder, isDownload, directStreamsOnly));\n",
+        "        this.future = Utils.submitOnBackgroundThread(() -> {\n"
+        "            if (!isDownload && !directStreamsOnly) passFetchGate(videoId);\n"
+        "            return fetch(resolveVideoIdToFetch(videoId), playerHeaders,\n"
+        "                    includeVideoDetails, clientOrder, isDownload, directStreamsOnly);\n"
+        "        });\n",
+        "dev 2.3.0 playback-only fetch gate",
+    )
+    merged = re.sub(pattern, lambda _: gate + constructor, source, flags=re.DOTALL | re.MULTILINE)
+    if re.search(r"(?m)^(<<<<<<<|=======|>>>>>>>)(?: |$)", merged):
+        raise SyncError("Unresolved dev 2.3.0-dev.1 streaming conflict")
+    return merged
+
+
 def resolve_streaming_data_request_conflict() -> None:
     if STREAMING_DATA_REQUEST_PATH not in unresolved_paths():
         return
@@ -1187,13 +1221,15 @@ def resolve_streaming_data_request_conflict() -> None:
     if stage_blobs in (STREAMING_DATA_REQUEST_DEV210_CONFLICT_BLOBS,
                        STREAMING_DATA_REQUEST_DEV217_CONFLICT_BLOBS,
                        STREAMING_DATA_REQUEST_DEV2110_CONFLICT_BLOBS,
-                       STREAMING_DATA_REQUEST_STABLE210_CONFLICT_BLOBS):
+                       STREAMING_DATA_REQUEST_STABLE210_CONFLICT_BLOBS,
+                       STREAMING_DATA_REQUEST_DEV230_CONFLICT_BLOBS):
         destination = ROOT / STREAMING_DATA_REQUEST_PATH
         merge_known = {
             STREAMING_DATA_REQUEST_DEV210_CONFLICT_BLOBS: merge_streaming_data_request_dev210,
             STREAMING_DATA_REQUEST_DEV217_CONFLICT_BLOBS: merge_streaming_data_request_dev217,
             STREAMING_DATA_REQUEST_DEV2110_CONFLICT_BLOBS: merge_streaming_data_request_dev2110,
             STREAMING_DATA_REQUEST_STABLE210_CONFLICT_BLOBS: merge_streaming_data_request_stable210,
+            STREAMING_DATA_REQUEST_DEV230_CONFLICT_BLOBS: merge_streaming_data_request_dev230,
         }[stage_blobs]
         merged = merge_known(destination.read_text(encoding="utf-8"))
         destination.write_text(merged, encoding="utf-8", newline="")

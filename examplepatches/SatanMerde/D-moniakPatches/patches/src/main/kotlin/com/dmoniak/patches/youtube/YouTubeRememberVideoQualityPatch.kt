@@ -7,7 +7,6 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.dmoniak.patches.shared.Constants.COMPATIBILITY_YOUTUBE
 import java.util.logging.Logger
 
-@Suppress("unused")
 val youtubeRememberVideoQualityPatch = bytecodePatch(
     name = "Remember Video Quality - YouTube (Experimental)",
     description = "⚠️ [Experimental / Untested] Forces and locks preferred default video resolution (such as 1080p, 1440p, or 4K) separately for Wi-Fi and mobile cellular networks, overriding YouTube's adaptive downscaling.",
@@ -26,7 +25,7 @@ fun BytecodePatchContext.executeYouTubeRememberVideoQualityLogic(logger: Logger)
 
     classDefForEach { classDef ->
         val tl = classDef.type.lowercase()
-        if (tl.contains("androidx") || tl.contains("android/support")) return@classDefForEach
+        if (!tl.contains("androidx") && !tl.contains("android/support")) {
 
         val mutableClass by lazy { mutableClassDefBy(classDef) }
 
@@ -58,6 +57,7 @@ fun BytecodePatchContext.executeYouTubeRememberVideoQualityLogic(logger: Logger)
                     logger.warning("[YouTube Video Quality] Failed to hook ${method.name}: ${e.message}")
                 }
             }
+        }
         }
     }
 

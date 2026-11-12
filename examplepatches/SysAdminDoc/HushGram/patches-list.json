@@ -1491,7 +1491,7 @@
     },
     {
       "name": "Glass in chats",
-      "description": "Gives a chat's top bar frosted glass that blurs the messages under it (Android 12 and newer) and puts the back, call and video buttons on round glass circles. Starts off. Turn it on in HushGram settings > Messages.",
+      "description": "Gives a chat's top bar and message bar frosted glass that blurs the messages under them (Android 12 and newer) and puts the back, call and video buttons on round glass circles. A second switch gives the reply box on other people's stories the same glass. Starts off. Turn them on in HushGram settings > Messages and Stories.",
       "category": "Messages",
       "use": true,
       "dependencies": [
@@ -3411,7 +3411,7 @@
     },
     {
       "name": "HushGram launch screen",
-      "description": "Shows HushGram's logo instead of Instagram's on the screen you see while Instagram starts, on Android 13 and newer. Starts off. Turn it on in HushGram settings > Layout.",
+      "description": "Shows HushGram's logo instead of Instagram's on the screen you see while Instagram starts, on Android 13 and newer, and can fill that screen with your accent color. Starts off. Turn it on in HushGram settings > Layout.",
       "category": "Interface",
       "use": true,
       "dependencies": [
@@ -3799,7 +3799,7 @@
     },
     {
       "name": "Keep playing in the background",
-      "description": "A video or reel playing with sound keeps going when you leave Instagram or turn the screen off, with a notification to pause or stop it. A second switch plays reels in a small window when you leave instead. Starts off. Turn it on in HushGram settings > Playback.",
+      "description": "A video or reel playing with sound keeps going when you leave Instagram or turn the screen off, with a notification to pause or stop it. Two more switches play reels or stories in a small window when you leave instead. Starts off. Turn it on in HushGram settings > Playback.",
       "category": "Playback",
       "use": true,
       "dependencies": [
@@ -4359,6 +4359,46 @@
       "options": []
     },
     {
+      "name": "Open reel links on that reel",
+      "description": "A reel link opens on the reel it points to, instead of another reel Instagram kept on your phone playing first. Starts on. Turn it off in HushGram settings > Reels.",
+      "category": "Fixes",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "HushGram settings"
+      ],
+      "compatiblePackages": {
+        "com.instagram.android": [
+          "454.0.0.54.77"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Instagram",
+          "packageName": "com.instagram.android",
+          "description": null,
+          "appIconColor": 14757996,
+          "signatures": [
+            "3a10c50c18ba937506c2875e9047be74f8fd8b86fae2ff9feaa50a81fcb4c014",
+            "5f3e50f435583c9ae626302a71f7340044087a7e2c60adacfc254205a993e305"
+          ],
+          "targets": [
+            {
+              "version": "454.0.0.54.77",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 386014758,
+                "ARMEABI_V7A": 386014757,
+                "X86": 386014759,
+                "X86_64": 386014760
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Phone layout on big screens",
       "description": "On a foldable or tablet, Instagram keeps its phone layout across the whole screen, with the tab bar at the bottom instead of down the side. Restart Instagram to see the change. Starts off. Turn it on in HushGram settings > Layout.",
       "category": "Fixes",
@@ -4561,7 +4601,7 @@
     },
     {
       "name": "Pure black dark mode",
-      "description": "Makes Instagram's dark mode pure black instead of dark gray, on the menus that slide up from the bottom, the one you get by holding a message or a chat, and the notes above your chats too. It looks deeper and can save battery on an OLED screen. Buttons keep their grays so they stay easy to see. Works as soon as you patch it in, with no switch.",
+      "description": "Makes Instagram's dark mode pure black instead of dark gray, on the menus that slide up from the bottom, the one you get by holding a message or a chat, the one the + in a chat opens, and the notes above your chats too. It looks deeper and can save battery on an OLED screen. Buttons keep their grays so they stay easy to see. Works as soon as you patch it in, with no switch.",
       "category": "Interface",
       "use": false,
       "dependencies": [
@@ -5043,7 +5083,7 @@
     },
     {
       "name": "Saved on your profile",
-      "description": "Adds a bookmark to the tabs on your own profile, beside posts, reels and tagged, that opens Saved. Starts off. Turn it on in HushGram settings > Profiles, then restart Instagram.",
+      "description": "Adds a bookmark to the tabs on your own profile, beside posts, reels and tagged, that opens Saved, and a handle to drag through Saved and your collections. Both start off. Turn them on in HushGram settings > Profiles. The bookmark needs an Instagram restart.",
       "category": "Profiles",
       "use": true,
       "dependencies": [
@@ -5163,7 +5203,7 @@
     },
     {
       "name": "Seek bar on feed videos",
-      "description": "Shows a bar along the bottom of the video playing in your feed that you can drag to jump to any point in it. Starts off. Turn it on in HushGram settings > Feed. Another switch there adds a small button on the video that shows or hides the bar, and a choice under it makes the bar see-through or puts it on frosted glass. Another puts the bar right on the video's bottom edge, where a scroll is less likely to catch it. One more lets a double tap on the left or right side of the video go back or ahead 10 seconds, while the middle still likes the post. Two more choose a shape for the seek bars on feed videos, stories and reels, and show a preview above your finger while you drag one.",
+      "description": "Shows a bar along the bottom of the video playing in your feed that you can drag to jump to any point in it. Starts off. Turn it on in HushGram settings > Feed. Another switch there adds a small button on the video that shows or hides the bar, and a choice under it makes the bar see-through or puts it on frosted glass. Another puts the bar right on the video's bottom edge, where a scroll is less likely to catch it. One more lets a double tap on the left or right side of the video go back or ahead 10 seconds, while the middle still likes the post. Two more choose a shape for every seek bar, story progress segments and videos in chats included, and show a preview above your finger while you drag one.",
       "category": "Playback",
       "use": true,
       "dependencies": [
@@ -5204,7 +5244,7 @@
     },
     {
       "name": "Seek bar on stories",
-      "description": "Shows a bar near the bottom of a video story that you can drag to jump to any point in the video. Photos don't get one. A choice under it makes the bar see-through or puts it on frosted glass. Starts off. Turn it on in HushGram settings > Stories.",
+      "description": "Shows a bar near the bottom of a video story that you can drag to jump to any point in the video. Photos don't get one. A choice under it makes the bar see-through or puts it on frosted glass, and another moves it into the space under the Send message box. Starts off. Turn it on in HushGram settings > Stories.",
       "category": "Stories",
       "use": true,
       "dependencies": [
@@ -5804,7 +5844,7 @@
     },
     {
       "name": "Start Home on Following",
-      "description": "Opens Home on posts from accounts you follow instead of For you. A second switch removes For you from Home, and a third keeps Instagram's logo at the top of Home in place of the feed's name. A fourth, Fall back to Following, opens Home on Following for an account whose For you brings only suggested posts, unless you picked a feed. A fifth, Mix in Following, shows a page of posts from accounts you follow after each page of For you. Restart Instagram to see the change. Starts off. Turn it on in HushGram settings > Feed.",
+      "description": "Opens Home on posts from accounts you follow instead of For you. A second switch removes For you from Home, and a third keeps Instagram's logo at the top of Home in place of the feed's name. A fourth, Fall back to Following, opens Home on Following for an account whose For you brings only suggested posts, unless you picked a feed. A fifth, Mix in Following, shows a page of posts from accounts you follow after each page of For you. Restart Instagram to see the change. Keep the tab bar on Favorites leaves Search and Messages a tap away there, and a tab you choose can open Favorites with a long press. Starts off. Turn it on in HushGram settings > Feed.",
       "category": "Feed",
       "use": true,
       "dependencies": [
@@ -6764,7 +6804,7 @@
     },
     {
       "name": "Upload stories at full quality",
-      "description": "Sends the video stories you post at 1080p and a higher bitrate, as Instagram does with its own Upload at highest quality setting on. Choices under it can cover posts and reels too and ask for a bitrate up to 50 Mbps, 1440p, 60 fps or a higher photo quality. Instagram still shrinks story videos to 720p on its servers, so viewers see a small difference. Starts off. Turn it on in HushGram settings > Stories.",
+      "description": "Sends the video stories you post at 1080p and a higher bitrate, as Instagram does with its own Upload at highest quality setting on. Choices under it can cover posts and reels too and ask for a bitrate up to 50 Mbps, up to 2160p and 120 fps where your phone's video encoder can take them, or a higher photo quality and size. Instagram still shrinks story videos to 720p on its servers, so viewers see a small difference. Starts off. Turn it on in HushGram settings > Stories.",
       "category": "Stories",
       "use": true,
       "dependencies": [

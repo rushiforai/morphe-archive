@@ -1,3 +1,9 @@
+## [1.7.1](https://github.com/RikoDEV/morphed-pl/compare/v1.7.0...v1.7.1) (2026-11-11)
+
+### 🐛 Bug Fixes
+
+* add universal Change app name patch ([4e6a29b](https://github.com/RikoDEV/morphed-pl/commit/4e6a29bbd342d39f666dc60f9d01b053849ddcd9))
+
 ## [1.7.0](https://github.com/RikoDEV/morphed-pl/compare/v1.6.1...v1.7.0) (2026-11-10)
 
 ### ✨ New Features

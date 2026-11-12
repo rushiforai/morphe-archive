@@ -46,7 +46,7 @@ final class DownloadProgress {
         VideoFeatures.MAIN.post(() -> {
             try {
                 remove();
-                Card c = new Card(activity, name);
+                Card c = Overlay.mark(new Card(activity, name));
                 FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
                         ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.TOP | Gravity.CENTER_HORIZONTAL);
                 int margin = dp(activity, 10);

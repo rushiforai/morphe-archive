@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- FaroTV mark: a lighthouse whose beam is a play button. GPLv3, part of FaroTV. -->
+  <defs>
+    <clipPath id="round"><rect width="512" height="512" rx="116"/></clipPath>
+    <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0B1F3A"/>
+      <stop offset="1" stop-color="#0E6E7A"/>
+    </linearGradient>
+    <linearGradient id="cone" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#FFD166" stop-opacity="0.75"/>
+      <stop offset="1" stop-color="#FFD166" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="beam" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#FFE08A"/>
+      <stop offset="1" stop-color="#FF9F1C"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#FFE29A" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#FFE29A" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <g clip-path="url(#round)">
+    <rect width="512" height="512" fill="url(#sea)"/>
+    <!-- light cone from the lamp -->
+    <path d="M214 194 L512 92 L512 316 L214 214 Z" fill="url(#cone)"/>
+    <circle cx="196" cy="204" r="64" fill="url(#glow)"/>
+    <!-- the play button inside the beam -->
+    <path d="M272 152 L272 256 L388 204 Z" fill="url(#beam)" stroke="url(#beam)" stroke-width="20" stroke-linejoin="round"/>
+    <!-- roof -->
+    <path d="M162 176 L230 176 L196 138 Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="8" stroke-linejoin="round"/>
+    <!-- lantern -->
+    <rect x="173" y="178" width="46" height="50" rx="6" fill="#FFD166"/>
+    <rect x="190" y="178" width="12" height="50" fill="#FFB43A"/>
+    <!-- gallery -->
+    <rect x="158" y="226" width="76" height="14" rx="5" fill="#FFFFFF"/>
+    <!-- tower -->
+    <path d="M168 240 L224 240 L242 408 L150 408 Z" fill="#FFFFFF"/>
+    <path d="M162 298 L230 298 L234 334 L158 334 Z" fill="#E4572E"/>
+    <rect x="186" y="354" width="20" height="34" rx="10" fill="#0B1F3A"/>
+    <!-- sea -->
+    <path d="M0 404 C 60 384, 110 424, 170 404 S 280 384, 340 404 S 450 424, 512 404 L512 512 L0 512 Z" fill="#0A4D5C" opacity="0.9"/>
+    <path d="M0 440 C 70 420, 130 458, 200 440 S 330 420, 400 440 S 480 456, 512 444 L512 512 L0 512 Z" fill="#083A47"/>
+  </g>
+</svg>

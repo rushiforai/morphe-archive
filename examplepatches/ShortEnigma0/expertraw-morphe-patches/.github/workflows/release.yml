@@ -1,0 +1,80 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      # Anything that changes the built patch bundle
+      - 'patches/**'
+      - 'extensions/**'
+      - 'build.gradle.kts'
+      - 'settings.gradle.kts'
+      - 'gradle/**'
+      - 'gradle.properties'
+      # Release tooling
+      - '.releaserc'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/scripts/**'
+      - '.github/workflows/release.yml'
+      - 'morphe-signing.pub'
+
+jobs:
+  release:
+    name: Release
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+      attestations: write
+      actions: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Cache Gradle
+        uses: burrunan/gradle-cache-action@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      # Morphe Manager rejects bundles that aren't signed by the key in morphe-signing.pub.
+      - name: Check signing key
+        env:
+          MORPHE_SIGNING_KEY: ${{ secrets.MORPHE_SIGNING_KEY }}
+        run: |
+          if [ -z "$MORPHE_SIGNING_KEY" ]; then
+            echo "::error::Repository secret MORPHE_SIGNING_KEY is not set; refusing to publish an unsigned bundle."
+            exit 1
+          fi
+
+      - name: Release
+        uses: cycjimmy/semantic-release-action@v8
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MORPHE_SIGNING_KEY: ${{ secrets.MORPHE_SIGNING_KEY }}
+
+      - name: Attest
+        if: steps.release.outputs.new_release_published == 'true'
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-name: 'Expert RAW Patches ${{ steps.release.outputs.new_release_git_tag }}'
+          subject-path: patches/build/libs/patches-*.mpp

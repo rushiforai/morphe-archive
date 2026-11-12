@@ -12,7 +12,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  *
- * Modified by lavinhoque33, 2026-10-21.
+ * Modified by lavinhoque33, 2026-11-10
  */
 
 package app.morphe.patches.youtube.video.information
@@ -480,13 +480,17 @@ internal fun getModernChannelIdFingerprint(playerResponseType: String) = object 
     ),
 ) {}
 
+/**
+ * The channel name is read for the "Person" metadata of the app indexing.
+ * Some targets, such as 21.09, have the "setMetadata may only be called once" check in another place.
+ */
 internal fun getModernChannelNameFingerprint(playerResponseType: String) = object : Fingerprint(
     filters = listOf(
-        string("setMetadata may only be called once"),
+        string("Person"),
         patcherMethodCall(
             definingClass = playerResponseType,
             returnType = "Ljava/lang/String;",
-            location = MatchAfterWithin(30),
+            location = MatchAfterWithin(5),
         ),
     ),
 ) {}

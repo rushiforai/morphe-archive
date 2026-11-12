@@ -88,12 +88,31 @@ public final class SettingsUi {
             watched.setSummary(Strings.get("auto_watched_summary"));
             auto.addPreference(watched);
             toggle(ctx, auto, XSettings.AUTO_LIKE, "auto_like", "auto_like_summary");
+            toggle(ctx, auto, XSettings.LIVE_CATCH_UP, "live_catch_up", "live_catch_up_summary");
+            text(ctx, auto, XSettings.LIVE_CATCH_UP_SPEED, "live_catch_up_speed", "live_catch_up_speed_summary", false);
+
+            PreferenceCategory playback = category(ctx, screen, "cat_playback");
+            toggle(ctx, playback, XSettings.KEEP_PLAYING_SCREEN_OFF, "keep_playing", "keep_playing_summary");
+            toggle(ctx, playback, XSettings.AUDIO_ONLY_SCREEN_OFF, "audio_only_off", "audio_only_off_summary");
 
             PreferenceCategory layout = category(ctx, screen, "cat_layout");
             toggle(ctx, layout, XSettings.SAVE_OPENS_CHOOSER, "save_chooser", "save_chooser_summary");
             toggle(ctx, layout, XSettings.HIDE_COMMENTS_COMMUNITY, "hide_community", "hide_community_summary");
             toggle(ctx, layout, XSettings.HIDE_CHANNEL_BAR_DOTS, "hide_dots", null);
             toggle(ctx, layout, XSettings.LIVE_CHAT_ALL_MESSAGES, "live_chat_all", "live_chat_all_summary");
+            toggle(ctx, layout, XSettings.DEARROW_TAP, "dearrow_tap", "dearrow_tap_summary");
+            toggle(ctx, layout, XSettings.DEARROW_SUGGEST, "dearrow_suggest", "dearrow_suggest_summary");
+            toggle(ctx, layout, XSettings.CHAT_AVATAR_CHANNEL, "chat_avatar", "chat_avatar_summary");
+            ListPreference votes = new ListPreference(ctx);
+            votes.setKey(XSettings.VOTE_FORMAT.key);
+            votes.setTitle(Strings.get("vote_format"));
+            votes.setDialogTitle(Strings.get("vote_format"));
+            votes.setEntries(new String[]{Strings.get("vote_format_count"), Strings.get("vote_format_percent"),
+                    Strings.get("vote_format_both")});
+            votes.setEntryValues(new String[]{"count", "percent", "both"});
+            votes.setValue(XSettings.VOTE_FORMAT.get());
+            votes.setSummary(Strings.get("vote_format_summary"));
+            layout.addPreference(votes);
 
             PreferenceCategory fixes = category(ctx, screen, "cat_fixes");
             toggle(ctx, fixes, XSettings.FIX_NAVIGATION_TAPS, "fix_nav", null);

@@ -148,8 +148,8 @@ val googleAppManifestPatch = resourcePatch(
  * Google アプリ（AGSA）内の GMS パッケージ名および Action 名を MicroG-RE (app.revanced.android.gms) へ包括リダイレクトするバイトコードパッチ
  */
 val gmsCoreBytecodePatch = bytecodePatch(
-    name = "GmsCore Bytecode Redirect (MicroG RE 7.0.0)",
-    description = "Google アプリ内部の GMS パッケージ名・権限・Provider authority を MicroG RE へリダイレクトします。",
+    name = "GmsCore Bytecode Redirect (MicroG RE)",
+    description = "Redirects GMS package/permissions/provider references to app.revanced.android.gms. Tested with microG RE 7.3.0; the previous 7.0.0 title was not a version requirement.",
     default = true
 ) {
     compatibleWith("com.google.android.googlequicksearchbox")

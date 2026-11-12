@@ -674,62 +674,10 @@ val cameraLooksPatch = bytecodePatch(
             }
         }
 
-        // ── 26. Force VFE Pipeline Enablement (rvq.b) ──
-        mutableClassDefByOrNull("Lrvq;")?.let { clazz ->
-            val smali = """
-                sget-object p0, Lyuq;->a:Lyuq;
-                const/4 v0, 0x0
-                invoke-static {p0, v0}, Lthd;->c(Ljava/util/Set;Z)Lthd;
-                move-result-object p0
-                invoke-virtual {p0}, Ljava/lang/Object;->getClass()Ljava/lang/Class;
-                return-object p0
-            """.trimIndent()
-            PixelCameraPatchUtils.replaceMethodBody(clazz, "b", "Lthd;", smali)
-        }
-
-        // ── 27. Force VFE Presentation Creation (rva.m) ──
-        mutableClassDefByOrNull("Lrva;")?.let { clazz ->
-            clazz.methods.firstOrNull { it.name == "m" && it.parameterTypes == listOf("Z", "Z") }?.let { method ->
-                val impl = method.implementation ?: return@let
-                val amIdx = impl.instructions.indexOfFirst {
-                    (it as? ReferenceInstruction)?.reference?.toString()?.contains("Lrva;->am:Lurt;") == true
-                }
-                if (amIdx != -1) {
-                    val ifEqzIdx = impl.instructions.subList(amIdx, impl.instructions.size).indexOfFirst {
-                        it.opcode == Opcode.IF_EQZ
-                    }
-                    if (ifEqzIdx != -1) {
-                        val targetIdx = amIdx + ifEqzIdx
-                        val forceOne = "const/4 v5, 0x1".toInstructions(method)
-                        impl.addInstruction(targetIdx, forceOne[0])
-                    }
-                }
-            }
-        }
-
-        // ── 28. Force Viewfinder Stream to ImageReader for VFE (ozw.b) ──
-        mutableClassDefByOrNull("Lozw;")?.let { clazz ->
-            val smaliB = """
-                invoke-virtual {p0, p1}, Lozw;->a(Lusx;)Luwy;
-                move-result-object p0
-                invoke-static {}, Lvbg;->a()Lvbf;
-                move-result-object p1
-                sget-object v0, Lvbj;->a:Lvbj;
-                iput-object v0, p1, Lvbf;->a:Lvbj;
-                invoke-virtual {p1, p2}, Lvbf;->b(Lvgu;)V
-                invoke-virtual {p1, p0}, Lvbf;->p(Luwy;)V
-                const/16 p0, 0x22
-                invoke-virtual {p1, p0}, Lvbf;->j(I)V
-                const/4 p0, 0x7
-                invoke-virtual {p1, p0}, Lvbf;->c(I)V
-                const-wide/16 v0, 0x922
-                invoke-virtual {p1, v0, v1}, Lvbf;->t(J)V
-                invoke-virtual {p1}, Lvbf;->a()Lvbg;
-                move-result-object p0
-                return-object p0
-            """.trimIndent()
-            PixelCameraPatchUtils.replaceMethodBody(clazz, "b", "Lvbg;", smaliB)
-        }
+        // ── 26-28. Timelapse (Cheetah) VFE presentation overrides removed ──
+        // Note: rva, rvq, and ozw are internal Timelapse Mode ("Cheetah") classes.
+        // Forcing VFE presentation in rva.m causes a fatal crash (xum.E on null this.as).
+        // Camera Looks operates in photo/capture modes and does not touch Timelapse.
 
         // ── 29. Hook qwh.smali to connect Tone & Color Fine-Tuning sliders to TomteInitHelper & pco ──
         mutableClassDefByOrNull("Lqwh;")?.let { clazz ->
@@ -900,6 +848,14 @@ val cameraLooksPatch = bytecodePatch(
                 if-nez v1, :cond_restart_tuning
                 const-string v1, "pref_video_noise_reduction_key"
                 invoke-virtual {v1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+                move-result v1
+                if-nez v1, :cond_restart_tuning
+                const-string v1, "pref_video_bitrate_key"
+                invoke-virtual {v1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+                move-result v1
+                if-nez v1, :cond_restart_tuning
+                const-string v1, "pref_video_stabilization_mode_key"
+                invoke-virtual {v1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
                 move-result v0
                 if-eqz v0, :cond_done
                 :cond_restart_tuning
@@ -980,25 +936,41 @@ val cameraLooksPatch = bytecodePatch(
         mutableClassDefByOrNull("Ljhh;")?.let { clazz ->
             for (method in clazz.methods) {
                 val impl = method.implementation ?: continue
-                val eIdx = impl.instructions.indexOfFirst {
-                    (it as? ReferenceInstruction)?.reference?.toString()?.contains("Ljhq;->e(Landroid/hardware/camera2/CaptureRequest\$Key;Ljava/lang/Object;Lvae;)V") == true
+                val nrIdx = impl.instructions.indexOfFirst {
+                    (it as? ReferenceInstruction)?.reference?.toString()?.contains("NOISE_REDUCTION_MODE") == true
                 }
-                if (eIdx != -1) {
-                    val valOfIdx = impl.instructions.indexOfFirst {
-                        (it as? ReferenceInstruction)?.reference?.toString()?.contains("Integer;->valueOf(I)Ljava/lang/Integer;") == true
-                    }
-                    if (valOfIdx != -1 && valOfIdx < eIdx) {
-                        try {
-                            val insList = """
-                                invoke-static {v1}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->filterVideoNoiseReductionMode(I)I
-                                move-result v1
-                            """.trimIndent().toInstructions(method)
-                            for ((offset, ins) in insList.withIndex()) {
-                                impl.addInstruction(valOfIdx + offset, ins)
-                            }
-                        } catch (_: Throwable) {}
-                        break
-                    }
+                if (nrIdx != -1) {
+                    try {
+                        val insList = """
+                            invoke-static {v1}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->filterVideoNoiseReductionMode(I)I
+                            move-result v1
+                        """.trimIndent().toInstructions(method)
+                        for ((offset, ins) in insList.withIndex()) {
+                            impl.addInstruction(nrIdx + offset, ins)
+                        }
+                    } catch (_: Throwable) {}
+                    break
+                }
+            }
+        }
+
+        // ── 35. Hook Luuy;-><init> before setInteger("bitrate") to apply Pro Video Bitrate and QP clamp ──
+        mutableClassDefByOrNull("Luuy;")?.let { clazz ->
+            clazz.methods.firstOrNull { it.name == "<init>" && it.parameterTypes.size >= 10 }?.let { method ->
+                val impl = method.implementation ?: return@let
+                val bitrateIdx = impl.instructions.indexOfFirst {
+                    (it as? ReferenceInstruction)?.reference?.toString()?.contains("bitrate") == true
+                }
+                if (bitrateIdx != -1) {
+                    try {
+                        val insList = """
+                            invoke-static {v10, v9}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->filterVideoBitrate(ILandroid/media/MediaFormat;)I
+                            move-result v10
+                        """.trimIndent().toInstructions(method)
+                        for ((offset, ins) in insList.withIndex()) {
+                            impl.addInstruction(bitrateIdx + offset, ins)
+                        }
+                    } catch (_: Throwable) {}
                 }
             }
         }

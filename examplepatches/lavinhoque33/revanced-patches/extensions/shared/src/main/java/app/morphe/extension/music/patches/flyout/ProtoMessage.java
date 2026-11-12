@@ -3,6 +3,8 @@
  * https://github.com/MorpheApp/morphe-patches/pull/3852
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ *
+ * Modified by lavinhoque33, 2026-11-11.
  */
 
 package app.morphe.extension.music.patches.flyout;
@@ -44,6 +46,15 @@ final class ProtoMessage {
     String utf8Text() { return new String(data, start, end - start, StandardCharsets.UTF_8); }
     String stringField(int fieldNumber) { return messageField(fieldNumber).utf8Text(); }
     byte[] serializedBytes() { return Arrays.copyOfRange(data, start, end); }
+
+    boolean contentEquals(ProtoMessage other) {
+        int length = end - start;
+        if (length != other.end - other.start) return false;
+        for (int index = 0; index < length; index++) {
+            if (data[start + index] != other.data[other.start + index]) return false;
+        }
+        return true;
+    }
 
     ProtoMessage messagePath(int... fieldNumbers) {
         ProtoMessage nestedMessage = this;

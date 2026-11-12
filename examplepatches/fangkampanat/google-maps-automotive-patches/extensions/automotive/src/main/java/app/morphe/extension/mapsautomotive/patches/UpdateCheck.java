@@ -393,37 +393,56 @@ public final class UpdateCheck {
                 : (thai ? "ตรวจอัตโนมัติปิดอยู่ · แตะเพื่อดู" : "Automatic check off · tap for details");
     }
 
-    /** The dialog's lines: the versions, what to do, the notes of a newer release, the last check. */
+    /**
+     * The dialog's text, one group per entry (an empty line between groups): the verdict with the versions (and, for
+     * a newer release, what to do), that release's notes, then the last check or failure, which joins the verdict's
+     * group when there are no notes to keep apart.
+     */
     static List<String> lines(State s, String installed, boolean thai, long nowMs, TimeZone zone) {
         List<String> lines = new ArrayList<>();
-        lines.add((thai ? "เวอร์ชันที่ติดตั้ง: " : "Installed: ") + (installed == null ? "?" : installed));
+        String have = installed == null ? "?" : installed;
         if (s.latest != null) {
             String date = releaseDate(s.publishedAt, nowMs, zone, thai);
-            lines.add((thai ? "ล่าสุดบน GitHub: " : "Latest on GitHub: ") + s.latest
-                    + (date == null ? "" : thai ? " (ปล่อยเมื่อ " + date + ")" : " (released " + date + ")"));
+            String released = date == null ? "" : thai ? " (ปล่อยเมื่อ " + date + ")" : " (released " + date + ")";
             Integer order = compare(s.latest, installed);
             if (order != null && order > 0) {
-                lines.add(thai ? "มีเวอร์ชันใหม่ แอปอัปเดตตัวเองไม่ได้: patch ใหม่ด้วย Morphe Desktop บนคอม (ขั้นตอนอยู่ในหน้าโปรเจกต์)"
-                        + " แล้วติดตั้งทับเวอร์ชันนี้ ถ้าใช้ keystore เดิม ข้อมูลในแอปจะยังอยู่"
-                        : "A newer version is out. The app cannot update itself: patch again with Morphe Desktop on a computer"
-                        + " (the project page has the steps), then install it over this one. With the same keystore the app keeps its data.");
+                lines.add((thai ? "มีเวอร์ชันใหม่ " + s.latest + " · ติดตั้งอยู่ " + have : s.latest + " is available · installed " + have)
+                        + released + "\n" + (thai
+                        ? "อัปเดต: patch ใหม่ด้วย Morphe Desktop บนคอม แล้วติดตั้งทับ ใช้ keystore เดิม ข้อมูลในแอปจะยังอยู่"
+                        : "To update: patch again with Morphe Desktop on a computer and install it over this one."
+                        + " With the same keystore the app keeps its data."));
                 if (s.notes != null) lines.add((thai ? "มีอะไรใหม่\n" : "What's new\n") + s.notes);
             } else if (order != null && order < 0) {
-                lines.add(thai ? "เวอร์ชันนี้ใหม่กว่าที่ปล่อยล่าสุด (เวอร์ชันทดสอบ)" : "This build is newer than the latest release (a test build).");
+                // Newer than the release GitHub last answered with: a test build by its name, else a release this
+                // check has not seen yet.
+                boolean test = have.contains("-dev.");
+                lines.add(test ? (thai ? "เวอร์ชันทดสอบ " + have + " · ล่าสุดที่ปล่อย " + s.latest : "Test build " + have + " · latest release " + s.latest)
+                        : (thai ? "ติดตั้งอยู่ " + have + " · ใหม่กว่าที่ปล่อยล่าสุด (" + s.latest + ")"
+                        : "Installed " + have + " · newer than the latest release (" + s.latest + ")"));
             } else if (order != null) {
-                lines.add(thai ? "ใช้เวอร์ชันล่าสุดอยู่แล้ว" : "This is the latest version.");
+                lines.add(thai ? "ล่าสุดแล้ว · " + have : "Up to date · " + have);
+            } else {
+                // A tag that is not a version, or an installed version that cannot be read: both as they are.
+                lines.add((thai ? "ติดตั้งอยู่ " + have + " · ล่าสุดบน GitHub " : "Installed " + have + " · latest on GitHub ") + s.latest + released);
             }
         } else if (s.noRelease) {
-            lines.add(thai ? "ยังไม่มีเวอร์ชันที่ปล่อยบน GitHub" : "No release on GitHub yet.");
+            lines.add(thai ? "ยังไม่มีเวอร์ชันที่ปล่อยบน GitHub · ติดตั้งอยู่ " + have : "No release on GitHub yet · installed " + have);
         } else {
-            lines.add(thai ? "ยังไม่ได้ตรวจ" : "Not checked yet.");
+            lines.add(thai ? "ยังไม่ได้ตรวจ · ติดตั้งอยู่ " + have : "Not checked yet · installed " + have);
         }
+        StringBuilder checks = new StringBuilder();
         if (s.checkedAt > 0) {
-            lines.add((thai ? "ตรวจล่าสุด: " : "Last checked: ") + SendToCarStatus.clock(s.checkedAt, nowMs, zone, thai));
+            checks.append(thai ? "ตรวจล่าสุด: " : "Last checked: ").append(SendToCarStatus.clock(s.checkedAt, nowMs, zone, thai));
         }
         if (s.failedAt > 0) {
-            lines.add((thai ? "ตรวจครั้งล่าสุดไม่สำเร็จ (" : "The last check failed (") + SendToCarStatus.clock(s.failedAt, nowMs, zone, thai)
-                    + "): " + failureText(s.failure, thai));
+            if (checks.length() > 0) checks.append('\n');
+            checks.append(thai ? "ตรวจครั้งล่าสุดไม่สำเร็จ (" : "The last check failed (").append(SendToCarStatus.clock(s.failedAt, nowMs, zone, thai))
+                    .append("): ").append(failureText(s.failure, thai));
+        }
+        if (checks.length() > 0) {
+            // Its own group only under the notes; else right under the verdict.
+            if (lines.size() > 1) lines.add(checks.toString());
+            else lines.set(0, lines.get(0) + "\n" + checks);
         }
         return lines;
     }
@@ -449,8 +468,8 @@ public final class UpdateCheck {
             if (text.length() > 0) text.append("\n\n");
             text.append(line);
         }
-        text.append("\n\n").append(thai ? "สแกน QR ด้วยมือถือเพื่อเปิดหน้าโปรเจกต์ซึ่งมีขั้นตอนติดตั้ง:"
-                : "Scan the QR code with your phone to open the project page with the install steps:");
+        text.append("\n\n").append(thai ? "สแกน QR เพื่อเปิดหน้าโปรเจกต์ (ขั้นตอนติดตั้ง)"
+                : "Scan the QR code for the project page (install steps)");
         text.append('\n').append(shortPage(projectUrl));
         return text.toString();
     }
@@ -712,8 +731,8 @@ public final class UpdateCheck {
             manager.createNotificationChannel(channel);
             Intent open = new Intent(context, ReportActivity.class).setAction(ACTION_SHOW).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             PendingIntent tap = PendingIntent.getActivity(context, 1, open, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
-            String text = thai ? "แตะเพื่อดูว่ามีอะไรใหม่ และ QR ไปหน้าโปรเจกต์ แอปอัปเดตตัวเองไม่ได้ ต้อง patch ใหม่ด้วย Morphe Desktop"
-                    : "Tap for what's new and a QR code to the project page. The app cannot update itself: patch it again with Morphe Desktop.";
+            String text = thai ? "แตะเพื่อดูว่ามีอะไรใหม่ อัปเดตด้วย Morphe Desktop บนคอม"
+                    : "Tap for what's new. Update with Morphe Desktop on a computer.";
             Notification notification = new Notification.Builder(context, CHANNEL)
                     .setSmallIcon(Icon.createWithResource("android", android.R.drawable.stat_sys_download_done))
                     .setContentTitle(thai ? "มีแพตช์เวอร์ชันใหม่ " + latest : "Patches " + latest + " are available")

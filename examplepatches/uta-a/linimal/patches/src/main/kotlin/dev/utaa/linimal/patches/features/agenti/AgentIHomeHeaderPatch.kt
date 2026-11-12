@@ -87,7 +87,7 @@ private fun homeAgentHeaderSupplierFingerprint(iconCallbackType: String) = Finge
  * icon row や他の 3 button callback、遷移処理、analytics は変更しません。
  */
 val agentIHomeHeaderPatch = bytecodePatch(
-    name = "ホーム上部の Agent i",
+    name = "Agent i in home header",
     description = "ホーム画面上部にある Agent i の入口を、実行時設定で非表示にできるようにします。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

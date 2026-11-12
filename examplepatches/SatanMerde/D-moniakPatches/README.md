@@ -13,16 +13,16 @@
     <img src="https://img.shields.io/github/stars/SatanMerde/D-moniakPatches?style=for-the-badge&logo=github&color=EAC54F" alt="GitHub Stars">
   </a>
   <a href="#-patches-list">
-    <img src="https://img.shields.io/badge/Patches-497-8A2BE2?style=for-the-badge&logo=android&logoColor=white" alt="Total Patches">
+    <img src="https://img.shields.io/badge/Patches-513-8A2BE2?style=for-the-badge&logo=android&logoColor=white" alt="Total Patches">
   </a>
   <a href="#-tested--functional-patches">
     <img src="https://img.shields.io/badge/Functional-32-00C853?style=for-the-badge&logo=checkmarx&logoColor=white" alt="Functional Patches">
   </a>
   <a href="#-experimental-patches-vibe-coded">
-    <img src="https://img.shields.io/badge/Experimental-465-FFA000?style=for-the-badge&logo=probot&logoColor=white" alt="Experimental Patches">
+    <img src="https://img.shields.io/badge/Experimental-481-FFA000?style=for-the-badge&logo=probot&logoColor=white" alt="Experimental Patches">
   </a>
   <a href="#-patches-list">
-    <img src="https://img.shields.io/badge/Supported_Apps-128-3388FF?style=for-the-badge&logo=googleplay&logoColor=white" alt="Supported Apps">
+    <img src="https://img.shields.io/badge/Supported_Apps-132-3388FF?style=for-the-badge&logo=googleplay&logoColor=white" alt="Supported Apps">
   </a>
   <a href="https://github.com/SatanMerde/D-moniakPatches/releases/latest">
     <img src="https://img.shields.io/github/v/release/SatanMerde/D-moniakPatches?style=for-the-badge&logo=github&color=blueviolet" alt="Latest Release">
@@ -93,7 +93,7 @@ Experiencing an issue, want an experimental patch to work, or tested an experime
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.72.0](https://github.com/SatanMerde/D-moniakPatches/releases/tag/v1.72.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;**497 total patches** (32 tested & functional • 465 experimental)
+> **[v1.73.1](https://github.com/SatanMerde/D-moniakPatches/releases/tag/v1.73.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;**513 total patches** (32 tested & functional • 481 experimental)
 
 ---
 
@@ -550,15 +550,21 @@ Experiencing an issue, want an experimental patch to work, or tested an experime
 </details>
 
 <details open>
-<summary>📦 Claude&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<summary>📦 Claude&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>
+
+**🎯 Supported versions:**
+
+| 1.261109.19 |
+| :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description |
 |----------|----------------|
-| [AMOLED Dark Theme - Claude AI (Experimental)](#amoled-dark-theme-claude-ai-experimental) | ⚠️ [Experimental / Untested] Forces deep AMOLED pure black theme for Claude AI, optimizing contrast and reducing battery consumption on OLED displays. |
-| [Bypass Input Length & Upload Limits - Claude AI (Experimental)](#bypass-input-length-upload-limits-claude-ai-experimental) | ⚠️ [Experimental / Untested] Removes client-side message input text length truncation and allows pasting massive codebases or prompts without mobile UI lag in Claude AI. |
-| [Disable Telemetry & Tracking - Claude AI (Experimental)](#disable-telemetry-tracking-claude-ai-experimental) | ⚠️ [Experimental / Untested] Disables client-side analytical telemetry, performance metrics reporting, and tracker SDK calls in Claude AI. |
-| [Export Full Chat & Copy Markdown - Claude AI (Experimental)](#export-full-chat-copy-markdown-claude-ai-experimental) | ⚠️ [Experimental / Untested] Enables full conversation history export to Markdown, copying entire discussion threads with intact code blocks directly to clipboard in Claude AI. |
+| [AMOLED Dark Theme - Claude AI (Experimental)](#amoled-dark-theme-claude-ai-experimental) | Forces deep AMOLED pure black theme for Claude AI, optimizing contrast and reducing battery consumption on OLED displays. |
+| [Bypass Input Length & Upload Limits - Claude AI (Experimental)](#bypass-input-length-upload-limits-claude-ai-experimental) | Removes client-side message input text length truncation and allows pasting massive codebases or prompts without mobile UI lag in Claude AI. |
+| [Bypass Play Integrity & Installer Check - Claude AI (Experimental)](#bypass-play-integrity-installer-check-claude-ai-experimental) | Spoofs Google Play Store (com.android.vending) installation source and neutralizes client-side Play Integrity attestation during sign-in and session initialization. |
+| [Disable Telemetry & Tracking - Claude AI (Experimental)](#disable-telemetry-tracking-claude-ai-experimental) | Disables client-side analytical telemetry, performance metrics reporting, and tracker SDK calls in Claude AI. |
+| [Export Full Chat & Copy Markdown - Claude AI (Experimental)](#export-full-chat-copy-markdown-claude-ai-experimental) | Enables full conversation history export to Markdown, copying entire discussion threads with intact code blocks directly to clipboard in Claude AI. |
 
 </details>
 
@@ -622,14 +628,21 @@ Experiencing an issue, want an experimental patch to work, or tested an experime
 </details>
 
 <details open>
-<summary>📦 DeepL&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<summary>📦 DeepL&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>
+
+**🎯 Supported versions:**
+
+| 26.45 |
+| :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description |
 |----------|----------------|
-| [Unlock Pro & Formality - DeepL (Experimental)](#unlock-pro-formality-deepl-experimental) | ⚠️ [Experimental / Untested] Hooks Google Play Billing to bypass in-app purchase verification for DeepL Pro (tone and formality selection, extended translation limits, and dictionary features). |
-| [Unlock Unlimited Document & PDF Translations - DeepL (Experimental)](#unlock-unlimited-document-pdf-translations-deepl-experimental) | ⚠️ [Experimental / Untested] Removes the monthly document translation limit (PDF, DOCX, PPTX), unlocks higher file size thresholds, and enables full document layout preservation in DeepL. |
-| [Unlock Unlimited Glossaries & Writing Styles - DeepL (Experimental)](#unlock-unlimited-glossaries-writing-styles-deepl-experimental) | ⚠️ [Experimental / Untested] Unlocks unlimited custom glossary terminology pairs and enables advanced professional writing styles (Academic, Technical, Casual, Business) in DeepL. |
+| [Disable Analytics and Telemetry - DeepL (Experimental)](#disable-analytics-and-telemetry-deepl-experimental) | Suppresses DAP (Data Analytics Pipeline), Statsig experimentation client, Sentry crash reporting, and usage tracking in DeepL to reduce data sent to DeepL servers. |
+| [Unlock Pro - DeepL (Experimental)](#unlock-pro-deepl-experimental) | Hooks Google Play Billing to bypass in-app purchase verification for DeepL Pro. Unlocks tone and formality selection, extended translation limits, and advanced dictionary features. |
+| [Unlock Unlimited Document and PDF Translations - DeepL (Experimental)](#unlock-unlimited-document-and-pdf-translations-deepl-experimental) | Removes the monthly document translation limit (PDF, DOCX, PPTX), unlocks higher file size thresholds, and enables full document layout preservation in DeepL. |
+| [Unlock Unlimited Glossaries and Writing Styles - DeepL (Experimental)](#unlock-unlimited-glossaries-and-writing-styles-deepl-experimental) | Unlocks unlimited custom glossary terminology pairs and enables advanced professional writing styles (Academic, Technical, Casual, Business) in DeepL. |
+| [Unlock Voice Conversations and Transcript Pro - DeepL (Experimental)](#unlock-voice-conversations-and-transcript-pro-deepl-experimental) | Unlocks DeepL Voice (real-time speech translation), multi-party Conversation mode, group voice sessions, and Voice Pro transcript features normally gated behind a paid plan. |
 
 </details>
 
@@ -1019,6 +1032,24 @@ Experiencing an issue, want an experimental patch to work, or tested an experime
 </details>
 
 <details open>
+<summary>📦 MacroDroid&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 6.1.5 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Ad-Free and Remove Upgrade Nags - MacroDroid (Experimental)](#ad-free-and-remove-upgrade-nags-macrodroid-experimental) | Removes banner and interstitial advertisements, disables Pro upgrade nag screens (AdvertActivity, MacroDroidProAdvertActivity2), and suppresses rewarded advert prompts across MacroDroid. |
+| [Allow Screenshots and Scenes Capture - MacroDroid (Experimental)](#allow-screenshots-and-scenes-capture-macrodroid-experimental) | Removes FLAG_SECURE window flags from MacroDroid password prompts, variable value dialogs, and custom scene screens, permitting screen captures and screen recording without black screen blocking. |
+| [Unlimited Macros and Import - MacroDroid (Experimental)](#unlimited-macros-and-import-macrodroid-experimental) | Removes the free-tier restriction limiting users to 5 macros. Enables creating, running, and importing an unlimited number of active automation macros and action blocks. |
+| [Unlock Pro and Unlimited Features - MacroDroid (Experimental)](#unlock-pro-and-unlimited-features-macrodroid-experimental) | Bypasses Google Play Billing verification for MacroDroid Pro, unlocks all Pro-exclusive actions, triggers, and constraints, and enables full automation features without restriction. |
+
+</details>
+
+<details open>
 <summary>📦 Mathway&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
@@ -1065,6 +1096,23 @@ Experiencing an issue, want an experimental patch to work, or tested an experime
 | 💊&nbsp;Patch | 📜&nbsp;Description |
 |----------|----------------|
 | [Ad-Free Transit & Clean Interface - Moovit (Experimental)](#ad-free-transit-clean-interface-moovit-experimental) | ⚠️ [Experimental / Untested] Neutralizes full-screen interstitial ads when viewing schedules, removes bottom banner ads, and declutters live transit map overlays in Moovit. |
+
+</details>
+
+<details open>
+<summary>📦 MT Manager&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 🧪&nbsp;2.26.11 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Bypass Signature and Installer Verification - MT Manager (Experimental)](#bypass-signature-and-installer-verification-mt-manager-experimental) | Spoofs Google Play Store installation source and neutralizes Java-side APK signature and package verification checks in MT Manager. NOTE: Native integrity checks via libmtprotect.so may still require system-level signature spoofing. |
+| [Remove Ads and Update Prompts - MT Manager (Experimental)](#remove-ads-and-update-prompts-mt-manager-experimental) | Removes in-app promotional banners and interstitial advertisements, disables forced update dialogs, and suppresses upgrade nag screens across MT Manager. |
+| [Unlock VIP Features and Themes - MT Manager (Experimental)](#unlock-vip-features-and-themes-mt-manager-experimental) | Unlocks MT Manager VIP capabilities (batch rename, advanced DEX and Arsc editors, syntax highlighting, XML text search and replace, VIP themes) by hooking VIP privilege getters, expiration checks, and Google Play Billing. WARNING: MT Manager incorporates native MTProtect anti-tamper (libmtprotect.so). |
 
 </details>
 
@@ -1157,6 +1205,23 @@ Experiencing an issue, want an experimental patch to work, or tested an experime
 |----------|----------------|
 | [Ad-Free & Unlock Animated Step Solutions - Photomath (Experimental)](#ad-free-unlock-animated-step-solutions-photomath-experimental) | ⚠️ [Experimental / Untested] Blocks ads and unlocks deep step-by-step animated explanations, textbook geometry solutions, and calculation tips in Photomath. |
 | [Unlock Photomath Plus - Photomath (Experimental)](#unlock-photomath-plus-photomath-experimental) | ⚠️ [Experimental / Untested] Hooks Google Play Billing to bypass in-app subscription verification for Photomath Plus (detailed math explanations, animated tutorials, and textbook solutions). |
+
+</details>
+
+<details open>
+<summary>📦 Picture Mushroom&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 2.10.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Ad-Free & Clean Experience - Picture Mushroom (Experimental)](#ad-free-clean-experience-picture-mushroom-experimental) | Removes in-app banner ads, interstitials, rewarded ad popups, and sponsored cards in Picture Mushroom. |
+| [Allow Screenshots & Screen Recording - Picture Mushroom (Experimental)](#allow-screenshots-screen-recording-picture-mushroom-experimental) | Disables Android FLAG_SECURE window restrictions to allow screenshots and screen recording across all Picture Mushroom identification screens and guides. |
+| [Unlock Premium & VIP - Picture Mushroom (Experimental)](#unlock-premium-vip-picture-mushroom-experimental) | Unlocks Gold and Platinum VIP features in Picture Mushroom, including unlimited mushroom identifications, advanced edibility and toxicity guidance, foraging maps, mushroom book encyclopedia, AI chatbot consultations, removes subscription paywall prompts, and eliminates the startup network connection error trap. |
 
 </details>
 
@@ -1420,6 +1485,23 @@ Experiencing an issue, want an experimental patch to work, or tested an experime
 </details>
 
 <details open>
+<summary>📦 ShroomID&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 3.52.3 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Ad-Free & Clean Experience - ShroomID (Experimental)](#ad-free-clean-experience-shroomid-experimental) | Removes in-app Google Mobile Ads (interstitial, rewarded, and banner ads) for an uninterrupted mushroom foraging experience. |
+| [Allow Screenshots & Screen Recording - ShroomID (Experimental)](#allow-screenshots-screen-recording-shroomid-experimental) | Disables Android FLAG_SECURE window restrictions to allow screenshots and screen recording across all ShroomID mushroom identification and field guide screens. |
+| [Unlock Premium & Pro - ShroomID (Experimental)](#unlock-premium-pro-shroomid-experimental) | Unlocks full lifetime Premium & Pro subscription features in ShroomID, including AI mushroom identification, detailed edibility guides, spore prints, offline database access, and removes Adapty paywalls. |
+
+</details>
+
+<details open>
 <summary>📦 Signal&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
 
@@ -1464,12 +1546,17 @@ Experiencing an issue, want an experimental patch to work, or tested an experime
 <summary>📦 Snapchat&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
 
+**🎯 Supported versions:**
+
+| 🧪&nbsp;14.31.0.56 |
+| :---: |
+
 | 💊&nbsp;Patch | 📜&nbsp;Description |
 |----------|----------------|
-| [AMOLED Dark Theme & Declutter - Snapchat (Experimental)](#amoled-dark-theme-declutter-snapchat-experimental) | ⚠️ [Experimental / Untested] Injects pure OLED pitch black (#000000) into Snapchat chat screens and hides sponsored Discover tiles and intrusive Spotlight ads. |
-| [Allow Screenshots & Anti-Screen Security - Snapchat (Experimental)](#allow-screenshots-anti-screen-security-snapchat-experimental) | ⚠️ [Experimental / Untested] Removes FLAG_SECURE restrictions on Snapchat chat and media viewer activities, allowing screen capture without black screen restrictions. |
-| [Start on Chat & Battery Saver - Snapchat (Experimental)](#start-on-chat-battery-saver-snapchat-experimental) | ⚠️ [Experimental / Untested] Configures Snapchat to launch directly on the Chat conversation feed instead of opening the battery-draining camera viewfinder on startup. |
-| [Unlock Snapchat+ Features - Snapchat (Experimental)](#unlock-snapchat-features-snapchat-experimental) | ⚠️ [Experimental / Untested] Unlocks client-side Snapchat+ UI features: custom app icons, post-view emojis, best friends pin badges, and dark mode controls. |
+| [AMOLED Dark Theme and Declutter - Snapchat (Experimental)](#amoled-dark-theme-and-declutter-snapchat-experimental) | Forces pure OLED black backgrounds for chats and conversation screens, disables commercial ad inserts in Stories and Spotlight, and hides sponsored Discover tiles. WARNING: Experimental patch with account suspension risks. |
+| [Allow Screenshots and Anti-Screen Security - Snapchat (Experimental)](#allow-screenshots-and-anti-screen-security-snapchat-experimental) | Removes FLAG_SECURE window restrictions and neutralizes client-side screenshot detection triggers on Snapchat chat and media viewers. WARNING: Snapchat enforces aggressive native integrity and attestation checks (libclient.so) with high risk of account suspension. |
+| [Start on Chat and Battery Saver - Snapchat (Experimental)](#start-on-chat-and-battery-saver-snapchat-experimental) | Configures Snapchat to open directly on the Chat conversation feed instead of initializing the camera viewfinder on startup, saving battery. WARNING: Experimental patch with account suspension risks. |
+| [Unlock Snapchat+ Features - Snapchat (Experimental)](#unlock-snapchat-features-snapchat-experimental) | Unlocks client-side Snapchat+ UI features including custom app icons, post-view emojis, best friends pin badges, and dark appearance controls. Server-side features remain unverified. WARNING: Experimental patch with account suspension risks. |
 
 </details>
 
@@ -1766,6 +1853,11 @@ Experiencing an issue, want an experimental patch to work, or tested an experime
 <summary>📦 YouTube&nbsp;&nbsp;•&nbsp;&nbsp;106 patches</summary>
 <br>
 
+**🎯 Supported versions:**
+
+| 21.44.539 |
+| :---: |
+
 | 💊&nbsp;Patch | 📜&nbsp;Description |
 |----------|----------------|
 | [Add to queue - YouTube (Experimental)](#add-to-queue-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Overrides the feed flyout 'Play next in queue' with the Morphe video queue. |
@@ -1773,7 +1865,7 @@ Experiencing an issue, want an experimental patch to work, or tested an experime
 | [Ambient mode - YouTube (Experimental)](#ambient-mode-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds options to bypass power saving restrictions for Ambient mode and disable it entirely or in fullscreen. |
 | [App refresh rate - YouTube (Experimental)](#app-refresh-rate-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to change the app refresh rate. |
 | [Background & PiP Playback - YouTube (Experimental)](#background-pip-playback-youtube-experimental) | ⚠️ [Experimental / Untested] Enables background audio playback when the screen is locked or switching between apps, and unlocks Picture-in-Picture (PiP) mode without YouTube Premium. |
-| [Block Video & Feed Ads - YouTube (Experimental)](#block-video-feed-ads-youtube-experimental) | ⚠️ [Experimental / Untested] Strips pre-roll and mid-roll video advertisements, home feed sponsored cards, search result ads, shorts ads, and info card promos in YouTube. |
+| [Block Video and Feed Ads - YouTube (Experimental)](#block-video-and-feed-ads-youtube-experimental) | Strips pre-roll and mid-roll video advertisements, home feed sponsored cards, search result ads, Shorts ads, and info card promos in YouTube. |
 | [Bypass image region restrictions - YouTube (Experimental)](#bypass-image-region-restrictions-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to use a different host for user avatar and channel images and can fix missing images that are blocked in some countries. |
 | [Bypass link redirects - YouTube (Experimental)](#bypass-link-redirects-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to bypass redirects and open the original link directly. |
 | [Captions - YouTube (Experimental)](#captions-youtube-experimental) | ⚠️ [En cours de développement / Non testé] Adds an option to disable captions from being automatically enabled or to set caption cookies. |

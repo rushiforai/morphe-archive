@@ -68,6 +68,7 @@ val myDialogDisableSslPinningPatch = bytecodePatch(
         "validation stays intact.",
     default = true,
 ) {
+    category("Security")
     compatibleWith(MYDIALOG_COMPATIBILITY)
 
     dependsOn(securityConfigPatch)

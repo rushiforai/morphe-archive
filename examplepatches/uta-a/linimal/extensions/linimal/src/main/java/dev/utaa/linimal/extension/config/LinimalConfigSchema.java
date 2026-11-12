@@ -18,6 +18,7 @@ final class LinimalConfigSchema {
     static final String AGENT_I_WALLET_HEADER_ENABLED_KEY = "linimal.agent_i.wallet_header";
     static final String AGENT_I_SETTINGS_ENABLED_KEY = "linimal.agent_i.settings";
     static final String AGENT_I_CHAT_COMPOSER_ENABLED_KEY = "linimal.agent_i.chat_composer";
+    static final String AGENT_I_CHAT_PLUS_MENU_ENABLED_KEY = "linimal.agent_i.chat_plus_menu";
     static final String AGENT_I_CHAT_LIST_SEARCH_ENABLED_KEY = "linimal.agent_i.chat_list_search";
     static final String LINE_AI_MESSAGE_CONTEXT_MENU_ENABLED_KEY =
             "linimal.agent_i.message_context_menu";
@@ -29,6 +30,7 @@ final class LinimalConfigSchema {
     static final String PREMIUM_SETTINGS_ROW_ENABLED_KEY = "linimal.settings.premium_row";
     static final String PREMIUM_PREVIEW_PROMOTION_ENABLED_KEY = "linimal.preview.premium_promotion";
     static final String PREVIEW_SCROLL_ENABLED_KEY = "linimal.preview.scroll";
+    static final String PREVIEW_DISABLE_ENABLED_KEY = "linimal.preview.disable";
     static final String AMOLED_THEME_ENABLED_KEY = "linimal.appearance.amoled";
     static final String NEWS_ENABLED_KEY = "linimal.feature.news";
     static final String WALLET_ENABLED_KEY = "linimal.feature.wallet";
@@ -37,6 +39,7 @@ final class LinimalConfigSchema {
     static final String HOME_FEED_POST_CARDS_ENABLED_KEY = "linimal.ui.home.feed_post_cards";
     static final String HOME_FEATURED_COLLECTIONS_ENABLED_KEY =
             "linimal.ui.home.featured_collections";
+    static final String HOME_FEED_LIVE_ENABLED_KEY = "linimal.ui.home.feed_live";
     static final String HOME_RECENT_HISTORY_ENABLED_KEY = "linimal.ui.home.recent_history";
     static final String CHAT_CALENDAR_ENABLED_KEY = "linimal.chat.tools.calendar";
     static final String CHAT_LINE_GIFT_ENABLED_KEY = "linimal.chat.tools.line_gift";
@@ -44,6 +47,12 @@ final class LinimalConfigSchema {
     static final String READ_WITHOUT_RECEIPT_ENABLED_KEY = "linimal.chat.read_without_receipt";
     static final String NOTIFICATION_READ_WITHOUT_RECEIPT_ENABLED_KEY =
             "linimal.chat.notification_read_without_receipt";
+    static final String READ_RECEIPT_READERS_ICONS_ENABLED_KEY = "linimal.chat.readers.icons";
+    static final String READ_RECEIPT_READERS_TAP_ENABLED_KEY = "linimal.chat.readers.tap";
+    static final String READ_RECEIPT_READERS_OTHERS_COUNT_ENABLED_KEY = "linimal.chat.readers.others_count";
+    static final String READ_RECEIPT_READERS_OTHERS_ICONS_ENABLED_KEY = "linimal.chat.readers.others_icons";
+    static final String READ_RECEIPT_READERS_MENU_ENABLED_KEY = "linimal.chat.readers.menu";
+    static final String READ_RECEIPT_READERS_SERVER_SYNC_ENABLED_KEY = "linimal.chat.readers.server_sync";
     static final String KEEP_UNREAD_AFTER_SEND_KEY = "linimal.chat.keep_unread_after_send";
     static final String CHAT_LIST_HEADER_AI_FRIENDS_ENABLED_KEY = "linimal.chat.header.ai_friends";
     static final String CHAT_LIST_HEADER_CALENDAR_ENABLED_KEY = "linimal.chat.header.calendar";
@@ -74,6 +83,8 @@ final class LinimalConfigSchema {
                 return AGENT_I_SETTINGS_ENABLED_KEY;
             case AGENT_I_CHAT_COMPOSER:
                 return AGENT_I_CHAT_COMPOSER_ENABLED_KEY;
+            case AGENT_I_CHAT_PLUS_MENU:
+                return AGENT_I_CHAT_PLUS_MENU_ENABLED_KEY;
             case AGENT_I_CHAT_LIST_SEARCH:
                 return AGENT_I_CHAT_LIST_SEARCH_ENABLED_KEY;
             case LINE_AI_MESSAGE_CONTEXT_MENU:
@@ -92,6 +103,8 @@ final class LinimalConfigSchema {
                 return PREMIUM_PREVIEW_PROMOTION_ENABLED_KEY;
             case PREVIEW_SCROLL:
                 return PREVIEW_SCROLL_ENABLED_KEY;
+            case PREVIEW_DISABLE:
+                return PREVIEW_DISABLE_ENABLED_KEY;
             case AMOLED_THEME:
                 return AMOLED_THEME_ENABLED_KEY;
             case NEWS:
@@ -106,6 +119,8 @@ final class LinimalConfigSchema {
                 return HOME_FEED_POST_CARDS_ENABLED_KEY;
             case HOME_FEATURED_COLLECTIONS:
                 return HOME_FEATURED_COLLECTIONS_ENABLED_KEY;
+            case HOME_FEED_LIVE:
+                return HOME_FEED_LIVE_ENABLED_KEY;
             case HOME_RECENT_HISTORY:
                 return HOME_RECENT_HISTORY_ENABLED_KEY;
             case CHAT_CALENDAR:
@@ -118,6 +133,18 @@ final class LinimalConfigSchema {
                 return READ_WITHOUT_RECEIPT_ENABLED_KEY;
             case NOTIFICATION_READ_WITHOUT_RECEIPT:
                 return NOTIFICATION_READ_WITHOUT_RECEIPT_ENABLED_KEY;
+            case READ_RECEIPT_READERS_ICONS:
+                return READ_RECEIPT_READERS_ICONS_ENABLED_KEY;
+            case READ_RECEIPT_READERS_TAP:
+                return READ_RECEIPT_READERS_TAP_ENABLED_KEY;
+            case READ_RECEIPT_READERS_OTHERS_COUNT:
+                return READ_RECEIPT_READERS_OTHERS_COUNT_ENABLED_KEY;
+            case READ_RECEIPT_READERS_OTHERS_ICONS:
+                return READ_RECEIPT_READERS_OTHERS_ICONS_ENABLED_KEY;
+            case READ_RECEIPT_READERS_MENU:
+                return READ_RECEIPT_READERS_MENU_ENABLED_KEY;
+            case READ_RECEIPT_READERS_SERVER_SYNC:
+                return READ_RECEIPT_READERS_SERVER_SYNC_ENABLED_KEY;
             case CHAT_LIST_HEADER_AI_FRIENDS:
                 return CHAT_LIST_HEADER_AI_FRIENDS_ENABLED_KEY;
             case CHAT_LIST_HEADER_CALENDAR:

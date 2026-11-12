@@ -214,7 +214,7 @@ private fun performanceAdListGateFingerprint(mapperType: String, viewDataType: S
  * OFF では hook が同じ List instance を返し、ON ではこの専用 mapper の item だけを空 list にします。
  */
 val homeTopAdPatch = bytecodePatch(
-    name = "ホーム内の広告",
+    name = "Home ads",
     description = "ホーム画面内の Performance Ad とフィード広告を、実行時設定で非表示にできるようにします。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

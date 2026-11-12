@@ -5,17 +5,21 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  *
- * Modified by lavinhoque33, 2026-11-05.
+ * Modified by lavinhoque33, 2026-11-11.
  */
 
 package app.morphe.patches.music.interaction.crossfade
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
+import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.opcode
 import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.Opcode
+
+internal const val EXO_PLAYER_TYPE = "Landroidx/media3/exoplayer/ExoPlayer;"
 
 /**
  * Crossfade discovery uses two tiers of fingerprints:
@@ -46,6 +50,21 @@ internal object PlayNextInQueueFingerprint : Fingerprint(
     strings = listOf(
         string("gapless.seek.next", StringComparisonType.CONTAINS),
         string("playNextInQueue.", StringComparisonType.STARTS_WITH)
+    ),
+)
+
+/** Stores the app volume, including normalization, after forwarding it to ExoPlayer. */
+internal object PlayerVolumeFingerprint : Fingerprint(
+    classFingerprint = PlayNextInQueueFingerprint,
+    returnType = "V",
+    parameters = listOf("F"),
+    filters = listOf(
+        methodCall(
+            definingClass = "Landroidx/media3/exoplayer/ExoPlayer;",
+            returnType = "V",
+            parameters = listOf("F"),
+        ),
+        fieldAccess(opcode = Opcode.IPUT, type = "F", location = MatchAfterImmediately()),
     ),
 )
 
@@ -129,3 +148,26 @@ internal object HandleDismissWatchEventFingerprint : Fingerprint(
     },
 )
 
+/** The sleep timer enum keeps its constant names across app versions. */
+internal object SleepTimerStateFingerprint : Fingerprint(
+    name = "<clinit>",
+    strings = listOf("INACTIVE", "ACTIVE_TIMER", "ACTIVE_END_OF_TRACK"),
+)
+
+internal object AudioEffectSessionFingerprint : Fingerprint(
+    name = "<init>",
+    strings = listOf(
+        "android.media.action.OPEN_AUDIO_EFFECT_CONTROL_SESSION",
+        "android.media.action.CLOSE_AUDIO_EFFECT_CONTROL_SESSION",
+    ),
+)
+
+internal object CloseAudioEffectSessionFingerprint : Fingerprint(
+    classFingerprint = AudioEffectSessionFingerprint,
+    returnType = "V",
+    parameters = listOf("I"),
+    filters = listOf(
+        string("android.media.extra.AUDIO_SESSION"),
+        methodCall(smali = "Landroid/content/Context;->sendBroadcast(Landroid/content/Intent;)V"),
+    ),
+)

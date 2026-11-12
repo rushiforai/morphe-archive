@@ -1,3 +1,9 @@
+## [1.6.0-dev.3](https://github.com/Nezumi-2711/morphe-patches/compare/v1.6.0-dev.2...v1.6.0-dev.3) (2026-11-11)
+
+### 🐛 Bug Fixes
+
+* **zalo:** keep OA accounts hidden after relaunch ([3f2d5ed](https://github.com/Nezumi-2711/morphe-patches/commit/3f2d5edd38e83d486406a092c5644a9bf3c553da))
+
 ## [1.6.0-dev.2](https://github.com/Nezumi-2711/morphe-patches/compare/v1.6.0-dev.1...v1.6.0-dev.2) (2026-11-11)
 
 ### ✨ New Features

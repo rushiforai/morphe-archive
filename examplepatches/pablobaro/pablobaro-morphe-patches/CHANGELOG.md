@@ -1,3 +1,15 @@
+## [1.1.3](https://github.com/pablobaro/pablobaro-morphe-patches/compare/v1.1.2...v1.1.3) (2026-11-11)
+
+### 🐛 Bug Fixes
+
+* **spotify:** support Spotify 9.1.94 in "Hide context menu upsells" ([4a4e25f](https://github.com/pablobaro/pablobaro-morphe-patches/commit/4a4e25febacaf2add8fef35414fe2e3968a79943))
+
+## [1.1.3-dev.1](https://github.com/pablobaro/pablobaro-morphe-patches/compare/v1.1.2...v1.1.3-dev.1) (2026-11-11)
+
+### 🐛 Bug Fixes
+
+* **spotify:** support Spotify 9.1.94 in "Hide context menu upsells" ([4a4e25f](https://github.com/pablobaro/pablobaro-morphe-patches/commit/4a4e25febacaf2add8fef35414fe2e3968a79943))
+
 ## [1.1.2](https://github.com/pablobaro/pablobaro-morphe-patches/compare/v1.1.1...v1.1.2) (2026-11-10)
 
 ### 🐛 Bug Fixes

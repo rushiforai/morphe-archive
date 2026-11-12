@@ -358,6 +358,9 @@ public final class SelectionCheck {
         hook(calls, flags, "ghostMode", "misc/GhostMode", "drop");
         hook(calls, flags, "receiveOnly", "misc/AccountGuard", "drop");
         hook(calls, flags, "powerOff", "misc/AccountGuard", "drop");
+        hook(calls, flags, "instantLock", "misc/InstantLock", "autoLockIn");
+        hook(calls, flags, "quietSignUp", "misc/QuietSignUp", "noJoinedNotifications");
+        hook(calls, flags, "proxyOrder", "misc/ProxyOrder", "sort");
         hook(calls, flags, "callDebugUpload", "misc/CallDebug", "skipCallDebugUpload");
         hook(calls, flags, "callLogFileUpload", "misc/CallDebug", "skipCallLogFileUpload");
         hook(calls, flags, "callLogUpload", "misc/CallDebug", "skipCallLogUpload");
@@ -489,10 +492,20 @@ public final class SelectionCheck {
         hook(calls, flags, "reactionAlerts", "misc/ReactionAlerts", "changed");
         hook(calls, flags, "reactionSound", "misc/ReactionAlerts", "quiet");
         hook(calls, flags, "hideByKeyword", "misc/MessageFilters", "type");
+        hook(calls, flags, "hideForMe", "misc/HiddenMessages", "type");
         hook(calls, flags, "galleryCameraOnTap", "misc/GalleryCamera", "keepCameraOff", "wakeOnTap", "openWhenReady");
         hook(calls, flags, "disableUpdateChecks", "misc/UpdateChecks", "skipUpdateCheck");
         hook(calls, flags, "testServerSignIn", "misc/TestServers", "shown", "countryState");
         hook(calls, flags, "botTokenSignIn", "misc/BotSignIn", "phoneScreen", "drop");
+        hook(calls, flags, "cropGuard", "misc/CropGuard", "begin", "missing", "notMade", "held");
+        hook(calls, flags, "captionOrder", "misc/CaptionOrder", "before", "after");
+        hook(calls, flags, "proxyMenu", "misc/ProxyMenu", "show");
+        hook(calls, flags, "freeProxies", "misc/FreeProxies", "signInButton");
+        hook(calls, flags, "myMessages", "misc/MyMessages", "headerMenu", "headerClick");
+        hook(calls, flags, "textDirection", "misc/TextDirection", "menu", "chosen");
+        hook(calls, flags, "lyrics", "misc/Lyrics", "anchor", "menu");
+        hook(calls, flags, "songDates", "misc/SongDates", "saving", "author");
+        hook(calls, flags, "chatPreviewButtons", "misc/ChatPreview", "menu");
         for (String[] bridge : List.of(
                 new String[]{"nativeTokenPresence", names.method("Lorg/telegram/messenger/SharedConfig;->hushTelegramTokenPresence()I")},
                 new String[]{"nativeAccountCounts", names.method("Lorg/telegram/messenger/UserConfig;->hushTelegramAccountCounts()I")})) {

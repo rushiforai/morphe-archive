@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.72.0",
+  "version": "1.73.1",
   "patches": [
     {
       "name": "120 FPS High Refresh Rate & Low Latency - Subway Surfers (Experimental)",
@@ -435,33 +435,6 @@
       "options": []
     },
     {
-      "name": "AMOLED Dark Theme & Declutter - Snapchat (Experimental)",
-      "description": "⚠️ [Experimental / Untested] Injects pure OLED pitch black (#000000) into Snapchat chat screens and hides sponsored Discover tiles and intrusive Spotlight ads.",
-      "default": true,
-      "category": null,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "com.snapchat.android",
-          "name": "Snapchat",
-          "description": "Snapchat by Snap Inc",
-          "apkFileType": null,
-          "appIconColor": "#FFFC00",
-          "signatures": null,
-          "targets": [
-            {
-              "version": null,
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
       "name": "AMOLED Dark Theme & Hide Donation Nags - Signal (Experimental)",
       "description": "⚠️ [Experimental / Untested] Injects pure OLED pitch black (#000000) into Signal chat threads and settings, and suppresses donor badges and 'Support Signal' donation reminders.",
       "default": true,
@@ -517,7 +490,7 @@
     },
     {
       "name": "AMOLED Dark Theme - Claude AI (Experimental)",
-      "description": "⚠️ [Experimental / Untested] Forces deep AMOLED pure black theme for Claude AI, optimizing contrast and reducing battery consumption on OLED displays.",
+      "description": "Forces deep AMOLED pure black theme for Claude AI, optimizing contrast and reducing battery consumption on OLED displays.",
       "default": true,
       "category": null,
       "dependencies": [],
@@ -531,7 +504,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "1.261109.19",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -642,6 +615,33 @@
               "version": null,
               "versionCodes": null,
               "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "AMOLED Dark Theme and Declutter - Snapchat (Experimental)",
+      "description": "Forces pure OLED black backgrounds for chats and conversation screens, disables commercial ad inserts in Stories and Spotlight, and hides sponsored Discover tiles. WARNING: Experimental patch with account suspension risks.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.snapchat.android",
+          "name": "Snapchat",
+          "description": "Snapchat by Snap Inc",
+          "apkFileType": null,
+          "appIconColor": "#FFFC00",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "14.31.0.56",
+              "versionCodes": null,
+              "isExperimental": true,
               "minSdk": null,
               "description": null
             }
@@ -772,6 +772,60 @@
           "targets": [
             {
               "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Ad-Free & Clean Experience - Picture Mushroom (Experimental)",
+      "description": "Removes in-app banner ads, interstitials, rewarded ad popups, and sponsored cards in Picture Mushroom.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.glority.picturemushroom",
+          "name": "Picture Mushroom",
+          "description": "Picture Mushroom - Mushroom ID by Glority Global Group",
+          "apkFileType": null,
+          "appIconColor": "#8D6E63",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "2.10.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Ad-Free & Clean Experience - ShroomID (Experimental)",
+      "description": "Removes in-app Google Mobile Ads (interstitial, rewarded, and banner ads) for an uninterrupted mushroom foraging experience.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.shroomid",
+          "name": "ShroomID",
+          "description": "ShroomID - Mushroom Identifier",
+          "apkFileType": null,
+          "appIconColor": "#4CAF50",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "3.52.3",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -1249,6 +1303,33 @@
       "options": []
     },
     {
+      "name": "Ad-Free and Remove Upgrade Nags - MacroDroid (Experimental)",
+      "description": "Removes banner and interstitial advertisements, disables Pro upgrade nag screens (AdvertActivity, MacroDroidProAdvertActivity2), and suppresses rewarded advert prompts across MacroDroid.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.arlosoft.macrodroid",
+          "name": "MacroDroid",
+          "description": "MacroDroid: Device Automation & Task Creator by ArloSoft",
+          "apkFileType": null,
+          "appIconColor": "#1E88E5",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "6.1.5",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Add settings - Instagram (Experimental)",
       "description": "⚠️ [En cours de développement / Non testé] Adds settings to control preferences are patching",
       "default": true,
@@ -1291,7 +1372,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -1342,33 +1423,6 @@
           "description": "Telegram Messenger by Telegram FZ-LLC",
           "apkFileType": null,
           "appIconColor": "#24A1DE",
-          "signatures": null,
-          "targets": [
-            {
-              "version": null,
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Allow Screenshots & Anti-Screen Security - Snapchat (Experimental)",
-      "description": "⚠️ [Experimental / Untested] Removes FLAG_SECURE restrictions on Snapchat chat and media viewer activities, allowing screen capture without black screen restrictions.",
-      "default": true,
-      "category": null,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "com.snapchat.android",
-          "name": "Snapchat",
-          "description": "Snapchat by Snap Inc",
-          "apkFileType": null,
-          "appIconColor": "#FFFC00",
           "signatures": null,
           "targets": [
             {
@@ -1644,6 +1698,33 @@
       "options": []
     },
     {
+      "name": "Allow Screenshots & Screen Recording - Picture Mushroom (Experimental)",
+      "description": "Disables Android FLAG_SECURE window restrictions to allow screenshots and screen recording across all Picture Mushroom identification screens and guides.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.glority.picturemushroom",
+          "name": "Picture Mushroom",
+          "description": "Picture Mushroom - Mushroom ID by Glority Global Group",
+          "apkFileType": null,
+          "appIconColor": "#8D6E63",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "2.10.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Allow Screenshots & Screen Recording - Proton Pass (Experimental)",
       "description": "⚠️ [Experimental / Untested] Bypasses Android WindowManager FLAG_SECURE restrictions in Proton Pass, allowing you to take screenshots or record screens of recovery keys, 2FA QR codes, and credentials.",
       "default": true,
@@ -1660,6 +1741,33 @@
           "targets": [
             {
               "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Allow Screenshots & Screen Recording - ShroomID (Experimental)",
+      "description": "Disables Android FLAG_SECURE window restrictions to allow screenshots and screen recording across all ShroomID mushroom identification and field guide screens.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.shroomid",
+          "name": "ShroomID",
+          "description": "ShroomID - Mushroom Identifier",
+          "apkFileType": null,
+          "appIconColor": "#4CAF50",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "3.52.3",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -1806,6 +1914,60 @@
       "options": []
     },
     {
+      "name": "Allow Screenshots and Anti-Screen Security - Snapchat (Experimental)",
+      "description": "Removes FLAG_SECURE window restrictions and neutralizes client-side screenshot detection triggers on Snapchat chat and media viewers. WARNING: Snapchat enforces aggressive native integrity and attestation checks (libclient.so) with high risk of account suspension.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.snapchat.android",
+          "name": "Snapchat",
+          "description": "Snapchat by Snap Inc",
+          "apkFileType": null,
+          "appIconColor": "#FFFC00",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "14.31.0.56",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Allow Screenshots and Scenes Capture - MacroDroid (Experimental)",
+      "description": "Removes FLAG_SECURE window flags from MacroDroid password prompts, variable value dialogs, and custom scene screens, permitting screen captures and screen recording without black screen blocking.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.arlosoft.macrodroid",
+          "name": "MacroDroid",
+          "description": "MacroDroid: Device Automation & Task Creator by ArloSoft",
+          "apkFileType": null,
+          "appIconColor": "#1E88E5",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "6.1.5",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Allow user network certificate - Instagram (Experimental)",
       "description": "⚠️ [En cours de développement / Non testé] Allows user network certificate for whitehat testing",
       "default": true,
@@ -1848,7 +2010,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -1929,7 +2091,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -2010,7 +2172,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -2091,7 +2253,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -2910,33 +3072,6 @@
       "options": []
     },
     {
-      "name": "Block Video & Feed Ads - YouTube (Experimental)",
-      "description": "⚠️ [Experimental / Untested] Strips pre-roll and mid-roll video advertisements, home feed sponsored cards, search result ads, shorts ads, and info card promos in YouTube.",
-      "default": true,
-      "category": null,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "com.google.android.youtube",
-          "name": "YouTube",
-          "description": "YouTube: Watch, Stream & Discover Videos by Google LLC",
-          "apkFileType": null,
-          "appIconColor": "#FF0000",
-          "signatures": null,
-          "targets": [
-            {
-              "version": null,
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
       "name": "Block Video Ads & Interstitials - Movix",
       "description": "Strips video pre-roll and mid-roll ads, banner ads, and redirect popups across Movix movie and series player screens.",
       "default": true,
@@ -3040,6 +3175,33 @@
       "options": []
     },
     {
+      "name": "Block Video and Feed Ads - YouTube (Experimental)",
+      "description": "Strips pre-roll and mid-roll video advertisements, home feed sponsored cards, search result ads, Shorts ads, and info card promos in YouTube.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.google.android.youtube",
+          "name": "YouTube",
+          "description": "YouTube: Watch, Stream & Discover Videos by Google LLC",
+          "apkFileType": null,
+          "appIconColor": "#FF0000",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "21.44.539",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Block Zero-Speed Ads & Sponsored Pins - Waze (Experimental)",
       "description": "⚠️ [Experimental / Untested] Prevents full-screen commercial banner popups from appearing when the vehicle is stopped at traffic lights or in congestion, and hides sponsored venue pins by neutralizing ad mediation SDKs.",
       "default": true,
@@ -3095,7 +3257,7 @@
     },
     {
       "name": "Bypass Input Length & Upload Limits - Claude AI (Experimental)",
-      "description": "⚠️ [Experimental / Untested] Removes client-side message input text length truncation and allows pasting massive codebases or prompts without mobile UI lag in Claude AI.",
+      "description": "Removes client-side message input text length truncation and allows pasting massive codebases or prompts without mobile UI lag in Claude AI.",
       "default": true,
       "category": null,
       "dependencies": [],
@@ -3109,7 +3271,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "1.261109.19",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -3208,6 +3370,33 @@
           "targets": [
             {
               "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Bypass Play Integrity & Installer Check - Claude AI (Experimental)",
+      "description": "Spoofs Google Play Store (com.android.vending) installation source and neutralizes client-side Play Integrity attestation during sign-in and session initialization.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.anthropic.claude",
+          "name": "Claude",
+          "description": "Claude: AI Assistant by Anthropic",
+          "apkFileType": null,
+          "appIconColor": "#D97706",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "1.261109.19",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -3611,6 +3800,33 @@
       "options": []
     },
     {
+      "name": "Bypass Signature and Installer Verification - MT Manager (Experimental)",
+      "description": "Spoofs Google Play Store installation source and neutralizes Java-side APK signature and package verification checks in MT Manager. NOTE: Native integrity checks via libmtprotect.so may still require system-level signature spoofing.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "bin.mt.plus",
+          "name": "MT Manager",
+          "description": "MT Manager: Powerful APK editor & file manager by Lin Jin Bin",
+          "apkFileType": null,
+          "appIconColor": "#F57C00",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "2.26.11",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Bypass image region restrictions - YouTube (Experimental)",
       "description": "⚠️ [En cours de développement / Non testé] Adds an option to use a different host for user avatar and channel images and can fix missing images that are blocked in some countries.",
       "default": true,
@@ -3626,7 +3842,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -3653,7 +3869,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -3680,7 +3896,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -3707,7 +3923,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -3734,7 +3950,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -3788,7 +4004,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -3842,7 +4058,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -3896,7 +4112,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -4031,7 +4247,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -4085,7 +4301,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -4112,7 +4328,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -4139,7 +4355,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -4220,7 +4436,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -4571,7 +4787,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -4610,6 +4826,33 @@
       "options": []
     },
     {
+      "name": "Disable Analytics and Telemetry - DeepL (Experimental)",
+      "description": "Suppresses DAP (Data Analytics Pipeline), Statsig experimentation client, Sentry crash reporting, and usage tracking in DeepL to reduce data sent to DeepL servers.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.deepl.mobiletranslator",
+          "name": "DeepL",
+          "description": "DeepL Translate: Accurate Multilingual Translator by DeepL SE",
+          "apkFileType": null,
+          "appIconColor": "#0F2B46",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "26.45",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Disable DRC Audio (Dynamic Range Compression) - YouTube (Experimental)",
       "description": "⚠️ [Experimental / Untested] Disables dynamic range compression (DRC) in YouTube's audio engine, restoring original uncompressed audio dynamics, punchy bass, and full volume without artificial normalization.",
       "default": true,
@@ -4625,7 +4868,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -4652,7 +4895,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -4777,7 +5020,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -4912,7 +5155,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -5006,7 +5249,7 @@
     },
     {
       "name": "Disable Telemetry & Tracking - Claude AI (Experimental)",
-      "description": "⚠️ [Experimental / Untested] Disables client-side analytical telemetry, performance metrics reporting, and tracker SDK calls in Claude AI.",
+      "description": "Disables client-side analytical telemetry, performance metrics reporting, and tracker SDK calls in Claude AI.",
       "default": true,
       "category": null,
       "dependencies": [],
@@ -5020,7 +5263,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "1.261109.19",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -5101,7 +5344,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -5182,7 +5425,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -5263,7 +5506,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -5290,7 +5533,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -5344,7 +5587,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -5425,7 +5668,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -5452,7 +5695,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -5479,7 +5722,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -5560,7 +5803,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -5587,7 +5830,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -5749,7 +5992,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -5776,7 +6019,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -5857,7 +6100,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -5911,7 +6154,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -6178,7 +6421,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -6218,7 +6461,7 @@
     },
     {
       "name": "Export Full Chat & Copy Markdown - Claude AI (Experimental)",
-      "description": "⚠️ [Experimental / Untested] Enables full conversation history export to Markdown, copying entire discussion threads with intact code blocks directly to clipboard in Claude AI.",
+      "description": "Enables full conversation history export to Markdown, copying entire discussion threads with intact code blocks directly to clipboard in Claude AI.",
       "default": true,
       "category": null,
       "dependencies": [],
@@ -6232,7 +6475,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "1.261109.19",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -6357,7 +6600,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -6384,7 +6627,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -6447,7 +6690,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -6474,7 +6717,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -6501,7 +6744,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -7220,7 +7463,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -7283,7 +7526,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -7337,7 +7580,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -7364,7 +7607,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -7418,7 +7661,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -7499,7 +7742,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -7526,7 +7769,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -7580,7 +7823,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -7607,7 +7850,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -7661,7 +7904,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -7688,7 +7931,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -7796,7 +8039,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -7823,7 +8066,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -7850,7 +8093,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -7877,7 +8120,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -7958,7 +8201,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -8039,7 +8282,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -8066,7 +8309,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -8578,7 +8821,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -8713,7 +8956,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -8740,7 +8983,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -8821,7 +9064,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -8875,7 +9118,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -8902,7 +9145,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -8929,7 +9172,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -8983,7 +9226,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -9010,7 +9253,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -9118,7 +9361,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -9145,7 +9388,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -9172,7 +9415,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -9199,7 +9442,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -9226,7 +9469,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -9280,7 +9523,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -9307,7 +9550,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -9334,7 +9577,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -9361,7 +9604,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -9388,7 +9631,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -9415,7 +9658,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -9577,7 +9820,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -9864,7 +10107,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -9891,7 +10134,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -9918,9 +10161,36 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Remove Ads and Update Prompts - MT Manager (Experimental)",
+      "description": "Removes in-app promotional banners and interstitial advertisements, disables forced update dialogs, and suppresses upgrade nag screens across MT Manager.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "bin.mt.plus",
+          "name": "MT Manager",
+          "description": "MT Manager: Powerful APK editor & file manager by Lin Jin Bin",
+          "apkFileType": null,
+          "appIconColor": "#F57C00",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "2.26.11",
+              "versionCodes": null,
+              "isExperimental": true,
               "minSdk": null,
               "description": null
             }
@@ -9972,7 +10242,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -10080,7 +10350,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -10107,7 +10377,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -10134,7 +10404,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -10269,7 +10539,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -10350,7 +10620,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -10377,7 +10647,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -10404,7 +10674,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -10431,7 +10701,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -10458,7 +10728,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -10566,7 +10836,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -10593,7 +10863,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -10620,7 +10890,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -10647,7 +10917,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -10701,7 +10971,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -10740,8 +11010,8 @@
       "options": []
     },
     {
-      "name": "Start on Chat & Battery Saver - Snapchat (Experimental)",
-      "description": "⚠️ [Experimental / Untested] Configures Snapchat to launch directly on the Chat conversation feed instead of opening the battery-draining camera viewfinder on startup.",
+      "name": "Start on Chat and Battery Saver - Snapchat (Experimental)",
+      "description": "Configures Snapchat to open directly on the Chat conversation feed instead of initializing the camera viewfinder on startup, saving battery. WARNING: Experimental patch with account suspension risks.",
       "default": true,
       "category": null,
       "dependencies": [],
@@ -10755,9 +11025,9 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "14.31.0.56",
               "versionCodes": null,
-              "isExperimental": false,
+              "isExperimental": true,
               "minSdk": null,
               "description": null
             }
@@ -10809,7 +11079,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -10863,7 +11133,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -11016,6 +11286,33 @@
           "targets": [
             {
               "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlimited Macros and Import - MacroDroid (Experimental)",
+      "description": "Removes the free-tier restriction limiting users to 5 macros. Enables creating, running, and importing an unlimited number of active automation macros and action blocks.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.arlosoft.macrodroid",
+          "name": "MacroDroid",
+          "description": "MacroDroid: Device Automation & Task Creator by ArloSoft",
+          "apkFileType": null,
+          "appIconColor": "#1E88E5",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "6.1.5",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -12424,6 +12721,33 @@
       "options": []
     },
     {
+      "name": "Unlock Premium & Pro - ShroomID (Experimental)",
+      "description": "Unlocks full lifetime Premium & Pro subscription features in ShroomID, including AI mushroom identification, detailed edibility guides, spore prints, offline database access, and removes Adapty paywalls.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.shroomid",
+          "name": "ShroomID",
+          "description": "ShroomID - Mushroom Identifier",
+          "apkFileType": null,
+          "appIconColor": "#4CAF50",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "3.52.3",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Unlock Premium & Pro Features - Moises",
       "description": "Hooks Google Play BillingClient, RevenueCat EntitlementInfo, and subscription data models in Moises (v2.72.0 recommended) to unlock client-side Pro features, bypass startup upgrade paywalls, Smart Metronome, chord detection, and pitch/speed controls.",
       "default": true,
@@ -12494,6 +12818,33 @@
           "targets": [
             {
               "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock Premium & VIP - Picture Mushroom (Experimental)",
+      "description": "Unlocks Gold and Platinum VIP features in Picture Mushroom, including unlimited mushroom identifications, advanced edibility and toxicity guidance, foraging maps, mushroom book encyclopedia, AI chatbot consultations, removes subscription paywall prompts, and eliminates the startup network connection error trap.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.glority.picturemushroom",
+          "name": "Picture Mushroom",
+          "description": "Picture Mushroom - Mushroom ID by Glority Global Group",
+          "apkFileType": null,
+          "appIconColor": "#8D6E63",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "2.10.0",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -12804,33 +13155,6 @@
       "options": []
     },
     {
-      "name": "Unlock Pro & Formality - DeepL (Experimental)",
-      "description": "⚠️ [Experimental / Untested] Hooks Google Play Billing to bypass in-app purchase verification for DeepL Pro (tone and formality selection, extended translation limits, and dictionary features).",
-      "default": true,
-      "category": null,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "com.deepl.mobile.android",
-          "name": "DeepL",
-          "description": "DeepL Translate: Accurate Multilingual Translator by DeepL SE",
-          "apkFileType": null,
-          "appIconColor": "#0F2B46",
-          "signatures": null,
-          "targets": [
-            {
-              "version": null,
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
       "name": "Unlock Pro & Multi-Instance - Virtual Master",
       "description": "Unlocks Virtual Master Pro edition, allowing unlimited virtual Android instances, root permission toggles, customized device ID spoofing, and advanced backup/restore by hooking MemberStatusResponse, obfuscated BillingManager gatekeepers, and Google Play Billing.",
       "default": true,
@@ -13000,6 +13324,33 @@
       "options": []
     },
     {
+      "name": "Unlock Pro - DeepL (Experimental)",
+      "description": "Hooks Google Play Billing to bypass in-app purchase verification for DeepL Pro. Unlocks tone and formality selection, extended translation limits, and advanced dictionary features.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.deepl.mobiletranslator",
+          "name": "DeepL",
+          "description": "DeepL Translate: Accurate Multilingual Translator by DeepL SE",
+          "apkFileType": null,
+          "appIconColor": "#0F2B46",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "26.45",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Unlock Pro Features & Layouts - Todoist (Experimental)",
       "description": "⚠️ [Experimental / Untested] Hooks Google Play Billing and subscription status in Todoist to unlock client-side Pro features, custom theme palettes, unlimited task reminders, and full activity logs.",
       "default": true,
@@ -13070,6 +13421,33 @@
           "targets": [
             {
               "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock Pro and Unlimited Features - MacroDroid (Experimental)",
+      "description": "Bypasses Google Play Billing verification for MacroDroid Pro, unlocks all Pro-exclusive actions, triggers, and constraints, and enables full automation features without restriction.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.arlosoft.macrodroid",
+          "name": "MacroDroid",
+          "description": "MacroDroid: Device Automation & Task Creator by ArloSoft",
+          "apkFileType": null,
+          "appIconColor": "#1E88E5",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "6.1.5",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -13180,7 +13558,7 @@
     },
     {
       "name": "Unlock Snapchat+ Features - Snapchat (Experimental)",
-      "description": "⚠️ [Experimental / Untested] Unlocks client-side Snapchat+ UI features: custom app icons, post-view emojis, best friends pin badges, and dark mode controls.",
+      "description": "Unlocks client-side Snapchat+ UI features including custom app icons, post-view emojis, best friends pin badges, and dark appearance controls. Server-side features remain unverified. WARNING: Experimental patch with account suspension risks.",
       "default": true,
       "category": null,
       "dependencies": [],
@@ -13194,9 +13572,9 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "14.31.0.56",
               "versionCodes": null,
-              "isExperimental": false,
+              "isExperimental": true,
               "minSdk": null,
               "description": null
             }
@@ -13314,14 +13692,14 @@
       "options": []
     },
     {
-      "name": "Unlock Unlimited Document & PDF Translations - DeepL (Experimental)",
-      "description": "⚠️ [Experimental / Untested] Removes the monthly document translation limit (PDF, DOCX, PPTX), unlocks higher file size thresholds, and enables full document layout preservation in DeepL.",
+      "name": "Unlock Unlimited Document and PDF Translations - DeepL (Experimental)",
+      "description": "Removes the monthly document translation limit (PDF, DOCX, PPTX), unlocks higher file size thresholds, and enables full document layout preservation in DeepL.",
       "default": true,
       "category": null,
       "dependencies": [],
       "compatiblePackages": [
         {
-          "packageName": "com.deepl.mobile.android",
+          "packageName": "com.deepl.mobiletranslator",
           "name": "DeepL",
           "description": "DeepL Translate: Accurate Multilingual Translator by DeepL SE",
           "apkFileType": null,
@@ -13329,7 +13707,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "26.45",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -13341,14 +13719,14 @@
       "options": []
     },
     {
-      "name": "Unlock Unlimited Glossaries & Writing Styles - DeepL (Experimental)",
-      "description": "⚠️ [Experimental / Untested] Unlocks unlimited custom glossary terminology pairs and enables advanced professional writing styles (Academic, Technical, Casual, Business) in DeepL.",
+      "name": "Unlock Unlimited Glossaries and Writing Styles - DeepL (Experimental)",
+      "description": "Unlocks unlimited custom glossary terminology pairs and enables advanced professional writing styles (Academic, Technical, Casual, Business) in DeepL.",
       "default": true,
       "category": null,
       "dependencies": [],
       "compatiblePackages": [
         {
-          "packageName": "com.deepl.mobile.android",
+          "packageName": "com.deepl.mobiletranslator",
           "name": "DeepL",
           "description": "DeepL Translate: Accurate Multilingual Translator by DeepL SE",
           "apkFileType": null,
@@ -13356,7 +13734,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "26.45",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -13449,6 +13827,33 @@
       "options": []
     },
     {
+      "name": "Unlock VIP Features and Themes - MT Manager (Experimental)",
+      "description": "Unlocks MT Manager VIP capabilities (batch rename, advanced DEX and Arsc editors, syntax highlighting, XML text search and replace, VIP themes) by hooking VIP privilege getters, expiration checks, and Google Play Billing. WARNING: MT Manager incorporates native MTProtect anti-tamper (libmtprotect.so).",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "bin.mt.plus",
+          "name": "MT Manager",
+          "description": "MT Manager: Powerful APK editor & file manager by Lin Jin Bin",
+          "apkFileType": null,
+          "appIconColor": "#F57C00",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "2.26.11",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Unlock Video Player Speed & Controls - TeraBox (Experimental)",
       "description": "⚠️ [Experimental / Untested] Unlocks background video playback, 1080p/original video quality streaming selector, and variable playback speeds without TeraBox Premium.",
       "default": true,
@@ -13492,6 +13897,33 @@
           "targets": [
             {
               "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock Voice Conversations and Transcript Pro - DeepL (Experimental)",
+      "description": "Unlocks DeepL Voice (real-time speech translation), multi-party Conversation mode, group voice sessions, and Voice Pro transcript features normally gated behind a paid plan.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.deepl.mobiletranslator",
+          "name": "DeepL",
+          "description": "DeepL Translate: Accurate Multilingual Translator by DeepL SE",
+          "apkFileType": null,
+          "appIconColor": "#0F2B46",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "26.45",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -13653,7 +14085,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -13788,7 +14220,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -13815,7 +14247,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": null,
+              "version": "21.44.539",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,

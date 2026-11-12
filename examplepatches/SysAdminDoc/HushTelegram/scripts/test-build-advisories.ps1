@@ -84,8 +84,8 @@ function Assert-ReviewedBuildGraph($Report) {
         }
     }
     foreach ($library in $netty) {
-        if ($library.Version -cne '4.1.138.Final') {
-            throw "Android host test Netty is not aligned at 4.1.138.Final: $($library.Purl)"
+        if ($library.Version -cne '4.1.140.Final') {
+            throw "Android host test Netty is not aligned at 4.1.140.Final: $($library.Purl)"
         }
     }
     $settingsVersions = @{
@@ -123,8 +123,8 @@ function New-ReviewedBuildReport {
     $core = ':extensions:telegram:_internal-unified-test-platform-core'
     $emulator = ':extensions:telegram:_internal-unified-test-platform-android-test-plugin-host-emulator-control'
     $modules = [ordered]@{
-        'io.netty:netty-common' = '4.1.138.Final'; 'io.netty:netty-handler' = '4.1.138.Final'
-        'io.netty:netty-codec-http2' = '4.1.138.Final'; 'org.bitbucket.b_c:jose4j' = '0.9.7'
+        'io.netty:netty-common' = '4.1.140.Final'; 'io.netty:netty-handler' = '4.1.140.Final'
+        'io.netty:netty-codec-http2' = '4.1.140.Final'; 'org.bitbucket.b_c:jose4j' = '0.9.7'
         'org.jdom:jdom2' = '2.0.6.1'; 'org.jetbrains.kotlin:kotlin-gradle-plugin' = '2.4.20'
         'org.bouncycastle:bcprov-jdk18on' = '1.86'; 'org.bouncycastle:bcpkix-jdk18on' = '1.86'
         'org.bouncycastle:bcutil-jdk18on' = '1.86'

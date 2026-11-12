@@ -13,7 +13,9 @@ private const val EXTENSION_CLASS = "Larpit/morphe/extension/macrofactor/premium
 
 // Extension loading + activity context hook. Declared before the public patch because
 // top-level properties initialize in declaration order.
-private val extensionPatch = sharedExtensionPatch(
+// `internal` so the sibling MacroFactor (com.sbs.diet) patch can reuse the same
+// extension instance instead of declaring a duplicate helper patch.
+internal val extensionPatch = sharedExtensionPatch(
     "macrofactor",
     activityOnCreateExtensionHook("/FlutterFragmentActivity;")
 )

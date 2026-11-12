@@ -7,7 +7,6 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.dmoniak.patches.shared.Constants.COMPATIBILITY_YOUTUBE
 import java.util.logging.Logger
 
-@Suppress("unused")
 val youtubeDisableDRCAudioPatch = bytecodePatch(
     name = "Disable DRC Audio (Dynamic Range Compression) - YouTube (Experimental)",
     description = "⚠️ [Experimental / Untested] Disables dynamic range compression (DRC) in YouTube's audio engine, restoring original uncompressed audio dynamics, punchy bass, and full volume without artificial normalization.",
@@ -26,7 +25,7 @@ fun BytecodePatchContext.executeYouTubeDisableDRCLogic(logger: Logger) {
 
     classDefForEach { classDef ->
         val tl = classDef.type.lowercase()
-        if (tl.contains("androidx") || tl.contains("android/support")) return@classDefForEach
+        if (!tl.contains("androidx") && !tl.contains("android/support")) {
 
         val mutableClass by lazy { mutableClassDefBy(classDef) }
 
@@ -58,6 +57,7 @@ fun BytecodePatchContext.executeYouTubeDisableDRCLogic(logger: Logger) {
                     logger.warning("[YouTube DRC] Failed to hook ${method.name}: ${e.message}")
                 }
             }
+        }
         }
     }
 

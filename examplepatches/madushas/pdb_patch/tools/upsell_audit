@@ -1,0 +1,193 @@
+#!/usr/bin/env python3
+"""upsell_audit — inventory the upsell / paywall / promo surfaces of a decoded APK.
+
+Codifies the manual method that found the Strava 2026 upsell leak, so the same
+audit can be run against any app (or the same app after an update) in one command.
+
+Method
+  1. Read `res/values/public.xml` and take every `type="string"` entry whose NAME
+     looks upsell-ish (upsell|paywall|promo|upgrade|trial|unlock|premium|subscri…).
+  2. Map each to its resource id (0x7f…).
+  3. One `rg -F -f ids` pass over all smali files → every referencing file + which id.
+  4. Attribute each hit to its enclosing `.method` (so you see *where* it is used).
+  5. Independently scan smali for upsell-shaped string LITERALS — this is how the
+     non-modular / server-driven surfaces show up (module "types", campaign keys).
+  6. Print a summary; write the full report to a file.
+
+Usage
+  tools/upsell_audit <decoded-dir> [-o report.md] [--name APP]
+
+Exit status is always 0 unless the input is unusable; this is a read-only report.
+"""
+from __future__ import annotations
+
+import argparse
+import os
+import re
+import subprocess
+import sys
+from collections import defaultdict
+
+# String NAMES that indicate an upsell/paywall surface. Names, not values: names are
+# stable across releases while values are reworded by marketing.
+NAME_RE = re.compile(
+    r"(?i)(upsell|paywall|promo|upgrade|free_?trial|start_?trial|subscribe|"
+    r"subscription|unlock|premium|winback|halfsheet|nudge|offer|banner)"
+)
+# String LITERALS used as module/experiment types or campaign keys.
+LITERAL_RE = re.compile(
+    r'const-string [vp][0-9]+, "([a-z0-9_.:-]*'
+    r"(?:upsell|promo|paywall|year-in-sport|winback|halfsheet|nudge|offer)"
+    r'[a-z0-9_.:-]*)"'
+)
+PUBLIC_ROW = re.compile(r'type="string"\s+name="([^"]+)"\s+id="(0x[0-9a-f]+)"')
+SMALI_GLOBS = ("smali", "smali_classes2", "smali_classes3", "smali_classes4", "smali_classes5",
+               "smali_classes6", "smali_classes7", "smali_classes8", "smali_classes9",
+               "smali_classes10")
+
+
+def find_public_xml(root: str) -> str | None:
+    for base, _dirs, files in os.walk(root):
+        if "public.xml" in files and base.endswith(os.path.join("res", "values")):
+            return os.path.join(base, "public.xml")
+    return None
+
+
+def smali_dirs(root: str) -> list[str]:
+    out = []
+    for entry in sorted(os.listdir(root)):
+        p = os.path.join(root, entry)
+        if os.path.isdir(p) and entry.startswith("smali"):
+            out.append(p)
+    return out
+
+
+def rg(args: list[str]) -> str:
+    return subprocess.run(["rg", *args], capture_output=True, text=True).stdout
+
+
+def method_at(lines: list[str], idx: int) -> str:
+    for i in range(idx, -1, -1):
+        m = re.match(r"\.method\s+(.*)", lines[i])
+        if m:
+            return m.group(1).strip()
+    return "?"
+
+
+def audit(root: str, app: str) -> str:
+    pub = find_public_xml(root)
+    names: dict[str, str] = {}
+    if pub:
+        with open(pub, encoding="utf-8", errors="replace") as fh:
+            for line in fh:
+                m = PUBLIC_ROW.search(line)
+                if m and NAME_RE.search(m.group(1)):
+                    names[m.group(2)] = m.group(1)
+
+    dirs = smali_dirs(root)
+    report: list[str] = [f"# Upsell audit — {app}", "", f"decoded: `{root}`", ""]
+    report.append(f"- candidate upsell **string names**: {len(names)}")
+    report.append(f"- smali dirs scanned: {len(dirs)}")
+
+    # ── referenced resource ids → files/methods ───────────────────────────────
+    by_name: dict[str, set[str]] = defaultdict(set)
+    if names:
+        with open("/tmp/upsell_ids.txt", "w") as fh:
+            fh.write("\n".join(names))
+        hits = rg(["-F", "-f", "/tmp/upsell_ids.txt", "-H", "-n", "--no-messages",
+                   "-g", "*.smali", *dirs])
+        file_cache: dict[str, list[str]] = {}
+        for line in hits.splitlines():
+            parts = line.split(":", 2)
+            if len(parts) != 3:
+                continue
+            path, lineno, text = parts
+            m = re.search(r"0x[0-9a-f]+", text)   # the matched literal, not the whole line
+            if not m or m.group(0) not in names:
+                continue
+            rid = m.group(0)
+            if path not in file_cache:
+                file_cache[path] = open(path, encoding="utf-8", errors="replace").read().splitlines()
+            idx = max(0, min(int(lineno) - 1, len(file_cache[path]) - 1))
+            by_name[names[rid]].add(f"{os.path.relpath(path, root)} :: {method_at(file_cache[path], idx)}")
+
+    # ── strings referenced from XML (layouts/menus), not from code ────────────
+    res_hits: dict[str, set[str]] = defaultdict(set)
+    if names:
+        with open("/tmp/upsell_names.txt", "w") as fh:
+            fh.write("\n".join(names.values()))
+        res = rg(["-F", "-f", "/tmp/upsell_names.txt", "-H", "-n", "--no-messages",
+                  "-g", "*.xml", os.path.join(root, "res")])
+        for line in res.splitlines():
+            parts = line.split(":", 2)
+            if len(parts) != 3:
+                continue
+            path, _lineno, text = parts
+            for name in re.findall(r"@string/([A-Za-z0-9_]+)", text):
+                if name in names.values():
+                    res_hits[name].add(os.path.relpath(path, root))
+
+    report += ["", "## Referenced upsell strings (id resolved → used in code)", ""]
+    referenced = {k: v for k, v in by_name.items() if v}
+    if not referenced:
+        report.append("_none — every candidate string is unreferenced (dead strings)._")
+    for name in sorted(referenced):
+        report.append(f"### `{name}`  ({len(referenced[name])} site(s))")
+        for site in sorted(referenced[name])[:8]:
+            report.append(f"- `{site}`")
+        report.append("")
+
+    report += ["", "## Referenced from XML only (layouts / menus)", "",
+               "_Used by a screen layout but not by code — check the layout's owning "
+               "Activity/Fragment for the surface._", ""]
+    if not res_hits:
+        report.append("_none._")
+    for name in sorted(res_hits):
+        report.append(f"- `{name}` → {', '.join(sorted(res_hits[name])[:4])}")
+
+    dead = sorted(set(names.values()) - set(referenced) - set(res_hits))
+    report += ["", f"## Unreferenced candidate strings ({len(dead)})", "",
+               "_Present in resources, used by neither smali nor XML → cannot render "
+               "(the Strava \"Time to flex\" case)._", ""]
+    for name in dead[:60]:
+        report.append(f"- `{name}`")
+
+    # ── upsell-shaped string literals (module types / campaign keys) ──────────
+    literals = rg(["-o", "-N", "-r", "$1", "--no-messages", "-g", "*.smali", LITERAL_RE.pattern, *dirs])
+    lit_counts = defaultdict(int)
+    for lit in literals.splitlines():
+        if lit.strip():
+            lit_counts[lit.strip()] += 1
+    report += ["", f"## Upsell-shaped string literals in smali ({len(lit_counts)})", "",
+               "_Server-driven module types / campaign keys. A modular-UI gate must cover "
+               "these; anything NOT passing through the dispatcher needs its own gate._", ""]
+    for lit, count in sorted(lit_counts.items(), key=lambda kv: (-kv[1], kv[0])):
+        report.append(f"- `{lit}` ×{count}")
+
+    return "\n".join(report) + "\n"
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("decoded_dir")
+    ap.add_argument("-o", "--out")
+    ap.add_argument("--name")
+    a = ap.parse_args()
+    if not os.path.isdir(a.decoded_dir):
+        print(f"not a directory: {a.decoded_dir}", file=sys.stderr)
+        return 2
+    app = a.name or os.path.basename(os.path.abspath(a.decoded_dir))
+    text = audit(a.decoded_dir, app)
+    out = a.out or f"/tmp/opencode/{app}_upsell_audit.md"
+    with open(out, "w") as fh:
+        fh.write(text)
+    # console digest
+    for line in text.splitlines():
+        if line.startswith(("- candidate", "- smali", "- `")) or line.startswith("## "):
+            print(line)
+    print(f"\nfull report → {out}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

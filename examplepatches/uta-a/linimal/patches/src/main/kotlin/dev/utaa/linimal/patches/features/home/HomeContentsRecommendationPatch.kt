@@ -92,7 +92,7 @@ private val recommendationBindFingerprint = Fingerprint(
 )
 
 val homeContentsRecommendationPatch = bytecodePatch(
-    name = "ホームのおすすめ枠",
+    name = "Home recommendations",
     description = "ホームのおすすめ枠を、実行時設定で非表示にできるようにします。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

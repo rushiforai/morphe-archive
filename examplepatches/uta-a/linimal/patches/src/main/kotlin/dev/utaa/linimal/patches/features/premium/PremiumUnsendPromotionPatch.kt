@@ -51,7 +51,7 @@ internal val unsendPromotionShowFingerprint = Fingerprint(
  * 呼び出し元の資格判定と通信経路は変更しません。
  */
 val premiumUnsendPromotionPatch = bytecodePatch(
-    name = "送信取消の Premium 案内",
+    name = "Premium prompt on unsend",
     description = "送信取消時に出る LINE Premium の案内を、実行時設定で非表示にできるようにします。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

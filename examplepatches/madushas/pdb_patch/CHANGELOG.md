@@ -31,10 +31,24 @@
 All notable changes to the Pdb & MyDialog Morphe patch bundle. The Manager reads
 this file to show per-app update hints and the in-app changelog.
 
-## [0.5.9](https://github.com/madushas/morphe-patches-custom/compare/v0.5.8...v0.5.9) (2026-11-10)
+## [0.6.0](https://github.com/madushas/morphe-patches-custom/compare/v0.5.9...v0.6.0) (2026-11-12)
 
 ### ✨ New Features
+* five new app patch sets, fail-closed guards, category metadata, tooling ([dbcbf86](https://github.com/madushas/morphe-patches-custom/commit/dbcbf86))
+
+### 🧹 Changes
+* fix(strava): close the upsell leak with a shape predicate and chokepoints ([1468ef7](https://github.com/madushas/morphe-patches-custom/commit/1468ef7))
+* security: remove hardcoded account email/name from tools/pdblogin ([be5317e](https://github.com/madushas/morphe-patches-custom/commit/be5317e))
+
+## [0.5.9](https://github.com/madushas/morphe-patches-custom/compare/v0.5.8...v0.5.9) (2026-11-12)
+
+### ✨ New Features
+* five new app patch sets, fail-closed guards, category metadata, tooling ([dbcbf86](https://github.com/madushas/morphe-patches-custom/commit/dbcbf86))
 * add patch support for Hutch, Material Capsule, Nike Run Club, Fitbit/Health, adidas Running and TextNow ([e717b96](https://github.com/madushas/morphe-patches-custom/commit/e717b96))
+
+### 🧹 Changes
+* fix(strava): close the upsell leak with a shape predicate and chokepoints ([1468ef7](https://github.com/madushas/morphe-patches-custom/commit/1468ef7))
+* security: remove hardcoded account email/name from tools/pdblogin ([be5317e](https://github.com/madushas/morphe-patches-custom/commit/be5317e))
 
 ## [0.5.8](https://github.com/madushas/morphe-patches-custom/compare/v0.5.7...v0.5.8) (2026-11-02)
 

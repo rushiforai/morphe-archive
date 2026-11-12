@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-01.
+ * Modified by lavinhoque33, 2026-11-10
  */
 package app.morphe.extension.music.patches.downloads;
 
@@ -15,8 +15,10 @@ import android.database.sqlite.SQLiteDatabase;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -49,6 +51,7 @@ public final class NativePlaylistStore {
     /** Called at the end of Music's own repository constructor. */
     public static void onDatabase(Object instance) {
         database = (Database) instance;
+        RawAudioStore.startCleanup();
         refreshUnsortedLater();
     }
 
@@ -86,9 +89,43 @@ public final class NativePlaylistStore {
         AndroidAutoPatch.onNativeDownloadsChanged();
     }
 
+    /** The native playlist of every playlist or album the app downloaded, by the id it was downloaded from. */
+    static Map<String, Long> savedPlaylists() {
+        Map<String, Long> playlists = new HashMap<>();
+        for (Map.Entry<String, ?> entry : Utils.getContext().getSharedPreferences(PREFERENCES, 0).getAll().entrySet()) {
+            if (entry.getValue() instanceof Long id && !entry.getKey().equals(UNSORTED)) {
+                playlists.put(entry.getKey(), id);
+            }
+        }
+        return playlists;
+    }
+
+    /** The MediaStore ids of every native playlist's tracks in position order, by playlist id. */
+    static Map<Long, List<Long>> readPlaylistTracks() {
+        Utils.verifyOffMainThread();
+        Map<Long, List<Long>> playlists = new HashMap<>();
+        File file = Utils.getContext().getDatabasePath(DATABASE_NAME);
+        if (!file.isFile()) return playlists;
+        try (SQLiteDatabase db = SQLiteDatabase.openDatabase(file.getPath(), null,
+                SQLiteDatabase.OPEN_READONLY | SQLiteDatabase.NO_LOCALIZED_COLLATORS);
+             Cursor cursor = db.rawQuery("SELECT playlist_id, audio_media_id FROM music_sideloaded_playlist_track"
+                     + " ORDER BY playlist_id, position", null)) {
+            while (cursor.moveToNext()) {
+                playlists.computeIfAbsent(cursor.getLong(0), id -> new ArrayList<>()).add(cursor.getLong(1));
+            }
+        } catch (RuntimeException ex) {
+            Logger.printException(() -> "Could not read the downloaded playlists", ex);
+        }
+        return playlists;
+    }
+
+    private static boolean filesChosen() {
+        return Settings.DOWNLOAD_METHOD.get() == DownloadMethod.DEVICE_FILES;
+    }
+
     /** Refreshes "Not in a playlist" in the background; requests made while one is queued are merged. */
     static void refreshUnsortedLater() {
-        if (!Settings.IN_APP_DOWNLOADS.get() || !refreshQueued.compareAndSet(false, true)) return;
+        if (!filesChosen() || !refreshQueued.compareAndSet(false, true)) return;
         Utils.submitOnBackgroundThread(() -> {
             refreshQueued.set(false);
             try {

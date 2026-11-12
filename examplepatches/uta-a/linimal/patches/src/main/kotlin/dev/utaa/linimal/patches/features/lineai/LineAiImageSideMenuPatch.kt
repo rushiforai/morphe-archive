@@ -68,7 +68,7 @@ internal fun lineAiImageSideMenuShape(
 
 /** 長押しメニューと同じ設定で、画像メッセージ横の LINE AI ボタンも抑制します。 */
 val lineAiImageSideMenuPatch = bytecodePatch(
-    name = "画像メッセージ横の LINE AI",
+    name = "LINE AI beside image messages",
     description = "画像メッセージ横の LINE AI ボタンを、長押しメニューの LINE AI と同じ設定で取り除けるようにします。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

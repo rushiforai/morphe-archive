@@ -36,6 +36,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstructio
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
@@ -76,7 +77,7 @@ class GhostModeFixtureTest {
             .mapNotNull { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string }
             .filter { it.startsWith("org.telegram.tgnet.") }
             .map { "L" + it.replace('.', '/') + ";" }.toSet()
-        assertEquals("the extension's request names", 12, named.size)
+        assertEquals("the extension's request names", 20, named.size)
         for (build in Fixtures.declaredBuilds()) {
             assertEquals("${build.name}: every named request", named, FixtureDex.classes(build, named).keys)
         }
@@ -90,6 +91,14 @@ class GhostModeFixtureTest {
             assertEquals("${build.name}: offline", listOf("offline:Z"),
                 request.fields.filter { it.origName == "offline" }.map { "${it.name}:${it.type}" })
             assertTrue("${build.name}: public", AccessFlags.PUBLIC.isSet(request.fields.single { it.origName == "offline" }.accessFlags))
+            assertTrue("${build.name}: built with no arguments", request.methods.any {
+                it.name == "<init>" && it.parameterTypes.isEmpty() && AccessFlags.PUBLIC.isSet(it.accessFlags)
+            })
+            // Ghost mode turns a view count request's increment off in place.
+            val views = "Lorg/telegram/tgnet/TLRPC\$TL_messages_getMessagesViews;"
+            val increment = FixtureDex.classes(build, setOf(views)).getValue(views).fields.filter { it.origName == "increment" }
+            assertEquals("${build.name}: increment", listOf("increment:Z"), increment.map { "${it.name}:${it.type}" })
+            assertTrue("${build.name}: increment public", AccessFlags.PUBLIC.isSet(increment.single().accessFlags))
             // The typing requests are TLRPC classes under the names the extension holds back.
             assertEquals(setOf("Lorg/telegram/tgnet/TLRPC\$TL_messages_setTyping;", "Lorg/telegram/tgnet/TLRPC\$TL_messages_setEncryptedTyping;"),
                 FixtureDex.classes(build, setOf("Lorg/telegram/tgnet/TLRPC\$TL_messages_setTyping;",
@@ -131,6 +140,11 @@ class GhostModeFixtureTest {
             assertFlag(context, "powerOff", true)
             assertFlag(context, "ghostMode", true)
             assertFlag(context, "disableAnalytics", true)
+            // A read Ghost mode held goes out later through Telegram's own send, with its callback (#69).
+            val held = context.tgMutableClassDefBy(GHOST_MODE).methods.single { it.origName == "sendRequest" }.instructions()
+                .mapNotNull { ((it as? ReferenceInstruction)?.reference as? MethodReference)?.origString() }
+            assertEquals(build.name, listOf("$CONNECTIONS_MANAGER->getInstance(I)$CONNECTIONS_MANAGER",
+                "$CONNECTIONS_MANAGER->sendRequest(Lorg/telegram/tgnet/TLObject;Lorg/telegram/tgnet/RequestDelegate;I)I"), held)
         }
     }
 

@@ -1,3 +1,1 @@
-plugins {
-    alias(libs.plugins.android.library) apply false
-}
+// Root build configuration. Everything of substance lives in the patches and extensions projects.

@@ -133,7 +133,8 @@ private val bydEnergyProviderPatch = resourcePatch {
 val bydBatteryPatch = bytecodePatch(
     name = "BYD battery (EV)",
     description = "Feeds the BYD battery into Maps' EV routing (battery on arrival, chargers). " +
-        "On by default on the tested BYD Dolphin, off with an \"untested\" notice on other BYD models; a Settings row turns it on or off " +
+        "On by default on the tested BYD Dolphin and on BYD model ids 128 and 138, where owners' reports show it working; off with an " +
+        "\"untested\" notice on other BYD models and on DiLink 5. A Settings row turns it on or off " +
         "and sets the battery to arrive with at charging stops and at the destination.",
     default = true,
 ) {

@@ -35,6 +35,22 @@ object Constants {
         targets = listOf(AppTarget("2.10.2", isExperimental = true))
     )
 
+    val COMPATIBILITY_PICTURE_MUSHROOM = Compatibility(
+        packageName = "com.glority.picturemushroom",
+        name = "Picture Mushroom",
+        description = "Picture Mushroom - Mushroom ID by Glority Global Group",
+        appIconColor = 0x8D6E63,
+        targets = listOf(AppTarget("2.10.0"))
+    )
+
+    val COMPATIBILITY_SHROOMID = Compatibility(
+        packageName = "com.shroomid",
+        name = "ShroomID",
+        description = "ShroomID - Mushroom Identifier",
+        appIconColor = 0x4CAF50,
+        targets = listOf(AppTarget("3.52.3"))
+    )
+
     val COMPATIBILITY_SHADOW_FIGHT_2 = Compatibility(
         packageName = "com.nekki.shadowfight",
         name = "Shadow Fight 2",
@@ -305,7 +321,8 @@ object Constants {
         packageName = "com.snapchat.android",
         name = "Snapchat",
         description = "Snapchat by Snap Inc",
-        appIconColor = 0xFFFC00
+        appIconColor = 0xFFFC00,
+        targets = listOf(AppTarget("14.31.0.56", isExperimental = true))
     )
 
     val COMPATIBILITY_MEGA = Compatibility(
@@ -569,7 +586,8 @@ object Constants {
         packageName = "com.anthropic.claude",
         name = "Claude",
         description = "Claude: AI Assistant by Anthropic",
-        appIconColor = 0xD97706
+        appIconColor = 0xD97706,
+        targets = listOf(AppTarget("1.261109.19"))
     )
 
     val COMPATIBILITY_EURIA = Compatibility(
@@ -587,10 +605,11 @@ object Constants {
     )
 
     val COMPATIBILITY_DEEPL = Compatibility(
-        packageName = "com.deepl.mobile.android",
+        packageName = "com.deepl.mobiletranslator",
         name = "DeepL",
         description = "DeepL Translate: Accurate Multilingual Translator by DeepL SE",
-        appIconColor = 0x0F2B46
+        appIconColor = 0x0F2B46,
+        targets = listOf(AppTarget("26.45"))
     )
 
     val COMPATIBILITY_SILT = Compatibility(
@@ -613,7 +632,24 @@ object Constants {
         packageName = "com.google.android.youtube",
         name = "YouTube",
         description = "YouTube: Watch, Stream & Discover Videos by Google LLC",
-        appIconColor = 0xFF0000
+        appIconColor = 0xFF0000,
+        targets = listOf(AppTarget("21.44.539"))
+    )
+
+    val COMPATIBILITY_MACRODROID = Compatibility(
+        packageName = "com.arlosoft.macrodroid",
+        name = "MacroDroid",
+        description = "MacroDroid: Device Automation & Task Creator by ArloSoft",
+        appIconColor = 0x1E88E5,
+        targets = listOf(AppTarget("6.1.5"))
+    )
+
+    val COMPATIBILITY_MT_MANAGER = Compatibility(
+        packageName = "bin.mt.plus",
+        name = "MT Manager",
+        description = "MT Manager: Powerful APK editor & file manager by Lin Jin Bin",
+        appIconColor = 0xF57C00,
+        targets = listOf(AppTarget("2.26.11", isExperimental = true))
     )
 
     val COMPATIBILITY_REDDIT = Compatibility(

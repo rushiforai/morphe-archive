@@ -112,14 +112,15 @@ public final class HiddenChatsForTests {
         @Override public void resort(int account) { resorted.add(account); }
         @Override public void recount(int account) { recounted.add(account); }
 
-        /** The long press menu's items as "id text", and the chat ids a long press picked. */
+        /** The long press menu's items as "id text", each one's view by id, and the chat ids a long press picked. */
         public final List<String> menu = new ArrayList<>();
+        public final Map<Integer, View> items = new HashMap<>();
         public final ArrayList<Object> picked = new ArrayList<>();
-        public View item;
 
         @Override public Object addMenuItem(Object more, int id, int icon, String text) {
             menu.add(Integer.toHexString(id) + " " + text);
-            item = new View(RuntimeEnvironment.getApplication());
+            View item = new View(RuntimeEnvironment.getApplication());
+            items.put(id, item);
             return item;
         }
 

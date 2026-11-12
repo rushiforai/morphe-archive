@@ -172,3 +172,50 @@ object StartErrorDialogActivityFingerprint : Fingerprint(
     definingClass = "Lcom/pairip/licensecheck/LicenseClient;",
     name = "startErrorDialogActivity"
 )
+
+// ── Server signature token — Pika Spot 1.4.5 ────────────────────────
+//
+// Every API request body (kf.d / bg.m) is built from a Param whose
+// device bean is produced by xf/b.a(). One bean field, "advertise",
+// is filled by SignatureUtils.getSignature(Context, androidId) — a
+// NATIVE method in libnative-lib.so (split_0). Reversed from the
+// arm64 library, the token is:
+//
+//   ts_us + "#" + Base64(AES-128-CBC/PKCS7(part1)) + "#" + SHA1(cert)
+//     part1 = androidId + ":" + ts_us + ":" + randomInt32
+//     key   = first 16 chars of (ts_us + androidId)
+//     IV    = "A-16-Byte-String"
+//     cert  = signing certificate DER, fetched by the native code
+//             via JNI PackageManager signatures[0].toByteArray()
+//
+// The startup device login (POST /auth/android/device, fired by the
+// loading viewmodel qh/t1.j with Param{device, type=1}) carries the
+// bean, the backend validates the trailing SHA1 against the stock
+// signing certificate (Play App Signing, SHA1
+// 284efdadf1115656817a5b2cfdaddf696f203088, from the stock XAPK's
+// v2 signing block), and a re-signed build — which necessarily
+// hashes its own signer — is rejected. The client maps ANY login
+// failure to the generic common_network_error dialog, so the
+// loading screen stops at 30% with "Can not connect to server,
+// please check network configuration" on phone and emulator alike,
+// with no network error anywhere in logcat (no request succeeds,
+// and the failure is a well-formed server rejection, not a
+// transport error). There is no Play Integrity anywhere in the
+// app; this token is the only build-identity check in the startup
+// path (full census: kf.d header/body crypto derives only from
+// packageName, stored user id, timestamps and hardcoded keys).
+//
+// SignatureUtils has exactly ONE caller in the app (xf/b.a), so
+// swapping that single call for the extension reimplementation
+// (app.template.extension.pikaspot.AdvertiseSpoof, same algorithm,
+// stock SHA1 pinned) covers every request. The native method
+// itself is left untouched — it simply becomes unreachable.
+
+/** Builds the device bean (incl. the advertise token) attached to every API Param. */
+object DeviceParamFingerprint : Fingerprint(
+    returnType = "Lcom/pika/dynamicisland/utils/encryp/AndroidAdsParam;",
+    parameters = listOf(),
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    definingClass = "Lxf/b;",
+    name = "a"
+)

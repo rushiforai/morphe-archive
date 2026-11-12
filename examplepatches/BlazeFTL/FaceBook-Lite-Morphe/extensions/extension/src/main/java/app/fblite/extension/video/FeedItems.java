@@ -253,6 +253,20 @@ final class FeedItems {
         return text.isEmpty() ? null : text;
     }
 
+    /** Cleaned texts of a tree in order, up to {@code max}. */
+    static List<String> texts(Object tree, int max) {
+        List<String> out = new ArrayList<>();
+        collectTexts(tree, 0, out, max);
+        return out;
+    }
+
+    private static void collectTexts(Object node, int depth, List<String> out, int max) {
+        if (node == null || depth > 30 || out.size() >= max) return;
+        String text = textOf(node);
+        if (text != null) out.add(text);
+        for (Object child : children(node)) collectTexts(child, depth + 1, out, max);
+    }
+
     /** Every list (X.12u) in the window below the view, for screens where the video's own list is not an ancestor. */
     static List<View> pagersIn(View root) {
         List<View> out = new ArrayList<>();

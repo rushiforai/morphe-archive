@@ -21,6 +21,10 @@ fun main(args: Array<String>) {
             declaredInputs.getOrPut(file) { mutableSetOf() }.add(sha)
         }
         for ((id, spec) in profile.hooks) {
+            val selection = runCatching { VersionHookRegistry.getTargetSpec(id, profile.packageName, profile.versionName) }
+            check(selection.isSuccess == spec.enabled) { "Disabled experiments must fail before editing DEX: $id" }
+            if (!spec.enabled) check(selection.exceptionOrNull()!!.message!!.contains("Unsupported historical experiment"))
+
             spec.expectedMatches?.let { check(it > 0) }
             if (id == HookId.MICROG_RUNTIME_PERMISSIONS) {
                 val scratch = listOf("scratchArray", "scratchIndex", "scratchString").map(spec::int)

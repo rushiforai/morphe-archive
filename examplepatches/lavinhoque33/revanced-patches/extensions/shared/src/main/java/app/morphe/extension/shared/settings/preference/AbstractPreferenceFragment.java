@@ -10,6 +10,7 @@
  * - COOLak (https://github.com/COOLak)
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-10.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -83,6 +84,10 @@ import android.widget.ListView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.lang.ref.WeakReference;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -96,10 +101,20 @@ import app.morphe.extension.shared.settings.SharedYouTubeSettings;
 import app.morphe.extension.shared.ui.CustomDialog;
 import app.morphe.extension.shared.utils.BaseThemeUtils;
 import app.morphe.extension.shared.utils.Logger;
+import app.morphe.extension.shared.utils.PackageUtils;
 import app.morphe.extension.shared.utils.Utils;
 
 @SuppressWarnings({"unused", "deprecation"})
 public abstract class AbstractPreferenceFragment extends PreferenceFragment {
+    public static WeakReference<AbstractPreferenceFragment> instance = new WeakReference<>(null);
+
+    /** Suggested filename for a preference's text export. */
+    public static String exportFileName(String kind) {
+        String appName = PackageUtils.getAppLabel().replaceAll("\\s+", "_");
+        String date = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
+
+        return appName + "_" + kind + "_" + date + ".txt";
+    }
 
     public static boolean settingExportInProgress;
 
@@ -611,6 +626,7 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        instance = new WeakReference<>(this);
         try {
             PreferenceManager preferenceManager = getPreferenceManager();
             preferenceManager.setSharedPreferencesName(Setting.preferences.name);
@@ -682,7 +698,7 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
             Preference p = group.getPreference(i);
             // NoTitlePreferenceCategory reports its first child title so it can be sorted,
             // but that title is never shown to the user and must not appear in the path.
-            CharSequence title = (p instanceof NoTitlePreferenceCategory) ? null : p.getTitle();
+            CharSequence title = (p instanceof NoTitlePreferenceCategory) ? null : NewIndicatorSpan.removeFrom(p.getTitle());
             if (p == target) {
                 if (!TextUtils.isEmpty(title)) path.add(title);
                 return true;
@@ -727,6 +743,9 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
 
     @Override
     public void onDestroy() {
+        if (instance.get() == this) {
+            instance.clear();
+        }
         getPreferenceManager().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(listener);
         super.onDestroy();
     }

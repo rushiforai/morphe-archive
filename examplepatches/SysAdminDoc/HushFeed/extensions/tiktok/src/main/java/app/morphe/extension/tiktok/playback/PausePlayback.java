@@ -81,6 +81,10 @@ public final class PausePlayback {
     /** Watches the feed go away under the catcher, so the catcher goes with it. */
     private static android.view.ViewTreeObserver.OnGlobalLayoutListener feedWatcher;
     private static WeakReference<ViewGroup> watchedRootReference = new WeakReference<>(null);
+    /** Layout passes in a row that found the catcher taken off and put it back. */
+    private static int putsBack;
+    /** A root that takes the catcher off on every pass is left alone after this many tries. */
+    static final int MAX_PUTS_BACK = 5;
     private static boolean installed;
     /** TikTok's screens that are started, weakly: the app is away once the last one stops. */
     private static final java.util.Set<Activity> STARTED =
@@ -496,6 +500,7 @@ public final class PausePlayback {
         catcher.setBackgroundColor(Color.TRANSPARENT);
         catcher.setContentDescription(label);
         catcher.setClickable(true);
+        SessionLockOverlay.keepTheWheel(catcher);
         catcher.setFocusable(true);
         // Its whole job is to be pressed, so it is offered as something to press. Without the
         // role a reader lands on an unnamed View and is told the label with no way to act on it.
@@ -528,13 +533,17 @@ public final class PausePlayback {
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         params.bottomMargin = SessionLockOverlay.navigationHeight(activity, root);
-        root.addView(catcher, params);
+        // Under a feed lock's hold, which keeps the touches and the first Tab stop: a catcher
+        // over it was pressed first and could start the feed behind the lock.
+        root.addView(catcher, SessionLockOverlay.indexUnderTheHold(root), params);
         catcherReference = new WeakReference<>(catcher);
         // Covers the feed for anyone looking at it, so it covers the feed for anyone swiping
         // through it with a screen reader as well; otherwise TalkBack walks straight through
-        // to the like and comment buttons underneath.
-        SessionLockOverlay.hideBehind(root, catcher, true);
-        watchTheFeed(activity, root);
+        // to the like and comment buttons underneath. The tab bar it stops above stays in reach.
+        SessionLockOverlay.hideBehind(root, catcher, true,
+                SessionLockOverlay.navigationBar(activity, root));
+        SessionLockOverlay.curtainWhatWentUnder(root);
+        watchTheFeed(activity, root, catcher);
     }
 
     /**
@@ -545,28 +554,61 @@ public final class PausePlayback {
      * tap there was eaten, and the sound was held for a feed nobody was looking at. The same
      * question the chips ask of the tree answers this one.
      */
-    private static void watchTheFeed(Activity activity, ViewGroup root) {
+    private static void watchTheFeed(Activity activity, ViewGroup root, View catcher) {
         stopWatchingTheFeed();
+        putsBack = 0;
+        // Held here, not only weakly: once TikTok takes the catcher off, nothing else holds it,
+        // and one collected before it was put back would leave its curtain over the feed.
         feedWatcher = () -> {
-            View catcher = catcherReference.get();
-            if (catcher == null) {
-                stopWatchingTheFeed();
-                return;
-            }
-            if (!app.morphe.extension.tiktok.blockauthor.FeedVisibility.isOnFeed(activity)) {
-                removeCatcher();
-                unquieten();
-                return;
-            }
-            // On a cold start the tab bar is drawn after the catcher goes up, so the room left
-            // for it is measured again until it's there.
-            if (catcher.getLayoutParams() instanceof FrameLayout.LayoutParams) {
-                FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) catcher.getLayoutParams();
-                int clear = SessionLockOverlay.navigationHeight(activity, root);
-                if (params.bottomMargin != clear) {
-                    params.bottomMargin = clear;
-                    catcher.setLayoutParams(params);
+            try {
+                if (catcherReference.get() != catcher) {
+                    stopWatchingTheFeed();
+                    return;
                 }
+                if (!app.morphe.extension.tiktok.blockauthor.FeedVisibility.isOnFeed(activity)) {
+                    removeCatcher();
+                    unquieten();
+                    return;
+                }
+                // Taken off the page, as by a content root TikTok rebuilt, while the feed still
+                // waits for its tap. Dropped, it would leave the feed curtained with nothing on
+                // top to tap, or start it without the tap Pause first video asks for.
+                if (catcher.getParent() != root) {
+                    // A root that strips what it doesn't know on every pass takes it off as fast
+                    // as it goes back, and each addView asks for the next pass, so the two would
+                    // lay out every frame for as long as the feed waits. After a few tries the
+                    // curtain lifts and the video stays stopped for TikTok's own tap to start.
+                    if (++putsBack > MAX_PUTS_BACK) {
+                        Logger.printDebug(() -> "TikTok kept taking the catcher off, so it's let go");
+                        removeCatcher();
+                        if (!heldElsewhere()) handBack(false);
+                        return;
+                    }
+                    if (catcher.getParent() instanceof ViewGroup) {
+                        ((ViewGroup) catcher.getParent()).removeView(catcher);
+                    }
+                    root.addView(catcher, SessionLockOverlay.indexUnderTheHold(root));
+                } else {
+                    putsBack = 0;
+                }
+                // On a cold start the tab bar is drawn after the catcher goes up, so the room
+                // left for it is measured again until it's there.
+                if (catcher.getLayoutParams() instanceof FrameLayout.LayoutParams) {
+                    FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) catcher.getLayoutParams();
+                    int clear = SessionLockOverlay.navigationHeight(activity, root);
+                    if (params.bottomMargin != clear) {
+                        params.bottomMargin = clear;
+                        catcher.setLayoutParams(params);
+                    }
+                }
+                // Every pass: views TikTok adds beside the tab bar's parents after the catcher
+                // went up are behind it too.
+                SessionLockOverlay.hideBehind(root, catcher, true,
+                        SessionLockOverlay.navigationBar(activity, root));
+                if (putsBack > 0) SessionLockOverlay.curtainWhatWentUnder(root);
+            } catch (Throwable error) {
+                // Runs inside TikTok's layout pass, where a throw would take the app down.
+                Logger.printException(() -> "Could not keep the catcher over the feed", error);
             }
         };
         watchedRootReference = new WeakReference<>(root);
@@ -602,11 +644,10 @@ public final class PausePlayback {
         View catcher = catcherReference.get();
         catcherReference = new WeakReference<>(null);
         if (catcher == null) return;
-        if (catcher.getParent() instanceof ViewGroup) {
-            ViewGroup parent = (ViewGroup) catcher.getParent();
-            SessionLockOverlay.hideBehind(parent, catcher, false);
-            parent.removeView(catcher);
-        }
+        // Lifted even when TikTok already took the catcher off: what it curtained still is.
+        ViewGroup parent = catcher.getParent() instanceof ViewGroup ? (ViewGroup) catcher.getParent() : null;
+        SessionLockOverlay.hideBehind(parent, catcher, false);
+        if (parent != null) parent.removeView(catcher);
     }
 
     // ------------------------------------------------------------------ the sound itself
@@ -643,13 +684,17 @@ public final class PausePlayback {
      * closing either must leave the video stopped until the other has gone too.
      */
     private static void unquieten() {
-        View sheet = sheetReference.get();
-        if (catcherReference.get() != null || (sheet != null && sheet.getWindowToken() != null)
-                || panelHeld) return;
+        if (catcherReference.get() != null || heldElsewhere()) return;
         Activity owner = quietOwnerReference.get();
         Object page = quietPageReference.get();
         handBack(ownsForeground(owner) && page != null
                 && samePage(page, FeedVisibility.playbackPage(owner), owner));
+    }
+
+    /** An open sheet or a panel holds the feed apart from the catcher. */
+    private static boolean heldElsewhere() {
+        View sheet = sheetReference.get();
+        return (sheet != null && sheet.getWindowToken() != null) || panelHeld;
     }
 
     /** Native detail navigation must not carry the old page's comment hold to its player. */

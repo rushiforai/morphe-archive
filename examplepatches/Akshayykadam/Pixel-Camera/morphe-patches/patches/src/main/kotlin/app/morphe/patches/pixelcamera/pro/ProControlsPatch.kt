@@ -341,6 +341,34 @@ val proControlsPatch = bytecodePatch(
             }
         }
 
+        // a2) oms: Route photo capture session through createPhotoCaptureSession to support Auto Night Sight
+        mutableClassDefByOrNull("Loms;")?.let { clazz ->
+            clazz.methods.firstOrNull { it.name == "e" && it.parameterTypes.size == 4 }?.let { method ->
+                val impl = method.implementation ?: return@let
+                val cIdx = impl.instructions.indexOfFirst { ins ->
+                    (ins as? com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction)?.reference?.toString()?.contains("Lrbu;->c(JZ)Lrbs;") == true
+                }
+                if (cIdx != -1) {
+                    val callSmali = "invoke-static {v3, v12, v13, v7, v15}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->createPhotoCaptureSession(Lrbu;JLjava/lang/Object;Z)Lrbs;"
+                    val newCall = callSmali.toInstructions(method).first()
+                    impl.replaceInstruction(cIdx, newCall)
+
+                    val pclKIdx = impl.instructions.indexOfFirst { ins ->
+                        (ins as? com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction)?.reference?.toString()?.contains("Lpcl;->k:Z") == true
+                    }
+                    if (pclKIdx != -1) {
+                        val checkSmali = """
+                            invoke-static {v7}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isAutoNightOrHiRes(Ljava/lang/Object;)Z
+                            move-result v4
+                        """.trimIndent()
+                        val newCheckIns = checkSmali.toInstructions(method)
+                        impl.replaceInstruction(pclKIdx, newCheckIns[0])
+                        impl.addInstruction(pclKIdx + 1, newCheckIns[1])
+                    }
+                }
+            }
+        }
+
         // b) rae: getEffectiveSpecialType in a(rbq, ...) and getEffectiveSpecialTypeId in b(yia, ...)
         mutableClassDefByOrNull("Lrae;")?.let { clazz ->
             clazz.methods.firstOrNull { it.name == "a" && it.parameterTypes.size == 3 }?.let { method ->
@@ -504,6 +532,29 @@ val proControlsPatch = bytecodePatch(
                     for (ni in newIns) {
                         impl.addInstruction(pos++, ni)
                     }
+                }
+            }
+        }
+
+        // h2) rbu: Hook Night Sight capture session creation in j(JZZ)Lrbs;
+        mutableClassDefByOrNull("Lrbu;")?.let { clazz ->
+            clazz.methods.firstOrNull { it.name == "j" && it.parameterTypes.size == 3 }?.let { method ->
+                val impl = method.implementation ?: return@let
+                val hookSmali = """
+                    invoke-static {p1, p2}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->onNightSightSession(J)V
+                """.trimIndent()
+                val newIns = hookSmali.toInstructions(method)
+                var pos = 0
+                for (ni in newIns) {
+                    impl.addInstruction(pos++, ni)
+                }
+
+                val pIdx = impl.instructions.indexOfFirst { ins ->
+                    (ins as? com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction)?.reference?.toString()?.contains("Lmhb;->p:Lmhb;") == true
+                }
+                if (pIdx != -1) {
+                    val nightIns = "sget-object p4, Lmhb;->f:Lmhb;".toInstructions(method).first()
+                    impl.replaceInstruction(pIdx, nightIns)
                 }
             }
         }

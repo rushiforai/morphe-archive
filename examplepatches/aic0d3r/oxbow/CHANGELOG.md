@@ -4,16 +4,28 @@ All notable changes to Oxbow are documented in this file. Oxbow is a fork of
 [FeurStagram](https://github.com/jean-voila/FeurStagram); its history before the fork is
 kept below, unchanged.
 
-## Unreleased
+## Oxbow v455-0-0-51-72, patch bundle 1.3.3
 
 ### Added
 - **What's installed, in Settings → Updates.** The page now shows the Instagram version, the
   patch bundle, whether this is an official release or a build you patched yourself, whether
   it's the clone, and which app installed it. Long-press it to copy all of that for a bug report.
+- **Notes block works on every account.** Where Instagram draws the Notes tray with Compose
+  and no view id, the whole row is taken out of the inbox list instead.
+- **Caption edits survive opening other posting options.** Editing a caption now saves it to
+  the draft before music or story sharing opens; deliberately clearing a caption still works.
 
 ### Changed
+- **Based on Instagram 455.0.0.51.72.** All 19 patches apply to it. The post menu's option
+  list moved into a coroutine dispatcher and its row adder takes an extra argument, so the
+  download row and Copy caption now go in where Instagram creates the menu list; share links
+  are cleaned in the share intent builder that now returns a result.
 - **"Star on GitHub" in the What's new card**, replacing the Sponsor button there. Sponsoring
   is still in Settings, under Support, next to a new Star button.
+- **Following feed only joins the permanent lock.** Once the lock is on, the ranked feed
+  cannot come back without reinstalling.
+- **Tablets and large screens.** The tab bar is found on the side rail too, so hiding Home
+  works there and the settings open again on a long press.
 
 ## Oxbow v454-0-0-54-77, patch bundle 1.3.2
 

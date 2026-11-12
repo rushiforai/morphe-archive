@@ -6,6 +6,7 @@
  *
  * Modified by lavinhoque33, 2026-10-24: returns at once, leaving the native value untouched, while Jam queue
  * sharing is off.
+ * Modified by lavinhoque33, 2026-11-10.
  */
 
 package app.morphe.extension.music.patches.jam;
@@ -45,7 +46,7 @@ public final class JamMenu {
                     YouTubeMusicBridge.QueueAccess access = YouTubeMusicBridge.access();
                     String video = access.patch_jamVideoId(item);
                     request = access.patch_jamRequestMenu(
-                        QueueCommand.menuRequest(video)
+                        app.morphe.extension.music.patches.downloads.OfflineReplay.songMenuRequest(video)
                     );
                     for (Object candidate : access.patch_jamMenuItems(
                         request.get(10, TimeUnit.SECONDS)

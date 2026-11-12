@@ -53,6 +53,7 @@ import app.morphe.extension.facebook.reels.ReelDateStyle;
 import app.morphe.extension.facebook.reels.ReelsOrder;
 import app.morphe.extension.facebook.download.DownloadQuality;
 import app.morphe.extension.facebook.download.FileNameTemplate;
+import app.morphe.extension.facebook.download.ReelQueue;
 import app.morphe.extension.facebook.download.SaveControl;
 import app.morphe.extension.facebook.download.SaveFolder;
 import app.morphe.extension.facebook.download.SaveStorage;
@@ -414,6 +415,7 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
     void showSaves() {
         PreferenceCategory group = downloads;
         if (group == null) return;
+        showReelQueue(group);
         List<SaveControl.Running> running = SaveControl.running();
         Set<Integer> now = new HashSet<>();
         for (SaveControl.Running save : running) now.add(save.id);
@@ -450,6 +452,19 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
             group.addPreference(last);
         } else {
             last.setSummary(outcome);
+        }
+    }
+
+    /** The reel queue's row (#449) while it holds reels, above the running saves. Changed in place while it stays. */
+    private static void showReelQueue(PreferenceCategory group) {
+        ReelQueue.Status queue = ReelQueue.status();
+        Preference shown = group.findPreference(SettingsRows.QueueRow.KEY);
+        if (queue == null) {
+            if (shown != null) group.removePreference(shown);
+        } else if (shown instanceof SettingsRows.QueueRow) {
+            ((SettingsRows.QueueRow) shown).show(queue);
+        } else {
+            group.addPreference(new SettingsRows.QueueRow(group.getContext(), queue));
         }
     }
 
@@ -1225,8 +1240,11 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         return row;
     }
 
-    /** What the list shows for [quality]: a word for the two ends, the label itself between them. */
-    static String qualityLabel(DownloadQuality quality) {
+    /**
+     * What the list shows for [quality]: a word for the two ends, the label itself between them.
+     * The list a save asks with ({@code QualityChooser}) shows the same.
+     */
+    public static String qualityLabel(DownloadQuality quality) {
         switch (quality) {
             case BEST:
                 return L10n.t("Best");

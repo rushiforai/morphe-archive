@@ -6,6 +6,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.getReference
 import app.morphe.patches.shared.WATCH_NEXT_RESPONSE_PROCESSING_DELAY_STRING
+import app.morphe.patches.shared.mainactivity.injectOnCreateMethodCall
 import app.morphe.patches.shared.playbackStartParametersConstructorFingerprint
 import app.morphe.patches.shared.playbackStartParametersToStringFingerprint
 import app.morphe.patches.youtube.utils.compatibility.Constants.COMPATIBILITY_YOUTUBE
@@ -16,6 +17,7 @@ import app.morphe.patches.youtube.utils.playservice.versionCheckPatch
 import app.morphe.patches.youtube.utils.settings.ResourceUtils.addPreference
 import app.morphe.patches.youtube.utils.settings.settingsPatch
 import app.morphe.patches.youtube.utils.webview.webViewPatch
+import app.morphe.util.Utils.printWarn
 import app.morphe.util.findFieldFromToString
 import app.morphe.util.fingerprint.methodOrThrow
 import app.morphe.util.indexOfFirstInstructionReversedOrThrow
@@ -25,6 +27,9 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 
 private const val EXTENSION_CLASS_DESCRIPTOR =
     "$MISC_PATH/DebuggingPatch;"
+
+private const val FEATURE_FLAGS_EXTENSION_CLASS =
+    "Lapp/morphe/extension/shared/patches/EnableDebuggingPatch;"
 
 @Suppress("unused")
 val debuggingPatch = bytecodePatch(
@@ -82,6 +87,16 @@ val debuggingPatch = bytecodePatch(
                 }
 
             settingArray += "SETTINGS: WATCH_NEXT_PROCESSING_DELAY"
+        }
+
+        val startupHookInstalled = runCatching {
+            injectOnCreateMethodCall(FEATURE_FLAGS_EXTENSION_CLASS, "onMainActivityCreated")
+        }.onFailure { exception ->
+            printWarn("Feature flags: skipping manager without a startup confirmation hook: ${exception.message}")
+        }.isSuccess
+
+        if (startupHookInstalled && hookFeatureFlags()) {
+            settingArray += "SETTINGS: FEATURE_FLAGS_MANAGER"
         }
 
         // region add settings

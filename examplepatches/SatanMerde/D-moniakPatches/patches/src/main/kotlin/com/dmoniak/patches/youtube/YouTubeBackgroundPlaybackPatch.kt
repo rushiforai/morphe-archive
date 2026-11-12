@@ -7,7 +7,6 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.dmoniak.patches.shared.Constants.COMPATIBILITY_YOUTUBE
 import java.util.logging.Logger
 
-@Suppress("unused")
 val youtubeBackgroundPlaybackPatch = bytecodePatch(
     name = "Background & PiP Playback - YouTube (Experimental)",
     description = "⚠️ [Experimental / Untested] Enables background audio playback when the screen is locked or switching between apps, and unlocks Picture-in-Picture (PiP) mode without YouTube Premium.",
@@ -26,7 +25,7 @@ fun BytecodePatchContext.executeYouTubeBackgroundPlaybackLogic(logger: Logger) {
 
     classDefForEach { classDef ->
         val tl = classDef.type.lowercase()
-        if (tl.contains("androidx") || tl.contains("android/support")) return@classDefForEach
+        if (!tl.contains("androidx") && !tl.contains("android/support")) {
 
         val mutableClass by lazy { mutableClassDefBy(classDef) }
 
@@ -62,6 +61,7 @@ fun BytecodePatchContext.executeYouTubeBackgroundPlaybackLogic(logger: Logger) {
                     logger.warning("[YouTube Background] Failed to hook ${method.name}: ${e.message}")
                 }
             }
+        }
         }
     }
 

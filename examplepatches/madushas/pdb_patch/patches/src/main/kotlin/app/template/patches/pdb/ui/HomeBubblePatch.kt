@@ -53,6 +53,7 @@ val pdbHomeBubblePatch = bytecodePatch(
         "Pdb Extras). Toggle: Pdb Extras → Quick → 'Show floating power button'.",
     default = true,
 ) {
+    category("Interface")
     compatibleWith(PDB_COMPATIBILITY)
 
     execute {

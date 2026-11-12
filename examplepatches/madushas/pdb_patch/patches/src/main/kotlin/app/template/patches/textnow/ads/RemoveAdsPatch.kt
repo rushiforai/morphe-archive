@@ -58,6 +58,7 @@ val textnowRemoveAdsPatch = resourcePatch(
         "install-referrer permissions.",
     default = true,
 ) {
+    category("Ads")
     compatibleWith(TEXTNOW_COMPATIBILITY)
 
     execute {

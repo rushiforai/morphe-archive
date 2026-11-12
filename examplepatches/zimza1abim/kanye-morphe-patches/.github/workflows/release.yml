@@ -1,0 +1,85 @@
+name: Release
+
+# Builds the bundle from this repository's source whenever a sync changes the version
+# in gradle.properties, publishes it, and commits patches-bundle.json and patches-list.json.
+
+on:
+  push:
+    branches: [main]
+    paths: [gradle.properties]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Read version
+        id: version
+        run: |
+          version=$(sed -n 's/^version *= *//p' gradle.properties)
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if gh release view "v$version" > /dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Setup Java
+        if: steps.version.outputs.exists != 'true'
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: 'gradle'
+
+      - name: Install Android SDK packages
+        if: steps.version.outputs.exists != 'true'
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;36.0.0" > /dev/null
+
+      # Morphe libraries come from GitHub Packages, which any GitHub token can read.
+      # generatePatchesList writes patches-list.json, as the template's release does;
+      # buildAndroid runs last so the released .mpp carries classes.dex.
+      # buildAndroid signs the .mpp with MORPHE_SIGNING_KEY; morphe-signing.pub is its public half.
+      - name: Build
+        if: steps.version.outputs.exists != 'true'
+        run: |
+          [ -n "$MORPHE_SIGNING_KEY" ] || { echo "MORPHE_SIGNING_KEY secret is not set"; exit 1; }
+          ./gradlew generatePatchesList --no-daemon
+          jq --arg version "${{ steps.version.outputs.version }}" '.version = $version' patches-list.json > patches-list.json.tmp
+          mv patches-list.json.tmp patches-list.json
+          ./gradlew buildAndroid --no-daemon
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ github.token }}
+          MORPHE_SIGNING_KEY: ${{ secrets.MORPHE_SIGNING_KEY }}
+
+      - name: Publish release
+        if: steps.version.outputs.exists != 'true'
+        run: |
+          version="${{ steps.version.outputs.version }}"
+          mpp="patches/build/libs/patches-$version.mpp"
+          unzip -l "$mpp" | grep -q ' classes.dex$' || { echo "classes.dex missing from $mpp"; exit 1; }
+          url="https://github.com/${{ github.repository }}/releases/download/v$version/patches-$version.mpp"
+          unzip -z "$mpp" | grep -q "$(cat morphe-signing.pub)" || { echo "$mpp is not signed with morphe-signing.pub"; exit 1; }
+          jq -n --arg version "$version" --arg url "$url" --arg created "$(date -u +%Y-%m-%dT%H:%M:%S)" --arg key "$(cat morphe-signing.pub)" \
+            '{created_at: $created, description: "", download_url: $url, signature_download_url: "", version: $version, public_key: $key}' \
+            > patches-bundle.json
+          gh release create "v$version" "$mpp" patches-bundle.json --title "v$version" --target "$GITHUB_SHA" \
+            --notes "Built from this repository at ${GITHUB_SHA::7}. Add to Morphe: github.com/${{ github.repository }}"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      # Morphe reads patches-bundle.json and patches-list.json from the main branch of a repository source.
+      - name: Commit bundle metadata
+        if: steps.version.outputs.exists != 'true'
+        run: |
+          git add patches-bundle.json patches-list.json
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -q -m "Update bundle metadata for v${{ steps.version.outputs.version }}"
+          git push origin HEAD:main

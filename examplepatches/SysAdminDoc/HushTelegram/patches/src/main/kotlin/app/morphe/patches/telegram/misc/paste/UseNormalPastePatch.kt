@@ -36,7 +36,7 @@ val useNormalPastePatch = bytecodePatch(
         "people the app has already seen. Both start off. Turn them on in HushTelegram settings > Conversations.",
     default = true,
 ) {
-    category("Conversations")
+    category("Writing")
     dependsOn(settingsPatch, telegramExtensionPatch)
     compatibleWith(*AppCompatibilities.telegram())
     execute {

@@ -120,4 +120,85 @@ public class KeywordRulesTest {
         assertTrue(hides("crypto\n\"cat\" & \"dog\"", "my cat and my dog"));
         assertTrue(hides("crypto\n\"cat\" & \"dog\"", "a crypto video"));
     }
+
+    @Test public void aHashtagHidesOnlyThatWholeTag() {
+        assertTrue(hides("#cat", "my #Cat"));
+        assertTrue(hides("#cat", "#cat, #dog"));
+        assertTrue(hides("#cat", "#fyp#cat#dog"));
+        assertTrue("a later whole tag still counts", hides("#cat", "#catholic and #cat"));
+        assertFalse(hides("#cat", "#catholic"));
+        assertFalse(hides("#cat", "#cats"));
+        assertFalse(hides("#cat", "#cat_videos"));
+        assertFalse("a combining accent carries the tag on", hides("#cafe", "#cafe" + (char) 0x301));
+        // Without the # it's a plain phrase, and a phrase with words after the tag is too.
+        assertTrue(hides("cat", "#catholic"));
+        assertTrue(hides("#cat video", "#cat videos"));
+        // Both halves of a rule follow the same reading.
+        assertTrue(hides("\"#news\" !& \"#cat\"", "#news #cats"));
+        assertFalse(hides("\"#news\" !& \"#cat\"", "#news #cat"));
+        assertTrue(hides("\"#news\" & \"#cat\"", "#news #cat"));
+        assertFalse(hides("\"#news\" & \"#cat\"", "#newsroom #cat"));
+    }
+
+    @Test public void aTagWithSpacesInsideItsQuotesIsStillThatWholeTag() {
+        assertTrue(hides("\" #cat \" & \"dog\"", "#cat and a dog"));
+        assertFalse(hides("\" #cat \" & \"dog\"", "#cats and a dog"));
+        assertFalse(hides("\"#news\" !& \" #cat\"", "#news #cat"));
+        // Spaces around a plain phrase still mark a word's edge.
+        assertFalse(hides("\" cat\" & \"dog\"", "concat dog"));
+        assertTrue(hides("\" cat\" & \"dog\"", "a cat dog"));
+    }
+
+    @Test public void aTagMadeOfSupplementaryLettersEndsWhereTheyDo() {
+        String tag = "#" + new String(Character.toChars(0x20000));
+        String next = new String(Character.toChars(0x20001));
+        assertTrue(hides(tag, tag + " today"));
+        assertFalse(hides(tag, tag + next));
+    }
+
+    @Test public void listsAndTextFoldCaseTheSameWay() {
+        String dottedCapitalI = String.valueOf((char) 0x130);
+        String dotlessI = String.valueOf((char) 0x131);
+        assertEquals("#ali", KeywordRules.fold("#AL" + dottedCapitalI));
+        assertTrue("Turkish capital dotted I", hides("#ali", "#AL" + dottedCapitalI + " yes"));
+        assertTrue(hides("#AL" + dottedCapitalI, "#ali"));
+        assertFalse(hides("#ali", "#AL" + dottedCapitalI + "m"));
+        assertTrue("dotless i", hides("#ilik", "#" + dotlessI + "l" + dotlessI + "k"));
+        String dotlessWithADot = "#al" + dotlessI + (char) 0x307;
+        assertEquals("#ali", KeywordRules.fold(dotlessWithADot));
+        assertTrue(hides("#ali", dotlessWithADot + " yes"));
+
+        String finalSigma = "#" + (char) 0x3B8 + (char) 0x3B5 + (char) 0x3BF + (char) 0x3C2;
+        String middleSigma = "#" + (char) 0x3B8 + (char) 0x3B5 + (char) 0x3BF + (char) 0x3C3;
+        String capitals = "#" + (char) 0x398 + (char) 0x395 + (char) 0x39F + (char) 0x3A3;
+        String insideACaption = capitals + "." + (char) 0x39A + (char) 0x391 + (char) 0x399;
+        assertTrue(hides(finalSigma, insideACaption));
+        assertTrue(hides(capitals, insideACaption));
+        assertTrue(hides(capitals, finalSigma + " #fyp"));
+        assertTrue("a list sigma meets a caption's final one", hides(middleSigma, finalSigma + " #fyp"));
+    }
+
+    @Test public void theKeycapEmojiIsNotATag() {
+        String keycap = "#" + (char) 0xFE0F + (char) 0x20E3;
+        // As a phrase it is a plain substring, so it hides only captions that carry that emoji.
+        assertTrue(hides(keycap, "Top 5 " + keycap + "cats"));
+        assertFalse(hides(keycap, "#cats"));
+    }
+
+    @Test public void aHindiOrThaiTagGoesOnThroughItsVowelSigns() {
+        // Hindi "hind" and "hindi": the closing vowel sign is a spacing mark, not a letter.
+        String hind = "#" + text(0x939, 0x93F, 0x902, 0x926);
+        String hindi = hind + text(0x940);
+        assertTrue(hides(hindi, "my " + hindi + " video"));
+        assertTrue(hides(hind, hind + " " + hindi));
+        assertFalse(hides(hind, "my " + hindi + " video"));
+        // Thai "nam": a tone mark over the first letter.
+        String nam = "#" + text(0xE19, 0xE49, 0xE33);
+        assertTrue(hides(nam, nam));
+        assertFalse(hides("#" + text(0xE19), nam));
+    }
+
+    private static String text(int... codePoints) {
+        return new String(codePoints, 0, codePoints.length);
+    }
 }

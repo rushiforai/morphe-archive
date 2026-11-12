@@ -37,6 +37,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import app.morphe.extension.facebook.misc.WindowsAbove;
 import app.morphe.extension.facebook.settings.FamilyNames;
@@ -190,6 +191,15 @@ public final class MaterialYouTheme {
     private static final Map<String, int[]> LIGHT = Collections.unmodifiableMap(parseTokens(FDS_LIGHT));
     private static final int[] SURFACE_VALUES = parseSurfaces(SURFACES);
 
+    /**
+     * The light greys {@link #FDS_LIGHT} lists for a field, sheet or button behind something, so
+     * {@link #noteUnlisted} can name a token left at one in light mode (issue #141): the S22 drew the
+     * comment composer and the Settings search field in stock #F0F2F5. A background drawn in one
+     * with no token takes the palette in light mode ({@link #lightSurface}). White and the text greys
+     * aren't here.
+     */
+    private static final int[] LIGHT_SURFACE_VALUES = parseSurfaces("E2E5E9 E8EAEE F0F2F5 F2F4F7 F8F9FB");
+
     /** Every grey {@link #FDS_DARK} lists, for any token, sorted. */
     private static final int[] DARK_GREYS = darkGreys(FDS);
     /** {@link #SERVER_BLUES} without alpha, sorted. */
@@ -248,7 +258,11 @@ public final class MaterialYouTheme {
     }
 
     private static int fds(int color, String name) {
-        if (!DarkMode.on()) return lightFds(color, name);
+        if (!DarkMode.on()) {
+            int themed = lightFds(color, name);
+            if (themed == color && isLightSurface(color)) noteUnlisted(name, color);
+            return themed;
+        }
         if (listed(FDS.get(name), color) || madeByAmoled(FDS.get(name), color, name)
                 || (listed(SHARED.get(name), color) && DarkMode.saidOn())) {
             return AmoledTheme.foreground(recolour(palette(), color), name);
@@ -293,7 +307,9 @@ public final class MaterialYouTheme {
         int themed = withoutToken(color);
         if (themed != color) return themed;
         String token = TOKEN_RESOURCES.get(id);
-        return token == null ? color : fds(color, token);
+        if (token != null) return fds(color, token);
+        noteLightRoute("resource colour", color);
+        return color;
     }
 
     static void forgetTokenResourcesForTests() {
@@ -306,11 +322,16 @@ public final class MaterialYouTheme {
     /** The most tokens written, so a screen full of them can't fill the log. */
     private static final int MAX_UNLISTED = 40;
 
+    /** The stack walks {@link #noteLightRoute} may still take, so a long session with Debug on stays quick. */
+    private static final int MAX_CALLER_WALKS = 400;
+    private static final AtomicInteger CALLER_WALKS = new AtomicInteger();
+
     /**
      * With Debug logging on, writes each token that came with one of the {@link #SURFACES} and was
      * left alone, once per token: a token Facebook gives the same dark grey in both themes isn't in
-     * {@link #FDS_DARK}, so a report names the token behind a gray the theme missed (#37). Only the
-     * token's name and colour are written.
+     * {@link #FDS_DARK}, so a report names the token behind a gray the theme missed (#37). In light
+     * mode the same goes for one of the {@link #LIGHT_SURFACE_VALUES} (#141). Only the token's name
+     * and colour are written.
      */
     private static void noteUnlisted(String token, int color) {
         if (UNLISTED.size() >= MAX_UNLISTED || UNLISTED.contains(token)) return;
@@ -319,8 +340,39 @@ public final class MaterialYouTheme {
                 () -> String.format(Locale.ROOT, "Material You left token %s at #%06X", token, color & 0xFFFFFF));
     }
 
+    /**
+     * The same for one of the {@link #LIGHT_SURFACE_VALUES} that a route with no token passed on
+     * unchanged in light mode, once per route and calling method (#141). Those routes carry text as
+     * well as backgrounds, so they leave the greys, and a report names the route and the app's method
+     * behind one the theme missed: the S22's Settings search field came by the server colour route,
+     * which every Color.parseColor call shares. Only class and method names are written.
+     */
+    private static void noteLightRoute(String route, int color) {
+        if (DarkMode.on() || !isLightSurface(color)) return;
+        if (UNLISTED.size() >= MAX_UNLISTED) return;
+        if (!Utils.settingsReady() || !BaseSettings.DEBUG.get()) return;
+        if (CALLER_WALKS.getAndIncrement() >= MAX_CALLER_WALKS) return;
+        String caller = caller();
+        if (!UNLISTED.add(route + " " + caller)) return;
+        Logger.diagnosticDebug(DiagnosticCategory.OTHER, "Material You theme",
+                () -> String.format(Locale.ROOT, "Material You left a %s at #%06X from %s", route, color & 0xFFFFFF, caller));
+    }
+
+    /** The first method on this thread's stack outside this class, AMOLED's and the runtime, as class.method. */
+    private static String caller() {
+        String self = MaterialYouTheme.class.getName();
+        String amoled = AmoledTheme.class.getName();
+        for (StackTraceElement frame : Thread.currentThread().getStackTrace()) {
+            String name = frame.getClassName();
+            if (name.startsWith("dalvik.") || name.startsWith("java.") || name.startsWith(self) || name.startsWith(amoled)) continue;
+            return name + "." + frame.getMethodName();
+        }
+        return "?";
+    }
+
     static void forgetUnlistedForTests() {
         UNLISTED.clear();
+        CALLER_WALKS.set(0);
     }
 
     private static boolean listed(@Nullable int[] colours, int color) {
@@ -371,7 +423,8 @@ public final class MaterialYouTheme {
      */
     public static int parseColor(String text) {
         HookStatus.invoked(FamilyNames.MATERIAL_YOU_THEME);
-        return withoutToken(SettingsStatus.amoledTheme() ? AmoledTheme.parseColor(text) : Color.parseColor(text));
+        return withoutToken(SettingsStatus.amoledTheme() ? AmoledTheme.parseColor(text) : Color.parseColor(text),
+                "server colour");
     }
 
     /**
@@ -398,12 +451,20 @@ public final class MaterialYouTheme {
      * light mode drawing it too, so {@link #parseColor} alone leaves it. The patch sends only those
      * parses here. Once Facebook has said its dark mode is on, a grey {@link #FDS_DARK} lists takes
      * the palette's neutral at the same lightness, as a React card's does ({@link #darkBackground}).
-     * Before that answer, and in light mode, where Bloks parses the light string, the colour goes the
-     * way {@link #parseColor} sends it. With AMOLED in the build its near black stays.
+     * Before that answer the colour goes the way {@link #parseColor} sends it, and in light mode, where
+     * Bloks parses the light string, so does any colour but a light surface grey
+     * ({@link #lightSurface}). With AMOLED in the build its near black stays, and a secondary text
+     * grey gets AMOLED's lift on a lighter Background colour after the palette's ({@link AmoledTheme#bloksText}).
      */
     public static int parseBloks(String text) {
+        return parseBloks(text, SettingsStatus.amoledTheme());
+    }
+
+    static int parseBloks(String text, boolean amoled) {
         HookStatus.invoked(FamilyNames.MATERIAL_YOU_THEME);
-        return darkBackground(SettingsStatus.amoledTheme() ? AmoledTheme.parseColor(text) : Color.parseColor(text));
+        if (!amoled) return darkBackground(Color.parseColor(text));
+        int parsed = AmoledTheme.parseColor(text);
+        return AmoledTheme.bloksText(parsed, darkBackground(parsed));
     }
 
     /**
@@ -443,6 +504,36 @@ public final class MaterialYouTheme {
     static int sheetBackground(int color, boolean amoled) {
         HookStatus.invoked(FamilyNames.MATERIAL_YOU_THEME);
         if (amoled || !DarkMode.on() || !AmoledTheme.isDarkNeutral(color, AmoledTheme.MAX_BAR_CHANNEL)) return color;
+        return palette().sameLightness(TonePalette.NEUTRAL, color);
+    }
+
+    /**
+     * The fill of a Bloks box, such as the Settings search field (issue #141) or the place box under
+     * a check-in post (issue #37). Bloks parses the server's hex string through route four, which
+     * leaves a light grey since text can be one, then hands the int to the box builder, which paints
+     * the box's background with it. A box's fill is always a background, so in light mode one of the
+     * {@link #LIGHT_SURFACE_VALUES} takes the palette's neutral at the same lightness
+     * ({@link #lightSurface}). In dark mode route four only moves the {@link #SURFACES}, and on 584
+     * the place box's #333334 reached the builder unchanged. So in dark mode a grey
+     * {@link #FDS_DARK} lists and one of the {@link #SURFACES} take the palette's neutral at the same
+     * lightness here too, as a React card's do ({@link #darkBackground}). Feed units render on a
+     * background thread at a cold start, before Facebook's first answer ({@link #parseLinkBox}), so
+     * a dark grey up to a popover's doesn't wait for it, while a lighter one, which light mode can
+     * fill a box with, waits until Facebook has said dark. Every other colour stays. So does a grey
+     * AMOLED's Light background color row moves (#214), since AMOLED's hook on the same builder
+     * answers for that one, and with AMOLED in the build a grey up to a card's in dark mode, which
+     * AMOLED's rule takes as its own.
+     */
+    public static int bloksFill(int color) {
+        return bloksFill(color, SettingsStatus.amoledTheme());
+    }
+
+    static int bloksFill(int color, boolean amoled) {
+        HookStatus.invoked(FamilyNames.MATERIAL_YOU_THEME);
+        if (amoled && (AmoledTheme.bloksFill(color) != color || AmoledTheme.ownsWithoutToken(color))) return color;
+        if (!DarkMode.on()) return lightSurface(color);
+        if (!isSurface(color) && Arrays.binarySearch(DARK_GREYS, color) < 0) return color;
+        if (!DarkMode.saidOn() && !AmoledTheme.isDarkNeutral(color, AmoledTheme.MAX_RAISED_CHANNEL)) return color;
         return palette().sameLightness(TonePalette.NEUTRAL, color);
     }
 
@@ -497,7 +588,8 @@ public final class MaterialYouTheme {
     }
 
     static int getColor(TypedArray array, int index, int fallback, boolean amoled) {
-        return withoutToken(amoled ? AmoledTheme.getColor(array, index, fallback) : array.getColor(index, fallback));
+        return withoutToken(amoled ? AmoledTheme.getColor(array, index, fallback) : array.getColor(index, fallback),
+                "theme attribute colour");
     }
 
     /**
@@ -540,7 +632,7 @@ public final class MaterialYouTheme {
     public static int colourData(TypedValue value) {
         int data = value.data;
         if (value.type < TypedValue.TYPE_FIRST_COLOR_INT || value.type > TypedValue.TYPE_LAST_COLOR_INT) return data;
-        return withoutToken(data);
+        return withoutToken(data, "theme value");
     }
 
     /**
@@ -556,16 +648,22 @@ public final class MaterialYouTheme {
         return recolour(drawable, 0);
     }
 
-    /** The same for a drawable of resource {@code id}, whose plain colour goes by {@link #fromResource}. */
+    /**
+     * The same for a drawable of resource {@code id}, whose plain colour goes by {@link #fromResource}.
+     * In light mode one of the {@link #LIGHT_SURFACE_VALUES} takes the palette first
+     * ({@link #lightSurface}), and a shape's fill takes it with AMOLED in the build too, since AMOLED
+     * leaves light mode's greys.
+     */
     @Nullable
     static Drawable recolour(@Nullable Drawable drawable, int id) {
         if (!(drawable instanceof ColorDrawable)) {
-            if (!SettingsStatus.amoledTheme()) recolourShapes(drawable);
+            if (!SettingsStatus.amoledTheme() || !DarkMode.on()) recolourShapes(drawable);
             return drawable;
         }
         ColorDrawable plain = (ColorDrawable) drawable;
         int color = plain.getColor();
-        int themed = fromResource(id, color);
+        int themed = lightSurface(color);
+        if (themed == color) themed = fromResource(id, color);
         if (themed == color) return drawable;
         plain.mutate();
         plain.setColor(themed);
@@ -576,7 +674,8 @@ public final class MaterialYouTheme {
     private static boolean windowsWatched;
 
     /**
-     * The page under the feed's last unit in dark mode. It's the window's own background, which the
+     * The page under the feed's last unit in dark mode, and in light mode what See-through bars show
+     * over the feed's top (#141). It's the window's own background, which the
      * framework draws from the activity theme's {@code android:windowBackground}: Facebook's main
      * theme points it at {@code ?attr/WASH} (581 attribute 0x7f040633), and the dark FDS style
      * gives WASH its #101011 colour resource, which has no night value. The framework reads it, so
@@ -594,21 +693,27 @@ public final class MaterialYouTheme {
 
     /**
      * Gives a window background of one of the {@link #SURFACES} the palette's neutral at the same
-     * lightness in dark mode, the colour route three gives the rest of the page. Another colour, a
-     * background that is no plain colour, light mode and a window with no view yet keep theirs, and so
-     * does AMOLED's, whose route two made it the background colour already.
+     * lightness in dark mode, the colour route three gives the rest of the page. Once Facebook has
+     * said light mode, the light style's WASH, #C9CCD1, takes it too, as route one gives that token
+     * (#141): See-through bars show the window through the top bar over the feed's top, and on 586 the
+     * S22 drew that strip #ECEDEF under every palette. Another colour, a background that is no plain
+     * colour and a window with no view yet keep theirs, and so does AMOLED's, whose route two made it
+     * the background colour already, in light mode only with its Light background color picked.
      *
      * @return whether it changed the background
      */
     static boolean recolourWindow(@Nullable Window window, boolean amoled) {
-        if (window == null || amoled) return false;
+        if (window == null) return false;
         View decor = window.peekDecorView();
         if (decor == null) return false;
         Drawable background = decor.getBackground();
         if (background instanceof InsetDrawable) background = ((InsetDrawable) background).getDrawable();
         if (!(background instanceof ColorDrawable)) return false;
         int color = ((ColorDrawable) background).getColor();
-        if (!isSurface(color) || !DarkMode.on()) return false;
+        if (DarkMode.on() ? amoled || !isSurface(color)
+                : (amoled && AmoledTheme.lightBackground() != 0) || !listed(LIGHT.get("WASH"), color)) {
+            return false;
+        }
         window.setBackgroundDrawable(new ColorDrawable(palette().sameLightness(TonePalette.NEUTRAL, color)));
         return true;
     }
@@ -664,21 +769,27 @@ public final class MaterialYouTheme {
      * palette's neutral at the same lightness, in dark mode and without AMOLED, as
      * {@link #recolourWindow} does for a window. Litho's hosts are walked too: on 581 the comment
      * rows draw #252728 with no FDS token reaching {@link #fds}. A shape's flat fill, alone or as a
-     * layer, takes the palette too ({@link #recolourShapes}).
+     * layer, takes the palette too ({@link #recolourShapes}). In light mode, AMOLED or not, the same
+     * goes for the {@link #LIGHT_SURFACE_VALUES}: on 586 the comment sheet's composer field stayed
+     * #F0F2F5 with no token behind it (#141).
      *
      * @return how many views it recoloured
      */
     static int recolourBackgrounds(View root) {
-        if (SettingsStatus.amoledTheme() || !DarkMode.on()) return 0;
+        if (SettingsStatus.amoledTheme() && DarkMode.on()) return 0;
         return recolourBackgrounds(root, 0);
     }
 
     private static int recolourBackgrounds(View view, int depth) {
         int recoloured = 0;
         Drawable background = view.getBackground();
-        if (background instanceof ColorDrawable && isSurface(((ColorDrawable) background).getColor())) {
-            recolour(background);
-            recoloured++;
+        if (background instanceof ColorDrawable) {
+            ColorDrawable plain = (ColorDrawable) background;
+            int color = plain.getColor();
+            if (isSurface(color) || isLightSurface(color)) {
+                recolour(plain);
+                if (plain.getColor() != color) recoloured++;
+            }
         } else if (recolourShapes(background)) {
             recoloured++;
         }
@@ -809,7 +920,7 @@ public final class MaterialYouTheme {
      */
     static int react(int color) {
         HookStatus.invoked(FamilyNames.MATERIAL_YOU_THEME);
-        return withoutToken(color);
+        return withoutToken(color, "React colour");
     }
 
     /**
@@ -828,10 +939,25 @@ public final class MaterialYouTheme {
 
     /**
      * {@link #withoutToken}, and once Facebook has said dark mode is on, the palette's neutral at the
-     * same lightness for any grey {@link #FDS_DARK} lists.
+     * same lightness for any grey {@link #FDS_DARK} lists. Once it has said light, one of the
+     * {@link #LIGHT_SURFACE_VALUES} takes it ({@link #lightSurface}).
      */
     private static int darkBackground(int color) {
-        return DarkMode.saidOn() ? darkSiteGrey(color) : withoutToken(color);
+        if (DarkMode.saidOn()) return darkSiteGrey(color);
+        int themed = lightSurface(color);
+        return themed != color ? themed : withoutToken(color);
+    }
+
+    /**
+     * A background of one of the {@link #LIGHT_SURFACE_VALUES} once Facebook has said light mode:
+     * the palette's neutral at the same lightness, as a token {@link #FDS_LIGHT} lists for it takes
+     * (#141). Light mode draws text on these greys, never in them, but the Video tab stays dark there
+     * and its text can be one, so only routes that draw a background come here. Dark mode, and any
+     * other colour, keep it.
+     */
+    private static int lightSurface(int color) {
+        if (DarkMode.on() || !isLightSurface(color)) return color;
+        return palette().sameLightness(TonePalette.NEUTRAL, color);
     }
 
     /**
@@ -854,6 +980,13 @@ public final class MaterialYouTheme {
         if (isSurface(color) && DarkMode.on()) return palette().sameLightness(TonePalette.NEUTRAL, color);
         if (isServerBlue(color) && DarkMode.hasAnswered()) return palette().sameLightness(TonePalette.ACCENT, color);
         return color;
+    }
+
+    /** {@link #withoutToken} for a route that carries text too, which {@link #noteLightRoute} names. */
+    private static int withoutToken(int color, String route) {
+        int themed = withoutToken(color);
+        if (themed == color) noteLightRoute(route, color);
+        return themed;
     }
 
     /**
@@ -984,6 +1117,11 @@ public final class MaterialYouTheme {
 
     static boolean isSurface(int color) {
         return Arrays.binarySearch(SURFACE_VALUES, color) >= 0;
+    }
+
+    /** One of the {@link #LIGHT_SURFACE_VALUES}. */
+    static boolean isLightSurface(int color) {
+        return Arrays.binarySearch(LIGHT_SURFACE_VALUES, color) >= 0;
     }
 
     /** One of {@link #SERVER_BLUES}, at any alpha. */

@@ -108,6 +108,7 @@ public final class ReportPatch {
             Utils.runOnBackgroundThread(() -> NativeCrashes.check(context, true));
             Utils.runOnBackgroundThread(() -> ReportDiagnostics.logStart(context));
             SendToCarStatus.refreshAfterStart(context);
+            SendToCarPush.install(context);
             UpdateCheck.start(context);
             MainWatchdog.start();
             StartLogcat.start(context);
@@ -262,6 +263,14 @@ public final class ReportPatch {
         if (refresh != null) refresh.run();
     }
 
+    /** Whether a switch on the open screen differs from its stored state and waits for its restart. Main thread. */
+    static boolean switchesChanged() {
+        for (Map.Entry<String, Boolean> pending : pendingSwitches.entrySet()) {
+            if (pending.getValue() != (!SafeMode.automatic() && SafeMode.switchOn(pending.getKey()))) return true;
+        }
+        return false;
+    }
+
     /** Only for the screen that attached last: a screen opened again can attach before the old one is destroyed. */
     static void detachScreen(Activity host) {
         if (screenHost == null || screenHost.get() != host) return;
@@ -271,7 +280,8 @@ public final class ReportPatch {
         pendingSwitches.clear();
     }
 
-    // The screen: safe mode, the GitHub link, a new report, the queued, sent, failed and expired ones, then the switches.
+    // The screen: safe mode, a new report, the queued, sent, failed and expired ones, the update and GitHub rows, then
+    // the switches (the long list last).
     private static void fillScreen(Activity host, Views views, LinearLayout content, boolean thai, Runnable refresh) {
         content.removeAllViews();
         Context app = host.getApplicationContext();
@@ -281,7 +291,7 @@ public final class ReportPatch {
             safeMode.setText(thai ? "Safe mode: ฟีเจอร์เสริมปิดอยู่" : "Safe mode: extra features are off");
             safeMode.setPadding(views.px(24), views.px(8), views.px(24), 0);
             content.addView(safeMode);
-            SimpleDateFormat local = new SimpleDateFormat("d MMM HH:mm", Locale.getDefault());
+            SimpleDateFormat local = localFormat(thai);
             content.addView(views.paragraph(thai
                     ? "แอปเด้ง 2 ครั้งภายใน 10 นาที (" + local.format(new Date(SafeMode.automaticSince()))
                     + ") ส่งรายงานด้านล่าง แล้วเปิดฟีเจอร์กลับที่ \"ฟีเจอร์เสริม\""
@@ -289,18 +299,11 @@ public final class ReportPatch {
                     + "). Send a report below, then turn features back on under \"Extra features\"."));
             content.addView(views.divider());
         }
-        addGitHubRow(host, views, content, thai);
-        addUpdateRow(host, views, content, thai);
-        content.addView(views.divider());
-        TextView intro = views.paragraph(thai
-                ? "ส่งบันทึกการทำงานของแอปให้ผู้พัฒนาแพตช์เพื่อแก้ปัญหา คุณจะเห็นข้อมูลทั้งหมดก่อนส่ง และลบได้ทุกเมื่อ"
-                : "Send the app's own logs to the patch developer to fix a problem. You see everything before it is sent and can delete it any time.");
-        content.addView(intro);
         List<ReportStore.Entry> entries = ReportStore.entries(app);
         if (!configured()) {
             content.addView(views.paragraph(thai
-                    ? "Build นี้ไม่ได้ตั้งค่าเซิร์ฟเวอร์รายงาน จึงส่งไม่ได้ แจ้งปัญหาที่ GitHub ตามลิงก์ด้านบนแทน"
-                    : "This build has no report server, so reports cannot be sent. Report the problem on GitHub with the link above."));
+                    ? "Build นี้ไม่ได้ตั้งค่าเซิร์ฟเวอร์รายงาน จึงส่งไม่ได้ แจ้งปัญหาที่ GitHub ตามลิงก์ด้านล่างแทน"
+                    : "This build has no report server, so reports cannot be sent. Report the problem on GitHub with the link below."));
         } else {
             int queued = 0;
             for (ReportStore.Entry entry : entries) if (ReportStore.QUEUED.equals(entry.state)) queued++;
@@ -312,12 +315,14 @@ public final class ReportPatch {
             create.setAlpha(full ? 0.5f : 1f);
             create.setOnClickListener(view -> startReport(host));
             content.addView(create);
+            content.addView(views.paragraph(thai
+                    ? "ส่งบันทึกของแอปให้ผู้พัฒนาแพตช์ ดูทั้งหมดได้ก่อนส่ง ลบได้ทุกเมื่อ"
+                    : "Sends the app's logs to the patch developer. You see everything first and can delete it any time."));
             if (full) {
                 content.addView(views.paragraph(thai ? "รอส่งครบ " + ReportStore.MAX_QUEUED + " รายงานแล้ว ลบรายงานที่รอส่งก่อน"
                         : ReportStore.MAX_QUEUED + " reports are waiting already. Delete a waiting one first."));
             }
         }
-        if (!entries.isEmpty()) content.addView(views.divider());
         for (ReportStore.Entry entry : entries) {
             LinearLayout row = views.horizontal();
             row.setMinimumHeight(views.px(56));
@@ -343,6 +348,9 @@ public final class ReportPatch {
             row.addView(delete, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
             content.addView(row);
         }
+        content.addView(views.divider());
+        addUpdateRow(host, views, content, thai);
+        addGitHubRow(host, views, content, thai);
         addFeatures(host, views, content, thai);
     }
 
@@ -463,8 +471,8 @@ public final class ReportPatch {
                 : "Scan it with your phone to open a new GitHub issue" + (idFilled || versionsFilled ? " with " + (idFilled ? "the report ID" : "")
                         + (both ? " and " : "") + (versionsFilled ? "the versions" : "") + " filled in" : "") + ".");
         if (reportId == null && configured()) {
-            text.append(thai ? " ถ้าส่งรายงานได้ ให้ส่งก่อน QR ของรายงานที่ส่งแล้ว (หลังกดส่ง หรือที่แถวของรายงานในหน้านี้) จะกรอกรหัสรายงานให้ด้วย"
-                    : " If you can, send a report first: a sent report's QR code (after sending, or on its row on this screen) fills in its ID too.");
+            text.append(thai ? " ส่งรายงานก่อนถ้าทำได้ QR ของรายงานที่ส่งแล้วจะกรอกรหัสให้ด้วย"
+                    : " Send a report first if you can. A sent report's QR code fills in its ID too.");
         }
         text.append("\n\n");
         if (reportId != null) text.append(thai ? "รหัสรายงาน " : "Report ID ").append(reportId).append('\n');
@@ -549,9 +557,8 @@ public final class ReportPatch {
                 ? (thai ? "Safe mode ปิดทุกฟีเจอร์อยู่ เลือกฟีเจอร์ที่จะเปิด แล้วเริ่มแอปใหม่ ถ้าเด้งอีก 2 ครั้งใน 10 นาที safe mode จะกลับมา"
                 : "Safe mode has turned every feature off. Choose the ones to turn on, then restart the app. "
                 + "Two more crashes within 10 minutes bring safe mode back.")
-                : (thai ? "ปิดฟีเจอร์ที่สงสัยว่าทำให้เกิดปัญหา แล้วเริ่มแอปใหม่ ส่วนหลัก (MicroG-RE, Android 10, รายงานปัญหา) เปิดอยู่เสมอ"
-                : "Turn off a feature you suspect, then restart the app. The core (MicroG-RE, Android 10 support, "
-                + "this report) is always on.")));
+                : (thai ? "ปิดฟีเจอร์ที่สงสัย แล้วกดเริ่มแอปใหม่ด้านล่าง"
+                : "Turn off a feature you suspect, then restart the app below.")));
         List<Switch> switches = new ArrayList<>();
         for (String feature : SafeMode.FEATURES) {
             if (!SafeMode.included(feature)) continue;
@@ -607,6 +614,7 @@ public final class ReportPatch {
     private static String featureName(String feature, boolean thai) {
         switch (feature) {
             case SafeMode.UI_DENSITY: return thai ? "ขนาดการแสดงผล (UI density)" : "UI density";
+            case SafeMode.LANGUAGE: return thai ? "ภาษา (Language)" : "Language";
             case SafeMode.DRIVER_SIDE: return thai ? "ฝั่งพวงมาลัย (Driver side)" : "Driver side";
             case SafeMode.COLOR_SCHEME: return thai ? "รูปแบบสี (Color scheme)" : "Color scheme";
             case SafeMode.BUILDINGS_3D: return thai ? "อาคาร 3 มิติ (3D buildings)" : "3D buildings";
@@ -623,6 +631,7 @@ public final class ReportPatch {
     private static String featureOff(String feature, boolean thai) {
         switch (feature) {
             case SafeMode.UI_DENSITY: return thai ? "ใช้ขนาดของระบบ" : "the system density";
+            case SafeMode.LANGUAGE: return thai ? "ใช้ภาษาของระบบ" : "the system language";
             case SafeMode.DRIVER_SIDE: return thai ? "Maps เลือกฝั่งการ์ดเอง (บน DiLink 3 อยู่ซ้าย)" : "Maps picks the cards' side (left on DiLink 3)";
             case SafeMode.COLOR_SCHEME: return thai ? "ใช้สีของ Maps (บน BYD เป็นสีกลางคืนตลอด)" : "Maps' colors (night colors all day on BYD)";
             case SafeMode.BUILDINGS_3D: return thai ? "ชั้นแผนที่ไม่มีอาคาร 3 มิติ" : "no 3D buildings in the map layers";
@@ -655,8 +664,14 @@ public final class ReportPatch {
         }
     }
 
+    // A time on this screen: "6 Nov 13:40", Thai month names in Thai. From the language in use, not the process's
+    // default locale, which a configuration change in this process sets back to the system's.
+    private static SimpleDateFormat localFormat(boolean thai) {
+        return new SimpleDateFormat("d MMM HH:mm", thai ? new Locale("th", "TH") : Locale.UK);
+    }
+
     private static String entryDetails(ReportStore.Entry entry, boolean thai) {
-        SimpleDateFormat local = new SimpleDateFormat("d MMM HH:mm", Locale.getDefault());
+        SimpleDateFormat local = localFormat(thai);
         String text = (thai ? "สร้าง " : "Made ") + local.format(new Date(entry.created));
         long expires = ReportBuilder.parseUtc(entry.expiresAt);
         if (ReportStore.SENT.equals(entry.state) && expires != Long.MAX_VALUE) {
@@ -725,6 +740,18 @@ public final class ReportPatch {
         content.setPadding(0, views.px(4), 0, views.px(8));
         ScrollView root = new ScrollView(views.themed);
         root.addView(content);
+        // The comment first: it is the one thing only the user can add. The container takes the first focus, so the
+        // keyboard stays down until the box is tapped.
+        content.setFocusableInTouchMode(true);
+        EditText comment = new EditText(views.themed);
+        comment.setHint(thai ? "อธิบายปัญหา (ไม่บังคับ) เช่น ทำอะไรอยู่ เกิดอะไรขึ้น ตอนกี่โมง" : "What happened, and when? (optional)");
+        comment.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+        comment.setMinLines(2);
+        comment.setMaxLines(6);
+        comment.setFilters(new InputFilter[]{new InputFilter.LengthFilter(ReportBuilder.MAX_COMMENT_CHARS)});
+        LinearLayout.LayoutParams commentLayout = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        commentLayout.setMargins(views.px(20), views.px(8), views.px(20), views.px(4));
+        content.addView(comment, commentLayout);
 
         TextView summary = views.paragraph("");
         summary.setText(summary(draft.report, thai));
@@ -789,16 +816,6 @@ public final class ReportPatch {
 
         content.addView(views.paragraph(redactionText(draft.redactor.counts(), thai)));
 
-        EditText comment = new EditText(views.themed);
-        comment.setHint(thai ? "อธิบายปัญหา (ไม่บังคับ) เช่น ทำอะไรอยู่ เกิดอะไรขึ้น ตอนกี่โมง" : "What happened, and when? (optional)");
-        comment.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
-        comment.setMinLines(2);
-        comment.setMaxLines(6);
-        comment.setFilters(new InputFilter[]{new InputFilter.LengthFilter(ReportBuilder.MAX_COMMENT_CHARS)});
-        LinearLayout.LayoutParams commentLayout = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        commentLayout.setMargins(views.px(20), views.px(8), views.px(20), views.px(4));
-        content.addView(comment, commentLayout);
-
         content.addView(views.divider());
         content.addView(views.paragraph(consentText(host, thai)));
 
@@ -827,8 +844,9 @@ public final class ReportPatch {
                 + " · Android " + device.optString("android_release"));
         line(text, thai ? "รถ BYD" : "BYD car", byd == null ? (thai ? "ไม่ใช่รถ BYD" : "not a BYD")
                 : byd.isNull("model_id") ? (thai ? "อ่านรหัสรุ่นไม่ได้" : "model id unreadable")
-                : (thai ? "รหัสรุ่น " : "model id ") + byd.optInt("model_id") + (byd.optBoolean("tested_model")
-                ? (thai ? " · ทดสอบแล้ว" : " · tested") : (thai ? " · ยังไม่ได้ทดสอบ" : " · untested")));
+                : (thai ? "รหัสรุ่น " : "model id ") + byd.optInt("model_id") + ("tested".equals(byd.optString("model_support"))
+                ? (thai ? " · ทดสอบแล้ว" : " · tested") : "reported".equals(byd.optString("model_support"))
+                ? (thai ? " · มีรายงานว่าใช้ได้" : " · reported working") : (thai ? " · ยังไม่ได้ทดสอบ" : " · untested")));
         String batteryText = report.isNull("battery") ? "–"
                 : !battery.optBoolean("enabled") ? (thai ? "ปิด" : "off")
                 : !battery.optBoolean("active") ? (thai ? "เปิด · ไม่พบระบบรถ BYD" : "on · no BYD vehicle system")
@@ -1011,11 +1029,10 @@ public final class ReportPatch {
             } else if (sent) {
                 status.setText(thai ? "ส่งแล้ว · รหัสรายงาน" : "Sent · report ID");
                 id.setText(entry.id);
-                note.setText(thai ? "แจ้งรหัสนี้เมื่อเปิด issue ที่ GitHub หรือกด QR สำหรับ GitHub แล้วสแกนด้วยมือถือ จะได้ issue ที่กรอกรหัสไว้ให้"
-                        + " ดูหรือลบรายงานได้ที่ " + reportPlace(host, true) + " ลบอัตโนมัติใน 14 วัน"
-                        : "Give this ID when you open a GitHub issue, or tap GitHub QR code and scan it with your phone for an"
-                        + " issue with the ID filled in. View or delete it in " + reportPlace(host, false) + "."
-                        + " It is deleted automatically after 14 days.");
+                note.setText(thai ? "ผู้พัฒนาตอบกลับผ่านรายงานนี้ไม่ได้ ถ้าต้องการคำตอบ กด QR สำหรับ GitHub แล้วสแกนด้วยมือถือ"
+                        + " จะได้ issue ที่กรอกรหัสนี้ไว้ให้ รายงานลบอัตโนมัติใน 14 วัน"
+                        : "The developer cannot reply to a report. For an answer, tap GitHub QR code and scan it with your"
+                        + " phone to open an issue with this ID filled in. The report is deleted automatically after 14 days.");
             } else if (ReportStore.QUEUED.equals(entry.state)) {
                 status.setText(entry.attempts == 0 ? (thai ? "กำลังส่ง…" : "Sending…") : stateText(entry, thai));
                 note.setText(thai ? "แอปส่งเองเมื่อมีอินเทอร์เน็ตขณะเปิดแอปอยู่ ปิดหน้าต่างนี้ได้"

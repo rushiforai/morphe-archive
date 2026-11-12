@@ -49,6 +49,7 @@ import app.hushtelegram.extension.shared.settings.BooleanSetting;
 import app.hushtelegram.extension.shared.settings.HushTelegramPause;
 import app.hushtelegram.extension.shared.settings.Setting;
 import app.hushtelegram.extension.shared.settings.preference.AbstractPreferenceFragment;
+import app.hushtelegram.extension.shared.settings.preference.ExportDiagnosticReportPreference;
 import app.hushtelegram.extension.shared.settings.preference.ReopenSettingsAfterRestart;
 
 /**
@@ -594,7 +595,7 @@ final class SettingsNavigation extends BaseAdapter {
                 for (int i = 0; i < section.category.getPreferenceCount(); i++) {
                     Preference row = section.category.getPreference(i);
                     String text = normalized(searchable(section.category.getTitle()) + " " + searchable(row.getTitle())
-                            + " " + searchable(row.getSummary()));
+                            + " " + searchable(ownSummary(row)));
                     boolean matches = true;
                     for (String term : terms.split("\\s+")) if (!text.contains(term)) matches = false;
                     if (!matches) continue;
@@ -813,6 +814,17 @@ final class SettingsNavigation extends BaseAdapter {
             if (setting != null && (!setting.isKeptWhenPaused() || setting == BaseSettings.PAUSED)) return true;
         }
         return false;
+    }
+
+    /**
+     * The summary a row is searched by. A backup or report row shows a running line and then a
+     * result in its summary, and those would list it under the wrong search or lose it mid-run.
+     */
+    @Nullable
+    private static CharSequence ownSummary(Preference row) {
+        if (row instanceof SettingsBackupPreference) return ((SettingsBackupPreference) row).restingSummary();
+        if (row instanceof ExportDiagnosticReportPreference) return ((ExportDiagnosticReportPreference) row).restingSummary();
+        return row.getSummary();
     }
 
     /** A title or summary as search text. A row without one adds nothing, not the word "null". */

@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Set;
 
 import dev.utaa.linimal.extension.features.readwithoutreceipt.ReadWithoutReceiptHooks;
+import dev.utaa.linimal.extension.features.PreviewDisableHooks;
 import dev.utaa.linimal.extension.features.PreviewScrollHooks;
 
 public final class LinimalConfigTest {
@@ -30,6 +31,7 @@ public final class LinimalConfigTest {
             LinimalFeature.AGENT_I_WALLET_HEADER,
             LinimalFeature.AGENT_I_SETTINGS,
             LinimalFeature.AGENT_I_CHAT_COMPOSER,
+            LinimalFeature.AGENT_I_CHAT_PLUS_MENU,
             LinimalFeature.AGENT_I_CHAT_LIST_SEARCH,
             LinimalFeature.LINE_AI_MESSAGE_CONTEXT_MENU,
             LinimalFeature.LINE_AI_GALLERY_VIEWER,
@@ -74,12 +76,21 @@ public final class LinimalConfigTest {
      */
     private static final Set<LinimalFeature> POST_FREEZE_FEATURES = EnumSet.of(
             LinimalFeature.HOME_RECENT_HISTORY,
+            LinimalFeature.HOME_FEED_LIVE,
+            LinimalFeature.AGENT_I_CHAT_PLUS_MENU,
             LinimalFeature.NOTIFICATION_READ_WITHOUT_RECEIPT,
             LinimalFeature.PUSH_NOTIFICATIONS,
             LinimalFeature.GOOGLE_DRIVE_BACKUP,
             LinimalFeature.PREMIUM_PREVIEW_PROMOTION,
             LinimalFeature.PREVIEW_SCROLL,
-            LinimalFeature.AMOLED_THEME);
+            LinimalFeature.PREVIEW_DISABLE,
+            LinimalFeature.AMOLED_THEME,
+            LinimalFeature.READ_RECEIPT_READERS_ICONS,
+            LinimalFeature.READ_RECEIPT_READERS_TAP,
+            LinimalFeature.READ_RECEIPT_READERS_OTHERS_COUNT,
+            LinimalFeature.READ_RECEIPT_READERS_OTHERS_ICONS,
+            LinimalFeature.READ_RECEIPT_READERS_MENU,
+            LinimalFeature.READ_RECEIPT_READERS_SERVER_SYNC);
 
     @Test
     public void beforeInitializationHooksPreserveOriginalBehavior() {
@@ -105,6 +116,8 @@ public final class LinimalConfigTest {
         assertFalse(config.isAmoledThemeEnabled());
         assertFalse(PreviewScrollHooks.allowScroll(false));
         assertTrue(PreviewScrollHooks.allowScroll(true));
+        assertFalse(config.isPreviewDisableEnabled());
+        assertFalse(PreviewDisableHooks.shouldDisablePreview());
         assertFalse(config.isHomeFeedPostCardsSuppressionEnabled());
         assertFalse(config.isHomeFeaturedCollectionsSuppressionEnabled());
         assertFalse(config.isNotificationReadWithoutReceiptEnabled());
@@ -852,6 +865,81 @@ public final class LinimalConfigTest {
     }
 
     @Test
+    public void previewDisableAppliesAfterRestartAndFailsOpenWhenUnavailable() throws Exception {
+        java.lang.reflect.Field shared = LinimalConfig.class.getDeclaredField("shared");
+        shared.setAccessible(true);
+        LinimalConfig previous = (LinimalConfig) shared.get(null);
+        try {
+            InMemoryBackend backend = new InMemoryBackend();
+            LinimalConfig config = configFor(backend);
+            shared.set(null, config);
+            assertFalse(config.isPreviewDisableEnabled());
+            assertFalse(PreviewDisableHooks.shouldDisablePreview());
+
+            config.setSuppressionEnabled(LinimalFeature.PREVIEW_DISABLE, true);
+            assertEquals(true, backend.values.get("linimal.preview.disable"));
+            assertTrue(config.isRestartPending(LinimalFeature.PREVIEW_DISABLE));
+            assertFalse(PreviewDisableHooks.shouldDisablePreview());
+            config = config.restartForTesting();
+            shared.set(null, config);
+            assertTrue(PreviewDisableHooks.shouldDisablePreview());
+            // 無効化はスクロール設定の保存値を変えません。
+            assertFalse(config.isPreviewScrollEnabled());
+
+            config = configFor(backend, availableFeatures(LinimalFeature.PREVIEW_SCROLL));
+            shared.set(null, config);
+            assertFalse(PreviewDisableHooks.shouldDisablePreview());
+            assertEquals(true, backend.values.get("linimal.preview.disable"));
+        } finally {
+            shared.set(null, previous);
+        }
+    }
+
+    @Test
+    public void previewDisableKeepsSavedValuesOfBlockedPreviewSettings() {
+        InMemoryBackend backend = new InMemoryBackend();
+        LinimalConfig config = configFor(backend);
+        config.setSuppressionEnabled(LinimalFeature.PREVIEW_SCROLL, true);
+        config.setSuppressionEnabled(LinimalFeature.PREMIUM_PREVIEW_PROMOTION, true);
+
+        config.setSuppressionEnabled(LinimalFeature.PREVIEW_DISABLE, true);
+        assertTrue(config.isSuppressionEnabled(LinimalFeature.PREVIEW_SCROLL));
+        assertTrue(config.isSuppressionEnabled(LinimalFeature.PREMIUM_PREVIEW_PROMOTION));
+        config = config.restartForTesting();
+        assertTrue(config.isPreviewDisableEnabled());
+        assertTrue(config.isPreviewScrollEnabled());
+        assertTrue(config.isPremiumPreviewPromotionSuppressionEnabled());
+
+        config.setSuppressionEnabled(LinimalFeature.PREVIEW_DISABLE, false);
+        config = config.restartForTesting();
+        assertFalse(config.isPreviewDisableEnabled());
+        assertEquals(true, backend.values.get("linimal.preview.scroll"));
+        assertEquals(true, backend.values.get("linimal.preview.premium_promotion"));
+        assertTrue(config.isPreviewScrollEnabled());
+        assertTrue(config.isPremiumPreviewPromotionSuppressionEnabled());
+    }
+
+    @Test
+    public void previewDisablePreservesOfficialBehaviorAfterStorageFailure() throws Exception {
+        java.lang.reflect.Field shared = LinimalConfig.class.getDeclaredField("shared");
+        shared.setAccessible(true);
+        LinimalConfig previous = (LinimalConfig) shared.get(null);
+        try {
+            FailingWriteBackend backend = new FailingWriteBackend();
+            backend.values.put(LinimalConfigSchema.SCHEMA_VERSION_KEY, LinimalConfigSchema.CURRENT_VERSION);
+            backend.values.put("linimal.preview.disable", true);
+            LinimalConfig config = configFor(backend);
+            shared.set(null, config);
+            assertTrue(PreviewDisableHooks.shouldDisablePreview());
+            config.setSuppressionEnabled(LinimalFeature.PREVIEW_DISABLE, false);
+            assertEquals(LinimalConfigHealth.ERROR, config.getRuntimeHealth());
+            assertFalse(PreviewDisableHooks.shouldDisablePreview());
+        } finally {
+            shared.set(null, previous);
+        }
+    }
+
+    @Test
     public void previewScrollPreservesOriginalAfterStorageFailure() throws Exception {
         java.lang.reflect.Field shared = LinimalConfig.class.getDeclaredField("shared");
         shared.setAccessible(true);
@@ -1173,6 +1261,12 @@ public final class LinimalConfigTest {
             boolean behaviour = feature == LinimalFeature.READ_WITHOUT_RECEIPT
                     || feature == LinimalFeature.NOTIFICATION_READ_WITHOUT_RECEIPT
                     || feature == LinimalFeature.EXTERNAL_BROWSER
+                    || feature == LinimalFeature.READ_RECEIPT_READERS_ICONS
+                    || feature == LinimalFeature.READ_RECEIPT_READERS_TAP
+                    || feature == LinimalFeature.READ_RECEIPT_READERS_OTHERS_COUNT
+                    || feature == LinimalFeature.READ_RECEIPT_READERS_OTHERS_ICONS
+                    || feature == LinimalFeature.READ_RECEIPT_READERS_MENU
+                    || feature == LinimalFeature.READ_RECEIPT_READERS_SERVER_SYNC
                     || feature == LinimalFeature.PUSH_NOTIFICATIONS
                     || feature == LinimalFeature.GOOGLE_DRIVE_BACKUP;
             assertEquals(feature.name(), !behaviour, feature.requiresRestart());

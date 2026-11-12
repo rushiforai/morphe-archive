@@ -221,7 +221,7 @@ private fun hasSupplierFactoryReferences(method: Method): Boolean {
  * gate を飛び越して送信まで到達してしまいます。</p>
  */
 val readReceiptOutboundGatePatch = bytecodePatch(
-    name = "通常チャットの自動既読",
+    name = "Automatic read receipts",
     description = "通常チャットの既読送信を、実行時設定で止められるようにします。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)
@@ -308,7 +308,7 @@ val readReceiptOutboundGatePatch = bytecodePatch(
  * 既読が相手へ届きます。26.11.0 までと同じく、明示的なボタン操作だけを手動として扱います。</p>
  */
 val readReceiptManualCallerPatch = bytecodePatch(
-    name = "手動既読の呼び出し元",
+    name = "Manual read caller",
     description = "LINE 自身の手動既読操作を識別できるよう、呼び出し元スレッドへ印を付けます。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)
@@ -392,7 +392,7 @@ val readReceiptManualCallerPatch = bytecodePatch(
 
 /** supplier identity へ caller thread の one-shot origin を移します。 */
 val readReceiptSupplierRegistrationPatch = bytecodePatch(
-    name = "手動既読の受け渡し",
+    name = "Manual read handoff",
     description = "手動既読の印を、非同期処理へ引き継ぐための識別子として登録します。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)
@@ -456,7 +456,7 @@ val readReceiptSupplierRegistrationPatch = bytecodePatch(
 
 /** worker thread で supplier identity を allowance へ変換し、return/exception 全出口で cleanup します。 */
 val readReceiptSupplierPreparationPatch = bytecodePatch(
-    name = "手動既読の送信許可",
+    name = "Manual read permit",
     description = "非同期処理側で手動既読の識別子を送信許可へ変換し、処理の終了時に破棄します。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

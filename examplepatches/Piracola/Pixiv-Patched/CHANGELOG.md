@@ -1,3 +1,15 @@
+## [1.6.0](https://github.com/Piracola/Pixiv-Patched/compare/v1.5.0...v1.6.0) (2026-11-11)
+
+### ✨ New Features
+
+* **searchranking:** fill the popular tab from the free preview or local bookmark order ([d29e422](https://github.com/Piracola/Pixiv-Patched/commit/d29e4226b9d0b7b5343d5f4290461571f8370f22))
+
+## [1.5.0](https://github.com/Piracola/Pixiv-Patched/compare/v1.4.0...v1.5.0) (2026-11-11)
+
+### ✨ New Features
+
+* **popularsearch:** pin the popular search trial countdown ([cb0d70b](https://github.com/Piracola/Pixiv-Patched/commit/cb0d70b05fff692d09c8f2004792af307ac6fc39))
+
 ## [1.4.0](https://github.com/Piracola/Pixiv-Patched/compare/v1.3.0...v1.4.0) (2026-11-08)
 
 ### ✨ New Features

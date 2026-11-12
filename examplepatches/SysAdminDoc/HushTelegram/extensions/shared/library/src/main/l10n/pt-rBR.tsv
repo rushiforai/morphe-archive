@@ -411,7 +411,7 @@ When someone reacts to a message, the emoji doesn't fly across the screen and bu
 Hide folder tab counters	Ocultar os contadores das abas de pastas
 Folder tabs above the chat list show just their names, without unread counts. Chats stay unread and the app icon badge doesn't change.	As abas de pastas acima da lista de conversas mostram só o nome, sem a contagem de não lidas. As conversas continuam não lidas e o selo do ícone do app não muda.
 Hide sender names when forwarding	Ocultar remetentes ao encaminhar
-Each new forward starts with Hide sender's name turned on, so copies arrive without the original author. You can still turn it off before sending.	Cada novo encaminhamento começa com Ocultar nome do remetente ligado, então as cópias chegam sem o autor original. Você ainda pode desligar antes de enviar.
+Each new forward starts with Hide sender's name turned on, so copies arrive without the original author, even when you pick several chats at once. You can still turn it off in the forward preview, or by holding the send button in the Share sheet. Forwards to Saved Messages keep the sender.	Cada novo encaminhamento começa com Ocultar nome do remetente ligado, então as cópias chegam sem o autor original, mesmo quando você escolhe vários chats de uma vez. Você ainda pode desligar na prévia do encaminhamento, ou segurando o botão de enviar na janela Compartilhar. Encaminhamentos para Mensagens Salvas mantêm o remetente.
 Voice messages in the music player	Mensagens de voz no player de música
 While a voice message plays, tapping the bar above the chat opens the full music player, where you can drag to skip around, instead of jumping to the message.	Enquanto uma mensagem de voz toca, tocar na barra acima da conversa abre o player de música completo, onde você pode arrastar para avançar ou voltar, em vez de ir até a mensagem.
 Silence people outside your contacts	Silenciar quem não está nos seus contatos
@@ -1282,8 +1282,13 @@ the hidden accounts	as contas ocultas
 Fit all folder tabs	Ajustar todas as abas de pastas
 # context: Summary of the Fit all folder tabs switch. The folder tabs shrink so none of them scrolls out of sight; with few folders nothing changes
 Shrinks the folder tabs above the chat list until all of them fit on the screen, so you never scroll sideways to find one. With only a few folders nothing changes.	Reduz as abas de pastas acima da lista de conversas até todas caberem na tela, para você nunca precisar rolar de lado para achar uma. Com poucas pastas, nada muda.
+# context: Switch title on the Chat list page under Hide folder tab counters, off by default. It puts an icon for the kind of folder in front of each folder tab's name above the chat list
+Folder icons on tabs	Ícones nas abas de pastas
+# context: Summary of the Folder icons on tabs switch. All Chats gets two speech bubbles, a folder of only private chats a person, of only groups a group, of only channels a channel, of only bots a bot. All Chats is Telegram's FilterAllChats label
+Puts a small icon in front of each folder tab's name: a chat bubble for All Chats, and a person, group, channel or bot for a folder of that kind of chat. Other folders get a folder icon. With a pack picked under Folder icons, the tabs use that pack instead.	Coloca um pequeno ícone antes do nome de cada aba de pasta: um balão para Todos os Chats, e uma pessoa, um grupo, um canal ou um bot para uma pasta com esse tipo de chat. As outras pastas ganham um ícone de pasta. Com um pacote escolhido em Ícones de pastas, as abas usam esse pacote.
 # context: Lowercase noun phrase naming a part of Hide folder tab counters in a diagnostic line. It names the switch that shrinks the folder tabs to fit the screen
 the fitted folder tabs	as abas de pastas ajustadas
+the folder tab icons	os ícones das abas de pastas
 # context: Switch under Privacy for Receive only mode, per account (#53).
 Receive only mode	Modo somente receber
 The accounts you pick below can read but not write. Messages, reactions, drafts and typing stay on this phone and show an error. Reading, files and read receipts work. Works with this switch on.	As contas que você escolher abaixo podem ler, mas não escrever. Mensagens, reações, rascunhos e o aviso de digitação ficam neste telefone e mostram um erro. Leitura, arquivos e confirmações de leitura funcionam. Vale com esta chave ligada.
@@ -1345,6 +1350,8 @@ None	Nenhum
 Couldn't save the choice. Try again in a moment.	Não foi possível salvar a escolha. Tente de novo daqui a pouco.
 # context: Summary of the Folder icons row. %1$s is the chosen pack (Regular, Bold, Filled or None).
 %1$s. Icons show beside folder names in HushTelegram's own lists. Telegram's folder tabs stay as they are.	%1$s. Os ícones aparecem ao lado dos nomes das pastas nas listas do próprio HushTelegram. As abas de pastas do Telegram continuam como estão.
+# context: Summary of the Folder icons row in a build that can put icons on the folder tabs. %1$s is the chosen pack (Regular, Bold, Filled or None). Folder icons on tabs is the switch above it
+%1$s. Icons show beside folder names in HushTelegram's own lists, and on the folder tabs with Folder icons on tabs on.	%1$s. Os ícones aparecem ao lado dos nomes das pastas nas listas do próprio HushTelegram, e nas abas de pastas com Ícones nas abas de pastas ativado.
 # context: Settings row that makes downloads run one at a time. Its list is in the side menu.
 Download manager	Gerenciador de downloads
 # context: Summary of the Download manager row.
@@ -1542,3 +1549,252 @@ channels restricted for copyright or local law	canais restritos por direitos aut
 Send photos and videos in the best quality	Enviar fotos e vídeos na melhor qualidade
 Photos go out in HD and videos at their own size and quality, without touching the quality button first. You can still lower one before sending. Only sending as a file keeps a photo exactly as it is.	As fotos vão em HD e os vídeos no tamanho e na qualidade originais, sem tocar antes no botão de qualidade. Você ainda pode baixar a de algum antes de enviar. Só enviar como arquivo mantém uma foto exatamente como ela é.
 photos and videos in their best quality	fotos e vídeos na melhor qualidade
+# context: Never send an uncropped photo. A switch on Conversations, on by default, and the toast shown when Telegram's photo editor can't finish a crop and stays open.
+Never send an uncropped photo	Nunca enviar uma foto sem cortar
+When Telegram can't finish a crop, the editor stays open and asks you to try again, so the part you cropped out never gets sent. Covers photos and profile pictures. Videos crop as usual.	Quando o Telegram não consegue terminar um corte, o editor continua aberto e pede para você tentar de novo, assim a parte que você cortou nunca é enviada. Vale para fotos e fotos de perfil. Vídeos são cortados como sempre.
+Couldn't crop the photo. Try again.	Não foi possível cortar a foto. Tente de novo.
+# context: Keep captions with their photos. A switch on Conversations, on by default, for the attach menu: when several picked photos each have their own caption, unpicking or reordering them keeps each caption on its own photo.
+Keep captions with their photos	Manter cada legenda com sua foto
+When you remove or reorder photos that each have a caption, every caption stays with its own photo.	Ao remover ou reordenar fotos que têm cada uma sua legenda, cada legenda fica com a própria foto.
+# context: a switch under Ghost mode (#69). With it on, sending a message in a chat also sends the read receipt Ghost mode held back for that chat.
+Read after you reply	Lido ao responder
+# context: that switch's summary. No read receipts is the switch title under Ghost mode, translated the same as that row.
+When you send a message in a chat, the read receipt Ghost mode held back there goes out too, so your other devices stop showing it unread. Works with Ghost mode and No read receipts on.	Quando você envia uma mensagem em um chat, a confirmação de leitura que o Modo fantasma segurou ali também é enviada, e seus outros dispositivos deixam de mostrá-lo como não lido. Funciona com o Modo fantasma e Sem confirmação de leitura ativados.
+# context: a switch under Ghost mode (#69). With it on, a double check button sits at the top of the chat list, next to the ghost.
+Read receipts button	Botão de confirmações de leitura
+# context: that switch's summary. A double check is the two tick marks Telegram shows on a read message.
+A double check at the top of the chat list sends the read receipts Ghost mode is holding for the account you're on, from chats read since Telegram last started. Shows with Ghost mode and No read receipts on.	Um check duplo no topo da lista de chats envia as confirmações de leitura que o Modo fantasma está segurando para a conta em uso, dos chats lidos desde que o Telegram abriu pela última vez. Aparece com o Modo fantasma e Sem confirmação de leitura ativados.
+# context: what a screen reader says for the chat list's double check button.
+Send read receipts	Enviar confirmações de leitura
+# context: short message after a tap on the chat list's double check button sent the held read receipts.
+Read receipts sent	Confirmações de leitura enviadas
+# context: short message after a tap on the chat list's double check button found no held read receipts.
+No read receipts waiting	Nenhuma confirmação pendente
+# context: short message after a tap on the chat list's double check button couldn't send the held read receipts.
+Couldn't send read receipts	Não foi possível enviar as confirmações
+# context: Proxy in the chat list menu (#67). A switch on Chat list, off by default: the menu that opens from the top of the chat list (New Group, Saved Messages and so on) always gets Telegram's own Proxy row, which Telegram otherwise shows only while a proxy is on or where Telegram is blocked.
+Proxy in the chat list menu	Proxy no menu da lista de conversas
+The menu at the top of the chat list always has Proxy, so your proxies are one tap away even where Telegram isn't blocked.	O menu no topo da lista de conversas sempre tem Proxy, assim seus proxies ficam a um toque mesmo onde o Telegram não é bloqueado.
+# context: Free proxies (#66), on Chat list. A switch, off by default, that every 6 hours downloads a public list of MTProto proxies, times a connect to each and puts the 10 fastest in Telegram's own proxy list. A row runs it now and says what the last try found. A second switch, on by default, keeps Telegram's proxy button on the phone number screen before sign-in.
+Free proxies	Proxies gratuitos
+Every 6 hours, downloads a public list of proxies and adds the 10 fastest to Telegram's proxy list, and Telegram connects through them unless you use a proxy of your own. Whoever runs a proxy can see your IP address. Turning this off leaves them in the list.	A cada 6 horas, baixa uma lista pública de proxies e adiciona os 10 mais rápidos à lista de proxies do Telegram, e o Telegram se conecta por eles, a menos que você use um proxy seu. Quem mantém um proxy pode ver seu endereço IP. Desligar isto mantém os proxies na lista.
+Find free proxies now	Procurar proxies gratuitos agora
+Proxy button when signing in	Botão de proxy ao entrar
+The phone number screen always has the proxy button, so you can add a proxy before you sign in.	A tela do número de telefone sempre tem o botão de proxy, assim você pode adicionar um proxy antes de entrar.
+Looking for free proxies now.	Procurando proxies gratuitos agora.
+Downloads a public list of proxies now, times them and adds the fastest to Telegram's proxy list, even with the switch above off.	Baixa agora uma lista pública de proxies, mede cada um e adiciona os mais rápidos à lista de proxies do Telegram, mesmo com a chave acima desligada.
+Proxies added last time: %1$s. They're in Telegram's proxy list.	Proxies adicionados da última vez: %1$s. Eles estão na lista de proxies do Telegram.
+Couldn't download a proxy list last time. Check your connection and try again.	Não foi possível baixar uma lista de proxies da última vez. Verifique sua conexão e tente de novo.
+None of the listed proxies answered last time. Try again later.	Nenhum dos proxies da lista respondeu da última vez. Tente de novo mais tarde.
+Telegram didn't take the proxies last time.	O Telegram não aceitou os proxies da última vez.
+# context: Ghost mode exceptions (#71), a switch under Ghost mode, off by default. The chats picked for it get the opposite of Ghost mode: with Ghost mode on they act as in stock Telegram, with it off they keep back what the Ghost mode switches keep back. Online status stays with Ghost mode.
+Ghost mode exceptions	Exceções do Modo fantasma
+# context: that switch's summary. The three dots are the menu Telegram's chat list shows after a long press, where Ghost mode exception sits
+The chats you pick work the other way around. While Ghost mode is on they act as usual, and while it's off the Ghost mode switches above apply there. Long press chats in the chat list and use the three dots to add them. Online status follows Ghost mode everywhere.	As conversas que você escolher funcionam ao contrário. Com o Modo fantasma ativado, elas agem como de costume, e com ele desativado valem ali os interruptores do Modo fantasma acima. Toque e segure conversas na lista de conversas e use os três pontos para adicioná-las. O status online segue o Modo fantasma em todo lugar.
+# context: Row under Ghost mode exceptions, and the title of the list it opens. Its summary names the picked chats, and a tap lists the account's chats to tick
+Exception chats	Conversas com exceção
+# context: Summary of Exception chats when no chat is ticked
+No chats picked yet.	Nenhuma conversa escolhida ainda.
+# context: Item in the chat list's long press menu (the three dots, under Hide from chat list), shown while Ghost mode exceptions is on. It adds the selected chats to the exceptions, or takes them out when they all were
+Ghost mode exception	Exceção do Modo fantasma
+# context: Toast after Ghost mode exception took the selected chats back out of the exceptions
+These chats follow Ghost mode again.	Estas conversas seguem o Modo fantasma de novo.
+# context: Toast after Ghost mode exception added the selected chats while Ghost mode is on, so it no longer applies there
+Ghost mode is off in these chats.	O Modo fantasma está desativado nestas conversas.
+# context: Toast after Ghost mode exception added the selected chats while Ghost mode is off, so it applies there
+Ghost mode is on in these chats.	O Modo fantasma está ativado nestas conversas.
+# context: Fake typing (#71), a switch under Ghost mode, off by default, and the item it adds to the chat list's long press menu (the three dots). The picked chats show the account as typing, the way Telegram's own typing status shows
+Fake typing	Digitação falsa
+# context: that switch's summary. The status keeps going out every few seconds until ten minutes pass or the chats are picked again
+Adds Fake typing to the three dots menu when you long press chats in the chat list. The chats you pick show you typing for 10 minutes, or until you pick them again, even with Ghost mode on.	Adiciona Digitação falsa ao menu de três pontos ao tocar e segurar conversas na lista de conversas. Nas conversas que você escolher, você aparece digitando por 10 minutos, ou até escolhê-las de novo, mesmo com o Modo fantasma ativado.
+# context: Toast after Fake typing started the selected chats typing
+Typing in these chats for 10 minutes.	Digitando nestas conversas por 10 minutos.
+# context: Toast after Fake typing stopped the selected chats, which were all typing
+Stopped typing in these chats.	Parou de digitar nestas conversas.
+# context: Toast when only secret chats (or archive folders) were selected for Fake typing, which can't carry it
+Secret chats can't show typing.	Conversas secretas não mostram digitação.
+# context: Switch title on the Privacy page (#71), off by default. With a Telegram passcode set, the app locks about a second after you leave it instead of after the Auto-lock time picked in Telegram
+Instant lock	Bloqueio instantâneo
+# context: Summary of Instant lock. Auto-lock is Telegram's own passcode setting; the user's Auto-lock choice is kept and comes back when the switch is off
+With a Telegram passcode set, Telegram locks a second or two after you leave it instead of waiting for Auto-lock. Turning this off brings your Auto-lock time back.	Com uma senha do Telegram definida, o Telegram bloqueia um ou dois segundos depois que você sai, em vez de esperar o bloqueio automático. Desligar isso traz de volta o seu tempo de bloqueio automático.
+# context: Lowercase noun phrase naming the Instant lock switch (#71) in the patch status list
+instant lock	bloqueio instantâneo
+# context: Switch title on the Privacy page (#71), off by default. Signing up a phone number new to Telegram normally tells everyone who has that number saved that it joined; with this on, they aren't told
+Don't notify contacts	Não notificar contatos
+# context: Summary of Don't notify contacts. It only matters when a new account is created, for example through Add account with a number that has never used Telegram
+When you sign up a phone number that's new to Telegram, people who have it saved aren't told you joined. Accounts that already exist aren't affected.	Ao cadastrar um número de telefone novo no Telegram, quem tem ele salvo não é avisado de que você entrou. Contas que já existem não são afetadas.
+# context: Lowercase noun phrase naming the Don't notify contacts switch (#71) in the patch status list
+quiet sign-up	cadastro silencioso
+# context: Lowercase noun phrase naming Proxy order (#71) in the patch status list
+proxy order	ordem dos proxies
+# context: Title of the Proxy order row on the Chat list page and of its editor dialog (#71). It sets the order of the proxies on Telegram's own proxy screen
+Proxy order	Ordem dos proxies
+# context: Summary of the Proxy order row when nothing has been arranged yet
+Drag the proxies in Telegram's proxy list into your own order, or pin some on top.	Arraste os proxies da lista do Telegram para a sua própria ordem ou fixe alguns no topo.
+# context: Summary of the Proxy order row once the person has dragged proxies into an order of their own
+Telegram's proxy list is in your order. Tap to change it.	A lista de proxies do Telegram está na sua ordem. Toque para mudar.
+# context: Summary of the Proxy order row, singular form: the person's own order with this many proxies pinned at the top
+Telegram's proxy list is in your order, with %1$d proxy pinned on top.	A lista de proxies do Telegram está na sua ordem, com %1$d proxy fixado no topo.
+# context: Summary of the Proxy order row, plural form: the person's own order with this many proxies pinned at the top
+Telegram's proxy list is in your order, with %1$d proxies pinned on top.	A lista de proxies do Telegram está na sua ordem, com %1$d proxies fixados no topo.
+# context: Summary of the Proxy order row, singular form: only pins are set, and the other proxies keep Telegram's own speed order
+%1$d proxy pinned on top of Telegram's proxy list. The rest keep Telegram's order.	%1$d proxy fixado no topo da lista de proxies do Telegram. O resto segue a ordem do Telegram.
+# context: Summary of the Proxy order row, plural form: only pins are set, and the other proxies keep Telegram's own speed order
+%1$d proxies pinned on top of Telegram's proxy list. The rest keep Telegram's order.	%1$d proxies fixados no topo da lista de proxies do Telegram. O resto segue a ordem do Telegram.
+# context: Name shown in the Proxy order editor for a proxy whose address couldn't be read
+Proxy	Proxy
+# context: Button that closes the Proxy order editor; every change was already kept
+Done	Concluído
+# context: Button in the Proxy order editor that drops the person's own order, keeping only pins, so the rest go back to Telegram's speed order
+Sort by speed	Ordenar por velocidade
+# context: Short toast after Sort by speed, at most two short lines
+Unpinned proxies sort by speed again.	Os não fixados voltam a ir por velocidade.
+# context: Short toast when the proxy order couldn't be saved, at most two short lines
+Couldn't save the order. Try again.	Não deu para salvar a ordem. Tente de novo.
+# context: Note in the Proxy order editor when Telegram has no saved proxies. Find free proxies is a row on the same page
+Telegram's proxy list is empty. Add a proxy in Telegram's proxy settings, or find free proxies, then come back here.	A lista de proxies do Telegram está vazia. Adicione um proxy nas configurações de proxy do Telegram ou encontre proxies grátis, depois volte aqui.
+# context: Note at the top of the Proxy order editor. Each proxy has a handle (three short lines) to drag it by and a Pin button
+Drag a proxy by its handle to move it, and pin the ones you want on top. Telegram's proxy screen shows them in this order. Once you've moved one, proxies added later go below in Telegram's order.	Arraste um proxy pela alça para movê-lo e fixe no topo os que quiser. A tela de proxies do Telegram mostra eles nesta ordem. Depois que você mover um, os proxies adicionados mais tarde ficam embaixo, na ordem do Telegram.
+# context: Screen reader action on a proxy in the Proxy order editor that moves it one place up
+Move up	Mover para cima
+# context: Screen reader action on a proxy in the Proxy order editor that moves it one place down
+Move down	Mover para baixo
+# context: Button on a proxy in the Proxy order editor that keeps it at the top of Telegram's proxy list
+Pin	Fixar
+# context: Button on a pinned proxy in the Proxy order editor that lets it go back among the others
+Unpin	Desafixar
+# context: Short toast after a proxy is pinned in the Proxy order editor
+Pinned on top.	Fixado no topo.
+# context: Short toast after a proxy is unpinned in the Proxy order editor
+Unpinned.	Desafixado.
+# context: State line under a proxy in the Proxy order editor: it's pinned and Telegram connects through it now
+Pinned, in use	Fixado, em uso
+# context: State line under a pinned proxy in the Proxy order editor
+Pinned	Fixado
+# context: State line under the proxy Telegram connects through now, in the Proxy order editor
+In use	Em uso
+# context: Title of the My messages row on the Conversations page (#71), and the item it adds to a group's menu at the top (the three dots), which searches the group for the messages the person sent
+My messages	Minhas mensagens
+# context: Summary of the My messages row on the Conversations page. My messages is the name of the item it adds
+A group's menu at the top gets My messages, which shows the messages you sent there in the chat's search.	O menu no topo de um grupo ganha Minhas mensagens, que mostra na busca do chat as mensagens que você enviou lá.
+# context: Short toast when My messages couldn't open the chat's search on the person's messages, at most two short lines
+Couldn't open your messages here.	Não foi possível abrir suas mensagens aqui.
+# context: Title of the Text direction row on the Conversations page (#71), which adds Right to left, Left to right and Control character to the text selection menu of the message box
+Text direction	Direção do texto
+# context: Summary of the Text direction row on the Conversations page. Right to left, Left to right and Control character are the names of the items it adds to the message box's text selection menu; RLM and ZWJ stay as they are
+The message box's text menu gets Right to left and Left to right for the lines you selected, and Control character for invisible marks like RLM or ZWJ.	O menu de texto da caixa de mensagem ganha Da direita para a esquerda e Da esquerda para a direita para as linhas selecionadas, e Caractere de controle para marcas invisíveis como RLM ou ZWJ.
+# context: Item in the message box's text selection menu, next to Telegram's Bold and Italic, that makes the selected lines read from right to left
+Right to left	Da direita para a esquerda
+# context: Item in the message box's text selection menu, next to Telegram's Bold and Italic, that makes the selected lines read from left to right
+Left to right	Da esquerda para a direita
+# context: Item in the message box's text selection menu that opens a list of invisible Unicode control characters, and the title of that list
+Control character	Caractere de controle
+# context: Short toast when Text direction couldn't change the message box's text, at most two short lines
+Couldn't change the text.	Não foi possível alterar o texto.
+# context: Name of an invisible Unicode control character in the Text direction feature's Control character list, shown after its short code (for example LRM). Keep it close to the character's Unicode name
+Left-to-right mark	Marca da esquerda para a direita
+# context: Name of an invisible Unicode control character in the Text direction feature's Control character list, shown after its short code (for example LRM). Keep it close to the character's Unicode name
+Right-to-left mark	Marca da direita para a esquerda
+# context: Name of an invisible Unicode control character in the Text direction feature's Control character list, shown after its short code (for example LRM). Keep it close to the character's Unicode name
+Zero width joiner	Junção de largura zero
+# context: Name of an invisible Unicode control character in the Text direction feature's Control character list, shown after its short code (for example LRM). Keep it close to the character's Unicode name
+Zero width non-joiner	Não junção de largura zero
+# context: Name of an invisible Unicode control character in the Text direction feature's Control character list, shown after its short code (for example LRM). Keep it close to the character's Unicode name
+Zero width space	Espaço de largura zero
+# context: Name of an invisible Unicode control character in the Text direction feature's Control character list, shown after its short code (for example LRM). Keep it close to the character's Unicode name
+Start of left-to-right embedding	Início de incorporação da esquerda para a direita
+# context: Name of an invisible Unicode control character in the Text direction feature's Control character list, shown after its short code (for example LRM). Keep it close to the character's Unicode name
+Start of right-to-left embedding	Início de incorporação da direita para a esquerda
+# context: Name of an invisible Unicode control character in the Text direction feature's Control character list, shown after its short code (for example LRM). Keep it close to the character's Unicode name
+Start of left-to-right override	Início de substituição da esquerda para a direita
+# context: Name of an invisible Unicode control character in the Text direction feature's Control character list, shown after its short code (for example LRM). Keep it close to the character's Unicode name
+Start of right-to-left override	Início de substituição da direita para a esquerda
+# context: Name of an invisible Unicode control character in the Text direction feature's Control character list, shown after its short code (for example LRM). Keep it close to the character's Unicode name
+Pop directional formatting	Fim da formatação direcional
+# context: Name of an invisible Unicode control character in the Text direction feature's Control character list, shown after its short code (for example LRM). Keep it close to the character's Unicode name
+Left-to-right isolate	Isolamento da esquerda para a direita
+# context: Name of an invisible Unicode control character in the Text direction feature's Control character list, shown after its short code (for example LRM). Keep it close to the character's Unicode name
+Right-to-left isolate	Isolamento da direita para a esquerda
+# context: Name of an invisible Unicode control character in the Text direction feature's Control character list, shown after its short code (for example LRM). Keep it close to the character's Unicode name
+First strong isolate	Isolamento pelo primeiro caractere forte
+# context: Name of an invisible Unicode control character in the Text direction feature's Control character list, shown after its short code (for example LRM). Keep it close to the character's Unicode name
+Pop directional isolate	Fim do isolamento
+# context: Item in a message's long-press menu that takes the message out of the chat on this phone only. Nothing is sent, and everyone else still sees it
+Hide for me	Ocultar para mim
+# context: Short toast right after Hide for me took a message out of the chat, at most two short lines
+Hidden on this phone.	Oculto neste celular.
+# context: Short toast after tapping Show hidden messages when nothing was hidden, at most two short lines
+No messages are hidden.	Nenhuma mensagem oculta.
+# context: Short toast after tapping Show hidden messages, with how many hidden messages will show again. At most two short lines
+%1$d message shows again.	%1$d mensagem visível de novo.
+%1$d messages show again.	%1$d mensagens visíveis de novo.
+# context: Title of the switch on the Conversations page that adds Hide for me to a message's long-press menu
+Add Hide for me to the message menu	Adicionar Ocultar para mim ao menu da mensagem
+# context: Summary of the Add Hide for me to the message menu switch. Hide for me is the menu item's name
+Adds Hide for me to a message. It leaves the chat on this phone only, with nothing sent to Telegram, so everyone else still sees it. Turn this off and hidden messages show again.	Adiciona Ocultar para mim a uma mensagem. Ela sai do chat só neste celular, sem nada enviado ao Telegram, então todos os outros continuam vendo. Desligue isto e as mensagens ocultas voltam a aparecer.
+# context: Title of the row on the Conversations page that brings back every message hidden with Hide for me
+Show hidden messages	Mostrar mensagens ocultas
+# context: Summary of the Show hidden messages row. Hide for me is the message menu item's name
+Brings back every message you hid with Hide for me, in every account. Open the chat again to see them.	Traz de volta todas as mensagens que você ocultou com Ocultar para mim, em todas as contas. Abra o chat de novo para vê-las.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names Hide for me in the message menu
+hiding messages for you	ocultar mensagens só para você
+# context: Item in a message's long-press menu, and the title of the chat picker it opens. It sends the message's text to the picked chat as a new message, with no formatting
+Forward as plain text	Encaminhar como texto simples
+# context: Title of the switch on the Conversations page that adds Forward as plain text to a message's long-press menu
+Add Forward as plain text to the message menu	Adicionar Encaminhar como texto simples ao menu da mensagem
+# context: Summary of the Add Forward as plain text to the message menu switch. Forward as plain text is the menu item's name. Custom emoji are Telegram's Premium emoji. Regular ones are the phone's own emoji
+Adds Forward as plain text to a message you can forward. Pick a chat and its text is sent there as a new message, with no formatting or sender name. Custom emoji become regular ones.	Adiciona Encaminhar como texto simples a uma mensagem que você pode encaminhar. Escolha um chat e o texto dela é enviado para lá como uma nova mensagem, sem formatação nem nome do remetente. Emojis personalizados viram emojis comuns.
+# context: Item in the long-press menu of your own message. It deletes the message for everyone else in the chat and keeps it on this phone
+Delete for them	Apagar para os outros
+# context: Title of the switch on the Conversations page that adds Delete for them to the long-press menu of your own messages
+Add Delete for them to the message menu	Adicionar Apagar para os outros ao menu da mensagem
+# context: Summary of the Add Delete for them to the message menu switch. Delete for them is the menu item's name. Marked deleted means the word deleted next to the message's time. Clear kept messages is the name of a row in settings
+Adds Delete for them to your own messages in chats and groups. It deletes the message for everyone else and keeps it on this phone, marked deleted. Clear kept messages removes it here too.	Adiciona Apagar para os outros às suas próprias mensagens em chats e grupos. A mensagem é apagada para todos os outros e fica neste celular, marcada como apagada. Limpar mensagens mantidas também a remove daqui.
+# context: Short message shown after Delete for them: the message is gone for everyone else in the chat and stays on this phone
+Deleted for them, kept here.	Apagada para os outros, mantida aqui.
+# context: Item in the music player's menu (the three dots, #71) that opens the song's lyrics over the player
+Lyrics	Letra
+# context: Line in the lyrics panel while the song's lyrics load
+Looking for the lyrics.	Procurando a letra.
+# context: Line in the lyrics panel when the lyrics couldn't be loaded. Tapping the line tries again
+Couldn't load the lyrics. Tap to try again.	Não foi possível carregar a letra. Toque para tentar de novo.
+# context: Line in the lyrics panel when the lyrics library has nothing for the song playing
+No lyrics found for this song.	Nenhuma letra encontrada para esta música.
+# context: Line in the lyrics panel when the lyrics library lists the song as having no words
+This song is instrumental.	Esta música é instrumental.
+# context: Small credit line at the bottom of the lyrics panel. lrclib.net is the website's name and stays as it is
+Lyrics from lrclib.net	Letras do lrclib.net
+# context: Title of the switch on the Playback page (#71) that adds Lyrics to the music player's menu
+Lyrics in the music player	Letras no player de música
+# context: Summary of the Lyrics in the music player switch. Lyrics is the name of the menu item it adds; lrclib.net stays as it is. Timed lyrics are ones that know when each line is sung
+The music player's menu gets Lyrics. They come from lrclib.net, and timed ones follow along with the song.	O menu do player de música ganha Letra. As letras vêm do lrclib.net, e as sincronizadas acompanham a música.
+# context: Title of the switch on the Playback page (#71) that shows the day each song was added to your profile's song list
+Dates on your profile songs	Datas nas músicas do seu perfil
+# context: Summary of the Dates on your profile songs switch. The day is shown after the song's artist in your profile's song list
+Songs you add to your profile from now on show the day you added them, after the artist. The days are kept on this phone only.	As músicas que você adicionar ao perfil a partir de agora mostram o dia em que foram adicionadas, depois do artista. As datas ficam só neste celular.
+# context: Lowercase noun phrase naming Dates on your profile songs (#71) in the patch status list
+dates on your profile songs	datas nas músicas do perfil
+# context: Item at the end of the menu under a chat's preview (press and hold a chat, #71) that opens the previewed chat fully
+Open chat	Abrir conversa
+# context: Item at the end of the menu under a chat's preview (press and hold a chat, #71) that closes the preview
+Close preview	Fechar prévia
+# context: Title of the switch on the Chat list page (#71) that adds Open chat and Close preview to the menu under a chat's preview
+Buttons in chat previews	Botões na prévia de conversas
+# context: Summary of the Buttons in chat previews switch. Open chat and Close preview are the names of the two menu items it adds
+Pressing and holding a chat adds Open chat and Close preview to the menu under its preview.	Ao tocar e segurar uma conversa, o menu abaixo da prévia ganha Abrir conversa e Fechar prévia.
+# context: Title of a switch under Add Repeat to the message menu (#71). Turned on, the bar that shows while messages are selected gets a Screenshot button that saves a picture of them.
+Screenshot selected messages	Capturar mensagens selecionadas
+# context: Summary of the Screenshot selected messages switch. Screenshot is the button's own label. Pictures/Telegram is a folder name on the phone, keep it as it is.
+Adds a Screenshot button to the bar that shows while you pick messages. It saves a picture of them as the chat shows them, background, dates and times included, to Pictures/Telegram.	Adiciona um botão Captura de tela à barra que aparece quando você seleciona mensagens. Ele salva uma imagem delas como o chat as mostra, com o fundo, as datas e os horários, em Pictures/Telegram.
+# context: Label of the button in the bar that shows while messages are selected (#71). Tapping it saves a picture of the selected messages.
+Screenshot	Captura de tela
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the Screenshot button for selected messages.
+screenshots of selected messages	capturas de mensagens selecionadas
+# context: Toast from the Screenshot button when a selected message isn't on screen, so it can't be pictured. Two short lines at most.
+Scroll so they're all on screen	Role até ver todas na tela
+# context: Toast from the Screenshot button in a secret chat, where it never takes a picture. Two short lines at most.
+Not in secret chats	Não em chats secretos
+# context: Toast from the Screenshot button in a chat whose owner turned off saving and copying. Two short lines at most.
+This chat doesn't allow saving	Este chat não permite salvar
+# context: Toast once the Screenshot button's picture is saved. Pictures is the phone's pictures folder. Two short lines at most.
+Screenshot saved to Pictures	Captura salva em Imagens

@@ -45,6 +45,30 @@ Full details, the switch → preference mapping and the sign-in caveat:
 **[docs/pdb.md](docs/pdb.md)**. Design notes, gotchas and the verification
 checklist: **[docs/PLAN-PDB.md](docs/PLAN-PDB.md)**.
 
+## Other apps
+
+Each app below ships its own patches in the bundle. **Every app additionally has ads and
+telemetry/tracking removed** — that is a hard rule for this bundle, not an optional extra.
+
+| App | Package | Version | Patches | Docs |
+|---|---|---|---|---|
+| **Proton VPN** | `ch.protonvpn.android` | 5.20.98.0 | Unlock Proton Plus features · Remove server-change delay · Disable telemetry (with toggles) | [docs/protonvpn.md](docs/protonvpn.md) |
+| **Shima+ Dynamic Island** | `com.piyush.island` | 0.5.1 | Bypass PairIP · Unlock Pro (toggle) · Remove ads · Disable trackers | [docs/shima.md](docs/shima.md) |
+| **Glassdoor** | `com.glassdoor.app` | 13.15.1 | Bypass PairIP (deep) · Fix launcher theme · Remove ads · Disable AppsFlyer · Disable trackers | [docs/glassdoor.md](docs/glassdoor.md) |
+| **Jooble** | `jooble.org` | 1.47.0 | Remove ads · Disable AppsFlyer · Disable trackers (Flutter: Java side only) | [docs/jooble.md](docs/jooble.md) |
+| **Microsoft Teams** | `com.microsoft.teams` | 1416/1.0.0… | Disable AppCenter telemetry · Remove ads · Unbloat (trim manifest) | [docs/teams.md](docs/teams.md) |
+| **Hutch** | `com.omobio.etisalatone` | 4.4.1 | Disable security checks (root/adb/emulator) · Disable SSL pinning · Disable trackers | [docs/hutch.md](docs/hutch.md) |
+| **Material Capsule** | `com.pryshedko.mtisland` | 17.3 | Bypass PairIP · Mock Pro (client-side) · Remove ads · Disable trackers | [docs/materialcapsule.md](docs/materialcapsule.md) |
+| **Nike Run Club** | `com.nike.plusgps` | 4.80.0 | Enable dark mode · Remove ads · Disable trackers | [docs/nikerunclub.md](docs/nikerunclub.md) |
+| **Fitbit / Health** | `com.fitbit.FitbitMobile` | 5.11.1 | Remove ads · Disable trackers (FCM kept) | [docs/fitbit.md](docs/fitbit.md) |
+| **adidas Running** | `com.runtastic.android` | 14.12.1 · 14.4.0 | Bypass PairIP ⚠ · Remove ads · Disable trackers · Enable dark mode | [docs/adidas.md](docs/adidas.md) |
+| **TextNow** | `com.enflick.android.TextNow` | 6.1.0.1 | Remove ads · Disable ad SDK · Disable trackers | [docs/textnow.md](docs/textnow.md) |
+
+⚠ **adidas Running** uses the full-VM PairIP variant whose native layer rejects any
+re-signed build, so its PairIP patch is best-effort: the app boots past the licence gate
+but cannot be fully recovered without native reverse engineering. See
+[docs/adidas.md](docs/adidas.md) for the full analysis.
+
 ## Screenshots
 
 | Injected menu (bottom of Pdb's Tweaks) | Extras tools | Export → clipboard |
@@ -75,7 +99,28 @@ java -jar morphe-desktop.jar patch \
 
 `tools/pdbbuild` wraps that (and `--install` also installs to a connected
 device). Put the upstream base APK at `pdb_original.apk`, or point `PDB_INPUT`
-at it. `tools/pdbverify` runs the static verification pass; `tools/pdbdevice`
+at it. `## Patching Strava from an APKMirror / public XAPK
+
+Public Strava downloads are ~235 MB with 29 splits (2 ABIs + 25
+language/density configs, each carrying its own resources.arsc). Merging all
+of that is what makes on-device patching slow or OOM - and even on a desktop
+it is minutes of pure merge work for zero benefit, since the patch only edits
+the base APK's dexes and the base resource table.
+
+Build a minimal input first (this is what `tools/stravabuild` does):
+
+    base.apk + ONE abi split + ONE density split + ONE language split
+
+(base + arm64_v8a + xxhdpi + en = ~91 MB). Desktop patch time drops from
+~2 min to ~15 s, and the patched APK installs and runs identically for any
+arm64/en device - users of other languages can keep their language split and
+users of 32-bit devices keep armeabi_v7a. The patch targets are identical in
+every split combination because the dexes and the patched resource names all
+live in the base APK.
+
+`tools/stravabuild` wraps: xapk -> minimal .apks -> morphe patch -> install.
+
+tools/pdbverify` runs the static verification pass; `tools/pdbdevice`
 installs and smoke-tests on a running emulator/device.
 
 ## Device notes

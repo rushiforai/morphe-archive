@@ -57,6 +57,12 @@ final class BydCalibration {
     static final int CHARGE_RISE_WH = 300, MAX_STEP_WH = 300;
     /** Standing power above this (W) is not auxiliary power (V2L loads); below the cell minimum (W per cell, about 100 W) the car is off or charging. */
     static final double MAX_AUX_W = 6000, MIN_AUX_CELL_W = 1.0;
+    /**
+     * A standing mean above this (W) is not taken as the car's A/C and electronics: the prior (the other measured
+     * temperatures, else BYD's value) stays. The current scale above was measured on the Dolphin, whose highest mean is
+     * about 1,030 W; another model's scale may differ.
+     */
+    static final double PLAUSIBLE_AUX_W = 2500;
     /** Raw current outside this range (±500 A) is not a reading (BYD error codes such as -10011). */
     static final int MIN_CURRENT_RAW = 0, MAX_CURRENT_RAW = 10000;
     /** Standing seconds at a knot: the prior counts as this much, a knot is learned from this much, its sums halve above this. */
@@ -105,6 +111,9 @@ final class BydCalibration {
         final double[] auxW = new double[KNOTS], auxMinutes = new double[KNOTS];
         final boolean[] auxLearned = new boolean[KNOTS];
         double auxOffW = Double.NaN, auxOffMinutes;
+        /** The standing means as measured, also the ones above the plausible limit, which are not used; NaN without one. */
+        final double[] auxMeasuredW = new double[KNOTS];
+        double auxOffMeasuredW = Double.NaN;
         double factor = 1, factorRaw = Double.NaN, tractionWh, km, lastRouteRatio = Double.NaN;
         int routes;
         boolean route, seeded;
@@ -435,9 +444,11 @@ final class BydCalibration {
             s.auxW[i] = knotWatts(i, pack);
             s.auxMinutes[i] = knotS[i] / 60;
             s.auxLearned[i] = learned(i, pack);
+            s.auxMeasuredW[i] = Double.isNaN(pack) || !(knotS[i] > 0) ? Double.NaN : measuredWatts(i, pack);
         }
         s.auxOffW = offWatts(pack);
         s.auxOffMinutes = offS / 60;
+        s.auxOffMeasuredW = Double.isNaN(pack) || !(offS > 0) ? Double.NaN : pack * offCellWs / offS;
         s.factor = factorLocked();
         s.factorRaw = mapsTractionWh > 0 ? actualTractionWh / mapsTractionWh : Double.NaN;
         s.tractionWh = mapsTractionWh;
@@ -700,7 +711,8 @@ final class BydCalibration {
 
     private double knotWatts(int i, double pack) {
         double priorW = knotPrior(i, pack);
-        if (Double.isNaN(pack)) return priorW;
+        // A mean above the plausible limit is not this car's auxiliary power: the prior alone.
+        if (Double.isNaN(pack) || implausible(i, pack)) return priorW;
         return (pack * knotCellWs[i] + priorW * AUX_PRIOR_S) / (knotS[i] + AUX_PRIOR_S);
     }
 
@@ -709,11 +721,11 @@ final class BydCalibration {
     private double knotPrior(int i, double pack) {
         if (Double.isNaN(pack)) return prior.auxKnot(i);
         int below = -1, above = -1;
-        for (int j = i - 1; j >= 0 && below < 0; j--) if (knotS[j] >= AUX_LEARNED_S) below = j;
-        for (int j = i + 1; j < KNOTS && above < 0; j++) if (knotS[j] >= AUX_LEARNED_S) above = j;
+        for (int j = i - 1; j >= 0 && below < 0; j--) if (measured(j, pack)) below = j;
+        for (int j = i + 1; j < KNOTS && above < 0; j++) if (measured(j, pack)) above = j;
         // No other knot measured: a measured knot stands on its own (so it is not below the neighbours that take it), an
         // unmeasured one keeps BYD's value.
-        if (below < 0 && above < 0) return knotS[i] >= AUX_LEARNED_S ? measuredWatts(i, pack) : prior.auxKnot(i);
+        if (below < 0 && above < 0) return measured(i, pack) ? measuredWatts(i, pack) : prior.auxKnot(i);
         if (below < 0) return measuredWatts(above, pack);
         if (above < 0) return measuredWatts(below, pack);
         double tb = BydModelParts.AUX_KNOTS_C[below], ta = BydModelParts.AUX_KNOTS_C[above], ti = BydModelParts.AUX_KNOTS_C[i];
@@ -726,12 +738,23 @@ final class BydCalibration {
         return pack * knotCellWs[j] / knotS[j];
     }
 
+    // Enough standing time at the knot, and a mean that can be auxiliary power.
+    private boolean measured(int j, double pack) {
+        return knotS[j] >= AUX_LEARNED_S && measuredWatts(j, pack) <= PLAUSIBLE_AUX_W;
+    }
+
+    private boolean implausible(int j, double pack) {
+        return knotS[j] > 0 && measuredWatts(j, pack) > PLAUSIBLE_AUX_W;
+    }
+
     private boolean learned(int i, double pack) {
-        return !Double.isNaN(pack) && knotS[i] >= AUX_LEARNED_S;
+        return !Double.isNaN(pack) && measured(i, pack);
     }
 
     private double offWatts(double pack) {
-        return Double.isNaN(pack) || offS < AUX_LEARNED_S ? Double.NaN : pack * offCellWs / offS;
+        if (Double.isNaN(pack) || offS < AUX_LEARNED_S) return Double.NaN;
+        double watts = pack * offCellWs / offS;
+        return watts <= PLAUSIBLE_AUX_W ? watts : Double.NaN;
     }
 
     private double auxWattsLocked(double tempC, Boolean acOn) {

@@ -88,8 +88,7 @@ $Root = (Resolve-Path -LiteralPath $Root).Path
 . (Join-Path $releaseScripts 'release-text.ps1')
 . (Join-Path $scripts 'telegram-sources.ps1')
 
-Import-UserEnvironment -Name @('HUSHTELEGRAM_DESKTOP_JAR', 'HUSHTELEGRAM_FIXTURE_DIR', 'HUSHTELEGRAM_BUILD_WRAPPER',
-    'HUSHTELEGRAM_JAVA')
+Import-UserEnvironment -Name @('HUSHTELEGRAM_DESKTOP_JAR', 'HUSHTELEGRAM_FIXTURE_DIR', 'HUSHTELEGRAM_BUILD_WRAPPER', 'HUSHTELEGRAM_JAVA', 'HUSHTELEGRAM_BUNDLE_SIGNING_KEY')
 # Every queued job this starts, Gradle through the wrapper included, goes ahead of everyday builds.
 $env:BUILD_QUEUE_PRIORITY = 'release'
 
@@ -274,28 +273,6 @@ function Get-WebTelegramVersion {
     return [string]$web.PackageVersion
 }
 
-function Assert-BundlePinned {
-    param([string]$Bundle, [string]$Commit)
-    Add-Type -AssemblyName System.IO.Compression.FileSystem
-    $zip = [IO.Compression.ZipFile]::OpenRead($Bundle)
-    try {
-        $entry = $zip.GetEntry('META-INF/MANIFEST.MF')
-        if (-not $entry) { throw "$Bundle has no META-INF/MANIFEST.MF." }
-        $reader = New-Object IO.StreamReader($entry.Open())
-        try { $manifest = $reader.ReadToEnd() } finally { $reader.Dispose() }
-        $hasDex = $null -ne $zip.GetEntry('classes.dex')
-    } finally {
-        $zip.Dispose()
-    }
-    if (-not $hasDex) { throw "$Bundle has no classes.dex, so Morphe Manager would load no patches from it." }
-    $stamp = [regex]::Match($manifest, '(?m)^Timestamp: (\d+)').Groups[1].Value
-    $seconds = "$(Invoke-Git @('log', '-1', '--format=%ct', $Commit))".Trim()
-    if ($stamp -ne "${seconds}000") {
-        throw "The bundle's Timestamp $stamp isn't the release commit's time ($seconds). Build it again from a clean checkout."
-    }
-    Write-Step 'the bundle carries classes.dex and the release commit''s time'
-}
-
 function Test-Assets {
     # The bundle's hash when every asset is there and matches SHA256SUMS.txt, otherwise $null.
     $sums = Join-Path $assets 'SHA256SUMS.txt'
@@ -437,10 +414,8 @@ switch ($Stage) {
         Assert-OnlyChanged
         $bundle = Get-ReleaseBundlePath -Root $Root -Version $Version
         $sbom = Join-Path (Split-Path -Parent $bundle) $sbomName
-        foreach ($path in @($bundle, $sbom)) {
-            if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw ":patches:buildAndroid left no $path." }
-        }
-        Assert-BundlePinned -Bundle $bundle -Commit $head
+        foreach ($path in @($bundle, $sbom)) { if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw ":patches:buildAndroid left no $path." } }
+        Assert-BundlePinned -Bundle $bundle -Commit $head -Root $Root
         $bundleHash = (Get-Sha256Hex -Path $bundle).ToLowerInvariant()
 
         # Each clean verify-all-patches.ps1 run is kept, stamped with this commit and the hashes of

@@ -10,7 +10,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-10-21.
+ * Modified by lavinhoque33, 2026-11-10
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -72,10 +72,12 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.lang.ref.WeakReference;
+import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 import app.morphe.extension.music.patches.actionbar.ActionBarPatch;
+import app.morphe.extension.music.patches.downloads.LocalDownloadManager;
+import app.morphe.extension.music.patches.downloads.SongDownloadRoute;
 import app.morphe.extension.music.settings.Settings;
 import app.morphe.extension.music.shared.VideoInformation;
 import app.morphe.extension.music.shared.VideoType;
@@ -93,6 +95,19 @@ public class FlyoutPatch {
      */
     public interface ProtocolBufferFieldInterface {
         byte[] toByteArray();
+    }
+
+    /** Added to the class of a menu item model: builds another item of the same class from its serialized form. */
+    public interface ItemFactory {
+        Object rvxWithBytes(byte[] bytes);
+    }
+
+    /**
+     * Injection point: the items of a song menu, before the sheet shows them. Adds a Download item when the
+     * account's menu has none.
+     */
+    public static List<?> withDownloadItem(List<?> items) {
+        return FlyoutDownloadEntry.withDownloadItem(items);
     }
 
     private static final BooleanSetting DISABLE_TRIM_SILENCE =
@@ -113,7 +128,6 @@ public class FlyoutPatch {
 
     /** Command field of the 'ypc/get_offline_upsell' endpoint. */
     private static final int OFFLINE_UPSELL_ENDPOINT = 133724106;
-    private static final Pattern VIDEO_ID = Pattern.compile("[A-Za-z0-9_-]{11}");
 
     private static volatile long lastFlyoutDownloadTime;
     /** When the player button was last left to the app, because only menus are overridden. */
@@ -146,7 +160,7 @@ public class FlyoutPatch {
     }
 
     private static boolean isFlyoutMenuOverridden() {
-        return Settings.IN_APP_DOWNLOADS.get() || Settings.EXTERNAL_DOWNLOADER_FLYOUT_MENU.get();
+        return LocalDownloadManager.menuRoute() != SongDownloadRoute.STOCK;
     }
 
     /**
@@ -154,6 +168,12 @@ public class FlyoutPatch {
      * the app is from a menu, unless the player button was just left to the app.
      */
     private static boolean onMenuDownload(String videoId) {
+        if (SongMenus.isOpenFor(videoId)) {
+            LocalDownloadManager.onDownloadTap(videoId);
+            SongMenus.clear();
+            return true;
+        }
+
         if (!isFlyoutMenuOverridden()) return false;
 
         final long now = System.currentTimeMillis();
@@ -169,13 +189,13 @@ public class FlyoutPatch {
     }
 
     /**
-     * The endpoint holds the video ID, or encoded parameters with the video ID in field 4.
+     * The endpoint holds encoded stock parameters with the video ID in field 4.
      *
      * @return The video ID, or an empty string for albums and playlists.
      */
-    private static String getOfflineUpsellVideoId(byte[] command) {
+    static String offlineUpsellVideoId(byte[] command) {
         String value = new ProtoMessage(command).messageField(OFFLINE_UPSELL_ENDPOINT).stringField(1);
-        if (value.isEmpty() || VIDEO_ID.matcher(value).matches()) return value;
+        if (value.isEmpty()) return value;
 
         return new ProtoMessage(Base64.decode(Uri.decode(value), Base64.URL_SAFE)).stringField(4);
     }
@@ -200,13 +220,12 @@ public class FlyoutPatch {
      */
     public static boolean offlineUpsellOnClick(@Nullable Object command) {
         try {
-            if (!isFlyoutMenuOverridden()
-                    || !(command instanceof ProtocolBufferFieldInterface message)) {
+            if (!(command instanceof ProtocolBufferFieldInterface message)) {
                 return false;
             }
             Utils.verifyOnMainThread();
 
-            String videoId = getOfflineUpsellVideoId(message.toByteArray());
+            String videoId = offlineUpsellVideoId(message.toByteArray());
             // Albums and playlists are left to the app.
             if (videoId.isEmpty()) return false;
 
@@ -232,6 +251,8 @@ public class FlyoutPatch {
 
     /**
      * Intercepts matching Download commands from Music's flyout menu.
+     *
+     * Can be called on or off main thread.
      */
     public static boolean commandResolverOnClick(ProtocolBufferFieldInterface command,
                                                   Map<Object, Object> map) {
@@ -239,7 +260,6 @@ public class FlyoutPatch {
             if (command == null || map == null) {
                 return false;
             }
-            Utils.verifyOnMainThread();
 
             if (ActionBarPatch.inAppDownloadButtonOnClick(map)) {
                 return true;
@@ -281,11 +301,13 @@ public class FlyoutPatch {
         touchOutSideViewRef = new WeakReference<>(touchOutSideView);
     }
 
-    public static void replaceComponents(@Nullable Enum<?> flyoutPanelEnum, @NonNull TextView textView, @NonNull ImageView imageView) {
+    public static void replaceComponents(@Nullable Enum<?> flyoutPanelEnum, @NonNull TextView textView,
+                                         @NonNull ImageView imageView, @Nullable Object presenter) {
         if (flyoutPanelEnum == null)
             return;
 
         final String enumString = flyoutPanelEnum.name();
+        if (enumString.equals("OFFLINE_DOWNLOAD")) FlyoutDownloadItem.relabel(textView, presenter);
         final boolean isDismissQue = enumString.equals("DISMISS_QUEUE");
         final boolean isReport = enumString.equals("FLAG");
 

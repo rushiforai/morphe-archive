@@ -6,7 +6,11 @@ package app.morphe.patches.telegram.misc.doubletap
 
 import app.morphe.util.names.origParameterTypes
 import app.morphe.util.names.addInstructions
+import app.morphe.util.names.origName
+import app.morphe.util.names.origReturnType
 import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patches.telegram.misc.extension.localRegisterCount
+import app.morphe.patches.telegram.misc.extension.returnEarlyWhen
 import app.morphe.patches.telegram.misc.localcontrols.Mention
 import app.morphe.patches.telegram.misc.localcontrols.classDefsMentioning
 import app.morphe.patches.telegram.misc.localcontrols.controlBody
@@ -19,7 +23,11 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import app.morphe.util.names.tgMutableClassDefBy
+import app.morphe.util.names.tgMutableClassDefByOrNull
 
 internal const val MESSAGE_OBJECT = "Lorg/telegram/messenger/MessageObject;"
 internal const val MESSAGE_REACTIONS = "Lorg/telegram/tgnet/TLRPC\$MessageReactions;"
@@ -84,6 +92,77 @@ internal fun Method.isRowSetter(): Boolean {
     return body.any { it.controlRef() == "$MESSAGE_REACTIONS->results:Ljava/util/ArrayList;" } &&
         body.any { it.controlRef() == "Ljava/util/ArrayList;->clear()V" } &&
         body.any { it.controlRef()?.endsWith("->getChatFull(J)Lorg/telegram/tgnet/TLRPC\$ChatFull;") == true }
+}
+
+internal const val PEER_REACTION = "Lorg/telegram/tgnet/TLRPC\$MessagePeerReaction;"
+internal const val PEER_REACTION_UNREAD = "$PEER_REACTION->unread:Z"
+
+/**
+ * The row's "has unread reactions" flag: the boolean field of the row's own class that setMessage
+ * writes right after its last read of a recent reaction's unread flag, and also clears up front.
+ */
+internal fun Method.unreadFlag(): FieldReference? {
+    val body = controlBody()
+    fun own(i: Instruction) = i.opcode == Opcode.IPUT_BOOLEAN &&
+        ((i as ReferenceInstruction).reference as FieldReference).definingClass == definingClass
+    val read = body.indexOfLast { it.controlRef() == PEER_REACTION_UNREAD }
+    if (read < 0) return null
+    val write = body.drop(read + 1).firstOrNull(::own) ?: return null
+    val flag = (write as ReferenceInstruction).reference as FieldReference
+    val writes = body.count { own(it) && ((it as ReferenceInstruction).reference as FieldReference).name == flag.name }
+    return flag.takeIf { writes >= 2 }
+}
+
+/**
+ * A hidden row is handed no message, so setMessage leaves its unread flag false, and the chat marks
+ * a message's reactions seen only once its row says it has unread ones: the heart in the chat list
+ * and the chat's reactions button never went away. Before each return the hook hands the flag to the
+ * extension, which answers for the message the row hid.
+ */
+internal fun BytecodePatchContext.resolveHiddenRowUnread(): ReactionPlan {
+    val found = classDefsMentioning(Mention.type(MESSAGE_REACTIONS)).flatMap { cls ->
+        cls.methods.filter { it.isRowSetter() }
+    }
+    val match = found.singleOrNull() ?: return nothing("the reaction row no longer has one setMessage method")
+    val method = tgMutableClassDefBy(match.definingClass).methods.single { it.toString() == match.toString() }
+    val flag = method.unreadFlag() ?: return nothing("the reaction row no longer keeps its unread reactions in one flag")
+    if (method.localRegisterCount() < 2) return nothing("the reaction row's setMessage has no two locals for the unread reactions hook")
+    if (method.controlBody().none { it.opcode == Opcode.RETURN_VOID }) return nothing("the reaction row's setMessage no longer returns")
+    val field = "${flag.definingClass}->${flag.name}:Z"
+    return object : ReactionPlan(null) {
+        override fun apply() {
+            // The rows hook goes in first, so the returns are found again here, and taken last first.
+            val body = method.controlBody()
+            for (at in body.indices.filter { body[it].opcode == Opcode.RETURN_VOID }.reversed()) {
+                method.addInstructionsAtControlFlowLabel(
+                    at,
+                    """
+                        move-object/from16 v1, p0
+                        iget-boolean v0, v1, $field
+                        invoke-static {v0}, $DOUBLE_TAP_REACTIONS->unreadRow(I)Z
+                        move-result v0
+                        iput-boolean v0, v1, $field
+                    """,
+                )
+            }
+        }
+    }
+}
+
+/**
+ * The chat plays a reaction's animation over its row for MessageObject.getRandomUnreadReaction(),
+ * when the message scrolls in and when a reaction arrives. A hidden row has nothing to play it over,
+ * so the hook answers null first, the way a message with no recent reactions does.
+ */
+internal fun BytecodePatchContext.resolveReactionEffect(): ReactionPlan {
+    val method = tgMutableClassDefByOrNull(MESSAGE_OBJECT)?.methods?.filter {
+        it.origName == "getRandomUnreadReaction" && it.origParameterTypes.isEmpty() && it.origReturnType == PEER_REACTION
+    }?.singleOrNull() ?: return nothing("MessageObject no longer has one getRandomUnreadReaction method")
+    if (method.implementation == null || method.localRegisterCount() < 1) return nothing("getRandomUnreadReaction has no local for the hook")
+    return object : ReactionPlan(null) {
+        override fun apply() = method.returnEarlyWhen("Disable double-tap reactions",
+            "$DOUBLE_TAP_REACTIONS->hideEffect()Z", "const/4 v0, 0x0\nreturn-object v0")
+    }
 }
 
 internal const val STORED_REACTIONS = "Lorg/telegram/tgnet/TLRPC\$Message;->reactions:Lorg/telegram/tgnet/TLRPC\$TL_messageReactions;"

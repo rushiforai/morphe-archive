@@ -62,10 +62,12 @@ Tap the continue button and allow optimization changes"</string>
     <string name="morphe_force_original_audio_title">Force original audio language</string>
     <string name="morphe_music_android_auto_last_played">Last played</string>
     <string name="morphe_music_android_auto_downloaded_playlists_title">Android Auto downloaded playlists</string>
-    <string name="morphe_music_android_auto_downloaded_playlists_summary">Show downloaded playlists in Android Auto Library, including offline. Requires Download in app</string>
+    <string name="morphe_music_android_auto_downloaded_playlists_summary">Show playlists saved with Stream download or Device files in Android Auto, including offline</string>
     <string name="morphe_music_android_auto_downloaded_playlists_folder">Downloaded playlists</string>
     <string name="morphe_music_android_auto_downloaded_playlists_tracks">tracks</string>
     <string name="morphe_music_android_auto_downloaded_playlists_library">Library</string>
+    <string name="morphe_music_android_auto_stream_copies_folder">Stream downloads</string>
+    <string name="morphe_music_android_auto_stream_play_all">Play all</string>
     <string name="morphe_music_android_auto_other_results">Other results</string>
     <string name="morphe_music_android_auto_subscriptions">Subscriptions</string>
     <string name="morphe_music_android_auto_uploaded_albums">Uploaded albums</string>
@@ -104,7 +106,7 @@ The lock screen or notification can briefly show a stale state mid-transition"</
     <string name="morphe_music_crossfade_about_title">About</string>
     <string name="morphe_music_crossfade_about_unsupported_summary">"Casting or mirroring audio (Chromecast, screen or audio mirroring) - crossfade pauses because it's unstable there and may never be fixable
 
-YouTube Music 8.x - crossfade only runs on 9.x and newer"</string>
+YouTube Music older than 9.00"</string>
     <string name="morphe_music_crossfade_about_unsupported_title">Doesn\'t work at all</string>
     <string name="morphe_music_crossfade_cast_unstable_toast">Crossfade is paused while casting or mirroring audio. Crossfade over cast/mirror is unstable and may never be fixable</string>
     <string name="morphe_music_crossfade_curve_entry_ease_out_cubic">Subtle hold</string>
@@ -135,13 +137,15 @@ YouTube Music 8.x - crossfade only runs on 9.x and newer"</string>
     <string name="morphe_music_deezer_arl_toast_invalid">Deezer: invalid arl — please check and try again</string>
     <string name="morphe_music_deezer_arl_toast_saved">Deezer: arl saved</string>
     <string name="morphe_music_downloads_already_running">Download already in progress</string>
-    <string name="morphe_music_downloads_already_saved">Already downloaded</string>
-    <string name="morphe_music_downloads_complete">Download complete</string>
-    <string name="morphe_music_downloads_failed">Download failed</string>
+    <string name="morphe_music_downloads_already_saved">Device file already saved</string>
+    <string name="morphe_music_downloads_complete">Device file saved</string>
+    <string name="morphe_music_downloads_failed_reason">Download failed: %s</string>
     <string name="morphe_music_downloads_notification_channel">Audio downloads</string>
     <string name="morphe_music_downloads_progress">Downloading %s%%</string>
     <string name="morphe_music_downloads_sort">Sort</string>
     <string name="morphe_music_downloads_started">Download started</string>
+    <string name="morphe_music_downloads_stream_already_saved">Stream download already saved</string>
+    <string name="morphe_music_downloads_stream_complete">Stream download saved</string>
     <string name="morphe_music_downloads_starting">Starting download…</string>
     <string name="morphe_music_downloads_storage_permission">Allow storage access, then tap Download again</string>
     <string name="morphe_music_downloads_unknown_track">Could not identify the track to download</string>
@@ -158,20 +162,77 @@ YouTube Music 8.x - crossfade only runs on 9.x and newer"</string>
     <string name="morphe_music_fade_out_enabled_title">Fade out</string>
     <string name="morphe_music_fade_screen_summary">Fade the volume in and out at the start and end of tracks</string>
     <string name="morphe_music_fade_screen_title">Fade in and out</string>
-    <string name="morphe_music_in_app_downloads_summary">Downloads songs and playlists for native offline playback</string>
-    <string name="morphe_music_in_app_downloads_title">Download in app</string>
-    <!-- modified by lavinhoque33, 2026-10-16: downloads use shared audio storage and Music's native local-file Library/player, with embedded tags. -->
-    <!-- modified by lavinhoque33, 2026-10-17: mention and name the derived "Not in a playlist" playlist. -->
-    <string name="morphe_music_in_app_downloads_user_dialog_message">"Songs and playlists are saved to Music/RVX and played by YouTube Music’s native local-file player. Allow audio access when Music asks
-
-Downloads (in Library or the account menu) opens the native device-files library. Choose Songs, Playlists, Albums or Artists there. Tracks keep their title, artist, album and cover. Downloaded songs that are in no playlist are listed in the “Not in a playlist” playlist. Existing in-app downloads are migrated without redownloading.
-
-Audio files remain after uninstalling Music; playlist organization is app data. Turning this option off restores stock Downloads navigation. Premium downloads are never changed"</string>
+    <string name="morphe_music_downloads_category_title">Downloads</string>
+    <string name="morphe_music_download_method_title">Download method</string>
+    <string name="morphe_music_download_method_entry_stream">Stream download (default)</string>
+    <string name="morphe_music_download_method_entry_device_files">Device files</string>
+    <string name="morphe_music_download_method_entry_delegated">YouTube Music / external app</string>
+    <string name="morphe_music_download_method_info">Info</string>
+    <string name="morphe_music_download_method_info_title">About download methods</string>
+    <string name="morphe_music_download_method_help_stream">Applies to songs, albums and playlists.
+        Saves private copies inside the app for online and offline playback, with green checks in Library, Downloads.
+        Single songs save audio; playlists and albums also save the video when one exists.
+        Other apps and Device files cannot see these copies. Radio and lyrics need internet.
+        Download again to remove a copy. Changing this never deletes saved downloads</string>
+    <string name="morphe_music_download_method_help_device_files">This is the older method.
+        Applies to songs, albums and playlists. Saves audio files in Music/RVX that Device files and other apps can see;
+        albums and playlists also create a Device files playlist. Library, Downloads opens the device files library.
+        Files do not get stream-download checkmarks. Changing this never deletes saved downloads</string>
+    <string name="morphe_music_download_method_help_delegated">Leaves all downloads to YouTube Music,
+        which normally needs Premium. The external overrides below can send single songs to your downloader app instead;
+        they do not send albums or playlists. This patch saves no new copies or files.
+        Changing this never deletes saved downloads</string>
+    <string name="morphe_music_download_quality_title">Download quality</string>
+    <string name="morphe_music_download_quality_summary">Audio quality for new song, album and playlist downloads with Stream download or Device files. Highest takes the best source offered to your account by the available clients, including 256 kbps when offered; it does not unlock Premium. High targets standard high Opus, Normal targets 128 kbps AAC, and Low targets 48 kbps AAC or about 50 kbps Opus. Missing tiers use an available lower tier first, then the nearest higher tier. Existing downloads stay unchanged; remove a copy before downloading it at another quality. Playlist video stays at 360p with the selected audio quality. YouTube Music and external apps use their own settings</string>
+    <string name="morphe_music_download_quality_highest">Highest</string>
+    <string name="morphe_music_download_quality_high">High</string>
+    <string name="morphe_music_download_quality_normal">Normal</string>
+    <string name="morphe_music_download_quality_low">Low</string>
+    <string name="morphe_music_downloaded_checkmarks_title">Downloaded checkmarks</string>
+    <string name="morphe_music_downloaded_checkmarks_summary">Shows a green check at the right end of songs, albums and playlists that have a stream download, including copies saved before changing Download method</string>
+    <string name="morphe_music_start_downloaded_in_audio_title">Start downloaded songs in audio mode</string>
+    <string name="morphe_music_start_downloaded_in_audio_summary">Songs with a stream download start in audio mode, so the saved copy is used. The Song/Video switch still reaches the online video. Also applies to copies saved before changing Download method</string>
+    <string name="morphe_music_open_downloads_title">Open stream downloads</string>
+    <string name="morphe_music_open_downloads_summary">Opens Library, Downloads: the playlists, albums and No Playlist songs saved with Stream download, with or without a connection</string>
+    <string name="morphe_music_open_downloads_ready">Offline ready: %1$s of %2$s songs. Songs that are not ready fill in while you are online</string>
+    <string name="morphe_music_stream_downloads_title">Stream downloads</string>
+    <string name="morphe_music_stream_downloads_summary">%1$s songs saved for local playback, %2$s MB. Tap to delete them</string>
+    <string name="morphe_music_stream_downloads_summary_videos">%1$s songs and %3$s videos saved for local playback, %2$s MB. Tap to delete them</string>
+    <string name="morphe_music_stream_downloads_none">No stream downloads saved</string>
+    <string name="morphe_music_stream_downloads_delete_title">Delete all stream downloads</string>
+    <string name="morphe_music_stream_downloads_delete_message">Delete the %1$s stream downloads (%2$s MB)? Songs saved as device files in Music/RVX and Device files are not affected</string>
+    <string name="morphe_music_stream_downloads_delete_message_videos">Delete the %1$s stream downloads and %3$s videos (%2$s MB)? Songs saved as device files in Music/RVX and Device files are not affected</string>
+    <string name="morphe_music_stream_downloads_deleted">Deleted %s stream downloads</string>
+    <string name="morphe_music_download_item">Download</string>
+    <string name="morphe_music_remove_download">Remove download</string>
+    <string name="morphe_music_song_menu_needs_connection">Song options have not been saved yet. Open this page with internet to load the regular song menu</string>
+    <string name="morphe_music_remove_song_title">Remove this download?</string>
+    <string name="morphe_music_remove_song_message">The saved stream copy of this song is deleted from the app. Songs saved as device files are not affected</string>
+    <string name="morphe_music_remove_song_message_lists">The saved stream copy of this song is deleted from the app. It also belongs to %s downloaded playlists or albums, which will lack it. Songs saved as device files are not affected</string>
+    <string name="morphe_music_remove_list_title">Remove this playlist download?</string>
+    <string name="morphe_music_remove_list_message">The saved stream copies of this playlist or album are deleted from the app. Songs that another downloaded playlist or album needs, or that you downloaded on their own, are kept. Songs saved as device files are not affected</string>
+    <string name="morphe_music_remove_song_done">Download removed</string>
+    <string name="morphe_music_remove_list_done">Playlist download removed: %s songs deleted</string>
+    <string name="morphe_music_remove_failed">Could not remove the download: %s</string>
+    <string name="morphe_music_offline_library_albums">Albums and playlists</string>
+    <string name="morphe_music_offline_library_untitled">Playlist</string>
+    <string name="morphe_music_downloads_no_playlist">No Playlist</string>
+    <string name="morphe_music_offline_library_song_one">1 song</string>
+    <string name="morphe_music_offline_library_songs_count">%d songs</string>
+    <string name="morphe_music_offline_library_not_enabled">Offline downloads are not available in this app version</string>
+    <string name="morphe_music_offline_library_not_ready">Could not start playback yet. Play any song first</string>
     <string name="morphe_music_not_in_playlist">Not in a playlist</string>
-    <string name="morphe_music_playlist_download_complete">Playlist saved: %s tracks</string>
-    <string name="morphe_music_playlist_download_failed">Playlist download failed. Completed songs remain in device files; tap Download to retry</string>
+    <string name="morphe_music_playlist_download_complete">Device files saved: %s tracks</string>
+    <string name="morphe_music_playlist_download_failed">Playlist download failed: %s</string>
     <string name="morphe_music_playlist_download_progress">Downloading track %1$s of %2$s</string>
     <string name="morphe_music_playlist_download_started">Playlist download started</string>
+    <string name="morphe_music_playlist_stream_already_saved">Stream downloads already saved: %s tracks</string>
+    <string name="morphe_music_playlist_stream_complete">Stream downloads saved: %s tracks</string>
+    <string name="morphe_music_playlist_stream_already_saved_videos">Stream downloads already saved: %1$s tracks, %2$s videos</string>
+    <string name="morphe_music_playlist_stream_complete_videos">Stream downloads saved: %1$s tracks, %2$s videos</string>
+    <string name="morphe_music_playlist_videos_failed">%s videos not saved</string>
+    <string name="morphe_music_playlist_video_progress">Saving video %1$s of %2$s</string>
+    <string name="morphe_music_playlist_unavailable_skipped">%s unavailable skipped</string>
     <!-- Jam queue sharing, ported from Morphe -->
     <string name="morphe_music_jam_add_to_queue">Add to Jam queue</string>
     <string name="morphe_music_jam_added_to_jam">Added to Jam</string>
@@ -337,6 +398,10 @@ Audio files remain after uninstalling Music; playlist organization is app data. 
     <string name="morphe_music_lyrics_display_artist_first_summary">Toggle the display order of Artist and Title in the Miniplayer and MediaSession. ON \"Artist - Title\" and OFF \"Title - Artist\" Does not affect lyrics search</string>
     <string name="morphe_music_lyrics_display_artist_first_title">Artist and Title display order</string>
     <string name="morphe_music_lyrics_dual_only">Dual mode</string>
+    <string name="morphe_music_lyrics_dynamic_background_animated_summary">Move the background while playing, and pulse it with the music if YouTube Music has the microphone permission. Turn off for a still background that uses less battery</string>
+    <string name="morphe_music_lyrics_dynamic_background_animated_title">Animate dynamic background</string>
+    <string name="morphe_music_lyrics_dynamic_background_summary">Show a blurred background made from the album art behind the lyrics</string>
+    <string name="morphe_music_lyrics_dynamic_background_title">Dynamic background</string>
     <string name="morphe_music_lyrics_enabled_summary">Shows lyrics from a third-party service, falling back to the built-in lyrics when none are found</string>
     <string name="morphe_music_lyrics_enabled_title">Use third-party lyrics</string>
     <string name="morphe_music_lyrics_force_capitalize_summary">Capitalizes the first letter of each lyrics line</string>
@@ -434,6 +499,12 @@ Applies to both limits. At 1.75, four full-width characters count as 7"</string>
     <string name="morphe_music_lyrics_romanized_by_ai">Romanized by %s</string>
     <string name="morphe_music_lyrics_romanized_by_google">Romanized by Google</string>
     <string name="morphe_music_lyrics_romanizing">Romanizing…</string>
+    <string name="morphe_music_lyrics_ruby_generating">Generating ruby…</string>
+    <string name="morphe_music_lyrics_ruby_provider_title">Ruby</string>
+    <string name="morphe_music_lyrics_ruby_style_entry_hiragana">Hiragana (ひらがな)</string>
+    <string name="morphe_music_lyrics_ruby_style_entry_katakana">Katakana (カタカナ)</string>
+    <string name="morphe_music_lyrics_ruby_style_summary" translatable="false">%s</string>
+    <string name="morphe_music_lyrics_ruby_style_title">Ruby script</string>
     <string name="morphe_music_lyrics_saved">Saved</string>
     <string name="morphe_music_lyrics_sb_matching_summary">Match without the segments SponsorBlock skips and shift lyrics onto the released audio. Off ignores SponsorBlock entirely</string>
     <string name="morphe_music_lyrics_sb_matching_title">Use SponsorBlock segments for lyrics offset</string>
@@ -449,6 +520,8 @@ Applies to both limits. At 1.75, four full-width characters count as 7"</string>
     <string name="morphe_music_lyrics_show_refresh_button_title">Show Refresh button</string>
     <string name="morphe_music_lyrics_show_romanize_button_summary">Tap to toggle romanization or transliteration; long-press for romanization or transliteration only. Uses the enabled romanization providers in their listed order</string>
     <string name="morphe_music_lyrics_show_romanize_button_title">Show Romanize or Transliterate button</string>
+    <string name="morphe_music_lyrics_show_ruby_button_summary">Tap to toggle ruby readings above lyrics; long-press to switch between hiragana and katakana. Uses the enabled ruby providers in their listed order</string>
+    <string name="morphe_music_lyrics_show_ruby_button_title">Show Ruby button</string>
     <string name="morphe_music_lyrics_show_section_summary">Label each new section of the lyrics with a small tag, such as Verse or Chorus</string>
     <string name="morphe_music_lyrics_show_section_title">Show section tags</string>
     <string name="morphe_music_lyrics_show_translate_button_summary">Tap to toggle translation; long-press for translation only. Uses the enabled translation providers in their listed order</string>
@@ -462,7 +535,7 @@ Applies to both limits. At 1.75, four full-width characters count as 7"</string>
     <string name="morphe_music_lyrics_split_background_title">Show background vocals separately</string>
     <string name="morphe_music_lyrics_strip_trailing_punctuation_summary">Removes full stops, commas, colons and semicolons at the end of lyrics lines. Question marks, exclamation marks, ellipses, quotes and brackets are kept</string>
     <string name="morphe_music_lyrics_strip_trailing_punctuation_title">Remove trailing punctuation</string>
-    <string name="morphe_music_lyrics_swap_trans_roma_summary">ON puts romanization or transliteration below lyrics and translation above; OFF keeps romanization or transliteration above and translation below. A reading placed over each syllable moves with it, from above its syllable to below it</string>
+    <string name="morphe_music_lyrics_swap_trans_roma_summary">Swaps the display order of translation and romanization below the lyrics</string>
     <string name="morphe_music_lyrics_swap_trans_roma_title">Swap translation and romanization</string>
     <string name="morphe_music_lyrics_tap_to_seek_summary">Tap a line to jump to that moment in the song, long-press it to copy the word under your finger, or the whole line when the press is not on a word. Off takes both gestures away</string>
     <string name="morphe_music_lyrics_tap_to_seek_title">Tap and hold a line</string>
@@ -527,7 +600,7 @@ Applies to both limits. At 1.75, four full-width characters count as 7"</string>
     <!-- modified by lavinhoque33, 2026-10-17: Scrobbling (Last.fm and ListenBrainz), ported from Morphe -->
     <string name="morphe_music_scrobbling_about_summary">"Scrobbling automatically syncs your YouTube Music usage with your Last.fm or ListenBrainz profile
 
-To ensure scrobbling is synced during background playback, ensure that YouTube Music's app battery usage is set to \"Unrestricted\""</string>
+To ensure scrobbling is synced during background playback, ensure that YouTube Music’s app battery usage is set to \"Unrestricted\""</string>
     <string name="morphe_music_scrobbling_custom_regex_summary">Enter a custom regular expression to remove additional text from song titles, artists, or albums. Example: (?i)\\s*\\((clean|explicit)\\)</string>
     <string name="morphe_music_scrobbling_custom_regex_title">Custom regex cleanup</string>
     <string name="morphe_music_scrobbling_delay_percent_summary">Trigger scrobble after listening to this percentage of the song</string>
@@ -822,10 +895,10 @@ Limitations: SponsorBlock segments are not shown in the seekbar"</string>
     <string name="revanced_enable_zen_mode_podcast_title">Enable Zen mode in podcasts</string>
     <string name="revanced_enable_zen_mode_summary">Enables a light grey color for the player background to reduce eye strain</string>
     <string name="revanced_enable_zen_mode_title">Enable Zen mode</string>
-    <string name="revanced_external_downloader_action_summary">Download action button opens your external downloader</string>
+    <string name="revanced_external_downloader_action_summary">In YouTube Music / external app mode, sends a single song from the player Download button to your external downloader. Off keeps Music’s own Download. Does not send albums or playlists</string>
     <string name="revanced_external_downloader_action_title">Override Download action button</string>
     <string name="revanced_external_downloader_dialog_title">External downloader</string>
-    <string name="revanced_external_downloader_flyout_menu_summary">Uses your chosen external downloader instead of the stock Download flyout menu</string>
+    <string name="revanced_external_downloader_flyout_menu_summary">In YouTube Music / external app mode, sends a single song from the menu Download item to your external downloader. Off keeps Music’s own Download. Does not send albums or playlists</string>
     <string name="revanced_external_downloader_flyout_menu_title">Override Download menu</string>
     <string name="revanced_external_downloader_not_installed_dialog_message">"%1$s is not installed
 Please download %2$s from the website"</string>

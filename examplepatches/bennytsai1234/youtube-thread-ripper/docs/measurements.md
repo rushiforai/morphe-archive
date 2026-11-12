@@ -31,3 +31,17 @@ DNS was ruled out for the slow window seen on 2026-10-03: the same node and answ
 ## WireGuard (2026-10-09)
 
 `WireGuard`, `Blake2s` and `X25519` were verified on the PC against RFC 7693/7748 vectors and a live WARP handshake (wgcf-registered device, ICMP to 1.1.1.1, 12 ms).
+
+## WARP start: connections opened before the VPN (2026-11-11)
+
+Phone, cold starts (`am force-stop`, launch, screenshot after 10 s), modes interleaved. Grey home feed (skeleton placeholders) after 10 s:
+
+| Round | Mode | Grey feed |
+|---|---|---|
+| 1, no router limit | WARP off | 0/5 |
+| 1, no router limit | WARP on | 2/5 |
+| 2, router limit ~3.2 MB/s | WARP on, stray packets forwarded (old behaviour) | 1/8 |
+| 2, router limit ~3.2 MB/s | WARP on, stray packets answered | 0/8 |
+
+Every WARP start had 2-6 flows still using the Wi-Fi source address after the VPN came up (TCP to 443 with data, FIN, ICMP); forwarded, they retransmitted for 2-7 s without an answer, and in the grey launch a TCP flow with data retransmitted until +6.8 s. Answered, each such flow sent one packet and stopped. The microG update check (`GmsCoreSupportPatch`, plain HTTPS at app start) timed out in all 5 WARP-on launches of round 1 and in none with WARP off. 0/8 against a 3/13 failure rate is not proof on its own (about 12 % by chance); the case rests on the mechanism: the answered packets could never have reached the server.
+

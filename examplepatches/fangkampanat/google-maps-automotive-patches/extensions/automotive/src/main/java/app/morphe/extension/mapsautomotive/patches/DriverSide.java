@@ -20,10 +20,12 @@ import app.morphe.extension.shared.Utils;
  * <p>
  * The patch passes the seat Maps' central display reads through {@link #driverSeat}: left-hand drive
  * gives the front left seat and right-hand drive the front right seat. Auto keeps Maps' seat when Maps
- * has one; without one, a BYD's steering side setting (persist.sys.vehicle_rudder_info: 1 left, 2
- * right) gives the front seat of that side, else Maps keeps its own (left-hand drive) layout. Maps
- * then lays out its screens as in a car with that seat. The choice is read once per process (Maps
- * builds its layout as the activity starts), so a new choice applies after a restart.
+ * has one; without one, a BYD's steering side setting gives the front seat of that side
+ * (persist.sys.vehicle_rudder_info: 1 left, 2 right, as on DiLink 3; else
+ * persist.vendor.byd.cfg.huc.steering.wheel.position: 0 left, 1 right, as on DiLink 5), else Maps
+ * keeps its own (left-hand drive) layout. Maps then lays out its screens as in a car with that
+ * seat. The choice is read once per process (Maps builds its layout as the activity starts), so a
+ * new choice applies after a restart.
  */
 @SuppressWarnings("unused")
 public final class DriverSide {
@@ -43,9 +45,11 @@ public final class DriverSide {
      * to 3. Maps counts any other value as no seat, and so does Auto.
      */
     private static final int[] MAPS_SEATS = {0x1, 0x2, 0x4, 0x10, 0x20, 0x40, 0x100, 0x200, 0x400};
-    /** BYD's steering side setting and its two values. */
+    /** BYD's steering side settings and their two values; the rudder setting wins when both have a side. */
     private static final String RUDDER_PROPERTY = "persist.sys.vehicle_rudder_info";
     private static final String RUDDER_LEFT = "1", RUDDER_RIGHT = "2";
+    private static final String WHEEL_PROPERTY = "persist.vendor.byd.cfg.huc.steering.wheel.position";
+    private static final String WHEEL_LEFT = "0", WHEEL_RIGHT = "1";
     /** Where Auto's side comes from (report and log). */
     static final String FROM_MAPS = "maps_seat", FROM_BYD = "byd_property", FROM_DEFAULT = "default", FROM_OFF = "off";
     private static final int UNSET = Integer.MIN_VALUE;
@@ -66,9 +70,12 @@ public final class DriverSide {
     private static volatile int carSeat = UNSET;
     /** The seat this process gave Maps' central display last, UNSET before Maps asked. */
     private static volatile int givenSeat = UNSET;
-    /** BYD's steering side setting, read once: "" when unset, null on a car that is not a BYD or when unreadable. */
-    private static volatile String rudder;
-    private static volatile boolean rudderRead;
+    /**
+     * BYD's steering side settings, each read once: "" when unset (or hidden from apps), null on a car
+     * that is not a BYD or when the read failed.
+     */
+    private static volatile String rudder, wheel;
+    private static volatile boolean rudderRead, wheelRead;
     private static volatile String loggedAuto;
 
     private DriverSide() {
@@ -128,31 +135,37 @@ public final class DriverSide {
     // Auto. The decision itself has no Android dependency.
 
     /**
-     * Auto's seat from Maps' seat and BYD's steering side setting (null on a car that is not a BYD or
-     * when unreadable): Maps' seat when Maps has one, else the front seat of the setting's side (exactly
-     * "1" left, "2" right), else Maps' seat.
+     * Auto's seat from Maps' seat and BYD's two steering side settings (each null on a car that is not a
+     * BYD or when unreadable): Maps' seat when Maps has one, else the front seat of the rudder setting's
+     * side (exactly "1" left, "2" right), else of the wheel setting's side (exactly "0" left, "1"
+     * right), else Maps' seat.
      */
-    static int autoSeat(int maps, String rudder) {
+    static int autoSeat(int maps, String rudder, String wheel) {
         if (isMapsSeat(maps)) return maps;
         if (RUDDER_LEFT.equals(rudder)) return SEAT_LEFT;
         if (RUDDER_RIGHT.equals(rudder)) return SEAT_RIGHT;
+        if (WHEEL_LEFT.equals(wheel)) return SEAT_LEFT;
+        if (WHEEL_RIGHT.equals(wheel)) return SEAT_RIGHT;
         return maps;
     }
 
-    /** Where {@link #autoSeat}'s seat comes from: Maps' seat, BYD's setting or neither (Maps' default). */
-    static String autoSource(int maps, String rudder) {
+    /** Where {@link #autoSeat}'s seat comes from: Maps' seat, one of BYD's settings or neither (Maps' default). */
+    static String autoSource(int maps, String rudder, String wheel) {
         if (isMapsSeat(maps)) return FROM_MAPS;
         if (RUDDER_LEFT.equals(rudder) || RUDDER_RIGHT.equals(rudder)) return FROM_BYD;
+        if (WHEEL_LEFT.equals(wheel) || WHEEL_RIGHT.equals(wheel)) return FROM_BYD;
         return FROM_DEFAULT;
     }
 
-    /** Auto's seat in this process. BYD's setting is read only when Maps has no seat. */
+    /** Auto's seat in this process. BYD's settings are read only when Maps has no seat. */
     private static int auto(int maps) {
-        String setting = isMapsSeat(maps) ? null : rudder();
-        int seat = autoSeat(maps, setting);
-        String source = autoSource(maps, setting);
+        boolean byd = !isMapsSeat(maps);
+        String setting = byd ? rudder() : null, position = byd ? wheel() : null;
+        int seat = autoSeat(maps, setting, position);
+        String source = autoSource(maps, setting, position);
         String line = "Auto: " + sideOf(seat) + " (" + source
-                + (FROM_MAPS.equals(source) ? " " + maps : ", BYD rudder info " + (setting == null ? "none" : "\"" + setting + "\"")) + ")";
+                + (FROM_MAPS.equals(source) ? " " + maps
+                : ", BYD rudder info " + quoted(setting) + ", steering wheel position " + quoted(position)) + ")";
         if (!line.equals(loggedAuto)) {
             loggedAuto = line;
             ReportLog.i(TAG, line);
@@ -160,21 +173,42 @@ public final class DriverSide {
         return seat;
     }
 
-    /** BYD's steering side setting, read once per process; null on a car that is not a BYD or when unreadable. */
+    private static String quoted(String value) {
+        return value == null ? "none" : "\"" + value + "\"";
+    }
+
+    /** persist.sys.vehicle_rudder_info, read once per process. */
     private static String rudder() {
         if (rudderRead) return rudder;
-        String value = null;
-        try {
-            if (BydBatteryPatch.isByd()) {
-                value = (String) Class.forName("android.os.SystemProperties").getMethod("get", String.class)
-                        .invoke(null, RUDDER_PROPERTY);
-            }
-        } catch (Throwable error) {
-            ReportLog.w(TAG, "Could not read " + RUDDER_PROPERTY, error);
-        }
+        String value = bydProperty(RUDDER_PROPERTY);
         rudder = value;
         rudderRead = true;
         return value;
+    }
+
+    /** persist.vendor.byd.cfg.huc.steering.wheel.position, read once per process. */
+    private static String wheel() {
+        if (wheelRead) return wheel;
+        String value = bydProperty(WHEEL_PROPERTY);
+        wheel = value;
+        wheelRead = true;
+        return value;
+    }
+
+    /**
+     * A system property on a BYD: "" when unset or when the system hides it from apps; null on a car that
+     * is not a BYD or when the read failed.
+     */
+    private static String bydProperty(String name) {
+        try {
+            if (BydBatteryPatch.isByd()) {
+                return (String) Class.forName("android.os.SystemProperties").getMethod("get", String.class)
+                        .invoke(null, name);
+            }
+        } catch (Throwable error) {
+            ReportLog.w(TAG, "Could not read " + name, error);
+        }
+        return null;
     }
 
     /** The choice for this process: the stored one while the feature is on, else Auto with Maps' seat. */
@@ -224,12 +258,12 @@ public final class DriverSide {
     /** For the problem report (main process): the choice, the seats, Auto's side and the side in use. */
     static JSONObject report(Context context) throws JSONException {
         int maps = mapsSeat, car = carSeat;
-        String setting = rudder(), autoSide = null, source = null;
+        String setting = rudder(), position = wheel(), autoSide = null, source = null;
         if (maps != UNSET) {
             boolean off = applied != null && !detecting;
-            int seat = off ? maps : autoSeat(maps, setting);
+            int seat = off ? maps : autoSeat(maps, setting, position);
             autoSide = sideOf(seat);
-            source = off ? FROM_OFF : autoSource(maps, setting);
+            source = off ? FROM_OFF : autoSource(maps, setting, position);
         }
         return new JSONObject()
                 .put("choice", orNull(storedOrNull(context)))
@@ -237,6 +271,7 @@ public final class DriverSide {
                 .put("maps_driver_seat", maps != UNSET ? maps : JSONObject.NULL)
                 .put("car_driver_seat", car != UNSET ? car : JSONObject.NULL)
                 .put("byd_rudder_info", orNull(setting))
+                .put("byd_steering_wheel_position", orNull(position))
                 .put("auto_side", orNull(autoSide))
                 .put("auto_source", orNull(source))
                 .put("maps_cards", orNull(mapsCards()))
@@ -349,15 +384,16 @@ public final class DriverSide {
 
     /**
      * Auto with the side it gives and where that comes from; "Auto" before Maps asked. While the
-     * switch is off Auto gives Maps' seat, after a restart too, so the label leaves BYD's setting out.
+     * switch is off Auto gives Maps' seat, after a restart too, so the label leaves BYD's settings out.
      */
     private static String autoLabel(Context context, boolean thai) {
         int maps = mapsSeat;
         if (maps == UNSET) return thai ? "อัตโนมัติ" : "Auto";
         boolean on = SafeMode.on(context, SafeMode.DRIVER_SIDE);
-        String setting = !on || isMapsSeat(maps) ? null : rudder();
-        String side = sideOf(autoSeat(maps, setting));
-        boolean fromCar = !FROM_DEFAULT.equals(autoSource(maps, setting));
+        boolean byd = on && !isMapsSeat(maps);
+        String setting = byd ? rudder() : null, position = byd ? wheel() : null;
+        String side = sideOf(autoSeat(maps, setting, position));
+        boolean fromCar = !FROM_DEFAULT.equals(autoSource(maps, setting, position));
         String drive = RIGHT.equals(side) ? (thai ? "พวงมาลัยขวา" : "right-hand drive")
                 : CENTER.equals(side) ? (thai ? "ที่นั่งกลาง" : "center seat")
                 : (thai ? "พวงมาลัยซ้าย" : "left-hand drive");

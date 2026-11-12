@@ -7,21 +7,23 @@ cut off from the river's main current: Instagram off the stream, keeping what ma
 for new Instagram versions). On top of them, utilities that let you *keep* things, never ones
 that pull you back into scrolling.
 
-## Features (Instagram 454.0.0.54.77)
+## Features (Instagram 455.0.0.51.72)
 
-On-device status below is from a smoke test of the 454 clone on the test phone (classic docked
-tab bar, no pill highlight, no Create tab; tested with the Reels icon hidden and shown). The 454
-.apkm carries no feature splits; the in-app browser still opens bio links. Rows marked *not
-retested on 454* last passed on 453 and build + hook were verified on 454, not exercised on the
-phone.
+On-device status below is from a smoke test of the 455 clone on the test phone (classic docked
+tab bar, no pill highlight, no Create tab; tested with the Reels icon hidden and shown). The 455
+.apkm carries 11 feature splits; the in-app browser still opens bio links. The 455 test covered
+install and launch, the tab bar, Notes hidden, the settings long-press, the post menu (Download
+and Copy caption rows on an own post, Download saved to Pictures/Oxbow, Copy caption's toast on
+a caption-less post) and a feed of organic posts, with no crashes in the log. Rows marked *last
+passed on 454* keep their 454 results; everything else was re-verified as listed.
 
 | Feature | Patch / extension | Tested on device |
 |---|---|---|
-| Download: posts, carousel slide, videos | `download/DownloadPatch.kt`, `Download.java` | yes on 454 (post photo, video, carousel slide; hold-Download saved all 12 slides of a carousel) |
+| Download: posts, carousel slide, videos | `download/DownloadPatch.kt`, `Download.java` | post photo: yes on 455 (saved to Pictures/Oxbow). Carousel slide, video: yes on 454 (hold-Download saved all 12 slides of a carousel); the 455 rework of the menu hook is byte-verified but those three saves were not repeated |
 | Download: stories, highlights | same | yes on 454 (story photo and a highlight photo saved) |
 | Download: reels viewer (any menu variant) | same (`addClipsRow`) | yes on 454 (reel video saved from the `⋯` row) |
 | HD profile picture: long-press avatar | same (`profileAvatarLongPress`) | yes on 454 (1080px) |
-| Clean share links (allowlist: `img_index`, `story_media_id`, `comment_id`, `hl`) | `privacy/CleanLinksPatch.kt`, `ShareLinks.java` | yes on 454 (Copy link and a share-sheet paste, both clean; the video intent builder path re-checked in the 454 bytecode only) |
+| Clean share links (allowlist: `img_index`, `story_media_id`, `comment_id`, `hl`) | `privacy/CleanLinksPatch.kt`, `ShareLinks.java` | yes on 454 (Copy link and a share-sheet paste, both clean). 455: both hooks byte-verified at the top of the share intent builder and its video branch; a live paste was not repeated |
 | Ghost: stories not marked seen | `privacy/GhostModePatch.kt` + `Block.java` | stories open fine on 454; "not in viewer list" needs a 2nd account |
 | Ghost: no DM read receipts | same (`holdReceipt`, inbox seen check) | 453: yes (two accounts: sender stays on Delivered, the chat clears and stays cleared after a restart). 454: patch applies (the inbox unread answer needed a new match) and the hooks are in the bytecode; not exercised on the phone (needs a second account) |
 | Ghost: no typing indicator | same | not exercised (needs a real chat) |
@@ -33,7 +35,7 @@ phone.
 | Feed ads (sponsored posts dropped at parse time) | `network/FeedItemFilterPatch.kt`, `Block.java` | yes on 454 (with the block off, the network trace shows "drop sponsored media" twice; with it on, no sponsored post reaches the feed) |
 | Hide Home: Back leaves the app from the first tab left (Back history) | `settings/BackHistoryPatch.kt`, `Hiders.backHistoryDepth` (from FeurStagram) | yes on 454 (Home hidden: Back from Messages lands on Reels, one more Back leaves the app; the feed never comes back) |
 | Hide Meta AI / Muse (share sheet target, Meet Muse promo cards, Vibes / Meta AI / Imagine feed units) | `metaai/HideMetaAiPatch.kt`, `MetaAi.java`, `Block.java` | no crash across the 454 smoke test; this account never shows the Muse surfaces, so removal not seen |
-| Hide Home (long-press Messages opens settings) | `Hiders.java`, `HomeTabWatcher.java`, `Config.java` | yes on 454 (settings open from the long-press; Home itself hidden and the bar re-flows) |
+| Hide Home (long-press Messages opens settings) | `Hiders.java`, `HomeTabWatcher.java`, `Config.java` | yes on 455 (settings open from the long-press; Home itself hidden and the bar re-flows) |
 
 Settings: *Keep and privacy* page (downloads, clean links, ghost mode); comments and endless
 scrolling live in *Blocked surfaces* so the permanent lock covers them.

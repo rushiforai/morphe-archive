@@ -138,9 +138,29 @@ public final class AndroidAutoDownloadsArtwork {
         if (provider != null && provider.getContext() != null) providerContext = provider.getContext();
         String root = providerRoot();
         if (root.isEmpty() || uri == null || !uri.toString().startsWith(uriPrefix(authority(), root))) return;
+        String streamVideoId = AndroidAutoStreamArtworkData.parseUri(authority(), root, uri.toString());
+        if (streamVideoId != null) {
+            if (!"r".equals(mode) || ensureStreamImage(streamVideoId) == null) {
+                throw new FileNotFoundException("Stream cover unavailable");
+            }
+            return;
+        }
         Key key = parseUri(authority(), root, uri.toString());
         if (!"r".equals(mode) || key == null || ensureImage(key) == null) {
             throw new FileNotFoundException("Downloaded cover unavailable");
+        }
+    }
+
+    /** The cover of a stream copy in the cache, made from the cover stored with it when it is not there yet. */
+    @Nullable
+    private static File ensureStreamImage(String videoId) {
+        try {
+            return AndroidAutoStreamArtwork.ensureImage(directory(), videoId);
+        } catch (IOException | RuntimeException | OutOfMemoryError ex) {
+            if (Utils.getContext() != null) {
+                Logger.printInfo(() -> "AA stream art unavailable: " + videoId + " " + ex);
+            }
+            return null;
         }
     }
 
@@ -204,6 +224,11 @@ public final class AndroidAutoDownloadsArtwork {
         } finally {
             retriever.release();
         }
+        return encodeCover(picture, target);
+    }
+
+    /** Writes the picture, cropped to a square and scaled to 256 px, as the JPEG target; false if unusable. */
+    static boolean encodeCover(@Nullable byte[] picture, File target) throws IOException {
         // The downloader embeds at most 1 MiB. Reject unexpectedly replaced or malformed media.
         if (picture == null || picture.length == 0 || picture.length > 1024 * 1024) return false;
         BitmapFactory.Options options = new BitmapFactory.Options();
@@ -297,6 +322,7 @@ public final class AndroidAutoDownloadsArtwork {
                 synchronized (EXTRACTION_LOCK) {
                     try {
                         trim(downloadedIds(), null);
+                        AndroidAutoStreamArtwork.trim(directory(), null);
                     } catch (IOException | RuntimeException ex) {
                         Logger.printInfo(() -> "Could not trim Android Auto artwork cache", ex);
                     }
@@ -328,6 +354,28 @@ public final class AndroidAutoDownloadsArtwork {
                 }
             }
             return new MediaDescriptionCompat(id, title, subtitle, null, null, icon, extras, null);
+        }
+
+        /** The row of a stream copy's list; it shows the cover stored with the song {@code coverVideoId}, if any. */
+        MediaDescriptionCompat streamDescription(String id, String title, String subtitle, Bundle extras,
+                                                 @Nullable String coverVideoId) {
+            Uri icon = null;
+            if (coverVideoId != null && available && !AndroidAutoStreamArtwork.isMissing(coverVideoId)) {
+                try {
+                    icon = grantStream(coverVideoId);
+                } catch (RuntimeException ex) {
+                    Logger.printInfo(() -> "Could not describe stream cover: " + coverVideoId + " " + ex);
+                }
+            }
+            return new MediaDescriptionCompat(id, title, subtitle, null, null, icon, extras, null);
+        }
+
+        private Uri grantStream(String videoId) {
+            String address = AndroidAutoStreamArtworkData.uri(authority(), providerRoot(), videoId);
+            Uri uri = Uri.parse(address);
+            context().grantUriPermission(CAR_PACKAGE, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            if (firstUri.equals("none")) firstUri = address;
+            return uri;
         }
 
         private Uri grant(Key key) {

@@ -48,7 +48,7 @@ private val tokenResponseFingerprint = Fingerprint(
  * 応答の `Error` を読んだ直後と、bind の失敗で例外を投げる直前に hook を呼ぶだけで、値と処理の流れは変えません。
  */
 val googleAuthFailureDiagnosticsPatch = bytecodePatch(
-    name = "MicroG-RE の認証エラーを通知する",
+    name = "MicroG-RE auth error notification",
     description = "MicroG-RE を使った Google ドライブの認証が失敗したとき、失敗の種類を通知できるようにします。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

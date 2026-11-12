@@ -414,7 +414,7 @@ When someone reacts to a message, the emoji doesn't fly across the screen and bu
 Hide folder tab counters	Sembunyikan penghitung tab folder
 Folder tabs above the chat list show just their names, without unread counts. Chats stay unread and the app icon badge doesn't change.	Tab folder di atas daftar obrolan hanya menampilkan namanya, tanpa jumlah belum dibaca. Obrolan tetap belum dibaca dan lencana ikon aplikasi tidak berubah.
 Hide sender names when forwarding	Sembunyikan nama pengirim saat meneruskan
-Each new forward starts with Hide sender's name turned on, so copies arrive without the original author. You can still turn it off before sending.	Setiap penerusan baru dimulai dengan Sembunyikan nama pengirim aktif, sehingga salinan tiba tanpa penulis aslinya. Anda tetap bisa mematikannya sebelum mengirim.
+Each new forward starts with Hide sender's name turned on, so copies arrive without the original author, even when you pick several chats at once. You can still turn it off in the forward preview, or by holding the send button in the Share sheet. Forwards to Saved Messages keep the sender.	Setiap penerusan baru dimulai dengan Sembunyikan nama pengirim aktif, sehingga salinan tiba tanpa penulis aslinya, bahkan saat Anda memilih beberapa obrolan sekaligus. Anda tetap bisa mematikannya di pratinjau penerusan, atau dengan menahan tombol kirim di jendela Bagikan. Penerusan ke Pesan Tersimpan tetap menampilkan pengirim.
 Voice messages in the music player	Pesan suara di pemutar musik
 While a voice message plays, tapping the bar above the chat opens the full music player, where you can drag to skip around, instead of jumping to the message.	Saat pesan suara diputar, mengetuk bilah di atas obrolan membuka pemutar musik penuh, tempat Anda bisa menggeser untuk melompat, bukan melompat ke pesannya.
 Silence people outside your contacts	Senyapkan orang di luar kontak Anda
@@ -1285,8 +1285,13 @@ the hidden accounts	akun tersembunyi
 Fit all folder tabs	Muat semua tab folder
 # context: Summary of the Fit all folder tabs switch. The folder tabs shrink so none of them scrolls out of sight; with few folders nothing changes
 Shrinks the folder tabs above the chat list until all of them fit on the screen, so you never scroll sideways to find one. With only a few folders nothing changes.	Memperkecil tab folder di atas daftar obrolan sampai semuanya muat di layar, jadi kamu tidak perlu menggeser ke samping untuk mencari satu. Kalau foldernya sedikit, tidak ada yang berubah.
+# context: Switch title on the Chat list page under Hide folder tab counters, off by default. It puts an icon for the kind of folder in front of each folder tab's name above the chat list
+Folder icons on tabs	Ikon di tab folder
+# context: Summary of the Folder icons on tabs switch. All Chats gets two speech bubbles, a folder of only private chats a person, of only groups a group, of only channels a channel, of only bots a bot. All Chats is Telegram's FilterAllChats label
+Puts a small icon in front of each folder tab's name: a chat bubble for All Chats, and a person, group, channel or bot for a folder of that kind of chat. Other folders get a folder icon. With a pack picked under Folder icons, the tabs use that pack instead.	Menaruh ikon kecil di depan nama setiap tab folder: gelembung obrolan untuk Semua Obrolan, dan orang, grup, kanal atau bot untuk folder berisi jenis obrolan itu. Folder lain mendapat ikon folder. Jika paket dipilih di Ikon folder, tab memakai paket itu.
 # context: Lowercase noun phrase naming a part of Hide folder tab counters in a diagnostic line. It names the switch that shrinks the folder tabs to fit the screen
 the fitted folder tabs	tab folder yang dimuatkan
+the folder tab icons	ikon tab folder
 # context: Switch under Privacy for Receive only mode, per account (#53).
 Receive only mode	Mode hanya terima
 The accounts you pick below can read but not write. Messages, reactions, drafts and typing stay on this phone and show an error. Reading, files and read receipts work. Works with this switch on.	Akun yang Anda pilih di bawah bisa membaca tetapi tidak menulis. Pesan, reaksi, draf, dan status mengetik tetap di ponsel ini dan menampilkan kesalahan. Membaca, berkas, dan tanda dibaca tetap berfungsi. Berlaku saat sakelar ini aktif.
@@ -1348,6 +1353,8 @@ None	Tidak ada
 Couldn't save the choice. Try again in a moment.	Pilihan tidak tersimpan. Coba lagi sebentar lagi.
 # context: Summary of the Folder icons row. %1$s is the chosen pack (Regular, Bold, Filled or None).
 %1$s. Icons show beside folder names in HushTelegram's own lists. Telegram's folder tabs stay as they are.	%1$s. Ikon muncul di samping nama folder pada daftar HushTelegram sendiri. Tab folder Telegram tetap seperti semula.
+# context: Summary of the Folder icons row in a build that can put icons on the folder tabs. %1$s is the chosen pack (Regular, Bold, Filled or None). Folder icons on tabs is the switch above it
+%1$s. Icons show beside folder names in HushTelegram's own lists, and on the folder tabs with Folder icons on tabs on.	%1$s. Ikon muncul di samping nama folder pada daftar HushTelegram sendiri, dan di tab folder saat Ikon di tab folder aktif.
 # context: Settings row that makes downloads run one at a time. Its list is in the side menu.
 Download manager	Pengelola unduhan
 # context: Summary of the Download manager row.
@@ -1545,3 +1552,252 @@ channels restricted for copyright or local law	saluran yang dibatasi karena hak 
 Send photos and videos in the best quality	Kirim foto dan video dengan kualitas terbaik
 Photos go out in HD and videos at their own size and quality, without touching the quality button first. You can still lower one before sending. Only sending as a file keeps a photo exactly as it is.	Foto terkirim dalam HD dan video dengan ukuran serta kualitas aslinya, tanpa menyentuh tombol kualitas dulu. Kamu masih bisa menurunkannya sebelum mengirim. Hanya mengirim sebagai file yang menjaga foto persis seperti aslinya.
 photos and videos in their best quality	foto dan video dalam kualitas terbaik
+# context: Never send an uncropped photo. A switch on Conversations, on by default, and the toast shown when Telegram's photo editor can't finish a crop and stays open.
+Never send an uncropped photo	Jangan pernah kirim foto yang belum dipotong
+When Telegram can't finish a crop, the editor stays open and asks you to try again, so the part you cropped out never gets sent. Covers photos and profile pictures. Videos crop as usual.	Saat Telegram tidak bisa menyelesaikan pemotongan, editor tetap terbuka dan memintamu mencoba lagi, jadi bagian yang kamu potong tidak pernah terkirim. Berlaku untuk foto dan foto profil. Video dipotong seperti biasa.
+Couldn't crop the photo. Try again.	Foto tidak bisa dipotong. Coba lagi.
+# context: Keep captions with their photos. A switch on Conversations, on by default, for the attach menu: when several picked photos each have their own caption, unpicking or reordering them keeps each caption on its own photo.
+Keep captions with their photos	Pertahankan keterangan pada fotonya
+When you remove or reorder photos that each have a caption, every caption stays with its own photo.	Saat kamu menghapus atau mengurutkan ulang foto yang masing-masing punya keterangan, setiap keterangan tetap pada fotonya sendiri.
+# context: a switch under Ghost mode (#69). With it on, sending a message in a chat also sends the read receipt Ghost mode held back for that chat.
+Read after you reply	Baca setelah membalas
+# context: that switch's summary. No read receipts is the switch title under Ghost mode, translated the same as that row.
+When you send a message in a chat, the read receipt Ghost mode held back there goes out too, so your other devices stop showing it unread. Works with Ghost mode and No read receipts on.	Saat Anda mengirim pesan di sebuah obrolan, laporan dibaca yang ditahan Mode hantu di sana ikut terkirim, sehingga perangkat Anda yang lain tidak lagi menampilkannya belum dibaca. Berfungsi saat Mode hantu dan Tanpa laporan dibaca aktif.
+# context: a switch under Ghost mode (#69). With it on, a double check button sits at the top of the chat list, next to the ghost.
+Read receipts button	Tombol laporan dibaca
+# context: that switch's summary. A double check is the two tick marks Telegram shows on a read message.
+A double check at the top of the chat list sends the read receipts Ghost mode is holding for the account you're on, from chats read since Telegram last started. Shows with Ghost mode and No read receipts on.	Centang dua di bagian atas daftar obrolan mengirim laporan dibaca yang ditahan Mode hantu untuk akun yang sedang Anda pakai, dari obrolan yang dibaca sejak Telegram terakhir dibuka. Muncul saat Mode hantu dan Tanpa laporan dibaca aktif.
+# context: what a screen reader says for the chat list's double check button.
+Send read receipts	Kirim laporan dibaca
+# context: short message after a tap on the chat list's double check button sent the held read receipts.
+Read receipts sent	Laporan dibaca terkirim
+# context: short message after a tap on the chat list's double check button found no held read receipts.
+No read receipts waiting	Tidak ada laporan dibaca tertunda
+# context: short message after a tap on the chat list's double check button couldn't send the held read receipts.
+Couldn't send read receipts	Laporan dibaca gagal dikirim
+# context: Proxy in the chat list menu (#67). A switch on Chat list, off by default: the menu that opens from the top of the chat list (New Group, Saved Messages and so on) always gets Telegram's own Proxy row, which Telegram otherwise shows only while a proxy is on or where Telegram is blocked.
+Proxy in the chat list menu	Proxy di menu daftar obrolan
+The menu at the top of the chat list always has Proxy, so your proxies are one tap away even where Telegram isn't blocked.	Menu di atas daftar obrolan selalu menampilkan Proxy, jadi proxy Anda tinggal satu ketukan meski Telegram tidak diblokir di tempat Anda.
+# context: Free proxies (#66), on Chat list. A switch, off by default, that every 6 hours downloads a public list of MTProto proxies, times a connect to each and puts the 10 fastest in Telegram's own proxy list. A row runs it now and says what the last try found. A second switch, on by default, keeps Telegram's proxy button on the phone number screen before sign-in.
+Free proxies	Proxy gratis
+Every 6 hours, downloads a public list of proxies and adds the 10 fastest to Telegram's proxy list, and Telegram connects through them unless you use a proxy of your own. Whoever runs a proxy can see your IP address. Turning this off leaves them in the list.	Setiap 6 jam, mengunduh daftar proxy publik dan menambahkan 10 yang tercepat ke daftar proxy Telegram, lalu Telegram terhubung melalui proxy tersebut kecuali Anda memakai proxy sendiri. Pengelola proxy dapat melihat alamat IP Anda. Mematikan ini tetap menyisakan proxy tersebut di daftar.
+Find free proxies now	Cari proxy gratis sekarang
+Proxy button when signing in	Tombol proxy saat masuk
+The phone number screen always has the proxy button, so you can add a proxy before you sign in.	Layar nomor telepon selalu menampilkan tombol proxy, jadi Anda bisa menambahkan proxy sebelum masuk.
+Looking for free proxies now.	Sedang mencari proxy gratis.
+Downloads a public list of proxies now, times them and adds the fastest to Telegram's proxy list, even with the switch above off.	Mengunduh daftar proxy publik sekarang, mengukur kecepatannya, lalu menambahkan yang tercepat ke daftar proxy Telegram, meski sakelar di atas nonaktif.
+Proxies added last time: %1$s. They're in Telegram's proxy list.	Proxy yang ditambahkan terakhir kali: %1$s. Semuanya ada di daftar proxy Telegram.
+Couldn't download a proxy list last time. Check your connection and try again.	Terakhir kali daftar proxy tidak bisa diunduh. Periksa koneksi Anda dan coba lagi.
+None of the listed proxies answered last time. Try again later.	Terakhir kali tidak ada proxy dalam daftar yang menjawab. Coba lagi nanti.
+Telegram didn't take the proxies last time.	Terakhir kali Telegram tidak menerima proxy tersebut.
+# context: Ghost mode exceptions (#71), a switch under Ghost mode, off by default. The chats picked for it get the opposite of Ghost mode: with Ghost mode on they act as in stock Telegram, with it off they keep back what the Ghost mode switches keep back. Online status stays with Ghost mode.
+Ghost mode exceptions	Pengecualian Mode hantu
+# context: that switch's summary. The three dots are the menu Telegram's chat list shows after a long press, where Ghost mode exception sits
+The chats you pick work the other way around. While Ghost mode is on they act as usual, and while it's off the Ghost mode switches above apply there. Long press chats in the chat list and use the three dots to add them. Online status follows Ghost mode everywhere.	Obrolan yang Anda pilih bekerja sebaliknya. Saat Mode hantu aktif, obrolan itu berjalan seperti biasa, dan saat nonaktif, sakelar Mode hantu di atas berlaku di sana. Tekan lama obrolan di daftar obrolan dan gunakan tiga titik untuk menambahkannya. Status online mengikuti Mode hantu di mana saja.
+# context: Row under Ghost mode exceptions, and the title of the list it opens. Its summary names the picked chats, and a tap lists the account's chats to tick
+Exception chats	Obrolan pengecualian
+# context: Summary of Exception chats when no chat is ticked
+No chats picked yet.	Belum ada obrolan yang dipilih.
+# context: Item in the chat list's long press menu (the three dots, under Hide from chat list), shown while Ghost mode exceptions is on. It adds the selected chats to the exceptions, or takes them out when they all were
+Ghost mode exception	Jadikan pengecualian Mode hantu
+# context: Toast after Ghost mode exception took the selected chats back out of the exceptions
+These chats follow Ghost mode again.	Obrolan ini kembali mengikuti Mode hantu.
+# context: Toast after Ghost mode exception added the selected chats while Ghost mode is on, so it no longer applies there
+Ghost mode is off in these chats.	Mode hantu nonaktif di obrolan ini.
+# context: Toast after Ghost mode exception added the selected chats while Ghost mode is off, so it applies there
+Ghost mode is on in these chats.	Mode hantu aktif di obrolan ini.
+# context: Fake typing (#71), a switch under Ghost mode, off by default, and the item it adds to the chat list's long press menu (the three dots). The picked chats show the account as typing, the way Telegram's own typing status shows
+Fake typing	Mengetik palsu
+# context: that switch's summary. The status keeps going out every few seconds until ten minutes pass or the chats are picked again
+Adds Fake typing to the three dots menu when you long press chats in the chat list. The chats you pick show you typing for 10 minutes, or until you pick them again, even with Ghost mode on.	Menambahkan Mengetik palsu ke menu tiga titik saat Anda menekan lama obrolan di daftar obrolan. Di obrolan yang Anda pilih, Anda terlihat sedang mengetik selama 10 menit atau sampai Anda memilihnya lagi, bahkan saat Mode hantu aktif.
+# context: Toast after Fake typing started the selected chats typing
+Typing in these chats for 10 minutes.	Mengetik di obrolan ini selama 10 menit.
+# context: Toast after Fake typing stopped the selected chats, which were all typing
+Stopped typing in these chats.	Berhenti mengetik di obrolan ini.
+# context: Toast when only secret chats (or archive folders) were selected for Fake typing, which can't carry it
+Secret chats can't show typing.	Obrolan rahasia tidak bisa menampilkan status mengetik.
+# context: Switch title on the Privacy page (#71), off by default. With a Telegram passcode set, the app locks about a second after you leave it instead of after the Auto-lock time picked in Telegram
+Instant lock	Kunci instan
+# context: Summary of Instant lock. Auto-lock is Telegram's own passcode setting; the user's Auto-lock choice is kept and comes back when the switch is off
+With a Telegram passcode set, Telegram locks a second or two after you leave it instead of waiting for Auto-lock. Turning this off brings your Auto-lock time back.	Jika kode sandi Telegram sudah diatur, Telegram terkunci satu atau dua detik setelah kamu keluar, tanpa menunggu Kunci otomatis. Mematikan ini mengembalikan waktu Kunci otomatis kamu.
+# context: Lowercase noun phrase naming the Instant lock switch (#71) in the patch status list
+instant lock	kunci instan
+# context: Switch title on the Privacy page (#71), off by default. Signing up a phone number new to Telegram normally tells everyone who has that number saved that it joined; with this on, they aren't told
+Don't notify contacts	Jangan beri tahu kontak
+# context: Summary of Don't notify contacts. It only matters when a new account is created, for example through Add account with a number that has never used Telegram
+When you sign up a phone number that's new to Telegram, people who have it saved aren't told you joined. Accounts that already exist aren't affected.	Saat kamu mendaftarkan nomor telepon yang baru di Telegram, orang yang menyimpannya tidak diberi tahu bahwa kamu bergabung. Akun yang sudah ada tidak terpengaruh.
+# context: Lowercase noun phrase naming the Don't notify contacts switch (#71) in the patch status list
+quiet sign-up	pendaftaran senyap
+# context: Lowercase noun phrase naming Proxy order (#71) in the patch status list
+proxy order	urutan proxy
+# context: Title of the Proxy order row on the Chat list page and of its editor dialog (#71). It sets the order of the proxies on Telegram's own proxy screen
+Proxy order	Urutan proxy
+# context: Summary of the Proxy order row when nothing has been arranged yet
+Drag the proxies in Telegram's proxy list into your own order, or pin some on top.	Seret proxy di daftar proxy Telegram ke urutanmu sendiri, atau sematkan beberapa di atas.
+# context: Summary of the Proxy order row once the person has dragged proxies into an order of their own
+Telegram's proxy list is in your order. Tap to change it.	Daftar proxy Telegram mengikuti urutanmu. Ketuk untuk mengubahnya.
+# context: Summary of the Proxy order row, singular form: the person's own order with this many proxies pinned at the top
+Telegram's proxy list is in your order, with %1$d proxy pinned on top.	Daftar proxy Telegram mengikuti urutanmu, dengan %1$d proxy disematkan di atas.
+# context: Summary of the Proxy order row, plural form: the person's own order with this many proxies pinned at the top
+Telegram's proxy list is in your order, with %1$d proxies pinned on top.	Daftar proxy Telegram mengikuti urutanmu, dengan %1$d proxy disematkan di atas.
+# context: Summary of the Proxy order row, singular form: only pins are set, and the other proxies keep Telegram's own speed order
+%1$d proxy pinned on top of Telegram's proxy list. The rest keep Telegram's order.	%1$d proxy disematkan di atas daftar proxy Telegram. Sisanya tetap dalam urutan Telegram.
+# context: Summary of the Proxy order row, plural form: only pins are set, and the other proxies keep Telegram's own speed order
+%1$d proxies pinned on top of Telegram's proxy list. The rest keep Telegram's order.	%1$d proxy disematkan di atas daftar proxy Telegram. Sisanya tetap dalam urutan Telegram.
+# context: Name shown in the Proxy order editor for a proxy whose address couldn't be read
+Proxy	Proxy
+# context: Button that closes the Proxy order editor; every change was already kept
+Done	Selesai
+# context: Button in the Proxy order editor that drops the person's own order, keeping only pins, so the rest go back to Telegram's speed order
+Sort by speed	Urutkan menurut kecepatan
+# context: Short toast after Sort by speed, at most two short lines
+Unpinned proxies sort by speed again.	Yang tidak disematkan kembali urut kecepatan.
+# context: Short toast when the proxy order couldn't be saved, at most two short lines
+Couldn't save the order. Try again.	Urutan tidak tersimpan. Coba lagi.
+# context: Note in the Proxy order editor when Telegram has no saved proxies. Find free proxies is a row on the same page
+Telegram's proxy list is empty. Add a proxy in Telegram's proxy settings, or find free proxies, then come back here.	Daftar proxy Telegram kosong. Tambahkan proxy di pengaturan proxy Telegram, atau cari proxy gratis, lalu kembali ke sini.
+# context: Note at the top of the Proxy order editor. Each proxy has a handle (three short lines) to drag it by and a Pin button
+Drag a proxy by its handle to move it, and pin the ones you want on top. Telegram's proxy screen shows them in this order. Once you've moved one, proxies added later go below in Telegram's order.	Seret proxy lewat pegangannya untuk memindahkannya, dan sematkan yang kamu mau di atas. Layar proxy Telegram menampilkannya dalam urutan ini. Setelah kamu memindahkan satu, proxy yang ditambahkan nanti masuk di bawah dalam urutan Telegram.
+# context: Screen reader action on a proxy in the Proxy order editor that moves it one place up
+Move up	Pindah ke atas
+# context: Screen reader action on a proxy in the Proxy order editor that moves it one place down
+Move down	Pindah ke bawah
+# context: Button on a proxy in the Proxy order editor that keeps it at the top of Telegram's proxy list
+Pin	Sematkan
+# context: Button on a pinned proxy in the Proxy order editor that lets it go back among the others
+Unpin	Lepas sematan
+# context: Short toast after a proxy is pinned in the Proxy order editor
+Pinned on top.	Disematkan di atas.
+# context: Short toast after a proxy is unpinned in the Proxy order editor
+Unpinned.	Sematan dilepas.
+# context: State line under a proxy in the Proxy order editor: it's pinned and Telegram connects through it now
+Pinned, in use	Disematkan, sedang dipakai
+# context: State line under a pinned proxy in the Proxy order editor
+Pinned	Disematkan
+# context: State line under the proxy Telegram connects through now, in the Proxy order editor
+In use	Sedang dipakai
+# context: Title of the My messages row on the Conversations page (#71), and the item it adds to a group's menu at the top (the three dots), which searches the group for the messages the person sent
+My messages	Pesan saya
+# context: Summary of the My messages row on the Conversations page. My messages is the name of the item it adds
+A group's menu at the top gets My messages, which shows the messages you sent there in the chat's search.	Menu di atas grup mendapat Pesan saya, yang menampilkan pesan yang kamu kirim di sana lewat pencarian chat.
+# context: Short toast when My messages couldn't open the chat's search on the person's messages, at most two short lines
+Couldn't open your messages here.	Tidak bisa membuka pesanmu di sini.
+# context: Title of the Text direction row on the Conversations page (#71), which adds Right to left, Left to right and Control character to the text selection menu of the message box
+Text direction	Arah teks
+# context: Summary of the Text direction row on the Conversations page. Right to left, Left to right and Control character are the names of the items it adds to the message box's text selection menu; RLM and ZWJ stay as they are
+The message box's text menu gets Right to left and Left to right for the lines you selected, and Control character for invisible marks like RLM or ZWJ.	Menu teks di kotak pesan mendapat Kanan ke kiri dan Kiri ke kanan untuk baris yang kamu pilih, serta Karakter kontrol untuk tanda tak terlihat seperti RLM atau ZWJ.
+# context: Item in the message box's text selection menu, next to Telegram's Bold and Italic, that makes the selected lines read from right to left
+Right to left	Kanan ke kiri
+# context: Item in the message box's text selection menu, next to Telegram's Bold and Italic, that makes the selected lines read from left to right
+Left to right	Kiri ke kanan
+# context: Item in the message box's text selection menu that opens a list of invisible Unicode control characters, and the title of that list
+Control character	Karakter kontrol
+# context: Short toast when Text direction couldn't change the message box's text, at most two short lines
+Couldn't change the text.	Teks tidak bisa diubah.
+# context: Name of an invisible Unicode control character in the Text direction feature's Control character list, shown after its short code (for example LRM). Keep it close to the character's Unicode name
+Left-to-right mark	Tanda kiri ke kanan
+# context: Name of an invisible Unicode control character in the Text direction feature's Control character list, shown after its short code (for example LRM). Keep it close to the character's Unicode name
+Right-to-left mark	Tanda kanan ke kiri
+# context: Name of an invisible Unicode control character in the Text direction feature's Control character list, shown after its short code (for example LRM). Keep it close to the character's Unicode name
+Zero width joiner	Penyambung lebar nol
+# context: Name of an invisible Unicode control character in the Text direction feature's Control character list, shown after its short code (for example LRM). Keep it close to the character's Unicode name
+Zero width non-joiner	Pemisah lebar nol
+# context: Name of an invisible Unicode control character in the Text direction feature's Control character list, shown after its short code (for example LRM). Keep it close to the character's Unicode name
+Zero width space	Spasi lebar nol
+# context: Name of an invisible Unicode control character in the Text direction feature's Control character list, shown after its short code (for example LRM). Keep it close to the character's Unicode name
+Start of left-to-right embedding	Awal penyematan kiri ke kanan
+# context: Name of an invisible Unicode control character in the Text direction feature's Control character list, shown after its short code (for example LRM). Keep it close to the character's Unicode name
+Start of right-to-left embedding	Awal penyematan kanan ke kiri
+# context: Name of an invisible Unicode control character in the Text direction feature's Control character list, shown after its short code (for example LRM). Keep it close to the character's Unicode name
+Start of left-to-right override	Awal penimpaan kiri ke kanan
+# context: Name of an invisible Unicode control character in the Text direction feature's Control character list, shown after its short code (for example LRM). Keep it close to the character's Unicode name
+Start of right-to-left override	Awal penimpaan kanan ke kiri
+# context: Name of an invisible Unicode control character in the Text direction feature's Control character list, shown after its short code (for example LRM). Keep it close to the character's Unicode name
+Pop directional formatting	Akhir format arah
+# context: Name of an invisible Unicode control character in the Text direction feature's Control character list, shown after its short code (for example LRM). Keep it close to the character's Unicode name
+Left-to-right isolate	Isolasi kiri ke kanan
+# context: Name of an invisible Unicode control character in the Text direction feature's Control character list, shown after its short code (for example LRM). Keep it close to the character's Unicode name
+Right-to-left isolate	Isolasi kanan ke kiri
+# context: Name of an invisible Unicode control character in the Text direction feature's Control character list, shown after its short code (for example LRM). Keep it close to the character's Unicode name
+First strong isolate	Isolasi menurut karakter kuat pertama
+# context: Name of an invisible Unicode control character in the Text direction feature's Control character list, shown after its short code (for example LRM). Keep it close to the character's Unicode name
+Pop directional isolate	Akhir isolasi
+# context: Item in a message's long-press menu that takes the message out of the chat on this phone only. Nothing is sent, and everyone else still sees it
+Hide for me	Sembunyikan untukku
+# context: Short toast right after Hide for me took a message out of the chat, at most two short lines
+Hidden on this phone.	Disembunyikan di ponsel ini.
+# context: Short toast after tapping Show hidden messages when nothing was hidden, at most two short lines
+No messages are hidden.	Tak ada pesan tersembunyi.
+# context: Short toast after tapping Show hidden messages, with how many hidden messages will show again. At most two short lines
+%1$d message shows again.	%1$d pesan tampil lagi.
+%1$d messages show again.	%1$d pesan tampil lagi.
+# context: Title of the switch on the Conversations page that adds Hide for me to a message's long-press menu
+Add Hide for me to the message menu	Tambahkan Sembunyikan untukku ke menu pesan
+# context: Summary of the Add Hide for me to the message menu switch. Hide for me is the menu item's name
+Adds Hide for me to a message. It leaves the chat on this phone only, with nothing sent to Telegram, so everyone else still sees it. Turn this off and hidden messages show again.	Menambahkan Sembunyikan untukku ke pesan. Pesan itu hilang dari chat hanya di ponsel ini, tanpa ada yang dikirim ke Telegram, jadi orang lain tetap melihatnya. Matikan ini dan pesan tersembunyi tampil lagi.
+# context: Title of the row on the Conversations page that brings back every message hidden with Hide for me
+Show hidden messages	Tampilkan pesan tersembunyi
+# context: Summary of the Show hidden messages row. Hide for me is the message menu item's name
+Brings back every message you hid with Hide for me, in every account. Open the chat again to see them.	Mengembalikan setiap pesan yang kamu sembunyikan dengan Sembunyikan untukku, di setiap akun. Buka chat lagi untuk melihatnya.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names Hide for me in the message menu
+hiding messages for you	menyembunyikan pesan hanya untukmu
+# context: Item in a message's long-press menu, and the title of the chat picker it opens. It sends the message's text to the picked chat as a new message, with no formatting
+Forward as plain text	Teruskan sebagai teks biasa
+# context: Title of the switch on the Conversations page that adds Forward as plain text to a message's long-press menu
+Add Forward as plain text to the message menu	Tambahkan Teruskan sebagai teks biasa ke menu pesan
+# context: Summary of the Add Forward as plain text to the message menu switch. Forward as plain text is the menu item's name. Custom emoji are Telegram's Premium emoji. Regular ones are the phone's own emoji
+Adds Forward as plain text to a message you can forward. Pick a chat and its text is sent there as a new message, with no formatting or sender name. Custom emoji become regular ones.	Menambahkan Teruskan sebagai teks biasa pada pesan yang bisa Anda teruskan. Pilih chat, lalu teksnya dikirim ke sana sebagai pesan baru, tanpa format atau nama pengirim. Emoji kustom menjadi emoji biasa.
+# context: Item in the long-press menu of your own message. It deletes the message for everyone else in the chat and keeps it on this phone
+Delete for them	Hapus untuk orang lain
+# context: Title of the switch on the Conversations page that adds Delete for them to the long-press menu of your own messages
+Add Delete for them to the message menu	Tambahkan Hapus untuk orang lain ke menu pesan
+# context: Summary of the Add Delete for them to the message menu switch. Delete for them is the menu item's name. Marked deleted means the word deleted next to the message's time. Clear kept messages is the name of a row in settings
+Adds Delete for them to your own messages in chats and groups. It deletes the message for everyone else and keeps it on this phone, marked deleted. Clear kept messages removes it here too.	Menambahkan Hapus untuk orang lain pada pesan Anda sendiri di chat dan grup. Pesan dihapus untuk semua orang lain dan tetap ada di ponsel ini, ditandai dihapus. Hapus pesan yang disimpan juga menghapusnya di sini.
+# context: Short message shown after Delete for them: the message is gone for everyone else in the chat and stays on this phone
+Deleted for them, kept here.	Dihapus untuk orang lain, tetap di sini.
+# context: Item in the music player's menu (the three dots, #71) that opens the song's lyrics over the player
+Lyrics	Lirik
+# context: Line in the lyrics panel while the song's lyrics load
+Looking for the lyrics.	Mencari lirik.
+# context: Line in the lyrics panel when the lyrics couldn't be loaded. Tapping the line tries again
+Couldn't load the lyrics. Tap to try again.	Lirik gagal dimuat. Ketuk untuk mencoba lagi.
+# context: Line in the lyrics panel when the lyrics library has nothing for the song playing
+No lyrics found for this song.	Lirik untuk lagu ini tidak ditemukan.
+# context: Line in the lyrics panel when the lyrics library lists the song as having no words
+This song is instrumental.	Lagu ini instrumental.
+# context: Small credit line at the bottom of the lyrics panel. lrclib.net is the website's name and stays as it is
+Lyrics from lrclib.net	Lirik dari lrclib.net
+# context: Title of the switch on the Playback page (#71) that adds Lyrics to the music player's menu
+Lyrics in the music player	Lirik di pemutar musik
+# context: Summary of the Lyrics in the music player switch. Lyrics is the name of the menu item it adds; lrclib.net stays as it is. Timed lyrics are ones that know when each line is sung
+The music player's menu gets Lyrics. They come from lrclib.net, and timed ones follow along with the song.	Menu pemutar musik mendapat Lirik. Liriknya berasal dari lrclib.net, dan lirik berwaktu mengikuti lagu.
+# context: Title of the switch on the Playback page (#71) that shows the day each song was added to your profile's song list
+Dates on your profile songs	Tanggal di lagu profil Anda
+# context: Summary of the Dates on your profile songs switch. The day is shown after the song's artist in your profile's song list
+Songs you add to your profile from now on show the day you added them, after the artist. The days are kept on this phone only.	Lagu yang Anda tambahkan ke profil mulai sekarang menampilkan hari Anda menambahkannya, setelah nama artis. Tanggalnya hanya disimpan di ponsel ini.
+# context: Lowercase noun phrase naming Dates on your profile songs (#71) in the patch status list
+dates on your profile songs	tanggal di lagu profil
+# context: Item at the end of the menu under a chat's preview (press and hold a chat, #71) that opens the previewed chat fully
+Open chat	Buka chat
+# context: Item at the end of the menu under a chat's preview (press and hold a chat, #71) that closes the preview
+Close preview	Tutup pratinjau
+# context: Title of the switch on the Chat list page (#71) that adds Open chat and Close preview to the menu under a chat's preview
+Buttons in chat previews	Tombol di pratinjau chat
+# context: Summary of the Buttons in chat previews switch. Open chat and Close preview are the names of the two menu items it adds
+Pressing and holding a chat adds Open chat and Close preview to the menu under its preview.	Saat Anda menekan lama sebuah chat, menu di bawah pratinjaunya mendapat Buka chat dan Tutup pratinjau.
+# context: Title of a switch under Add Repeat to the message menu (#71). Turned on, the bar that shows while messages are selected gets a Screenshot button that saves a picture of them.
+Screenshot selected messages	Tangkapan layar pesan terpilih
+# context: Summary of the Screenshot selected messages switch. Screenshot is the button's own label. Pictures/Telegram is a folder name on the phone, keep it as it is.
+Adds a Screenshot button to the bar that shows while you pick messages. It saves a picture of them as the chat shows them, background, dates and times included, to Pictures/Telegram.	Menambahkan tombol Tangkapan layar ke bilah yang muncul saat kamu memilih pesan. Tombol ini menyimpan gambar pesan seperti yang ditampilkan obrolan, lengkap dengan latar, tanggal, dan jam, ke Pictures/Telegram.
+# context: Label of the button in the bar that shows while messages are selected (#71). Tapping it saves a picture of the selected messages.
+Screenshot	Tangkapan layar
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the Screenshot button for selected messages.
+screenshots of selected messages	tangkapan layar pesan terpilih
+# context: Toast from the Screenshot button when a selected message isn't on screen, so it can't be pictured. Two short lines at most.
+Scroll so they're all on screen	Gulir agar semuanya terlihat
+# context: Toast from the Screenshot button in a secret chat, where it never takes a picture. Two short lines at most.
+Not in secret chats	Tidak di obrolan rahasia
+# context: Toast from the Screenshot button in a chat whose owner turned off saving and copying. Two short lines at most.
+This chat doesn't allow saving	Obrolan ini melarang penyimpanan
+# context: Toast once the Screenshot button's picture is saved. Pictures is the phone's pictures folder. Two short lines at most.
+Screenshot saved to Pictures	Tangkapan layar disimpan ke Gambar

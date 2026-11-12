@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.WeakHashMap;
 
+import app.hushgram.extension.instagram.misc.BottomSpace;
 import app.hushgram.extension.instagram.misc.GlassTabBar;
 import app.hushgram.extension.instagram.settings.FamilyNames;
 import app.hushgram.extension.instagram.settings.Settings;
@@ -411,6 +412,27 @@ public final class FullScreenBars {
             HookStatus.threw(FamilyNames.FULL_SCREEN_BARS, "hidden navigation bar height", failure);
             return 0;
         }
+    }
+
+    /**
+     * How tall the navigation bar is taken to be where the phone reports none at the window's foot, as a
+     * Samsung does with its gesture hint hidden, though a swipe up from there still leaves the app (#633):
+     * the system's standard height Instagram looked up in its place ({@link BottomSpace#guessedHeight}),
+     * or the one it last offered while HushGram hides the bar. 0 on a phone with no navigation bar.
+     */
+    public static int unreportedNavHeight() {
+        return Math.max(BottomSpace.guessedHeight(), hiddenNavHeight(0));
+    }
+
+    /**
+     * Where the strip at the foot of [view]'s window starts, on the screen: a drag from below there is the
+     * system's (#633). The strip is as {@link ReelSeekRoom} measures it, and none makes this the window's foot.
+     */
+    public static int systemStripTop(View view) {
+        View root = view.getRootView();
+        int[] at = new int[2];
+        root.getLocationOnScreen(at);
+        return at[1] + root.getHeight() - ReelSeekRoom.strip(view);
     }
 
     /**
@@ -829,6 +851,8 @@ public final class FullScreenBars {
         private boolean keys;
         /** The reels top bars lowered below the camera cutout while the status bar is hidden (#525). */
         private final ReelsBarCutout cutout = new ReelsBarCutout();
+        /** Sheet content Instagram sized past the window's foot, padded back up while bars are hidden (#626). */
+        private final SheetsOnScreen sheets = new SheetsOnScreen();
 
         Session(Activity activity) {
             this.activity = new WeakReference<>(activity);
@@ -934,14 +958,30 @@ public final class FullScreenBars {
                     giveBackShownHeights();
                 }
                 cutout.follow(decor, hides(true), cutoutTop >= 0 ? cutoutTop : ReelsBarCutout.safeTop(decor));
+                sheets.follow(decor, hidden, keyboardShows());
             } catch (Throwable failure) {
                 HookStatus.threw(FamilyNames.FULL_SCREEN_BARS, "check", failure);
+            }
+        }
+
+        /** Whether the keyboard shows, or true when that can't be told, so a sheet is left as it is. */
+        private boolean keyboardShows() {
+            try {
+                return keyboard.shown();
+            } catch (Throwable failure) {
+                HookStatus.threw(FamilyNames.FULL_SCREEN_BARS, "keyboard", failure);
+                return true;
             }
         }
 
         /** How many reels top bars are lowered below the camera cutout now, for tests. */
         int barsLowered() {
             return cutout.loweredCount();
+        }
+
+        /** How many sheet contents are padded up to the window's foot now, for tests. */
+        int sheetsLifted() {
+            return sheets.liftedCount();
         }
 
         @SuppressWarnings("deprecation")
@@ -974,6 +1014,7 @@ public final class FullScreenBars {
         @SuppressWarnings("deprecation")
         void show() {
             cutout.putBack();
+            sheets.putBack();
             if (!hidden && !saved) return;
             hidden = false;
             saved = false;

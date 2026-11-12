@@ -86,6 +86,7 @@ internal val extraSettingsResourcePatch = resourcePatch(
     description = "Registers the Extra Settings activity and applies the accent color.",
     default = true,
 ) {
+    category("Settings")
     compatibleWith(STRAVA_COMPATIBILITY)
 
     val accent by stringOption(
@@ -395,6 +396,7 @@ val extraSettingsPatch = bytecodePatch(
         "switching and patch info. Accent color is a build-time option.",
     default = true,
 ) {
+    category("Settings")
     compatibleWith(STRAVA_COMPATIBILITY)
 
     dependsOn(extraSettingsResourcePatch)
@@ -405,31 +407,81 @@ val extraSettingsPatch = bytecodePatch(
         // Local helper: in-place const-wide ARGB literal swap (shape-identical,
         // ART-safe). Returns the number of sites rewritten.
         fun swapBrandLiterals(replacements: Map<Long, Long>): Int {
-            var literalSites = 0
+            // Two-phase, heap-friendly scan. Phase 1 walks the RAW ClassDefs
+            // (lazily-parsed dexlib2 objects, no per-class materialization)
+            // and collects only the (class, method, index) sites that carry a
+            // matching const-wide literal. Phase 2 converts just those
+            // classes (a handful) to mutable and rewrites in place.
+            //
+            // The naive variant (mutableClassDefByOrNull for EVERY class)
+            // materializes all ~80k classes of the 8-dex base - fine on a
+            // 16 GB desktop, fatal on Morphe Manager's 1536 MB phone heap
+            // (the observed on-device OOM).
+            data class Site(
+                val classType: String,
+                val methodName: String,
+                val methodParams: List<CharSequence>,
+                val index: Int,
+                val newValue: Long,
+            )
+
+            val sites = mutableListOf<Site>()
             classDefForEach { classDef ->
-                val mutable = mutableClassDefByOrNull(classDef.type) ?: return@classDefForEach
-                for (method in mutable.methods) {
+                for (method in classDef.methods) {
                     val impl = method.implementation ?: continue
                     impl.instructions.forEachIndexed { idx, instr ->
-                        if (instr !is BuilderInstruction51l) return@forEachIndexed
+                        if (instr !is com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction) {
+                            return@forEachIndexed
+                        }
                         val newValue = replacements[instr.wideLiteral] ?: return@forEachIndexed
-                        impl.replaceInstruction(
-                            idx,
-                            BuilderInstruction51l(
-                                com.android.tools.smali.dexlib2.Opcode.CONST_WIDE,
-                                instr.registerA,
+                        sites.add(
+                            Site(
+                                classDef.type,
+                                method.name,
+                                method.parameterTypes,
+                                idx,
                                 newValue,
                             ),
                         )
-                        literalSites++
                     }
                 }
             }
-            if (literalSites == 0) {
+            if (sites.isEmpty()) {
                 throw PatchException(
                     "Brand literal swap found no matching const-wide values — re-audit.",
                 )
             }
+            var literalSites = 0
+            for (classType in sites.map { it.classType }.distinct()) {
+                val mutable = mutableClassDefByOrNull(classType) ?: continue
+                val mutableMethods: Map<Pair<String, List<CharSequence>>, app.morphe.patcher.util.proxy.mutableTypes.MutableMethod> =
+                    mutable.methods.associateBy { it.name to it.parameterTypes }
+                for (site in sites.filter { it.classType == classType }.asReversed()) {
+                    val method = mutableMethods[site.methodName to site.methodParams] ?: continue
+                    val impl = method.implementation ?: continue
+                    val instr = impl.instructions.getOrNull(site.index)
+                    if (instr !is BuilderInstruction51l) continue
+                    impl.replaceInstruction(
+                        site.index,
+                        BuilderInstruction51l(
+                            com.android.tools.smali.dexlib2.Opcode.CONST_WIDE,
+                            instr.registerA,
+                            site.newValue,
+                        ),
+                    )
+                    literalSites++
+                }
+            }
+            if (literalSites == 0) {
+                throw PatchException(
+                    "Brand literal swap matched sites but rewrote none — re-audit.",
+                )
+            }
+            println(
+                "Brand literal swap: " +
+                    sites.map { it.classType }.distinct().size + " classes, " +
+                    literalSites + " sites (heap-friendly scan)",
+            )
             return literalSites
         }
 

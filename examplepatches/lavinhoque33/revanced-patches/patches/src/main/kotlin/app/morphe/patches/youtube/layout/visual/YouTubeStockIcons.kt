@@ -5,7 +5,7 @@
  * https://github.com/anddea/revanced-patches
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-06.
+ * Modified by lavinhoque33, 2026-11-11.
  * Written by lavinhoque33, 2026-10-29
  *
  * ------------------------------------------------------------------------
@@ -40,8 +40,8 @@
 package app.morphe.patches.youtube.layout.visual
 
 /**
- * Screen-entry key to the name inside yt_outline_experimental_<name>_vd_theme_24.
- * Leaf settings deliberately have no mapping or generated fallback in the YouTube style.
+ * Screen-entry and About row keys to names inside yt_outline_experimental_<name>_vd_theme_24.
+ * Other leaf settings deliberately have no mapping or generated fallback in the YouTube style.
  */
 internal val youtubeStockIcons = mapOf(
     "about_key" to "info_circle",
@@ -67,7 +67,15 @@ internal val youtubeStockIcons = mapOf(
     "playback_key" to "play",
     "premium_early_access_browse_page_key" to "youtube",
     "privacy_key" to "lock",
+    "revanced_about_app" to "youtube",
+    "revanced_about_copy_debug" to "text_page",
+    "revanced_about_credits" to "legal",
+    "revanced_about_patched" to "calendar",
+    "revanced_about_patches" to "extension",
+    "revanced_about_report_issue" to "info_circle",
+    "revanced_about_request_feature" to "star",
     "revanced_preference_screen_account_menu" to "person_circle",
+    "revanced_preference_screen_about" to "info_circle",
     "revanced_preference_screen_ads" to "megaphone",
     "revanced_preference_screen_alt_thumbnails" to "image",
     "revanced_preference_screen_ambient_mode" to "ambient_mode",

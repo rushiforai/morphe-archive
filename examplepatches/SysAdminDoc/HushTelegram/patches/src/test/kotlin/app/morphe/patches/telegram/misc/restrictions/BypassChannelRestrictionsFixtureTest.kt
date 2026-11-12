@@ -13,6 +13,7 @@ import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -31,7 +32,7 @@ class BypassChannelRestrictionsFixtureTest {
     fun `every restriction check asks the extension first in every declared build`() {
         for (build in Fixtures.declaredBuilds()) {
             val hosts = FixtureDex.classes(build, setOf(MESSAGES_CONTROLLER)).values
-            val context = PatchContexts.of(ExtensionDex.classes() + hosts)
+            val context = PatchContexts.of(ExtensionDex.classes() + hosts + storyOwners(build))
             assertEquals(emptyList<String>(), PatchLogCapture.warnings { bypassChannelRestrictionsPatch.execute(context) })
             val controller = context.tgMutableClassDefBy(MESSAGES_CONTROLLER)
             for ((methodName, hook) in listOf(
@@ -67,4 +68,32 @@ class BypassChannelRestrictionsFixtureTest {
             }
         }
     }
+
+    @Test
+    fun `every answer of the story viewer's check goes through the extension in every declared build`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val owners = storyOwners(build)
+            assertEquals("${build.name}: one class holds the story check", 1, owners.size)
+            val owner = owners.single()
+            val stockAnswers = owner.methods.single { it.isStoryCheck() }.returns().size
+            assertTrue("${build.name}: the check answers more than once", stockAnswers > 1)
+            val hosts = FixtureDex.classes(build, setOf(MESSAGES_CONTROLLER)).values
+            val context = PatchContexts.of(ExtensionDex.classes() + hosts + owner)
+            assertEquals(emptyList<String>(), PatchLogCapture.warnings { bypassChannelRestrictionsPatch.execute(context) })
+            val check = context.tgMutableClassDefBy(owner.type).methods.single { it.isStoryCheck() }
+            val body = check.implementation!!.instructions.toList()
+            val answers = check.returns()
+            assertEquals("${build.name}: every answer kept", stockAnswers, answers.size)
+            for (at in answers) {
+                val answer = (body[at] as OneRegisterInstruction).registerA
+                assertEquals("${build.name}: the answer at $at asks the extension", STORY_HOOK, body[at - 2].origRef())
+                assertEquals("${build.name}: with the answer it was about to give", answer,
+                    (body[at - 2] as FiveRegisterInstruction).registerC)
+                assertEquals(Opcode.MOVE_RESULT, body[at - 1].opcode)
+                assertEquals("${build.name}: and gives the extension's back", answer, (body[at - 1] as OneRegisterInstruction).registerA)
+            }
+        }
+    }
+
+    private fun storyOwners(build: java.io.File) = FixtureDex.classesWhere(build, { true }) { it.isStoryCheck() }
 }

@@ -55,14 +55,13 @@ python3 scripts/preflight_reference.py --apksigner "$ANDROID_SDK_ROOT/build-tool
 - patches: `features/<area>/<Name>Patch.kt` とテスト、`PatchStatus.kt` の `FeatureId` / `PatchId`、`LinimalPatchTest` の依存鎖
 - extension: `LinimalFeature`、`LinimalConfigSchema`（キー追加。構造変更時は `CURRENT_VERSION` と移行を検討）、`LinimalDefaults`、`LinimalConfig`、`PatchStatusRequirements`、`FeatureCatalog`、`features/<Name>Hooks.java` と各テスト
 - 文言: ソースには日本語の原文を書き、表示の直前に `LinimalText.t(...)` を通す。`i18n/LinimalTranslations` に英語・繁体字中国語・タイ語・インドネシア語の訳を足す（`LinimalTranslationsTest` が漏れを検出する）
-- docs: README の機能表、必要なら `docs/analysis/` の解析文書と `docs/testing/baseline-matrix.md`
+- docs: README の機能表（英語の `README.md` と `README.ja.md`・`README.zh-TW.md`・`README.th.md`・`README.id.md` の 5 言語すべて。設定名は `LinimalTranslations` の訳と一致させる）、必要なら `docs/analysis/` の解析文書と `docs/testing/baseline-matrix.md`
 
 既存ユーザーの設定値は更新後も引き継ぐ。`LinimalDefaults` は新規インストール向けの値で今後も変わる。migration が既存インストールへ書き戻す値は `LinimalLegacyDefaults` に凍結してあり、変更しない。
 
 ## 制約
 
-- 認証、課金・購読 API、共通通信、TLS、署名検査、広告の request / response / database / expiration は変更しない。抑制は presentation 層か、確認済みの UI 入口に限定する。
-- 唯一の例外として、Firebase Installations が送る `X-Android-Cert` の値だけを公式証明書の SHA-1 に置き換える（`docs/adr/0002-fis-certificate-header.md`）。範囲をそれ以上に広げる変更は新しい ADR を要する。
+- Firebase Installations が送る `X-Android-Cert` の値だけを公式証明書の SHA-1 に置き換える（`docs/adr/0002-fis-certificate-header.md`）。範囲をそれ以上に広げる変更は新しい ADR を要する。
 - 既読系は UI ではなく実際の outbound 送信とローカル既読反映の経路で抑制する。未確認経路があれば完全対応と表示しない。
 - smali 注入ではレジスタを壊さない。過去に model 参照のレジスタを boolean 結果で上書きして ART `VerifyError` になった例や、高位レジスタを非 range invoke に渡して invalid register になった例がある（`docs/testing/baseline-matrix.md`）。
 - reference version 以外への適用や Morphe の `--force` は想定しない（`docs/adr/0001-reference-and-signing-policy.md`）。

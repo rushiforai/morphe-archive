@@ -28,3 +28,18 @@ internal object RemoteConfigParseParametersFingerprint : Fingerprint(
 )
 
 private const val FLUTTER_FIREBASE_PLUGIN = "Lio/flutter/plugins/firebase/core/FlutterFirebasePlugin;"
+
+/**
+ * The views of the home screen widgets for free users (`f8.g.e(Context, int)` in 5.3.4,
+ * in the widget providers' obfuscated base class). Its footer is an "升級即時看板 ›" link
+ * to the paywall (`trainschedule://widget/paywall`).
+ *
+ * The base class has 3 `(Context, int) -> RemoteViews` methods (the data, free and picker
+ * views), so the method is found by the paywall link, which only it uses.
+ */
+internal object FreeWidgetViewsFingerprint : Fingerprint(
+    superclass = "Landroid/appwidget/AppWidgetProvider;",
+    returnType = "Landroid/widget/RemoteViews;",
+    parameters = listOf("Landroid/content/Context;", "I"),
+    strings = listOf("trainschedule://widget/paywall?f=android&p=free&homeWidget"),
+)

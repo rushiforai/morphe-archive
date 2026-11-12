@@ -20,7 +20,7 @@ import app.morphe.extension.shared.Utils;
  */
 final class NavTapFix {
 
-    private static final String[] BUTTONS = {"home", "inicio", "shorts", "subscriptions", "suscripciones", "you", "tú", "library", "biblioteca"};
+    private static final String[] BUTTONS = {"home", "inicio", "principal", "shorts", "subscriptions", "suscripciones", "you", "tú", "library", "biblioteca"};
     private static final java.util.Set<View> HOOKED = java.util.Collections.newSetFromMap(new java.util.WeakHashMap<>());
     private static final java.util.Set<View> DECORS = java.util.Collections.newSetFromMap(new java.util.WeakHashMap<>());
     private static boolean registered;
@@ -60,18 +60,53 @@ final class NavTapFix {
         if (v instanceof ViewGroup g) for (int i = 0; i < g.getChildCount(); i++) scan(g.getChildAt(i), bottomHalfFromY);
     }
 
+    /** Whether the button was selected when the finger went down, and the page list shown then. */
+    private static boolean downSelected;
+    private static java.lang.ref.WeakReference<View> downPage = new java.lang.ref.WeakReference<>(null);
+
     private static boolean onTouch(View v, MotionEvent e) {
-        if (XSettings.FIX_NAVIGATION_TAPS.get() && e.getActionMasked() == MotionEvent.ACTION_UP
-                && e.getEventTime() - e.getDownTime() < 400 && !v.isSelected()) {
+        if (!XSettings.FIX_NAVIGATION_TAPS.get()) return false;
+        if (e.getActionMasked() == MotionEvent.ACTION_DOWN) {
+            downSelected = v.isSelected();
+            downPage = new java.lang.ref.WeakReference<>(page(v.getRootView()));
+        } else if (e.getActionMasked() == MotionEvent.ACTION_UP && e.getEventTime() - e.getDownTime() < 400 && !downSelected) {
+            final View before = downPage.get();
             Utils.runOnMainThreadDelayed(() -> {
-                if (!v.isSelected() && v.isShown()) {
-                    Logger.printDebug(() -> "YouTube Extras: bottom bar tap repeated for " + desc(v));
+                if (!v.isShown()) return;
+                // Two failures seen: the button stays unselected, or (2026-11-11, with the miniplayer open) the button
+                // turns selected while the old page stays on screen. Either way the page list is the same view.
+                View now = page(v.getRootView());
+                boolean samePage = before != null && now == before && before.isShown();
+                if (!v.isSelected() || samePage) {
+                    Logger.printDebug(() -> "YouTube Extras: bottom bar tap repeated for " + desc(v)
+                            + (samePage ? " (same page shown)" : " (button not selected)"));
                     v.performClick();
                 }
-            }, 350);
+            }, 400);
         }
         // The touch is handled by the button itself as before.
         return false;
+    }
+
+    /** The page's list: the largest shown RecyclerView above the bottom bar. */
+    private static View page(View root) {
+        View[] best = {null};
+        int[] area = {0};
+        findLists(root, best, area);
+        return best[0];
+    }
+
+    private static void findLists(View v, View[] best, int[] area) {
+        if (!v.isShown()) return;
+        if (v.getClass().getName().endsWith("RecyclerView")) {
+            int a = v.getWidth() * v.getHeight();
+            if (a > area[0]) {
+                area[0] = a;
+                best[0] = v;
+            }
+            return;
+        }
+        if (v instanceof ViewGroup g) for (int i = 0; i < g.getChildCount(); i++) findLists(g.getChildAt(i), best, area);
     }
 
     private static final class Callbacks implements Application.ActivityLifecycleCallbacks {

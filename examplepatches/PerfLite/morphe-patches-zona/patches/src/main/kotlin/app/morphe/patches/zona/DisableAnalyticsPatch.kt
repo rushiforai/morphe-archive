@@ -7,19 +7,15 @@ import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.AccessFlags
 
 private object ZonaAnalyticsFingerprint : Fingerprint(
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     strings = listOf("MOVIE_PLAYER_RESULT_SUCCESS"),
-    returnType = "V",
 )
 
 private object ClickHouseSenderFingerprint : Fingerprint(
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     strings = listOf("Analytics server URL is unavailable; event wait expired"),
     returnType = "Ljava/lang/Object;",
 )
 
 private object ClickHouseSenderLegacyFingerprint : Fingerprint(
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     strings = listOf("Get url for send event is failed"),
     returnType = "Ljava/lang/Object;",
 )
@@ -56,7 +52,7 @@ val disableAnalyticsPatch = bytecodePatch(
         // 2. Neutralize ClickHouse HTTP sender (Lec/e in 3.0.77, Ljc/c in 3.0.76)
         val clickHouseClass = ClickHouseSenderFingerprint.classDefOrNull ?: ClickHouseSenderLegacyFingerprint.classDefOrNull
         clickHouseClass?.methods?.forEach { method ->
-            if (method.returnType == "Ljava/lang/Object;" && method.parameterTypes.size == 3) {
+            if (method.returnType == "Ljava/lang/Object;" && method.parameterTypes.size in 2..3) {
                 method.apply {
                     replaceInstruction(0, "sget-object v0, Lkotlin/Unit;->INSTANCE:Lkotlin/Unit;")
                     addInstruction(1, "return-object v0")

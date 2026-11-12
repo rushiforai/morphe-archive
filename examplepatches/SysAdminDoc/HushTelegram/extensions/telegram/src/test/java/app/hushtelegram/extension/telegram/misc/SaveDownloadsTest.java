@@ -91,13 +91,28 @@ public class SaveDownloadsTest {
         return RuntimeEnvironment.getApplication();
     }
 
-    /** A finished download where Telegram keeps it on Android 11 and up: its own external files folder. */
-    private static File downloaded(String name, String text) throws IOException {
+    /** Where Telegram keeps a finished download on Android 11 and up: its own external files folder. */
+    private static File document(String name) {
         File folder = new File(context().getExternalFilesDir(null), "Telegram/Telegram Documents");
         assertTrue(folder.isDirectory() || folder.mkdirs());
-        File file = new File(folder, name);
+        return new File(folder, name);
+    }
+
+    /** A finished download where Telegram keeps it on Android 11 and up: its own external files folder. */
+    private static File downloaded(String name, String text) throws IOException {
+        File file = document(name);
         Files.write(file.toPath(), text.getBytes(StandardCharsets.UTF_8));
         return file;
+    }
+
+    /**
+     * Account 0's [downloader] downloading [name] for real: its operation finishes with the file it
+     * downloaded into, before Telegram moves that into the finished file.
+     */
+    private static File download(String downloader, String name, String text) throws IOException {
+        File file = document(name);
+        SaveDownloads.finishing(0, downloader, new File(file.getParentFile(), downloader + ".temp"), file, 0);
+        return downloaded(name, text);
     }
 
     private static Message pdf() {
@@ -527,6 +542,17 @@ public class SaveDownloadsTest {
         assertEquals(1L, receipts().getLong("-5012_33.jpg", -1));
     }
 
+    /** Telegram keeps encrypted media under a name of its own, so one it finds already there is still copied. */
+    @Test public void aViewOncePhotoFoundAlreadyThereIsCopied() throws Exception {
+        Settings.SAVE_DOWNLOADS.save(true);
+        Settings.SAVE_TIMED_MEDIA.save(true);
+        bodyOf(1);
+        File photo = encrypted("-5012_33.jpg", media(100));
+        SaveDownloads.finishing(0, "-5012_33.jpg", null, photo, 0);
+        SaveDownloads.fileLoaded(0, "-5012_33.jpg", photo, timedPhoto());
+        assertEquals(1, downloads.rows.size());
+    }
+
     @Test public void aViewOnceVoiceMessageOrVideoKeepsItsOwnExtension() throws Exception {
         Settings.SAVE_DOWNLOADS.save(true);
         Settings.SAVE_TIMED_MEDIA.save(true);
@@ -761,61 +787,228 @@ public class SaveDownloadsTest {
     @Test public void aFileTelegramTookByNameAndSizeIsNotCopied() throws IOException {
         Settings.SAVE_DOWNLOADS.save(true);
         ByteArrayOutputStream first = bodyOf(1);
-        File report = downloaded("report.pdf", "one");
-        SaveDownloads.finishing(new Object(), new File(report.getParentFile(), "2_51.pdf.temp"), report);
+        File report = download("2_51.pdf", "report.pdf", "one");
         SaveDownloads.fileLoaded(0, "2_51.pdf", report, pdf());
         assertEquals("one", first.toString(StandardCharsets.UTF_8.name()));
 
         Message twin = new Message(new Document("2_52.pdf", "report.pdf"), true, false);
-        SaveDownloads.finishing(new Object(), null, report);
+        SaveDownloads.finishing(0, "2_52.pdf", null, report, 0);
         SaveDownloads.fileLoaded(0, "2_52.pdf", report, twin);
         assertEquals(1, downloads.rows.size());
         assertEquals(-1L, receipts().getLong("2_52.pdf", -1));
         assertTrue(String.join("\n", HookStatus.report()).contains(SaveDownloads.NOT_ITS_OWN));
 
         ByteArrayOutputStream second = bodyOf(2);
-        File own = downloaded("report (1).pdf", "two");
-        SaveDownloads.finishing(new Object(), new File(own.getParentFile(), "2_52.pdf.temp"), own);
+        File own = download("2_52.pdf", "report (1).pdf", "two");
         SaveDownloads.fileLoaded(0, "2_52.pdf", own, twin);
         assertEquals("report (1).pdf", downloads.row(2).getAsString(MediaStore.MediaColumns.DISPLAY_NAME));
         assertEquals("two", second.toString(StandardCharsets.UTF_8.name()));
     }
 
-    /** Only a file under the document's name with no saved path is held back, and only for its own finish. */
-    @Test public void aFileTelegramFoundOtherwiseIsCopied() throws IOException {
+    /** A file found under the downloader's own name is copied, and a found file is held back only for its own finish. */
+    @Test public void aFileTelegramFoundUnderItsOwnNameIsCopied() throws IOException {
         Settings.SAVE_DOWNLOADS.save(true);
-        for (long id = 1; id <= 3; id++) bodyOf(id);
+        for (long id = 1; id <= 2; id++) bodyOf(id);
         // Under the downloader's name, which no other document has.
         File named = downloaded("2_51.pdf", "one");
-        SaveDownloads.finishing(new Object(), null, named);
+        SaveDownloads.finishing(0, "2_51.pdf", null, named, 0);
         SaveDownloads.fileLoaded(0, "2_51.pdf", named, pdf());
         assertEquals(1, downloads.rows.size());
 
-        // At a path Telegram saved for this document.
-        File report = downloaded("report.pdf", "two");
-        Message other = new Message(new Document("2_52.pdf", "report.pdf"), true, false);
-        SaveDownloads.finishing(null, null, report);
-        SaveDownloads.fileLoaded(0, "2_52.pdf", report, other);
-        assertEquals(2, downloads.rows.size());
-
         // Held back once, then taken back, so the file's next finish is an ordinary one.
+        File report = downloaded("report.pdf", "two");
         Message third = new Message(new Document("2_53.pdf", "report.pdf"), true, false);
-        SaveDownloads.finishing(new Object(), null, report);
+        SaveDownloads.finishing(0, "2_53.pdf", null, report, 0);
+        SaveDownloads.fileLoaded(0, "2_53.pdf", report, third);
+        assertEquals(1, downloads.rows.size());
         SaveDownloads.fileLoaded(0, "2_53.pdf", report, third);
         assertEquals(2, downloads.rows.size());
-        SaveDownloads.fileLoaded(0, "2_53.pdf", report, third);
-        assertEquals(3, downloads.rows.size());
+    }
+
+    /**
+     * Telegram saves the file it took by name and size as the second document's path, so a load
+     * right behind the first, or any later one, finds it at that path with no path left to save.
+     * On web 13.2.1 the second report.pdf loaded twice 67 ms apart, and the second load copied the
+     * first one's bytes as report (1).pdf.
+     */
+    @Test public void aPathTelegramSavedForATakenFileIsNotCopiedEither() throws IOException {
+        Settings.SAVE_DOWNLOADS.save(true);
+        ByteArrayOutputStream first = bodyOf(1);
+        bodyOf(2);
+        File report = download("2_51.pdf", "report.pdf", "one");
+        SaveDownloads.fileLoaded(0, "2_51.pdf", report, pdf());
+        Message twin = new Message(new Document("2_52.pdf", "report.pdf"), true, false);
+        SaveDownloads.finishing(0, "2_52.pdf", null, report, 0);
+        SaveDownloads.fileLoaded(0, "2_52.pdf", report, twin);
+        SaveDownloads.finishing(0, "2_52.pdf", null, report, 0);
+        SaveDownloads.fileLoaded(0, "2_52.pdf", report, twin);
+        assertEquals(1, downloads.rows.size());
+        assertEquals("one", first.toString(StandardCharsets.UTF_8.name()));
+        assertEquals(-1L, receipts().getLong("2_52.pdf", -1));
+    }
+
+    /** Two documents of one name and size can take the same file at once, and neither is copied. */
+    @Test public void twinsTakingOneFileAtOnceAreBothHeldBack() throws IOException {
+        Settings.SAVE_DOWNLOADS.save(true);
+        bodyOf(1);
+        File report = downloaded("report.pdf", "one");
+        SaveDownloads.finishing(0, "2_52.pdf", null, report, 0);
+        SaveDownloads.finishing(0, "2_53.pdf", null, report, 0);
+        SaveDownloads.fileLoaded(0, "2_52.pdf", report, new Message(new Document("2_52.pdf", "report.pdf"), true, false));
+        SaveDownloads.fileLoaded(0, "2_53.pdf", report, new Message(new Document("2_53.pdf", "report.pdf"), true, false));
+        assertTrue(downloads.rows.isEmpty());
     }
 
     /** One that finishes with the switch off is taken back too, and doesn't hold back a later copy. */
     @Test public void aFoundFileIsTakenBackWithTheSwitchOff() throws IOException {
         bodyOf(1);
         File report = downloaded("report.pdf", "one");
-        SaveDownloads.finishing(new Object(), null, report);
+        SaveDownloads.finishing(0, "2_51.pdf", null, report, 0);
         SaveDownloads.fileLoaded(0, "2_51.pdf", report, pdf());
         Settings.SAVE_DOWNLOADS.save(true);
         SaveDownloads.fileLoaded(0, "2_51.pdf", report, pdf());
         assertEquals(1, downloads.rows.size());
+    }
+
+    /**
+     * The next download starts before the last one's fileLoaded, so a twin can find the file another
+     * document just downloaded into before that one hears it finished. Each keeps to its own finish.
+     */
+    @Test public void aTwinFindingAFileBeforeItsDownloadIsHeardOfLeavesThatCopy() throws IOException {
+        Settings.SAVE_DOWNLOADS.save(true);
+        ByteArrayOutputStream first = bodyOf(1);
+        bodyOf(2);
+        File report = download("2_51.pdf", "report.pdf", "one");
+        SaveDownloads.finishing(0, "2_52.pdf", null, report, 0);
+        SaveDownloads.fileLoaded(0, "2_51.pdf", report, pdf());
+        SaveDownloads.fileLoaded(0, "2_52.pdf", report, new Message(new Document("2_52.pdf", "report.pdf"), true, false));
+        assertEquals(1, downloads.rows.size());
+        assertEquals("one", first.toString(StandardCharsets.UTF_8.name()));
+        assertEquals(1L, receipts().getLong("2_51.pdf", -1));
+        assertEquals(-1L, receipts().getLong("2_52.pdf", -1));
+    }
+
+    /** A finish whose fileLoaded never comes would stay on the list, so past the limit the oldest found file goes and the rest stay held back. */
+    @Test public void foundFilesPastTheLimitDropOnlyTheOldest() throws IOException {
+        Settings.SAVE_DOWNLOADS.save(true);
+        for (long id = 1; id <= 2; id++) bodyOf(id);
+        File report = downloaded("report.pdf", "one");
+        SaveDownloads.finishing(0, "2_51.pdf", null, report, 0);
+        SaveDownloads.finishing(0, "2_52.pdf", null, report, 0);
+        for (int i = 2; i <= SaveDownloads.MAX_FOUND; i++) {
+            SaveDownloads.finishing(0, "2_" + (100 + i) + ".mp4", null, new File(report.getParentFile(), i + ".mp4"), 0);
+        }
+        SaveDownloads.fileLoaded(0, "2_52.pdf", report, new Message(new Document("2_52.pdf", "report.pdf"), true, false));
+        assertTrue(downloads.rows.isEmpty());
+        SaveDownloads.fileLoaded(0, "2_51.pdf", report, pdf());
+        assertEquals(1, downloads.rows.size());
+    }
+
+    /** One name and path found twice, as two accounts loading one document can, is held back for both loads. */
+    @Test public void aFileFoundTwiceIsHeldBackForBothLoads() throws IOException {
+        Settings.SAVE_DOWNLOADS.save(true);
+        bodyOf(1);
+        File report = downloaded("report.pdf", "one");
+        Message twin = new Message(new Document("2_52.pdf", "report.pdf"), true, false);
+        SaveDownloads.finishing(0, "2_52.pdf", null, report, 0);
+        SaveDownloads.finishing(0, "2_52.pdf", null, report, 0);
+        SaveDownloads.fileLoaded(0, "2_52.pdf", report, twin);
+        SaveDownloads.fileLoaded(0, "2_52.pdf", report, twin);
+        assertTrue(downloads.rows.isEmpty());
+    }
+
+    /** A file found again goes to the back of the list, so the limit never drops one still waiting. */
+    @Test public void aFileFoundAgainOutlastsOlderOnesPastTheLimit() throws IOException {
+        Settings.SAVE_DOWNLOADS.save(true);
+        bodyOf(1);
+        File report = downloaded("report.pdf", "one");
+        Message twin = new Message(new Document("2_52.pdf", "report.pdf"), true, false);
+        SaveDownloads.finishing(0, "2_52.pdf", null, report, 0);
+        for (int i = 2; i <= SaveDownloads.MAX_FOUND; i++) {
+            SaveDownloads.finishing(0, "2_" + (100 + i) + ".pdf", null, new File(report.getParentFile(), i + ".pdf"), 0);
+        }
+        SaveDownloads.finishing(0, "2_52.pdf", null, report, 0);
+        SaveDownloads.finishing(0, "2_99.pdf", null, new File(report.getParentFile(), "99.pdf"), 0);
+        SaveDownloads.fileLoaded(0, "2_52.pdf", report, twin);
+        SaveDownloads.fileLoaded(0, "2_52.pdf", report, twin);
+        assertTrue(downloads.rows.isEmpty());
+    }
+
+    /** Scrolling past cached photos finds each under its own name, and however many there are, a twin waiting for its fileLoaded stays held back. */
+    @Test public void filesFoundUnderTheirOwnNamesLeaveAWaitingTwinOnTheList() throws IOException {
+        Settings.SAVE_DOWNLOADS.save(true);
+        bodyOf(1);
+        File report = downloaded("report.pdf", "one");
+        SaveDownloads.finishing(0, "2_52.pdf", null, report, 0);
+        for (int i = 0; i < 2 * SaveDownloads.MAX_FOUND; i++) {
+            String cached = "2_" + (100 + i) + ".jpg";
+            SaveDownloads.finishing(0, cached, null, new File(report.getParentFile(), cached), 0);
+        }
+        SaveDownloads.fileLoaded(0, "2_52.pdf", report, new Message(new Document("2_52.pdf", "report.pdf"), true, false));
+        assertTrue(downloads.rows.isEmpty());
+    }
+
+    /** A video preload finishes without a fileLoaded, so a finish it reports as found doesn't hold back the download after it. */
+    @Test public void aPreloadFindingAFileDoesNotHoldBackTheDownload() throws IOException {
+        Settings.SAVE_DOWNLOADS.save(true);
+        ByteArrayOutputStream first = bodyOf(1);
+        SaveDownloads.finishing(0, "2_51.pdf", null, document("report.pdf"), 1);
+        File report = download("2_51.pdf", "report.pdf", "one");
+        SaveDownloads.fileLoaded(0, "2_51.pdf", report, pdf());
+        assertEquals(1, downloads.rows.size());
+        assertEquals("one", first.toString(StandardCharsets.UTF_8.name()));
+    }
+
+    /**
+     * A document that's really named something.enc isn't encrypted media. It's copied as it is, and
+     * a twin that finds it by name and size is held back like any other.
+     */
+    @Test public void aDocumentNamedEncIsCopiedAsItIsAndItsTwinHeldBack() throws IOException {
+        Settings.SAVE_DOWNLOADS.save(true);
+        ByteArrayOutputStream first = bodyOf(1);
+        bodyOf(2);
+        File notes = download("2_51.enc", "notes.enc", "one");
+        SaveDownloads.fileLoaded(0, "2_51.enc", notes, new Message(new Document("2_51.enc", "notes.enc"), true, false));
+        assertEquals("one", first.toString(StandardCharsets.UTF_8.name()));
+        SaveDownloads.finishing(0, "2_52.enc", null, notes, 0);
+        SaveDownloads.fileLoaded(0, "2_52.enc", notes, new Message(new Document("2_52.enc", "notes.enc"), true, false));
+        assertEquals(1, downloads.rows.size());
+    }
+
+    /**
+     * A file whose preload finished before its twin downloaded is loaded again by the same operation,
+     * which still holds the preload's temp file when it finds the twin's file there. It isn't copied.
+     */
+    @Test public void anOperationRestartedAfterItsPreloadFindingATwinsFileIsNotCopied() throws IOException {
+        Settings.SAVE_DOWNLOADS.save(true);
+        ByteArrayOutputStream first = bodyOf(1);
+        bodyOf(2);
+        File report = download("2_51.pdf", "report.pdf", "one");
+        SaveDownloads.fileLoaded(0, "2_51.pdf", report, pdf());
+        Message twin = new Message(new Document("2_52.pdf", "report.pdf"), true, false);
+        SaveDownloads.finishing(0, "2_52.pdf", new File(report.getParentFile(), "2_52.pdf.temp"), report, 0);
+        SaveDownloads.fileLoaded(0, "2_52.pdf", report, twin);
+        assertEquals(1, downloads.rows.size());
+        assertEquals("one", first.toString(StandardCharsets.UTF_8.name()));
+        assertEquals(-1L, receipts().getLong("2_52.pdf", -1));
+    }
+
+    /**
+     * Another account loading the same document can find the file this account just downloaded
+     * before this account's fileLoaded comes. This account's download is still copied, and the other
+     * account's find is held back for its own fileLoaded.
+     */
+    @Test public void anotherAccountFindingTheFileLeavesThisAccountsCopy() throws IOException {
+        Settings.SAVE_DOWNLOADS.save(true);
+        ByteArrayOutputStream first = bodyOf(1);
+        File report = download("2_51.pdf", "report.pdf", "one");
+        SaveDownloads.finishing(1, "2_51.pdf", null, report, 0);
+        SaveDownloads.fileLoaded(0, "2_51.pdf", report, pdf());
+        assertEquals(1, downloads.rows.size());
+        assertEquals("one", first.toString(StandardCharsets.UTF_8.name()));
+        SaveDownloads.fileLoaded(1, "2_51.pdf", report, pdf());
+        assertEquals(1, downloads.rows.size());
+        assertTrue(String.join("\n", HookStatus.report()).contains(SaveDownloads.NOT_ITS_OWN));
     }
 
     /** A report.pdf of three bytes already in Download/Telegram, added at [added] in MediaStore's seconds. */

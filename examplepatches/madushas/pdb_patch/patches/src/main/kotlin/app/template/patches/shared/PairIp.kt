@@ -195,6 +195,9 @@ fun BytecodePatchContext.killPairIpFull(
         if (mm != null) { mm.overrideReturnDefault(); cleared++ } else skipped++
     }
     println("[killPairIpFull] callerMethods=${targets.size} cleared=$cleared skipped=$skipped")
+    // Fail-closed: this is exactly where the "cleared 0 of 18" bug hid. A scan that
+    // found the call sites and cleared none means the anchor moved — stop the build.
+    requireProgress(targets.size, cleared, "killPairIpFull PairIP call sites")
 
     for ((cls, method) in extraNoOps)
         mutableClassDefByOrNull(cls)?.methods?.firstOrNull { it.name == method }
@@ -219,6 +222,7 @@ val disablePairIPLicenseCheckPatch = bytecodePatch(
     description = "Disables PairIP license verification, VM checks, and repeated background checks.",
     default = false,
 ) {
+    category("PairIP")
     execute {
         killPairIpFull()
     }
@@ -253,6 +257,7 @@ fun pairIPManifestPatch(replacementAppClass: String? = null) = resourcePatch(
         "Optionally replaces the PairIP Application class with the real one.",
     default = false,
 ) {
+    category("PairIP")
     execute {
         document("AndroidManifest.xml").use { doc ->
             if (replacementAppClass != null) {

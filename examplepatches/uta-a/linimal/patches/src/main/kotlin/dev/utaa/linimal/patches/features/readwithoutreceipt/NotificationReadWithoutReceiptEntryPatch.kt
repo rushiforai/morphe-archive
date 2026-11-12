@@ -47,7 +47,7 @@ private val notificationNavigationFingerprint = Fingerprint(
 
 /** 通知生成時には予約せず、起動要求の配送時に通知 marker を確認します。 */
 val notificationReadWithoutReceiptEntryPatch = bytecodePatch(
-    name = "通知から既読をつけずに開く",
+    name = "Read without receipt from notifications",
     description = "メッセージ通知からのトーク起動時だけ既読をつけない閲覧セッションを予約します。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

@@ -7,7 +7,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.resourcePatch
 import java.util.Base64
 
-private val FMKOREA_COMPATIBILITY = Compatibility(
+internal val FMKOREA_COMPATIBILITY = Compatibility(
     name = "FMKorea",
     packageName = "com.fmkorea.m.fmk",
     apkFileType = ApkFileType.APK,

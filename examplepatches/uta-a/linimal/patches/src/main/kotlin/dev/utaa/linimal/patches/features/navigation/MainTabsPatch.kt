@@ -505,7 +505,7 @@ internal fun applyEditsFromLast(vararg edits: Pair<Int, () -> Unit>) {
 }
 
 val mainTabsPatch = bytecodePatch(
-    name = "下部タブ",
+    name = "Bottom tabs",
     description = "下部タブから VOOM を取り除き、ショッピング・ニュース・ウォレット・アプリも実行時設定で個別に取り除けるようにします。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

@@ -186,7 +186,7 @@ private fun aiTalkSuggestionChipBarAccessorFingerprint(bindingType: String, fiel
  * subscription/backend/settings/network は変更しません。
  */
 val agentIChatComposerPatch = bytecodePatch(
-    name = "チャット入力欄の Agent i",
+    name = "Agent i in message box",
     description = "チャット入力欄にある Agent i のボタンと候補チップを、実行時設定で非表示にできるようにします。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

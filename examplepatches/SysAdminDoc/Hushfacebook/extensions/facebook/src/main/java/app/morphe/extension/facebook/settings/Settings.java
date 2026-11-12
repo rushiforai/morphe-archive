@@ -420,6 +420,14 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_STORY_PROMPTS =
             new BooleanSetting("hushfacebook_hide_story_prompts", FALSE);
 
+    /**
+     * The Create story tile at the start of Home's Stories tray
+     * ({@link app.morphe.extension.facebook.stories.CreateStoryTile}, #445). The stories in the tray
+     * stay. Off until you turn it on. A change shows when Facebook next builds the tray.
+     */
+    public static final BooleanSetting HIDE_CREATE_STORY =
+            new BooleanSetting("hushfacebook_hide_create_story", FALSE);
+
     /** Keep a finished Story visible until the user navigates. */
     public static final BooleanSetting BLOCK_STORY_AUTO_ADVANCE =
             new BooleanSetting("hushfacebook_block_story_auto_advance", FALSE);
@@ -1470,6 +1478,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_hide_comment_like_button", FALSE);
 
     /**
+     * Comments lose Reply from the row under them
+     * ({@link app.morphe.extension.facebook.comments.CommentSheetOptions}, #447). View replies, Like,
+     * the reaction icons and their count stay. Off by default. A change shows on comments drawn after it.
+     */
+    public static final BooleanSetting HIDE_COMMENT_REPLY_BUTTON =
+            new BooleanSetting("hushfacebook_hide_comment_reply_button", FALSE);
+
+    /**
      * The thumbs-down under a comment becomes a Block button that opens Facebook's own block
      * sheet for the commenter, confirmation included
      * ({@link app.morphe.extension.facebook.comments.CommentBlock}, #271). Off by default. A
@@ -1561,6 +1577,15 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting SEARCH_COMMENTS =
             new BooleanSetting("hushfacebook_search_comments", FALSE);
+
+    /**
+     * While the comment search box holds words, the comments without them leave the list, and
+     * clearing the box brings them back
+     * ({@link app.morphe.extension.facebook.comments.CommentSearch}). Needs Search comments and
+     * Comment sheet options' comment and list hooks. Off by default.
+     */
+    public static final BooleanSetting FILTER_COMMENT_SEARCH =
+            new BooleanSetting("hushfacebook_filter_comment_search", FALSE);
 
     /**
      * Facebook's text boxes (posts, comments, captions, a story's text) look people up to tag only
@@ -2123,6 +2148,23 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_hide_menu_help", FALSE, true);
 
     /**
+     * The Your shortcuts row of Facebook's Menu, the groups and Pages Facebook pins under the profile
+     * card, which come back after being hidden one by one (issue #445). Facebook builds it either as
+     * a folder in the server section of the group it types PROFILE or inside that group's Bloks view.
+     * Off until it's turned on. Like Upgrades, it waits for a restart.
+     */
+    public static final BooleanSetting HIDE_MENU_SHORTCUTS =
+            new BooleanSetting("hushfacebook_hide_menu_shortcuts", FALSE, true);
+
+    /**
+     * The Create Facebook Page row under the profile card at the top of Facebook's Menu, drawn inside
+     * the Bloks view of the group Facebook types PROFILE (issue #445). Off until it's turned on. Like
+     * Upgrades, it waits for a restart.
+     */
+    public static final BooleanSetting HIDE_MENU_CREATE_PAGE =
+            new BooleanSetting("hushfacebook_hide_menu_create_page", FALSE, true);
+
+    /**
      * Keeps the Settings and privacy section of Facebook's Menu, the group Facebook types SETTINGS,
      * open under its header instead of folded up, so its rows show without a tap (issue #224). Off
      * until it's turned on. A Menu already built keeps its own state, so it waits for a restart.
@@ -2510,6 +2552,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting SHOW_REEL_DOWNLOAD_BUTTON =
             new BooleanSetting("hushfacebook_show_reel_download_button", TRUE, Setting.parent(DOWNLOAD_REELS));
+
+    /**
+     * A reel's Download, from the sidebar or More, adds the reel to a queue that saves one reel at a
+     * time in the background, with Pause and Cancel (#449). Starts off, so a tap saves at once as
+     * before. Every reel in the queue is one that was tapped. See ReelQueue.
+     */
+    public static final BooleanSetting QUEUE_REEL_SAVES =
+            new BooleanSetting("hushfacebook_queue_reel_saves", FALSE, Setting.parent(DOWNLOAD_REELS));
 
     /**
      * A Cast button on reels, under where Download goes (#182). Its tap hands the reel to a casting
@@ -3211,6 +3261,15 @@ public class Settings extends BaseSettings {
      */
     public static final EnumSetting<DownloadQuality> DOWNLOAD_QUALITY =
             new EnumSetting<>("hushfacebook_download_quality", DownloadQuality.BEST);
+
+    /**
+     * A reel's Download button and a feed or Watch video's Download to phone show the list of
+     * qualities first, {@link #DOWNLOAD_QUALITY} checked, and the save takes the one picked for
+     * itself alone (issue #448). Off by default, so a save starts at once at Download quality.
+     * Every download patch has it ({@link PatchFamily#DOWNLOAD_SWITCHES}).
+     */
+    public static final BooleanSetting DOWNLOAD_QUALITY_ASK =
+            new BooleanSetting("hushfacebook_download_quality_ask", FALSE);
 
     /**
      * Video saves keep to what other apps open: H.264 video with AAC-LC or HE-AAC sound, within

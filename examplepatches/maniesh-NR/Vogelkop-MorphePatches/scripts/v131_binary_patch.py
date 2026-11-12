@@ -52,6 +52,16 @@ BLANK_NAMES = (
     'switch_to_vpn_pro_button',
     'switch_to_vpn_pro_banner_body',
     'switch_to_vpn_pro_reminder_dialog_title',
+    # v1.3.1-R2 extension (W-rung): kill the remaining visible VPN Pro / eSIM
+    # promo texts. The chips themselves are removed at dex level (nt8 emptied),
+    # these blanks are defense-in-depth for any straggler surface.
+    'omnibox_suggested_esim_title',
+    'omnibox_suggested_esim_subtitle',
+    'switch_to_vpn_pro_reminder_dialog_body',
+    'free_vpn_pro_promo_banner_message',
+    'free_vpn_pro_upsell_promo_banner_message_half_year',
+    'free_vpn_pro_upsell_promo_banner_message_yearly',
+    'free_vpn_pro_onboarding_subtitle',
 )
 ANDROID_NS = 'http://schemas.android.com/apk/res/android'
 
@@ -495,7 +505,7 @@ def load_dexes(zf):
     return out
 
 
-def patch_dexes(dexes):
+def patch_dexes(dexes, sel=('02a', '02b', '02c', '03b'), legacy_02b=False):
     report = []
 
     # ---- 02a ----
@@ -511,7 +521,7 @@ def patch_dexes(dexes):
     # All four are forced to "accepted" (const/4 vN, 0x1).
     hits = []
     for fn, _ct, dex in dexes:
-        if dex.class_def_off(WELCOME) == 0:
+        if '02a' not in sel or dex.class_def_off(WELCOME) == 0:
             continue
         smi = dex.find_method(SETTINGS_MGR, 'i', SM_I)
         if smi < 0:
@@ -523,61 +533,74 @@ def patch_dexes(dexes):
                                    {'onCreate', 'onStop', 'startActivityForResult'}, smi):
             if s[7] == esidx:
                 hits.append((fn, dex) + s)
-    per_method = {}
-    for h in hits:
-        per_method.setdefault(h[2], []).append(h)
-    expect = {'onCreate': (2, OP_IF_EQZ), 'onStop': (1, OP_IF_NEZ),
-              'startActivityForResult': (1, OP_IF_NEZ)}
-    if set(per_method) != set(expect):
-        die(f'02a: method set mismatch: {sorted(per_method)}')
-    for mname, (cnt, bop) in expect.items():
-        got = per_method.get(mname, [])
-        if len(got) != cnt:
-            die(f'02a: {mname}: expected {cnt} eula site(s), found {len(got)}')
-        for h in got:
-            if h[8] != bop:
-                die(f'02a: {mname}: expected branch 0x{bop:02x}, got 0x{h[8]:02x}')
-    for (fn, dex, mname, proto, code_off, uoff, iunits, reg, bop, _k) in hits:
-        isz, base = dex.code_item(code_off)
-        a = base + 2 * uoff
-        orig = bytes(dex.data[a:a + 8])
-        if orig[0] == OP_CONST4:
-            report.append(f'02a {fn} {mname}: already patched')
-            continue
-        if orig[0] not in INVOKE_OPS or iunits != 3 or \
-                (u16(dex.data, a + 6) >> 8) != reg:
-            die(f'02a: byte sanity failed in {mname}: {orig.hex()}')
-        dex.data[a:a + 8] = const4(reg, 1) + b'\x00' * 6
-        report.append(f'02a {fn} {mname}: invoke+move-result v{reg} -> const/4 v{reg},0x1 '
-                      f'(branch 0x{bop:02x} untouched)')
+    if '02a' in sel:
+        per_method = {}
+        for h in hits:
+            per_method.setdefault(h[2], []).append(h)
+        expect = {'onCreate': (2, OP_IF_EQZ), 'onStop': (1, OP_IF_NEZ),
+                  'startActivityForResult': (1, OP_IF_NEZ)}
+        if set(per_method) != set(expect):
+            die(f'02a: method set mismatch: {sorted(per_method)}')
+        for mname, (cnt, bop) in expect.items():
+            got = per_method.get(mname, [])
+            if len(got) != cnt:
+                die(f'02a: {mname}: expected {cnt} eula site(s), found {len(got)}')
+            for h in got:
+                if h[8] != bop:
+                    die(f'02a: {mname}: expected branch 0x{bop:02x}, got 0x{h[8]:02x}')
+        for (fn, dex, mname, proto, code_off, uoff, iunits, reg, bop, _k) in hits:
+            isz, base = dex.code_item(code_off)
+            a = base + 2 * uoff
+            orig = bytes(dex.data[a:a + 8])
+            if orig[0] == OP_CONST4:
+                report.append(f'02a {fn} {mname}: already patched')
+                continue
+            if orig[0] not in INVOKE_OPS or iunits != 3 or \
+                    (u16(dex.data, a + 6) >> 8) != reg:
+                die(f'02a: byte sanity failed in {mname}: {orig.hex()}')
+            dex.data[a:a + 8] = const4(reg, 1) + b'\x00' * 6
+            report.append(f'02a {fn} {mname}: invoke+move-result v{reg} -> const/4 v{reg},0x1 '
+                          f'(branch 0x{bop:02x} untouched)')
+        if not hits:
+            die('02a: no eula sites found')
 
     # ---- 02b ----
-    done = False
-    for fn, _ct, dex in dexes:
-        if dex.class_def_off(R65) == 0:
-            continue
-        for (mname, proto, code_off, _acc) in dex.methods(R65):
-            if (mname, proto) == ('l', '(Z)Z') and code_off:
-                _, base = dex.code_item(code_off)
-                head = bytes(dex.data[base:base + 2])
-                if head == b'\x12\x00':
-                    report.append('02b: already patched')
-                elif head != b'\x12\x10':
-                    die(f'02b: unexpected head {head.hex()} (want 1210 = const/4 v0,1)')
-                else:
-                    dex.data[base:base + 4] = CONST4_RET
-                    report.append(f'02b {fn} r65.l(Z)Z: -> const/4 v0,0; return v0')
-                done = True
+    # FIXED (G-rung): flip the single operand byte of the head const/4
+    # (v0,1 -> v0,0) and leave the rest of the method untouched.  The legacy
+    # E-rung form wrote const/4+return over the first 4 bytes, splitting the
+    # following 2-unit if-nez in half; the orphaned branch-offset bytes then
+    # re-decoded as a phantom sparse-switch pointing outside the method ->
+    # ART verifier rejection of r65 (startup path) -> instant crash.
+    if '02b' in sel:
+        done = False
+        for fn, _ct, dex in dexes:
+            if dex.class_def_off(R65) == 0:
+                continue
+            for (mname, proto, code_off, _acc) in dex.methods(R65):
+                if (mname, proto) == ('l', '(Z)Z') and code_off:
+                    _, base = dex.code_item(code_off)
+                    head = bytes(dex.data[base:base + 2])
+                    if head == b'\x12\x00':
+                        report.append('02b: already patched')
+                    elif head != b'\x12\x10':
+                        die(f'02b: unexpected head {head.hex()} (want 1210 = const/4 v0,1)')
+                    elif legacy_02b:
+                        dex.data[base:base + 4] = CONST4_RET
+                        report.append(f'02b {fn} r65.l(Z)Z: LEGACY-BROKEN const/4 v0,0; return v0')
+                    else:
+                        dex.data[base + 1] = 0x00  # single operand byte flip
+                        report.append(f'02b {fn} r65.l(Z)Z: const/4 v0,1 -> v0,0 (1 byte, if-nez intact)')
+                    done = True
+                    break
+            if done:
                 break
-        if done:
-            break
-    if not done:
-        die('02b: r65.l(Z)Z not found')
+        if not done:
+            die('02b: r65.l(Z)Z not found')
 
     # ---- 02c ----
     done = False
     for fn, _ct, dex in dexes:
-        if dex.class_def_off(MM6) == 0:
+        if '02c' not in sel or dex.class_def_off(MM6) == 0:
             continue
         gb = dex.find_method(GB_CLASS, GB_NAME, GB_PROTO)
         ksidx = dex.find_string(DEFBR_KEY)
@@ -611,13 +634,13 @@ def patch_dexes(dexes):
                 break
         if done:
             break
-    if not done:
+    if '02c' in sel and not done:
         die('02c: site not found in mm6.e')
 
     # ---- 03b ----
     done = False
     for fn, _ct, dex in dexes:
-        if dex.class_def_off(WDN) == 0:
+        if '03b' not in sel or dex.class_def_off(WDN) == 0:
             continue
         for (mname, proto, code_off, _acc) in dex.methods(WDN):
             if (mname, proto) == ('a', '()Z') and code_off:
@@ -634,12 +657,141 @@ def patch_dexes(dexes):
                 break
         if done:
             break
-    if not done:
+    if '03b' in sel and not done:
         die('03b: wdn.a()Z not found')
 
     for _fn, _ct, dex in dexes:
         dex.fix_sums()
     return report
+
+
+# ===========================================================================
+# structural integrity gate — walk every method's instruction stream the way
+# ART's linear pre-flow scan does, and resolve switch payloads / branch
+# targets.  Catches the E-rung 02b phantom-switch class of defect.  The
+# substrate must pass with ZERO failures or the patcher refuses to ship.
+# ===========================================================================
+
+class StructFail(Exception):
+    pass
+
+
+_BRANCH21 = set(range(0x38, 0x3e))  # if-eqz/neqz/ltz/gez/gtz/lez
+
+
+def _s16(v):
+    return v - 0x10000 if v & 0x8000 else v
+
+
+def _s32(v):
+    return v - 0x100000000 if v & 0x80000000 else v
+
+
+def verify_code_item(dex, code_off, where):
+    regs, ins, outs, tries, dbg, isz = struct.unpack_from(
+        '<HHHHII', dex.data, code_off)
+    base = code_off + 16
+    end = base + 2 * isz
+    i = 0
+    while i < isz:
+        a = base + 2 * i
+        u0 = u16(dex.data, a)
+        op = u0 & 0xff
+        hi = u0 >> 8
+        if op == 0x00 and hi in (1, 2, 3):
+            if hi == 1:
+                size = u16(dex.data, a + 2)
+                total = 4 + 2 * size
+            elif hi == 2:
+                size = u16(dex.data, a + 2)
+                total = 2 + 4 * size
+            else:
+                ew = u16(dex.data, a + 2)
+                cnt = u32(dex.data, a + 4)
+                total = 4 + (ew * cnt + 1) // 2
+            if total <= 0 or i + total > isz:
+                raise StructFail(
+                    f'{where}: payload at unit {i} overruns method ({total} units, isz={isz})')
+            i += total
+            continue
+        if op in _S1:
+            s = 1
+        elif op in _S2:
+            s = 2
+        elif op in _S3:
+            s = 3
+        elif op in _S4:
+            s = 4
+        elif op in _S5:
+            s = 5
+        else:
+            raise StructFail(f'{where}: unknown opcode 0x{op:02x} at unit {i}')
+        if op in (0x2b, 0x2c):  # packed/sparse-switch, 31t: resolve payload
+            off_u = u16(dex.data, a + 2) | (u16(dex.data, a + 4) << 16)
+            tgt = i + _s32(off_u)
+            if tgt < 0 or tgt >= isz:
+                raise StructFail(
+                    f'{where}: {"packed" if op == 0x2b else "sparse"}-switch at unit {i} '
+                    f'payload at unit {tgt} outside method (0..{isz - 1})')
+            ident = u16(dex.data, base + 2 * tgt)
+            want = 0x0100 if op == 0x2b else 0x0200
+            if ident != want:
+                raise StructFail(
+                    f'{where}: switch at unit {i} -> unit {tgt} has ident '
+                    f'0x{ident:04x}, want 0x{want:04x}')
+            if op == 0x2b:
+                psize = u16(dex.data, base + 2 * (tgt + 1))
+                pend = tgt + 4 + 2 * psize  # ident+size+first_key, 2 units/target
+            else:
+                psize = u16(dex.data, base + 2 * (tgt + 1))
+                pend = tgt + 2 + 4 * psize  # ident+size, 2 units/key + 2 units/target
+            if pend > isz:
+                raise StructFail(
+                    f'{where}: switch payload at unit {tgt} overruns method')
+        elif op in _BRANCH21 or 0x32 <= op <= 0x37:  # 21t / 22t branch
+            if op in _BRANCH21:
+                br = _s16(u16(dex.data, a + 2))
+            else:
+                br = _s16(u16(dex.data, a + 2))
+            tgt = i + br
+            if tgt < 0 or tgt >= isz:
+                raise StructFail(
+                    f'{where}: branch 0x{op:02x} at unit {i} -> unit {tgt} outside method')
+        i += s
+
+
+def verify_dex_structure(dex):
+    fails = []
+    for ci in range(dex.cls_n):
+        cbase = dex.cls_off + 32 * ci
+        cls = dex.type_desc(u32(dex.data, cbase))
+        cd = u32(dex.data, cbase + 24)
+        if cd == 0:
+            continue
+        off = cd
+        counts = []
+        for _ in range(4):
+            v, off = dex.uleb(off)
+            counts.append(v)
+        for _ in range(counts[0] + counts[1]):
+            _, off = dex.uleb(off)
+            _, off = dex.uleb(off)
+        for _kind in (0, 1):
+            midx = 0
+            for _ in range(counts[2 + _kind]):
+                d, off = dex.uleb(off)
+                _acc, off = dex.uleb(off)
+                code, off = dex.uleb(off)
+                midx += d
+                if code == 0:
+                    continue
+                _cls, nm, proto = dex.method_info(midx)
+                where = f'{cls}->{nm}{proto}'
+                try:
+                    verify_code_item(dex, code, where)
+                except StructFail as e:
+                    fails.append(str(e))
+    return fails
 
 
 def inspect(apk):
@@ -692,6 +844,17 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--inspect', metavar='APK')
     ap.add_argument('--patch', nargs=2, metavar=('APK', 'OUT'))
+    ap.add_argument('--only', metavar='LIST', default='02a,02b,02c,03a,03b,03c',
+                    help='comma list of patches to apply (default: all six)')
+    ap.add_argument('--no-patches', action='store_true',
+                    help='apply NOTHING; exercise only the zip-rewrite path '
+                         '(null-patch control build)')
+    ap.add_argument('--02b-legacy-broken', action='store_true', dest='legacy_02b',
+                    help='write the legacy broken 02b (const+return, '
+                         'structurally invalid) — forensic builds only')
+    ap.add_argument('--no-gate', action='store_true',
+                    help='skip the structural integrity gate (legacy-broken '
+                         'builds fail it by design)')
     args = ap.parse_args()
     if args.inspect:
         inspect(args.inspect)
@@ -699,36 +862,64 @@ def main():
     if not args.patch:
         ap.print_help()
         return
+    sel = set(s.strip() for s in args.only.split(',') if s.strip())
+    bad = sel - {'02a', '02b', '02c', '03a', '03b', '03c'}
+    if bad:
+        die(f'unknown patch id(s): {sorted(bad)}')
     src, out = args.patch
     zf = zipfile.ZipFile(src)
-    print(f'=== patch {src} -> {out} ===')
+    if args.no_patches:
+        sel = set()
+        print(f'=== NULL-PATCH rewrite {src} -> {out} (no semantic edits) ===')
+    else:
+        print(f'=== patch {src} -> {out} (patches: {sorted(sel)}) ===')
     dexes = load_dexes(zf)
     if not dexes:
         die('no classes*.dex found')
-    for line in patch_dexes(dexes):
-        print(f'  {line}')
 
-    man = zf.read('AndroidManifest.xml')
-    new_man, cut = cut_components(man, VPN_COMPONENTS)
-    print(f'  03a manifest: cut {cut}')
-    _p, elements = parse_manifest(new_man)
-    left = [e['android_name'] for e in elements
-            if e['android_name'] and 'VpnPro' in e['android_name']
-            and e['name'] in ('receiver', 'service')]
-    kept = [e['android_name'] for e in elements
-            if e['android_name'] and e['android_name'].endswith('.vpn.VpnReceiver')]
-    if left:
-        die(f'03a: VpnPro components still present: {left}')
-    print(f'  03a check: VpnPro=0, free VpnReceiver kept={kept}')
+    replacements = {}
+    if not args.no_patches:
+        for line in patch_dexes(dexes, sel=sel, legacy_02b=args.legacy_02b):
+            print(f'  {line}')
+        for fn, _ct, dex in dexes:
+            replacements[fn] = bytes(dex.data)
 
-    arsc = zf.read('resources.arsc')
-    new_arsc, srep = blank_arsc_strings(arsc, BLANK_NAMES)
-    for n, cnt in srep:
-        print(f'  03c {n}: blanked {cnt} pool string(s)')
+        if '03a' in sel:
+            man = zf.read('AndroidManifest.xml')
+            new_man, cut = cut_components(man, VPN_COMPONENTS)
+            print(f'  03a manifest: cut {cut}')
+            _p, elements = parse_manifest(new_man)
+            left = [e['android_name'] for e in elements
+                    if e['android_name'] and 'VpnPro' in e['android_name']
+                    and e['name'] in ('receiver', 'service')]
+            kept = [e['android_name'] for e in elements
+                    if e['android_name'] and e['android_name'].endswith('.vpn.VpnReceiver')]
+            if left:
+                die(f'03a: VpnPro components still present: {left}')
+            print(f'  03a check: VpnPro=0, free VpnReceiver kept={kept}')
+            replacements['AndroidManifest.xml'] = new_man
 
-    replacements = {'AndroidManifest.xml': new_man, 'resources.arsc': new_arsc}
-    for fn, _ct, dex in dexes:
-        replacements[fn] = bytes(dex.data)
+        if '03c' in sel:
+            arsc = zf.read('resources.arsc')
+            new_arsc, srep = blank_arsc_strings(arsc, BLANK_NAMES)
+            for n, cnt in srep:
+                print(f'  03c {n}: blanked {cnt} pool string(s)')
+            replacements['resources.arsc'] = new_arsc
+
+    if not args.no_gate:
+        print('  gate: structural walk of every method in every dex ...')
+        total = 0
+        for fn, _ct, dex in dexes:
+            fails = verify_dex_structure(dex)
+            total += len(fails)
+            for f in fails[:5]:
+                print(f'    GATE-FAIL [{fn}] {f}')
+            if len(fails) > 5:
+                print(f'    GATE-FAIL [{fn}] ... +{len(fails) - 5} more')
+        if total:
+            die(f'structural gate: {total} failure(s) — refusing to ship')
+        print(f'  gate: clean (0 failures)')
+
     zout = zipfile.ZipFile(out, 'w')
     kept_n = dropped_n = 0
     for info in zf.infolist():

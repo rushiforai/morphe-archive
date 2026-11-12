@@ -7,7 +7,6 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.dmoniak.patches.shared.Constants.COMPATIBILITY_YOUTUBE
 import java.util.logging.Logger
 
-@Suppress("unused")
 val youtubeSoundBoostPatch = bytecodePatch(
     name = "Sound Boost (Audio Gain Amplification) - YouTube (Experimental)",
     description = "⚠️ [Experimental / Untested] Amplifies YouTube audio playback volume with software gain booster up to 200% for quiet videos, recordings, and podcasts.",
@@ -26,7 +25,7 @@ fun BytecodePatchContext.executeYouTubeSoundBoostLogic(logger: Logger) {
 
     classDefForEach { classDef ->
         val tl = classDef.type.lowercase()
-        if (tl.contains("androidx") || tl.contains("android/support")) return@classDefForEach
+        if (!tl.contains("androidx") && !tl.contains("android/support")) {
 
         val mutableClass by lazy { mutableClassDefBy(classDef) }
 
@@ -58,6 +57,7 @@ fun BytecodePatchContext.executeYouTubeSoundBoostLogic(logger: Logger) {
                     logger.warning("[YouTube Sound Boost] Failed to hook ${method.name}: ${e.message}")
                 }
             }
+        }
         }
     }
 

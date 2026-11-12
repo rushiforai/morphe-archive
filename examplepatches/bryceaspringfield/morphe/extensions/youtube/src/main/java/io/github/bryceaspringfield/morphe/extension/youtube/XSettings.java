@@ -7,7 +7,7 @@ import app.morphe.extension.shared.settings.StringSetting;
 
 /**
  * The bundle's settings, stored in Morphe's own preferences (morphe_prefs) under keys starting with yx_, so Morphe's
- * import and export include them. Every feature is off, or empty, until the user sets it.
+ * import and export include them. Every feature is off, or empty, until the user sets it, except the two DeArrow options.
  */
 public final class XSettings {
 
@@ -51,6 +51,26 @@ public final class XSettings {
 
     // The Save button opens the playlist chooser.
     public static final BooleanSetting SAVE_OPENS_CHOOSER = new BooleanSetting("yx_save_opens_chooser", FALSE);
+
+    // DeArrow: a tap on Morphe's title icon switches the title, and a pencil on the open video's title suggests one.
+    public static final BooleanSetting DEARROW_TAP = new BooleanSetting("yx_dearrow_tap", true);
+    public static final BooleanSetting DEARROW_SUGGEST = new BooleanSetting("yx_dearrow_suggest", true);
+    /** The private ID submissions are counted under when Morphe's SponsorBlock has none; never logged or shown. */
+    public static final StringSetting DEARROW_USER_ID = new StringSetting("yx_dearrow_user_id_Do_Not_Share", "");
+
+    // Live streams play faster while behind their live edge, until caught up.
+    public static final BooleanSetting LIVE_CATCH_UP = new BooleanSetting("yx_live_catch_up", FALSE);
+    public static final StringSetting LIVE_CATCH_UP_SPEED = new StringSetting("yx_live_catch_up_speed", "2");
+
+    // Playback with the screen off: a pause right after the screen turns off is undone; the lowest quality while off.
+    public static final BooleanSetting KEEP_PLAYING_SCREEN_OFF = new BooleanSetting("yx_keep_playing_screen_off", true);
+    public static final BooleanSetting AUDIO_ONLY_SCREEN_OFF = new BooleanSetting("yx_audio_only_screen_off", FALSE);
+
+    /** Like and dislike counts: count, percent, or both. */
+    public static final StringSetting VOTE_FORMAT = new StringSetting("yx_vote_format", "count");
+
+    // A tap on a live chat message's profile picture opens the author's channel.
+    public static final BooleanSetting CHAT_AVATAR_CHANNEL = new BooleanSetting("yx_chat_avatar_channel", true);
 
     // Fixes.
     public static final BooleanSetting FIX_NAVIGATION_TAPS = new BooleanSetting("yx_fix_navigation_taps", FALSE);

@@ -8,7 +8,9 @@
 | Geminiランチャー | `com.google.android.apps.bard` | `com.google.android.apps.bard.morphe` |
 | microG | — | `app.revanced.android.gms` |
 
-MorpheのClone appパッチと独自パッチを組み合わせる。Google本体のxxhdpi splitも同じパッケージ名に変更し、全APKを同じキーで署名する。
+v0.3.2から `Automatic Clone Setup` を標準選択に含め、パッケージ・権限宣言・ProviderをMPP内でクローン化する。権限参照は `ClonePermissionSupport` がManifest/DEXを更新する。公式Clone appの追加や手動オプションは不要。分割版Google本体のxxhdpi splitも同じパッケージ名に変更し、既存と同じキーで署名する。nodpi単体APKではresource splitを追加しない。
+
+Patcher1.12は公開パッチ名順で実行し、逆順でfinalizeする。`Automatic Clone Setup` は任意の外部 `Clone app` より先に原本を記録し、最後に固定名前空間へ整える。これにより従来のClone appを追加した既定false/false・旧true/true設定でも二重変換を防ぐ。標準選択を維持し、任意パッケージ名は使用しない。既定選択と旧設定の実APK検証は `scripts/emulator/test-issue8-options.py`。
 
 ## microGログイン
 

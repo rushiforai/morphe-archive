@@ -668,3 +668,91 @@ function Import-UserEnvironment {
         if (-not [string]::IsNullOrWhiteSpace($value)) { Set-Item -LiteralPath "Env:\$variable" -Value $value }
     }
 }
+
+function Get-BundlePublicKey {
+    <#
+    .SYNOPSIS
+        The Base64 public key morphe-signing.pub publishes for the bundle signature.
+    #>
+    param([Parameter(Mandatory = $true)][string]$Root)
+
+    $path = Join-Path $Root 'morphe-signing.pub'
+    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "There is no morphe-signing.pub at $path." }
+    $key = (Get-Content -LiteralPath $path -Raw).Trim()
+    if ($key -notmatch '^[A-Za-z0-9+/]{43}=$') { throw "morphe-signing.pub is not a Base64 Ed25519 public key: $key" }
+    return $key
+}
+
+function Get-BundleSignature {
+    <#
+    .SYNOPSIS
+        The MorpheSig1 signature in a bundle's zip comment, or $null when it has none.
+    .DESCRIPTION
+        The comment is "MorpheSig1 <public key> <signature>", both Base64, written by the build
+        (patches/build.gradle.kts signBundle, the same bytes PatchBundleSignature.sign writes).
+        This reads the shape only. The build's verifyBundle checks the signature with Morphe's own
+        verifier, and Morphe Manager checks it again when it loads the bundle.
+    #>
+    param([Parameter(Mandatory = $true)][string]$Path)
+
+    $bytes = [IO.File]::ReadAllBytes($Path)
+    $last = $bytes.Length - 22
+    for ($at = $last; $at -ge [Math]::Max(0, $last - 0xFFFF); $at--) {
+        if ($bytes[$at] -eq 0x50 -and $bytes[$at + 1] -eq 0x4b -and $bytes[$at + 2] -eq 5 -and $bytes[$at + 3] -eq 6 -and
+            ($bytes[$at + 20] + 256 * $bytes[$at + 21]) -eq $bytes.Length - $at - 22) {
+            $size = $bytes.Length - $at - 22
+            if ($size -eq 0) { return $null }
+            $comment = [Text.Encoding]::ASCII.GetString($bytes, $at + 22, $size)
+            # Case-sensitive and anchored at the very end: Morphe reads "morphesig1" as unsigned
+            # and refuses a signature with a newline after it, so neither may pass here.
+            if ($comment -cnotmatch '\AMorpheSig1 ([A-Za-z0-9+/]{43}=) ([A-Za-z0-9+/]{86}==)\z') {
+                throw "$Path has a zip comment that is not a MorpheSig1 signature."
+            }
+            return [pscustomobject]@{ PublicKey = $Matches[1]; Signature = $Matches[2] }
+        }
+    }
+    throw "$Path is not a zip archive."
+}
+
+function Assert-BundlePinned {
+    <#
+    .SYNOPSIS
+        Holds a release bundle to its commit and its signing key before anything is published.
+    .DESCRIPTION
+        It has to carry classes.dex, the commit's time as its Timestamp, and a MorpheSig1
+        signature by the key morphe-signing.pub publishes. The build signs it whenever
+        HUSHTELEGRAM_BUNDLE_SIGNING_KEY (or else MORPHE_SIGNING_KEY) holds the key, and release.ps1
+        imports the User variable, so an unsigned bundle means the key isn't on this machine.
+    #>
+    param(
+        [Parameter(Mandatory = $true)][string]$Bundle,
+        [Parameter(Mandatory = $true)][string]$Commit,
+        [string]$Root = (Split-Path -Parent $PSScriptRoot)
+    )
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $zip = [IO.Compression.ZipFile]::OpenRead($Bundle)
+    try {
+        $entry = $zip.GetEntry('META-INF/MANIFEST.MF')
+        if (-not $entry) { throw "$Bundle has no META-INF/MANIFEST.MF." }
+        $reader = New-Object IO.StreamReader($entry.Open())
+        try { $manifest = $reader.ReadToEnd() } finally { $reader.Dispose() }
+        $hasDex = $null -ne $zip.GetEntry('classes.dex')
+    } finally {
+        $zip.Dispose()
+    }
+    if (-not $hasDex) { throw "$Bundle has no classes.dex, so Morphe Manager would load no patches from it." }
+    $stamp = [regex]::Match($manifest, '(?m)^Timestamp: (\d+)').Groups[1].Value
+    $global:LASTEXITCODE = 0
+    $seconds = "$(& git -C $Root log -1 --format=%ct $Commit)".Trim()
+    if ($LASTEXITCODE -ne 0) { throw "git log -1 $Commit failed (exit $LASTEXITCODE)." }
+    if ($stamp -ne "${seconds}000") {
+        throw "The bundle's Timestamp $stamp isn't the release commit's time ($seconds). Build it again from a clean checkout."
+    }
+    $signature = Get-BundleSignature -Path $Bundle
+    if ($null -eq $signature) {
+        throw ("The bundle came out unsigned. Set the User variable HUSHTELEGRAM_BUNDLE_SIGNING_KEY to the bundle signing " +
+            'key and build again: Morphe Manager pins the first key a source signs with.')
+    }
+    if ($signature.PublicKey -cne (Get-BundlePublicKey -Root $Root)) { throw 'The bundle is signed by a key other than morphe-signing.pub.' }
+    Write-Host '[release] the bundle carries classes.dex and the release commit''s time, signed by the key morphe-signing.pub publishes'
+}

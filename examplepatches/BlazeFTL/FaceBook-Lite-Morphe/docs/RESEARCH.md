@@ -200,3 +200,31 @@ file first, then ask for a fresh debug log ([DEBUG_LOG.md](DEBUG_LOG.md)).
   moved the pager from the reel being watched over the ad to the next reel (`SKIP 21 -> 22`, viewer was on 20; `SKIP 9 -> 10`, viewer was on 7). Now a skip needs
   `shownIndex >= 0` and `shownIndex == A03`, and 1.1 s without any list size change. Look for `SKIP refused: reel on screen not verified`.
 - Auto next reel never fired in that log (no `Reel ended` line).
+
+## 11. Download button over the comment sheet, and empty creator Reels pages (report of 2026-11-10, build 536.0.0.11.107)
+
+- **Comment sheet** (opened from a reel's comment icon, covers the lower ~85% of the screen from y 310 on a 2400 px screen): the
+  download button stayed on top of it. The button is a view on the window's decor view, so it is drawn above every other layer; nothing
+  hid it because the video view stays attached and "shown" under the sheet. The sheet is in the same window (the button is visible
+  over it), so it is a view of MainActivity, not a dialog.
+- Fix (unverified on a device): `Overlay.covering` does a paint-order hit test at the button's centre. The topmost painting view
+  (a view with a background, a custom leaf view, a view group that draws, or a list `X.12u`; a plain `View` without background does not
+  count; this extension's own views carry the tag `morphe-overlay` and are skipped) must belong to the video's own layer (the video or
+  the list that holds it). If not, the button is hidden, and it comes back when the sheet closes. Checked every 120 ms. Only for videos
+  that sit in a list (Reels, opened player): a story's two full-height tap zones are siblings of the video and would count as a cover.
+- Debug log: `cover` lines. `Button hidden: covered ... by <chain>` names the view that covers the button (class, size, position, `bg`,
+  `LIST`). `LAYERS changed:` lists the window's top layers (depth 5, lists not opened) whenever they change while a video plays, so the
+  sheet's class and bounds show up when it opens. If the button still shows over the sheet, read the `LAYERS changed` block written when
+  the sheet opened: the sheet is probably inside the Reels list itself (same layer as the video) or a plain `View` without background.
+- **Creator "Reels" page says "0 Reels / No reels yet"** (page opened by tapping the creator's name in a reel). The user confirmed this is
+  not the patch: the creator did not post their videos as reels, so Facebook's Reels page is empty while the main profile (3 dot menu >
+  "View main profile") has videos in its Reels tab. Wanted: land on the main profile without those steps.
+- `ProfileRedirect` (setting "Open profile when no reels", on by default): while no video plays, small lists (12 items or fewer) are read for
+  the text "No reels yet" (English only). On a hit it taps the page's 3 dot button (a small view at the top right, else 62 px from the right
+  edge and 50 px under the status bar on a 1080 px wide screen, scaled by width), waits for the text "View main profile" in a list (250 ms steps,
+  up to ~2.5 s, then taps anyway) and taps the sheet's row (73 px above the bottom, left part). Synthetic touches through the decor view, like
+  the story skip. Not verified on a device: the positions come from screenshots (2026-11-10). A page is tried at most twice per run and not
+  again for 15 s.
+- The Reels tab of the profile is **not** tapped yet: the tabs row moves with the profile's layout and sits next to the Follow and Message
+  buttons (105 px above it), so a blind tap could follow the creator. After the redirect the log writes every list on screen with its item
+  texts (`profile` tag, 2.5 s later); the tab's position has to come from that.

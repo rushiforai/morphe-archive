@@ -71,10 +71,12 @@ import app.hushtelegram.extension.telegram.misc.TranslateTarget;
  * preference commit. A file that is too large, isn't JSON, names something twice, holds a value of
  * the wrong type or comes from a newer version changes nothing.
  * <p>The release check stays out of the file: it puts the phone online, so it's switched on
- * from the phone's own screen, never by a file. So does Folders by chat type: flipping it makes or
+ * from the phone's own screen, never by a file. Free proxies stays out for the same reason, and
+ * it connects Telegram through strangers' proxies besides. So does Folders by chat type: flipping it makes or
  * removes folders on your account, and an import would flip it without doing either.
  * The chats picked under Hide picked chats stay out too, though the switch goes in: they name the
  * account and the chats someone chose to hide, and settings files get passed around to help others.
+ * Ghost mode's exception chats stay out the same way, with their switch going in.
  *
  * <p>Call the file and preference work on a worker thread.
  */
@@ -114,6 +116,7 @@ public final class SettingsBackup {
             Settings.HIDE_CONTACTS_BLOCK,
             Settings.HIDE_GREETING_STICKERS,
             Settings.DISABLE_CHAT_SWIPE,
+            Settings.CHAT_PREVIEW_BUTTONS,
             Settings.DISABLE_CHANNEL_PULL,
             Settings.DISABLE_TOPIC_PULL,
             Settings.NORMAL_PASTE,
@@ -158,10 +161,14 @@ public final class SettingsBackup {
             Settings.HIDE_ACCOUNTS,
             Settings.HIDDEN_ACCOUNTS_LOCK,
             Settings.FIT_ALL_TABS,
+            Settings.FOLDER_TAB_ICONS,
             Settings.FORWARD_HIDE_SENDER,
             Settings.VOICE_MUSIC_PLAYER,
             Settings.PLAYBACK_POSITION,
+            Settings.LYRICS,
+            Settings.SONG_DATES,
             Settings.SELECT_BETWEEN,
+            Settings.SELECTION_SCREENSHOT,
             Settings.SILENCE_NON_CONTACTS,
             Settings.REACTION_ALERTS,
             Settings.REACTION_SOUND,
@@ -220,6 +227,9 @@ public final class SettingsBackup {
             Settings.MESSAGE_MENU_SAVE_COVER,
             Settings.MESSAGE_MENU_SAVE_ART,
             Settings.MESSAGE_MENU_CLEAR_CACHE,
+            Settings.MESSAGE_MENU_HIDE,
+            Settings.MESSAGE_MENU_PLAIN_FORWARD,
+            Settings.MESSAGE_MENU_DELETE_FOR_THEM,
             Settings.DISABLE_ANALYTICS,
             Settings.GHOST_MODE,
             Settings.GHOST_READS,
@@ -227,8 +237,14 @@ public final class SettingsBackup {
             Settings.GHOST_TYPING,
             Settings.GHOST_ONLINE,
             Settings.GHOST_BUTTON,
+            Settings.GHOST_READ_AFTER_SEND,
+            Settings.GHOST_READS_BUTTON,
+            Settings.GHOST_CHATS,
+            Settings.FAKE_TYPING,
             Settings.RECEIVE_ONLY,
             Settings.POWER_OFF_ACCOUNTS,
+            Settings.INSTANT_LOCK,
+            Settings.QUIET_SIGN_UP,
             Settings.DISABLE_CALL_DEBUG,
             Settings.RECORD_CALLS,
             Settings.RECORD_CALL_BUTTON,
@@ -249,7 +265,13 @@ public final class SettingsBackup {
             Settings.BYPASS_CHANNEL_RESTRICTIONS,
             Settings.OPEN_RESTRICTED_CHATS,
             Settings.BYPASS_INTEGRITY_CHECK,
-            Settings.AUTO_FORWARDING));
+            Settings.AUTO_FORWARDING,
+            Settings.CROP_GUARD,
+            Settings.CAPTION_ORDER,
+            Settings.PROXY_MENU,
+            Settings.SIGN_IN_PROXY,
+            Settings.MY_MESSAGES,
+            Settings.TEXT_DIRECTION));
 
     /**
      * The text a file carries besides the switches: the message filters, each list as a JSON array

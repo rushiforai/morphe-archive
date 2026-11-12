@@ -22,8 +22,8 @@ https://github.com/Sabrina-Moonlight/gracie-patches
 ## 🌷 Available patches
 
 <!-- PATCHES_START -->
-> **[v1.0.72](https://github.com/Sabrina-Moonlight/gracie-patches/releases/tag/v1.0.72)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;16 patches total
-<details open>
+> **[v1.0.81](https://github.com/Sabrina-Moonlight/gracie-patches/releases/tag/v1.0.81)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;21 patches total
+<details>
 <summary>🌸 Orientation Control&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
@@ -40,7 +40,7 @@ https://github.com/Sabrina-Moonlight/gracie-patches
 
 </details>
 
-<details open>
+<details>
 <summary>🌸 Glass Widgets&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
 
@@ -55,11 +55,11 @@ https://github.com/Sabrina-Moonlight/gracie-patches
 |----------|----------------|-----------|
 | [Disable Pairip](#disable-pairip) | Restores the normal app entry and recovers offline method bodies so the app can keep running. |  |
 | [Local Preference](#local-preference) | Uses a local preference so optional widget features stay available offline. |  |
-| [Remove Pairip Protection](#remove-pairip-protection) | Skips the local license check entry point. |  |
+| [Remove Pairip Protection](#remove-pairip-protection) | Skips PairIP license checks and the delayed process exit. |  |
 
 </details>
 
-<details open>
+<details>
 <summary>🌸 Minimal Widgets&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
@@ -77,7 +77,7 @@ https://github.com/Sabrina-Moonlight/gracie-patches
 
 </details>
 
-<details open>
+<details>
 <summary>🌸 Quick Settings&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
@@ -95,7 +95,7 @@ https://github.com/Sabrina-Moonlight/gracie-patches
 
 </details>
 
-<details open>
+<details>
 <summary>🌸 Screen Recording App&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
@@ -113,7 +113,7 @@ https://github.com/Sabrina-Moonlight/gracie-patches
 
 </details>
 
-<details open>
+<details>
 <summary>🌸 Themezy&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
 
@@ -132,7 +132,7 @@ https://github.com/Sabrina-Moonlight/gracie-patches
 
 </details>
 
-<details open>
+<details>
 <summary>🌸 Aesthetic Widgets&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
@@ -149,7 +149,7 @@ https://github.com/Sabrina-Moonlight/gracie-patches
 
 </details>
 
-<details open>
+<details>
 <summary>🌸 Glassix: Glass Widgets & Theme&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
@@ -166,13 +166,34 @@ https://github.com/Sabrina-Moonlight/gracie-patches
 
 </details>
 
-<details open>
-<summary>🌼 Universal&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<details>
+<summary>🌸 Kids doctor games&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**Package name:** `com.bimiboo.kids.doctor.games`
+
+**🌻 Supported versions:**
+
+| 1.12 |
+| :---: |
+
+| 🌷&nbsp;Patch | 💐&nbsp;Description | 🪻&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock subscription (IL2CPP native)](#unlock-subscription-il2cpp-native) | Forces Unity IL2CPP access getters (HasThisAppPurchase, IsOwnedSharedActive, offline grants, IsFullAccess, IsActive) to true in lib/arm64-v8a/libil2cpp.so. Required together with Unlock subscription (Java / SharedSub). |  |
+| [Unlock subscription (Java / SharedSub)](#unlock-subscription-java-sharedsub) | Unlocks BB Pass shared subscription on the Java/JNI side and marks Play purchases as owned. Activates local SharedSub state when the game starts. Must be used together with Unlock subscription (IL2CPP native). |  |
+
+</details>
+
+<details>
+<summary>🌼 Universal&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
 
 | 🌷&nbsp;Patch | 💐&nbsp;Description | 🪻&nbsp;Options |
 |----------|----------------|-----------|
+| [Add battery optimization permission (internal)](#add-battery-optimization-permission-internal) | Adds REQUEST_IGNORE_BATTERY_OPTIMIZATIONS to the manifest. |  |
 | [Clone app](#clone-app) | Changes the app package name and label so you can install several clones. Pick a clone number (1–50). Each number is a different package (app.clone1, app.clone2…). On update, re-apply the same number on each clone. | • Clone number<br>• Custom package (optional)<br>• Update permissions<br>• Update providers |
+| [Randomize device identity](#randomize-device-identity) | Generates random Android ID, Wi-Fi MAC, Bluetooth MAC and serial each time the patch is applied. Useful so every clone has a different identity. |  |
+| [Request unrestricted battery](#request-unrestricted-battery) | On app start, shows the system dialog to allow unrestricted battery (ignore battery optimizations) if it is not already allowed. |  |
 
 </details>
 

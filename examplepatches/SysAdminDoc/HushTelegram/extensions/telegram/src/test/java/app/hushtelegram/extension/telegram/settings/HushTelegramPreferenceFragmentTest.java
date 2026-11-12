@@ -61,6 +61,7 @@ import app.hushtelegram.extension.telegram.misc.HiddenAccounts;
 import app.hushtelegram.extension.telegram.misc.HiddenAccountsForTests;
 import app.hushtelegram.extension.telegram.misc.DataSaverDownloads;
 import app.hushtelegram.extension.telegram.misc.DataSaverDownloadsForTests;
+import app.hushtelegram.extension.telegram.misc.GhostChats;
 import app.hushtelegram.extension.telegram.misc.HiddenChats;
 import app.hushtelegram.extension.telegram.misc.HiddenChatsForTests;
 import app.hushtelegram.extension.telegram.misc.LaunchFolder;
@@ -197,6 +198,14 @@ public class HushTelegramPreferenceFragmentTest {
         ROW_TITLES.put(PatchFamily.BYPASS_CHANNEL_RESTRICTIONS, "Bypass channel restrictions");
         ROW_TITLES.put(PatchFamily.BYPASS_INTEGRITY_CHECK, "Bypass integrity check");
         ROW_TITLES.put(PatchFamily.AUTO_FORWARDING, "Auto-forwarding rules");
+        ROW_TITLES.put(PatchFamily.CROP_GUARD, "Never send an uncropped photo");
+        ROW_TITLES.put(PatchFamily.CAPTION_ORDER, "Keep captions with their photos");
+        ROW_TITLES.put(PatchFamily.PROXY_MENU, "Proxy in the chat list menu");
+        ROW_TITLES.put(PatchFamily.FREE_PROXIES, "Free proxies");
+        ROW_TITLES.put(PatchFamily.MY_MESSAGES, "My messages");
+        ROW_TITLES.put(PatchFamily.TEXT_DIRECTION, "Text direction");
+        ROW_TITLES.put(PatchFamily.LYRICS, "Lyrics in the music player");
+        ROW_TITLES.put(PatchFamily.CHAT_PREVIEW_BUTTONS, "Buttons in chat previews");
     }
 
     /** The sections every build has, in the order they're drawn. */
@@ -300,7 +309,14 @@ public class HushTelegramPreferenceFragmentTest {
                 for (PatchFamily family : PatchFamily.values()) {
                     for (BooleanSetting setting : family.switches) {
                         boolean drawn = page.findPreference(setting.key) != null;
-                        if (drawn != build.contains(family)) wrong.add(build + ": " + setting.key + (drawn ? " is drawn" : " isn't drawn"));
+                        // Ghost mode exceptions are picked from Hide picked chats' list and long press menu,
+                        // and Delete for them keeps its copy on Keep deleted messages' list.
+                        boolean expected = build.contains(family)
+                                && (setting != Settings.GHOST_CHATS && setting != Settings.FAKE_TYPING
+                                        || build.contains(PatchFamily.HIDE_FOLDER_COUNTERS))
+                                && (setting != Settings.MESSAGE_MENU_DELETE_FOR_THEM
+                                        || build.contains(PatchFamily.KEEP_DELETED_MESSAGES));
+                        if (drawn != expected) wrong.add(build + ": " + setting.key + (drawn ? " is drawn" : " isn't drawn"));
                     }
                 }
 
@@ -367,6 +383,38 @@ public class HushTelegramPreferenceFragmentTest {
                     + "Ghost mode is on.", String.valueOf(page.findPreference(Settings.GHOST_BUTTON.key).getSummary()));
             // The chat list's top bar stays as Telegram made it until the button is asked for.
             assertFalse(Settings.GHOST_BUTTON.key, ((SwitchPreference) page.findPreference(Settings.GHOST_BUTTON.key)).isChecked());
+            assertEquals("Read after you reply", String.valueOf(page.findPreference(Settings.GHOST_READ_AFTER_SEND.key).getTitle()));
+            assertEquals("When you send a message in a chat, the read receipt Ghost mode held back there goes out too, so "
+                    + "your other devices stop showing it unread. Works with Ghost mode and No read receipts on.",
+                    String.valueOf(page.findPreference(Settings.GHOST_READ_AFTER_SEND.key).getSummary()));
+            assertEquals("Read receipts button", String.valueOf(page.findPreference(Settings.GHOST_READS_BUTTON.key).getTitle()));
+            assertEquals("A double check at the top of the chat list sends the read receipts Ghost mode is holding for "
+                    + "the account you're on, from chats read since Telegram last started. Shows with Ghost mode and No "
+                    + "read receipts on.", String.valueOf(page.findPreference(Settings.GHOST_READS_BUTTON.key).getSummary()));
+            assertEquals("Ghost mode exceptions", String.valueOf(page.findPreference(Settings.GHOST_CHATS.key).getTitle()));
+            assertEquals("The chats you pick work the other way around. While Ghost mode is on they act as usual, and "
+                    + "while it's off the Ghost mode switches above apply there. Long press chats in the chat list and "
+                    + "use the three dots to add them. Online status follows Ghost mode everywhere.",
+                    String.valueOf(page.findPreference(Settings.GHOST_CHATS.key).getSummary()));
+            assertEquals("Fake typing", String.valueOf(page.findPreference(Settings.FAKE_TYPING.key).getTitle()));
+            assertEquals("Adds Fake typing to the three dots menu when you long press chats in the chat list. The chats "
+                    + "you pick show you typing for 10 minutes, or until you pick them again, even with Ghost mode on.",
+                    String.valueOf(page.findPreference(Settings.FAKE_TYPING.key).getSummary()));
+            assertEquals("Instant lock", String.valueOf(page.findPreference(Settings.INSTANT_LOCK.key).getTitle()));
+            assertEquals("With a Telegram passcode set, Telegram locks a second or two after you leave it instead of "
+                    + "waiting for Auto-lock. Turning this off brings your Auto-lock time back.",
+                    String.valueOf(page.findPreference(Settings.INSTANT_LOCK.key).getSummary()));
+            assertFalse(Settings.INSTANT_LOCK.key, ((SwitchPreference) page.findPreference(Settings.INSTANT_LOCK.key)).isChecked());
+            assertEquals("Don't notify contacts", String.valueOf(page.findPreference(Settings.QUIET_SIGN_UP.key).getTitle()));
+            assertEquals("When you sign up a phone number that's new to Telegram, people who have it saved aren't told "
+                    + "you joined. Accounts that already exist aren't affected.",
+                    String.valueOf(page.findPreference(Settings.QUIET_SIGN_UP.key).getSummary()));
+            assertFalse(Settings.QUIET_SIGN_UP.key, ((SwitchPreference) page.findPreference(Settings.QUIET_SIGN_UP.key)).isChecked());
+            // Held reads stay held until one of the two ways out is asked for.
+            assertFalse(Settings.GHOST_READ_AFTER_SEND.key,
+                    ((SwitchPreference) page.findPreference(Settings.GHOST_READ_AFTER_SEND.key)).isChecked());
+            assertFalse(Settings.GHOST_READS_BUTTON.key,
+                    ((SwitchPreference) page.findPreference(Settings.GHOST_READS_BUTTON.key)).isChecked());
             // Receipts go out as usual until Ghost mode itself is turned on; its two parts start on under it.
             assertFalse(Settings.GHOST_MODE.key, ((SwitchPreference) page.findPreference(Settings.GHOST_MODE.key)).isChecked());
             assertTrue(Settings.GHOST_READS.key, ((SwitchPreference) page.findPreference(Settings.GHOST_READS.key)).isChecked());
@@ -714,7 +762,8 @@ public class HushTelegramPreferenceFragmentTest {
                     ((SwitchPreference) page.findPreference(Settings.CHAT_TYPE_FOLDERS.key)).isChecked());
             assertEquals("Hide sender names when forwarding", String.valueOf(page.findPreference(Settings.FORWARD_HIDE_SENDER.key).getTitle()));
             assertEquals("Each new forward starts with Hide sender's name turned on, so copies arrive without the "
-                    + "original author. You can still turn it off before sending.",
+                    + "original author, even when you pick several chats at once. You can still turn it off in the forward "
+                    + "preview, or by holding the send button in the Share sheet. Forwards to Saved Messages keep the sender.",
                     String.valueOf(page.findPreference(Settings.FORWARD_HIDE_SENDER.key).getSummary()));
             // Forwards show the sender until the switch is turned on.
             assertFalse(Settings.FORWARD_HIDE_SENDER.key,
@@ -2039,6 +2088,81 @@ public class HushTelegramPreferenceFragmentTest {
             assertEquals("No chats hidden yet.", HushTelegramPreferenceFragment.hiddenChatsSummary(null));
         } finally {
             HiddenChatsForTests.restore();
+        }
+    }
+
+    /**
+     * Ghost mode exceptions sits under Ghost mode with a row that lists the account's chats to tick.
+     * Saving keeps the exceptions another account picked, and chats hidden behind the passcode stay
+     * out of the list.
+     */
+    @Test
+    public void theExceptionChatsRowListsTheChatsAndSavesTheTicks() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.DISABLE_ANALYTICS);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushTelegramPreferenceFragment page = pageOf(controller);
+            assertNull("the list comes from Hide picked chats' hooks", page.findPreference(Settings.GHOST_CHATS.key));
+            assertNull(page.findPreference(HushTelegramPreferenceFragment.GHOST_CHATS_ROW));
+        }
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.DISABLE_ANALYTICS, PatchFamily.HIDE_FOLDER_COUNTERS);
+        HiddenChatsForTests.Fake telegram = HiddenChatsForTests.use(new HiddenChatsForTests.Fake().chats(0, 0, 11, 12).chats(0, 1, 13));
+        telegram.users.put(0, 1000L);
+        telegram.names.put(11L, "Alice");
+        telegram.names.put(12L, "Book club");
+        telegram.names.put(13L, "Old news");
+        // An exception picked on another account.
+        assertTrue(GhostChats.save(new LinkedHashSet<>(Collections.singletonList(99L))));
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            List<Preference> rows = new ArrayList<>();
+            collect(pageOf(controller).getPreferenceScreen(), rows);
+            int toggle = indexOfKey(rows, Settings.GHOST_CHATS.key);
+            assertEquals("Ghost mode exceptions", String.valueOf(rows.get(toggle).getTitle()));
+            assertFalse("off until asked for", ((SwitchPreference) rows.get(toggle)).isChecked());
+            Preference chats = rows.get(toggle + 1);
+            assertEquals(HushTelegramPreferenceFragment.GHOST_CHATS_ROW, chats.getKey());
+            assertEquals("Exception chats", String.valueOf(chats.getTitle()));
+            assertFalse(chats.isPersistent());
+            assertEquals("No chats picked yet.", String.valueOf(chats.getSummary()));
+
+            AlertDialog list = dialogOf(chats);
+            assertEquals("Exception chats", String.valueOf(shadowOf(list).getTitle()));
+            assertEquals(3, list.getListView().getCount());
+            shadowOf(list).clickOnItem(0);
+            shadowOf(list).clickOnItem(2);
+            list.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            settle();
+            assertFalse(list.isShowing());
+            assertEquals(new LinkedHashSet<>(Arrays.asList(99L, 11L, 13L)), GhostChats.chats());
+            assertEquals("Alice, Old news", String.valueOf(chats.getSummary()));
+
+            // Unticking takes a chat out and leaves the rest.
+            list = dialogOf(chats);
+            assertTrue(list.getListView().isItemChecked(0) && list.getListView().isItemChecked(2));
+            shadowOf(list).clickOnItem(0);
+            list.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            settle();
+            assertEquals(new LinkedHashSet<>(Arrays.asList(99L, 13L)), GhostChats.chats());
+
+            // Hidden chats behind the passcode stay out of this list and its summary.
+            AppPasscodeForTests.use("2468");
+            Settings.HIDDEN_CHATS_PASSCODE.save(true);
+            assertTrue(HiddenChats.hide(1000, new LinkedHashSet<>(Collections.singletonList(13L))));
+            assertEquals("No chats picked yet.", HushTelegramPreferenceFragment.ghostChatsSummary(
+                    HiddenChats.shown(), GhostChats.chats(), true));
+            list = dialogOf(chats);
+            List<String> labels = new ArrayList<>();
+            for (int i = 0; i < list.getListView().getCount(); i++) {
+                labels.add(String.valueOf(list.getListView().getAdapter().getItem(i)));
+            }
+            assertEquals(Arrays.asList("Alice", "Book club"), labels);
+            list.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            settle();
+            assertEquals("its exception stays", new LinkedHashSet<>(Arrays.asList(99L, 13L)), GhostChats.chats());
+        } finally {
+            AppPasscodeForTests.restore();
+            Settings.HIDDEN_CHATS_PASSCODE.resetToDefault();
+            HiddenChatsForTests.restore();
+            GhostChats.save(Collections.emptySet());
         }
     }
 

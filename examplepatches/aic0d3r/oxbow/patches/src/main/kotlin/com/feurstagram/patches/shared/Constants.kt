@@ -19,7 +19,7 @@ object Constants {
         appIconColor = 0xFC483C,
         // Pinned to the tested build; bump on each Instagram update after verifying patches.
         targets = listOf(
-            AppTarget(version = "454.0.0.54.77"),
+            AppTarget(version = "455.0.0.51.72"),
         ),
     )
 }

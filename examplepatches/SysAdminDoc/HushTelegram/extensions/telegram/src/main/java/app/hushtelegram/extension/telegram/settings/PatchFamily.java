@@ -91,7 +91,7 @@ public enum PatchFamily {
     HIDE_FOLDER_COUNTERS(FamilyNames.HIDE_FOLDER_COUNTERS, "hideFolderCounters", null, Settings.HIDE_FOLDER_COUNTERS,
             Settings.LAUNCH_FOLDER, Settings.HIDE_ALL_CHATS, Settings.MOVE_ALL_CHATS, Settings.HIDDEN_CHATS, Settings.SORT_BY_DATE,
             Settings.SORT_OLDEST_FIRST, Settings.HIDDEN_CHATS_PASSCODE, Settings.ADMIN_CHATS,
-            Settings.HIDE_ACCOUNTS, Settings.HIDDEN_ACCOUNTS_LOCK, Settings.FIT_ALL_TABS),
+            Settings.HIDE_ACCOUNTS, Settings.HIDDEN_ACCOUNTS_LOCK, Settings.FIT_ALL_TABS, Settings.FOLDER_TAB_ICONS),
     FORWARD_HIDE_SENDER(FamilyNames.FORWARD_HIDE_SENDER, "forwardHideSender", null, Settings.FORWARD_HIDE_SENDER),
     VOICE_MUSIC_PLAYER(FamilyNames.VOICE_MUSIC_PLAYER, "voiceMusicPlayer", null, Settings.VOICE_MUSIC_PLAYER,
             Settings.PLAYBACK_POSITION),
@@ -105,7 +105,7 @@ public enum PatchFamily {
     HIDE_BLOCKED_IN_GROUPS(FamilyNames.HIDE_BLOCKED_IN_GROUPS, "hideBlockedInGroups", null, Settings.HIDE_BLOCKED_IN_GROUPS),
     HIDE_BY_KEYWORD(FamilyNames.HIDE_BY_KEYWORD, "hideByKeyword", null, Settings.HIDE_BY_KEYWORD),
     HIDE_FEATURES_AND_INVITE(FamilyNames.HIDE_FEATURES_AND_INVITE, "hideFeaturesAndInvite", null, Settings.HIDE_FEATURES_AND_INVITE),
-    MESSAGE_MENU_REPEAT(FamilyNames.MESSAGE_MENU_REPEAT, "messageMenuRepeat", null, Settings.MESSAGE_MENU_REPEAT, Settings.MESSAGE_MENU_COPY_PHOTO, Settings.MESSAGE_MENU_DETAILS, Settings.MESSAGE_MENU_QUICK_FORWARD, Settings.MESSAGE_MENU_COPY_PROTECTED, Settings.MESSAGE_MENU_SAVE_PROTECTED, Settings.MESSAGE_MENU_FORWARD_COPY, Settings.MESSAGE_MENU_FAST_FORWARD, Settings.MESSAGE_MENU_FORWARD_SAVED, Settings.MESSAGE_MENU_SAVE_COVER, Settings.MESSAGE_MENU_SAVE_ART, Settings.MESSAGE_MENU_CLEAR_CACHE, Settings.STORY_SAVE_BUTTON, Settings.ALLOW_SCREENSHOTS, Settings.SELECT_BETWEEN),
+    MESSAGE_MENU_REPEAT(FamilyNames.MESSAGE_MENU_REPEAT, "messageMenuRepeat", null, Settings.MESSAGE_MENU_REPEAT, Settings.MESSAGE_MENU_COPY_PHOTO, Settings.MESSAGE_MENU_DETAILS, Settings.MESSAGE_MENU_QUICK_FORWARD, Settings.MESSAGE_MENU_COPY_PROTECTED, Settings.MESSAGE_MENU_SAVE_PROTECTED, Settings.MESSAGE_MENU_FORWARD_COPY, Settings.MESSAGE_MENU_FAST_FORWARD, Settings.MESSAGE_MENU_FORWARD_SAVED, Settings.MESSAGE_MENU_SAVE_COVER, Settings.MESSAGE_MENU_SAVE_ART, Settings.MESSAGE_MENU_CLEAR_CACHE, Settings.MESSAGE_MENU_HIDE, Settings.MESSAGE_MENU_PLAIN_FORWARD, Settings.MESSAGE_MENU_DELETE_FOR_THEM, Settings.STORY_SAVE_BUTTON, Settings.ALLOW_SCREENSHOTS, Settings.SELECT_BETWEEN, Settings.SELECTION_SCREENSHOT),
     KEEP_DELETED_MESSAGES(FamilyNames.KEEP_DELETED_MESSAGES, "keepDeleted", null, Settings.KEEP_DELETED_MESSAGES, Settings.RED_DELETED_LABEL,
             Settings.KEEP_EDIT_HISTORY, Settings.KEEP_TIMED_MEDIA),
     ASK_BEFORE_STICKER(FamilyNames.ASK_BEFORE_STICKER, "askBeforeSending", null, Settings.ASK_BEFORE_STICKER, Settings.ASK_BEFORE_GIF, Settings.ASK_BEFORE_VOICE_VIDEO, Settings.ASK_BEFORE_CALL),
@@ -121,7 +121,9 @@ public enum PatchFamily {
     CHAT_TYPE_FOLDERS(FamilyNames.CHAT_TYPE_FOLDERS, "chatTypeFolders", null, Settings.CHAT_TYPE_FOLDERS),
     DISABLE_ANALYTICS(FamilyNames.DISABLE_ANALYTICS, "disableAnalytics", null,
             Settings.DISABLE_ANALYTICS, Settings.GHOST_MODE, Settings.GHOST_READS, Settings.GHOST_STORIES,
-            Settings.GHOST_TYPING, Settings.GHOST_ONLINE, Settings.GHOST_BUTTON, Settings.RECEIVE_ONLY, Settings.POWER_OFF_ACCOUNTS),
+            Settings.GHOST_TYPING, Settings.GHOST_ONLINE, Settings.GHOST_BUTTON, Settings.GHOST_READ_AFTER_SEND,
+            Settings.GHOST_READS_BUTTON, Settings.GHOST_CHATS, Settings.FAKE_TYPING, Settings.RECEIVE_ONLY,
+            Settings.POWER_OFF_ACCOUNTS, Settings.INSTANT_LOCK, Settings.QUIET_SIGN_UP),
     DISABLE_CALL_DEBUG(FamilyNames.DISABLE_CALL_DEBUG, "disableCallDebug", null,
             Settings.DISABLE_CALL_DEBUG, Settings.RECORD_CALLS, Settings.RECORD_CALL_BUTTON),
     DISABLE_DRAFT_PREVIEWS(FamilyNames.DISABLE_DRAFT_PREVIEWS, "disableDraftPreviews", null,
@@ -147,7 +149,15 @@ public enum PatchFamily {
             Settings.BYPASS_CHANNEL_RESTRICTIONS, Settings.OPEN_RESTRICTED_CHATS),
     BYPASS_INTEGRITY_CHECK(FamilyNames.BYPASS_INTEGRITY_CHECK, "bypassIntegrityCheck", null,
             Settings.BYPASS_INTEGRITY_CHECK),
-    AUTO_FORWARDING(FamilyNames.AUTO_FORWARDING, "autoForwarding", null, Settings.AUTO_FORWARDING);
+    AUTO_FORWARDING(FamilyNames.AUTO_FORWARDING, "autoForwarding", null, Settings.AUTO_FORWARDING),
+    CROP_GUARD(FamilyNames.CROP_GUARD, "cropGuard", null, Settings.CROP_GUARD),
+    CAPTION_ORDER(FamilyNames.CAPTION_ORDER, "captionOrder", null, Settings.CAPTION_ORDER),
+    PROXY_MENU(FamilyNames.PROXY_MENU, "proxyMenu", null, Settings.PROXY_MENU),
+    FREE_PROXIES(FamilyNames.FREE_PROXIES, "freeProxies", null, Settings.FREE_PROXIES, Settings.SIGN_IN_PROXY),
+    MY_MESSAGES(FamilyNames.MY_MESSAGES, "myMessages", null, Settings.MY_MESSAGES),
+    TEXT_DIRECTION(FamilyNames.TEXT_DIRECTION, "textDirection", null, Settings.TEXT_DIRECTION),
+    LYRICS(FamilyNames.LYRICS, "lyrics", null, Settings.LYRICS, Settings.SONG_DATES),
+    CHAT_PREVIEW_BUTTONS(FamilyNames.CHAT_PREVIEW_BUTTONS, "chatPreviewButtons", null, Settings.CHAT_PREVIEW_BUTTONS);
 
     /** The patch's name in Morphe Manager. */
     public final String patchName;
@@ -202,13 +212,15 @@ public enum PatchFamily {
      */
     enum Page {
         ADS("Ads", HIDE_ADS, HIDE_COMMERCE, HIDE_PROMOTIONAL_BANNERS, HIDE_SPONSORED_PROXY, HIDE_POPULAR_APPS),
-        CHAT_LIST("Chat list", HIDE_STORIES, HIDE_CONTACTS_BLOCK, DISABLE_CHAT_SWIPE, DISABLE_ARCHIVE_PULL,
-                HIDE_FOLDER_COUNTERS, CHAT_TYPE_FOLDERS, HIDE_CONTACTS_TAB, TEST_SERVER_SIGN_IN, BOT_TOKEN_SIGN_IN),
+        CHAT_LIST("Chat list", HIDE_STORIES, HIDE_CONTACTS_BLOCK, DISABLE_CHAT_SWIPE, CHAT_PREVIEW_BUTTONS,
+                DISABLE_ARCHIVE_PULL, HIDE_FOLDER_COUNTERS, CHAT_TYPE_FOLDERS, HIDE_CONTACTS_TAB, PROXY_MENU, FREE_PROXIES,
+                TEST_SERVER_SIGN_IN, BOT_TOKEN_SIGN_IN),
         CONVERSATIONS("Conversations", HIDE_GREETING_STICKERS, DISABLE_CHANNEL_PULL, NORMAL_PASTE,
                 DISABLE_DOUBLE_TAP_REACTIONS, HIDE_TRANSLATE_BAR, OUTSIDE_TRANSLATE, REVEAL_SPOILERS, FORWARD_HIDE_SENDER,
                 REAR_CAMERA_FIRST, HIDE_GALLERY_CAMERA_TILE, HIDE_BLOCKED_IN_GROUPS, HIDE_BY_KEYWORD, MESSAGE_MENU_REPEAT,
-                KEEP_DELETED_MESSAGES, ASK_BEFORE_STICKER),
-        PLAYBACK("Playback", KEEP_VIDEOS_MUTED, VOICE_ONE_AT_A_TIME, VOICE_MUSIC_PLAYER, FASTER_DOWNLOADS, SAVE_DOWNLOADS),
+                KEEP_DELETED_MESSAGES, ASK_BEFORE_STICKER, CROP_GUARD, CAPTION_ORDER, MY_MESSAGES, TEXT_DIRECTION),
+        PLAYBACK("Playback", KEEP_VIDEOS_MUTED, VOICE_ONE_AT_A_TIME, VOICE_MUSIC_PLAYER, LYRICS, FASTER_DOWNLOADS,
+                SAVE_DOWNLOADS),
         NOTIFICATIONS("Notifications", REPAIR_FIREBASE_PUSH, UNIFIED_PUSH, SILENCE_NON_CONTACTS, IGNORE_MUTED_MENTIONS),
         LOOK("Look and feel", HIDE_RECOMMENDATIONS, QUIET_CONTACTS_NAG, SHOW_LOCAL_IDS, HOLIDAY_LOOK, USE_SYSTEM_FONT,
                 AMOLED_BLACK, EXACT_NUMBERS, HIDE_KEYBOARD_ON_SCROLL, SWIPE_BACK_ON_PROFILES, MESSAGE_SECONDS,
@@ -261,9 +273,9 @@ public enum PatchFamily {
      */
     enum Group {
         IN_A_CHAT(Page.CONVERSATIONS, "In a chat", HIDE_GREETING_STICKERS, DISABLE_CHANNEL_PULL, NORMAL_PASTE,
-                DISABLE_DOUBLE_TAP_REACTIONS, REVEAL_SPOILERS),
+                DISABLE_DOUBLE_TAP_REACTIONS, REVEAL_SPOILERS, MY_MESSAGES, TEXT_DIRECTION),
         MESSAGE_MENU(Page.CONVERSATIONS, "Message menu", MESSAGE_MENU_REPEAT),
-        SENDING(Page.CONVERSATIONS, "Sending", FORWARD_HIDE_SENDER, ASK_BEFORE_STICKER),
+        SENDING(Page.CONVERSATIONS, "Sending", FORWARD_HIDE_SENDER, ASK_BEFORE_STICKER, CROP_GUARD, CAPTION_ORDER),
         ATTACHMENT_MENU(Page.CONVERSATIONS, "Attachment menu", REAR_CAMERA_FIRST, HIDE_GALLERY_CAMERA_TILE),
         TRANSLATION(Page.CONVERSATIONS, "Translation", HIDE_TRANSLATE_BAR, OUTSIDE_TRANSLATE),
         HIDDEN_MESSAGES(Page.CONVERSATIONS, "Hidden messages", HIDE_BLOCKED_IN_GROUPS, HIDE_BY_KEYWORD),
@@ -344,6 +356,8 @@ public enum PatchFamily {
         GHOST_MODE(DISABLE_ANALYTICS, "ghostMode", "read receipts and story views", true),
         RECEIVE_ONLY(DISABLE_ANALYTICS, "receiveOnly", "receive only mode", true),
         POWER_OFF_ACCOUNTS(DISABLE_ANALYTICS, "powerOff", "powering off accounts", true),
+        INSTANT_LOCK(DISABLE_ANALYTICS, "instantLock", "instant lock", true),
+        QUIET_SIGN_UP(DISABLE_ANALYTICS, "quietSignUp", "quiet sign-up", true),
         CALL_DEBUG_UPLOAD(DISABLE_CALL_DEBUG, "callDebugUpload", "call debug reports"),
         CALL_LOG_FILE_UPLOAD(DISABLE_CALL_DEBUG, "callLogFileUpload", "call log file uploads"),
         CALL_LOG_UPLOAD(DISABLE_CALL_DEBUG, "callLogUpload", "call log reports"),
@@ -391,9 +405,11 @@ public enum PatchFamily {
         REACTION_SELECTION(DISABLE_DOUBLE_TAP_REACTIONS, "reactionSelection", "the reaction bubble on selected messages", true),
         EMOJI_PACK_NOTE(DISABLE_DOUBLE_TAP_REACTIONS, "emojiPackNote", "the emoji pack line in the message menu", true),
         SELECT_BETWEEN(MESSAGE_MENU_REPEAT, "selectBetween", "selecting everything between two messages", true),
+        SELECTION_SCREENSHOT(MESSAGE_MENU_REPEAT, "selectionScreenshot", "screenshots of selected messages", true),
         COPY_SELECTION(MESSAGE_MENU_REPEAT, "copySelection", "text selection in chats that don't allow saving", true),
         STORY_SAVE(MESSAGE_MENU_REPEAT, "storySave", "Save to Gallery in stories", true),
         SCREENSHOTS(MESSAGE_MENU_REPEAT, "allowScreenshots", "screenshots in chats that don't allow saving", true),
+        HIDE_FOR_ME(MESSAGE_MENU_REPEAT, "hideForMe", "hiding messages for you", true),
         EXTERNAL_BROWSER_ROUTING(OPEN_EXTERNAL_LINKS, "externalBrowserRouting", "external browser routing"),
         MINI_APP_LOCATION(OPEN_EXTERNAL_LINKS, "miniAppLocation", "Mini App and web page location", true),
         OPENED_LINK_TRACKING(STRIP_LINK_TRACKING, "openedLinkTracking", "opened link tracking"),
@@ -413,6 +429,7 @@ public enum PatchFamily {
         SORT_BY_DATE(HIDE_FOLDER_COUNTERS, "sortByDate", "chat list ordered by date", true),
         ADMIN_CHATS(HIDE_FOLDER_COUNTERS, "adminChats", "the Administrators filter", true),
         FIT_TABS(HIDE_FOLDER_COUNTERS, "fitTabs", "the fitted folder tabs", true),
+        TAB_ICONS(HIDE_FOLDER_COUNTERS, "tabIcons", "the folder tab icons", true),
         HIDDEN_ACCOUNTS(HIDE_FOLDER_COUNTERS, "hiddenAccounts", "the hidden accounts", true),
         HIDDEN_PASSCODE(HIDE_FOLDER_COUNTERS, "hiddenPasscode", "the app passcode for hidden chats", true),
         HIDDEN_UNREAD(HIDE_FOLDER_COUNTERS, "hiddenUnread", "hidden chats in the unread counts", true),
@@ -437,7 +454,9 @@ public enum PatchFamily {
         FIREBASE_LOCAL_STATUS(REPAIR_FIREBASE_PUSH, "firebaseLocalStatus", "local notification status"),
         KEEP_ALIVE_RUNNING(REPAIR_FIREBASE_PUSH, "keepAliveRunning", "Keep-Alive Service start", true),
         REACTION_ALERTS(UNIFIED_PUSH, "reactionAlerts", "reaction notifications without push", true),
-        REACTION_SOUND(UNIFIED_PUSH, "reactionSound", "sound for reaction notifications", true);
+        REACTION_SOUND(UNIFIED_PUSH, "reactionSound", "sound for reaction notifications", true),
+        PROXY_ORDER(FREE_PROXIES, "proxyOrder", "proxy order", true),
+        SONG_DATES(LYRICS, "songDates", "dates on your profile songs", true);
 
         public final PatchFamily family;
         final String statusMethod;

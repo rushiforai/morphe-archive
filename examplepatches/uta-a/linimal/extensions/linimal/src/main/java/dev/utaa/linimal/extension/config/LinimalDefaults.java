@@ -22,6 +22,7 @@ public final class LinimalDefaults {
             case AGENT_I_WALLET_HEADER:
             case AGENT_I_SETTINGS:
             case AGENT_I_CHAT_COMPOSER:
+            case AGENT_I_CHAT_PLUS_MENU:
             case AGENT_I_CHAT_LIST_SEARCH:
             case LINE_AI_MESSAGE_CONTEXT_MENU:
             case LINE_AI_GALLERY_VIEWER:
@@ -35,6 +36,7 @@ public final class LinimalDefaults {
             case PREMIUM_SETTINGS_ROW:
             case PREMIUM_PREVIEW_PROMOTION:
             case PREVIEW_SCROLL:
+            case PREVIEW_DISABLE:
             case AMOLED_THEME:
             case SHOPPING:
             case NEWS:
@@ -44,12 +46,19 @@ public final class LinimalDefaults {
             case HOME_TRENDING:
             case HOME_FEED_POST_CARDS:
             case HOME_FEATURED_COLLECTIONS:
+            case HOME_FEED_LIVE:
             case HOME_RECENT_HISTORY:
             case CHAT_CALENDAR:
             case CHAT_LINE_GIFT:
             case CHAT_LINE_PAY:
             case READ_WITHOUT_RECEIPT:
             case NOTIFICATION_READ_WITHOUT_RECEIPT:
+            case READ_RECEIPT_READERS_ICONS:
+            case READ_RECEIPT_READERS_TAP:
+            case READ_RECEIPT_READERS_OTHERS_COUNT:
+            case READ_RECEIPT_READERS_OTHERS_ICONS:
+            case READ_RECEIPT_READERS_MENU:
+            case READ_RECEIPT_READERS_SERVER_SYNC:
             case CHAT_LIST_HEADER_AI_FRIENDS:
             case CHAT_LIST_HEADER_CALENDAR:
             case CHAT_LIST_HEADER_OPEN_CHAT:

@@ -55,6 +55,19 @@ object Strings {
         "Dim thumbnails, hide AI works, block AI artists, tag blacklist"
     )
 
+    val searchRanking: String get() = pick("热门搜索排序", "人気順検索の並べ替え", "Popular search ranking")
+    val searchRankingHint: String get() = pick(
+        "预览＝Pixiv 免费给的热度榜（约 30 张）；重排＝把当前页按收藏数重排。点击切换。",
+        "プレビュー＝Pixivが無料で返す人気上位（約30件）；並べ替え＝現在のページをブックマーク数順に。タップで切替。",
+        "Preview = Pixiv's free popularity list (about 30 works); Re-rank = sort the current page by bookmarks. Tap to switch."
+    )
+
+    fun searchRankingMode(mode: Int): String = when (mode) {
+        0 -> pick("关闭", "オフ", "Off")
+        1 -> pick("热度预览", "人気プレビュー", "Preview")
+        else -> pick("按收藏重排", "ブックマーク順", "Re-rank")
+    }
+
     val aiTitle: String get() = pick("AI 作品过滤设置", "AI作品フィルター設定", "AI Work Filter Settings")
     val aiDisplaySection: String get() = pick("显示偏好", "表示設定", "DISPLAY PREFERENCES")
     val aiHideWorks: String get() = pick("完全隐藏 AI 作品", "AI作品を完全に非表示", "Hide AI Works Completely")

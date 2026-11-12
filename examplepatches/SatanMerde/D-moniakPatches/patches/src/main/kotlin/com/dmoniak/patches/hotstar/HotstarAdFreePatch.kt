@@ -9,7 +9,6 @@ import com.dmoniak.patches.shared.Constants.COMPATIBILITY_HOTSTAR
 import com.dmoniak.patches.shared.replaceMethod
 import java.util.logging.Logger
 
-@Suppress("unused")
 val hotstarAdFreePatch = bytecodePatch(
     name = "Ad-Free & Live Sports Ad-Block - JioHotstar",
     description = "Strips pre-roll, mid-roll, and live cricket match video ads (SSAI), and eliminates feed banners and sponsored cards in JioHotstar.",
@@ -26,9 +25,6 @@ fun BytecodePatchContext.executeHotstarAdFreeLogic(logger: Logger) {
     logger.info("Executing battle-tested Ad-Free & Live Sports Ad-Block patch for JioHotstar (in.startv.hotstar)...")
 
     // 1. SSAI & AdMetadata constructor hook
-    // Force: disablePreRoll=true(p1), disableMidRoll=true(p2),
-    //        hasPreRoll=false(p3), hasPlayablePreRoll=false(p4), enableMidRollLoad=false(p5)
-    // Clear ssaiTag (p6) to completely eliminate live match SSAI (Server-Side Ad Insertion) ads
     try {
         AdMetadataConstructorFingerprint.method.addInstructions(
             0,
@@ -217,99 +213,280 @@ fun BytecodePatchContext.executeHotstarAdFreeLogic(logger: Logger) {
     // 7. Comprehensive Google IMA SDK & FreeWheel suppression
     var hookedPoints = executeComprehensiveAdBlock(logger, "JioHotstar")
 
-    // 10. Generic heuristics for any remaining ad widgets & state getters
+    // 8. Enhanced Live-Stream SCTE-35 & SGAI Ad-Filler Neutralization
+    // Surgical hooks for:
+    // - CustomScteEventScheduler (Media3 & ExoPlayer2): disables live ad event scheduling & cue evaluation
+    // - HlsCustomScteResolver: neutralizes SCTE-35 cue queueing
+    // - AdFillerConfigsRepository: suppresses network fetching of filler ad configs
+    // - AdFillerConfigsLocalDataSource: suppresses reading/writing local cached filler ads
+    // - AdFillerConfigsJsonParser & AdFillerMediaConfigsDTO: returns empty filler media mapping
     classDefForEach { classDef ->
         val type = classDef.type
         val tl = type.lowercase()
-        if (tl.startsWith("landroidx/") || tl.startsWith("lkotlin/") || tl.startsWith("ljava/")) return@classDefForEach
+        if (!tl.startsWith("landroidx/") && !tl.startsWith("lkotlin/") && !tl.startsWith("ljava/")) {
+            val mutableClass by lazy { mutableClassDefBy(classDef) }
 
-        val mutableClass by lazy { mutableClassDefBy(classDef) }
-        val isAdRelated = tl.contains("ad") || tl.contains("ads") || tl.contains("preroll") ||
-                tl.contains("midroll") || tl.contains("adpod") || tl.contains("freewheel") ||
-                tl.contains("interactivemedia") || tl.contains("sponsored") || tl.contains("videoplayer")
+            var isCustomScteScheduler = false
+            var isHlsCustomScteResolver = false
+            var isAdFillerRepo = false
+            var isAdFillerLocal = false
+            var isAdFillerParser = false
 
-        if (isAdRelated) {
-            for (method in classDef.methods.toList()) {
-                if (method.implementation == null) continue
-                val isStatic = AccessFlags.STATIC.isSet(method.accessFlags)
-                val mName = method.name.lowercase()
-                val retType = method.returnType
-
-                val isAdFreeCheck = !isStatic && (
-                    mName == "isadfree" ||
-                    mName == "isadfreeuser" ||
-                    mName == "hasadfreeexperience" ||
-                    mName == "hasadfreesubscription"
-                ) && retType == "Z"
-
-                if (isAdFreeCheck) {
-                    try {
-                        mutableClass.replaceMethod(
-                            method,
-                            registerCount = 2,
-                            smaliCode = """
-                                const/4 v0, 0x1
-                                return v0
-                            """.trimIndent()
-                        )
-                        hookedPoints++
-                    } catch (_: Exception) {}
+            for (method in classDef.methods) {
+                val impl = method.implementation ?: continue
+                for (ins in impl.instructions) {
+                    val insStr = ins.toString()
+                    if (insStr.contains("CustomScteEventScheduler")) isCustomScteScheduler = true
+                    if (insStr.contains("HlsCustomScteResolver")) isHlsCustomScteResolver = true
+                    if (insStr.contains("AdFillerConfigsRepository")) isAdFillerRepo = true
+                    if (insStr.contains("AdFillerConfigsLocalDataSource")) isAdFillerLocal = true
+                    if (insStr.contains("FILLER_TYPES") || insStr.contains("AdFillerMediaConfigsDTO")) isAdFillerParser = true
                 }
+            }
 
-                val isAdStatusCheck = !isStatic && (
-                    mName == "isad" ||
-                    mName == "isadplaying" ||
-                    mName == "isadshowing" ||
-                    mName == "isliveadplaying" ||
-                    mName == "isadbreakplaying" ||
-                    mName == "shouldshowads" ||
-                    mName == "shouldplayad" ||
-                    mName == "canplayad" ||
-                    mName == "hasad" ||
-                    mName == "hasadpod" ||
-                    mName == "hasadbreak" ||
-                    mName == "isadsupported"
-                ) && retType == "Z"
+            // 8.1 CustomScteEventScheduler: neutralize scheduling and firing of live ad breaks
+            if (isCustomScteScheduler) {
+                for (method in classDef.methods.toList()) {
+                    if (method.implementation == null) continue
+                    val pTypes = method.parameterTypes
+                    val retType = method.returnType
 
-                if (isAdStatusCheck) {
-                    try {
-                        mutableClass.replaceMethod(
-                            method,
-                            registerCount = 2,
-                            smaliCode = """
-                                const/4 v0, 0x0
-                                return v0
-                            """.trimIndent()
-                        )
-                        hookedPoints++
-                    } catch (_: Exception) {}
+                    if ((pTypes.size == 1 && pTypes[0].toString() == "Ljava/lang/String;" && retType == "V") ||
+                        (pTypes.isEmpty() && retType == "V" && (method.name == "c" || method.name == "f0"))
+                    ) {
+                        try {
+                            mutableClass.replaceMethod(
+                                method,
+                                registerCount = 2,
+                                smaliCode = "return-void",
+                            )
+                            hookedPoints++
+                            logger.info("[Hotstar LiveAd] Neutralized CustomScteEventScheduler.${method.name} in ${classDef.type}")
+                        } catch (e: Exception) {
+                            logger.fine("[Hotstar LiveAd] Skip scheduler hook: ${e.message}")
+                        }
+                    }
                 }
+            }
 
-                val isAdTrigger = !isStatic && (
-                    mName == "loadad" ||
-                    mName == "showad" ||
-                    mName == "playad" ||
-                    mName == "schedulead" ||
-                    mName == "requestadpod" ||
-                    mName == "requestads" ||
-                    mName == "submitrequest" ||
-                    mName == "startadplayback" ||
-                    mName == "onadbreakstarted"
-                ) && retType == "V"
+            // 8.2 HlsCustomScteResolver: neutralize SCTE-35 cue tag enqueuing
+            if (isHlsCustomScteResolver) {
+                for (method in classDef.methods.toList()) {
+                    if (method.implementation == null) continue
+                    val pTypes = method.parameterTypes
+                    val retType = method.returnType
 
-                if (isAdTrigger) {
-                    try {
-                        mutableClass.replaceMethod(
-                            method,
-                            registerCount = 2,
-                            smaliCode = "return-void"
-                        )
-                        hookedPoints++
-                    } catch (_: Exception) {}
+                    if (pTypes.size == 2 && pTypes[0].toString() == "J" && pTypes[1].toString() == "Ljava/lang/String;" && retType == "V") {
+                        try {
+                            mutableClass.replaceMethod(
+                                method,
+                                registerCount = 3,
+                                smaliCode = "return-void",
+                            )
+                            hookedPoints++
+                            logger.info("[Hotstar LiveAd] Neutralized HlsCustomScteResolver.${method.name} in ${classDef.type}")
+                        } catch (e: Exception) {
+                            logger.fine("[Hotstar LiveAd] Skip resolver hook: ${e.message}")
+                        }
+                    }
+                }
+            }
+
+            // 8.3 AdFillerConfigsRepository: suppress network fetching of filler ads
+            if (isAdFillerRepo) {
+                for (method in classDef.methods.toList()) {
+                    if (method.implementation == null) continue
+                    val pTypes = method.parameterTypes
+                    val retType = method.returnType
+
+                    if (pTypes.size == 2 && pTypes[0].toString() == "Ljava/lang/String;" && retType == "Ljava/lang/Object;") {
+                        try {
+                            mutableClass.replaceMethod(
+                                method,
+                                registerCount = 2,
+                                smaliCode = """
+                                    sget-object v0, Lkotlin/Unit;->a:Lkotlin/Unit;
+                                    return-object v0
+                                """.trimIndent(),
+                            )
+                            hookedPoints++
+                            logger.info("[Hotstar LiveAd] Neutralized AdFillerConfigsRepository.${method.name} in ${classDef.type}")
+                        } catch (e: Exception) {
+                            logger.fine("[Hotstar LiveAd] Skip repo hook: ${e.message}")
+                        }
+                    }
+                }
+            }
+
+            // 8.4 AdFillerConfigsLocalDataSource: suppress reading/writing cached filler ads
+            if (isAdFillerLocal) {
+                for (method in classDef.methods.toList()) {
+                    if (method.implementation == null) continue
+                    val pTypes = method.parameterTypes
+                    val retType = method.returnType
+
+                    if (pTypes.size == 1 && retType == "Ljava/lang/String;") {
+                        try {
+                            mutableClass.replaceMethod(
+                                method,
+                                registerCount = 2,
+                                smaliCode = """
+                                    const/4 v0, 0x0
+                                    return-object v0
+                                """.trimIndent(),
+                            )
+                            hookedPoints++
+                            logger.info("[Hotstar LiveAd] Neutralized AdFillerConfigsLocalDataSource.${method.name} (read)")
+                        } catch (e: Exception) {
+                            logger.fine("[Hotstar LiveAd] Skip local read hook: ${e.message}")
+                        }
+                    }
+
+                    if (pTypes.size == 2 && pTypes[0].toString() == "Ljava/lang/String;" && retType == "Ljava/lang/Object;") {
+                        try {
+                            mutableClass.replaceMethod(
+                                method,
+                                registerCount = 2,
+                                smaliCode = """
+                                    sget-object v0, Lkotlin/Unit;->a:Lkotlin/Unit;
+                                    return-object v0
+                                """.trimIndent(),
+                            )
+                            hookedPoints++
+                            logger.info("[Hotstar LiveAd] Neutralized AdFillerConfigsLocalDataSource.${method.name} (write)")
+                        } catch (e: Exception) {
+                            logger.fine("[Hotstar LiveAd] Skip local write hook: ${e.message}")
+                        }
+                    }
+                }
+            }
+
+            // 8.5 AdFillerConfigsJsonParser: return empty filler config mapping
+            if (isAdFillerParser) {
+                for (method in classDef.methods.toList()) {
+                    if (method.implementation == null) continue
+                    val pTypes = method.parameterTypes
+                    val retType = method.returnType
+
+                    if (pTypes.size == 1 && pTypes[0].toString() == "Ljava/lang/String;" && retType.startsWith("LFe/")) {
+                        try {
+                            mutableClass.replaceMethod(
+                                method,
+                                registerCount = 3,
+                                smaliCode = """
+                                    new-instance v0, $retType
+                                    invoke-static {}, Lkotlin/collections/MapsKt;->emptyMap()Ljava/util/Map;
+                                    move-result-object v1
+                                    invoke-static {}, Lkotlin/collections/MapsKt;->emptyMap()Ljava/util/Map;
+                                    move-result-object v2
+                                    invoke-direct {v0, v1, v2}, $retType-><init>(Ljava/util/Map;Ljava/util/Map;)V
+                                    return-object v0
+                                """.trimIndent(),
+                            )
+                            hookedPoints++
+                            logger.info("[Hotstar LiveAd] Neutralized AdFillerConfigsJsonParser.${method.name} in ${classDef.type}")
+                        } catch (e: Exception) {
+                            logger.fine("[Hotstar LiveAd] Skip parser hook: ${e.message}")
+                        }
+                    }
                 }
             }
         }
     }
 
-    logger.info("[Hotstar AdBlock] Patch completed with $hookedPoints supplemental hooks.")
+    // 9. Generic heuristics for any remaining ad widgets & state getters
+    classDefForEach { classDef ->
+        val type = classDef.type
+        val tl = type.lowercase()
+        if (!tl.startsWith("landroidx/") && !tl.startsWith("lkotlin/") && !tl.startsWith("ljava/")) {
+            val mutableClass by lazy { mutableClassDefBy(classDef) }
+            val isAdRelated = tl.contains("ad") || tl.contains("ads") || tl.contains("preroll") ||
+                    tl.contains("midroll") || tl.contains("adpod") || tl.contains("freewheel") ||
+                    tl.contains("interactivemedia") || tl.contains("sponsored") || tl.contains("videoplayer")
+
+            if (isAdRelated) {
+                for (method in classDef.methods.toList()) {
+                    if (method.implementation == null) continue
+                    val isStatic = AccessFlags.STATIC.isSet(method.accessFlags)
+                    val mName = method.name.lowercase()
+                    val retType = method.returnType
+
+                    val isAdFreeCheck = !isStatic && (
+                        mName == "isadfree" ||
+                        mName == "isadfreeuser" ||
+                        mName == "hasadfreeexperience" ||
+                        mName == "hasadfreesubscription"
+                    ) && retType == "Z"
+
+                    if (isAdFreeCheck) {
+                        try {
+                            mutableClass.replaceMethod(
+                                method,
+                                registerCount = 2,
+                                smaliCode = """
+                                    const/4 v0, 0x1
+                                    return v0
+                                """.trimIndent()
+                            )
+                            hookedPoints++
+                        } catch (e: Exception) {}
+                    }
+
+                    val isAdStatusCheck = !isStatic && (
+                        mName == "isad" ||
+                        mName == "isadplaying" ||
+                        mName == "isadshowing" ||
+                        mName == "isliveadplaying" ||
+                        mName == "isadbreakplaying" ||
+                        mName == "shouldshowads" ||
+                        mName == "shouldplayad" ||
+                        mName == "canplayad" ||
+                        mName == "hasad" ||
+                        mName == "hasadpod" ||
+                        mName == "hasadbreak" ||
+                        mName == "isadsupported"
+                    ) && retType == "Z"
+
+                    if (isAdStatusCheck) {
+                        try {
+                            mutableClass.replaceMethod(
+                                method,
+                                registerCount = 2,
+                                smaliCode = """
+                                    const/4 v0, 0x0
+                                    return v0
+                                """.trimIndent()
+                            )
+                            hookedPoints++
+                        } catch (e: Exception) {}
+                    }
+
+                    val isAdTrigger = !isStatic && (
+                        mName == "loadad" ||
+                        mName == "showad" ||
+                        mName == "playad" ||
+                        mName == "schedulead" ||
+                        mName == "requestadpod" ||
+                        mName == "requestads" ||
+                        mName == "submitrequest" ||
+                        mName == "startadplayback" ||
+                        mName == "onadbreakstarted"
+                    ) && retType == "V"
+
+                    if (isAdTrigger) {
+                        try {
+                            mutableClass.replaceMethod(
+                                method,
+                                registerCount = 2,
+                                smaliCode = "return-void"
+                            )
+                            hookedPoints++
+                        } catch (e: Exception) {}
+                    }
+                }
+            }
+        }
+    }
+
+    logger.info("[Hotstar AdBlock] Patch completed with $hookedPoints total hooks.")
 }

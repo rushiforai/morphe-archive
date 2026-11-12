@@ -238,6 +238,8 @@ public final class LinimalSettingsActivity extends Activity {
                 LinimalText.t("表示を消す"), LinimalText.t("画面ごとに表示する項目を選びます。"));
         addCategoryRow(parent, SettingsPage.READ_RECEIPT,
                 LinimalText.t("既読"), LinimalText.t("既読の送信と、既読をつけずに読む機能を設定します。"));
+        addCategoryRow(parent, SettingsPage.READ_RECEIPT_READERS,
+                LinimalText.t("既読者"), LinimalText.t("グループで誰がメッセージを読んだかを表示します。"));
         addCategoryRow(parent, SettingsPage.THEME,
                 LinimalText.t("テーマ"), LinimalText.t("LINE の画面の配色を設定します。"));
         addCategoryRow(parent, SettingsPage.GENERAL,
@@ -443,18 +445,25 @@ public final class LinimalSettingsActivity extends Activity {
         LinimalConfigHealth health = config.getRuntimeHealth();
         for (FeatureRow row : featureRows) {
             boolean available = row.patchStatus == PatchStatus.OK && health == LinimalConfigHealth.OK;
+            // 制約元の機能が ON の間は操作だけを止め、保存値はそのまま表示します。
+            LinimalFeature blocker = row.entry.getBlockedBy();
+            boolean blocked = available && blocker != null
+                    && row.entry.isBlocked(health == LinimalConfigHealth.OK, config.isSuppressionEnabled(blocker));
             String summary = row.entry.getSummary();
             if (config.isRestartPending(row.entry.getFeature())) {
                 summary = summary + "\n" + LinimalText.t(RESTART_PENDING_SUMMARY);
+            }
+            if (blocked) {
+                summary = summary + "\n" + row.entry.getBlockedSummary();
             }
             row.summary.setText(available ? summary : unavailableSummary(row.patchStatus, health));
             row.summary.setTextColor(available ? palette.secondaryText : palette.statusError);
 
             // 再描画で意図しない保存が起きないよう、listener を外してから状態を反映します。
             row.toggle.setOnCheckedChangeListener(null);
-            row.toggle.setEnabled(available);
+            row.toggle.setEnabled(available && !blocked);
             row.toggle.setChecked(available && config.isSuppressionEnabled(row.entry.getFeature()));
-            applySwitchColors(row.toggle, available);
+            applySwitchColors(row.toggle, available && !blocked);
             row.toggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton button, boolean checked) {
@@ -565,6 +574,8 @@ public final class LinimalSettingsActivity extends Activity {
                 return LinimalText.t("表示を消す");
             case READ_RECEIPT:
                 return LinimalText.t("既読");
+            case READ_RECEIPT_READERS:
+                return LinimalText.t("既読者");
             case THEME:
                 return LinimalText.t("テーマ");
             case GENERAL:

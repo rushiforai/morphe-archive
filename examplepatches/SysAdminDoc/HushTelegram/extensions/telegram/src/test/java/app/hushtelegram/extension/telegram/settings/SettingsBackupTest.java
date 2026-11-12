@@ -124,6 +124,9 @@ public class SettingsBackupTest {
                 "On, it signs Telegram up with a push app at the next start and routes every wake-up through "
                         + "that app, picking the only one installed on its own. Like the release check, that's a "
                         + "choice for the phone's own screen, not for a file someone shared.");
+        out.put("hushtelegram_free_proxies",
+                "It downloads proxy lists and connects Telegram through strangers' proxies, so like the "
+                        + "release check it's turned on from the phone's own screen, never by a file someone shared.");
         return Collections.unmodifiableMap(out);
     }
 
@@ -214,12 +217,12 @@ public class SettingsBackupTest {
                 Settings.SAVE_KINDS_LEFT_OUT), SettingsBackup.TEXTS);
         assertEquals(Arrays.asList(Settings.HIDE_ADS, Settings.HIDE_STORIES, Settings.HIDE_RECOMMENDATIONS, Settings.HIDE_KEYBOARD_FEATURED, Settings.HIDE_COMMERCE, Settings.HIDE_EMOJI_STATUS, Settings.UNLOCK_PREMIUM_ICONS, Settings.LOCAL_EMOJI_STATUS,
                         Settings.HIDE_PROMOTIONAL_BANNERS, Settings.HIDE_SPONSORED_PROXY, Settings.HIDE_POPULAR_APPS, Settings.SEARCH_ONLY_MY_CHATS, Settings.SEARCH_STYLED_NAMES, Settings.BLOCK_NEW_CHATS, Settings.DISABLE_SECRET_CHATS, Settings.HIDE_CONTACTS_BLOCK,
-                        Settings.HIDE_GREETING_STICKERS, Settings.DISABLE_CHAT_SWIPE, Settings.DISABLE_CHANNEL_PULL, Settings.DISABLE_TOPIC_PULL, Settings.NORMAL_PASTE, Settings.MENTION_BY_ID, Settings.SHOW_LOCAL_IDS, Settings.PROFILE_DATA_CENTER,
+                        Settings.HIDE_GREETING_STICKERS, Settings.DISABLE_CHAT_SWIPE, Settings.CHAT_PREVIEW_BUTTONS, Settings.DISABLE_CHANNEL_PULL, Settings.DISABLE_TOPIC_PULL, Settings.NORMAL_PASTE, Settings.MENTION_BY_ID, Settings.SHOW_LOCAL_IDS, Settings.PROFILE_DATA_CENTER,
                         Settings.SPECIAL_CONTACTS, Settings.DISABLE_DOUBLE_TAP_REACTIONS, Settings.HIDE_REACTION_ROWS, Settings.HIDE_REACTION_PICKER, Settings.HIDE_EMOJI_PACK_NOTE, Settings.QUIET_CONTACTS_NAG, Settings.HOLIDAY_LOOK, Settings.USE_SYSTEM_FONT, Settings.AMOLED_BLACK,
                         Settings.HIDE_TRANSLATE_BAR, Settings.EXACT_NUMBERS, Settings.REVEAL_SPOILERS, Settings.HIDE_KEYBOARD_ON_SCROLL, Settings.KEEP_VIDEOS_MUTED, Settings.VIDEO_EITHER_LANDSCAPE, Settings.VIDEO_ONLY_FROM_BUTTON, Settings.VIDEO_STARTS_SILENT, Settings.SWIPE_BACK_ON_PROFILES,
                         Settings.HIDE_PHONE_NUMBER, Settings.SHARE_NUMBER_UNTICKED, Settings.MESSAGE_SECONDS, Settings.ALLOW_CHAT_BLUR, Settings.VOICE_ONE_AT_A_TIME, Settings.LOCKED_VOICE_GUARD, Settings.NO_HAPTICS, Settings.REACTION_EFFECTS_OFF,
                         Settings.HIDE_FOLDER_COUNTERS, Settings.LAUNCH_FOLDER, Settings.HIDE_ALL_CHATS, Settings.MOVE_ALL_CHATS, Settings.HIDDEN_CHATS, Settings.SORT_BY_DATE, Settings.SORT_OLDEST_FIRST, Settings.HIDDEN_CHATS_PASSCODE,
-                        Settings.ADMIN_CHATS, Settings.HIDE_ACCOUNTS, Settings.HIDDEN_ACCOUNTS_LOCK, Settings.FIT_ALL_TABS, Settings.FORWARD_HIDE_SENDER, Settings.VOICE_MUSIC_PLAYER, Settings.PLAYBACK_POSITION, Settings.SELECT_BETWEEN,
+                        Settings.ADMIN_CHATS, Settings.HIDE_ACCOUNTS, Settings.HIDDEN_ACCOUNTS_LOCK, Settings.FIT_ALL_TABS, Settings.FOLDER_TAB_ICONS, Settings.FORWARD_HIDE_SENDER, Settings.VOICE_MUSIC_PLAYER, Settings.PLAYBACK_POSITION, Settings.LYRICS, Settings.SONG_DATES, Settings.SELECT_BETWEEN, Settings.SELECTION_SCREENSHOT,
                         Settings.SILENCE_NON_CONTACTS, Settings.REACTION_ALERTS, Settings.REACTION_SOUND, Settings.DISABLE_ARCHIVE_PULL, Settings.REAR_CAMERA_FIRST, Settings.HIDE_GALLERY_CAMERA_TILE, Settings.HIDE_STICKER_TIME, Settings.CHANGE_STICKER_SIZE,
                         Settings.IGNORE_MUTED_MENTIONS, Settings.HIDE_BLOCKED_IN_GROUPS, Settings.HIDE_BY_KEYWORD, Settings.HIDE_FEATURES_AND_INVITE, Settings.MESSAGE_MENU_REPEAT, Settings.KEEP_DELETED_MESSAGES, Settings.RED_DELETED_LABEL, Settings.KEEP_EDIT_HISTORY,
                         Settings.KEEP_TIMED_MEDIA, Settings.ASK_BEFORE_STICKER, Settings.OUTSIDE_TRANSLATE, Settings.HIDE_CHANNEL_BUTTONS, Settings.HIDE_CHANNEL_MUTE, Settings.HIDE_CHANNEL_SHARE, Settings.HIDE_SEND_AS, Settings.HIDE_CONTACTS_TAB,
@@ -227,11 +230,12 @@ public class SettingsBackupTest {
                         SettingsRoutes.SETTINGS_ROW, SettingsRoutes.TITLE_PRESS, SettingsRoutes.SIDE_MENU_ROW, SettingsRoutes.SHORTCUT, Settings.FASTER_DOWNLOADS, Settings.DATA_SAVER_DOWNLOADS, Settings.FASTER_UPLOADS, Settings.DOWNLOAD_MANAGER, Settings.BEST_QUALITY_MEDIA, Settings.SAVE_DOWNLOADS,
                         Settings.SAVE_RESTRICTED_DOWNLOADS, Settings.SAVE_TIMED_MEDIA, Settings.STORAGE_FOLDER, Settings.ASK_BEFORE_GIF, Settings.ASK_BEFORE_VOICE_VIDEO, Settings.ASK_BEFORE_CALL, Settings.MESSAGE_MENU_COPY_PHOTO, Settings.MESSAGE_MENU_DETAILS,
                         Settings.MESSAGE_MENU_QUICK_FORWARD, Settings.MESSAGE_MENU_COPY_PROTECTED, Settings.MESSAGE_MENU_SAVE_PROTECTED, Settings.MESSAGE_MENU_FORWARD_COPY, Settings.STORY_SAVE_BUTTON, Settings.ALLOW_SCREENSHOTS, Settings.MESSAGE_MENU_FAST_FORWARD, Settings.MESSAGE_MENU_FORWARD_SAVED, Settings.MESSAGE_MENU_SAVE_COVER,
-                        Settings.MESSAGE_MENU_SAVE_ART, Settings.MESSAGE_MENU_CLEAR_CACHE, Settings.DISABLE_ANALYTICS, Settings.GHOST_MODE, Settings.GHOST_READS, Settings.GHOST_STORIES, Settings.GHOST_TYPING, Settings.GHOST_ONLINE, Settings.GHOST_BUTTON,
-                        Settings.RECEIVE_ONLY, Settings.POWER_OFF_ACCOUNTS, Settings.DISABLE_CALL_DEBUG, Settings.RECORD_CALLS, Settings.RECORD_CALL_BUTTON, Settings.DISABLE_DRAFT_PREVIEWS, Settings.LOCAL_DRAFTS, Settings.LOCAL_SEARCH,
+                        Settings.MESSAGE_MENU_SAVE_ART, Settings.MESSAGE_MENU_CLEAR_CACHE, Settings.MESSAGE_MENU_HIDE, Settings.MESSAGE_MENU_PLAIN_FORWARD, Settings.MESSAGE_MENU_DELETE_FOR_THEM, Settings.DISABLE_ANALYTICS, Settings.GHOST_MODE, Settings.GHOST_READS, Settings.GHOST_STORIES, Settings.GHOST_TYPING, Settings.GHOST_ONLINE, Settings.GHOST_BUTTON, Settings.GHOST_READ_AFTER_SEND, Settings.GHOST_READS_BUTTON, Settings.GHOST_CHATS, Settings.FAKE_TYPING,
+                        Settings.RECEIVE_ONLY, Settings.POWER_OFF_ACCOUNTS, Settings.INSTANT_LOCK, Settings.QUIET_SIGN_UP, Settings.DISABLE_CALL_DEBUG, Settings.RECORD_CALLS, Settings.RECORD_CALL_BUTTON, Settings.DISABLE_DRAFT_PREVIEWS, Settings.LOCAL_DRAFTS, Settings.LOCAL_SEARCH,
                         Settings.GALLERY_CAMERA_ON_TAP, Settings.OPEN_EXTERNAL_LINKS, Settings.MINI_APP_LOCATION_OFF, Settings.STRIP_LINK_TRACKING, Settings.SKIP_AUTOLOGIN, Settings.STRIP_LINK_COPY_PASTE, Settings.DISABLE_UPDATE_CHECKS, Settings.REPAIR_FIREBASE_PUSH, Settings.KEEP_ALIVE_RUNNING,
                         Settings.SUPPRESS_SCREENSHOT_NOTIFICATION, Settings.UNLOCK_PREMIUM, Settings.BYPASS_CHANNEL_RESTRICTIONS,
-                        Settings.OPEN_RESTRICTED_CHATS, Settings.BYPASS_INTEGRITY_CHECK, Settings.AUTO_FORWARDING),
+                        Settings.OPEN_RESTRICTED_CHATS, Settings.BYPASS_INTEGRITY_CHECK, Settings.AUTO_FORWARDING, Settings.CROP_GUARD, Settings.CAPTION_ORDER, Settings.PROXY_MENU,
+                        Settings.SIGN_IN_PROXY, Settings.MY_MESSAGES, Settings.TEXT_DIRECTION),
                 SettingsBackup.ALLOWLIST);
     }
 

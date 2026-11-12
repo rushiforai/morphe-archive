@@ -472,18 +472,19 @@ public class HiddenChatsTest {
     @Test public void theLongPressItemFollowsTheSwitch() {
         Object list = new Object();
         HiddenChats.menuItem(list, new Object());
-        assertEquals(Collections.singletonList("48544801 Hide from chat list"), telegram.menu);
-        assertEquals(View.GONE, telegram.item.getVisibility());
+        assertEquals(Arrays.asList("48544801 Hide from chat list", "48544802 Ghost mode exception", "48544803 Fake typing"), telegram.menu);
+        View item = telegram.items.get(HiddenChats.MENU_ID);
+        assertEquals(View.GONE, item.getVisibility());
         Settings.HIDDEN_CHATS.save(true);
         HiddenChats.menuShown(list);
-        assertEquals(View.VISIBLE, telegram.item.getVisibility());
+        assertEquals(View.VISIBLE, item.getVisibility());
         Settings.HIDDEN_CHATS.save(false);
         HiddenChats.menuShown(list);
-        assertEquals(View.GONE, telegram.item.getVisibility());
+        assertEquals(View.GONE, item.getVisibility());
         // Another chat list's check leaves this one's item alone.
         Settings.HIDDEN_CHATS.save(true);
         HiddenChats.menuShown(new Object());
-        assertEquals(View.GONE, telegram.item.getVisibility());
+        assertEquals(View.GONE, item.getVisibility());
         assertFalse(report(), report().contains("threw"));
     }
 

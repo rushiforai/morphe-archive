@@ -92,6 +92,9 @@ final class AndroidAutoDownloadsArtworkData {
         long bytes = 0;
         int count = 0;
         for (Entry entry : entries) {
+            // Stream covers are evicted by AndroidAutoStreamArtworkData.
+            if (AndroidAutoStreamArtworkData.parseFileName(entry.name()) != null) continue;
+
             Key key = parseFileName(entry.name());
             if (key == null || !downloadedIds.contains(key.mediaId())
                     || current != null && key.mediaId() == current.mediaId() && !key.equals(current)) {

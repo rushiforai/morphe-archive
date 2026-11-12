@@ -13,6 +13,7 @@
  * This file is the product of multiple backports between ReVanced and RVX.
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-10
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -70,6 +71,7 @@ import app.morphe.extension.shared.settings.search.BaseSearchViewController;
 import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.youtube.patches.utils.PatchStatus;
 import app.morphe.extension.youtube.settings.Settings;
+import app.morphe.extension.youtube.settings.preference.AboutPreference;
 import app.morphe.extension.youtube.settings.preference.YouTubePreferenceFragment;
 import app.morphe.extension.youtube.sponsorblock.ui.SponsorBlockPreferenceGroup;
 import app.morphe.extension.youtube.utils.GeminiUtils;
@@ -103,6 +105,12 @@ public class YouTubeSearchViewController extends BaseSearchViewController {
     @Override
     protected boolean isSpecialPreferenceGroup(Preference preference) {
         return preference instanceof SponsorBlockPreferenceGroup;
+    }
+
+    @Override
+    protected boolean shouldIncludePreference(Preference preference, int currentDepth, int includeDepth) {
+        return !(preference instanceof AboutPreference)
+                && super.shouldIncludePreference(preference, currentDepth, includeDepth);
     }
 
     @Override

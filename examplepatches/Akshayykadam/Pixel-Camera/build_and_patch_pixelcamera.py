@@ -127,17 +127,23 @@ def patch_manifest():
             '<activity-alias android:exported="true" android:label="@string/app_name" android:name="com.android.camera.CameraLauncher"'
         )
 
+    # 6b. Sanitize compileSdkVersion and codenames to avoid "There was a problem parsing the package" on older/production OS
+    content = re.sub(r'android:compileSdkVersion="[^"]*"', 'android:compileSdkVersion="35"', content)
+    content = re.sub(r'android:compileSdkVersionCodename="[^"]*"', 'android:compileSdkVersionCodename="15"', content)
+    content = re.sub(r'platformBuildVersionCode="[^"]*"', 'platformBuildVersionCode="35"', content)
+    content = re.sub(r'platformBuildVersionName="[^"]*"', 'platformBuildVersionName="15"', content)
+
     with open(manifest_path, "w", encoding="utf-8") as f:
         f.write(content)
     print("    [+] AndroidManifest.xml successfully patched.")
 
-    # 7. Lower minSdkVersion in apktool.yml so APK can install on Android 14, 15, and 16
+    # 7. Lower minSdkVersion in apktool.yml so APK can install on Android 11, 12, 13, 14, 15, and 16
     apktool_yml_path = os.path.join(APKTOOL_DIR, "apktool.yml")
     if os.path.exists(apktool_yml_path):
         with open(apktool_yml_path, "r", encoding="utf-8") as f:
             yml_content = f.read()
-        yml_content = re.sub(r'minSdkVersion:\s*\d+', 'minSdkVersion: 34', yml_content)
-        yml_content = re.sub(r'targetSdkVersion:\s*\d+', 'targetSdkVersion: 36', yml_content)
+        yml_content = re.sub(r'minSdkVersion:\s*\d+', 'minSdkVersion: 30', yml_content)
+        yml_content = re.sub(r'targetSdkVersion:\s*\d+', 'targetSdkVersion: 35', yml_content)
         if "- uncompressed" not in yml_content:
             yml_content = yml_content.replace("doNotCompress:\n", "doNotCompress:\n- uncompressed\n- tflite\n")
 
@@ -162,7 +168,7 @@ def patch_manifest():
 
         with open(apktool_yml_path, "w", encoding="utf-8") as f:
             f.write(yml_content)
-        print(f"    [+] apktool.yml: minSdkVersion=34, targetSdkVersion=36.")
+        print(f"    [+] apktool.yml: minSdkVersion=30, targetSdkVersion=35.")
         if added_count:
             print(f"    [+] apktool.yml: Added {added_count} explicit asset paths to doNotCompress (apktool 3.0.3 bug workaround).")
 
@@ -842,9 +848,154 @@ def patch_ksf_smali():
 
     move-result v1
 
-    if-eqz v1, :cond_check_orig
+    if-eqz v1, :cond_check_24fps
 
     const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_24fps
+    const-string v1, "camcorder.24fps"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_video_smooth_filter
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_video_smooth_filter
+    const-string v1, "camera.video_smooth_zoom_filter"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_video_smooth_spring
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_video_smooth_spring
+    const-string v1, "camera.video_smooth_zoom_spring"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_video_prewarm
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_video_prewarm
+    const-string v1, "camera.video_prewarm"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_camcorder_scalable_vpipe
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_camcorder_scalable_vpipe
+    const-string v1, "camcorder.scalable_vpipe"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_camcorder_surface_share
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_camcorder_surface_share
+    const-string v1, "camcorder.surface_share"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_camcorder_peregrine
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_camcorder_peregrine
+    const-string v1, "camcorder.peregrine"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_camcorder_osprey
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_check_camcorder_osprey
+    const-string v1, "camcorder.osprey"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_camcorder_stokes_dyn
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_check_camcorder_stokes_dyn
+    const-string v1, "camcorder.stokes_dyn"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_camcorder_4k60fps
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_camcorder_4k60fps
+    const-string v1, "camcorder.4k60fps"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_raw_separate_folder
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_raw_separate_folder
+    const-string v1, "enable_camera_raw_folder_burst"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_orig
+
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isRawSeparateFolderEnabled()Z
+
+    move-result v0
 
     return v0
 
@@ -883,6 +1034,14 @@ def patch_ksf_smali():
                 "camera.ark_lens_selector",
                 "camcorder.jellybean_setting",
                 "camcorder_jellybean_feature",
+                "camcorder.24fps",
+                "camera.video_smooth_zoom_filter",
+                "camera.video_smooth_zoom_spring",
+                "camera.video_prewarm",
+                "camcorder.scalable_vpipe",
+                "camcorder.surface_share",
+                "camcorder.stokes_dyn",
+                "camcorder.4k60fps",
             ]
             chain_x = ""
             for idx, flag in enumerate(flags_x):
@@ -1360,6 +1519,69 @@ def patch_ksf_smali():
 
     move-result v1
 
+    if-eqz v1, :cond_check_smooth_zoom_min_cutoff
+
+    const/high16 v0, 0x3f800000    # 1.0f
+
+    invoke-static {v0}, Ljava/lang/Float;->valueOf(F)Ljava/lang/Float;
+
+    move-result-object v0
+
+    invoke-static {v0}, Lj$/util/Optional;->of(Ljava/lang/Object;)Lj$/util/Optional;
+
+    move-result-object v0
+
+    return-object v0
+
+    :cond_check_smooth_zoom_min_cutoff
+    const-string v1, "camera.video_smooth_zoom_min_cutoff"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_smooth_zoom_beta
+
+    const v0, 0x3f99999a    # 1.2f
+
+    invoke-static {v0}, Ljava/lang/Float;->valueOf(F)Ljava/lang/Float;
+
+    move-result-object v0
+
+    invoke-static {v0}, Lj$/util/Optional;->of(Ljava/lang/Object;)Lj$/util/Optional;
+
+    move-result-object v0
+
+    return-object v0
+
+    :cond_check_smooth_zoom_beta
+    const-string v1, "camera.video_smooth_zoom_beta"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_smooth_zoom_deriv
+
+    const v0, 0x3c03126f    # 0.008f
+
+    invoke-static {v0}, Ljava/lang/Float;->valueOf(F)Ljava/lang/Float;
+
+    move-result-object v0
+
+    invoke-static {v0}, Lj$/util/Optional;->of(Ljava/lang/Object;)Lj$/util/Optional;
+
+    move-result-object v0
+
+    return-object v0
+
+    :cond_check_smooth_zoom_deriv
+    const-string v1, "camera.video_smooth_zoom_derivative_cutoff"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
     if-eqz v1, :cond_check_orig_r
 
     const/high16 v0, 0x3f800000    # 1.0f
@@ -1378,6 +1600,68 @@ def patch_ksf_smali():
     """
             content = content[:r_start] + new_r + content[map_idx2:]
             print("    [+] klm.smali: r(Lkps;) patched for Gouda max_zoom, mantis, and Boba Jelly flags.")
+
+    # 3b. Patch a(Lkpr;)Lj$/util/Optional;
+    a_start = content.find(".method public final a(Lkpr;)Lj$/util/Optional;")
+    if a_start != -1:
+        a_end = content.find(".end method", a_start)
+        target_marker_a = "iget-object v0, p0, Lksf;->b:Ljava/util/Map;"
+        map_idx_a = content.find(target_marker_a, a_start)
+        if map_idx_a != -1 and map_idx_a < a_end:
+            new_a = """.method public final a(Lkpr;)Lj$/util/Optional;
+    .locals 7
+
+    if-eqz p1, :cond_check_orig_a
+
+    iget-object v0, p1, Lkpq;->a:Ljava/lang/String;
+
+    if-eqz v0, :cond_check_orig_a
+
+    const-string v1, "camera.video_zoom_animation_duration"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_zoom_curve_preset
+
+    const/16 v0, 0x17c
+
+    invoke-static {v0}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v0
+
+    invoke-static {v0}, Lj$/util/Optional;->of(Ljava/lang/Object;)Lj$/util/Optional;
+
+    move-result-object v0
+
+    return-object v0
+
+    :cond_check_zoom_curve_preset
+    const-string v1, "camera.zoom_curve_control_preset"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_orig_a
+
+    const/16 v0, 0x8
+
+    invoke-static {v0}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v0
+
+    invoke-static {v0}, Lj$/util/Optional;->of(Ljava/lang/Object;)Lj$/util/Optional;
+
+    move-result-object v0
+
+    return-object v0
+
+    :cond_check_orig_a
+    """
+            content = content[:a_start] + new_a + content[map_idx_a:]
+            print("    [+] klm.smali: a(Lkpr;) patched for video zoom animation duration (380ms) and curve preset (8).")
 
     # 4. Replace missing Lasagna models in klm.smali
     content = content.replace("4af512f87afd43af81a4bbd160034804/4af512f87afd43af81a4bbd160034804.uncompressed", "")
@@ -4241,28 +4525,15 @@ def patch_rvq_smali():
         print("    [*] rvq.smali already patched.")
 
 def patch_rva_smali():
-    print("[*] Patching rva.smali (Force VFE Presentation Pipeline Creation)...")
+    # rva is Timelapse Mode ("Cheetah"). Forcing VFE presentation pipeline causes a crash
+    # on xum.E(this.as) because this.as is null when kpk.e is false. Ensure it is clean.
     smali_path = os.path.join(APKTOOL_DIR, "smali_classes2", "rva.smali")
     if not os.path.exists(smali_path):
         return
     with open(smali_path, "r", encoding="utf-8") as f:
         content = f.read()
 
-    target = """    iget-object v5, v0, Lrva;->am:Lurt;
-
-    invoke-interface {v5}, Lurt;->d()Ljava/lang/Object;
-
-    move-result-object v5
-
-    check-cast v5, Ljava/lang/Boolean;
-
-    invoke-virtual {v5}, Ljava/lang/Boolean;->booleanValue()Z
-
-    move-result v5
-
-    if-eqz v5, :cond_19"""
-
-    replacement = """    iget-object v5, v0, Lrva;->am:Lurt;
+    bad_force = """    iget-object v5, v0, Lrva;->am:Lurt;
 
     invoke-interface {v5}, Lurt;->d()Ljava/lang/Object;
 
@@ -4278,46 +4549,46 @@ def patch_rva_smali():
 
     if-eqz v5, :cond_19"""
 
-    if target in content:
-        content = content.replace(target, replacement, 1)
+    clean_target = """    iget-object v5, v0, Lrva;->am:Lurt;
+
+    invoke-interface {v5}, Lurt;->d()Ljava/lang/Object;
+
+    move-result-object v5
+
+    check-cast v5, Ljava/lang/Boolean;
+
+    invoke-virtual {v5}, Ljava/lang/Boolean;->booleanValue()Z
+
+    move-result v5
+
+    if-eqz v5, :cond_19"""
+
+    if bad_force in content:
+        content = content.replace(bad_force, clean_target, 1)
         with open(smali_path, "w", encoding="utf-8") as f:
             f.write(content)
-        print("    [+] rva.smali: Bypassed absent VFE jump, creating Optional.of(wuq).")
-    elif replacement in content:
-        print("    [*] rva.smali already patched.")
+        print("    [+] rva.smali: Removed forced VFE pipeline (restored Timelapse stability).")
 
 def patch_ozw_smali():
-    print("[*] Patching ozw.smali (Route Viewfinder Stream to ImageReader for VFE)...")
     smali_path = os.path.join(APKTOOL_DIR, "smali_classes2", "ozw.smali")
     if not os.path.exists(smali_path):
         return
     with open(smali_path, "r", encoding="utf-8") as f:
         content = f.read()
 
-    target = """    move-result p1
-
-    if-nez p1, :cond_0"""
-
-    replacement = """    move-result p1
+    bad_target = """    move-result p1
 
     goto :cond_0"""
 
-    if target in content:
-        content = content.replace(target, replacement, 1)
-        print("    [+] ozw.smali: Forced viewfinder stream to IMAGE_READER.")
-    elif replacement in content:
-        print("    [*] ozw.smali already patched for IMAGE_READER.")
+    clean_target = """    move-result p1
 
-    # Also ensure buffer usage is CPU cacheable (0x922)
-    target_usage = """    const-wide/16 v0, 0x100
+    if-nez p1, :cond_0"""
 
-    invoke-virtual {p1, v0, v1}, Lvbf;->t(J)V"""
-    repl_usage = """    const-wide/16 v0, 0x922
-
-    invoke-virtual {p1, v0, v1}, Lvbf;->t(J)V"""
-
-    if target_usage in content:
-        content = content.replace(target_usage, repl_usage, 1)
+    if bad_target in content:
+        content = content.replace(bad_target, clean_target, 1)
+        with open(smali_path, "w", encoding="utf-8") as f:
+            f.write(content)
+        print("    [+] ozw.smali: Restored stock viewfinder stream condition for Timelapse.")
         print("    [+] ozw.smali: Updated buffer usage to 0x922 (CPU cacheable).")
 
     with open(smali_path, "w", encoding="utf-8") as f:
@@ -5245,6 +5516,51 @@ def patch_high_resolution_metadata():
         else:
             print(f"    [!] Warning: {os.path.basename(smali_path)} f(Z) target not found.")
 
+    # 1c. Photo capture session Night Sight & High-Res routing (createPhotoCaptureSession) in oms.smali
+    oms_path = os.path.join(APKTOOL_DIR, "smali", "oms.smali")
+    if os.path.exists(oms_path):
+        with open(oms_path, "r", encoding="utf-8") as f:
+            oms_content = f.read()
+        if "createPhotoCaptureSession" in oms_content:
+            print("    [+] oms.smali: already patched for createPhotoCaptureSession.")
+        else:
+            target_oms_session = (
+                "    :cond_12\n"
+                "    iget-boolean v4, v7, Lpcl;->k:Z\n\n"
+                "    if-eqz v4, :cond_13\n\n"
+                "    iget-object v3, v1, Loms;->x:Lrbu;\n\n"
+                "    invoke-virtual {v3, v12, v13, v15}, Lrbu;->c(JZ)Lrbs;\n\n"
+                "    move-result-object v3\n\n"
+                "    goto :goto_4\n\n"
+                "    :cond_13"
+            )
+            repl_oms_session = (
+                "    :cond_12\n"
+                "    invoke-static {v7}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isAutoNightOrHiRes(Ljava/lang/Object;)Z\n\n"
+                "    move-result v4\n\n"
+                "    if-eqz v4, :cond_13\n\n"
+                "    iget-object v3, v1, Loms;->x:Lrbu;\n\n"
+                "    invoke-static {v3, v12, v13, v7, v15}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->createPhotoCaptureSession(Lrbu;JLjava/lang/Object;Z)Lrbs;\n\n"
+                "    move-result-object v3\n\n"
+                "    goto :goto_4\n\n"
+                "    :cond_13"
+            )
+            if target_oms_session in oms_content:
+                oms_content = oms_content.replace(target_oms_session, repl_oms_session, 1)
+                with open(oms_path, "w", encoding="utf-8") as f:
+                    f.write(oms_content)
+                print("    [+] oms.smali: patched for createPhotoCaptureSession.")
+            else:
+                import re
+                m = re.search(r'(:cond_12\s+iget-boolean\s+\w+,\s+\w+,\s+Lpcl;->k:Z[\s\S]*?:cond_13)', oms_content)
+                if m:
+                    oms_content = oms_content[:m.start()] + repl_oms_session + oms_content[m.end():]
+                    with open(oms_path, "w", encoding="utf-8") as f:
+                        f.write(oms_content)
+                    print("    [+] oms.smali: regex patched for createPhotoCaptureSession.")
+                else:
+                    print("    [!] Warning: oms.smali capture session target not found.")
+
     # 2. rae.smali (JPEG saver metadata and XMP tag injection)
     rae_path = os.path.join(APKTOOL_DIR, "smali_classes2", "rae.smali")
     if os.path.exists(rae_path):
@@ -5371,6 +5687,33 @@ def patch_high_resolution_metadata():
             with open(mgx_path, "w", encoding="utf-8") as f:
                 f.write(content)
             print("    [+] mgx.smali: patched for resolveSpecialTypeForMediaId.")
+
+    # 9. rbu.smali (Night Sight capture session hook to track timestamp & force NIGHT SpecialType)
+    rbu_path = os.path.join(APKTOOL_DIR, "smali", "rbu.smali")
+    if os.path.exists(rbu_path):
+        with open(rbu_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        target_rbu = """.method public final j(JZZ)Lrbs;
+    .locals 2
+
+    if-eqz p4, :cond_0
+
+    sget-object p4, Lmhb;->p:Lmhb;"""
+        repl_rbu = """.method public final j(JZZ)Lrbs;
+    .locals 2
+
+    invoke-static {p1, p2}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->onNightSightSession(J)V
+
+    if-eqz p4, :cond_0
+
+    sget-object p4, Lmhb;->f:Lmhb;"""
+        if repl_rbu in content:
+            print("    [+] rbu.smali: already patched for onNightSightSession.")
+        elif target_rbu in content:
+            content = content.replace(target_rbu, repl_rbu, 1)
+            with open(rbu_path, "w", encoding="utf-8") as f:
+                f.write(content)
+            print("    [+] rbu.smali: patched for onNightSightSession.")
 
 def patch_poy_smali():
     print("[*] Patching poy.smali (Inject TomteProSettingsPanel in bottomsheet M(I))...")
@@ -10262,13 +10605,17 @@ def build_and_sign():
         sys.exit(1)
     print("    [+] zipalign succeeded.")
 
-    print("[*] Signing APK with apksigner...")
+    print("[*] Signing APK with apksigner (v1, v2, v3 schemes, min-sdk-version 30)...")
     sign_cmd = [
         APKSIGNER, "sign",
         "--ks", KEYSTORE,
         "--ks-pass", "pass:android",
         "--key-pass", "pass:android",
         "--ks-key-alias", "androiddebugkey",
+        "--min-sdk-version", "30",
+        "--v1-signing-enabled", "true",
+        "--v2-signing-enabled", "true",
+        "--v3-signing-enabled", "true",
         "--out", signed_apk,
         aligned_apk
     ]
@@ -10366,11 +10713,13 @@ def copy_to_desktop(signed_apk):
                 except Exception:
                     pass
 
-        # Exactly ONE APK on Desktop: PixelCamera-1.1.3.apk
+        # Copy APK to Desktop: PixelCamera-1.1.3.apk and SourceForge release name
         dest_apk = os.path.join(desktop_dir, "PixelCamera-1.1.3.apk")
         shutil.copy2(signed_apk, dest_apk)
+        dest_sf_apk = os.path.join(desktop_dir, "Camera-v11.1.040.982810059.19-patches-v1.1.3.apk")
+        shutil.copy2(signed_apk, dest_sf_apk)
         size_mb = os.path.getsize(dest_apk) / (1024 * 1024)
-        print(f"    [+] Successfully copied single APK to Desktop: {dest_apk} ({size_mb:.2f} MB)")
+        print(f"    [+] Successfully copied APK to Desktop: {dest_apk} and {dest_sf_apk} ({size_mb:.2f} MB)")
 
         # Exactly ONE Morphe .mpp patch file on Desktop: morphe-patches-pixelcamera-1.1.3.mpp
         mpp_src = os.path.join(ROOT_DIR, "morphe-patches-pixelcamera-1.1.3.mpp")
@@ -10414,13 +10763,23 @@ def install_and_launch(signed_apk):
     if not lines:
         print("[!] No ADB devices connected, skipping install.")
         return
-    # Pick physical device first
-    physical_devices = [d for d in lines if not d.startswith("emulator-")]
-    if physical_devices:
-        target_device = physical_devices[0]
+
+    target_device = os.environ.get("TARGET_DEVICE")
+    if target_device and target_device in lines:
+        pass
+    elif os.environ.get("USE_EMULATOR") == "1":
+        emulators = [d for d in lines if d.startswith("emulator-")]
+        target_device = emulators[0] if emulators else lines[0]
     else:
-        print("[!] No physical phone connected yet (only emulators detected). Skipping auto-install.")
-        return
+        # Pick physical device first
+        physical_devices = [d for d in lines if not d.startswith("emulator-")]
+        if physical_devices:
+            target_device = physical_devices[0]
+        elif lines:
+            target_device = lines[0]
+        else:
+            print("[!] No physical phone connected yet (only emulators detected). Skipping auto-install.")
+            return
     print(f"[*] Installing {signed_apk} on connected device {target_device}...")
     res = subprocess.run(["adb", "-s", target_device, "install", "-r", "-d", "-g", signed_apk], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
     print(f"    {res.stdout.strip()}")
@@ -10433,9 +10792,7 @@ def install_and_launch(signed_apk):
             print(f"[*] Copying {os.path.basename(mpp_file)} to device /sdcard/Download/...")
             subprocess.run(["adb", "-s", target_device, "push", mpp_file, "/sdcard/Download/morphe-patches-pixelcamera-1.1.3.mpp"], stdout=subprocess.DEVNULL)
             print("    [+] Successfully copied Morphe patch to /sdcard/Download/ on device!")
-        print(f"[*] Copying PixelCamera-1.1.3.apk to device /sdcard/Download/...")
-        subprocess.run(["adb", "-s", target_device, "push", signed_apk, "/sdcard/Download/PixelCamera-1.1.3.apk"], stdout=subprocess.DEVNULL)
-        print("    [+] Successfully copied release APK to /sdcard/Download/PixelCamera-1.1.3.apk on device!")
+        # Skip copying APK to /sdcard/Download/ per user request ("copy only patch in the device")
         print(f"[*] Launching PixelCamera on {target_device} (com.google.android.GoogleCameraEng)...")
         subprocess.run(["adb", "-s", target_device, "shell", "am", "force-stop", "com.google.android.GoogleCameraEng"])
         subprocess.run(["adb", "-s", target_device, "shell", "am", "start", "-n", "com.google.android.GoogleCameraEng/com.android.camera.CameraLauncher"])
@@ -10746,6 +11103,14 @@ def patch_image_quality_preferences():
         else:
             print("    [+] strings.xml: RAW compression strings already present.")
 
+        if "pref_camera_raw_separate_folder_title" not in content:
+            raw_folder_strings = """    <string name="pref_camera_raw_separate_folder_title">Save RAW to Separate Folder</string>
+    <string name="pref_camera_raw_separate_folder_summary">Save DNG files in Pictures/Raw to prevent Google Photos from backing them up</string>"""
+            content = content.replace("<resources>", f"<resources>\n{raw_folder_strings}")
+            with open(strings_path, "w", encoding="utf-8") as f:
+                f.write(content)
+            print("    [+] strings.xml: RAW separate folder strings added.")
+
         if "pref_video_sharpness_title" not in content:
             video_strings = """    <string name="pref_category_advanced_video_title">Advanced video settings</string>
     <string name="pref_video_sharpness_title">Video edge sharpness</string>
@@ -10761,11 +11126,25 @@ def patch_image_quality_preferences():
     <string name="pref_video_noise_reduction_entry_minimal">Minimal</string>
     <string name="pref_video_noise_reduction_entry_minimal_desc">Minimal filtering (Fast) preserving fine texture</string>
     <string name="pref_video_noise_reduction_entry_off">Off (Sensor Grain)</string>
-    <string name="pref_video_noise_reduction_entry_off_desc">Disables hardware noise reduction for organic sensor texture</string>"""
+    <string name="pref_video_noise_reduction_entry_off_desc">Disables hardware noise reduction for organic sensor texture</string>
+    <string name="pref_video_bitrate_title">Video bitrate &amp; encoding</string>
+    <string name="pref_video_bitrate_entry_stock">Stock (Standard)</string>
+    <string name="pref_video_bitrate_entry_stock_desc">Standard Google Camera bitrate (~45-55 Mbps for 4K)</string>
+    <string name="pref_video_bitrate_entry_high">High (100 Mbps Pro)</string>
+    <string name="pref_video_bitrate_entry_high_desc">100 Mbps at 4K60 / 70 Mbps at 4K30; clamped QP 12-24 for reduced compression artifacts</string>
+    <string name="pref_video_bitrate_entry_ultra">Ultra (150 Mbps Cinema)</string>
+    <string name="pref_video_bitrate_entry_ultra_desc">150 Mbps at 4K60 / 110 Mbps at 4K30; clamped QP 10-20 for maximum mastering bit depth</string>
+    <string name="pref_video_stabilization_mode_title">Video stabilization mode</string>
+    <string name="pref_video_stabilization_mode_entry_standard">Standard (OIS + EIS)</string>
+    <string name="pref_video_stabilization_mode_entry_standard_desc">Full electronic and optical stabilization with dynamic cropping</string>
+    <string name="pref_video_stabilization_mode_entry_ois_only">OIS Only (Cinema Wide, 0% Crop)</string>
+    <string name="pref_video_stabilization_mode_entry_ois_only_desc">Hardware optical stabilization only; disables electronic warping and crop for maximum wide field of view</string>
+    <string name="pref_video_stabilization_mode_entry_off">Off (Gimbal / Tripod)</string>
+    <string name="pref_video_stabilization_mode_entry_off_desc">Disables both OIS and EIS; ideal for motorized gimbals and tripod shots</string>"""
             content = content.replace("<resources>", f"<resources>\n{video_strings}")
             with open(strings_path, "w", encoding="utf-8") as f:
                 f.write(content)
-            print("    [+] strings.xml: Video Sharpness and Noise Reduction strings added.")
+            print("    [+] strings.xml: Video Sharpness, Noise Reduction, Bitrate, and Stabilization strings added.")
         else:
             print("    [+] strings.xml: Video Sharpness strings already present.")
 
@@ -10869,6 +11248,36 @@ def patch_image_quality_preferences():
         <item>stock</item>
         <item>minimal</item>
         <item>off</item>
+    </string-array>
+    <string-array name="pref_video_bitrate_entries">
+        <item>@string/pref_video_bitrate_entry_stock</item>
+        <item>@string/pref_video_bitrate_entry_high</item>
+        <item>@string/pref_video_bitrate_entry_ultra</item>
+    </string-array>
+    <string-array name="pref_video_bitrate_entrydescriptions">
+        <item>@string/pref_video_bitrate_entry_stock_desc</item>
+        <item>@string/pref_video_bitrate_entry_high_desc</item>
+        <item>@string/pref_video_bitrate_entry_ultra_desc</item>
+    </string-array>
+    <string-array name="pref_video_bitrate_entryvalues">
+        <item>stock</item>
+        <item>high</item>
+        <item>ultra</item>
+    </string-array>
+    <string-array name="pref_video_stabilization_mode_entries">
+        <item>@string/pref_video_stabilization_mode_entry_standard</item>
+        <item>@string/pref_video_stabilization_mode_entry_ois_only</item>
+        <item>@string/pref_video_stabilization_mode_entry_off</item>
+    </string-array>
+    <string-array name="pref_video_stabilization_mode_entrydescriptions">
+        <item>@string/pref_video_stabilization_mode_entry_standard_desc</item>
+        <item>@string/pref_video_stabilization_mode_entry_ois_only_desc</item>
+        <item>@string/pref_video_stabilization_mode_entry_off_desc</item>
+    </string-array>
+    <string-array name="pref_video_stabilization_mode_entryvalues">
+        <item>standard</item>
+        <item>ois_only</item>
+        <item>off</item>
     </string-array>"""
             content = content.replace("<resources>", f"<resources>\n{video_arrays}")
             with open(arrays_path, "w", encoding="utf-8") as f:
@@ -10887,15 +11296,23 @@ def patch_image_quality_preferences():
         <com.google.android.apps.camera.ui.preference.ManagedSwitchPreferenceCompat android:icon="@drawable/gs_photo_camera_vd_theme_24" android:title="@string/pref_camera_focal_length_cycling_title" android:key="pref_camera_focal_length_cycling_key" android:summary="@string/pref_camera_focal_length_cycling_summary" android:order="1" android:defaultValue="false" />
         <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_high_res_vd_theme_24" android:entries="@array/pref_camera_jpeg_quality_entries" android:title="@string/pref_camera_jpeg_quality_title" android:key="pref_camera_jpeg_quality_key" android:summary="%s" android:order="2" android:defaultValue="95" android:entryValues="@array/pref_camera_jpeg_quality_entryvalues" />
         <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_texture_vd_theme_24" android:entries="@array/pref_camera_noise_reduction_entries" android:title="@string/pref_camera_noise_reduction_title" android:key="pref_camera_noise_reduction_key" android:summary="%s" android:order="3" android:defaultValue="stock" android:entryValues="@array/pref_camera_noise_reduction_entryvalues" />
-        <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_raw_on_vd_theme_24" android:entries="@array/pref_camera_raw_compression_entries" android:title="@string/pref_camera_raw_compression_title" android:key="pref_camera_raw_compression_key" android:summary="%s" android:order="4" android:defaultValue="uncompressed" android:entryValues="@array/pref_camera_raw_compression_entryvalues" />
-        <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_details_vd_theme_24" android:entries="@array/pref_camera_sharpness_entries" android:title="@string/pref_camera_sharpness_title" android:key="pref_camera_sharpness_key" android:summary="%s" android:order="5" android:defaultValue="natural" android:entryValues="@array/pref_camera_sharpness_entryvalues" />
+        <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_details_vd_theme_24" android:entries="@array/pref_camera_sharpness_entries" android:title="@string/pref_camera_sharpness_title" android:key="pref_camera_sharpness_key" android:summary="%s" android:order="4" android:defaultValue="natural" android:entryValues="@array/pref_camera_sharpness_entryvalues" />
+        <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_raw_on_vd_theme_24" android:entries="@array/pref_camera_raw_compression_entries" android:title="@string/pref_camera_raw_compression_title" android:key="pref_camera_raw_compression_key" android:summary="%s" android:order="5" android:defaultValue="uncompressed" android:entryValues="@array/pref_camera_raw_compression_entryvalues" />
+        <com.google.android.apps.camera.ui.preference.ManagedSwitchPreferenceCompat android:icon="@drawable/gs_raw_on_vd_theme_24" android:title="@string/pref_camera_raw_separate_folder_title" android:key="pref_camera_raw_separate_folder_key" android:summary="@string/pref_camera_raw_separate_folder_summary" android:order="6" android:defaultValue="true" />
     </androidx.preference.PreferenceCategory>"""
             content = content.replace('<androidx.preference.PreferenceCategory android:title="@string/mode_video"', f'{extra_gm3}\n    <androidx.preference.PreferenceCategory android:title="@string/mode_video"')
             with open(gm3_path, "w", encoding="utf-8") as f:
                 f.write(content)
             print("    [+] camera_gm3_preferences.xml: Advanced settings category injected.")
         else:
-            print("    [+] camera_gm3_preferences.xml: Advanced settings category already present.")
+            if "pref_camera_raw_separate_folder_key" not in content:
+                raw_folder_pref = '        <com.google.android.apps.camera.ui.preference.ManagedSwitchPreferenceCompat android:icon="@drawable/gs_raw_on_vd_theme_24" android:title="@string/pref_camera_raw_separate_folder_title" android:key="pref_camera_raw_separate_folder_key" android:summary="@string/pref_camera_raw_separate_folder_summary" android:order="6" android:defaultValue="true" />\n    </androidx.preference.PreferenceCategory>'
+                content = content.replace("    </androidx.preference.PreferenceCategory>", raw_folder_pref, 1)
+                with open(gm3_path, "w", encoding="utf-8") as f:
+                    f.write(content)
+                print("    [+] camera_gm3_preferences.xml: RAW separate folder switch injected.")
+            else:
+                print("    [+] camera_gm3_preferences.xml: Advanced settings category already present.")
 
         if "pref_category_help_and_feedback" in content:
             about_gm3 = """    <androidx.preference.PreferenceCategory android:title="@string/pref_category_about_title" android:key="pref_category_about">
@@ -10911,6 +11328,8 @@ def patch_image_quality_preferences():
             video_gm3 = """    <androidx.preference.PreferenceCategory android:title="@string/pref_category_advanced_video_title" android:key="pref_category_advanced_video">
         <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_details_vd_theme_24" android:entries="@array/pref_video_sharpness_entries" android:title="@string/pref_video_sharpness_title" android:key="pref_video_sharpness_key" android:summary="%s" android:order="1" android:defaultValue="stock" android:entryValues="@array/pref_video_sharpness_entryvalues" />
         <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_texture_vd_theme_24" android:entries="@array/pref_video_noise_reduction_entries" android:title="@string/pref_video_noise_reduction_title" android:key="pref_video_noise_reduction_key" android:summary="%s" android:order="2" android:defaultValue="stock" android:entryValues="@array/pref_video_noise_reduction_entryvalues" />
+        <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_videocam_vd_theme_24" android:entries="@array/pref_video_bitrate_entries" android:title="@string/pref_video_bitrate_title" android:key="pref_video_bitrate_key" android:summary="%s" android:order="3" android:defaultValue="stock" android:entryValues="@array/pref_video_bitrate_entryvalues" />
+        <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_video_stable_vd_theme_24" android:entries="@array/pref_video_stabilization_mode_entries" android:title="@string/pref_video_stabilization_mode_title" android:key="pref_video_stabilization_mode_key" android:summary="%s" android:order="4" android:defaultValue="standard" android:entryValues="@array/pref_video_stabilization_mode_entryvalues" />
     </androidx.preference.PreferenceCategory>"""
             match = re.search(r'(<androidx\.preference\.PreferenceCategory[^>]*key="pref_category_resolution_video"[^>]*>[\s\S]*?</androidx\.preference\.PreferenceCategory>)', content)
             if match:
@@ -10931,15 +11350,23 @@ def patch_image_quality_preferences():
         <com.google.android.apps.camera.ui.preference.ManagedSwitchPreference android:icon="@drawable/gs_photo_camera_vd_theme_24" android:layout="@layout/preference_with_margin" android:title="@string/pref_camera_focal_length_cycling_title" android:key="pref_camera_focal_length_cycling_key" android:summary="@string/pref_camera_focal_length_cycling_summary" android:order="1" android:defaultValue="false" />
         <ListPreference android:icon="@drawable/gs_high_res_vd_theme_24" android:entries="@array/pref_camera_jpeg_quality_entries" android:layout="@layout/preference_with_margin" android:title="@string/pref_camera_jpeg_quality_title" android:key="pref_camera_jpeg_quality_key" android:summary="%s" android:order="2" android:defaultValue="95" android:entryValues="@array/pref_camera_jpeg_quality_entryvalues" />
         <ListPreference android:icon="@drawable/gs_texture_vd_theme_24" android:entries="@array/pref_camera_noise_reduction_entries" android:title="@string/pref_camera_noise_reduction_title" android:key="pref_camera_noise_reduction_key" android:summary="%s" android:order="3" android:defaultValue="stock" android:entryValues="@array/pref_camera_noise_reduction_entryvalues" />
-        <ListPreference android:icon="@drawable/gs_raw_on_vd_theme_24" android:entries="@array/pref_camera_raw_compression_entries" android:layout="@layout/preference_with_margin" android:title="@string/pref_camera_raw_compression_title" android:key="pref_camera_raw_compression_key" android:summary="%s" android:order="4" android:defaultValue="uncompressed" android:entryValues="@array/pref_camera_raw_compression_entryvalues" />
-        <ListPreference android:icon="@drawable/gs_details_vd_theme_24" android:entries="@array/pref_camera_sharpness_entries" android:layout="@layout/preference_with_margin" android:title="@string/pref_camera_sharpness_title" android:key="pref_camera_sharpness_key" android:summary="%s" android:order="5" android:defaultValue="natural" android:entryValues="@array/pref_camera_sharpness_entryvalues" />
+        <ListPreference android:icon="@drawable/gs_details_vd_theme_24" android:entries="@array/pref_camera_sharpness_entries" android:layout="@layout/preference_with_margin" android:title="@string/pref_camera_sharpness_title" android:key="pref_camera_sharpness_key" android:summary="%s" android:order="4" android:defaultValue="natural" android:entryValues="@array/pref_camera_sharpness_entryvalues" />
+        <ListPreference android:icon="@drawable/gs_raw_on_vd_theme_24" android:entries="@array/pref_camera_raw_compression_entries" android:layout="@layout/preference_with_margin" android:title="@string/pref_camera_raw_compression_title" android:key="pref_camera_raw_compression_key" android:summary="%s" android:order="5" android:defaultValue="uncompressed" android:entryValues="@array/pref_camera_raw_compression_entryvalues" />
+        <com.google.android.apps.camera.ui.preference.ManagedSwitchPreference android:icon="@drawable/gs_raw_on_vd_theme_24" android:layout="@layout/preference_with_margin" android:title="@string/pref_camera_raw_separate_folder_title" android:key="pref_camera_raw_separate_folder_key" android:summary="@string/pref_camera_raw_separate_folder_summary" android:order="6" android:defaultValue="true" />
     </PreferenceCategory>"""
             content = content.replace('<PreferenceCategory android:title="@string/mode_video"', f'{extra_cam}\n    <PreferenceCategory android:title="@string/mode_video"')
             with open(cam_pref_path, "w", encoding="utf-8") as f:
                 f.write(content)
             print("    [+] camera_preferences.xml: Advanced settings category injected.")
         else:
-            print("    [+] camera_preferences.xml: Advanced settings category already present.")
+            if "pref_camera_raw_separate_folder_key" not in content:
+                raw_folder_cam = '        <com.google.android.apps.camera.ui.preference.ManagedSwitchPreference android:icon="@drawable/gs_raw_on_vd_theme_24" android:layout="@layout/preference_with_margin" android:title="@string/pref_camera_raw_separate_folder_title" android:key="pref_camera_raw_separate_folder_key" android:summary="@string/pref_camera_raw_separate_folder_summary" android:order="6" android:defaultValue="true" />\n    </PreferenceCategory>'
+                content = content.replace("    </PreferenceCategory>", raw_folder_cam, 1)
+                with open(cam_pref_path, "w", encoding="utf-8") as f:
+                    f.write(content)
+                print("    [+] camera_preferences.xml: RAW separate folder switch injected.")
+            else:
+                print("    [+] camera_preferences.xml: Advanced settings category already present.")
 
         if "pref_category_help_and_feedback" in content:
             about_cam = """    <PreferenceCategory android:title="@string/pref_category_about_title" android:key="pref_category_about">
@@ -10955,6 +11382,8 @@ def patch_image_quality_preferences():
             video_cam = """    <PreferenceCategory android:title="@string/pref_category_advanced_video_title" android:key="pref_category_advanced_video">
         <ListPreference android:icon="@drawable/gs_details_vd_theme_24" android:entries="@array/pref_video_sharpness_entries" android:layout="@layout/preference_with_margin" android:title="@string/pref_video_sharpness_title" android:key="pref_video_sharpness_key" android:summary="%s" android:order="1" android:defaultValue="stock" android:entryValues="@array/pref_video_sharpness_entryvalues" />
         <ListPreference android:icon="@drawable/gs_texture_vd_theme_24" android:entries="@array/pref_video_noise_reduction_entries" android:layout="@layout/preference_with_margin" android:title="@string/pref_video_noise_reduction_title" android:key="pref_video_noise_reduction_key" android:summary="%s" android:order="2" android:defaultValue="stock" android:entryValues="@array/pref_video_noise_reduction_entryvalues" />
+        <ListPreference android:icon="@drawable/gs_videocam_vd_theme_24" android:entries="@array/pref_video_bitrate_entries" android:layout="@layout/preference_with_margin" android:title="@string/pref_video_bitrate_title" android:key="pref_video_bitrate_key" android:summary="%s" android:order="3" android:defaultValue="stock" android:entryValues="@array/pref_video_bitrate_entryvalues" />
+        <ListPreference android:icon="@drawable/gs_video_stable_vd_theme_24" android:entries="@array/pref_video_stabilization_mode_entries" android:layout="@layout/preference_with_margin" android:title="@string/pref_video_stabilization_mode_title" android:key="pref_video_stabilization_mode_key" android:summary="%s" android:order="4" android:defaultValue="standard" android:entryValues="@array/pref_video_stabilization_mode_entryvalues" />
     </PreferenceCategory>"""
             match = re.search(r'(<PreferenceCategory[^>]*key="pref_category_resolution_video"[^>]*>[\s\S]*?</PreferenceCategory>)', content)
             if match:
@@ -11148,6 +11577,22 @@ def patch_image_quality_preferences():
 
     invoke-virtual {v1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
 
+    move-result v1
+
+    if-nez v1, :cond_restart_tuning
+
+    const-string v1, "pref_video_bitrate_key"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_restart_tuning
+
+    const-string v1, "pref_video_stabilization_mode_key"
+
+    invoke-virtual {v1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
     move-result v0
 
     if-eqz v0, :cond_done
@@ -11289,6 +11734,37 @@ def patch_image_quality_preferences():
             with open(jhh_path, "w", encoding="utf-8") as f:
                 f.write(content)
             print("    [+] jhh.smali: dynamic noise reduction hooked with TomteInitHelper.filterVideoNoiseReductionMode().")
+
+    # 14. Patch uuy.smali (MediaFormat bitrate & QP clamp -> filterVideoBitrate)
+    uuy_path = os.path.join(APKTOOL_DIR, "smali_classes2", "uuy.smali")
+    if os.path.exists(uuy_path):
+        with open(uuy_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        uuy_target = """    invoke-virtual {p1}, Lute;->b()I
+
+    move-result v10
+
+    const-string v11, "bitrate"
+
+    invoke-virtual {v9, v11, v10}, Landroid/media/MediaFormat;->setInteger(Ljava/lang/String;I)V"""
+        uuy_repl = """    invoke-virtual {p1}, Lute;->b()I
+
+    move-result v10
+
+    invoke-static {v10, v9}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->filterVideoBitrate(ILandroid/media/MediaFormat;)I
+
+    move-result v10
+
+    const-string v11, "bitrate"
+
+    invoke-virtual {v9, v11, v10}, Landroid/media/MediaFormat;->setInteger(Ljava/lang/String;I)V"""
+        if "filterVideoBitrate" in content:
+            print("    [+] uuy.smali: already hooked with filterVideoBitrate.")
+        elif uuy_target in content:
+            content = content.replace(uuy_target, uuy_repl)
+            with open(uuy_path, "w", encoding="utf-8") as f:
+                f.write(content)
+            print("    [+] uuy.smali: bitrate creation hooked with TomteInitHelper.filterVideoBitrate().")
 
 
 def patch_fzf_smali():

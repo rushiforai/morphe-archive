@@ -100,6 +100,14 @@ public final class PatchSettings {
         return preferences(context).getBoolean(HIDE_UPGRADE_BUTTON, true);
     }
 
+    /**
+     * For the home screen widgets: their provider can run in a process started only to update
+     * them, where the Flutter engine (and so {@link #init(Context)}) never runs.
+     */
+    static boolean hidePromotions(Context context) {
+        return preferences(context).getBoolean(HIDE_PROMOTIONS, true);
+    }
+
     static boolean fixSearchHistoryCount(Context context) {
         return preferences(context).getBoolean(FIX_SEARCH_HISTORY_COUNT, true);
     }

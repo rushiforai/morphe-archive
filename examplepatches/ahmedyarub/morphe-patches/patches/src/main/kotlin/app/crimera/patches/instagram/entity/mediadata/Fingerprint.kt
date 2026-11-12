@@ -153,12 +153,12 @@ internal object AudioIntfMapperFingerprint : Fingerprint(
 )
 
 // Static: the instance mapper beside it writes the same keys from the same fields.
+// "product_type" must stay last: the patch reads the field loaded after it. 455 dropped "product_tags".
 internal object ProductInfoMapperFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     strings =
         listOf(
             "product_suggestions",
-            "product_tags",
             "product_type",
         ),
     returnType = "Ljava/util/Map;",

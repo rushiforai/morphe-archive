@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build and test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      # A release that does not name its app in the changelog is never announced by
+      # Morphe Manager, so this is checked before anything is merged.
+      - name: Check commit subjects
+        if: github.event_name == 'pull_request'
+        run: python3 scripts/check-commit-subjects.py "origin/${{ github.base_ref }}..HEAD"
+
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Cache Gradle
+        uses: burrunan/gradle-cache-action@v3
+
+      - name: Test the extension
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :extensions:nudge:testDebugUnitTest --no-daemon
+
+      # Builds the bundle and patches a stand-in app with it. buildAndroid adds the
+      # Android code to the bundle in place, so it has to be the last thing that
+      # touches the archive.
+      - name: Build the bundle and test the patches
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :patches:test :patches:buildAndroid --no-daemon
+
+      - name: Check against the official Morphe patches
+        run: scripts/compat-check.sh
+
+      - name: Upload the bundle
+        uses: actions/upload-artifact@v7
+        with:
+          name: patch-bundle
+          path: patches/build/libs/*.mpp
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: screenshots
+          path: extensions/nudge/build/screenshots
+          if-no-files-found: ignore

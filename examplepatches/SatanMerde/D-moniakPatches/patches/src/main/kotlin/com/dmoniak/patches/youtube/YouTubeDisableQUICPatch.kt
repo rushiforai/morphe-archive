@@ -7,7 +7,6 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.dmoniak.patches.shared.Constants.COMPATIBILITY_YOUTUBE
 import java.util.logging.Logger
 
-@Suppress("unused")
 val youtubeDisableQUICPatch = bytecodePatch(
     name = "Disable QUIC Protocol - YouTube (Experimental)",
     description = "⚠️ [Experimental / Untested] Disables Google's experimental QUIC (HTTP/3) UDP network protocol in YouTube, forcing reliable HTTP/2 TCP streams to bypass carrier and ISP video throttling.",
@@ -26,7 +25,7 @@ fun BytecodePatchContext.executeYouTubeDisableQUICLogic(logger: Logger) {
 
     classDefForEach { classDef ->
         val tl = classDef.type.lowercase()
-        if (tl.contains("androidx") || tl.contains("android/support")) return@classDefForEach
+        if (!tl.contains("androidx") && !tl.contains("android/support")) {
 
         val mutableClass by lazy { mutableClassDefBy(classDef) }
 
@@ -58,6 +57,7 @@ fun BytecodePatchContext.executeYouTubeDisableQUICLogic(logger: Logger) {
                     logger.warning("[YouTube QUIC] Failed to hook ${method.name}: ${e.message}")
                 }
             }
+        }
         }
     }
 

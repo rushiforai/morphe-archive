@@ -7,7 +7,6 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.dmoniak.patches.shared.Constants.COMPATIBILITY_YOUTUBE
 import java.util.logging.Logger
 
-@Suppress("unused")
 val youtubeForceOriginalAudioPatch = bytecodePatch(
     name = "Force Original Audio Language (Bypass Auto-Dubbing) - YouTube (Experimental)",
     description = "⚠️ [Experimental / Untested] Forces YouTube to automatically play the creator's original authentic audio track, bypassing unwanted AI/human auto-dubbed voiceovers and language translations.",
@@ -26,7 +25,7 @@ fun BytecodePatchContext.executeYouTubeForceOriginalAudioLogic(logger: Logger) {
 
     classDefForEach { classDef ->
         val tl = classDef.type.lowercase()
-        if (tl.contains("androidx") || tl.contains("android/support")) return@classDefForEach
+        if (!tl.contains("androidx") && !tl.contains("android/support")) {
 
         val mutableClass by lazy { mutableClassDefBy(classDef) }
 
@@ -58,6 +57,7 @@ fun BytecodePatchContext.executeYouTubeForceOriginalAudioLogic(logger: Logger) {
                     logger.warning("[YouTube Original Audio] Failed to hook ${method.name}: ${e.message}")
                 }
             }
+        }
         }
     }
 

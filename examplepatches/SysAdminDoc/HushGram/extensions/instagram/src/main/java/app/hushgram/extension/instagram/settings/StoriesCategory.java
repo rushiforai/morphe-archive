@@ -14,10 +14,12 @@ import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragme
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.storyRingColorRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.storyRingRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.storySeekBarLookRow;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.storySeekBarPositionRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.storyTimeModeRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.uploadBitrateRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.uploadFrameRateRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.uploadPhotoQualityRow;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.uploadPhotoSizeRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.uploadResolutionRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.uploadScopeRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.slowsOlderPhones;
@@ -99,7 +101,8 @@ final class StoriesCategory {
             stories.add(toggle(context, Settings.STORY_PRIORITY, L10n.t("Stories priority"),
                     L10n.t("Puts the accounts on your list first in the stories row at the top of Home while they "
                             + "have a story you haven't watched, in the order of the list. Once you've watched it, "
-                            + "Instagram's own placement applies again. Your own story stays first.")));
+                            + "Instagram's own placement applies again. Your own story stays first.")
+                            + " " + L10n.t("To add someone, tap Add to Stories priority in their story's menu.")));
             stories.add(priorityAccountsRow(context));
         }
         if (build.contains(PatchFamily.STORY_PROGRESS_BAR)) {
@@ -113,12 +116,20 @@ final class StoriesCategory {
                     L10n.t("Shows a bar near the bottom of a video story. Drag it to jump to any point in the "
                             + "video. Photos don't get one.")));
             stories.add(storySeekBarLookRow(context));
+            stories.add(storySeekBarPositionRow(context));
         }
         if (build.contains(PatchFamily.STORY_SPEED)) {
             stories.add(toggle(context, Settings.STORY_SPEED_BUTTON, L10n.t("Speed button on stories"),
                     L10n.t("Puts a speed button at the top of a video story, beside the three dots. Tap it for "
                             + "1.5x, again for 2x and once more for 1x. Later video stories keep the speed until you "
                             + "change it or restart Instagram. Ads play at normal speed.")));
+            // The menu row rides on Download any story's menu hooks (#621).
+            if (build.contains(PatchFamily.STORY_DOWNLOAD)) {
+                stories.add(toggle(context, Settings.STORY_SPEED_IN_MENU, L10n.t("Speed in the story menu"),
+                        L10n.t("Adds Playback speed to the menu a video story's three dots open, with the same 1x, "
+                                + "1.5x and 2x, and keeps the speed button off the story. Later video stories keep "
+                                + "the speed you pick until you change it or restart Instagram.")));
+            }
         }
         if (build.contains(PatchFamily.FULL_SCREEN_BARS)) {
             stories.add(toggle(context, Settings.FILL_STORY_SCREEN, L10n.t("Stories fill the screen"),
@@ -164,6 +175,11 @@ final class StoriesCategory {
             stories.add(toggle(context, Settings.HIDE_STORY_SHARE_BUTTON, L10n.t("Hide the Share button on stories"),
                     L10n.t("Takes the paper plane off the bottom of other people's stories. No empty space is "
                             + "left behind.")));
+        }
+        if (build.contains(PatchFamily.GLASS_CHAT)) {
+            stories.add(toggle(context, Settings.GLASS_STORY_REPLY_BOX, L10n.t("Glass reply box on stories"),
+                    L10n.t("Gives the Send message box on other people's stories frosted glass, so it's easy to read "
+                            + "over any story. Needs Android 12 or newer for the blur.")));
         }
         if (build.contains(PatchFamily.STORY_BUTTONS_ROOM)) {
             stories.add(toggle(context, Settings.KEEP_STORY_BUTTONS_BELOW, L10n.t("Keep story buttons below the story"),
@@ -228,6 +244,7 @@ final class StoriesCategory {
             stories.add(uploadResolutionRow(context));
             stories.add(uploadFrameRateRow(context));
             stories.add(uploadPhotoQualityRow(context));
+            stories.add(uploadPhotoSizeRow(context));
         }
         if (build.contains(PatchFamily.STORY_FONTS)) {
             stories.add(toggle(context, Settings.STORY_FONTS, L10n.t("Your fonts in story text"),

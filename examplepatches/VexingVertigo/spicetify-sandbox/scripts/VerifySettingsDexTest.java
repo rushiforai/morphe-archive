@@ -54,7 +54,7 @@ class VerifySettingsDexTest {
         for (var m : cls.getMethods()) {
             if (m.getName().equals(methodName)
                     && (!methodName.equals("<init>")
-                            || m.getParameterTypes().equals(List.of("I", "Lp/ct71;", "I")))) {
+                            || m.getParameterTypes().equals(List.of("I", "Lp/r6h1;", "B")))) {
                 var code = VerifySettingsDex.code(m);
                 mutation.accept(code);
                 var impl = m.getImplementation();
@@ -172,7 +172,7 @@ class VerifySettingsDexTest {
             c.clear();
             c.add(new ImmutableInstruction10x(Opcode.RETURN_VOID));
         }));
-        reject("empty settings navigation", () -> mutate(B + "Navigator;", "b", c -> {
+        reject("empty settings navigation", () -> mutate(B + "ClickAction;", "invoke", c -> {
             c.clear();
             c.add(new ImmutableInstruction10x(Opcode.RETURN_VOID));
         }));
@@ -210,12 +210,12 @@ class VerifySettingsDexTest {
                                                                 ((ReferenceInstruction)
                                                                                 c.get(startup(c)))
                                                                         .getReference()))));
-        reject("missing append", () -> mutate("Lp/xlt;", "create", c -> c.remove(append(c))));
+        reject("missing append", () -> mutate("Lp/dns;", "create", c -> c.remove(append(c))));
         reject(
                 "duplicate append",
                 () ->
                         mutate(
-                                "Lp/xlt;",
+                                "Lp/dns;",
                                 "create",
                                 c -> {
                                     int n = append(c);
@@ -225,7 +225,7 @@ class VerifySettingsDexTest {
                 "wrong append receiver",
                 () ->
                         mutate(
-                                "Lp/xlt;",
+                                "Lp/dns;",
                                 "create",
                                 c -> {
                                     int n = append(c);
@@ -247,7 +247,7 @@ class VerifySettingsDexTest {
                 "misplaced append",
                 () ->
                         mutate(
-                                "Lp/xlt;",
+                                "Lp/dns;",
                                 "create",
                                 c -> {
                                     int n = append(c);
@@ -264,18 +264,18 @@ class VerifySettingsDexTest {
                 "wrong reserved analytics value",
                 () ->
                         mutate(
-                                "Lp/c3g0;",
+                                "Lp/opl0;",
                                 "<init>",
                                 c ->
                                         c.set(
                                                 label(c) - 2,
                                                 new ImmutableInstruction11n(
-                                                        Opcode.CONST_4, 7, 0))));
+                                                        Opcode.CONST_4, 8, 0))));
         reject(
                 "inverted analytics branch",
                 () ->
                         mutate(
-                                "Lp/c3g0;",
+                                "Lp/opl0;",
                                 "<init>",
                                 c -> {
                                     int n = label(c) - 1;
@@ -292,7 +292,7 @@ class VerifySettingsDexTest {
                 "wrong analytics sink",
                 () ->
                         mutate(
-                                "Lp/c3g0;",
+                                "Lp/opl0;",
                                 "<init>",
                                 c -> {
                                     int n = label(c) + 1;
@@ -300,7 +300,7 @@ class VerifySettingsDexTest {
                                 }));
         reject(
                 "missing bridge class",
-                () -> VerifySettingsDex.classes.remove(B + "RendererProvider;"));
+                () -> VerifySettingsDex.classes.remove(B + "ClickAction;"));
         reject("altered menu bridge", () -> mutate(VerifySettingsDex.MENU_BRIDGE + "MenuBridge;", "track",
                 c -> c.addFirst(new ImmutableInstruction10x(Opcode.NOP))));
         // Byte equality can't catch a reference the bundle shares; the link check must.
@@ -312,11 +312,11 @@ class VerifySettingsDexTest {
         reject("missing home chip callbacks",
                 () -> VerifySettingsDex.classes.remove(VerifySettingsDex.EXTENSIONS + "HomeChips;"));
         reject("missing Home pins plan", () -> VerifySettingsDex.classes.remove(VerifySettingsDex.HOME + "HomePins;"));
-        reject("missing native target", () -> VerifySettingsDex.classes.remove("Lp/xh0;"));
+        reject("missing native target", () -> VerifySettingsDex.classes.remove("Lp/o3e0;"));
         reject(
                 "missing navigator method",
                 () -> {
-                    var cls = VerifySettingsDex.classes.get(B + "Navigator;");
+                    var cls = VerifySettingsDex.classes.get(B + "ClickAction;");
                     var methods = new ArrayList<Method>();
                     for (var m : cls.getMethods()) {
                         if (!m.getName().equals("b")) {

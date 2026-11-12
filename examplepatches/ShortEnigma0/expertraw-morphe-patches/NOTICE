@@ -1,0 +1,54 @@
+Morphe NOTICE
+
+https://github.com/MorpheApp/morphe-patches
+
+=============
+
+GPLv3 Section 7b: Preservation of User Notices
+
+All derivative works (source code and binaries) must include this
+NOTICE text and provide it to the software user.
+
+Portions of this software are provided "AS IS" by the Morphe software project.
+Any express or implied warranties, including the implied warranties of
+merchantability and fitness for a particular purpose, are disclaimed.
+
+
+GPLv3 Section 7c: Prohibiting Misrepresentation of Origin
+
+You are prohibited from misrepresenting the origin of the Program,
+and modified versions of the Program must be identified and marked in
+reasonable ways as different from the original version so as not to cause
+confusion regarding their origin.
+
+
+GPLv3 Section 7e: Declining Grant of Trademark Rights
+
+This License does not grant any rights or permission under trademark law
+to use the name "Morphe" or any of the Program's trade names, trademarks,
+service marks, or logos.
+
+=============
+
+Modifications in this fork (expertraw-morphe-patches, https://github.com/ShortEnigma0/expertraw-morphe-patches)
+
+This is a modified version of Morphe Patches. Changes by ShortEnigma0, 2026:
+- Added Samsung Expert RAW patches (patches/.../expertraw) and extension (extensions/expertraw).
+- Added a standalone APK patcher (standalone-patcher/), original work licensed GPL-3.0-only.
+- Removed the YouTube, YouTube Music and Reddit patches and extensions.
+
+=============
+
+DMCA & Legal Notice
+
+This project does NOT distribute, bundle, or host any proprietary binaries, APK files,
+or copyrighted source code belonging to Samsung Electronics Co., Ltd. or any third party.
+All patches operate via local client-side bytecode modification on user-supplied files.
+
+"Samsung", "Galaxy", "Galaxy Store", "Expert RAW", and "One UI" are registered trademarks
+of Samsung Electronics Co., Ltd. and are used strictly under nominative fair use to describe
+software compatibility. This project is not affiliated with or endorsed by Samsung.
+
+For complete DMCA Safe Harbor policies, copyright compliance, non-circumvention declarations,
+and the designated agent takedown procedure, see DMCA.md in this repository.
+

@@ -39,7 +39,7 @@ private val previewScrollFingerprint = Fingerprint(
 )
 
 val previewScrollPatch = bytecodePatch(
-    name = "プレビューのスクロール",
+    name = "Scrollable preview",
     description = "トークのプレビュー画面をスクロールできるようにします。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

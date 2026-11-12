@@ -60,6 +60,7 @@ val spoofFirebaseCertHashPatch = bytecodePatch(
     """.trimIndent(),
     default = false,
 ) {
+    category("Signature")
     dependsOn(extractApkCertificatePatch)
 
     execute {

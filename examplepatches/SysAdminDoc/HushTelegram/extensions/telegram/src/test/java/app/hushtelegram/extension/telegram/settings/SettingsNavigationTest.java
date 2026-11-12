@@ -1034,6 +1034,59 @@ public class SettingsNavigationTest {
     }
 
     /**
+     * Search finds a backup or report row by its own summary, not by the line it shows while it
+     * runs or the result it keeps afterwards. During an import the Export row read "Importing
+     * settings", so a search for "Import settings" listed it under a count of one, and a row
+     * searched by its own words went missing until the run was over.
+     */
+    @Test public void searchFindsARunningRowByItsOwnSummary() throws Exception {
+        String file = new org.json.JSONObject().put("format", SettingsBackup.FORMAT).put("schema", SettingsBackup.SCHEMA)
+                .put("settings", new org.json.JSONObject().put(Settings.HIDE_ADS.key, false)).toString();
+        String loads = String.valueOf(page.findPreference("action_import_settings").getSummary());
+        try (FailingStore store = FailingStore.holding()) {
+            page.pendingImport = SettingsBackup.parse(file).toBundle();
+            SettingsBackupPreference.showPreview(page);
+            org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()
+                    .getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            ShadowLooper.idleMainLooper();
+            assertTrue("the import never reached its commit", store.awaitHeld());
+            assertEquals("Importing settings",
+                    String.valueOf(page.findPreference("action_export_settings").getSummary()));
+
+            page.navigation.search("import settings");
+            assertTrue(contains("action_import_settings"));
+            assertFalse("the Export row was found by the running line", contains("action_export_settings"));
+            page.navigation.search(loads);
+            assertTrue("the Import row was lost to the running line", contains("action_import_settings"));
+
+            store.letGo();
+            for (int round = 0; round < 3; round++) {
+                app.hushtelegram.extension.shared.Utils.awaitBackgroundTasksForTests();
+                ShadowLooper.idleMainLooper();
+            }
+        }
+        assertEquals("Settings imported. 1 switch changed.\n" + loads,
+                String.valueOf(page.findPreference("action_import_settings").getSummary()));
+        page.navigation.search("settings imported switch changed");
+        assertFalse("the Import row was found by its result line", contains("action_import_settings"));
+        page.navigation.search(loads);
+        assertTrue(contains("action_import_settings"));
+
+        Preference report = page.findPreference("action_export_diagnostic_report");
+        String resting = String.valueOf(report.getSummary());
+        report.getOnPreferenceClickListener().onPreferenceClick(report);
+        org.robolectric.Shadows.shadowOf(org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog()).clickOnItem(0);
+        assertEquals("Preparing the diagnostic report", String.valueOf(report.getSummary()));
+        page.navigation.search("preparing the diagnostic report");
+        assertFalse("the report row was found by the running line", contains("action_export_diagnostic_report"));
+        page.navigation.search(resting);
+        assertTrue("the report row was lost to the running line", contains("action_export_diagnostic_report"));
+        app.hushtelegram.extension.shared.Utils.awaitBackgroundTasksForTests();
+        ShadowLooper.idleMainLooper();
+        assertEquals(resting, String.valueOf(report.getSummary()));
+    }
+
+    /**
      * On the S22 with TalkBack, typing a search said only "Edit box": the list changed without a
      * word. The count now sits in a polite live region, written once the typing settles.
      */

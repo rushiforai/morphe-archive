@@ -2,7 +2,13 @@
 
 microGを使い、通常領域とSamsungセキュアフォルダでGeminiを動かすためのMorpheパッチ集です。GoogleアプリとGeminiランチャーを別パッケージとして構築します。
 
-**動作確認済み:** Google `17.70.11.ve.arm64`、Gemini `1.0.995038376`、microG `7.3.0`。2026-11-03にSM-S948Qのセキュアフォルダで認定警告の解消・内部サービス復旧後のチャット送受信をユーザーが確認。通常領域は新版で未再検証。
+**最新の実機確認:** Google `17.72.17.ve.arm64`、Gemini `1.0.995038376`、パッチ `v0.3.2`。2026-11-12にSM-S948Q／Android17のセキュアフォルダuser150へ既存署名・データを保持して更新し、ユーザーがログイン状態の維持とチャット返答を確認。microGは既存環境を維持。通常領域は新版で未再検証。
+
+## Setup / installation (English)
+
+**Use v0.3.2 or newer and keep the default patch selection.** `Automatic Clone Setup` handles package, permission and provider isolation; official Clone app, Expert mode and custom options are unnecessary. Read [Supported setup](docs/setup-en.md) for the input variants. Do not select the three historical account experiments.
+
+Issue #8 reproduction and the verified fix are recorded in [the emulator regression report](docs/testing/issue-8-emulator.md).
 
 ## Morpheに追加
 
@@ -10,7 +16,7 @@ microGを使い、通常領域とSamsungセキュアフォルダでGeminiを動�
 
 [Morpheにソースを追加](https://morphe.software/add-source?github=ryuya0124/gemini-microg-patches)、またはSources → RemoteにこのリポジトリのURLを入力してください。更新情報はルートの `patches-bundle.json` で配信します。
 
-独自パッチに加えて、公式Morphe patches 1.41.0の **Clone app** とオプション `updatePermissions=true`、`updateProviders=true` が必要です。ManagerではExpert modeで選択します。Googleのxxhdpi splitの変換・同じキーでの署名まで再現する場合は、下記のローカルスクリプトを使用してください。
+v0.3.2からは、このソースの**標準選択のまま**パッチしてください。`Automatic Clone Setup` が `.morphe` へのクローン化と権限・Providerの競合回避を行うため、公式Clone appやExpert modeでの手動設定は不要です。Googleはリソース入りのnodpi単体APKが扱いやすく、分割版では適合するresource splitも必要です。対応バリアントは[セットアップ手順](docs/setup-en.md)を参照してください。
 
 ## できること
 
@@ -53,6 +59,8 @@ ADB_SERIAL=端末のIP:ポート scripts/install-device.sh
 既存インストールを更新するときは**同じ署名キー**を使用します。Macの作業環境には既存キーと `.env` を配置済みです。パスワードはローカル専用の `local/SIGNING.md` にあります。新しいキーで既存キーを置き換えないでください。
 
 インストールする3ファイルは `dist/google-login.apk`、`dist/split_config.xxhdpi.apk`、`dist/gemini-login.apk` です。署名検証に成功したものだけを `dist/` に出力し、`SHA256SUMS` を生成します。
+
+インストール先は既定でAndroid user 0です。セキュアフォルダなど別ユーザーへ更新する場合は、`ANDROID_USER=150 ADB_SERIAL=端末のIP:ポート scripts/install-device.sh` のように明示します。
 
 利用するプロファイル内にmicroG (`app.revanced.android.gms`) とアカウントを用意し、Gemini (Morphe)を開いて初回のアカウント権限とmicroG拡張権限を許可します。SamsungではADBからセキュアフォルダ内のActivityを起動できないため、フォルダ内で手動で開きます。
 
@@ -117,3 +125,5 @@ local/           署名キー・個人用メモ・旧作業資料（Git対象外
 更新時の探索方法・症状別の手掛かり・失敗例は [フック解析ガイド](docs/hook-analysis.md) を参照してください。`scripts/inspect-hooks.sh` で未知版のDEXも読み取り専用で検索できます。
 
 新版の解析には [DexKit探索ツール](analysis/dexkit/README.md) を利用できます。`scripts/setup-dexkit.sh` の後、`scripts/discover-hooks.sh APK` で候補を抽出し、同じ入力の再探索はキャッシュで省略します。
+
+クローンの出力検証には `scripts/verify-clone-contract.sh 元APK 生成APK` を使用できます。標準ビルド・署名・インストールの各段階でも実行します。Manager自体にこのCLI検証が組み込まれるわけではありません。

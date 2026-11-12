@@ -53,6 +53,7 @@ val textnowDisableTrackerComponentsPatch = resourcePatch(
         "Flurry components and sets the Firebase/GA collection opt-outs. FCM push is kept.",
     default = true,
 ) {
+    category("Privacy")
     compatibleWith(TEXTNOW_COMPATIBILITY)
 
     execute {

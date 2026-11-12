@@ -1,30 +1,28 @@
-# 👋🧩 Morphe Patches template
+# 🧩 Morphe Patches
 
-Template repository for Morphe Patches.
+A collection of patches for [Morphe](https://morphe.software).
 
 ## ❓ About
 
-Patches for apps I like.
-
-<!-- TODO: Update this about section with a brief introduction/summary about this repo and what it offers. -->
+This repository contains Morphe patches and publishes them as `.mpp` bundles.
 
 ### How to use these patches
 
-Click the button below, or manually add this repo url to Morphe Manager: https://github.com/Globberry/keyflow-patches
+Add this repository to Morphe Manager:
 
-<a href="https://morphe.software/add-source?github=Globberry/keyflow-patches">
+<a href="https://morphe.software/add-source?github=Globberry/morphe-patches">
   <img src=".github/assets/add-to-morphe.svg" alt="Add to Morphe" height="48">
 </a>
+
+Or use the repository URL directly: https://github.com/Globberry/morphe-patches
 
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.3.9](https://github.com/Globberry/morphe-patches/releases/tag/v1.3.9)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
+> **[v1.7.5](https://github.com/Globberry/morphe-patches/releases/tag/v1.7.5)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;6 patches total
 <details open>
-<summary>📦 Keyflow&nbsp;&nbsp;•&nbsp;&nbsp;10 patches</summary>
+<summary>📦 Keyflow&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
 <br>
-
-**Package name:** `com.angkin.keyflow`
 
 **🎯 Supported versions:**
 
@@ -33,16 +31,12 @@ Click the button below, or manually add this repo url to Morphe Manager: https:/
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Keyflow Export Pro Gate Bypass](#keyflow-export-pro-gate-bypass) | Allows exporting projects that use Pro features by bypassing the Pro gate in the export pipeline. |  |
-| [Keyflow Trusted Signer Bypass](#keyflow-trusted-signer-bypass) | Always report the app signature as trusted so Pro is not reset when opening a project or exporting. |  |
-| [Keyflow byYKY0yXO Signer Bypass](#keyflow-byyky0yxo-signer-bypass) | Return a dummy signer identity string during export so the export path does not fail on re-signed APKs. |  |
-| [Keyflow f6olX Goto Fix](#keyflow-f6olx-goto-fix) | Replaces failure goto sites in f6olX with nop so all code paths reach Premium (Keyflow 1.5.10 export). |  |
 | [PairIP License Check](#pairip-license-check) | Neuters PairIP license verification so the app runs without a valid license. |  |
-| [Pro Unlock](#pro-unlock) | Forces all Pro features enabled and replaces the Google Play confirmation with a fake success, so ad surfaces never appear. |  |
-| [Signer Identity](#signer-identity) | Forces the app's signer identity to match the original publisher certificate. |  |
-| [[ALL] PairIP License Check](#all-pairip-license-check) | Neuters PairIP license verification using fingerprint matching (version-robust). |  |
-| [[ALL] Pro Unlock](#all-pro-unlock) | Forces all Pro features enabled using fingerprint matching (version-robust for method name changes). |  |
-| [[ALL] Signer Identity](#all-signer-identity) | Forces the app's signer identity to match the original publisher certificate (fingerprint-based, version-robust). |  |
+| [Pro Unlock](#pro-unlock) | Forces all Pro features enabled, keeps Pro active after signer checks, and unlocks Pro exports (including the paid-export receipt check). |  |
+| [Signer Identity](#signer-identity) | Forces the app's signer identity, signature checks, and signer-identity string to match the original publisher certificate. |  |
+| [[Export] 12 Purchase Allow](#export-12-purchase-allow) | Always accept the paid-export purchase check (LP0JcGi9.MeOIJuj). |  |
+| [[Export] 8 Diagnostics](#export-8-diagnostics) | Log the whole export flow to logcat (tag KFPro). Read with: adb logcat -s KFPro |  |
+| [[Export] 9 Toast](#export-9-toast) | Show a toast naming the reason the export was cancelled. |  |
 
 </details>
 
@@ -51,12 +45,12 @@ Click the button below, or manually add this repo url to Morphe Manager: https:/
 ### 🛠️ Building locally
 
 - Run `./gradlew buildAndroid`
-- The built patches .mpp file is found in `patches/build/libs/patches-*.mpp`
-- Patch the mpp file using [Morphe-Desktop](https://github.com/MorpheApp/morphe-desktop)
+- The bundle is written to `patches/build/libs/patches-*.mpp`
+- Apply it with [Morphe-Desktop](https://github.com/MorpheApp/morphe-desktop)
   like any other patch bundle.
 
 See the [Morphe documentation](https://github.com/MorpheApp/morphe-documentation) for more information.
 
 ## 📜 License
 
-UserXYZ Patches are licensed under the [GNU General Public License v3.0](LICENSE)
+This project is licensed under the [GNU General Public License v3.0](LICENSE).

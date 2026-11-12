@@ -1786,7 +1786,7 @@ Stopped waiting for the file app. Nothing was exported.	Ожидание при�
 Stopped waiting for the file app. It hasn't said yet whether the export was saved.	Ожидание приложения для файлов остановлено. Оно ещё не сообщило, сохранён ли экспорт.
 The export wasn't saved. Try again.	Экспорт не сохранён. Повторите.
 Hide unpersonalized For You videos	Скрывать неперсонализированные видео в Рекомендациях
-Hide the fill-in videos TikTok sends to For You without picking them for you. When a whole batch is fill-in, it stays so the feed doesn't run dry.	Скрывать видео-заполнители, которые TikTok отправляет в Рекомендации, не подбирая их для вас. Если вся партия состоит из заполнителей, она остаётся, чтобы лента не опустела.
+Hide the fill-in videos TikTok sends to For You without picking them for you. When a whole batch is fill-in, only its first video stays so the feed doesn't run dry.	Скрывать видео-заполнители, которые TikTok отправляет в Рекомендации, не подбирая их для вас. Если вся партия состоит из заполнителей, остаётся только её первое видео, чтобы лента не опустела.
 Unpersonalized For You videos	Неперсонализированные видео в Рекомендациях
 Reviewed presets for TikTok %1$s	Проверенные предустановки для TikTok %1$s
 No reviewed presets for TikTok %1$s yet	Для TikTok %1$s пока нет проверенных предустановок
@@ -2869,3 +2869,24 @@ Search Liked and Favorites grids	Поиск в сетках «Понравило
 Adds a Search button to the top of the Liked and Favorites grids. Type a word from a caption, a creator or a sound to see only the loaded videos that have it.	Добавляет кнопку «Поиск» вверху сеток «Понравилось» и «Избранное». Введите слово из подписи, имени автора или названия звука, чтобы видеть только загруженные видео с ним.
 # context: Hint in the search box over a Liked or Favorites grid
 Caption, creator or sound	Подпись, автор или звук
+# context: Row title of the switch that makes holding the Profile tab open TikTok's account switcher
+Long-press Profile to switch accounts	Долгое нажатие на Профиль переключает аккаунт
+# context: Summary under that switch; Long-press Profile for Watch history is the row just above it
+Press and hold the Profile tab to pick one of your other accounts, where TikTok left that out. A tap on Profile works as before. While Long-press Profile for Watch history is on, it takes the press. Restart TikTok to apply this.	Нажмите и удерживайте вкладку Профиль, чтобы выбрать другой свой аккаунт, если TikTok убрал это. Обычное нажатие на Профиль работает как раньше. Пока включено «Долгое нажатие на Профиль открывает историю просмотров», нажатие занимает она. Перезапустите TikTok, чтобы это применить.
+# context: Row title of the Comments switch that cuts long comments short with a tap to read the rest
+Fold long comments	Сворачивать длинные комментарии
+# context: Summary under that switch; more is the word at the end of a cut comment (its own row below)
+A long comment shows its first few lines and more. Tap more to read the rest right where it is.	Длинный комментарий показывает первые строки и «ещё». Нажмите «ещё», чтобы прочитать остальное прямо на месте.
+# context: Row title of the number under that switch; the row shows it followed by the count, as in Fold after 4 lines
+Fold after	Сворачивать после
+# context: Summary under that number
+How many lines of a long comment show before more.	Сколько строк длинного комментария видно до «ещё».
+# context: The count shown on that row for one line
+%1$s line	%1$s строка
+# context: The count shown on that row for several lines
+%1$s lines	%1$s строк
+%1$s lines|one	%1$s строка
+%1$s lines|few	%1$s строки
+%1$s lines|many	%1$s строк
+# context: The tappable word at the end of a cut comment, after an ellipsis, that opens the rest of it
+… more	… ещё

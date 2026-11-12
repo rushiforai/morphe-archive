@@ -134,17 +134,19 @@ try {
     $repository = [regex]::Match([string]$index.download_url, '^https://github\.com/([^/]+/[^/]+)/releases/').Groups[1].Value
     $rebuilt = Join-Path $scratch 'patches-bundle.json'
     Set-ManagerIndex -Path $rebuilt -Version ([string]$index.version) -CreatedAt $createdAt -Description ([string]$index.description) `
-        -Repository $repository
+        -Repository $repository -PublicKey ([string]$index.public_key)
     Assert-True ([IO.File]::ReadAllText($rebuilt) -ceq $indexText) `
         "Set-ManagerIndex did not write the checkout's patches-bundle.json back byte for byte:`n$([IO.File]::ReadAllText($rebuilt))"
     $awkward = "Quotes `"here`", a back\slash, a tab`there.`r`n`r`nSecond paragraph, it's fine."
-    Set-ManagerIndex -Path $rebuilt -Version '0.0.12' -CreatedAt '2026-10-20T01:02:03' -Description $awkward -Repository 'Owner/Repo'
+    $key = 'zk0H4ybhexSDXjbfQHPQlAgN99edII3X7J2HUEWZaJU='
+    Set-ManagerIndex -Path $rebuilt -Version '0.0.12' -CreatedAt '2026-10-20T01:02:03' -Description $awkward -Repository 'Owner/Repo' `
+        -PublicKey $key
     $written = [IO.File]::ReadAllText($rebuilt)
     $read = $written | ConvertFrom-Json
     Assert-True ([string]$read.description -ceq ($awkward -replace "`r`n", "`n") -and
         [string]$read.download_url -ceq 'https://github.com/Owner/Repo/releases/download/v0.0.12/patches-0.0.12.mpp' -and
         $written -like '*"created_at": "2026-10-20T01:02:03",*' -and $written -like '*"signature_download_url": "",*' -and
-        $written.EndsWith("}`n")) "The index did not escape or lay out its fields: $written"
+        $written.EndsWith("""version"": ""0.0.12"",`n  ""public_key"": ""$key""`n}`n")) "The index did not escape or lay out its fields: $written"
     Assert-Throws { Set-ManagerIndex -Path $rebuilt -Version '0.0.12' -CreatedAt '2026-10-20T01:02:03Z' -Description 'x' `
             -Repository 'Owner/Repo' } '*with no Z*' 'The index took a created_at with a Z, which Manager reads wrong.'
 

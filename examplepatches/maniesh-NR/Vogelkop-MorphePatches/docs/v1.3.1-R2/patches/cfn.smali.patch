@@ -1,0 +1,47 @@
+--- wbuild/s3orig/smali/cfn.smali	2026-11-11 16:22:56.449753228 +0000
++++ wbuild/s3new/smali/cfn.smali	2026-11-11 16:23:02.079788798 +0000
+@@ -235,6 +235,14 @@
+     return-object v0
+ 
+     :pswitch_a
++    const/4 v0, 0x0
++
++    invoke-static {v0}, Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;
++
++    move-result-object v0
++
++    return-object v0
++
+     iget-object v0, v0, Lz84;->receiver:Ljava/lang/Object;
+ 
+     check-cast v0, Le0o;
+@@ -341,6 +349,14 @@
+     return-object v0
+ 
+     :pswitch_b
++    const/4 v0, 0x0
++
++    invoke-static {v0}, Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;
++
++    move-result-object v0
++
++    return-object v0
++
+     iget-object v0, v0, Lz84;->receiver:Ljava/lang/Object;
+ 
+     check-cast v0, Lc0o;
+@@ -444,6 +460,14 @@
+     return-object v0
+ 
+     :pswitch_f
++    const/4 v0, 0x0
++
++    invoke-static {v0}, Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;
++
++    move-result-object v0
++
++    return-object v0
++
+     iget-object v0, v0, Lz84;->receiver:Ljava/lang/Object;
+ 
+     check-cast v0, Lc0o;

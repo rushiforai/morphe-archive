@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - "patches/**"
+      - "tests/**"
       - "settings.gradle.kts"
       - "build.gradle.kts"
       - "gradle/**"
@@ -30,6 +31,11 @@ jobs:
           distribution: temurin
           java-version: "21"
 
+      - name: Test WebView ad-space cleanup
+        run: |
+          npm install --prefix "$RUNNER_TEMP/fmkorea-tests" jsdom@26.1.0 --no-audit --no-fund
+          NODE_PATH="$RUNNER_TEMP/fmkorea-tests/node_modules" node tests/ad-spaces.test.cjs
+
       - name: Build Morphe patch bundle
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -48,7 +54,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          version="1.0.0"
+          version="1.2.0"
           tag="v$version"
           bundle="$(find patches/build/libs -maxdepth 1 -type f -name '*.mpp' ! -name '*sources*' ! -name '*javadoc*' | head -n 1)"
           test -n "$bundle"
@@ -58,17 +64,17 @@ jobs:
           if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$tag" "patches-$version.mpp" --clobber --repo "$GITHUB_REPOSITORY"
           else
-            gh release create "$tag" "patches-$version.mpp"               --repo "$GITHUB_REPOSITORY"               --title "$tag"               --notes "FMKorea splash logo removal patch for Morphe."
+            gh release create "$tag" "patches-$version.mpp"               --repo "$GITHUB_REPOSITORY"               --title "$tag"               --notes "FMKorea splash removal and AdGuard-free ad removal patches for Morphe."
           fi
 
           python3 - <<'PY'
           import json
           from datetime import datetime, timezone
 
-          version = "1.0.0"
+          version = "1.2.0"
           metadata = {
               "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S"),
-              "description": "Removes the large FM logo shown while the FMKorea app starts.",
+              "description": "Removes the startup logo and removes FMKorea ads and leftover ad spaces without AdGuard.",
               "download_url": f"https://github.com/dongmin8350/fmkorea-splash-patches/releases/download/v{version}/patches-{version}.mpp",
               "signature_download_url": "",
               "version": version,

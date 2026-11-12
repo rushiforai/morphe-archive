@@ -1,0 +1,14 @@
+gradle.projectsEvaluated {
+    def p = gradle.rootProject.project(':patches')
+    p.sourceSets.test.kotlin.srcDir(new File(gradle.rootProject.projectDir, 'scripts/notesnook'))
+    p.configurations.testImplementation.extendsFrom(p.configurations.compileOnly)
+    p.dependencies.add('testImplementation', 'app.morphe:morphe-patcher:2.3.0')
+    p.dependencies.add('testImplementation', 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2')
+    p.tasks.register('notesnookSmoke', JavaExec) {
+        dependsOn p.tasks.named('testClasses')
+        classpath = p.sourceSets.test.runtimeClasspath
+        mainClass = 'NotesnookSmokeKt'
+        maxHeapSize = '3g'
+        args System.getProperty('notesnook.apk'), p.layout.buildDirectory.file("libs/patches-${p.version}.mpp").get().asFile.absolutePath, System.getProperty('notesnook.out'), System.getProperty('notesnook.sdk')
+    }
+}

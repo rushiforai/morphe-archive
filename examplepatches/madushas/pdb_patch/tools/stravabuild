@@ -1,0 +1,102 @@
+#!/usr/bin/env bash
+# Build a minimal .apks from a public Strava XAPK (APKMirror / APKPure style)
+# and patch it with the Morphe bundle. The minimal input (base + ONE abi +
+# ONE density + ONE language) is what makes patching fast everywhere - the
+# full 29-split bundle only wastes merge time and memory.
+#
+# Usage:
+#   stravabuild <input.xapk-or-dir> [--abi arm64-v8a] [--lang en] [--dpi xxhdpi]
+#               [--install]
+#
+# With no arguments: uses strava_original.xapk in the repo root, arm64-v8a,
+# en, xxhdpi, and stops after patching (no install).
+set -euo pipefail
+
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+WORK="${STRAVA_WORK:-$REPO/work}"
+IN="${1:-$REPO/strava_original.xapk}"
+ABI="arm64-v8a"
+LANG_="en"
+DPI="xxhdpi"
+INSTALL=0
+
+shift_args=()
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --abi) ABI="$2"; shift 2;;
+    --lang) LANG_="$2"; shift 2;;
+    --dpi) DPI="$2"; shift 2;;
+    --install) INSTALL=1; shift;;
+    -*) echo "unknown flag: $1" >&2; exit 1;;
+    *) if [[ -z "${IN_SET:-}" ]]; then IN="$1"; IN_SET=1; shift; else echo "unexpected arg: $1" >&2; exit 1; fi;;
+  esac
+done
+
+export JAVA_HOME="$(dirname "$(dirname "$(readlink -f "$(command -v java)")")")"
+export ANDROID_HOME="${ANDROID_HOME:-$HOME/Android/Sdk}"
+export GITHUB_ACTOR="${GITHUB_ACTOR:-madushas}"
+if [[ -z "${GITHUB_TOKEN:-}" ]]; then
+  for f in "$REPO/gh_token.txt" "$HOME/.morphe-data/gh_token.txt"; do
+    if [[ -f "$f" ]]; then export GITHUB_TOKEN="$(tr -d '\r\n' < "$f")"; break; fi
+  done
+fi
+export MORPHE_DATA_DIR="${MORPHE_DATA_DIR:-$HOME/.morphe-data}"
+
+TMP="$(mktemp -d /tmp/stravabuild.XXXXXX)"
+trap 'rm -rf "$TMP"' EXIT
+
+echo "==> Unpacking $IN"
+mkdir -p "$TMP/x"
+if [[ -d "$IN" ]]; then
+  cp -r "$IN"/. "$TMP/x/"
+elif [[ "$IN" == *.xapk || "$IN" == *.zip ]]; then
+  unzip -q -o "$IN" -d "$TMP/x"
+elif [[ "$IN" == *.apks || "$IN" == *.apkm ]]; then
+  unzip -q -o "$IN" -d "$TMP/x"
+else
+  echo "unsupported input: $IN (want .xapk/.apks/.apkm or a dir of splits)" >&2
+  exit 1
+fi
+
+BASE="$(find "$TMP/x" -maxdepth 2 -name 'com.strava*.apk' -o -maxdepth 2 -name 'base.apk' | head -1)"
+[[ -n "$BASE" ]] || { echo "base APK not found in $IN" >&2; exit 1; }
+echo "==> Base: $(basename "$BASE")"
+
+mkdir -p "$TMP/min" "$WORK"
+cp "$BASE" "$TMP/min/base.apk"
+for spec in "arm64_v8a:$ABI" "en:$LANG_" "xxhdpi:$DPI"; do
+  key="${spec%%:*}"; want="${spec##*:}"
+  SPLIT="$(find "$TMP/x" -maxdepth 2 -name "config.${want}.apk" | head -1)"
+  if [[ -z "$SPLIT" ]]; then
+    SPLIT="$(find "$TMP/x" -maxdepth 2 -name "split_config.${key}.apk" | head -1)"
+  fi
+  if [[ -n "$SPLIT" ]]; then
+    cp "$SPLIT" "$TMP/min/split_config.${key}.apk"
+    echo "  + $(basename "$SPLIT")"
+  else
+    echo "  ! no split matching *$key* (input may be a single-abi build) - skipping"
+  fi
+done
+
+APKS="$WORK/strava_minimal.apks"
+( cd "$TMP/min" && zip -q "$APKS" *.apk )
+echo "==> Minimal .apks: $APKS ($(du -h "$APKS" | cut -f1))"
+
+echo "==> Building patch bundle"
+( cd "$REPO" && ./gradlew :patches:build --no-daemon -q )
+MPP="$(ls -t "$REPO"/patches/build/libs/patches-*.mpp 2>/dev/null | grep -vE 'sources|javadoc' | head -1)"
+
+OUT="$WORK/strava_patched.apk"
+echo "==> Patching"
+java -jar "$HOME/tools/opt/morphe-desktop.jar" patch \
+  --patches="$MPP" \
+  --options-file="$REPO/patches-options.json" \
+  --bytecode-mode FULL \
+  -o "$OUT" \
+  "$APKS"
+
+if [[ "$INSTALL" == 1 ]]; then
+  echo "==> Installing"
+  adb install -r "$OUT"
+fi
+echo "==> Done: $OUT"

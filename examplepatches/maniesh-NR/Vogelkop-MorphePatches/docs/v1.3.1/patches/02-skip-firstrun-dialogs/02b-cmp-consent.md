@@ -107,3 +107,42 @@ which is the desired end state.
   of all callers of `r65.l`.
 * Two other classes (`rn9`, `x65`) call `r65.l`; both treat `false` as
   "don't show the sheet", which is exactly what we want.
+
+## Binary-implementation addendum (2026-11-11, G-rung — SUPERSEDES the
+whole-body replacement above)
+
+The smali recipe above ("replace the entire method body") is correct at the
+smali level, but the E-rung **binary** implementation of it was the crash
+cause of the v1.3.1 E-builds: it wrote `const/4 v0,0; return v0` (4 bytes)
+over the method head. `r65.l`'s original head is a 1-unit `const/4 v0,1`
+followed by the FIRST unit of a 2-unit `if-nez` — the write split the if-nez
+and left its operand `2c 00` as the first dead bytes, which decode as a
+phantom `sparse-switch` with a payload pointer 0x7E3B1255 units outside the
+48-unit method. ART's verifier walks unreachable instructions too → hard
+verification failure → VerifyError when `r65` is first instantiated
+(`hjf.onCreate` → `application.h()`, i.e. the very first activity) → instant
+black-screen crash. Proven by `scripts/dex_structural_walk.py`: booting C1 =
+0 structural failures / 47,865 methods; crashing E1/E2 = exactly 1 failure,
+`Lr65;->l`.
+
+**Correct binary form** (what `v131_binary_patch.py` does since the G-rung):
+flip ONE operand byte — `12 10` → `12 00`, i.e. `const/4 v0,1` →
+`const/4 v0,0` — and touch nothing else. `v0` is the method's only source of
+"true" (returned at `:cond_0` and passed as the
+`getBoolean("startup.request_cmp_consent")` default), so every ORIGINAL path
+now returns false; there is no dead code and no instruction-boundary change
+at all. jadx round-trip of the patched method:
+
+```java
+public final boolean l(boolean z2) {
+    if (z2 || this.s || ((Boolean) this.u.getValue()).booleanValue() || k()) {
+        return false;
+    }
+    ru9 ru9Var = this.h;
+    return (i41.j0(ru9Var) || ru9Var.a.getBoolean("startup.request_cmp_consent", false)) ? false : false;
+}
+```
+
+The patcher now also runs a structural-integrity gate over every method of
+every dex after patching (ART-style instruction walk incl. switch payload
+resolution) and refuses to emit a dex that fails it.

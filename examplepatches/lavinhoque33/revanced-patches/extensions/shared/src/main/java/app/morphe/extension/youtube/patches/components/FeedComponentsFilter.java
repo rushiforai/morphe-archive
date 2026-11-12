@@ -80,6 +80,7 @@ public final class FeedComponentsFilter extends Filter {
     private static final Set<String> EXPLORE_PAGE_BROWSE_IDS = Set.of(
             MOVIES_PAGE_BROWSE_ID,
             "FEchannel_memberships",
+            "FEhype_leaderboard",
             "UC-9-kyTW8ZkZNDHQJ6FgpwQ",
             "UC4R8DWoMoI7CAwX8_LjQHig",
             "UCOpNcN46UbXVtpKMrmU4Abg",
@@ -113,6 +114,8 @@ public final class FeedComponentsFilter extends Filter {
     private final ByteArrayFilterGroup channelProfileSubscribeButtonBuffer;
     private final ByteArrayFilterGroup buttonComponentBuffer;
     private final StringFilterGroup carouselShelves;
+    private final StringFilterGroup forYouShelf;
+    private final StringFilterGroup playables;
     private final StringFilterGroup chipBar;
     private final StringFilterGroup chipsShelf;
     private final StringFilterGroup compactChannel;
@@ -332,9 +335,9 @@ public final class FeedComponentsFilter extends Filter {
 
         // It appears YouTube no longer uses this keyword.
         // Just in case, I won't remove this filter until 2025.
-        final StringFilterGroup forYouShelf = new StringFilterGroup(
-                Settings.HIDE_CAROUSEL_SHELF_HOME,
-                "mixed_content_shelf"
+        forYouShelf = new StringFilterGroup(
+                null,
+                "mixed_content_shelf.e"
         );
 
         final StringFilterGroup imageShelf = new StringFilterGroup(
@@ -361,10 +364,10 @@ public final class FeedComponentsFilter extends Filter {
                 "set_reminder_button"
         );
 
-        final StringFilterGroup playables = new StringFilterGroup(
+        playables = new StringFilterGroup(
                 Settings.HIDE_PLAYABLES,
-                "horizontal_gaming_shelf",
-                "mini_game_card."
+                "horizontal_gaming_shelf.e",
+                "mini_game_card.e"
         );
 
         final StringFilterGroup subscribedChannelsBar = new StringFilterGroup(
@@ -432,7 +435,7 @@ public final class FeedComponentsFilter extends Filter {
 
         playablesBuffer = new ByteArrayFilterGroup(
                 Settings.HIDE_PLAYABLES,
-                "mini_game"
+                "FEmini_app_destination"
         );
 
         ticketShelfBuffer = new ByteArrayFilterGroup(
@@ -700,7 +703,12 @@ public final class FeedComponentsFilter extends Filter {
             };
         }
 
-        if (matchedGroup == carouselShelves) {
+        if (matchedGroup == playables) {
+            return !("FEmini_app_destination".equals(browseId));
+        }
+
+        // Both shelf types need the page exemptions in hideShelves().
+        if (matchedGroup == carouselShelves || matchedGroup == forYouShelf) {
             if (contentIndex == 0) {
                 // modified by lavinhoque33, 2026-10-16: Hide History shelf (ported from Morphe).
                 // The History page itself is never hidden, only its shelf in the You tab.

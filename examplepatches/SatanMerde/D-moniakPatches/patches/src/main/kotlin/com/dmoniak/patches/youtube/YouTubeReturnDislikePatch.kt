@@ -7,7 +7,6 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.dmoniak.patches.shared.Constants.COMPATIBILITY_YOUTUBE
 import java.util.logging.Logger
 
-@Suppress("unused")
 val youtubeReturnDislikePatch = bytecodePatch(
     name = "Return YouTube Dislike - YouTube (Experimental)",
     description = "⚠️ [Experimental / Untested] Restores public dislike counts and like/dislike ratio bars on YouTube videos and Shorts using the official Return YouTube Dislike (RYD) API.",
@@ -26,7 +25,7 @@ fun BytecodePatchContext.executeYouTubeReturnDislikeLogic(logger: Logger) {
 
     classDefForEach { classDef ->
         val tl = classDef.type.lowercase()
-        if (tl.contains("androidx") || tl.contains("android/support")) return@classDefForEach
+        if (!tl.contains("androidx") && !tl.contains("android/support")) {
 
         val mutableClass by lazy { mutableClassDefBy(classDef) }
 
@@ -61,6 +60,7 @@ fun BytecodePatchContext.executeYouTubeReturnDislikeLogic(logger: Logger) {
                     logger.warning("[YouTube RYD] Failed to hook ${method.name}: ${e.message}")
                 }
             }
+        }
         }
     }
 

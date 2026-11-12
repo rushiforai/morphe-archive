@@ -13,9 +13,11 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
+import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.ColorSpace;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Looper;
 import android.os.SystemClock;
@@ -41,6 +43,7 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
+import org.robolectric.annotation.GraphicsMode;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -131,6 +134,7 @@ public class PinchZoomTest {
         Settings.PINCH_TO_ZOOM_DIM.resetToDefault();
         Settings.PINCH_TO_ZOOM_LIVE.resetToDefault();
         Settings.LONG_PRESS_OPENS_COMMENTS.resetToDefault();
+        Settings.TURN_OFF_HDR_BRIGHTNESS.resetToDefault();
         HookStatus.clear();
     }
 
@@ -705,6 +709,34 @@ public class PinchZoomTest {
         assertNull("an activity that isn't the story viewer counted", PinchZoom.mediaUnder(activity, decor(), 300, 300));
     }
 
+    /**
+     * Facebook keeps a clear Litho strip at each side of a story, 64dp wide, for taps to the previous
+     * and next story, and the story under them is a Litho host too. Where 64dp is no more than the
+     * smallest media, the reporter's phone among them, a pinch beside the edge zoomed the strip alone
+     * (#220). In the story viewer a host on top yields to the story spanning it.
+     */
+    @Test
+    public void inTheStoryViewerASideStripForTapsYieldsToTheStoryUnderIt() {
+        PinchZoom.resetForTests();
+        Activity viewer = Robolectric.buildActivity(com.facebook.stories.viewer.activity.StoryViewerActivity.class).setup().get();
+        FrameLayout card = new FrameLayout(viewer);
+        FrameLayout wrap = new FrameLayout(viewer);
+        LithoHost story = new LithoHost(viewer);
+        wrap.addView(story, new FrameLayout.LayoutParams(1080, 1920));
+        card.addView(wrap, new FrameLayout.LayoutParams(1080, 1920));
+        LithoHost next = new LithoHost(viewer);
+        FrameLayout.LayoutParams right = new FrameLayout.LayoutParams(162, 1920);
+        right.leftMargin = 918;
+        card.addView(next, right);
+        card.addView(new LithoHost(viewer), new FrameLayout.LayoutParams(162, 1920));
+        viewer.setContentView(card);
+        layOut(viewer);
+        View root = viewer.getWindow().getDecorView();
+        assertSame("the next story's strip won", story, PinchZoom.mediaUnder(viewer, root, 1000, 900));
+        assertSame("the previous story's strip won", story, PinchZoom.mediaUnder(viewer, root, 80, 900));
+        assertSame(story, PinchZoom.mediaUnder(viewer, root, 540, 900));
+    }
+
     /** 584 opens the story viewer as one of its empty subclasses as well, and that one holds Facebook's finger too. */
     @Test
     public void aStoryViewerSubclassIsTheStoryViewer() {
@@ -1164,6 +1196,119 @@ public class PinchZoomTest {
     private static final class Video {
         boolean playing = true;
         final List<Boolean> told = new ArrayList<>();
+    }
+
+    /** A pinch over the profile's photo, and the zoom it started. */
+    private PinchZoom.Zoom pinchOnPhoto() {
+        touch(event(MotionEvent.ACTION_DOWN, new float[][] {{250, 300}}));
+        touch(event(pointer(MotionEvent.ACTION_POINTER_DOWN, 1), new float[][] {{250, 300}, {350, 300}}));
+        PinchZoom.Zoom zoom = PinchZoom.zoom();
+        assertNotNull("no zoom started", zoom);
+        return zoom;
+    }
+
+    /**
+     * Facebook puts the story viewer's window in HDR color mode, where Android 14 shows an HDR story
+     * above SDR white, and a copy that stopped at SDR white looked dimmer than the story it covered
+     * (#220). There the zoom's copy and its frames are half floats in extended sRGB, which hold that
+     * light where the usual 8 bits stop at 1.
+     */
+    @Test
+    @Config(sdk = 34)
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void aZoomInAnHdrWindowCopiesInHalfFloatsThatKeepTheLightAboveSdrWhite() {
+        activity.getWindow().setColorMode(ActivityInfo.COLOR_MODE_HDR);
+        PinchZoom.Zoom zoom = pinchOnPhoto();
+        assertTrue("a zoom in an HDR window didn't take wide copies", zoom.wide);
+        Bitmap frame = zoom.spare(600, 600, zoom.wide);
+        assertNotNull(frame);
+        assertEquals(Bitmap.Config.RGBA_F16, frame.getConfig());
+        assertEquals(ColorSpace.get(ColorSpace.Named.EXTENDED_SRGB), frame.getColorSpace());
+        long bright = Color.pack(2f, 1f, 0.5f, 1f, ColorSpace.get(ColorSpace.Named.EXTENDED_SRGB));
+        frame.eraseColor(bright);
+        assertEquals("the wide copy lost the light above SDR white", 2f, PinchZoom.brightest(frame), 0.01f);
+        Bitmap usual = PinchZoom.copyBitmap(600, 600, false);
+        usual.eraseColor(bright);
+        assertEquals("an 8 bit copy held light above SDR white", 1f, PinchZoom.brightest(usual), 0.01f);
+    }
+
+    @Test
+    @Config(sdk = 34)
+    public void aZoomInAnOrdinaryWindowCopiesInTheUsual8Bits() {
+        PinchZoom.Zoom zoom = pinchOnPhoto();
+        assertFalse(zoom.wide);
+        Bitmap frame = zoom.spare(600, 600, zoom.wide);
+        assertNotNull(frame);
+        assertEquals(Bitmap.Config.ARGB_8888, frame.getConfig());
+    }
+
+    /** Before Android 14 HDR color mode doesn't lift a story above SDR white, so the copy keeps the usual 8 bits. */
+    @Test
+    public void beforeAndroid14AnHdrWindowStillCopiesInTheUsual8Bits() {
+        activity.getWindow().setColorMode(ActivityInfo.COLOR_MODE_HDR);
+        assertEquals(ActivityInfo.COLOR_MODE_HDR, activity.getWindow().getColorMode());
+        assertFalse(pinchOnPhoto().wide);
+    }
+
+    /** A video surface over the profile's photo, the pinch landing on it. */
+    private void surfaceOnScreen() {
+        android.view.SurfaceView surface = new android.view.SurfaceView(activity);
+        ((ViewGroup) photo.getParent()).addView(surface, new FrameLayout.LayoutParams(600, 600));
+        layOut(activity);
+        PinchZoom.places = (screen, root, x, y) -> surface;
+    }
+
+    /**
+     * Facebook can draw a story's HDR video on a SurfaceView of its own, which lifts the screen with
+     * the window left at the default color mode, and Android then dims the window's SDR parts, so an
+     * 8 bit copy over the video looked dimmer than it (#220). A zoom on a video surface while the
+     * screen is lifted copies in half floats and puts the window in HDR color mode until it goes.
+     */
+    @Test
+    @Config(sdk = 34)
+    public void aZoomOnAVideoSurfaceWhileTheScreenIsLiftedCopiesWideInAnHdrWindowUntilItGoes() {
+        surfaceOnScreen();
+        PinchZoom.headroom = view -> 3f;
+        PinchZoom.Zoom zoom = pinchOnPhoto();
+        assertTrue("a zoom on a lifted video surface didn't take wide copies", zoom.wide);
+        assertTrue(zoom.shown());
+        assertEquals("the window stayed out of HDR mode under the wide copy",
+                ActivityInfo.COLOR_MODE_HDR, activity.getWindow().getColorMode());
+        // One finger lifts: the copy springs back, and the window gets its own mode back.
+        touch(event(pointer(MotionEvent.ACTION_POINTER_UP, 1), new float[][] {{250, 300}, {350, 300}}));
+        shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofSeconds(1));
+        assertFalse("the layer stayed after the spring back", zoom.shown());
+        assertEquals("the window stayed in HDR mode after the zoom",
+                ActivityInfo.COLOR_MODE_DEFAULT, activity.getWindow().getColorMode());
+    }
+
+    @Test
+    @Config(sdk = 34)
+    public void aVideoSurfaceOnAScreenShowingNothingAboveSdrWhiteKeepsThe8BitsAndTheWindow() {
+        surfaceOnScreen();
+        PinchZoom.headroom = view -> 1f;
+        assertFalse(pinchOnPhoto().wide);
+        assertEquals(ActivityInfo.COLOR_MODE_DEFAULT, activity.getWindow().getColorMode());
+    }
+
+    /** Turn off HDR brightness asked for no light above SDR white, so a zoom never brings any. */
+    @Test
+    @Config(sdk = 34)
+    public void withTurnOffHdrBrightnessOnALiftedVideoSurfaceKeepsThe8BitsAndTheWindow() {
+        Settings.TURN_OFF_HDR_BRIGHTNESS.save(true);
+        surfaceOnScreen();
+        PinchZoom.headroom = view -> 3f;
+        assertFalse(pinchOnPhoto().wide);
+        assertEquals(ActivityInfo.COLOR_MODE_DEFAULT, activity.getWindow().getColorMode());
+    }
+
+    /** A photo is drawn in the window, which shows it in SDR at the default color mode, so a lifted screen doesn't change its copy. */
+    @Test
+    @Config(sdk = 34)
+    public void aPhotoOnALiftedScreenKeepsThe8BitsAndTheWindow() {
+        PinchZoom.headroom = view -> 3f;
+        assertFalse(pinchOnPhoto().wide);
+        assertEquals(ActivityInfo.COLOR_MODE_DEFAULT, activity.getWindow().getColorMode());
     }
 
     private TextureView video;

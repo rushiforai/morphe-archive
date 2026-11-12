@@ -2,6 +2,7 @@
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
  * Written by lavinhoque33, 2026-11-01.
+ * Modified by lavinhoque33, 2026-11-10
  */
 package app.morphe.extension.music.patches.androidauto;
 
@@ -13,6 +14,8 @@ import android.provider.MediaStore;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 
+import androidx.annotation.Nullable;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,6 +24,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
 
+import app.morphe.extension.music.patches.downloads.DownloadMethod;
+import app.morphe.extension.music.patches.downloads.OfflineStreamBrowse;
 import app.morphe.extension.music.settings.Settings;
 import app.morphe.extension.shared.utils.ResourceUtils;
 import app.morphe.extension.shared.utils.Utils;
@@ -33,13 +38,41 @@ final class AndroidAutoDownloadsFolder {
 
     private AndroidAutoDownloadsFolder() {}
 
-    static boolean enabled() {
+    /** The device-file playlists are the fork's own downloads: they need a device files download method. */
+    static boolean deviceFilesEnabled() {
         return AndroidAutoPatch.downloadedPlaylistsSupported()
-                && Settings.IN_APP_DOWNLOADS.get() && Settings.ANDROID_AUTO_DOWNLOADED_PLAYLISTS.get();
+                && Settings.DOWNLOAD_METHOD.get() == DownloadMethod.DEVICE_FILES
+                && Settings.ANDROID_AUTO_DOWNLOADED_PLAYLISTS.get();
+    }
+
+    /** The stream copies are played by the offline replay, whatever the download methods are now. */
+    static boolean streamEnabled() {
+        return AndroidAutoPatch.downloadedPlaylistsSupported()
+                && Settings.ANDROID_AUTO_DOWNLOADED_PLAYLISTS.get() && OfflineStreamBrowse.enabled();
+    }
+
+    static boolean enabled() {
+        return deviceFilesEnabled() || streamEnabled();
+    }
+
+    /** Whether the Downloaded playlists folder has anything to show. Reads the disk: not for the main thread. */
+    static boolean hasEntries() {
+        return !readPlaylists().isEmpty() || streamHasEntries();
+    }
+
+    private static boolean streamHasEntries() {
+        return streamEnabled() && !OfflineStreamBrowse.sources().isEmpty();
     }
 
     static MediaBrowserCompat.MediaItem folder() {
         return item(ROOT_ID, ResourceUtils.getString("morphe_music_android_auto_downloaded_playlists_folder"),
+                null, MediaBrowserCompat.MediaItem.FLAG_BROWSABLE, null, null);
+    }
+
+    /** The subfolder of the Downloaded playlists folder that holds the stream copies. */
+    private static MediaBrowserCompat.MediaItem streamFolder() {
+        return item(AndroidAutoStreamIds.FOLDER_ID,
+                ResourceUtils.getString("morphe_music_android_auto_stream_copies_folder"),
                 null, MediaBrowserCompat.MediaItem.FLAG_BROWSABLE, null, null);
     }
 
@@ -51,13 +84,17 @@ final class AndroidAutoDownloadsFolder {
     static List<MediaBrowserCompat.MediaItem> load(String requestedId) {
         List<MediaBrowserCompat.MediaItem> items = new ArrayList<>();
         if (!enabled()) return items;
+        if (AndroidAutoStreamIds.isStream(requestedId)) return loadStream(requestedId);
+
         List<Playlist> playlists = readPlaylists();
         if (LIBRARY_ID.equals(requestedId)) {
-            if (!playlists.isEmpty()) items.add(folder());
+            if (!playlists.isEmpty() || streamHasEntries()) items.add(folder());
             return items;
         }
         if (ROOT_ID.equals(requestedId)) {
             var artwork = new AndroidAutoDownloadsArtwork.Batch();
+            // The stream copies are a folder of their own, first, never mixed with the device-file playlists.
+            if (streamHasEntries()) items.add(streamFolder());
             for (Playlist playlist : playlists) {
                 items.add(item(playlistId(playlist.id()), playlist.title(),
                         playlist.tracks().size() + " " + ResourceUtils.getString(
@@ -87,9 +124,58 @@ final class AndroidAutoDownloadsFolder {
         return items;
     }
 
+    /**
+     * The stream folder lists the downloaded albums and playlists and a list of every song; a list holds a Play all
+     * row and its songs. Only songs with stored data are shown, in the order of the offline queue, so a row's index
+     * is the index the offline command plays.
+     */
+    private static List<MediaBrowserCompat.MediaItem> loadStream(String requestedId) {
+        List<MediaBrowserCompat.MediaItem> items = new ArrayList<>();
+        if (!streamEnabled()) return items;
+
+        var artwork = new AndroidAutoDownloadsArtwork.Batch();
+        String sourceId = AndroidAutoStreamIds.parseSource(requestedId);
+        if (AndroidAutoStreamIds.FOLDER_ID.equals(requestedId)) {
+            for (OfflineStreamBrowse.Source source : OfflineStreamBrowse.sources()) {
+                if (!AndroidAutoStreamIds.isValidSource(source.id())) continue;
+
+                items.add(streamItem(AndroidAutoStreamIds.sourceId(source.id()), streamSourceTitle(source),
+                        tracksText(source.trackCount()), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE,
+                        source.coverVideoId(), artwork));
+            }
+        } else if (sourceId != null) {
+            List<OfflineStreamBrowse.Track> tracks = OfflineStreamBrowse.tracksOf(sourceId);
+            int count = tracks.size();
+            if (count > 0) {
+                items.add(streamItem(AndroidAutoStreamIds.playAllId(sourceId, count),
+                        ResourceUtils.getString("morphe_music_android_auto_stream_play_all"), tracksText(count),
+                        MediaBrowserCompat.MediaItem.FLAG_PLAYABLE, tracks.get(0).videoId(), artwork));
+            }
+            for (int index = 0; index < count; index++) {
+                OfflineStreamBrowse.Track track = tracks.get(index);
+                items.add(streamItem(AndroidAutoStreamIds.playId(sourceId, index, count), track.title(),
+                        track.subtitle(), MediaBrowserCompat.MediaItem.FLAG_PLAYABLE, track.videoId(), artwork));
+            }
+        }
+        artwork.finish(items.size());
+        return items;
+    }
+
+    private static String streamSourceTitle(OfflineStreamBrowse.Source source) {
+        if (OfflineStreamBrowse.SONGS.equals(source.id())) {
+            return ResourceUtils.getString("morphe_music_downloads_no_playlist");
+        }
+        return source.title().isEmpty()
+                ? ResourceUtils.getString("morphe_music_offline_library_untitled") : source.title();
+    }
+
+    private static String tracksText(int count) {
+        return count + " " + ResourceUtils.getString("morphe_music_android_auto_downloaded_playlists_tracks");
+    }
+
     static List<Playlist> readPlaylists() {
         Utils.verifyOffMainThread();
-        if (!enabled()) return List.of();
+        if (!deviceFilesEnabled()) return List.of();
         File file = Utils.getContext().getDatabasePath(DATABASE_NAME);
         if (!file.isFile()) return List.of();
 
@@ -171,12 +257,24 @@ final class AndroidAutoDownloadsFolder {
 
     private static MediaBrowserCompat.MediaItem item(String id, String title, String subtitle, int flags,
             Track cover, AndroidAutoDownloadsArtwork.Batch artwork) {
-        Bundle extras = new Bundle();
-        extras.putInt("android.media.browse.CONTENT_STYLE_BROWSABLE_HINT", 1);
-        extras.putInt("android.media.browse.CONTENT_STYLE_PLAYABLE_HINT", 1);
+        Bundle extras = extras();
         MediaDescriptionCompat description = artwork == null
                 ? new MediaDescriptionCompat(id, title, subtitle, null, null, categoryIconUri(), extras, null)
                 : artwork.description(id, title, subtitle, extras, cover);
         return new MediaBrowserCompat.MediaItem(description, flags);
+    }
+
+    /** A row of the stream branch; {@code coverVideoId} names the song whose stored cover it shows. */
+    private static MediaBrowserCompat.MediaItem streamItem(String id, String title, String subtitle, int flags,
+            @Nullable String coverVideoId, AndroidAutoDownloadsArtwork.Batch artwork) {
+        return new MediaBrowserCompat.MediaItem(
+                artwork.streamDescription(id, title, subtitle, extras(), coverVideoId), flags);
+    }
+
+    private static Bundle extras() {
+        Bundle extras = new Bundle();
+        extras.putInt("android.media.browse.CONTENT_STYLE_BROWSABLE_HINT", 1);
+        extras.putInt("android.media.browse.CONTENT_STYLE_PLAYABLE_HINT", 1);
+        return extras;
     }
 }

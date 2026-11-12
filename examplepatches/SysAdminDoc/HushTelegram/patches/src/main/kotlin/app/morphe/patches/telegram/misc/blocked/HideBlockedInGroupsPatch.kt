@@ -27,6 +27,7 @@ import app.morphe.patches.telegram.misc.localcontrols.controlRef
 import app.morphe.patches.telegram.misc.localcontrols.controlShape
 import app.morphe.patches.telegram.misc.localcontrols.controlSingle
 import app.morphe.patches.telegram.misc.localcontrols.forEachClassMentioning
+import app.morphe.patches.telegram.misc.messagemenu.HIDDEN_TYPE
 import app.morphe.patches.telegram.misc.notifications.NOTIFICATIONS
 import app.morphe.patches.telegram.misc.notifications.runsUnder
 import app.morphe.patches.telegram.misc.settings.settingsPatch
@@ -70,9 +71,9 @@ internal const val VALID_REPLY = "hasValidReplyMessageObject()Z"
 
 /**
  * The extension calls that answer a message's type where the open chat tests it. Each patch puts
- * its own right after the read, so a test may already carry the other's when it's resolved.
+ * its own right after the read, so a test may already carry the others' when it's resolved.
  */
-internal val TYPE_HOOKS = setOf(BLOCKED_TYPE, "$EXTENSION_PACKAGE/misc/MessageFilters;->type(Ljava/lang/Object;I)I")
+internal val TYPE_HOOKS = setOf(BLOCKED_TYPE, "$EXTENSION_PACKAGE/misc/MessageFilters;->type(Ljava/lang/Object;I)I", HIDDEN_TYPE)
 
 /** How soon after the type test the open chat's next check comes. */
 private const val NEXT_CHECK = 4

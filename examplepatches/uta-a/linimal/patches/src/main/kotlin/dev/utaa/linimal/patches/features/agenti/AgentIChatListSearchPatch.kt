@@ -59,7 +59,7 @@ private val chatListSearchBarHeaderFingerprint = Fingerprint(
  * weight(1f) が余白を吸収します。</p>
  */
 val agentIChatListSearchPatch = bytecodePatch(
-    name = "トーク一覧の検索欄の Agent i",
+    name = "Agent i in chat list search",
     description = "トーク一覧上部の検索欄にある Agent i のボタンを、実行時設定で非表示にできるようにします。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

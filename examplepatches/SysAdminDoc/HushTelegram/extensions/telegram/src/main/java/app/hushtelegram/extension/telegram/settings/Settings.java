@@ -128,6 +128,13 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting DISABLE_CHAT_SWIPE =
             new BooleanSetting("hushtelegram_disable_chat_swipe", FALSE);
 
+    /**
+     * The menu under a chat's preview, after pressing and holding the chat, ends with Open chat and
+     * Close preview (#71). Telegram's own items stay. Off by default.
+     */
+    public static final BooleanSetting CHAT_PREVIEW_BUTTONS =
+            new BooleanSetting("hushtelegram_chat_preview_buttons", FALSE);
+
     /** Bottom pulls stay in the current channel; explicit chat opening keeps its normal behavior. */
     public static final BooleanSetting DISABLE_CHANNEL_PULL =
             new BooleanSetting("hushtelegram_disable_channel_pull", TRUE);
@@ -378,6 +385,14 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting FIT_ALL_TABS =
             new BooleanSetting("hushtelegram_fit_all_tabs", FALSE);
 
+    /**
+     * Each folder tab above the chat list shows an icon for its kind of folder in front of its name
+     * ({@link app.hushtelegram.extension.telegram.misc.TabIcons}). The tabs take it when they're
+     * built, so a change waits for a restart.
+     */
+    public static final BooleanSetting FOLDER_TAB_ICONS =
+            new BooleanSetting("hushtelegram_folder_tab_icons", FALSE, true);
+
     /** The list of hidden accounts and the switch that hides them ask for Telegram's app passcode first. */
     public static final BooleanSetting HIDDEN_ACCOUNTS_LOCK =
             new BooleanSetting("hushtelegram_hidden_accounts_lock", FALSE);
@@ -409,8 +424,26 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting SELECT_BETWEEN =
             new BooleanSetting("hushtelegram_select_between", FALSE);
 
+    /** A Screenshot button in the same bar that saves a picture of the selected messages as the chat shows them (#71). */
+    public static final BooleanSetting SELECTION_SCREENSHOT =
+            new BooleanSetting("hushtelegram_selection_screenshot", FALSE);
+
     public static final BooleanSetting PLAYBACK_POSITION =
             new BooleanSetting("hushtelegram_playback_position", FALSE);
+
+    /**
+     * The music player's menu has Lyrics, which finds the song's words on lrclib.net and shows them
+     * over the player, following along when they're timed (#71). Off by default.
+     */
+    public static final BooleanSetting LYRICS =
+            new BooleanSetting("hushtelegram_lyrics", FALSE);
+
+    /**
+     * Songs added to your profile from now on show the day they were added, after the artist in
+     * your profile's song list (#71). Kept on this phone only. Off by default.
+     */
+    public static final BooleanSetting SONG_DATES =
+            new BooleanSetting("hushtelegram_song_dates", FALSE);
 
     /**
      * A private message from someone outside your contacts notifies without sound or vibration.
@@ -523,6 +556,59 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting ASK_BEFORE_STICKER =
             new BooleanSetting("hushtelegram_ask_before_sticker", FALSE);
+
+    /**
+     * A photo whose crop Telegram can't finish stays in the editor with a try again toast, instead of
+     * going out uncropped. On by default.
+     */
+    public static final BooleanSetting CROP_GUARD =
+            new BooleanSetting("hushtelegram_crop_guard", TRUE);
+
+    /**
+     * Unpicking the first of several photos that each have a caption, or dragging another photo in
+     * front of it, has the comment field show the new first photo's caption, so every caption goes
+     * out on its own photo. On by default.
+     */
+    public static final BooleanSetting CAPTION_ORDER =
+            new BooleanSetting("hushtelegram_caption_order", TRUE);
+
+    /**
+     * The chat list's menu always has Proxy, not just while a proxy is on or Telegram is blocked
+     * where you are. Off by default.
+     */
+    public static final BooleanSetting PROXY_MENU =
+            new BooleanSetting("hushtelegram_proxy_menu", FALSE);
+
+    /**
+     * Every six hours, a public list of MTProto proxies is downloaded and the fastest ten go in
+     * Telegram's proxy list, and Telegram connects through them unless a proxy of your own is in
+     * use (#66). Off by default, since it goes online and a proxy's operator sees your address.
+     */
+    public static final BooleanSetting FREE_PROXIES =
+            new BooleanSetting("hushtelegram_free_proxies", FALSE);
+
+    /**
+     * A group's menu at the top has My messages, which searches the group for the messages you
+     * sent the way Telegram's search does once you pick yourself as the sender. Off by default.
+     */
+    public static final BooleanSetting MY_MESSAGES =
+            new BooleanSetting("hushtelegram_my_messages", FALSE);
+
+    /**
+     * The message box's text menu has Right to left and Left to right, which start the selected
+     * lines with an invisible direction mark, and Control character, which picks one of the
+     * invisible Unicode marks Telegram Desktop offers. Off by default.
+     */
+    public static final BooleanSetting TEXT_DIRECTION =
+            new BooleanSetting("hushtelegram_text_direction", FALSE);
+
+    /**
+     * The phone number screen always shows Telegram's proxy button, which it otherwise keeps for
+     * countries where Telegram is blocked, so a proxy can be set before signing in (#66). On by
+     * default.
+     */
+    public static final BooleanSetting SIGN_IN_PROXY =
+            new BooleanSetting("hushtelegram_sign_in_proxy", TRUE);
 
     /**
      * Translate a message or a whole chat with Google's web translate, beside Telegram's own Premium
@@ -732,6 +818,18 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting MESSAGE_MENU_CLEAR_CACHE =
             new BooleanSetting("hushtelegram_message_menu_clear_cache", FALSE);
 
+    /** Hide for me in the message menu (#20): a message leaves the chat on this phone only ({@link app.hushtelegram.extension.telegram.misc.HiddenMessages}). */
+    public static final BooleanSetting MESSAGE_MENU_HIDE =
+            new BooleanSetting("hushtelegram_message_menu_hide", FALSE);
+
+    /** Forward as plain text in the message menu (#71): a message's words go to a picked chat as a new message, without formatting. */
+    public static final BooleanSetting MESSAGE_MENU_PLAIN_FORWARD =
+            new BooleanSetting("hushtelegram_message_menu_plain_forward", FALSE);
+
+    /** Delete for them in the message menu (#71): your own message goes for everyone else and stays on this phone ({@link app.hushtelegram.extension.telegram.misc.DeleteForThem}). */
+    public static final BooleanSetting MESSAGE_MENU_DELETE_FOR_THEM =
+            new BooleanSetting("hushtelegram_message_menu_delete_for_them", FALSE);
+
     /**
      * A channel's read metrics (how long each post stayed on screen), Premium screen interaction
      * reports and the camera's dual-camera report are never sent ({@link app.hushtelegram.extension.telegram.misc.Analytics}).
@@ -774,6 +872,37 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushtelegram_ghost_button", FALSE);
 
     /**
+     * Ghost mode's read after a reply: a message you send into a chat lets out the read receipt
+     * {@link #GHOST_READS} kept back there (#69). Read only while Ghost mode and its reads are on.
+     */
+    public static final BooleanSetting GHOST_READ_AFTER_SEND =
+            new BooleanSetting("hushtelegram_ghost_read_after_send", FALSE);
+
+    /**
+     * A double check on the chat list's top bar that sends the read receipts Ghost mode kept back
+     * ({@link app.hushtelegram.extension.telegram.misc.ReadsButton}, #69). It shows while Ghost
+     * mode and its reads are on.
+     */
+    public static final BooleanSetting GHOST_READS_BUTTON =
+            new BooleanSetting("hushtelegram_ghost_reads_button", FALSE);
+
+    /**
+     * Ghost mode exceptions: the chats picked for them get the opposite of {@link #GHOST_MODE}, so
+     * they act as in stock Telegram while it's on and keep things back while it's off
+     * ({@link app.hushtelegram.extension.telegram.misc.GhostChats}, #71). Online status stays
+     * with the main switch, since it's the account's and not one chat's.
+     */
+    public static final BooleanSetting GHOST_CHATS =
+            new BooleanSetting("hushtelegram_ghost_chats", FALSE);
+
+    /**
+     * Fake typing: chats picked from the long press menu show you typing for up to ten minutes,
+     * even under {@link #GHOST_TYPING} ({@link app.hushtelegram.extension.telegram.misc.FakeTyping}, #71).
+     */
+    public static final BooleanSetting FAKE_TYPING =
+            new BooleanSetting("hushtelegram_fake_typing", FALSE);
+
+    /**
      * Receive only mode: the accounts on {@link #RECEIVE_ONLY_ACCOUNTS} send nothing that writes.
      * With it off every account sends as in stock Telegram.
      */
@@ -794,6 +923,20 @@ public class Settings extends BaseSettings {
     /** The accounts (their positions in Telegram's list, comma separated) that are powered off. Read only while Power off accounts is on. */
     public static final StringSetting POWERED_OFF_ACCOUNTS =
             new StringSetting("hushtelegram_powered_off_accounts", "", false, false);
+
+    /**
+     * Instant lock: with a Telegram passcode set, Telegram locks a second or two after you leave it
+     * instead of waiting for Auto-lock. The Auto-lock choice itself is kept (#71).
+     */
+    public static final BooleanSetting INSTANT_LOCK =
+            new BooleanSetting("hushtelegram_instant_lock", FALSE);
+
+    /**
+     * Don't notify contacts: a sign-up for a phone number new to Telegram asks the server not to tell
+     * the people who have that number saved (#71). Existing accounts never send this request.
+     */
+    public static final BooleanSetting QUIET_SIGN_UP =
+            new BooleanSetting("hushtelegram_quiet_sign_up", FALSE);
 
     /** Automatic call diagnostics only; the call itself and its cleanup stay stock. */
     public static final BooleanSetting DISABLE_CALL_DEBUG =

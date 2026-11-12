@@ -13,6 +13,7 @@
  */
 package app.morphe.util
 
+import app.morphe.patcher.patch.PatchBundleSignature
 import app.morphe.patcher.patch.loadPatchesFromJar
 import com.google.gson.JsonParser
 import java.io.File
@@ -25,7 +26,10 @@ import java.security.MessageDigest
 object BundleVerifier {
     @JvmStatic
     fun main(args: Array<String>) {
-        require(args.size == 4) { "Expected bundle, patch list, version and build checksum" }
+        require(args.size == 4 || args.size == 6) {
+            "Expected bundle, patch list, version and build checksum, then optionally the published signing key and " +
+                "whether the build had a key to sign with"
+        }
         val bundle = File(args[0])
         require(bundle.isFile) { "Bundle not found: $bundle" }
         JarFile(bundle).use { jar ->
@@ -44,6 +48,7 @@ object BundleVerifier {
                     require(classDefinitions > 0) { "Bundle DEX has no classes: $name" }
                 }
             }
+            requireClassVersions(jar)
             require(jar.manifest.mainAttributes.getValue("Version") == args[2]) {
                 "Bundle version does not match ${args[2]}"
             }
@@ -54,6 +59,11 @@ object BundleVerifier {
         require(actualDigest == expectedDigest) {
             "Bundle differs from the Android build output; a DEX or JVM payload may be stale"
         }
+        val signed = if (args.size == 6) {
+            val signer = requireSignedBy(bundle, File(args[4]).readText().trim())
+            require(signer != null || args[5] != "true") { "A signing key was set, but the bundle came out unsigned" }
+            signer?.let { ", signed by ${PatchBundleSignature.fingerprint(it)}" } ?: ", unsigned"
+        } else ""
         val metadata = File(args[1]).reader().use { JsonParser.parseReader(it).asJsonObject }
         require(metadata["version"].asString == "v${args[2]}") { "Patch list version is stale" }
         val listed = metadata.getAsJsonArray("patches").map { it.asJsonObject["name"].asString }
@@ -66,7 +76,50 @@ object BundleVerifier {
             "Patch list mismatch: bundle has ${bundled.size}, metadata has ${listed.size}; " +
                 "missing=${listed.toSet() - bundled.toSet()}, extra=${bundled.toSet() - listed.toSet()}"
         }
-        println("Verified ${bundle.name}: ${bundled.size} patches and all three non-empty DEX payloads")
+        println("Verified ${bundle.name}: ${bundled.size} patches and all three non-empty DEX payloads$signed")
+    }
+
+    /**
+     * The key that signed [bundle], checked by the patcher's own PatchBundleSignature, which is
+     * what Morphe Manager runs when it adds or updates a source. A bundle changed after signing
+     * fails there. Manager pins the first key it sees, so a bundle signed with anything but
+     * [published] (morphe-signing.pub) would lock every user out of the next update. An unsigned
+     * bundle answers null: a build without the key doesn't sign, and a release run refuses one.
+     */
+    fun requireSignedBy(bundle: File, published: String): String? {
+        val signer = try {
+            PatchBundleSignature.verify(bundle)
+        } catch (failure: SecurityException) {
+            throw IllegalArgumentException(failure.message, failure)
+        }
+        require(signer == null || signer == published) {
+            "Bundle is signed by ${PatchBundleSignature.fingerprint(signer!!)}, not the key morphe-signing.pub publishes " +
+                "(${PatchBundleSignature.fingerprint(published)})"
+        }
+        return signer
+    }
+
+    /**
+     * Every class file in [jar] at major [highest] (Java 17) or older. Morphe's patcher refuses
+     * newer class files, so a toolchain bump that crossed the line would otherwise go unnoticed
+     * until Manager turned the bundle down. The bundle's classes are majors 52 and 55 today.
+     */
+    fun requireClassVersions(jar: JarFile, highest: Int = 61) {
+        val newer = jar.entries().asSequence()
+            .filter { !it.isDirectory && it.name.endsWith(".class") }
+            .mapNotNull { entry ->
+                val header = jar.getInputStream(entry).use { it.readNBytes(8) }
+                require(header.size == 8 && ByteBuffer.wrap(header).int == 0xCAFEBABE.toInt()) {
+                    "Bundle entry is not a class file: ${entry.name}"
+                }
+                val major = ByteBuffer.wrap(header, 6, 2).short.toInt() and 0xFFFF
+                if (major > highest) "${entry.name} ($major)" else null
+            }
+            .toList()
+        require(newer.isEmpty()) {
+            "Bundle has ${newer.size} class files above major $highest, which Morphe's patcher refuses: " +
+                newer.take(5).joinToString()
+        }
     }
 
     /**

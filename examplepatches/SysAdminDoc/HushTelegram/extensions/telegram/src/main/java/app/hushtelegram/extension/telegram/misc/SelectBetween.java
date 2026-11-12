@@ -127,16 +127,24 @@ public final class SelectBetween {
         if (plan.pick.isEmpty()) plan.outcome = Outcome.NOTHING;
     }
 
-    /** Asked as Telegram finishes the selection bar's buttons. */
+    /** Asked as Telegram finishes the selection bar's buttons. Screenshot goes in here too. */
     public static void addItem(Object chat) {
         HookStatus.invoked(FamilyNames.MESSAGE_MENU_REPEAT);
         try {
-            if (!on()) return;
+            boolean between = on();
+            boolean screenshot = SelectionScreenshot.on();
+            if (!between && !screenshot) return;
             Object menu = menu(chat);
             if (menu == null) return;
-            float density = Utils.getContext().getResources().getDisplayMetrics().density;
-            addMenuItem(menu, ITEM, icon(), L10n.t("Select between"), Math.round(48 * density));
-            HookStatus.counted(FamilyNames.MESSAGE_MENU_REPEAT, "select between offered");
+            int width = Math.round(48 * Utils.getContext().getResources().getDisplayMetrics().density);
+            if (between) {
+                addMenuItem(menu, ITEM, icon(), L10n.t("Select between"), width);
+                HookStatus.counted(FamilyNames.MESSAGE_MENU_REPEAT, "select between offered");
+            }
+            if (screenshot) {
+                addMenuItem(menu, SelectionScreenshot.ITEM, SelectionScreenshot.icon(), L10n.t("Screenshot"), width);
+                HookStatus.counted(FamilyNames.MESSAGE_MENU_REPEAT, "selection screenshot offered");
+            }
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.MESSAGE_MENU_REPEAT, "select between item", failure);
         }
@@ -144,6 +152,7 @@ public final class SelectBetween {
 
     /** Asked first when a selection bar button is tapped. Returns what Telegram's own handler should see. */
     public static int clicked(Object chat, int id) {
+        if (id == SelectionScreenshot.ITEM) return SelectionScreenshot.clicked(chat);
         if (id != ITEM) return id;
         try {
             if (!on()) return id;
@@ -238,6 +247,19 @@ public final class SelectBetween {
             for (int i = 0; i < side.size(); i++) ids.add(side.keyAt(i));
         }
         return ids;
+    }
+
+    /** The selected messages themselves, both sides of the chat. */
+    static List<Object> selectedMessages(Object chat) {
+        List<Object> messages = new ArrayList<>();
+        SparseArray<Object>[] both = selected(chat);
+        if (both == null) return messages;
+        for (SparseArray<Object> side : both) {
+            for (int i = 0; i < side.size(); i++) {
+                if (side.valueAt(i) != null) messages.add(side.valueAt(i));
+            }
+        }
+        return messages;
     }
 
     private static void toast(String text) {

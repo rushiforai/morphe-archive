@@ -37,6 +37,7 @@ public final class VideoFeatures {
     private static Field playerField;
     private static boolean disabled;
     private static Activity resumed;
+    private static final android.graphics.Rect VISIBLE = new android.graphics.Rect();
 
     private VideoFeatures() {
     }
@@ -62,6 +63,8 @@ public final class VideoFeatures {
                     resumed = null;
                     MAIN.removeCallbacks(SCAN);
                     DownloadButton.hideNow();
+                    ShortControls.hideNow();
+                    DoubleTapSeek.hideNow();
                 }
 
                 @Override
@@ -83,6 +86,8 @@ public final class VideoFeatures {
                 @Override
                 public void onActivityDestroyed(Activity activity) {
                     DownloadButton.forget(activity);
+                    ShortControls.forget(activity);
+                    DoubleTapSeek.forget(activity);
                 }
             });
         } catch (Throwable t) {
@@ -100,6 +105,8 @@ public final class VideoFeatures {
             } catch (Throwable t) {
                 disabled = true;
                 DownloadButton.hideNow();
+                ShortControls.hideNow();
+                DoubleTapSeek.hideNow();
                 log("Video features failed, turning them off", t);
             }
             MAIN.postDelayed(this, nextScanDelay);
@@ -111,8 +118,14 @@ public final class VideoFeatures {
         boolean download = MorpheSettings.isEnabled(activity, MorpheSettings.VIDEO_DOWNLOAD);
         boolean autoNext = MorpheSettings.isEnabled(activity, MorpheSettings.AUTO_NEXT_REEL);
         boolean skipStoryAds = MorpheSettings.isEnabled(activity, MorpheSettings.STORIES_HIDE_ADS);
-        if (!download && !autoNext && !skipStoryAds) {
+        boolean profileAlways = MorpheSettings.isEnabled(activity, MorpheSettings.PROFILE_ALWAYS);
+        boolean profile = profileAlways || MorpheSettings.isEnabled(activity, MorpheSettings.PROFILE_WHEN_NO_REELS);
+        boolean controls = MorpheSettings.isEnabled(activity, MorpheSettings.SHORT_VIDEO_CONTROLS);
+        boolean doubleTap = MorpheSettings.isEnabled(activity, MorpheSettings.DOUBLE_TAP_SEEK);
+        if (!download && !autoNext && !skipStoryAds && !profile && !controls && !doubleTap) {
             DownloadButton.hide();
+            ShortControls.hide();
+            DoubleTapSeek.hide();
             return;
         }
         if (videoViewClass == null) {
@@ -125,22 +138,41 @@ public final class VideoFeatures {
 
         View playing = null;
         int bestArea = 0;
+        View paused = null;
+        int pausedArea = 0;
         for (View video : videos) {
             if (autoNext) AutoNextReel.observe(video);
             if (!video.isShown()) continue;
             Object player = playerField.get(video);
-            if (!(player instanceof MediaController.MediaPlayerControl) || !((MediaController.MediaPlayerControl) player).isPlaying()) continue;
+            if (!(player instanceof MediaController.MediaPlayerControl)) continue;
+            if (!((MediaController.MediaPlayerControl) player).isPlaying()) {
+                int visible = video.getGlobalVisibleRect(VISIBLE) ? VISIBLE.width() * VISIBLE.height() : 0;
+                if (video.getHeight() > 0 && VISIBLE.height() >= video.getHeight() * 0.5f && visible > pausedArea) {
+                    pausedArea = visible;
+                    paused = video;
+                }
+                continue;
+            }
             int area = video.getWidth() * video.getHeight();
             if (area > bestArea) {
                 bestArea = area;
                 playing = video;
             }
         }
-        if (playing != null) VideoProbe.onPlaying(playing);
+        if (playing != null) {
+            VideoProbe.onPlaying(playing);
+            Overlay.trace(activity.getWindow().getDecorView());
+        }
+        // Also while a video plays: the reel under a creator's page can keep playing, and the page still has to go.
+        if (profile) ProfileRedirect.check(activity, profileAlways, playing);
         // A sponsored story: no download button, and the viewer is moved on. The header's "Sponsored" label is the
         // signal, and for a story video also the ad mark in its tracking text.
+        Stories.Header story = download || skipStoryAds || controls || doubleTap ? Stories.read(activity) : null;
+        if (controls) ShortControls.update(activity, story != null ? null : playing != null ? playing : paused);
+        else ShortControls.hide();
+        if (doubleTap) DoubleTapSeek.update(activity, story != null ? null : playing != null ? playing : paused);
+        else DoubleTapSeek.hide();
         if (download || skipStoryAds) {
-            Stories.Header story = Stories.read(activity);
             if (story != null && skipStoryAds) nextScanDelay = STORY_SCAN_INTERVAL_MS;
             if (story != null && (story.sponsored || (playing != null && Stories.isAdVideo(playing)))) {
                 DownloadButton.hide();
@@ -157,8 +189,9 @@ public final class VideoFeatures {
             else DownloadButton.hide();
             return;
         }
-        // No video playing: a story photo fills the window instead.
-        StoryPhotos.Photo photo = playing == null ? StoryPhotos.find(activity) : null;
+        // No video playing: a story photo fills the window instead. Only on a story screen: the Messages list and other
+        // screens with a large picture are not stories, and must not get a download button.
+        StoryPhotos.Photo photo = story != null ? StoryPhotos.find(activity) : null;
         if (photo != null) DownloadButton.showPhoto(activity, photo.anchor, photo.url);
         else DownloadButton.hide();
     }
@@ -180,6 +213,15 @@ public final class VideoFeatures {
         Field f = declaring.getDeclaredField(name);
         f.setAccessible(true);
         return f.get(target);
+    }
+
+    /** The media player behind a video view, or null. */
+    static Object playerOf(View video) {
+        try {
+            return playerField == null ? null : playerField.get(video);
+        } catch (Throwable t) {
+            return null;
+        }
     }
 
     static Class<?> videoViewClass() {

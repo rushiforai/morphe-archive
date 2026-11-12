@@ -1,3 +1,9 @@
+## [1.9.0](https://github.com/GahahaWang/TWRailway-patch/compare/v1.8.1...v1.9.0) (2026-11-11)
+
+### ✨ New Features
+
+* Unlock premium Widget features and hide more promotions ([964ae2d](https://github.com/GahahaWang/TWRailway-patch/commit/964ae2deadeb847664b8e9784072a2c26e1baeef))
+
 ## [1.8.1](https://github.com/GahahaWang/TWRailway-patch/compare/v1.8.0...v1.8.1) (2026-11-07)
 
 ### 🐛 Bug Fixes

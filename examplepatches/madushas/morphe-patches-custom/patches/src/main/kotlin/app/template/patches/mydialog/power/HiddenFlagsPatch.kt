@@ -45,6 +45,7 @@ val myDialogHiddenFlagsPatch = bytecodePatch(
         "before the JS sees it, revealing app screens the server hides.",
     default = true,
 ) {
+    category("Interface")
     compatibleWith(MYDIALOG_COMPATIBILITY)
 
     execute {

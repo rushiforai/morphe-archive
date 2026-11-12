@@ -32,6 +32,7 @@ public final class FamilyNames {
     public static final String HIDE_CONTACTS_BLOCK = "Hide contacts on Telegram";
     public static final String HIDE_GREETING_STICKERS = "Hide greeting stickers";
     public static final String DISABLE_CHAT_SWIPE = "Disable chat swipe actions";
+    public static final String CHAT_PREVIEW_BUTTONS = "Chat preview buttons";
     public static final String DISABLE_CHANNEL_PULL = "Disable pull to next channel";
     public static final String NORMAL_PASTE = "Use normal paste";
     public static final String SHOW_LOCAL_IDS = "Show user and chat IDs";
@@ -91,6 +92,13 @@ public final class FamilyNames {
     public static final String BYPASS_CHANNEL_RESTRICTIONS = "Bypass channel restrictions";
     public static final String BYPASS_INTEGRITY_CHECK = "Bypass integrity check";
     public static final String AUTO_FORWARDING = "Auto-forwarding rules";
+    public static final String CROP_GUARD = "Never send an uncropped photo";
+    public static final String CAPTION_ORDER = "Keep captions with their photos";
+    public static final String PROXY_MENU = "Proxy in the chat list menu";
+    public static final String FREE_PROXIES = "Free proxies";
+    public static final String MY_MESSAGES = "My messages";
+    public static final String TEXT_DIRECTION = "Text direction";
+    public static final String LYRICS = "Lyrics and song dates";
 
     private FamilyNames() {
     }

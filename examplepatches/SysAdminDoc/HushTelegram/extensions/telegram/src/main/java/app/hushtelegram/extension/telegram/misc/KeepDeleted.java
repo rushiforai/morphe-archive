@@ -44,6 +44,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * storage queue, has run. A restart in between hands it back again, and deleting a message that's
  * already gone finds nothing. The account is read again right before each deletion, so a slot that
  * was signed out or now holds another account deletes none of the first one's messages.
+ *
+ * <p>Delete for them ({@link DeleteForThem}) puts your own messages on the same list. A message on
+ * the list stays when a deletion comes in for it, even with this switch off, and with this switch
+ * off nothing else is held back.
  */
 public final class KeepDeleted {
     private KeepDeleted() {}
@@ -202,10 +206,14 @@ public final class KeepDeleted {
      */
     public static boolean push(Object controller, long dialogId, ArrayList<?> ids, long channelId) {
         if (Boolean.TRUE.equals(STOCK.get())) return false;
-        if (!on()) return false;
+        boolean others = on();
+        if (!others && !DeleteForThem.on()) return false;
         try {
             if (ids == null || ids.isEmpty()) return false;
-            return start(KeepDeletedBridge.of(controller), dialogId, ints(ids), channelId);
+            ArrayList<Integer> list = ints(ids);
+            Source source = KeepDeletedBridge.of(controller);
+            if (!others && !holds(source.self(), list)) return false;
+            return start(source, dialogId, list, channelId, others);
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.KEEP_DELETED_MESSAGES, "push", failure);
             return false;
@@ -221,7 +229,7 @@ public final class KeepDeleted {
     public static void measuring(Object message) {
         LABELLED.remove();
         try {
-            MEASURING.set(on() ? message : null);
+            MEASURING.set(on() || DeleteForThem.on() ? message : null);
         } catch (Throwable failure) {
             MEASURING.remove();
         }
@@ -284,12 +292,15 @@ public final class KeepDeleted {
     }
 
     private static boolean take(Object update, Object controller, boolean channel) {
-        if (!on()) return false;
+        boolean others = on();
+        if (!others && !DeleteForThem.on()) return false;
         try {
             ArrayList<Integer> ids = ints(KeepDeletedBridge.messages(update));
             long channelId = channel ? KeepDeletedBridge.channel(update) : 0;
             if (ids.isEmpty() || (channel && channelId == 0)) return false;
-            return start(KeepDeletedBridge.of(controller), channel ? -channelId : 0, ids, channelId);
+            Source source = KeepDeletedBridge.of(controller);
+            if (!others && !holds(source.self(), ids)) return false;
+            return start(source, channel ? -channelId : 0, ids, channelId, others);
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.KEEP_DELETED_MESSAGES, "update", failure);
             return false;
@@ -298,8 +309,13 @@ public final class KeepDeleted {
 
     /** Hands the decision to the storage queue. False means nothing was taken and Telegram deletes as usual. */
     static boolean start(Source source, long dialogId, ArrayList<Integer> ids, long channelId) {
+        return start(source, dialogId, ids, channelId, true);
+    }
+
+    /** {@link #start(Source, long, ArrayList, long)}, holding back others' messages only when [others] is set. */
+    static boolean start(Source source, long dialogId, ArrayList<Integer> ids, long channelId, boolean others) {
         try {
-            source.post(() -> decide(source, dialogId, ids, channelId));
+            source.post(() -> decide(source, dialogId, ids, channelId, others));
             return true;
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.KEEP_DELETED_MESSAGES, "queue", failure);
@@ -309,6 +325,14 @@ public final class KeepDeleted {
 
     /** Keeps what may be kept and gives the rest to Telegram's own deletion. */
     static void decide(Source source, long dialogId, ArrayList<Integer> ids, long channelId) {
+        decide(source, dialogId, ids, channelId, true);
+    }
+
+    /**
+     * {@link #decide(Source, long, ArrayList, long)}. A message already on the list stays either way;
+     * someone else's new one is kept only when [others] is set.
+     */
+    static void decide(Source source, long dialogId, ArrayList<Integer> ids, long channelId, boolean others) {
         ArrayList<Integer> release = new ArrayList<>(ids);
         ArrayList<long[]> kept = new ArrayList<>();
         ArrayList<Object> media = new ArrayList<>();
@@ -319,7 +343,8 @@ public final class KeepDeleted {
             // With no account to keep it for, nothing could find it again to clear it.
             if (self <= 0) throw new IllegalStateException("no signed-in account");
             for (Row row : source.rows(dialogId, ids)) {
-                if (!keeps(row, self) || !release.remove(Integer.valueOf(row.id))) continue;
+                boolean keep = others ? keeps(row, self) || held(self, row) : held(self, row);
+                if (!keep || !release.remove(Integer.valueOf(row.id))) continue;
                 kept.add(new long[] {row.dialog, row.id});
                 if (row.message != null) media.add(row.message);
             }
@@ -362,6 +387,41 @@ public final class KeepDeleted {
     /** Someone else's plain message in a chat that allows saving. Anything else goes the stock way. */
     static boolean keeps(Row row, long self) {
         return !row.mine && !row.timed && !row.guarded && row.dialog != self;
+    }
+
+    /** Already on [owner]'s kept list, such as your own message after Delete for them. */
+    static synchronized boolean held(long owner, Row row) {
+        return load(owner).contains(key(row.dialog, row.id));
+    }
+
+    /** Whether any of [ids] might be on [owner]'s kept list. A deletion update names no chat, so this goes by ID alone. */
+    static synchronized boolean holds(long owner, List<Integer> ids) {
+        if (owner <= 0) return false;
+        for (String key : load(owner)) {
+            if (ids.contains(Integer.valueOf(key.substring(key.lastIndexOf(':') + 1)))) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Delete for them: [owner]'s own [messages] go on the kept list before the deletion for everyone
+     * else goes out, and any pushed past the cap go back to Telegram's own deletion.
+     *
+     * @return false when the list couldn't be saved, and nothing changed
+     */
+    static boolean keepOwn(Source source, long owner, List<long[]> messages) {
+        List<String> dropped = remember(owner, messages);
+        if (dropped == null) return false;
+        if (!dropped.isEmpty()) HookStatus.counted(FamilyNames.KEEP_DELETED_MESSAGES, "oldest kept messages handed back");
+        handBackWaiting(source, owner, false);
+        return true;
+    }
+
+    /** Takes [messages] off [owner]'s kept list again, after a Delete for them that couldn't go out. */
+    static synchronized void forget(long owner, List<long[]> messages) {
+        LinkedHashSet<String> kept = new LinkedHashSet<>(load(owner));
+        for (long[] message : messages) kept.remove(key(message[0], message[1]));
+        commit(owner, kept, new LinkedHashSet<>(handing(owner)));
     }
 
     /**

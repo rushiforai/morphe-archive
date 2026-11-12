@@ -25,7 +25,17 @@ internal object ContextMenuViewModelConstructorFingerprint : Fingerprint(
 )
 
 /**
- * Returns the view model of a context menu item.
+ * Builds the storage key of a signalling tag ("Premium", "New", ...) shown next to a context menu item.
+ * The first parameter is the signal attached to the item, which holds the tag type.
+ */
+internal object SignallingStorageKeyFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    parameters = listOf("L", "Ljava/lang/String;"),
+    strings = listOf("signalling_", "_"),
+)
+
+/**
+ * Returns the view model of a context menu item. Only exists on older versions, where it is not obfuscated.
  */
 internal object GetViewModelFingerprint : Fingerprint(
     name = "getViewModel",

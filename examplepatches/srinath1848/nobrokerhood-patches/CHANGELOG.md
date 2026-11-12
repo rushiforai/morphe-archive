@@ -1,3 +1,15 @@
+## [1.9.0](https://github.com/srinath1848/nobrokerhood-patches/compare/v1.8.0...v1.9.0) (2026-11-11)
+
+### ✨ New Features
+
+* consolidate homepage billboard and island ad removal ([3712ed9](https://github.com/srinath1848/nobrokerhood-patches/commit/3712ed985cdc1aac014468471be48ad5839a532f))
+
+## [1.8.0](https://github.com/srinath1848/nobrokerhood-patches/compare/v1.7.0...v1.8.0) (2026-11-11)
+
+### ✨ New Features
+
+* isolate approval ads and notification click tracking ([16d1f7e](https://github.com/srinath1848/nobrokerhood-patches/commit/16d1f7e5c23e4826eaafc9f3233f6911d0e2b878))
+
 ## [1.7.0](https://github.com/srinath1848/nobrokerhood-patches/compare/v1.6.1...v1.7.0) (2026-11-10)
 
 ### ✨ New Features

@@ -7,7 +7,6 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.dmoniak.patches.shared.Constants.COMPATIBILITY_YOUTUBE
 import java.util.logging.Logger
 
-@Suppress("unused")
 val youtubeAmoledBlackThemePatch = bytecodePatch(
     name = "Pure AMOLED Black Theme - YouTube (Experimental)",
     description = "⚠️ [Experimental / Untested] Injects pure pitch-black (#000000) into YouTube player controls, navigation bars, comments bottom sheets, and panels for AMOLED battery saving.",
@@ -26,7 +25,7 @@ fun BytecodePatchContext.executeYouTubeAmoledLogic(logger: Logger) {
 
     classDefForEach { classDef ->
         val tl = classDef.type.lowercase()
-        if (tl.contains("androidx") || tl.contains("android/support")) return@classDefForEach
+        if (!tl.contains("androidx") && !tl.contains("android/support")) {
 
         val mutableClass by lazy { mutableClassDefBy(classDef) }
 
@@ -61,6 +60,7 @@ fun BytecodePatchContext.executeYouTubeAmoledLogic(logger: Logger) {
                     logger.warning("[YouTube AMOLED] Failed to hook ${method.name}: ${e.message}")
                 }
             }
+        }
         }
     }
 

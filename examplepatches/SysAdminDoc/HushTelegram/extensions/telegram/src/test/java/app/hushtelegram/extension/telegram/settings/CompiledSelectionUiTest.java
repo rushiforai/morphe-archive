@@ -63,7 +63,7 @@ public class CompiledSelectionUiTest {
                     .put("passed", true).put("refused", false).put("settings", true).put("flags", flags));
         }
         JSONArray cases = new JSONArray(new String(Files.readAllBytes(Paths.get(path)), StandardCharsets.UTF_8));
-        assertEquals("both complete bounded fixture matrices are required", 174, cases.length());
+        assertEquals("both complete bounded fixture matrices are required", 186, cases.length());
         Set<String> identities = new HashSet<>();
         int web = 0, play = 0;
         for (int i = 0; i < cases.length(); i++) {
@@ -75,8 +75,8 @@ public class CompiledSelectionUiTest {
             else if (target.equals("org.telegram.messenger")) play++;
             else throw new AssertionError("undeclared compiled target");
         }
-        assertEquals(87, web);
-        assertEquals(87, play);
+        assertEquals(93, web);
+        assertEquals(93, play);
         return cases;
     }
 
@@ -150,8 +150,8 @@ public class CompiledSelectionUiTest {
             }
         }
         String evidencePath = System.getenv("HUSHTELEGRAM_SELECTION_FACTS");
-        // Per target: 87 cases less 10 refused and 6 that carry no extension.
-        assertEquals(evidencePath == null || evidencePath.isEmpty() ? 1 : 142, screens);
+        // Per target: 93 cases less 10 refused and 6 that carry no extension.
+        assertEquals(evidencePath == null || evidencePath.isEmpty() ? 1 : 154, screens);
     }
 
     @Test

@@ -6,9 +6,11 @@ package app.morphe.extension.facebook.media;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.ColorSpace;
 import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
@@ -17,6 +19,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
+import android.view.Display;
 import android.view.HapticFeedbackConstants;
 import android.view.InputDevice;
 import android.view.KeyEvent;
@@ -42,6 +45,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.WeakHashMap;
 
@@ -49,6 +53,7 @@ import app.morphe.extension.facebook.feed.PhotoCarousel;
 import app.morphe.extension.facebook.reels.FeedVideoControls;
 import app.morphe.extension.facebook.settings.FamilyNames;
 import app.morphe.extension.facebook.settings.Settings;
+import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.diagnostics.HookStatus;
 
@@ -85,7 +90,13 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  *
  * <p>The copy is read from the window's last frame, which holds a playing video as well as a photo
  * (a SurfaceView's from its own surface), so a video zooms on the frame it showed when the fingers
- * landed, unless Keep videos playing while zoomed is on.
+ * landed, unless Keep videos playing while zoomed is on. In a window Facebook put in HDR color mode,
+ * the story viewer's, Android 14 and newer show HDR video above SDR white, so there the copy and the
+ * frames a zoom reads from a SurfaceView are half floats in extended sRGB, which keep that light, and
+ * the zoom is no dimmer than the story under it (#220). A video on a SurfaceView of its own lifts the
+ * screen whatever the window's mode, and Android then dims the window's SDR parts, so a zoom on one
+ * while the screen is lifted ({@link #lifted}) copies in half floats too and puts the window in HDR
+ * color mode until it goes. A device whose half float copy fails gets the usual 8 bits from then on.
  *
  * <p>With Keep videos playing while zoomed on (#220), a zoom on a video surface, a TextureView or a
  * SurfaceView, follows it: about every {@link #FRAME_MILLIS} the copy
@@ -136,6 +147,8 @@ public final class PinchZoom {
     static final String STORY_VIEWER = "com.facebook.stories.viewer.activity.StoryViewerActivity";
     /** How often a zoom that keeps a video playing takes its next frame: about 30 a second. */
     static final long FRAME_MILLIS = 33;
+    /** A screen whose HDR to SDR ratio is past this shows light above SDR white. Android eases the ratio, so a hair over 1 is still SDR. */
+    static final float LIFTED = 1.01f;
 
     /** The root views ProfileFragment made, weakly held. Main thread. */
     private static final Map<View, Boolean> profiles = new WeakHashMap<>();
@@ -157,6 +170,11 @@ public final class PinchZoom {
     /** Reads [source]'s frame on screen now into [zoom]'s copy, then runs [next] on the main thread. */
     interface Frames {
         void read(Zoom zoom, View source, Runnable next);
+    }
+
+    /** How far above SDR white the screen [view] is on shows light now, as its HDR to SDR ratio, 1 for not at all. */
+    interface Headroom {
+        float now(View view);
     }
 
     /** The players Tap to play knows, and pausing or playing one. */
@@ -185,7 +203,10 @@ public final class PinchZoom {
     static volatile Places places = PinchZoom::mediaUnder;
     static volatile Frames frames = PinchZoom::frame;
     static volatile Players players = PATCHED_PLAYERS;
+    static volatile Headroom headroom = PinchZoom::screenHeadroom;
 
+    /** A half float copy failed on this device, so copies take the usual 8 bits from then on. Main thread. */
+    private static boolean wideFailed;
     /** The gesture took the second finger, so every later event Facebook gets of it is a cancel. */
     private static boolean swallowing;
     /** A story zoom on a still copy: Facebook gets none of the gesture until the zoom ends, then a cancel. */
@@ -316,6 +337,8 @@ public final class PinchZoom {
         started.darkest = darkest();
         started.source = liveSource(target);
         started.story = storyViewer(activity);
+        started.window = window;
+        started.wide = wide(window, target);
         // A story held before the pinch, its first finger down past the long-press time, stays the
         // still frame Facebook paused it on, as without Keep videos playing while zoomed.
         if (started.story && started.source != null
@@ -578,6 +601,8 @@ public final class PinchZoom {
         started.scale = DOUBLE_TAP_SCALE;
         started.darkest = darkest();
         started.source = liveSource(target);
+        started.window = window;
+        started.wide = wide(window, target);
         zoom = started;
         snapshots.take(activity, target, area, copy -> {
             try {
@@ -702,7 +727,7 @@ public final class PinchZoom {
             return;
         }
         Rect surface = source instanceof SurfaceView ? surfaceArea((SurfaceView) source, zoom.area) : null;
-        Bitmap buffer = surface == null ? null : zoom.spare(zoom.area.width(), zoom.area.height());
+        Bitmap buffer = surface == null ? null : zoom.spare(zoom.area.width(), zoom.area.height(), zoom.wide);
         if (buffer == null) {
             next.run();
             return;
@@ -710,6 +735,8 @@ public final class PinchZoom {
         PixelCopy.request((SurfaceView) source, surface, buffer, result -> {
             try {
                 if (result == PixelCopy.SUCCESS) zoom.showFrame(buffer, null);
+                // This device copies no half floats, so the next frame takes the usual 8 bits.
+                else if (buffer.getConfig() == Bitmap.Config.RGBA_F16) wideFailed = true;
             } catch (Throwable failure) {
                 HookStatus.threw(FAMILY, "zoom frame", failure);
             } finally {
@@ -755,19 +782,20 @@ public final class PinchZoom {
      * {@link #SMALLEST_DP} each way, in the story viewer or inside a profile, a feed video's player or
      * a carousel photo, and the deepest such one where they nest. Inside those, a view on top that
      * holds none, like the story viewer's clear overlay for taps, is looked past to the views under
-     * it, and a Litho host on
-     * top yields to the media right under it only when that's a picture spanning all of the host, like
-     * the band a profile's cover draws over its photo. Above them a view is looked past only when it
-     * draws nothing at the point, like the empty layer Facebook keeps over every screen, so a screen
-     * Facebook opens over a profile, leaving the profile shown under it, never hands a pinch to a photo
-     * it covers. Anywhere else, null.
+     * it, and a Litho host on top yields to the media right under it only when that's a picture
+     * spanning all of the host, like the band a profile's cover draws over its photo. In the story
+     * viewer any media spanning the host wins, like the story under the clear strips Facebook keeps at
+     * each side for taps to the previous and next story, which count as media where 64dp is no wider
+     * than a strip (#220). Above them a view is looked past only when it draws nothing at the point,
+     * like the empty layer Facebook keeps over every screen, so a screen Facebook opens over a profile,
+     * leaving the profile shown under it, never hands a pinch to a photo it covers. Anywhere else, null.
      */
     @Nullable
     static View mediaUnder(Activity activity, View root, float x, float y) {
         int smallest = Math.round(SMALLEST_DP * root.getResources().getDisplayMetrics().density);
         boolean story = storyViewer(activity);
         Map<View, Boolean> feedVideos = story ? new IdentityHashMap<>() : feedVideos(root);
-        return mediaUnder(root, x, y, story, feedVideos, smallest, new int[2], new boolean[1]);
+        return mediaUnder(root, x, y, story, story, feedVideos, smallest, new int[2], new boolean[1]);
     }
 
     /** The views of the feed videos Tap to play knows in [root]'s window, each a place a pinch zooms. */
@@ -780,10 +808,13 @@ public final class PinchZoom {
         return found;
     }
 
-    /** [open] comes back true when the view found is a Litho host the next media under it still decides on. */
+    /**
+     * [open] comes back true when the view found is a Litho host the next media under it still decides
+     * on. [story] is true in the story viewer.
+     */
     @Nullable
-    private static View mediaUnder(View view, float x, float y, boolean zoomable, Map<View, Boolean> feedVideos,
-            int smallest, int[] at, boolean[] open) {
+    private static View mediaUnder(View view, float x, float y, boolean zoomable, boolean story,
+            Map<View, Boolean> feedVideos, int smallest, int[] at, boolean[] open) {
         open[0] = false;
         if (!zoomable && (profiles.containsKey(view) || feedVideos.containsKey(view) || PhotoCarousel.isRowPhoto(view))) {
             zoomable = true;
@@ -796,7 +827,7 @@ public final class PinchZoom {
             for (int i = group.getChildCount() - 1; i >= 0; i--) {
                 View child = group.getChildAt(i);
                 if (!under(child, x, y, at)) continue;
-                View found = mediaUnder(child, x, y, zoomable, feedVideos, smallest, at, open);
+                View found = mediaUnder(child, x, y, zoomable, story, feedVideos, smallest, at, open);
                 if (found == null) {
                     if (!zoomable && covers(child, x, y, at)) return null;
                     continue;
@@ -808,7 +839,7 @@ public final class PinchZoom {
                     continue;
                 }
                 open[0] = false;
-                return isPicture(found) && holds(found, host, at) ? found : host;
+                return (story || isPicture(found)) && holds(found, host, at) ? found : host;
             }
             if (host != null) {
                 open[0] = true;
@@ -887,11 +918,21 @@ public final class PinchZoom {
      * where neither can be read.
      */
     static void snapshot(Activity activity, View target, Rect area, Done done) {
-        Bitmap copy = Bitmap.createBitmap(area.width(), area.height(), Bitmap.Config.ARGB_8888);
+        Window window = activity.getWindow();
+        boolean wide = wide(window, target) && !wideFailed;
+        Bitmap copy = copyBitmap(area.width(), area.height(), wide);
         Handler main = new Handler(Looper.getMainLooper());
         PixelCopy.OnPixelCopyFinishedListener finished = result -> {
-            if (result == PixelCopy.SUCCESS) done.accept(copy);
-            else done.accept(drawn(target, area, copy));
+            if (result == PixelCopy.SUCCESS) {
+                if (wide && Build.VERSION.SDK_INT >= 34) logBrightest(copy, headroom.now(target));
+                done.accept(copy);
+            } else if (wide) {
+                // This device copies no half floats, so it takes the usual 8 bits from here on.
+                wideFailed = true;
+                snapshot(activity, target, area, done);
+            } else {
+                done.accept(drawn(target, area, copy));
+            }
         };
         // A SurfaceView's picture is a surface of its own, which the window's frame shows as a hole.
         Rect surface = target instanceof SurfaceView ? surfaceArea((SurfaceView) target, area) : null;
@@ -899,12 +940,70 @@ public final class PinchZoom {
             PixelCopy.request((SurfaceView) target, surface, copy, finished, main);
             return;
         }
-        Window window = activity.getWindow();
         if (window != null && target.isHardwareAccelerated()) {
             PixelCopy.request(window, area, copy, finished, main);
             return;
         }
         done.accept(drawn(target, area, copy));
+    }
+
+    /**
+     * Whether [window] is in HDR color mode, as Facebook puts the story viewer's (HdrBrightness).
+     * There Android 14 and newer show an HDR story above SDR white, and a copy that stops at SDR
+     * white looked dimmer than the story it covered, on the panel only, since a screen recording
+     * maps both to SDR (#220).
+     */
+    static boolean hdr(@Nullable Window window) {
+        return Build.VERSION.SDK_INT >= 34 && window != null && window.getColorMode() == ActivityInfo.COLOR_MODE_HDR;
+    }
+
+    /** Whether a zoom on [target] copies in half floats: in an HDR window, or on a video SurfaceView while the screen is lifted. */
+    static boolean wide(@Nullable Window window, View target) {
+        return hdr(window) || target instanceof SurfaceView && lifted(target);
+    }
+
+    /**
+     * Whether the screen [view] is on shows light above SDR white now, Android 14 and newer, with Turn
+     * off HDR brightness off. Facebook can draw a story's HDR video on a SurfaceView of its own,
+     * which lifts the screen with the window left at the default color mode (#220).
+     */
+    static boolean lifted(View view) {
+        return Build.VERSION.SDK_INT >= 34 && !Settings.TURN_OFF_HDR_BRIGHTNESS.get() && headroom.now(view) > LIFTED;
+    }
+
+    /** The HDR to SDR ratio of the screen [view] is on, or 1 where Android can't say. */
+    private static float screenHeadroom(View view) {
+        if (Build.VERSION.SDK_INT < 34) return 1f;
+        Display display = view.getDisplay();
+        return display != null && display.isHdrSdrRatioAvailable() ? display.getHdrSdrRatio() : 1f;
+    }
+
+    /** A [width] by [height] bitmap to copy into: half floats in extended sRGB where [wide], which keep the light above SDR white, or the usual 8 bits. */
+    static Bitmap copyBitmap(int width, int height, boolean wide) {
+        if (!wide) return Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        return Bitmap.createBitmap(width, height, Bitmap.Config.RGBA_F16, true, ColorSpace.get(ColorSpace.Named.EXTENDED_SRGB));
+    }
+
+    /** With Debug logging on, how far past SDR white a wide copy reaches, and the screen's HDR to SDR ratio. */
+    @RequiresApi(34)
+    private static void logBrightest(Bitmap copy, float ratio) {
+        Logger.printDebug(() -> String.format(Locale.US,
+                "Pinch to zoom: wide copy, its brightest light is %.2fx SDR white, the screen's ratio %.2f",
+                brightest(copy), ratio));
+    }
+
+    /** The brightest channel over a grid across [copy], 1 being SDR white. */
+    @RequiresApi(29)
+    static float brightest(Bitmap copy) {
+        float most = 0f;
+        int step = Math.max(1, Math.max(copy.getWidth(), copy.getHeight()) / 64);
+        for (int y = 0; y < copy.getHeight(); y += step) {
+            for (int x = 0; x < copy.getWidth(); x += step) {
+                Color color = copy.getColor(x, y);
+                most = Math.max(most, Math.max(color.red(), Math.max(color.green(), color.blue())));
+            }
+        }
+        return most;
     }
 
     /** [area], window coordinates, in [view]'s surface, or null when it has no surface to read. */
@@ -975,6 +1074,8 @@ public final class PinchZoom {
         places = PinchZoom::mediaUnder;
         frames = PinchZoom::frame;
         players = PATCHED_PLAYERS;
+        headroom = PinchZoom::screenHeadroom;
+        wideFailed = false;
     }
 
     /** One zoom: the layer over the window and where the fingers started. */
@@ -1002,6 +1103,12 @@ public final class PinchZoom {
         @Nullable View source;
         /** A zoom in the story viewer, which springs back once the story it follows moves on. */
         boolean story;
+        /** The copy and the frames read from a SurfaceView keep the light above SDR white ({@link PinchZoom#wide}). */
+        boolean wide;
+        /** The window the zoom lies over. */
+        @Nullable Window window;
+        /** The color mode {@link #raise} took the window from, or -1 while it's Facebook's. */
+        private int raisedFrom = -1;
         /** The finger on the kept zoom stayed still for the long-press time, and paused or played the video. */
         boolean heldDown;
         /** The player a hold paused, which plays again when the zoom springs back. */
@@ -1119,6 +1226,7 @@ public final class PinchZoom {
         void show(@Nullable Bitmap picture) {
             if (picture == null) blank = true;
             if (picture == null || settling) return;
+            if (wide) raise();
             copy.setImageBitmap(picture);
             root.addView(layer, new ViewGroup.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
@@ -1154,11 +1262,19 @@ public final class PinchZoom {
          */
         @Nullable
         Bitmap spare(int width, int height) {
+            return spare(width, height, false);
+        }
+
+        /** {@link #spare(int, int)}, in half floats where [wide] and this device still copies them. */
+        @Nullable
+        Bitmap spare(int width, int height, boolean wide) {
             if (width <= 0 || height <= 0) return null;
             int index = shownBuffer == 0 ? 1 : 0;
             Bitmap buffer = buffers[index];
-            if (buffer == null || buffer.getWidth() != width || buffer.getHeight() != height) {
-                buffer = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+            boolean half = wide && !wideFailed;
+            Bitmap.Config config = half ? Bitmap.Config.RGBA_F16 : Bitmap.Config.ARGB_8888;
+            if (buffer == null || buffer.getWidth() != width || buffer.getHeight() != height || buffer.getConfig() != config) {
+                buffer = copyBitmap(width, height, half);
                 // Drawn pixel for pixel, so a placement matrix maps the frame as the video lays it out.
                 buffer.setDensity(Bitmap.DENSITY_NONE);
                 buffers[index] = buffer;
@@ -1387,6 +1503,26 @@ public final class PinchZoom {
             buffers[0] = null;
             buffers[1] = null;
             shownBuffer = -1;
+            lower();
+        }
+
+        /**
+         * Puts a window Facebook left at another color mode in HDR one while the zoom shows, so a wide
+         * copy of a video that lifted the screen shows its light above SDR white as the video does.
+         */
+        private void raise() {
+            Window over = window;
+            if (Build.VERSION.SDK_INT < 34 || over == null || hdr(over)) return;
+            raisedFrom = over.getColorMode();
+            over.setColorMode(ActivityInfo.COLOR_MODE_HDR);
+        }
+
+        /** Hands the window back the color mode {@link #raise} took it from, while it's still the HDR one. */
+        private void lower() {
+            Window over = window;
+            int before = raisedFrom;
+            raisedFrom = -1;
+            if (before >= 0 && over != null && over.getColorMode() == ActivityInfo.COLOR_MODE_HDR) over.setColorMode(before);
         }
 
         boolean shown() {

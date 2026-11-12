@@ -50,6 +50,20 @@ public final class MusicBrowseRequest {
         return post(context, "next", new JSONObject().put("context", context(context)).put("videoId", videoId), "");
     }
 
+    /**
+     * Music's watch response for the given request fields (a video, a
+     * playlist, a continuation, ...), sent exactly as {@link #next(Context, String)} and {@link #browse} are.
+     */
+    public static JSONObject nextWith(Context context, JSONObject fields) throws IOException, JSONException {
+        JSONObject body = new JSONObject().put("context", context(context));
+        java.util.Iterator<String> keys = fields.keys();
+        while (keys.hasNext()) {
+            String key = keys.next();
+            body.put(key, fields.get(key));
+        }
+        return post(context, "next", body, "");
+    }
+
     private static final class BadRequestException extends IOException {
         BadRequestException() {
             super("Music request HTTP 400");

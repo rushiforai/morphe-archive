@@ -40,14 +40,7 @@ import java.util.List;
 
 /** Snapshot of the native constructors, renderers, navigation, and DI traced for this build. */
 public final class NativeSettingsAbi {
-    public static final List<String> TYPES = Arrays.asList(
-        "Lcom/spotify/music/SpotifyApplication;", "Lp/xlt;", "Lp/ion;", "Lp/yv80;",
-        "Lp/tdn;", "Lp/tcn;", "Lp/afr;", "Lp/rp60;", "Lp/rfr0;", "Lp/xh0;",
-        "Lp/tyh0;", "Lp/gtl;", "Lp/ftl;", "Lp/dtl;", "Lp/etl;", "Lp/qf60;",
-        "Lkotlin/jvm/functions/Function1;", "Lp/gke;", "Lp/k2u;", "Lp/osa0;",
-        "Lp/hka1;", "Lp/wgy0;", "Lp/dm70;", "Lp/s8;", "Lp/qte;", "Lp/pmy0;",
-        "Lp/cmy0;", "Lp/rk50;", "Lp/nsa0;", "Lp/gv90;", "Lp/abe1;", "Lp/c3g0;"
-    );
+    public static final List<String> TYPES = Arrays.asList("Lcom/spotify/music/SpotifyApplication;", "Lp/dns;", "Lp/g2z;", "Lp/o3e0;", "Lp/bsn;", "Lp/ynb0;", "Lp/kly0;", "Lp/vqo;", "Lp/uqo;", "Lp/sqo;", "Lp/tqo;", "Lp/rqo;", "Lp/ks21;", "Lp/iu30;", "Lp/hab0;", "Lp/rih1;", "Lp/pbo1;", "Lp/c0g;", "Lp/sq61;", "Lp/yr61;", "Lp/xr61;", "Lp/xt61;", "Lp/f46;", "Lp/mqo1;", "Lp/opl0;", "Lp/r6h1;", "Lp/x6h1;", "Lp/y6h1;", "Lp/i3o1;", "Lp/kk11;", "Lp/jxn0;", "Lp/swl0;");
 
     /**
      * SHA-256 of {@link #describe}. It hashes what the class does, not the bytes a dexlib2 writer lays

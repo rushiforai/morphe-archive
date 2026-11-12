@@ -13,7 +13,7 @@
  * (inlined Cairo fragment flag).
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-05.
+ * Modified by lavinhoque33, 2026-11-10.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -481,6 +481,11 @@ val settingsPatch = resourcePatch(
         arrayOf(
             ResourceGroup(
                 "drawable",
+                "morphe_settings_bisect.xml",
+                "morphe_settings_copy_all.xml",
+                "morphe_settings_deselect_all.xml",
+                "morphe_settings_import_export.xml",
+                "morphe_settings_select_all.xml",
                 "morphe_settings_screen_02_dearrow.xml",
                 "morphe_settings_screen_02_dearrow_bold.xml",
                 "revanced_settings_arrow_time.xml",

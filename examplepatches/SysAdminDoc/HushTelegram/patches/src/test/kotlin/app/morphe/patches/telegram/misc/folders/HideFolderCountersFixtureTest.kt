@@ -51,7 +51,7 @@ class HideFolderCountersFixtureTest {
                 assertEquals("$name: stock $i", listOf(before[i].opcode, before[i].namedRegisters(), before[i].origRef()),
                     listOf(after[i + 5].opcode, after[i + 5].namedRegisters(), after[i + 5].origRef()))
             }
-            for (flag in listOf("hideFolderCounters", "launchFolder", "hideAllChats", "hiddenChats", "sortByDate", "hiddenPasscode", "adminChats", "fitTabs", "hiddenAccounts", "hiddenUnread")) {
+            for (flag in listOf("hideFolderCounters", "launchFolder", "hideAllChats", "hiddenChats", "sortByDate", "hiddenPasscode", "adminChats", "fitTabs", "tabIcons", "hiddenAccounts", "hiddenUnread")) {
                 val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.controlBody()
                 assertEquals("$name: $flag", 1L, (status.first() as WideLiteralInstruction).wideLiteral)
             }

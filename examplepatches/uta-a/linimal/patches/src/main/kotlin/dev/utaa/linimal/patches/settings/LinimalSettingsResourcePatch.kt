@@ -17,7 +17,7 @@ internal object LinimalSettingsResource {
 
 /** 設定項目が参照する文字列を、既存の値を書き換えずに 1 件だけ追加します。 */
 val linimalSettingsResourcePatch = resourcePatch(
-    name = "Linimal 設定の文字列",
+    name = "Linimal settings strings",
     description = "Linimal の設定項目が参照する文字列 resource を追加します。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

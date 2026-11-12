@@ -13,7 +13,7 @@
  *
  * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to Morphe contributions.
  *
- * Modified by lavinhoque33, 2026-11-06.
+ * Modified by lavinhoque33, 2026-11-10.
  */
 
 package app.morphe.patches.youtube.general.navigation
@@ -218,45 +218,46 @@ val navigationBarComponentsPatch = bytecodePatch(
             "SETTINGS: REORDER_NAVIGATION_BAR"
         )
 
+        // Show the snackbars right above the navigation bar and the miniplayer. A target without
+        // the hook only keeps the default snackbar position.
+        BottomUiContainerOnLayoutFingerprint.matchOrNull()?.let {
+            it.method.addInstruction(
+                it.instructionMatches.first().index + 1,
+                "invoke-static { p0 }, $GENERAL_PATH/SnackBarPatch;->removeExtraBottomRoom(Landroid/widget/FrameLayout;)V"
+            )
+        } ?: printWarn("Snackbar room above the glass navigation bar is not supported in this version.")
+
         // region patch for translucent navigation and status bars
 
         if (is_19_25_or_greater) {
-            // The layout flags must follow the window's edge-to-edge state, while the background
-            // style remains independent. Observe the account flag without changing it in this fork.
+            // Follow every use of a flag literal, including reads reused across layout branches.
             injectOnCreateMethodCall("$PATCHES_PATH/theme/StatusBarPatch;", "initialize")
             EdgeToEdgeTopBarFeatureFlagFingerprint.matchAll().forEach { match ->
                 match.method.apply {
-                    // Newer targets can read the flag more than once in the same method.
-                    implementation!!.instructions.mapIndexedNotNull { index, instruction ->
-                        index.takeIf { (instruction as? WideLiteralInstruction)?.wideLiteral == 45400535L }
-                    }.asReversed().forEach { index ->
-                        insertLiteralOverride(index, "$PATCHES_PATH/theme/StatusBarPatch;->useEdgeToEdgeTopBar(Z)Z")
-                    }
+                    overrideNavigationFeatureFlag(
+                        45400535L,
+                        "$PATCHES_PATH/theme/StatusBarPatch;->useEdgeToEdgeTopBar(Z)Z"
+                    )
                 }
             }
 
             TranslucentNavigationBarFeatureFlagsFingerprint.matchAll().forEach { match ->
                 match.method.apply {
-                    implementation!!.instructions.mapIndexedNotNull { index, instruction ->
-                        index.takeIf {
-                            (instruction as? WideLiteralInstruction)?.wideLiteral in TRANSLUCENT_NAVIGATION_BAR_FEATURE_FLAGS
-                        }
-                    }.asReversed().forEach { index ->
-                        val flag = getInstruction<WideLiteralInstruction>(index).wideLiteral
+                    TRANSLUCENT_NAVIGATION_BAR_FEATURE_FLAGS.forEach { flag ->
                         val override = when (flag) {
                             NAVIGATION_BAR_COVERS_SYSTEM_BUTTONS_FLAG -> "useTranslucentNavigationBar"
                             FEED_BEHIND_NAVIGATION_BAR_FLAG -> "useFeedBehindNavigationBar"
                             TRANSLUCENT_NAVIGATION_BAR_STYLE_FLAG -> "useTranslucentNavigationBarStyle"
                             else -> "useTranslucentNavigationBarBackground"
                         }
-                        insertLiteralOverride(index, "$EXTENSION_CLASS_DESCRIPTOR->$override(Z)Z")
+                        overrideNavigationFeatureFlag(flag, "$EXTENSION_CLASS_DESCRIPTOR->$override(Z)Z")
                     }
                 }
             }
 
             // The blurred background of the translucent navigation bar is drawn only if the canvas is
-            // hardware accelerated. The transparent and opaque styles leave it out, as it can crash
-            // the app on Android 12 and 13.
+            // hardware accelerated. It's always left out on Android 12 and 13, where it can crash the app
+            // while the player moves, and the transparent and opaque styles always leave it out.
             NavigationBarBlurDrawFingerprint.let {
                 it.method.apply {
                     val index = it.instructionMatches[1].index

@@ -2,7 +2,7 @@
  * Copyright (C) 2026 lavinhoque33
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-06
+ * Modified by lavinhoque33, 2026-11-11
  * Written by lavinhoque33, 2026-11-06
  */
 
@@ -11,7 +11,6 @@ package app.morphe.extension.youtube.settings.preference;
 import static app.morphe.extension.shared.patches.PatchStatus.PatchVersion;
 import static app.morphe.extension.shared.patches.PatchStatus.PatchedTime;
 import static app.morphe.extension.shared.utils.StringRef.str;
-import static app.morphe.extension.shared.utils.Utils.dipToPixels;
 
 import android.content.Context;
 import android.content.Intent;
@@ -21,11 +20,8 @@ import android.preference.Preference;
 import android.text.Html;
 import android.text.SpannableStringBuilder;
 import android.text.style.URLSpan;
+import android.util.AttributeSet;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.HorizontalScrollView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.text.DateFormat;
@@ -36,109 +32,65 @@ import app.morphe.extension.shared.ui.CustomDialog;
 import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.shared.utils.Utils;
 import app.morphe.extension.youtube.utils.ExtendedUtils;
-import app.morphe.extension.youtube.utils.ThemeUtils;
 
-/**
- * A root-only, keyless header, deliberately outside XML icon mapping and the settings search index.
- * Child buttons remain focusable even though the preference row itself is not selectable.
- */
+/** Native About rows, deliberately excluded from the settings search index. */
 @SuppressWarnings("deprecation")
 public final class AboutPreference extends Preference {
-    private TextView titleView;
+    public AboutPreference(Context context, AttributeSet attrs) {
+        super(context, attrs);
 
-    public AboutPreference(Context context) {
-
-        super(context);
-
-        setSelectable(false);
         setPersistent(false);
-
-        // Framework comparison subtracts orders; MIN_VALUE overflows against positive root orders.
-        setOrder(-1000);
+        updateAppInfo();
     }
 
-    @Override
-    protected View onCreateView(ViewGroup parent) {
-        Context context = getContext();
-        LinearLayout container = verticalLayout(context);
-        container.setPadding(dipToPixels(12), dipToPixels(8), dipToPixels(12), dipToPixels(12));
-
-        LinearLayout card = verticalLayout(context);
-        card.setPadding(dipToPixels(16), dipToPixels(12), dipToPixels(16), dipToPixels(12));
-        card.setBackground(CustomDialog.createRoundedBackground(20, ThemeUtils.getAdjustedBackgroundColor(false)));
-        container.addView(card, matchWidth());
-
-        titleView = addText(card, SettingsNamePatch.getSettingsName(), 22);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            titleView.setAccessibilityHeading(true);
+    private void updateAppInfo() {
+        switch (getKey()) {
+            case "revanced_about_patches" -> {
+                String customName = SettingsNamePatch.getCustomSettingsName();
+                setSummary(customName == null ? PatchVersion() : PatchVersion() + "\n" + customName);
+            }
+            case "revanced_about_app" -> {
+                setTitle(ExtendedUtils.getAppLabel());
+                setSummary(ExtendedUtils.getAppVersionName());
+            }
+            case "revanced_about_patched" -> setSummary(patchedDate());
         }
-        addText(card, str("revanced_about_patches", PatchVersion()), 16);
-        addText(card, str("revanced_about_app", ExtendedUtils.getAppLabel(), ExtendedUtils.getAppVersionName()), 16);
-        addText(card, str("revanced_about_patched", patchedDate()), 14);
-
-        HorizontalScrollView links = new HorizontalScrollView(context);
-        links.setHorizontalScrollBarEnabled(true);
-        LinearLayout buttons = new LinearLayout(context);
-        buttons.setOrientation(LinearLayout.HORIZONTAL);
-        links.addView(buttons);
-        addLink(buttons, "revanced_about_github", AboutInfo.Link.GITHUB);
-        addLink(buttons, "revanced_about_report_issue", AboutInfo.Link.REPORT_ISSUE);
-        addLink(buttons, "revanced_about_request_feature", AboutInfo.Link.REQUEST_FEATURE);
-        card.addView(links, matchWidth());
-
-        addButton(card, "revanced_about_credits", this::showCredits);
-        addButton(card, "revanced_about_copy_debug", this::copyDebugInfo);
-
-        return container;
     }
 
     @Override
     protected void onBindView(View view) {
+        if ("revanced_about_patches".equals(getKey())) updateAppInfo();
         super.onBindView(view);
 
-        titleView.setText(SettingsNamePatch.getSettingsName());
+        wrapText(view.findViewById(android.R.id.title));
+        wrapText(view.findViewById(android.R.id.summary));
     }
 
-    private LinearLayout verticalLayout(Context context) {
-        LinearLayout layout = new LinearLayout(context);
-        layout.setOrientation(LinearLayout.VERTICAL);
-        return layout;
+    private void wrapText(TextView text) {
+        if (text != null) {
+            text.setSingleLine(false);
+            text.setMaxLines(Integer.MAX_VALUE);
+            text.setEllipsize(null);
+        }
     }
 
-    private LinearLayout.LayoutParams matchWidth() {
-        return new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-    }
-
-    private TextView addText(LinearLayout parent, String text, int sizeSp) {
-        TextView view = new TextView(getContext());
-        ThemeUtils.setThemeTextStyle(view, android.R.attr.textAppearanceMedium, android.R.attr.textColorPrimary);
-        view.setText(text);
-        view.setTextSize(sizeSp);
-        view.setPadding(0, dipToPixels(2), 0, dipToPixels(2));
-        parent.addView(view, matchWidth());
-        return view;
-    }
-
-    private void addLink(LinearLayout parent, String labelKey, AboutInfo.Link link) {
-        addButton(parent, labelKey, () -> {
-            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(AboutInfo.url(link)));
-            getContext().startActivity(intent);
+    @Override
+    protected void onClick() {
+        String key = getKey();
+        runAction(key, () -> {
+            switch (key) {
+                case "revanced_about_github" -> openLink(AboutInfo.Link.GITHUB);
+                case "revanced_about_report_issue" -> openLink(AboutInfo.Link.REPORT_ISSUE);
+                case "revanced_about_request_feature" -> openLink(AboutInfo.Link.REQUEST_FEATURE);
+                case "revanced_about_credits" -> showCredits();
+                case "revanced_about_copy_debug" -> copyDebugInfo();
+            }
         });
     }
 
-    private void addButton(LinearLayout parent, String labelKey, Runnable action) {
-        Button button = new Button(getContext());
-        String label = str(labelKey);
-        button.setText(label);
-        button.setContentDescription(label);
-        button.setAllCaps(false);
-        button.setMinHeight(dipToPixels(48));
-        button.setMinimumHeight(dipToPixels(48));
-        button.setPadding(dipToPixels(12), dipToPixels(8), dipToPixels(12), dipToPixels(8));
-        button.setOnClickListener(view -> runAction(labelKey, action));
-        int width = parent.getOrientation() == LinearLayout.HORIZONTAL
-                ? ViewGroup.LayoutParams.WRAP_CONTENT : ViewGroup.LayoutParams.MATCH_PARENT;
-        parent.addView(button, new LinearLayout.LayoutParams(width, ViewGroup.LayoutParams.WRAP_CONTENT));
+    private void openLink(AboutInfo.Link link) {
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(AboutInfo.url(link)));
+        getContext().startActivity(intent);
     }
 
     private void runAction(String labelKey, Runnable action) {

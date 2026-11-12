@@ -1,3 +1,64 @@
+## [1.7.5](https://github.com/Globberry/morphe-patches/compare/v1.7.4...v1.7.5) (2026-11-12)
+
+### 🐛 Bug Fixes
+
+* refresh repository metadata and README ([876a6af](https://github.com/Globberry/morphe-patches/commit/876a6afb2d9bb0206936473bf7af863590457a6e))
+
+## [1.7.4](https://github.com/Globberry/morphe-patches/compare/v1.7.3...v1.7.4) (2026-11-12)
+
+### 🐛 Bug Fixes
+
+* render premium shader effects on re-signed builds ([13ad278](https://github.com/Globberry/morphe-patches/commit/13ad278112000d86f5c84c5cafe0d45f45f4a308))
+
+## [1.7.3](https://github.com/Globberry/morphe-patches/compare/v1.7.2...v1.7.3) (2026-11-11)
+
+### 🐛 Bug Fixes
+
+* consolidate patches by aim ([1a1d12b](https://github.com/Globberry/morphe-patches/commit/1a1d12b0f01bfecf98fa5a458aea376817c3284f))
+
+## [1.7.2](https://github.com/Globberry/morphe-patches/compare/v1.7.1...v1.7.2) (2026-11-11)
+
+### 🐛 Bug Fixes
+
+* accept the export-screen purchase check (P0JcGi9.MeOIJuj) ([0a0e55a](https://github.com/Globberry/morphe-patches/commit/0a0e55a5180d30612232fefcc4ca4ea4f694c310))
+* enable the export purchase bypass by default ([14795c5](https://github.com/Globberry/morphe-patches/commit/14795c5688f11853eb8db2f02666ad190d89e3d5))
+
+## [1.7.1](https://github.com/Globberry/morphe-patches/compare/v1.7.0...v1.7.1) (2026-11-11)
+
+### 🐛 Bug Fixes
+
+* trace the export coroutine's prepare step; drop the bogus Ldm1 patch ([42fa7b2](https://github.com/Globberry/morphe-patches/commit/42fa7b28cf99b60dffa4395c892c5f5dd4f9b7b5))
+
+## [1.7.0](https://github.com/Globberry/morphe-patches/compare/v1.6.0...v1.7.0) (2026-11-11)
+
+### ✨ New Features
+
+* [Export] 11 Ldm1 Allow Export - the export-start check ([8733d67](https://github.com/Globberry/morphe-patches/commit/8733d6770141e6f6baf712736ba8d241bb0cb9e1))
+
+## [1.6.0](https://github.com/Globberry/morphe-patches/compare/v1.5.0...v1.6.0) (2026-11-11)
+
+### ✨ New Features
+
+* [Export] 10 WHoiaEDD Force Export - bypass the export-trigger check ([679956a](https://github.com/Globberry/morphe-patches/commit/679956af61d6b1652efe2d53b0cc0aa0a09f47e1))
+
+## [1.5.0](https://github.com/Globberry/morphe-patches/compare/v1.4.1...v1.5.0) (2026-11-11)
+
+### ✨ New Features
+
+* full export trace + fix the instruction-eating replace primitive ([99f69f6](https://github.com/Globberry/morphe-patches/commit/99f69f6e94541ebee302ccdd717ad6744391692f))
+
+## [1.4.1](https://github.com/Globberry/morphe-patches/compare/v1.4.0...v1.4.1) (2026-11-11)
+
+### 🐛 Bug Fixes
+
+* [Export] suite - remove the crashy LP4eSlPPu patch, make every patch ([9178d3b](https://github.com/Globberry/morphe-patches/commit/9178d3b611fd13fda2e38ecef8f48f598c971973))
+
+## [1.4.0](https://github.com/Globberry/morphe-patches/compare/v1.3.9...v1.4.0) (2026-11-11)
+
+### ✨ New Features
+
+* 10 individually toggleable [Export] patches for the 1.5.10 Pro export gate ([c3afd46](https://github.com/Globberry/morphe-patches/commit/c3afd462ac65f6910985550b414f2d5285425cce))
+
 ## [1.3.9](https://github.com/Globberry/morphe-patches/compare/v1.3.8...v1.3.9) (2026-11-11)
 
 ### 🐛 Bug Fixes

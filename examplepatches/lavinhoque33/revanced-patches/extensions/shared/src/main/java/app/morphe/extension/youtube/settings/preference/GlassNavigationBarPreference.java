@@ -1,6 +1,6 @@
 /*
  * Copyright 2026 Morphe.
- * Modified by lavinhoque33, 2026-11-06.
+ * Modified by lavinhoque33, 2026-11-10.
  * https://github.com/MorpheApp/morphe-patches/pull/4424
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
@@ -28,6 +28,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -51,7 +52,7 @@ import app.morphe.extension.shared.settings.preference.AbstractPreferenceFragmen
 import app.morphe.extension.youtube.settings.Settings;
 
 /**
- * Sets the height, the width and the button spacing of the glass navigation bar,
+ * Sets the height, the width, the button spacing and the bottom spacing of the glass navigation bar,
  * with a preview of the bar that follows the sliders.
  */
 @SuppressWarnings({"unused", "deprecation"})
@@ -60,7 +61,8 @@ public class GlassNavigationBarPreference extends Preference {
     private static final IntegerSetting[] SETTINGS = {
             Settings.NAVIGATION_BAR_GLASS_HEIGHT,
             Settings.NAVIGATION_BAR_GLASS_WIDTH,
-            Settings.NAVIGATION_BAR_GLASS_BUTTON_SPACING
+            Settings.NAVIGATION_BAR_GLASS_BUTTON_SPACING,
+            Settings.NAVIGATION_BAR_GLASS_BOTTOM_SPACING
     };
 
     static {
@@ -74,7 +76,8 @@ public class GlassNavigationBarPreference extends Preference {
     private static final String[] TITLES = {
             "morphe_navigation_bar_glass_size_height",
             "morphe_navigation_bar_glass_size_width",
-            "morphe_navigation_bar_glass_size_button_spacing"
+            "morphe_navigation_bar_glass_size_button_spacing",
+            "morphe_navigation_bar_glass_size_bottom_spacing"
     };
 
     public GlassNavigationBarPreference(Context context, AttributeSet attrs) {
@@ -132,7 +135,7 @@ public class GlassNavigationBarPreference extends Preference {
         LinearLayout content = new LinearLayout(context);
         content.setOrientation(LinearLayout.VERTICAL);
         content.setPadding(0, Dim.dp8, 0, Dim.dp8);
-        content.addView(preview, LinearLayout.LayoutParams.MATCH_PARENT, Dim.dp(120));
+        content.addView(preview, LinearLayout.LayoutParams.MATCH_PARENT, Dim.dp(200));
         LinearLayout.LayoutParams shownParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         shownParams.topMargin = Dim.dp4;
@@ -216,7 +219,11 @@ public class GlassNavigationBarPreference extends Preference {
         );
 
         // Insert the content between the title (index 0) and the buttons (index 1).
-        dialogPair.second.addView(content, 1);
+        // Kept scrollable, so all four sliders are reachable on small screens and in landscape.
+        ScrollView scroll = new ScrollView(context);
+        scroll.addView(content);
+        dialogPair.second.addView(scroll, 1,
+                new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1));
         dialogPair.first.show();
     }
 
@@ -236,7 +243,7 @@ public class GlassNavigationBarPreference extends Preference {
         private final int selected;
         private final boolean showLabels;
         /**
-         * Height percent, width percent and button spacing in dp.
+         * Height percent, width percent, button spacing in dp and minimum bottom spacing in dp.
          */
         private final int[] values;
 
@@ -311,7 +318,7 @@ public class GlassNavigationBarPreference extends Preference {
             final float capsuleHeight = GlassNavigationBar.getCapsuleHeight(baseHeight, contentHeight, values[0]) * scale;
             final float capsuleWidth = shownButtons * buttonWidth;
             final float left = (width - capsuleWidth) / 2;
-            final float bottom = height - Dim.dp10 * scale;
+            final float bottom = height - Dim.dp(values[3]) * scale;
             final float top = bottom - capsuleHeight;
             rect.set(left, top, left + capsuleWidth, bottom);
             final float radius = capsuleHeight / 2;

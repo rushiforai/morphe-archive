@@ -1,3 +1,46 @@
+## [1.12.0](https://github.com/zeldrisho/morphe-patches/compare/v1.11.0...v1.12.0) (2026-11-11)
+
+### 🐛 Bug Fixes
+
+* **ci:** pin CodeQL actions to release commit ([db36aa6](https://github.com/zeldrisho/morphe-patches/commit/db36aa62d34783b862b629570aebf59c559c5d82))
+* collapse generated README patch sections ([5f71c3d](https://github.com/zeldrisho/morphe-patches/commit/5f71c3d59646779439f110db2e618833705e8dc1))
+* **zalo:** address patch review findings ([b077a70](https://github.com/zeldrisho/morphe-patches/commit/b077a70f2afd63036965a6fbc134d4b97fca673a))
+* **zalo:** preserve native library root during ABI filtering ([7610acc](https://github.com/zeldrisho/morphe-patches/commit/7610acc3faf2b9c2cfb601e1913a1990f2fa6c94))
+
+### ✨ New Features
+
+* **zalo:** add optional reaction picker gate bypass ([586899a](https://github.com/zeldrisho/morphe-patches/commit/586899a8096820b97e79a086917d29ffa3609a81))
+* **zalo:** apply custom icon without a settings toggle ([457dc69](https://github.com/zeldrisho/morphe-patches/commit/457dc6977dedfbe28abede9da6707d716b8421c5))
+
+## [1.12.0-dev.3](https://github.com/zeldrisho/morphe-patches/compare/v1.12.0-dev.2...v1.12.0-dev.3) (2026-11-11)
+
+### 🐛 Bug Fixes
+
+* **ci:** pin CodeQL actions to release commit ([db36aa6](https://github.com/zeldrisho/morphe-patches/commit/db36aa62d34783b862b629570aebf59c559c5d82))
+* **zalo:** preserve native library root during ABI filtering ([7610acc](https://github.com/zeldrisho/morphe-patches/commit/7610acc3faf2b9c2cfb601e1913a1990f2fa6c94))
+
+## [1.12.0-dev.2](https://github.com/zeldrisho/morphe-patches/compare/v1.12.0-dev.1...v1.12.0-dev.2) (2026-11-11)
+
+### ✨ New Features
+
+* **zalo:** apply custom icon without a settings toggle ([457dc69](https://github.com/zeldrisho/morphe-patches/commit/457dc6977dedfbe28abede9da6707d716b8421c5))
+
+## [1.12.0-dev.1](https://github.com/zeldrisho/morphe-patches/compare/v1.11.1-dev.1...v1.12.0-dev.1) (2026-11-11)
+
+### 🐛 Bug Fixes
+
+* **zalo:** address patch review findings ([b077a70](https://github.com/zeldrisho/morphe-patches/commit/b077a70f2afd63036965a6fbc134d4b97fca673a))
+
+### ✨ New Features
+
+* **zalo:** add optional reaction picker gate bypass ([586899a](https://github.com/zeldrisho/morphe-patches/commit/586899a8096820b97e79a086917d29ffa3609a81))
+
+## [1.11.1-dev.1](https://github.com/zeldrisho/morphe-patches/compare/v1.11.0...v1.11.1-dev.1) (2026-11-10)
+
+### 🐛 Bug Fixes
+
+* collapse generated README patch sections ([5f71c3d](https://github.com/zeldrisho/morphe-patches/commit/5f71c3d59646779439f110db2e618833705e8dc1))
+
 ## [1.11.0](https://github.com/zeldrisho/morphe-patches/compare/v1.10.0...v1.11.0) (2026-11-10)
 
 ### 🐛 Bug Fixes

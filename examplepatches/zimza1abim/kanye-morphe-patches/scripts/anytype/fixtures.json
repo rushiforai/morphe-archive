@@ -1,0 +1,17 @@
+{
+  "0.48.10": {
+    "sha256": "b54b286eb24e7de4edbb965d102857ffa833394789dcf4dd1230a8a772179284",
+    "bytes": 144625878,
+    "url": "https://github.com/anyproto/anytype-kotlin/releases/download/0.48.10/anytype-0.48.10-arm64-v8a.apk"
+  },
+  "0.49.0": {
+    "sha256": "20fad9de4b2677c66c28b06b4b43e9f2c393603fc8dabc1318ba95963a42cb6f",
+    "bytes": 145495204,
+    "url": "https://github.com/anyproto/anytype-kotlin/releases/download/0.49.0/anytype-0.49.0-arm64-v8a.apk"
+  },
+  "0.50.1-alpha": {
+    "sha256": "820d0f60e8c32e74d6154548731e88f803e698dbeb5591ac1f1ebe52857a541a",
+    "bytes": 147360474,
+    "url": "https://github.com/anyproto/anytype-kotlin/releases/download/0.50.1-alpha/anytype-0.50.1-alpha-arm64-v8a.apk"
+  }
+}

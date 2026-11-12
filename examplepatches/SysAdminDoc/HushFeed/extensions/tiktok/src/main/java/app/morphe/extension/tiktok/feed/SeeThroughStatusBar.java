@@ -14,7 +14,9 @@ import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.view.Window;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
@@ -52,6 +54,12 @@ public final class SeeThroughStatusBar {
     private static final Map<View, Float> FILLED = new WeakHashMap<>();
     /** Surfaces whose pivot this moved off their center, so it goes back with the scale. */
     private static final Set<View> PIVOTED = Collections.newSetFromMap(new WeakHashMap<>());
+    /** Players the last pass filled, with their cell's cover id, so the pre-draw pass fills them again. */
+    private static final Map<View, Integer> PLAYERS = new WeakHashMap<>();
+    /** The pre-draw pass's copy of {@link #PLAYERS}, kept so a frame allocates nothing. */
+    private static final List<View> REFILLING = new ArrayList<>();
+    /** How many scales {@link #grow} has written, so the pre-draw pass can tell whether it changed any. */
+    private static int scaleWrites;
 
     private SeeThroughStatusBar() {
     }
@@ -98,30 +106,74 @@ public final class SeeThroughStatusBar {
      * coverId}): a sibling of the player, or a sibling's child, the size of the cell with the still
      * fitted inside. It shows the still for a frame as a video leaves and while the next one loads,
      * and the still was never grown, so with the picture filled the bands came back for that frame
-     * on every swipe (#232). The cover takes the picture's scale, and goes back with it.
+     * on every swipe (#232). The cover takes the picture's scale, and goes back with it. It grows
+     * from the point that keeps its still on the grown picture ({@link #coverPivot}).
      */
     static void fill(View player, boolean wanted, int coverId) {
         if (!(player instanceof ViewGroup)) return;
         if (wanted && fitWins()) wanted = false;
+        if (wanted) PLAYERS.put(player, coverId);
+        else PLAYERS.remove(player);
         ViewGroup group = (ViewGroup) player;
+        ViewParent space = player.getParent();
         boolean surfaces = false;
         float scale = 1f;
+        float middle = Float.NaN;
         for (int i = 0, count = group.getChildCount(); i < count; i++) {
             View surface = group.getChildAt(i);
             if (!(surface instanceof SurfaceView) && !(surface instanceof TextureView)) continue;
             surfaces = true;
             float grown = wanted ? fillScale(group.getHeight(), surface) : 1f;
-            scale = grow(surface, grown, fillPivot(surface, grown));
+            float pivot = fillPivot(surface, grown);
+            scale = grow(surface, grown, pivot);
+            middle = middle(surface, space, scale, pivot);
         }
-        ViewParent space = player.getParent();
         // A player this grew keeps getting a pass after a surface shows up in it, so it goes back.
         if (!surfaces || FILLED.containsKey(player)) {
             boolean grows = wanted && !surfaces && space instanceof View;
             float own = grow(player, grows ? fillScale(((View) space).getHeight(), player, true) : 1f);
-            if (!surfaces) scale = own;
+            if (!surfaces) {
+                scale = own;
+                middle = middle(player, space, own, Float.NaN);
+            }
         }
         View cover = cover(space, coverId);
-        if (cover != null) grow(cover, scale);
+        if (cover != null) grow(cover, scale, coverPivot(cover, space, scale, middle));
+    }
+
+    /**
+     * Where the cover grows from so the still fitted in its middle lands on the grown picture,
+     * whose middle sits at {@code middle} in {@code space}, or NaN for its center. A surface TikTok
+     * lifted grows from {@link #fillPivot}, which brings its middle down to the space's, so a cover
+     * TikTok left in place keeps its center, and one TikTok lifted with the surface grows from
+     * higher up instead of leaving its still 70 px off the picture with the band under it.
+     */
+    private static float coverPivot(View cover, ViewParent space, float scale, float middle) {
+        int height = cover.getHeight();
+        if (scale <= 1f || Float.isNaN(middle) || height <= 0) return Float.NaN;
+        float half = height / 2f;
+        float pivot = (offset(cover, space) + scale * half - middle) / (scale - 1f);
+        if (!(pivot >= 0f && pivot <= height) || Math.abs(pivot - half) <= 1f) return Float.NaN;
+        return pivot;
+    }
+
+    /** Where the middle of {@code picture}, grown by {@code scale} from {@code pivotY} (NaN for its center), sits in {@code space}. */
+    private static float middle(View picture, ViewParent space, float scale, float pivotY) {
+        float half = picture.getHeight() / 2f;
+        float pivot = Float.isNaN(pivotY) || scale == 1f ? half : pivotY;
+        return offset(picture, space) + pivot + scale * (half - pivot);
+    }
+
+    /** How far down {@code space} the top of {@code view}, somewhere inside it, sits, or NaN when it isn't inside. */
+    private static float offset(View view, ViewParent space) {
+        float top = 0f;
+        for (View at = view; at != space; ) {
+            top += at.getTop() + at.getTranslationY();
+            ViewParent parent = at.getParent();
+            if (!(parent instanceof View)) return Float.NaN;
+            at = (View) parent;
+        }
+        return top;
     }
 
     /** The cell's cover still beside {@code player}: a sibling, or a sibling's child, with {@code coverId}. */
@@ -154,12 +206,14 @@ public final class SeeThroughStatusBar {
     /**
      * Writes {@code scale} on {@code view} unless TikTok has written a scale of its own there, and
      * answers the scale this now holds on it, 1 when none. It grows from {@code pivotY}, or from
-     * the center when that's NaN, and a pivot this wrote goes back with the scale.
+     * the center when that's NaN, and a pivot this wrote goes back with the scale. A 1 written over
+     * this one's scale is TikTok putting the view back, not a zoom of its own (#390).
      */
     private static float grow(View view, float scale, float pivotY) {
         Float ours = FILLED.get(view);
         float current = view.getScaleY();
-        if (current != (ours == null ? 1f : ours) || view.getScaleX() != current) {
+        boolean reset = ours != null && current == 1f && view.getScaleX() == 1f;
+        if (!reset && (current != (ours == null ? 1f : ours) || view.getScaleX() != current)) {
             FILLED.remove(view);
             pivot(view, Float.NaN);
             return 1f;
@@ -167,6 +221,7 @@ public final class SeeThroughStatusBar {
         if (scale != current) {
             view.setScaleX(scale);
             view.setScaleY(scale);
+            scaleWrites++;
         }
         pivot(view, scale == 1f ? Float.NaN : pivotY);
         if (scale == 1f) FILLED.remove(view);
@@ -247,5 +302,28 @@ public final class SeeThroughStatusBar {
     /** Whether a surface still carries a scale this wrote, so the pass runs to put it back. */
     static boolean anyFilled() {
         return !FILLED.isEmpty();
+    }
+
+    /**
+     * The pre-draw pass: every player the last pass filled is filled again for the size it has
+     * now, before the frame is drawn. As a video starts TikTok writes 1 on the picture's scale,
+     * and can lay the player out short for one pass and back to full height with nothing after
+     * it, so the picture was drawn at TikTok's size, or grown for the short player and 6% small,
+     * for a few frames after a swipe and then grew (#390). Neither reaches the layout pass in
+     * time. A scale TikTok set itself is still left alone, the values are compared first so a
+     * frame with nothing changed writes nothing, and a pass that turned the fill off takes the
+     * player out. Answers how many scales it wrote.
+     */
+    static int refill() {
+        if (PLAYERS.isEmpty()) return 0;
+        int before = scaleWrites;
+        REFILLING.addAll(PLAYERS.keySet());
+        for (int i = 0, count = REFILLING.size(); i < count; i++) {
+            View player = REFILLING.get(i);
+            Integer coverId = player == null ? null : PLAYERS.get(player);
+            if (coverId != null && player.isAttachedToWindow()) fill(player, true, coverId);
+        }
+        REFILLING.clear();
+        return scaleWrites - before;
     }
 }

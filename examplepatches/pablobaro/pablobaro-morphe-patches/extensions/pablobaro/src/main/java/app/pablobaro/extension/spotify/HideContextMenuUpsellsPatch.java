@@ -1,11 +1,8 @@
 package app.pablobaro.extension.spotify;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.List;
 
 import app.pablobaro.extension.shared.Logger;
-import app.pablobaro.extension.shared.Reflection;
 
 /**
  * Removes "Premium" upsell entries from context menus (long press menus of songs, albums, ...).
@@ -16,9 +13,10 @@ public final class HideContextMenuUpsellsPatch {
     }
 
     /**
-     * Replaced by the bytecode patch with a read of the {@code isPremiumUpsell} field of the item view model.
+     * Replaced by the bytecode patch with a check of the context menu item,
+     * because the getters and fields it reads are obfuscated.
      */
-    private static boolean isPremiumUpsell(Object viewModel) {
+    private static boolean isPremiumUpsell(Object item) {
         return false;
     }
 
@@ -26,29 +24,8 @@ public final class HideContextMenuUpsellsPatch {
      * Injection point: List parameter of the {@code ContextMenuViewModel} constructor.
      */
     public static List<?> filterContextMenuItems(List<?> items) {
-        return filterContextMenuItems(items, null);
-    }
-
-    /**
-     * @param isPremiumUpsell The {@code isPremiumUpsell} field of the item view model,
-     *                        or null if {@link #isPremiumUpsell(Object)} was patched instead.
-     */
-    public static List<?> filterContextMenuItems(List<?> items, Field isPremiumUpsell) {
-        if (items == null || items.isEmpty()) return items;
-
         try {
-            List<Object> filtered = new ArrayList<>(items.size());
-            for (Object item : items) {
-                Object viewModel = item == null ? null : Reflection.call(item, "getViewModel");
-                if (viewModel != null) {
-                    boolean isUpsell = isPremiumUpsell != null
-                            ? isPremiumUpsell.getBoolean(viewModel)
-                            : isPremiumUpsell(viewModel);
-                    if (isUpsell) continue;
-                }
-                filtered.add(item);
-            }
-            return filtered;
+            return ContextMenuItemFilter.withoutPremiumUpsells(items, HideContextMenuUpsellsPatch::isPremiumUpsell);
         } catch (Throwable ex) {
             Logger.error("filterContextMenuItems failure", ex);
             return items;

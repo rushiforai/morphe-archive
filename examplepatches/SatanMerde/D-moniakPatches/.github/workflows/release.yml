@@ -43,25 +43,24 @@ jobs:
       - name: Pre-fetch Gradle wrapper
         run: ./gradlew --version
 
-      # Semantic release runs its own Gradle build command.
-      # Only dev and main branch will generate a release as specified by .releaserc
+      # Releases are only triggered manually via workflow_dispatch on request.
       - name: Release
+        if: github.event_name == 'workflow_dispatch'
         uses: cycjimmy/semantic-release-action@v6
         id: release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Attest
-        if: steps.release.outputs.new_release_published == 'true'
+        if: github.event_name == 'workflow_dispatch' && steps.release.outputs.new_release_published == 'true'
         uses: actions/attest-build-provenance@v4
         with:
           subject-name: 'Morphe Patches ${{ steps.release.outputs.new_release_git_tag }}'
           subject-path: patches/build/libs/patches-*.mpp
 
-      # Always verify compilation when semantic-release did not publish a release.
-      # This covers non-main/dev branches, chore commits, docs commits, etc.
+      # On push, only verify compilation without publishing any release.
       - name: Verify project compiles
-        if: steps.release.outputs.new_release_published != 'true'
+        if: github.event_name != 'workflow_dispatch'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew :patches:buildAndroid clean --no-daemon

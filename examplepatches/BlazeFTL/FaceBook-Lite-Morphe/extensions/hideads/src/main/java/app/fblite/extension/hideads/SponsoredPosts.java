@@ -73,10 +73,15 @@ public final class SponsoredPosts {
         }
         if (AdLog.enabled()) AdTrace.checkFeed(posts, sponsored);
 
+        int byGroup = 0;
+        int byLabel = 0;
+        int alreadyHidden = 0;
         for (Object child : posts) {
+            if ((Boolean) hidden.get(child)) alreadyHidden++;
             if (sponsored != null && sponsored.contains((Integer) group.get(child))) {
                 hidden.setBoolean(child, true);
                 height.setInt(child, 0);
+                byGroup++;
                 continue;
             }
             // A child that carries a sponsored label ("Sponsored" in the feed, "Ad" in Marketplace, where an ad row holds
@@ -86,7 +91,37 @@ public final class SponsoredPosts {
                 if (AdLog.enabled()) AdLog.log("ads", "HIDE labelled item " + AdTrace.describe(child));
                 hidden.setBoolean(child, true);
                 height.setInt(child, 0);
+                byLabel++;
             }
+        }
+        if (AdLog.enabled()) summarize(posts, byGroup, byLabel, alreadyHidden);
+    }
+
+    private static String lastSummary = "";
+
+    /**
+     * Debug log: one line per decode of container 30001 that is small (an empty or nearly empty screen, such as a
+     * creator's Reels page that says "No reels yet") or where this class hid something. It shows whether the
+     * patch touched the list, and the texts of its children, so a list that arrives empty from the server can be told
+     * from one that was emptied here.
+     */
+    private static void summarize(List<?> posts, int byGroup, int byLabel, int alreadyHidden) {
+        if (posts.size() > 12 && byGroup + byLabel == 0) return;
+        try {
+            StringBuilder sb = new StringBuilder();
+            sb.append("LIST30001 children=").append(posts.size()).append(" hidden-by-group-rule=").append(byGroup)
+                    .append(" hidden-by-label-rule=").append(byLabel).append(" hidden-before=").append(alreadyHidden);
+            int shown = 0;
+            for (Object child : posts) {
+                if (shown++ >= 12) break;
+                sb.append("\n    [").append(shown - 1).append("] ").append(AdLog.cut(AdTrace.describe(child), 160))
+                        .append(" hidden=").append(hidden.get(child)).append(" h=").append(height.get(child));
+            }
+            String line = sb.toString();
+            if (line.equals(lastSummary)) return;
+            lastSummary = line;
+            AdLog.log("listcheck", line);
+        } catch (Throwable ignored) {
         }
     }
 

@@ -54,6 +54,10 @@ private fun generatePatchList(version: String, patches: Set<Patch<*>>) {
             name = patch.name!!,
             description = patch.description,
             default = patch.default,
+            // Grouping label declared by patch.category("…"). The official bundle
+            // never populates this (it emits category: null for every patch), so a
+            // real value here is strictly extra metadata for tools that group patches.
+            category = patch.category,
             dependencies = patch.dependencies.map { it.javaClass.simpleName },
             // Map each Compatibility to a JsonCompatibility object with full metadata.
             // Patches with null compatiblePackages are universal (apply to any app).
@@ -116,6 +120,11 @@ private class JsonPatch(
     val name: String? = null,
     val description: String? = null,
     val default: Boolean = true,
+    /**
+     * Grouping label from `category("…")`, e.g. "Ads", "Privacy", "PairIP".
+     * Null when a patch does not declare one.
+     */
+    val category: String? = null,
     val dependencies: List<String>,
     /** Null means the patch is universal and applies to any app. */
     val compatiblePackages: List<JsonCompatibility>? = null,

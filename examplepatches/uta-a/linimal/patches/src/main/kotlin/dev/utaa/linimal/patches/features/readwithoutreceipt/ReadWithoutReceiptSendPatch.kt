@@ -46,7 +46,7 @@ private val textRequestFingerprint = Fingerprint(
 
 /** 共通通信には触れず、各形式を送信キューへ渡す確認済み UI adapter の直後だけを観測します。 */
 val readWithoutReceiptSendPatch = bytecodePatch(
-    name = "既読なし閲覧中の送信で既読にする",
+    name = "Mark as read on send",
     description = "既読をつけずに開いた通常トークでも、送信操作で閲覧セッションを終了して既読を反映します。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

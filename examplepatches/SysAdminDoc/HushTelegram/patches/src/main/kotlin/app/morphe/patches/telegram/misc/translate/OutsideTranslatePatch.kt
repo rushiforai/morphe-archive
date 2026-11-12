@@ -12,6 +12,7 @@ import app.morphe.util.names.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.shared.compat.AppCompatibilities
@@ -230,6 +231,29 @@ internal fun BytecodePatchContext.resolveOutsideTranslate(): OutsideTranslateSit
         "the message menu already uses the extension's numbers")
     controlShape(ControlFlow.of(choose).normal.none { 0 in it }, "something jumps back to the start of the menu choice")
 
+    val header = resolveChatHeader(chat, chatClass, NAME)
+    requireTranslateHostMembers()
+    return OutsideTranslateSite(chat, update, fill, choose, header.visibility, header.delegate, selected, header.translateItem,
+        header.headerItem, header.lazyAdd, header.setHeaderText, header.dialogGetter, header.outer, header.accountGetter)
+}
+
+/**
+ * The chat's menu at the top, found by Telegram's own Translate item in it: the updater that runs
+ * after the item is made [visibility], the menu [headerItem] and its item adder [lazyAdd], the
+ * delegate its choices go to [delegate] with its chat [outer], and the chat's ID and account getters.
+ */
+internal class ChatHeader(
+    val visibility: MutableMethod, val translateItem: FieldReference, val headerItem: FieldReference, val lazyAdd: MethodReference,
+    val setHeaderText: MethodReference, val dialogGetter: MethodReference, val delegate: MutableMethod, val outer: FieldReference,
+    val accountGetter: String,
+)
+
+/**
+ * The chat's menu at the top on [chatClass], for [patch], whose hooks go first in the item updater
+ * and the click delegate. Every chat with that menu has Telegram's Translate item in it, made right
+ * before the chat updates it, and the menu's choices go to a delegate that calls Telegram's own toggle.
+ */
+internal fun BytecodePatchContext.resolveChatHeader(chat: String, chatClass: MutableClass, patch: String): ChatHeader {
     // The chat's own Translate item and the updater that follows its creation. Hide translate bar
     // may already have swapped the updater's hidden-bar read for its own, with the same registers.
     val asksHidden = { ref: String? -> ref == BAR_HIDDEN || ref == BAR_HIDDEN_HOOK }
@@ -252,7 +276,7 @@ internal fun BytecodePatchContext.resolveOutsideTranslate(): OutsideTranslateSit
     }, "the chat's ID getter is inaccessible")
     controlShape(visibility.implementation!!.registerCount >= 1 && ControlFlow.of(visibility).normal.none { 0 in it },
         "something jumps back to the start of the translate item updater")
-    visibility.requireThisIntact(NAME, listOf(0))
+    visibility.requireThisIntact(patch, listOf(0))
 
     // The header menu the item was added to, read where the item is created.
     val creations = chatClass.methods.flatMap { m ->
@@ -311,8 +335,8 @@ internal fun BytecodePatchContext.resolveOutsideTranslate(): OutsideTranslateSit
     val delegate = delegateClass.methods.single { signature(it) == delegateSignature }
     controlShape(delegate.implementation!!.registerCount >= 3 && ControlFlow.of(delegate).normal.none { 0 in it },
         "something jumps back to the start of the header click delegate")
-    delegate.requireThisIntact(NAME, listOf(0))
-    delegate.requireParameterIntact(NAME, 0, listOf(0))
+    delegate.requireThisIntact(patch, listOf(0))
+    delegate.requireParameterIntact(patch, 0, listOf(0))
     val outer = delegateClass.fields.filter { it.origType == chat && !AccessFlags.STATIC.isSet(it.accessFlags) }.controlSingle("the delegate's chat field")
     controlShape(AccessFlags.PUBLIC.isSet(outer.accessFlags), "the delegate's chat field is inaccessible")
 
@@ -326,9 +350,7 @@ internal fun BytecodePatchContext.resolveOutsideTranslate(): OutsideTranslateSit
         accountGetter.controlBody().any { it.opcode == Opcode.IGET && it.controlField()?.let { f -> f.origName == "currentAccount" && f.origType == "I" } == true },
         "the chat screen no longer says which account it's in")
 
-    requireTranslateHostMembers()
-    return OutsideTranslateSite(chat, update, fill, choose, visibility, delegate, selected, translateItem, header,
-        lazyCall, setHeaderText, getter, outer, signature(accountGetter!!))
+    return ChatHeader(visibility, translateItem, header, lazyCall, setHeaderText, getter, delegate, outer, signature(accountGetter!!))
 }
 
 private fun branches(opcode: Opcode): Boolean {

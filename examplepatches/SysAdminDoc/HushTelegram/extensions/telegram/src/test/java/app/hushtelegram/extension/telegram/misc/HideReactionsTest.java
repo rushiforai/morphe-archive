@@ -20,6 +20,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+import org.telegram.messenger.MessageObject;
 import org.telegram.tgnet.TLRPC;
 
 @RunWith(RobolectricTestRunner.class)
@@ -56,6 +57,55 @@ public class HideReactionsTest {
         assertSame("Saved Messages tags are another feature", message, DoubleTapReactions.rows(message, false, true));
         assertNull(DoubleTapReactions.rows(null, false, false));
         assertTrue("the picker is its own switch", DoubleTapReactions.picker(true));
+    }
+
+    private static MessageObject reacted(boolean unread) {
+        TLRPC.MessagePeerReaction reaction = new TLRPC.MessagePeerReaction();
+        reaction.unread = unread;
+        MessageObject message = new MessageObject();
+        message.messageOwner = new TLRPC.Message();
+        message.messageOwner.reactions = new TLRPC.TL_messageReactions();
+        message.messageOwner.reactions.recent_reactions.add(reaction);
+        return message;
+    }
+
+    @Test public void aHiddenRowStillTellsTheChatItsReactionsAreUnread() {
+        MessageObject unread = reacted(true);
+        assertSame(unread, DoubleTapReactions.rows(unread, false, false));
+        assertFalse("off keeps Telegram's own answer", DoubleTapReactions.unreadRow(0));
+        assertTrue(DoubleTapReactions.unreadRow(1));
+        Settings.HIDE_REACTION_ROWS.save(true);
+        assertNull(DoubleTapReactions.rows(unread, false, false));
+        assertTrue("the chat marks the hidden reactions seen", DoubleTapReactions.unreadRow(0));
+        assertFalse("answered once per setMessage", DoubleTapReactions.unreadRow(0));
+        assertNull(DoubleTapReactions.rows(reacted(false), false, false));
+        assertFalse("already seen", DoubleTapReactions.unreadRow(0));
+        assertNull(DoubleTapReactions.rows(new MessageObject(), false, false));
+        assertFalse("no stored message", DoubleTapReactions.unreadRow(0));
+        assertNull(DoubleTapReactions.rows(unread, false, false));
+        assertSame(unread, DoubleTapReactions.rows(unread, false, true));
+        assertFalse("a tag row after a hidden one starts clean", DoubleTapReactions.unreadRow(0));
+        assertTrue("a tag row keeps Telegram's own answer", DoubleTapReactions.unreadRow(1));
+    }
+
+    @Test public void anUnreadableMessageStillHidesItsRow() {
+        Settings.HIDE_REACTION_ROWS.save(true);
+        assertNull(DoubleTapReactions.rows(new Object(), false, false));
+        assertFalse(DoubleTapReactions.unreadRow(0));
+        assertFalse(HookStatus.missing(FamilyNames.DISABLE_DOUBLE_TAP_REACTIONS).isEmpty());
+    }
+
+    @Test public void theReactionEffectIsSkippedOnlyWhileRowsAreHidden() {
+        assertFalse(DoubleTapReactions.hideEffect());
+        Settings.HIDE_REACTION_PICKER.save(true);
+        assertFalse("the picker is its own switch", DoubleTapReactions.hideEffect());
+        Settings.HIDE_REACTION_ROWS.save(true);
+        assertTrue(DoubleTapReactions.hideEffect());
+        PauseForTests.pause(HushTelegramPause.Reason.SWITCH);
+        assertFalse(DoubleTapReactions.hideEffect());
+        PauseForTests.resume();
+        SettingReadsForTests.breakReads(Settings.HIDE_REACTION_ROWS);
+        assertFalse(DoubleTapReactions.hideEffect());
     }
 
     @Test public void talkBackSkipsReactionsOnlyWhileTheRowIsHidden() {

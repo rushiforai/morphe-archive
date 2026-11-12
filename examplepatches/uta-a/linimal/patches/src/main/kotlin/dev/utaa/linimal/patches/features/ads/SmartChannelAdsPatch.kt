@@ -162,7 +162,7 @@ private val smartChannelRebindFingerprint = Fingerprint(
 )
 
 val smartChannelAdsPatch = bytecodePatch(
-    name = "Smart Channel の広告",
+    name = "Smart Channel ads",
     description = "トーク一覧の Smart Channel にある広告を、実行時設定で非表示にできるようにします。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

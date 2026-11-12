@@ -85,7 +85,7 @@ internal data class LocalUnreadClearShape(
  * 特定できなければ未読維持として不完全なので、どちらも書き換えません。</p>
  */
 val readWithoutReceiptLocalReadBlockPatch = bytecodePatch(
-    name = "既読をつけずに読むの未読維持",
+    name = "Read without receipt unread keep",
     description = "「既読をつけずに読む」で開いたトークだけ、ローカルの未読クリアも実行しないようにします。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

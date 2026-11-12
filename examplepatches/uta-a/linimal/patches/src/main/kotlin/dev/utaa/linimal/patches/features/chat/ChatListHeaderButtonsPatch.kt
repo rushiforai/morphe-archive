@@ -90,7 +90,7 @@ private val chatListHeaderButtonEnumFingerprint = Fingerprint(
  * 元の List instance がそのまま流れます。</p>
  */
 val chatListHeaderButtonsPatch = bytecodePatch(
-    name = "トーク一覧上部のアイコン",
+    name = "Chat list header icons",
     description = "トーク一覧上部の AI Friends・カレンダー・オープンチャットのアイコンを、実行時設定で個別に取り除けるようにします。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

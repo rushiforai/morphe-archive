@@ -2,7 +2,7 @@
 
 Some apps I patched and other apps that were requested if you would like to request an app please drop a comment in my reddit discussion for patches: https://www.reddit.com/r/MorpheApp/s/xRx6wdTYA5
 
-**31 apps · 64 patches** · current bundle: [v1.68.3](https://github.com/mwbra130/Retro-Bowl-College/releases/tag/v1.68.3)
+**31 apps · 65 patches** · current bundle: [v1.69.2](https://github.com/mwbra130/Retro-Bowl-College/releases/tag/v1.69.2)
 
 ## Apps
 
@@ -13,7 +13,7 @@ Some apps I patched and other apps that were requested if you would like to requ
      the GRID_START / GRID_END markers on every release — new apps get their name, Play
      Store icon and experimental marker automatically, and grid names link to the
      detailed sections below (which use the apps' full Play Store names). Kept OUTSIDE the auto-generated patches
-     block below on purpose. Reflects bundle v1.68.3. -->
+     block below on purpose. Reflects bundle v1.69.2. -->
 
 <!-- GRID_START -->
 <table>
@@ -194,7 +194,7 @@ Some apps I patched and other apps that were requested if you would like to requ
 ## Patch descriptions
 
 <!-- PATCHES_START -->
-> **[v1.68.3](https://github.com/mwbra130/Retro-Bowl-College/releases/tag/v1.68.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;64 patches total
+> **[v1.69.2](https://github.com/mwbra130/Retro-Bowl-College/releases/tag/v1.69.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;65 patches total
 <a id="app-com-strava" name="app-com-strava"></a>
 <details>
 <summary>Strava: Run, Bike, Walk&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
@@ -280,7 +280,7 @@ Some apps I patched and other apps that were requested if you would like to requ
 
 <a id="app-com-pika-dynamicisland" name="app-com-pika-dynamicisland"></a>
 <details>
-<summary>Pika! Spot - Dynamic animation&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<summary>Pika! Spot - Dynamic animation&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
 
 **Supported versions:**
@@ -292,6 +292,7 @@ Some apps I patched and other apps that were requested if you would like to requ
 |----------|----------------|-----------|
 | [Bypass PairIP license check](#bypass-pairip-license-check) | Required for re-signed builds: PairIP asks Google Play to license the app at startup and sends unlicensed installs to a Play Store block page. Disables that check, its verdict handler and both block-page launchers so the patched app can open. |  |
 | [Enable Lifetime VIP](#enable-lifetime-vip) | Turns on the lifetime Life Member (SVIP) state: no ads and every animated theme applies for free, with no expiry — the VIP screen reads Level: SVIP and Status: life member. Needs the stock Pika! Spot 1.4.5 XAPK. |  |
+| [Spoof app signature](#spoof-app-signature) | Fixes the 'Can not connect to server' stop at 30% on launch: the app's first server login carries a token derived from the APK signing certificate, and a re-signed build computes it from the wrong certificate, so the server rejects the login. Recomputes the token with the stock signing certificate. Needs the stock Pika! Spot 1.4.5 XAPK. |  |
 
 </details>
 

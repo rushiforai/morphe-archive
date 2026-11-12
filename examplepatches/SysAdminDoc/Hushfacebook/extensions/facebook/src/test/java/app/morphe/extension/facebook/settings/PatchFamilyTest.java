@@ -109,17 +109,18 @@ public class PatchFamilyTest {
             assertEquals("Download any story: on (hushfacebook_download_stories=on, hushfacebook_save_story_photos=off)",
                     lines.get(0));
             assertEquals("Every download patch: hushfacebook_download_compatible=off, hushfacebook_download_convert=off, "
-                            + "hushfacebook_download_quiet=off",
+                            + "hushfacebook_download_quiet=off, hushfacebook_download_quality_ask=off",
                     lines.get(1));
             assertTrue(lines.get(2), lines.get(2).startsWith("not in this build: "));
 
             Settings.DOWNLOAD_COMPATIBLE.save(true);
             Settings.DOWNLOAD_QUIET.save(true);
             assertEquals("Every download patch: hushfacebook_download_compatible=on, hushfacebook_download_convert=off, "
-                            + "hushfacebook_download_quiet=on",
+                            + "hushfacebook_download_quiet=on, hushfacebook_download_quality_ask=off",
                     PatchFamily.reportLines(EnumSet.of(PatchFamily.VIDEO_DOWNLOAD), false).get(1));
             assertEquals("Every download patch: off while paused (saved hushfacebook_download_compatible=on, "
-                            + "hushfacebook_download_convert=off, hushfacebook_download_quiet=on)",
+                            + "hushfacebook_download_convert=off, hushfacebook_download_quiet=on, "
+                            + "hushfacebook_download_quality_ask=off)",
                     PatchFamily.reportLines(EnumSet.of(PatchFamily.REEL_DOWNLOAD), true).get(1));
 
             for (String line : PatchFamily.reportLines(EnumSet.of(PatchFamily.SPONSORED_POSTS), false)) {
@@ -515,27 +516,38 @@ public class PatchFamilyTest {
         Settings.AMOLED_FLAT_CARDS.resetToDefault();
         // The reel button has a switch now, so the report says what it's set to.
         assertEquals("Download any reel: on (hushfacebook_download_reels=on, hushfacebook_show_reel_download_button=on, "
-                        + "hushfacebook_reel_cast_button=off, hushfacebook_copy_reel_caption=on)",
+                        + "hushfacebook_reel_cast_button=off, hushfacebook_copy_reel_caption=on, "
+                        + "hushfacebook_queue_reel_saves=off)",
                 PatchFamily.reportLines(EnumSet.of(PatchFamily.REEL_DOWNLOAD), false).get(0));
         Settings.SHOW_REEL_DOWNLOAD_BUTTON.save(false);
         assertEquals("Download any reel: on (hushfacebook_download_reels=on, hushfacebook_show_reel_download_button=off, "
-                        + "hushfacebook_reel_cast_button=off, hushfacebook_copy_reel_caption=on)",
+                        + "hushfacebook_reel_cast_button=off, hushfacebook_copy_reel_caption=on, "
+                        + "hushfacebook_queue_reel_saves=off)",
                 PatchFamily.reportLines(EnumSet.of(PatchFamily.REEL_DOWNLOAD), false).get(0));
         Settings.SHOW_REEL_DOWNLOAD_BUTTON.resetToDefault();
         // Copy caption saves nothing, so with downloads off it still keeps the patch on (#240).
         Settings.DOWNLOAD_REELS.save(false);
         assertEquals("Download any reel: on (hushfacebook_download_reels=off, hushfacebook_show_reel_download_button=on, "
-                        + "hushfacebook_reel_cast_button=off, hushfacebook_copy_reel_caption=on)",
+                        + "hushfacebook_reel_cast_button=off, hushfacebook_copy_reel_caption=on, "
+                        + "hushfacebook_queue_reel_saves=off)",
                 PatchFamily.reportLines(EnumSet.of(PatchFamily.REEL_DOWNLOAD), false).get(0));
         Settings.COPY_REEL_CAPTION.save(false);
         assertEquals("Download any reel: disabled by its switch (hushfacebook_download_reels=off, "
                         + "hushfacebook_show_reel_download_button=on, hushfacebook_reel_cast_button=off, "
-                        + "hushfacebook_copy_reel_caption=off)",
+                        + "hushfacebook_copy_reel_caption=off, hushfacebook_queue_reel_saves=off)",
                 PatchFamily.reportLines(EnumSet.of(PatchFamily.REEL_DOWNLOAD), false).get(0));
+        // The queue (#449) is an option of the reel's Download button: on alone, it saves nothing.
+        Settings.QUEUE_REEL_SAVES.save(true);
+        assertEquals("Download any reel: disabled by its switch (hushfacebook_download_reels=off, "
+                        + "hushfacebook_show_reel_download_button=on, hushfacebook_reel_cast_button=off, "
+                        + "hushfacebook_copy_reel_caption=off, hushfacebook_queue_reel_saves=on)",
+                PatchFamily.reportLines(EnumSet.of(PatchFamily.REEL_DOWNLOAD), false).get(0));
+        Settings.QUEUE_REEL_SAVES.resetToDefault();
         // Neither does the Cast button (#182), so on alone it keeps the patch on too.
         Settings.REEL_CAST_BUTTON.save(true);
         assertEquals("Download any reel: on (hushfacebook_download_reels=off, hushfacebook_show_reel_download_button=on, "
-                        + "hushfacebook_reel_cast_button=on, hushfacebook_copy_reel_caption=off)",
+                        + "hushfacebook_reel_cast_button=on, hushfacebook_copy_reel_caption=off, "
+                        + "hushfacebook_queue_reel_saves=off)",
                 PatchFamily.reportLines(EnumSet.of(PatchFamily.REEL_DOWNLOAD), false).get(0));
         Settings.REEL_CAST_BUTTON.resetToDefault();
         Settings.COPY_REEL_CAPTION.resetToDefault();
@@ -555,11 +567,12 @@ public class PatchFamilyTest {
                 PatchFamily.reportLines(EnumSet.of(PatchFamily.VIDEO_DOWNLOAD), false).get(0));
         Settings.DOWNLOAD_VIDEOS.resetToDefault();
         Settings.CLIPBOARD_DOWNLOAD.resetToDefault();
-        // The Menu's three groups, Settings and privacy's fold, its Muse card and its Meta AI shortcut
-        // have a switch each, and the report names all six.
+        // The Menu's four groups, its Create Facebook Page row, Settings and privacy's fold, its Muse
+        // card and its Meta AI shortcut have a switch each, and the report names all eight.
         Settings.HIDE_MENU_ALSO_FROM_META.save(false);
         assertEquals("Hide Menu promotions: on (hushfacebook_hide_menu_upgrades=on, "
                         + "hushfacebook_hide_menu_also_from_meta=off, hushfacebook_hide_menu_help=off, "
+                        + "hushfacebook_hide_menu_shortcuts=off, hushfacebook_hide_menu_create_page=off, "
                         + "hushfacebook_keep_menu_settings_expanded=off, hushfacebook_hide_menu_muse=on, "
                         + "hushfacebook_hide_menu_meta_ai=off)",
                 PatchFamily.reportLines(EnumSet.of(PatchFamily.MENU_PROMOTIONS), false).get(0));

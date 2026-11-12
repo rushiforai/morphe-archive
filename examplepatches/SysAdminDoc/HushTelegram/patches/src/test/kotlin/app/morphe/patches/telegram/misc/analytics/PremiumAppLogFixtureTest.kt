@@ -330,10 +330,15 @@ class PremiumAppLogFixtureTest {
         for (build in Fixtures.declaredBuilds()) {
             val classes = hosts(build)
             for (event in AppLogEvent.entries) {
-                val reduced = classes.map { owner -> withMethods(owner, owner.methods.filter { event.type !in it.strings() }) }
+                // Only the classes that lose a method are rebuilt: the rest stay backed by their dex,
+                // which is how the patch tells which build's names it reads.
+                val reduced = classes.map { owner ->
+                    if (owner.methods.none { event.type in it.strings() }) owner
+                    else withMethods(owner, owner.methods.filter { event.type !in it.strings() })
+                }
                 val context = PatchContexts.of(ExtensionDex.classes() + reduced)
                 val warnings = PatchLogCapture.warnings { disableAnalyticsPatch.execute(context) }
-                assertEquals(1, warnings.size)
+                assertEquals("${build.name} without ${event.type}: $warnings", 1, warnings.size)
                 assertTrue(warnings.single(), warnings.single().contains(event.type))
                 assertFlags(context, AppLogEvent.entries.toSet() - event)
             }
@@ -385,7 +390,7 @@ class PremiumAppLogFixtureTest {
 
     private fun hosts(build: File) = (FixtureDex.classesWhere(build, HOST_CENSUS, { true }) { method -> buildsAppLog(method) || method.instructions().any {
         it.opcode == Opcode.NEW_INSTANCE && it.reference() == REPORT_READ_METRICS
-    } } + ghostModeHosts(build)).distinctBy { it.type }
+    } } + ghostModeHosts(build) + instantLockHosts(build) + quietSignUpHosts(build)).distinctBy { it.type }
     private fun buildsAppLog(method: Method) = method.instructions().any { it.opcode == Opcode.NEW_INSTANCE && it.reference() == SAVE_APP_LOG }
     private fun snapshots(context: BytecodePatchContext, classes: List<ClassDef>) =
         (classes.map { it.type } + listOf(ANALYTICS, SETTINGS_STATUS)).distinct().flatMap { owner ->
@@ -408,7 +413,8 @@ class PremiumAppLogFixtureTest {
         owner.superclass, owner.interfaces, owner.sourceFile, owner.annotations, owner.fields, methods)
     private fun assertFlags(context: BytecodePatchContext, covered: Set<AppLogEvent>, oldTargets: Boolean = true, family: Boolean = true) {
         val expected = AppLogEvent.entries.associate { it.capability to (it in covered) } +
-            mapOf("readMetrics" to oldTargets, "disableAnalytics" to family, "ghostMode" to family)
+            mapOf("readMetrics" to oldTargets, "disableAnalytics" to family, "ghostMode" to family, "instantLock" to family,
+                "quietSignUp" to family)
         for ((flag, enabled) in expected) {
             val body = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.instructions()
             assertEquals(flag, if (enabled) 1 else 0, (body[0] as NarrowLiteralInstruction).narrowLiteral)

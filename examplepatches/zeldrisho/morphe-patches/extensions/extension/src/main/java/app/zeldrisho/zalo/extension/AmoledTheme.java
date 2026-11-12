@@ -2,11 +2,15 @@ package app.zeldrisho.zalo.extension;
 
 import android.content.Context;
 import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.view.View;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.WeakHashMap;
 
 /** Pure black surfaces in Zalo's dark theme; light mode is untouched. */
 public final class AmoledTheme {
@@ -21,6 +25,8 @@ public final class AmoledTheme {
       "social_timeline_background_color_content_centric", "header_blue_container", "header_white_container",
       "layer_background", "bgCSC_Background", "CSCPrimaryBackground"));
   private static volatile Method themeMode;
+  // Resource IDs can differ between resource tables; do not retain activity resources indefinitely.
+  private static final Map<Resources, Map<Integer, Boolean>> SURFACE_IDS = new WeakHashMap<>();
 
   private AmoledTheme() {}
 
@@ -45,12 +51,28 @@ public final class AmoledTheme {
     }
   }
 
+  /**
+   * Returns whether an attribute resource ID names a supported surface in the selected dark theme.
+   * Returns false in light mode or if surface resource lookup fails. Errors reading the system
+   * configuration during theme-detection fallback can propagate.
+   */
   public static boolean blackSurface(Context context, int attribute) {
     if (!isDark(context)) return false;
     try {
-      if (!"attr".equals(context.getResources().getResourceTypeName(attribute))
-          || !SURFACES.contains(context.getResources().getResourceEntryName(attribute))) return false;
-      return true;
+      Resources resources = context.getResources();
+      synchronized (SURFACE_IDS) {
+        Map<Integer, Boolean> ids = SURFACE_IDS.get(resources);
+        if (ids == null) {
+          ids = new HashMap<>();
+          SURFACE_IDS.put(resources, ids);
+        }
+        Boolean cached = ids.get(attribute);
+        if (cached != null) return cached;
+        boolean surface = "attr".equals(resources.getResourceTypeName(attribute))
+            && SURFACES.contains(resources.getResourceEntryName(attribute));
+        ids.put(attribute, surface);
+        return surface;
+      }
     } catch (RuntimeException ignored) {
       return false;
     }

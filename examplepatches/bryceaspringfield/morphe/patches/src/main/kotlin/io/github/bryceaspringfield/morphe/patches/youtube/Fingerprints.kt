@@ -27,3 +27,10 @@ internal object LiveChatRequestFingerprint : Fingerprint(
         string("live_chat/get_live_chat")
     )
 )
+
+/** The setter of YouTube's animated counts (the like button's count among them), which checks the model's fields. */
+internal object RollingNumberSetterFingerprint : Fingerprint(
+    filters = listOf(
+        string("RollingNumberType required properties missing! Need updatedCount, color, fontAttributes or fontName + fontSize. Properties missing: ")
+    )
+)

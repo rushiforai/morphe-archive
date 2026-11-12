@@ -1,5 +1,6 @@
 package app.morphe.patches.google.gemini
 
+import app.morphe.patches.google.common.geminiClonePermissionSupport
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
@@ -43,7 +44,7 @@ val geminiTargetPackagePatch = bytecodePatch(
     default = true
 ) {
     compatibleWith("com.google.android.apps.bard")
-    dependsOn(geminiPackageVisibilityPatch)
+    dependsOn(geminiPackageVisibilityPatch, geminiClonePermissionSupport)
 
     execute {
         VersionHookRegistry.requireProfile(packageMetadata)

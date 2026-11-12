@@ -6,6 +6,7 @@
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
+ * Modified by lavinhoque33, 2026-11-10.
  */
 
 package app.morphe.extension.shared.settings.preference;
@@ -34,6 +35,8 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
@@ -42,6 +45,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import app.morphe.extension.shared.patches.BaseAppRefreshRatePatch;
 import app.morphe.extension.shared.settings.BaseHostActivity;
@@ -49,12 +53,98 @@ import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.shared.utils.BaseThemeUtils;
 import app.morphe.extension.shared.utils.PackageUtils;
+import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.shared.utils.Utils;
 
 @SuppressWarnings({"deprecation", "NewApi"})
 public class ToolbarPreferenceFragment extends AbstractPreferenceFragment {
     protected final int READ_REQUEST_CODE = 42;
     protected final int WRITE_REQUEST_CODE = 43;
+    private static final int READ_TEXT_REQUEST_CODE = 44;
+    private static final int WRITE_TEXT_REQUEST_CODE = 45;
+
+    private String pendingTextToExport;
+    private Consumer<Boolean> pendingTextExportResult;
+    private Consumer<String> pendingTextImportResult;
+
+    /** Opens SAF for a preference's own text export. */
+    public void exportTextActivity(String fileName, String text, Consumer<Boolean> onResult) {
+        pendingTextToExport = text;
+        pendingTextExportResult = onResult;
+        try {
+            Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.setType("text/plain");
+            intent.putExtra(Intent.EXTRA_TITLE, fileName);
+            startActivityForResult(intent, WRITE_TEXT_REQUEST_CODE);
+        } catch (Exception ex) {
+            pendingTextToExport = null;
+            pendingTextExportResult = null;
+            Logger.printException(() -> "exportTextActivity failure", ex);
+            onResult.accept(false);
+        }
+    }
+
+    /** Opens SAF for a preference's own text import. */
+    public void importTextActivity(Consumer<String> onResult) {
+        pendingTextImportResult = onResult;
+        try {
+            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.setType("*/*");
+            startActivityForResult(intent, READ_TEXT_REQUEST_CODE);
+        } catch (Exception ex) {
+            pendingTextImportResult = null;
+            Logger.printException(() -> "importTextActivity failure", ex);
+            onResult.accept(null);
+        }
+    }
+
+    private void savePreferenceText(Uri uri) {
+        String text = pendingTextToExport;
+        Consumer<Boolean> onResult = pendingTextExportResult;
+        pendingTextToExport = null;
+        pendingTextExportResult = null;
+        if (text == null || onResult == null) return;
+
+        boolean success = false;
+        try (OutputStream out = getContext().getContentResolver().openOutputStream(uri, "rwt")) {
+            if (out != null) {
+                try (BufferedWriter writer = new BufferedWriter(
+                        new OutputStreamWriter(out, StandardCharsets.UTF_8))) {
+                    writer.write(text);
+                }
+                success = true;
+            }
+        } catch (Exception ex) {
+            Logger.printException(() -> "savePreferenceText failure", ex);
+        }
+        onResult.accept(success);
+    }
+
+    private void readPreferenceText(Uri uri) {
+        Consumer<String> onResult = pendingTextImportResult;
+        pendingTextImportResult = null;
+        if (onResult == null) return;
+
+        String text = null;
+        try (InputStream in = getContext().getContentResolver().openInputStream(uri)) {
+            if (in != null) {
+                try (InputStreamReader reader = new InputStreamReader(in, StandardCharsets.UTF_8)) {
+                    StringBuilder builder = new StringBuilder();
+                    char[] buffer = new char[4096];
+                    int count;
+                    while ((count = reader.read(buffer)) != -1) {
+                        builder.append(buffer, 0, count);
+                    }
+                    text = builder.toString();
+                }
+            }
+        } catch (Exception ex) {
+            Logger.printException(() -> "readPreferenceText failure", ex);
+        }
+        onResult.accept(text);
+    }
 
     /**
      * Sets toolbar for all nested preference screens.
@@ -209,6 +299,24 @@ public class ToolbarPreferenceFragment extends AbstractPreferenceFragment {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
+        if (requestCode == WRITE_TEXT_REQUEST_CODE) {
+            if (resultCode == Activity.RESULT_OK && data != null && data.getData() != null) {
+                savePreferenceText(data.getData());
+            } else {
+                pendingTextToExport = null;
+                pendingTextExportResult = null;
+            }
+            return;
+        }
+        if (requestCode == READ_TEXT_REQUEST_CODE) {
+            if (resultCode == Activity.RESULT_OK && data != null && data.getData() != null) {
+                readPreferenceText(data.getData());
+            } else {
+                pendingTextImportResult = null;
+            }
+            return;
+        }
+
         if (requestCode == WRITE_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
             exportText(data.getData());
         } else if (requestCode == READ_REQUEST_CODE && resultCode == Activity.RESULT_OK && data != null) {
@@ -289,5 +397,13 @@ public class ToolbarPreferenceFragment extends AbstractPreferenceFragment {
         } finally {
             settingImportInProgress = false;
         }
+    }
+
+    @Override
+    public void onDestroy() {
+        pendingTextToExport = null;
+        pendingTextExportResult = null;
+        pendingTextImportResult = null;
+        super.onDestroy();
     }
 }

@@ -59,6 +59,7 @@ val fitbitDisableTrackersPatch = resourcePatch(
         "opt-out flags, and removes the install-referrer permission. FCM push is kept.",
     default = true,
 ) {
+    category("Privacy")
     compatibleWith(FITBIT_COMPATIBILITY)
 
     execute {

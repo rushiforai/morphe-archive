@@ -1,3 +1,9 @@
+## [1.8.2](https://github.com/dowjames/morphe-patches/compare/v1.8.1...v1.8.2) (2026-11-11)
+
+### 🚀 Updated App Support
+
+* remove Paprika unlock premium patch ([17b4c8b](https://github.com/dowjames/morphe-patches/commit/17b4c8b41fd44c2256843ad20c4ecab9b58ba94b))
+
 ## [1.8.1](https://github.com/dowjames/morphe-patches/compare/v1.8.0...v1.8.1) (2026-11-11)
 
 ### 🐛 Bug Fixes

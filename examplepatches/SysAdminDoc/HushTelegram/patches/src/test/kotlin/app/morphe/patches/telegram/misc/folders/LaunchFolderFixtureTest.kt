@@ -397,6 +397,15 @@ internal fun launchFolderHosts(build: File): List<ClassDef> = LAUNCH_FOLDER_HOST
         }
     }
     chains.filter { it.last() == TAB_LIST_BASE }.forEach { wanted += it }
+    // The tabs the strip makes, whose titles take the folder tab icons.
+    for (method in FixtureDex.classes(build, setOf(strip)).getValue(strip).methods) {
+        for (instruction in method.body()) {
+            val made = (instruction as? ReferenceInstruction)?.reference as? com.android.tools.smali.dexlib2.iface.reference.MethodReference ?: continue
+            if (instruction.opcode == Opcode.INVOKE_DIRECT && made.name == "<init>" && made.parameterTypes.firstOrNull()?.toString() == strip) {
+                wanted += made.definingClass
+            }
+        }
+    }
     // Parents up to Telegram's BaseFragment and FilterTabsView, so inherited members resolve.
     var loaded = FixtureDex.classes(build, wanted)
     repeat(6) {

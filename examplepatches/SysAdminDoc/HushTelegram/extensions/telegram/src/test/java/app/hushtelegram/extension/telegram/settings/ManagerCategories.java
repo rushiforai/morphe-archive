@@ -35,6 +35,7 @@ final class ManagerCategories {
         pages.put("Chats", "Chat list");
         pages.put("Stories", "Chat list");
         pages.put("Conversations", "Conversations");
+        pages.put("Writing", "Conversations");
         pages.put("Playback", "Playback");
         pages.put("Notifications", "Notifications");
         pages.put("Interface", "Look and feel");
@@ -49,8 +50,9 @@ final class ManagerCategories {
 
     /**
      * The families whose switches live on a page named for something other than their category:
-     * the link switches have the Links page, update checks the Updates page, and the push repair
-     * (a fix) sits with the other notification switches.
+     * the link switches have the Links page, update checks the Updates page, the push repair
+     * (a fix) sits with the other notification switches, the crop guard (a fix) with the other
+     * sending switches, and My messages (a search) with the other switches inside a chat.
      */
     static String pageOf(PatchFamily family) throws Exception {
         switch (family) {
@@ -59,6 +61,10 @@ final class ManagerCategories {
                 return "Links";
             case DISABLE_UPDATE_CHECKS:
                 return "Updates";
+            case CROP_GUARD:
+            case CAPTION_ORDER:
+            case MY_MESSAGES:
+                return "Conversations";
             case REPAIR_FIREBASE_PUSH:
                 return "Notifications";
             default:

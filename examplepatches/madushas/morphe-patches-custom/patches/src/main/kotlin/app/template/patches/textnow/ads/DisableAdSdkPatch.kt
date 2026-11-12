@@ -17,6 +17,7 @@ val textnowDisableAdSdkPatch = bytecodePatch(
     description = "No-ops the Google Mobile Ads initialisation so the ad SDK never starts.",
     default = true,
 ) {
+    category("Ads")
     compatibleWith(TEXTNOW_COMPATIBILITY)
 
     execute {

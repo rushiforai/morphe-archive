@@ -18,7 +18,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-import dev.utaa.linimal.patches.features.agenti.agentIChatComposerPatch
+import dev.utaa.linimal.patches.features.agenti.agentIChatPlusMenuPatch
 import dev.utaa.linimal.patches.shared.Constants
 import dev.utaa.linimal.patches.status.PatchId
 import dev.utaa.linimal.patches.status.PatchStatus
@@ -164,7 +164,7 @@ private val lineAiMessageContextSupplierFingerprint = Fingerprint(
  * It does not alter the general context menu renderer, callback implementation, telemetry, or LINE AI backend.
  */
 val lineAiMessageContextMenuPatch = bytecodePatch(
-    name = "メッセージ長押しメニューの LINE AI",
+    name = "LINE AI in message context menu",
     description = "メッセージの長押しメニューにある LINE AI の項目を、実行時設定で非表示にできるようにします。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)
@@ -175,7 +175,7 @@ val lineAiMessageContextMenuPatch = bytecodePatch(
             PatchAvailability.UNAVAILABLE
         }
     }
-    dependsOn(agentIChatComposerPatch)
+    dependsOn(agentIChatPlusMenuPatch)
 
     execute {
         val modelMatches = lineAiMessageContextModelFingerprint.matchAllOrNull().orEmpty()

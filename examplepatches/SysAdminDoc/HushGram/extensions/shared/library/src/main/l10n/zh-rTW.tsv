@@ -240,6 +240,7 @@ Video bitrate	影片位元率
 Video resolution	影片解析度
 Video frame rate	影片影格率
 Photo quality	相片品質
+Photo size	相片尺寸
 %1$s Mbps	%1$s Mbps
 Download feed videos	下載動態首頁影片
 Adds Download to the menu of a post in your feed with a video. Uses the quality below. Off or paused, Instagram's own menu returns.	在動態首頁的影片貼文選單中新增「下載」，使用下方的畫質設定。關閉或暫停後會還原 Instagram 原本的選單。
@@ -734,6 +735,9 @@ Comments open with the keyboard down. A tap in the comment box, or on Reply, sti
 # context: Feed: the switch that hides the Follow and Subscribe buttons beside the author's name on a post (#248). Follow and Subscribe are the labels Instagram uses on those buttons.
 Hide Follow on posts	隱藏貼文上的追蹤按鈕
 Takes the Follow and Subscribe buttons off the top of posts in your feed. The name, time and menu stay.	移除動態首頁貼文頂端的「追蹤」與「訂閱」按鈕。名稱、時間與選單仍會保留。
+# context: Feed: the switch that hides only the Subscribe button beside the author's name on a post, leaving Follow where it is (#622). Subscribe and Follow are the labels Instagram uses on those buttons.
+Hide Subscribe on posts	隱藏貼文上的訂閱按鈕
+Takes only the Subscribe button off the top of posts in your feed. Follow stays.	只移除動態首頁貼文頂端的「訂閱」按鈕。「追蹤」仍會保留。
 Takes the memories, recaps, follow anniversaries and birthday cards Instagram makes out of the row of stories at the top of Home. Stories people post stay.	移除首頁頂端限時動態橫列中，Instagram 產生的回憶、回顧、追蹤週年紀念與生日卡片。使用者發佈的限時動態仍會保留。
 Hides the rewind cards, which bring back old highlights, from the row of stories at the top of Home.	隱藏首頁頂端限時動態橫列中，重新呈現舊精選的往事回顧卡片。
 A double tap on a comment doesn't like it. Starts off, so comments keep double tap to like until you turn this on.	雙擊留言不會按讚。預設關閉，因此留言會保留雙擊按讚功能，直到你啟用此選項。
@@ -938,6 +942,10 @@ Tab bar	分頁列
 Saved	已儲存
 Saved tab on your profile	個人檔案的已儲存分頁
 Adds a bookmark to the tabs on your own profile that opens Saved. Restart Instagram after changing it.	在自己的個人檔案分頁中加入書籤，開啟「已儲存」。變更後請重新啟動 Instagram。
+# context: Profiles > title of the switch that shows a drag handle at the right edge of Saved and saved collections while they scroll; Saved is Instagram's own Saved page (#644)
+Fast scroll in Saved	在「已儲存」中快速捲動
+# context: Profiles > summary of Fast scroll in Saved; collections are Instagram's saved collections (#644)
+Shows a handle at the right edge of Saved and your collections while they scroll. Drag it to jump through them.	捲動「已儲存」和你的珍藏分類時，在右側邊緣顯示拉桿。拖曳拉桿即可快速跳轉。
 Battery	電池
 Stop the background heartbeat	停用背景存活回報
 Instagram wakes your phone every minute or two, screen off included, only to note that it is still running. This stops that. Messages, notifications and everything you see are unaffected.	Instagram 每隔一兩分鐘就會喚醒手機，即使螢幕關閉也一樣，目的只是記錄自己仍在執行。此選項會停止該行為。訊息、通知與畫面上的功能不受影響。
@@ -1043,6 +1051,9 @@ A swipe up on someone's story no longer opens the reply box and its reactions. T
 # context: Stories switch; Send message is Instagram's reply field at the bottom of someone else's story, beside its heart (like) and share buttons. Use Instagram's own label for it.
 Hide the reply box on stories	隱藏限時動態的回覆框
 Takes the Send message box off the bottom of other people's stories. The like and share buttons next to it stay where they are.	移除他人限時動態底部的「傳送訊息」框。旁邊的按讚和分享按鈕會留在原位。
+# context: Stories switch (#391); Send message is Instagram's reply field at the bottom of someone else's story. Use Instagram's own label for it.
+Glass reply box on stories	限時動態回覆框玻璃效果
+Gives the Send message box on other people's stories frosted glass, so it's easy to read over any story. Needs Android 12 or newer for the blur.	讓他人限時動態的「傳送訊息」框呈現毛玻璃效果，在任何限時動態上都清楚易讀。模糊效果需要 Android 12 或更新版本。
 # context: Stories switches; Like (the heart), Comment (the speech bubble) and Share (the paper plane) are Instagram's buttons at the bottom of someone else's story, beside the Send message box. Use Instagram's own labels for them.
 Hide the Like button on stories	隱藏限時動態的讚按鈕
 Takes the heart off the bottom of other people's stories, so nothing gets liked by mistake. No empty space is left behind.	移除他人限時動態底部的愛心，避免不小心按讚。不會留下空白。
@@ -1363,6 +1374,17 @@ Ghost mode needs at least one switch to turn.	幽靈模式至少需要控制一�
 Turn Ghost mode on or off with a tab long press	長按分頁切換幽靈模式
 Tab long presses keep Instagram's own action. Choose one to turn Ghost mode on or off instead.	長按分頁會保留 Instagram 原本的操作。選擇一個分頁，改為開啟或關閉幽靈模式。
 Long press %1$s to turn Ghost mode on or off instead of that tab's usual action, and a toast says which way it went. Normal taps and other tabs stay the same. If the same tab opens HushGram or picks the playback quality, that comes first.	長按 %1$s 會開啟或關閉幽靈模式，取代該分頁原本的操作，並以短暫提示顯示切換結果。一般點擊與其他分頁不受影響。若同一分頁也用來開啟 HushGram 或選擇播放畫質，會優先執行那些操作。
+# context: Profiles: opening Your saved profiles with a long press on a tab (#629). %1$s is a tab's name; Saved profiles is HushGram's switch of that name
+Open Saved profiles with a tab long press	長按分頁開啟已儲存的個人檔案
+Tab long presses keep Instagram's own action. Choose one to open Saved profiles instead.	長按分頁會保留 Instagram 原本的操作。選擇一個分頁，改為開啟已儲存的個人檔案。
+Long press %1$s to open Your saved profiles instead of that tab's usual action. Normal taps and other tabs stay the same. Needs Saved profiles on. If the same tab opens HushGram, picks the playback quality or turns Ghost mode, that comes first.	長按 %1$s 會開啟你儲存的個人檔案，取代該分頁原本的操作。一般點擊與其他分頁不受影響。需開啟「已儲存的個人檔案」。若同一分頁也用來開啟 HushGram、選擇播放畫質或切換幽靈模式，會優先執行那些操作。
+# context: Feed > switch and its summary under Start Home on Following; Favorites is Instagram's Home feed choice of that name, Search and Messages are Instagram's tabs (#643)
+Keep the tab bar on Favorites	在「最愛」保留分頁列
+Instagram hides the tab bar when Favorites opens from the top of Home. This keeps it, so Search and Messages stay a tap away.	從首頁頂端開啟「最愛」時，Instagram 會隱藏分頁列。這個選項會保留分頁列，讓「搜尋」和「私訊」隨時一點就到。
+# context: Feed: opening Instagram's Favorites feed with a long press on a tab (#643). %1$s is a tab's name; Saved profiles is HushGram's switch of that name
+Open Favorites with a tab long press	長按分頁開啟「最愛」
+Tab long presses keep Instagram's own action. Choose one to open Favorites instead.	長按分頁會保留 Instagram 原本的操作。選擇一個分頁，改為開啟「最愛」。
+Long press %1$s to open Favorites instead of that tab's usual action. Normal taps and other tabs stay the same. If the same tab opens HushGram, picks the playback quality, turns Ghost mode or opens Saved profiles, that comes first.	長按 %1$s 會開啟「最愛」，取代該分頁原本的操作。一般點擊與其他分頁不受影響。若同一分頁也用來開啟 HushGram、選擇播放畫質、切換幽靈模式或開啟已儲存的個人檔案，會優先執行那些操作。
 Buttons on the share sheet	分享表單按鈕
 Every button under the people on the share sheet shows. Untick the ones you don't use.	分享表單中聯絡人下方的所有按鈕皆會顯示。取消勾選用不到的按鈕。
 Left off the share sheet: %1$s.	分享表單中已隱藏：%1$s。
@@ -1514,7 +1536,7 @@ Only accounts that aren't verified	僅限未驗證帳號
 Pinch to zoom	雙指縮放
 Two fingers zoom into a playing reel, the way a photo zooms. Lift them and it goes back. Restart Instagram to see the change.	用兩指放大正在播放的 Reels，就像放大相片一樣。放開手指就會恢復原狀。請重新啟動 Instagram 以套用變更。
 Double tap to skip	點兩下快轉
-A double tap on the left side of a reel goes back 10 seconds, and on the right side it goes ahead 10 seconds. A double tap in the middle still likes it. Reels under 10 seconds don't skip.	在 Reel 左側點兩下會倒退 10 秒，在右側點兩下會快轉 10 秒。在中間點兩下仍會按讚。不到 10 秒的 Reel 不會跳轉。
+A double tap on the left side of a reel goes back, and on the right side it goes ahead, as far as Skip length says. A double tap in the middle still likes it. Reels no longer than that don't skip.	在 Reel 左側點兩下會倒退，在右側點兩下會快轉，幅度依跳轉長度而定。在中間點兩下仍會按讚。不比這更長的 Reel 不會跳轉。
 Hide the 2x popup	隱藏 2 倍速提示
 Takes the 2x label off a reel while you hold it to play faster. The speed-up still works.	長按 Reels 加快播放時，不顯示 2x 標籤。加速播放仍然有效。
 Mute notification types	將通知類型設為靜音
@@ -1692,7 +1714,7 @@ Add to home screen	加到主畫面
 Couldn't read that picture.	無法讀取這張圖片。
 This launcher can't add it.	這個啟動器無法加入。
 Glass in chats	聊天室玻璃效果
-Gives a chat's top bar frosted glass and puts the back, call and video buttons on round glass circles. It shows the next time you open a chat. Needs Android 12 or newer for the blur.	讓聊天室頂端列呈現毛玻璃效果,並把返回、通話和視訊按鈕放在圓形玻璃圈上。下次開啟聊天室時生效。模糊效果需要 Android 12 或更新版本。
+Gives a chat's top bar and message bar frosted glass and puts the back, call and video buttons on round glass circles. It shows the next time you open a chat. Needs Android 12 or newer for the blur.	讓聊天室頂端列和訊息列呈現毛玻璃效果，並把返回、通話和視訊按鈕放在圓形玻璃圈上。下次開啟聊天室時生效。模糊效果需要 Android 12 或更新版本。
 # context: Reels switch Hide reels with few views, its summary, the Minimum views row, its dialog message and the row's summary, then the Minimum likes row, its dialog message, its summary and its summary at 0; %1$s is a number with thousands separators (#444)
 Hide reels with few views	隱藏觀看次數少的 Reels
 Leaves out reels in the Reels tab with fewer views or likes than the numbers below. Reels from accounts you follow, reels sent to you and reels with no count still play.	在 Reels 分頁中略過觀看次數或按讚數低於下方數字的 Reels。你追蹤的帳號、別人傳給你的 Reels，以及沒有數字的 Reels 仍會播放。
@@ -1703,6 +1725,15 @@ Minimum likes	最低按讚數
 Reels with fewer likes than this are left out. Type a whole number, or 0 to not look at likes.	按讚數低於此數字的 Reels 會被略過。請輸入整數，或輸入 0 不看按讚數。
 Fewer than %1$s likes	按讚數低於 %1$s
 Likes aren't looked at	不看按讚數
+# context: rows in a story's three-dot menu; put the story's account on the Stories priority list, or take it off it (#641)
+Add to Stories priority	加入限時動態優先順序
+Remove from Stories priority	從限時動態優先順序移除
+# context: toasts after tapping Add to Stories priority or Remove from Stories priority; the last one when the list couldn't change (#641)
+Added to Stories priority	已加入限時動態優先順序
+Removed from Stories priority	已從限時動態優先順序移除
+Stories priority didn't change	限時動態優先順序沒有變更
+# context: last sentence of the Stories priority summary in HushGram settings > Stories; names the menu row Add to Stories priority (#641)
+To add someone, tap Add to Stories priority in their story's menu.	若要加入某人，請在對方限時動態的選單中點選「加入限時動態優先順序」。
 # context: Stories switch Stories priority, its summary, the Priority accounts row, its dialog message and the row's summaries (none, one account, several accounts) (#451)
 Stories priority	限時動態優先順序
 Puts the accounts on your list first in the stories row at the top of Home while they have a story you haven't watched, in the order of the list. Once you've watched it, Instagram's own placement applies again. Your own story stays first.	清單中的帳號只要有你還沒看的限時動態，就會依清單順序排在首頁上方限時動態列的最前面。看過之後，會回到 Instagram 原本的排列。你自己的限時動態仍在最前面。
@@ -1782,7 +1813,9 @@ Pill look	膠囊樣式
 Seek bar look	拖曳列樣式
 # context: Feed settings: a double tap on the left or right third of a feed video jumps 10 seconds (#562)
 Double tap to skip on feed videos	點兩下即可在動態影片中跳轉
-Double tap the left side of the video playing in a feed to go back 10 seconds, or the right side to go ahead 10. A double tap in the middle works as before.	在動態中播放的影片左側點兩下可倒退 10 秒，右側點兩下可快轉 10 秒。在中間點兩下則和以前一樣。
+Double tap the left side of the video playing in a feed to go back, or the right side to go ahead, as far as Skip length says. A double tap in the middle works as before.	在動態中播放的影片左側點兩下可倒退，右側點兩下可快轉，幅度依跳轉長度而定。在中間點兩下則和以前一樣。
+Skip length	跳轉長度
+%1$d seconds	%1$d 秒
 # context: a look for the page-dots pill and the seek bars: opaque, as before
 Solid	不透明
 # context: a look for the page-dots pill and the seek bars: partly transparent
@@ -1949,6 +1982,9 @@ When a reel in your feed ends, Watch again plays it over right there instead of 
 # context: a switch on the Playback page under Keep playing in the background; Android's own name for picture in picture
 Picture in picture for reels	Reel 子母畫面
 Leaving Instagram while a reel plays shrinks it into a small window over your other apps. Works in Reels and on reels opened from the feed, on Android 15 or newer.	在 Reel 播放時離開 Instagram，影片會縮成浮在其他應用程式上方的小視窗。適用於 Reels 和從動態消息開啟的 Reel，需要 Android 15 以上版本。
+# context: a switch on the Playback page under Picture in picture for reels; Android's own name for picture in picture, and it keeps moving on to the next stories inside the small window
+Picture in picture for stories	限時動態子母畫面
+Leaving Instagram while a story plays shrinks it into a small window over your other apps, where it keeps going through the stories.	在限時動態播放時離開 Instagram，它會縮成浮在其他應用程式上方的小視窗，並在其中繼續播放限時動態.
 # context: a switch on the Profiles page under Mark who doesn't follow you back; it means the mark goes on each profile picture of your own Following list
 Show it on the profile picture	顯示在大頭貼照上
 Puts a green check on the picture of each account that follows you back and a red cross on each one that doesn't, instead of the words.	在有回追你的帳號大頭貼照上加綠色勾勾，在未回追的帳號上加紅色叉叉，取代文字。
@@ -1976,7 +2012,6 @@ A thin line with no handle that grows while you drag it. On feed videos it sits 
 A thicker rounded bar with no handle.	較粗的圓角拖曳列，沒有拖曳鈕。
 A rounded bar split by a tall handle.	由高拖曳鈕分隔的圓角拖曳列。
 A wavy line for the part played, with a tall handle.	已播放部分為波浪線，並附高拖曳鈕。
-Turn on a seek bar on feed videos, stories or reels to use this choice.	請啟用動態影片、限時動態或 Reels 的拖曳列以使用此選項。
 Preview while you drag a seek bar	拖曳拖曳列時預覽
 Shows the time above your finger while you drag a seek bar on a feed video, story or reel, and a small picture of that moment when Instagram has one for the video.	在動態影片、限時動態或 Reels 上拖曳拖曳列時，於手指上方顯示時間，若 Instagram 有該影片的圖片，也會顯示該時刻的小圖。
 Swipe right on Home opens	在首頁向右滑動會開啟
@@ -2082,6 +2117,28 @@ Save profile	儲存個人檔案
 Saved @%s	已儲存 @%s
 # context: toast after Remove from saved takes an account off the Saved profiles list; %s is its username (#629)
 Removed @%s from saved	已將 @%s 從已儲存移除
+# context: row in the long press menu on an account on the Saved profiles page, and title of the folder list it opens (#629)
+Move to folder	移至資料夾
+# context: title of the folder list Save profile opens on a profile's menu once the user has made a folder (#629)
+Save to folder	儲存至資料夾
+# context: first choice in that folder list; the saved account sits in no folder (#629)
+No folder	不放入資料夾
+# context: last choice in that folder list, and title of the dialog asking the new folder's name (#629)
+New folder	新增資料夾
+# context: row in the long press menu on a folder's chip on the Saved profiles page, and title of the dialog for its new name (#629)
+Rename folder	重新命名資料夾
+# context: row in the long press menu on a folder's chip; the folder goes away and its accounts stay saved (#629)
+Remove folder	移除資料夾
+# context: toast after Save profile puts an account in a folder; %1$s is its username, %2$s the folder's name (#629)
+Saved @%1$s to %2$s	已將 @%1$s 儲存至 %2$s
+# context: toast after Move to folder; %1$s is the account's username, %2$s the folder's name (#629)
+Moved @%1$s to %2$s	已將 @%1$s 移至 %2$s
+# context: toast after Move to folder > No folder; %s is the account's username, which stays saved (#629)
+Moved @%s out of its folder	已將 @%s 移出資料夾
+# context: toast after Remove folder; %s is the folder's name, and its accounts stay saved (#629)
+Removed the folder %s	已移除資料夾 %s
+# context: toast after Rename folder; %s is the folder's new name (#629)
+Renamed the folder to %s	已將資料夾重新命名為 %s
 # context: toast when the Saved profiles list already holds 2,000 accounts (#629)
 Saved profiles is full.	已儲存的個人檔案已達上限。
 # context: Profiles > title of the switch that adds Save profile to the menu on profiles, and title of the page listing the saved accounts (#629)
@@ -2094,6 +2151,10 @@ Your saved profiles	你儲存的個人檔案
 Nothing saved yet. With Saved profiles on, tap Save profile in the menu on someone's profile and it shows up here.	尚未儲存任何內容。開啟「已儲存的個人檔案」後，在他人個人檔案的選單中點按「儲存個人檔案」，該檔案就會顯示在這裡。
 # context: spoken label of the cross at the end of a row on the Saved profiles page; %s is the account's username (#629)
 Remove @%s from saved	將 @%s 從已儲存移除
+# context: sentence an import of a settings file adds to its receipt; %d is how many saved profiles it put on the list (#629)
+Saved profiles added: %d.	已新增 %d 個儲存的個人檔案。
+# context: summary under Export HushGram settings in a build with Saved profiles; the file holds the settings and the saved list, never the Instagram sign-in or any history (#629)
+Choose a file for your installed patches' settings and saved profiles. Your login and history stay on this device.	選擇檔案以儲存已安裝修補程式的設定與儲存的個人檔案。登入資訊與記錄仍留在此裝置上。
 # context: Profiles > title of the switch that asks before a Follow or Follow back button follows someone (#631)
 Ask before a follow	追蹤前詢問
 # context: Profiles > summary of Ask before a follow; Follow, Follow back, Followers and Following are Instagram's own button and list names (#631)
@@ -2104,3 +2165,30 @@ Follow @%1$s?	要追蹤 @%1$s 嗎？
 Follow this account?	要追蹤這個帳號嗎？
 # context: The question's confirm button; Instagram's own Follow button label (#631)
 Follow	追蹤
+# context: switch in HushGram settings > Reels; a reel link opened from outside Instagram plays the linked reel first instead of a reel Instagram kept on the phone (#606)
+Open reel links on that reel	在連結指向的 Reel 開啟 Reels 連結
+A reel link opens on the reel it points to. Instagram doesn't play another reel it kept on your phone while that one loads.	Reels 連結會開啟它指向的 Reel。該 Reel 載入時，Instagram 不會先播放存在你手機上的其他 Reel。
+# context: Stories settings: moves the story speed button into a video story's three-dot menu as a Playback speed row (#621)
+Speed in the story menu	限時動態選單中的速度
+# context: Summary of Speed in the story menu; Playback speed is the row's own label (#621)
+Adds Playback speed to the menu a video story's three dots open, with the same 1x, 1.5x and 2x, and keeps the speed button off the story. Later video stories keep the speed you pick until you change it or restart Instagram.	在影片限時動態三個點開啟的選單中加入「播放速度」，提供相同的 1x、1.5x 和 2x，並移除限時動態上的速度按鈕。之後的影片限時動態會沿用你選擇的速度，直到你更改或重新啟動 Instagram。
+# context: Reels settings: hides the Create (+) button only on reels opened from Saved or a saved collection (#620)
+Hide the Create button on saved reels	隱藏已儲存 Reels 上的建立按鈕
+# context: Summary of Hide the Create button on saved reels; Saved is Instagram's own Saved page (#620)
+Takes the plus button off the top of reels you open from Saved or a collection and closes up the gap. The Reels tab and other reels keep theirs.	移除從「已儲存」或收藏集開啟的 Reels 頂端的加號按鈕並收起空白。Reels 分頁與其他 Reels 仍會保留。
+# context: Stories settings: picks where the story seek bar sits, above or below Instagram's Send message box at the bottom of a story (#636)
+Seek bar position	拖曳列位置
+# context: Choice of Seek bar position; Send message is Instagram's reply field at the bottom of someone else's story. Use Instagram's own label for it (#636)
+Above the Send message box	「傳送訊息」框上方
+Below the Send message box	「傳送訊息」框下方
+# context: Summary of the Above choice of Seek bar position (#636)
+The bar sits just above the Send message box at the bottom of a story.	拖曳列會位於限時動態底部「傳送訊息」框的正上方。
+# context: Summary of the Below choice of Seek bar position; when there's too little space under the box, the bar stays above it (#636)
+The bar sits in the space under the Send message box. Where there's no room under it, the bar stays above it.	拖曳列會位於「傳送訊息」框下方的空間。下方沒有空間時，會留在框的上方。
+# context: Layout switch right under HushGram launch screen; it fills the screen Android shows while Instagram starts with the accent color. Accent color is that Layout switch's own label, Custom the accent list's choice for a typed color (#528)
+Launch screen in the accent color	啟動畫面使用強調色
+Fills that screen with the accent color, or Instagram's blue while Accent color is off. A custom color shows as the closest one in the list. It shows from the next start.	以強調色填滿該畫面，關閉強調色時則使用 Instagram 的藍色。自訂顏色會以清單中最接近的顏色顯示。下次啟動時顯示。
+Haptic strength	觸覺回饋強度
+Tap sound on the tab bar	分頁列觸控音效
+A click each time the highlight moves to another tab, even with the phone's touch sounds off. Silent and vibrate mode keep it quiet.	每當標示移到另一個分頁時發出點擊聲，即使手機的觸控音效已關閉也會播放。靜音和震動模式下不會發出聲音。
+Tap sound volume	觸控音效音量

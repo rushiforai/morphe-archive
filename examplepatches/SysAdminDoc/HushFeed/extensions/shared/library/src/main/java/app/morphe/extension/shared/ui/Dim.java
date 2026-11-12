@@ -19,8 +19,11 @@ public final class Dim {
     private Dim() {} // Prevent instantiation.
 
     private static final DisplayMetrics METRICS = Resources.getSystem().getDisplayMetrics();
-    public static final int SCREEN_WIDTH = METRICS.widthPixels;
-    public static final int SCREEN_HEIGHT = METRICS.heightPixels;
+
+    /** The screen as it is now. A size kept from startup would miss a fold or a display size change. */
+    private static DisplayMetrics screen() {
+        return Resources.getSystem().getDisplayMetrics();
+    }
 
     // DP constants (density-independent pixels).
     public static final int dp1  = dp(1);
@@ -54,33 +57,14 @@ public final class Dim {
     }
 
     /**
-     * Converts a percentage of the screen height to pixels.
-     *
-     * @param percent The percentage (0–100).
-     * @return The pixel value corresponding to the percentage of screen height.
-     */
-    public static int pctHeight(int percent) {
-        return (SCREEN_HEIGHT * percent) / 100;
-    }
-
-    /**
-     * Converts a percentage of the screen width to pixels.
-     *
-     * @param percent The percentage (0–100).
-     * @return The pixel value corresponding to the percentage of screen width.
-     */
-    public static int pctWidth(int percent) {
-        return (SCREEN_WIDTH * percent) / 100;
-    }
-
-    /**
      * Converts a percentage of the screen's portrait width (min side) to pixels.
      *
      * @param percent The percentage (0–100).
      * @return The pixel value.
      */
     public static int pctPortraitWidth(int percent) {
-        final int portraitWidth = Math.min(SCREEN_WIDTH, SCREEN_HEIGHT);
+        final DisplayMetrics screen = screen();
+        final int portraitWidth = Math.min(screen.widthPixels, screen.heightPixels);
         return (int) (portraitWidth * (percent / 100.0f));
     }
 

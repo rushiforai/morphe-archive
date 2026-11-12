@@ -5,16 +5,18 @@ import app.morphe.patcher.patch.classDefForEach
 import app.morphe.patcher.patch.mutableClassDefBy
 import app.morphe.patcher.patch.patch
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.util.addFreeRegisters
 import app.morphe.patcher.util.returnEarly
 import app.template.patches.shared.Constants.COMPATIBILITY
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 
 @Suppress("unused")
 val proPatch = patch(
     name = "Pro Unlock",
-    description = "Forces all Pro features enabled and replaces the Google Play confirmation with a fake success, so ad surfaces never appear.",
+    description = "Forces all Pro features enabled, keeps Pro active after signer checks, and unlocks Pro exports (including the paid-export receipt check).",
     default = true
 ) {
     compatibleWith(COMPATIBILITY)
@@ -22,87 +24,28 @@ val proPatch = patch(
     execute {
         // ========================================================================
         // 1. Qx0hrwEl equivalent = Lf6olX
-        //    H2h1oPylj(Context, RbDM1) -> NMGZ06(Context, ArrayList, LbJtamtc;)
-        //    azrbON(Context, RbDM1) -> yMQp6hm(Context, LbJtamtc;)
+        //    lSqPRgn()Z reports "effects catalog loaded in free mode". Forcing it
+        //    true keeps premium effects usable in the editor/preview (free users
+        //    may use them, with the Pro warning popup), while the export gates
+        //    below handle the paid-export restriction.
+        //
+        //    Do NOT touch the refresh/load methods in this class:
+        //    - yMQp6hm(Context, Continuation) fetches the real effects catalog;
+        //    - NMGZ06(Context, ArrayList, Continuation) persists it.
+        //    Short-circuiting either one leaves the premium effects list empty,
+        //    so those effects render as nothing in preview and export.
         // ========================================================================
         classDefForEach { classDef: ClassDef ->
             if (classDef.type == "Lf6olX;") {
                 val mutable = mutableClassDefBy(classDef)
 
-                // <clinit>()V -> yMQp6hm=false, lSqPRgn=false
-                val (clinitCloned, clinitAdded) = mutable.methods.first { m ->
-                    m.name == "<clinit>" && m.parameters.isEmpty() && m.returnType == "V" && (m.accessFlags and AccessFlags.STATIC.value) != 0
-                }.addFreeRegisters(2)
-                clinitCloned.addInstructions(clinitAdded, """
-                    const/4 v0, 0x0
-                    sput-boolean v0, Lf6olX;->yMQp6hm:Z
-                    const/4 v0, 0x0
-                    sput-boolean v0, Lf6olX;->lSqPRgn:Z
-                """)
-
-                // NMGZ06(Context, ArrayList, LbJtamtc;) -> return Boolean.TRUE (non-sentinel, passes check-cast)
-                mutable.methods.first { m ->
-                    m.name == "NMGZ06" &&
-                        m.parameters.size == 3 &&
-                        m.parameters[0].type.toString() == "Landroid/content/Context;" &&
-                        m.parameters[1].type.toString() == "Ljava/util/ArrayList;" &&
-                        m.parameters[2].type.toString() == "LbJtamtc;" &&
-                        m.returnType.toString() == "Ljava/lang/Object;" &&
-                        (m.accessFlags and AccessFlags.STATIC.value) != 0
-                }.let { method ->
-                    val (cloned, added) = method.addFreeRegisters(1)
-                    cloned.addInstructions(added, """
-                        const/4 v0, 0x1
-                        invoke-static {v0}, Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;
-                        move-result-object v0
-                        return-object v0
-                    """)
-                }
-
-                // yMQp6hm(Context, LbJtamtc;) -> return Boolean.TRUE directly (Pro active)
-                // Callers check if-ne v2, sentinel; returning Boolean.TRUE passes the check
-                mutable.methods.first { m ->
-                    m.name == "yMQp6hm" &&
-                        m.parameters.size == 2 &&
-                        m.parameters[0].type.toString() == "Landroid/content/Context;" &&
-                        m.parameters[1].type.toString() == "LbJtamtc;" &&
-                        m.returnType.toString() == "Ljava/lang/Object;" &&
-                        (m.accessFlags and AccessFlags.STATIC.value) == 0
-                }.let { method ->
-                    val (cloned, added) = method.addFreeRegisters(1)
-                    cloned.addInstructions(added, """
-                        const/4 v0, 0x1
-                        invoke-static {v0}, Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;
-                        move-result-object v0
-                        return-object v0
-                    """)
-                }
-
-                // lSqPrgn()Z -> always return true (so NMGZ06() proceeds)
+                // lSqPRgn()Z -> always return true
                 mutable.methods.first { m ->
                     m.name == "lSqPRgn" &&
                         m.parameters.isEmpty() &&
                         m.returnType == "Z" &&
                         (m.accessFlags and AccessFlags.STATIC.value) != 0
                 }.returnEarly(true)
-
-                // Patch ALL Object-returning methods in f6olX to return Boolean.TRUE at
-                // position 0, so they return before reaching the if-ne sentinel check
-                // (goto :goto_aX after if-ne v2, v4).
-                // Use .toList() to snapshot the methods before iterating — addFreeRegisters
-                // clones/replaces methods in the live collection, which would otherwise
-                // throw ConcurrentModificationException during forEach.
-                mutable.methods.toList().forEach { m ->
-                    if (m.returnType.toString() == "Ljava/lang/Object;") {
-                        val (cloned, added) = m.addFreeRegisters(1)
-                        cloned.addInstructions(added, """
-                            const/4 v0, 0x1
-                            invoke-static {v0}, Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;
-                            move-result-object v0
-                            return-object v0
-                        """)
-                    }
-                }
             }
         }
 
@@ -365,6 +308,170 @@ val proPatch = patch(
                     """)
                 }
             }
+        }
+
+        // ========================================================================
+        // 8. Export pipeline Pro gates (formerly "Keyflow Export Pro Gate Bypass")
+        //    - Lkts6dAU4: allow the main gate, never throw "Pro required"
+        //    - LCtCUGg.y88yfJ73C: allow the second gate
+        //    - LZFJe6vx50.invoke: never take the export-cancel branch
+        //    - LkCg72Z4t: publish PLAYING instead of PRO_REQUIRED / ERROR
+        //    - LP0JcGi9.MeOIJuj: accept the paid-export receipt check
+        // ========================================================================
+        var exportSites = 0
+
+        // 8a + 8b. The main Pro gate and the Pro-required exception
+        classDefForEach { classDef: ClassDef ->
+            if (classDef.type != "Lkts6dAU4;") return@classDefForEach
+            val mutable = mutableClassDefBy(classDef)
+            for (method in mutable.methods.toList()) {
+                if (method.name == "NMGZ06" &&
+                    method.parameters.size == 1 &&
+                    method.parameters[0].type == "LXfNXj;" &&
+                    method.returnType == "Z"
+                ) {
+                    method.returnEarly(true)
+                    exportSites++
+                    continue
+                }
+                if (!method.name.startsWith("GX9XN3") && method.name != "c3oEd") continue
+                val impl = method.implementation ?: continue
+                val instrs = impl.instructions
+                val throwIndices = instrs.indices.filter { instrs[it].opcode == Opcode.THROW }
+                for (i in throwIndices.reversed()) {
+                    method.replaceInstruction(i, "return-void")
+                    exportSites++
+                }
+            }
+        }
+
+        // 8c. The second gate
+        classDefForEach { classDef: ClassDef ->
+            if (classDef.type != "LCtCUGg;") return@classDefForEach
+            val mutable = mutableClassDefBy(classDef)
+            for (method in mutable.methods.toList()) {
+                if (method.name != "y88yfJ73C") continue
+                if (method.parameters.size != 2) continue
+                if (method.parameters[0].type != "I" || method.parameters[1].type != "Z") continue
+                if (method.returnType != "Z") continue
+                val impl = method.implementation ?: continue
+                val instrs = impl.instructions
+                for (i in instrs.indices) {
+                    if (const4Literal(instrs[i]) != 0) continue
+                    val reg = destRegister(instrs[i]) ?: continue
+                    var retIdx = -1
+                    for (j in i + 1..minOf(i + 4, instrs.size - 1)) {
+                        if (instrs[j].opcode == Opcode.RETURN) {
+                            retIdx = j
+                            break
+                        }
+                    }
+                    if (retIdx < 0) continue
+                    if (!safeInsertInstructions(
+                            method,
+                            retIdx,
+                            """
+                            const/4 v$reg, 0x1
+                            """.trimIndent()
+                        )
+                    ) continue
+                    exportSites++
+                }
+            }
+        }
+
+        // 8d. Never take the export-cancel branch
+        classDefForEach { classDef: ClassDef ->
+            if (classDef.type != "LZFJe6vx50;") return@classDefForEach
+            val mutable = mutableClassDefBy(classDef)
+            for (method in mutable.methods.toList()) {
+                if (method.name != "invoke") continue
+                if (method.parameters.size != 2) continue
+                if (method.returnType != "Ljava/lang/Object;") continue
+                val impl = method.implementation ?: continue
+                val instrs = impl.instructions
+                val targets = mutableListOf<Int>()
+                for (i in instrs.indices) {
+                    if (instrs[i].opcode != Opcode.INVOKE_VIRTUAL) continue
+                    val ref = refOf(instrs[i]) ?: continue
+                    if (!ref.contains("y88yfJ73C")) continue
+                    if (i + 2 >= instrs.size) continue
+                    if (instrs[i + 1].opcode != Opcode.MOVE_RESULT) continue
+                    if (instrs[i + 2].opcode != Opcode.IF_EQZ) continue
+                    targets.add(i + 2)
+                }
+                for (i in targets.reversed()) {
+                    method.replaceInstruction(i, "nop")
+                    exportSites++
+                }
+            }
+        }
+
+        // 8e. Publish PLAYING instead of PRO_REQUIRED / ERROR
+        classDefForEach { classDef: ClassDef ->
+            if (classDef.type != "LkCg72Z4t;") return@classDefForEach
+            val mutable = mutableClassDefBy(classDef)
+            for (method in mutable.methods.toList()) {
+                if (method.name != "invokeSuspend") continue
+                if (method.parameters.size != 1) continue
+                if (method.returnType != "Ljava/lang/Object;") continue
+                val impl = method.implementation ?: continue
+                val instrs = impl.instructions
+                val targets = mutableListOf<Int>()
+                for (i in instrs.indices) {
+                    if (instrs[i].opcode != Opcode.SGET_OBJECT) continue
+                    val ref = refOf(instrs[i]) ?: continue
+                    if (!ref.contains("La82eAByx;->RdpTsF:") &&
+                        !ref.contains("La82eAByx;->Jp4lVJ:")
+                    ) continue
+                    targets.add(i)
+                }
+                for (i in targets.reversed()) {
+                    val reg = destRegister(instrs[i]) ?: continue
+                    method.replaceInstruction(
+                        i,
+                        "sget-object v$reg, La82eAByx;->kwEINn3:La82eAByx;"
+                    )
+                    exportSites++
+                }
+            }
+        }
+
+        // 8f. Accept the paid-export purchase check (Export screen path)
+        classDefForEach { classDef: ClassDef ->
+            if (classDef.type != "LP0JcGi9;") return@classDefForEach
+            val mutable = mutableClassDefBy(classDef)
+            for (method in mutable.methods.toList()) {
+                if (method.name != "MeOIJuj") continue
+                if (method.parameters.size != 2) continue
+                if (method.parameters[0].type != "Landroid/content/Context;") continue
+                if (method.returnType != "Ljava/lang/Object;") continue
+                val impl = method.implementation ?: continue
+                val instrs = impl.instructions
+                // There is exactly one "new-instance LilvEt;" in the app; the
+                // branch right before it is the receipt-verification result.
+                for (i in instrs.indices) {
+                    if (instrs[i].opcode != Opcode.NEW_INSTANCE) continue
+                    if (refOf(instrs[i]) != "LilvEt;") continue
+                    val branch = i - 1
+                    if (branch < 0) continue
+                    when (instrs[branch].opcode) {
+                        Opcode.NOP -> exportSites++ // already applied by [Export] 12
+                        Opcode.IF_EQZ -> {
+                            method.replaceInstruction(branch, "nop")
+                            exportSites++
+                        }
+                        else -> continue
+                    }
+                }
+            }
+        }
+
+        if (exportSites == 0) {
+            throw Error(
+                "Pro Unlock: no export Pro gate sites found - " +
+                    "expected Keyflow 1.5.10 classes4.dex."
+            )
         }
 
     }

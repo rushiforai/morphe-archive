@@ -27,6 +27,7 @@ val myDialogDisableFirebasePerfPatch = bytecodePatch(
         "of the actual installer.",
     default = true,
 ) {
+    category("Privacy")
     compatibleWith(MYDIALOG_COMPATIBILITY)
 
     execute {

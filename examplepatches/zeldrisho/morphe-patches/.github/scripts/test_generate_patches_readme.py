@@ -34,10 +34,29 @@ class ReadmeGeneratorTest(unittest.TestCase):
             subprocess.run(["python3", str(GENERATOR), "owner/repo", "dev", str(catalog), str(readme)], check=True, capture_output=True)
             result = readme.read_text(encoding="utf-8")
             self.assertIn("| 1.0 (APKS) | 2.0 (APKM) |", result)
+            self.assertIn("<details>\n<summary>📦 Example • 2 patches</summary>", result)
+            self.assertIn("</details>", result)
             self.assertIn("| First |  | 1.0 (APKS) |", result)
             self.assertIn("| Second |  | 2.0 (APKM) |", result)
             self.assertTrue(result.startswith("Before\n"))
             self.assertTrue(result.endswith("After\n"))
+
+    def test_expanded_marker_keeps_sections_open(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            catalog = root / "catalog.json"
+            readme = root / "README.md"
+            catalog.write_text(json.dumps({"version": "1.0", "patches": [
+                {"name": "Universal"},
+                {"name": "App patch", "compatiblePackages": [{"packageName": "example.app", "name": "Example"}]},
+            ]}), encoding="utf-8")
+            readme.write_text("<!-- PATCHES_START EXPANDED -->\n<!-- PATCHES_END -->\n", encoding="utf-8")
+            subprocess.run(["python3", str(GENERATOR), "owner/repo", "dev", str(catalog), str(readme)],
+                           check=True, capture_output=True)
+            result = readme.read_text(encoding="utf-8")
+            self.assertIn("### 📦 Example • 1 patch", result)
+            self.assertIn("### 🌐 Universal • 1 patch", result)
+            self.assertNotIn("<details>", result)
 
     def test_same_version_keeps_file_types_and_descriptions_distinct(self):
         with tempfile.TemporaryDirectory() as directory:

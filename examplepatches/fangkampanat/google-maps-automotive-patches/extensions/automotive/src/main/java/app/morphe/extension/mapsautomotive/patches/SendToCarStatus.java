@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.os.Process;
 import android.os.SystemClock;
 import android.view.View;
 
@@ -20,21 +21,33 @@ import java.util.TimeZone;
 import app.morphe.extension.shared.Utils;
 
 /**
- * Send to car's status, from its Settings row (0.1.6): what the app can check itself (MicroG-RE, its
- * battery whitelist, Maps' push registration, the network), the name phone Maps should list for this car
- * with the time Maps last built its vehicle upload (a try to send it; whether the upload got through is
- * not known), and the last trip received; then what the user has to check (BYD's Disable Autostart, the
- * phone's account and car entry), which no app can read. "Restart" restarts the app after a confirmation:
+ * Send to car's status, from its Settings row (0.1.6): the verdict first, with what the app found wrong
+ * among the things it can check itself (MicroG-RE, its battery whitelist, Maps' push registration, the
+ * network); the name phone Maps should list for this car (and what Maps last tried to send while that is
+ * another name; whether an upload got through is not known), the last trip received (or one waiting in a
+ * notification) and, from 0.1.7, the last push from Google with how late it came (SendToCarPush); what the user has
+ * to check (BYD's Disable Autostart, the phone's account and car entry), which no app can read; then the
+ * checks that passed, in one line. "Restart" restarts the app after a confirmation:
  * Maps registers for push and sends the vehicle info about 20 s after a start. Nothing here changes a
  * setting; nothing is sent anywhere. The checks run off the main thread; the Settings row shows the last
  * result while it is recent.
  */
 final class SendToCarStatus {
     private static final String TAG = "MorpheSendToCar";
-    private static final String PREFERENCES = "morphe_send_to_car";
+    static final String PREFERENCES = "morphe_send_to_car";
     private static final String KEY_TRIP_AT = "trip_at", KEY_TRIP_TYPE = "trip_type", KEY_TRIP_RESULT = "trip_result";
-    /** A trip's results as stored: opened, Maps did not open it, or the link (with its detail) failed. */
-    static final String OPENED = "opened", MAPS_FAILED = "maps_failed", LINK_FAILED = "link:";
+    /** When a sent trip last reached Maps' screen (its link expansion started), whatever came of it. */
+    private static final String KEY_TRIP_SEEN_AT = "trip_seen_at";
+    /**
+     * A trip's results as stored: opened, Maps did not open it, the link (with its detail) failed, or Maps' screen
+     * closed before the link was expanded.
+     */
+    static final String OPENED = "opened", MAPS_FAILED = "maps_failed", LINK_FAILED = "link:", SCREEN_CLOSED = "screen_closed";
+    /**
+     * A trip push later than the last trip by more than 5 s and under a day old: in a notification it waits for a tap;
+     * one Maps started its screen for that has not reached the screen within 60 s did not open.
+     */
+    private static final long PENDING_AFTER_MS = 5_000, PENDING_FOR_MS = 24 * 3_600_000L, OPEN_WITHIN_MS = 60_000;
     static final String MICROG = "app.revanced.android.gms";
     static final String WHITELIST_COMMAND = "adb shell dumpsys deviceidle whitelist +" + MICROG;
     /** One check 30 s after a start; a new check after 1 min; the row shows a check for 10 min. */
@@ -82,6 +95,16 @@ final class SendToCarStatus {
         /** The last sent trip that reached Maps, 0 when none. */
         long tripAt;
         String tripType, tripResult;
+        /** The last push from Google, 0 when none was seen; how late it was in seconds, -1 unknown. */
+        long pushAt, pushDelayS = -1;
+        /** The last trip push Maps' Send to car handler took, 0 when none; how Maps took it (SendToCarPush), or null. */
+        long tripPushAt;
+        String tripPushShown;
+        /**
+         * When a sent trip last reached Maps' screen, 0 when never; when this process started and when its last
+         * MapsActivity was created (wall clock), 0 unknown.
+         */
+        long tripSeenAt, processStartAt, screenAt;
     }
 
     // Reading the state.
@@ -123,8 +146,17 @@ final class SendToCarStatus {
             snapshot.tripAt = preferences.getLong(KEY_TRIP_AT, 0);
             snapshot.tripType = preferences.getString(KEY_TRIP_TYPE, null);
             snapshot.tripResult = preferences.getString(KEY_TRIP_RESULT, null);
+            snapshot.pushAt = preferences.getLong(SendToCarPush.KEY_PUSH_AT, 0);
+            snapshot.pushDelayS = preferences.getLong(SendToCarPush.KEY_PUSH_DELAY_S, -1);
+            snapshot.tripPushAt = preferences.getLong(SendToCarPush.KEY_TRIP_PUSH_AT, 0);
+            snapshot.tripPushShown = preferences.getString(SendToCarPush.KEY_TRIP_PUSH_SHOWN, null);
+            snapshot.tripSeenAt = preferences.getLong(KEY_TRIP_SEEN_AT, 0);
+            snapshot.processStartAt = System.currentTimeMillis() - (SystemClock.elapsedRealtime() - Process.getStartElapsedRealtime());
+            snapshot.screenAt = SendToCarPush.mapsCreatedAt();
         } catch (RuntimeException error) {
             snapshot.tripAt = 0;
+            snapshot.pushAt = 0;
+            snapshot.tripPushAt = 0;
         }
         return snapshot;
     }
@@ -143,6 +175,17 @@ final class SendToCarStatus {
         }
         // The next Settings visit asks for a new check.
         stale = true;
+    }
+
+    /** From SendToCarLinks: a sent trip reached Maps' screen (its link is being expanded). */
+    static void recordTripSeen(Context context) {
+        try {
+            if (context == null) return;
+            context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).edit()
+                    .putLong(KEY_TRIP_SEEN_AT, System.currentTimeMillis()).apply();
+        } catch (RuntimeException error) {
+            ReportLog.w(TAG, "trip not recorded", error);
+        }
     }
 
     /** From the main process's start: one check about 30 s later, after Maps' first vehicle upload. */
@@ -206,115 +249,199 @@ final class SendToCarStatus {
         return problems;
     }
 
+    /** The number of checks the app could not read (the dialog's "?" lines). */
+    static int unknowns(Snapshot snapshot) {
+        if (snapshot.checkFailed) return 0;
+        int unknowns = 0;
+        if (snapshot.microgInstalled && snapshot.microgExempt == null) unknowns++;
+        if (snapshot.tokens < 0) unknowns++;
+        if (snapshot.networkType == null) unknowns++;
+        return unknowns;
+    }
+
+    /** The row's status, as the dialog's verdict: what to fix, else what could not be read, else no problem. */
     static String statusText(Snapshot snapshot, boolean thai) {
         if (snapshot == null || snapshot.checkFailed) return thai ? "แตะเพื่อเช็ค" : "Tap to check";
         int problems = problems(snapshot);
-        if (problems == 0) return thai ? "ไม่พบปัญหา" : "No problems found";
-        return thai ? "ต้องแก้ " + problems + " ข้อ" : problems + " to fix";
+        if (problems > 0) return thai ? "ต้องแก้ " + problems + " ข้อ" : problems + " to fix";
+        int unknowns = unknowns(snapshot);
+        if (unknowns > 0) return thai ? "เช็คไม่ได้ " + unknowns + " ข้อ" : unknowns + " could not be checked";
+        return thai ? "ไม่พบปัญหา" : "No problems found";
     }
 
     private static boolean isAbsent(String networkType) {
         return "none".equals(networkType) || "blocked".equals(networkType);
     }
 
-    /** The dialog's lines: the app's checks, the car name, the last trip, then the user's checks. */
+    /**
+     * The dialog's text, one group per entry (the dialog puts an empty line between groups): the verdict with what
+     * to fix or what could not be read, the car name and the last trip (with the verdict when nothing is wrong),
+     * the user's own checks, then what passed in one line.
+     */
     static List<String> lines(Snapshot s, boolean thai, long nowMs, TimeZone zone) {
         List<String> lines = new ArrayList<>();
-        String ok = thai ? "ผ่าน · " : "OK · ", fix = thai ? "ต้องแก้ · " : "Fix · ", unknown = "? · ";
         if (s.checkFailed) {
-            lines.add(unknown + (thai ? "เช็คไม่สำเร็จ ลองเปิดใหม่อีกครั้ง" : "The check failed. Open this again."));
-            addOwnChecks(lines, thai);
+            lines.add(thai ? "เช็คไม่สำเร็จ ลองเปิดใหม่อีกครั้ง" : "The check failed. Open this again.");
+            lines.add(ownChecks(thai));
             return lines;
         }
+        List<String> fixes = new ArrayList<>(), unknown = new ArrayList<>(), passed = new ArrayList<>();
         if (!s.switchedOn) {
             String place = thai ? s.switchPlaceThai : s.switchPlaceEnglish;
-            lines.add(fix + (thai ? "Send to car ปิดอยู่ เปิดได้ที่สวิตช์ใน " : "Send to car is switched off. Its switch is in ")
+            fixes.add((thai ? "Send to car ปิดอยู่ เปิดได้ที่สวิตช์ใน " : "Send to car is switched off. Its switch is in ")
                     + (place == null ? (thai ? "หน้ารายงานปัญหา" : "the report screen") : place) + (thai ? "" : "."));
         }
         if (!s.microgInstalled) {
-            lines.add(fix + (thai ? "ยังไม่ได้ติดตั้ง MicroG RE" : "MicroG RE is not installed"));
+            fixes.add(thai ? "ยังไม่ได้ติดตั้ง MicroG-RE" : "MicroG-RE is not installed");
         } else {
-            lines.add(ok + "MicroG RE " + (s.microgVersion == null ? "" : s.microgVersion).trim());
+            passed.add(("MicroG-RE " + (s.microgVersion == null ? "" : s.microgVersion)).trim());
             if (s.microgExempt == null) {
-                lines.add(unknown + (thai ? "อ่าน whitelist แบตของ MicroG RE ไม่ได้" : "MicroG RE's battery whitelist unreadable"));
+                unknown.add(thai ? "อ่าน whitelist แบตของ MicroG-RE ไม่ได้" : "MicroG-RE's battery whitelist unreadable");
             } else if (s.microgExempt) {
-                lines.add(ok + (thai ? "MicroG RE อยู่ใน whitelist แบต" : "MicroG RE is on the battery whitelist"));
+                passed.add(thai ? "whitelist แบต" : "battery whitelist");
             } else {
-                lines.add(fix + (thai ? "MicroG RE ยังไม่อยู่ใน whitelist แบต สั่งครั้งเดียวผ่าน ADB:"
-                        : "MicroG RE is not on the battery whitelist. Run once over ADB:") + "\n" + WHITELIST_COMMAND);
+                fixes.add((thai ? "MicroG-RE ยังไม่อยู่ใน whitelist แบต สั่งครั้งเดียวผ่าน ADB:"
+                        : "MicroG-RE is not on the battery whitelist. Run once over ADB:") + "\n  " + WHITELIST_COMMAND);
             }
         }
         if (s.tokens < 0) {
-            lines.add(unknown + (thai ? "อ่านการลงทะเบียน push ไม่ได้" : "Push registration unreadable"));
+            unknown.add(thai ? "อ่านการลงทะเบียน push ไม่ได้" : "Push registration unreadable");
         } else if (s.tokens == 0) {
-            lines.add(fix + (thai ? "Maps ยังไม่ได้ลงทะเบียน push ให้เปิด Cloud messaging และ Device registration ใน MicroG RE"
+            fixes.add(thai ? "Maps ยังไม่ได้ลงทะเบียน push ให้เปิด Cloud messaging และ Device registration ใน MicroG-RE"
                     + " อนุญาต Maps แล้วกดเริ่มใหม่"
-                    : "Maps is not registered for push. In MicroG RE, turn on Cloud messaging and Device registration,"
-                    + " allow Maps, then tap Restart."));
+                    : "Maps is not registered for push. In MicroG-RE, turn on Cloud messaging and Device registration,"
+                    + " allow Maps, then tap Restart.");
         } else {
-            lines.add(ok + (thai ? "ลงทะเบียน push แล้ว" : "Registered for push")
-                    + (s.tokenAgeS < 0 ? "" : thai ? " (ล่าสุดเมื่อ " + age(s.tokenAgeS, true) + "ที่แล้ว)"
-                    : " (last renewed " + age(s.tokenAgeS, false) + " ago)"));
+            passed.add("push" + (s.tokenAgeS < 0 ? "" : " (" + age(s.tokenAgeS, thai) + ")"));
         }
         if (s.networkType == null) {
-            lines.add(unknown + (thai ? "อ่านเครือข่ายไม่ได้" : "Network unreadable"));
+            unknown.add(thai ? "อ่านเครือข่ายไม่ได้" : "Network unreadable");
         } else if ("blocked".equals(s.networkType)) {
-            lines.add(fix + (thai ? "Android กันแอปนี้ไม่ให้ใช้เน็ต (จำกัดแบตหรือการทำงานเบื้องหลัง)"
-                    : "Android keeps this app off the network (battery or background restriction)"));
+            fixes.add(thai ? "Android กันแอปนี้ไม่ให้ใช้เน็ต (จำกัดแบตหรือการทำงานเบื้องหลัง)"
+                    : "Android keeps this app off the network (battery or background restriction)");
         } else if ("none".equals(s.networkType)) {
-            lines.add(fix + (thai ? "ไม่มีเครือข่าย" : "No network"));
+            fixes.add(thai ? "ไม่มีเครือข่าย" : "No network");
         } else if (s.networkValidated) {
-            lines.add(ok + (thai ? "เครือข่าย " + networkName(s.networkType, true) + " ใช้อินเทอร์เน็ตได้"
-                    : "Network: " + networkName(s.networkType, false) + " with internet"));
+            passed.add(networkName(s.networkType, thai));
         } else {
-            lines.add(fix + (thai ? "เครือข่าย " + networkName(s.networkType, true) + " แต่ใช้อินเทอร์เน็ตไม่ได้"
-                    : "Network: " + networkName(s.networkType, false) + " without internet"));
+            fixes.add(thai ? "เครือข่าย " + networkName(s.networkType, true) + " แต่ใช้อินเทอร์เน็ตไม่ได้"
+                    : "Network: " + networkName(s.networkType, false) + " without internet");
         }
-        lines.add(carNameLine(s, thai, nowMs, zone));
-        lines.add(tripLine(s, thai, nowMs, zone));
-        addOwnChecks(lines, thai);
+        // The verdict first; with nothing to fix or to read again, the car name and the trip come right under it.
+        StringBuilder top = new StringBuilder();
+        if (!fixes.isEmpty()) top.append(thai ? "ต้องแก้ " + fixes.size() + " ข้อ" : fixes.size() + " to fix");
+        else if (!unknown.isEmpty()) top.append(thai ? "เช็คไม่ได้ " + unknown.size() + " ข้อ" : unknown.size() + " could not be checked");
+        else top.append(thai ? "ไม่พบปัญหาจากที่แอปเช็คได้" : "No problems in what the app can check");
+        for (String fix : fixes) top.append("\n• ").append(fix);
+        for (String item : unknown) top.append("\n? ").append(item);
+        String car = carNameLine(s, thai, nowMs, zone) + "\n" + tripLine(s, thai, nowMs, zone);
+        String push = pushLine(s, thai, nowMs, zone);
+        if (push != null) car += "\n" + push;
+        if (fixes.isEmpty() && unknown.isEmpty()) {
+            lines.add(top + "\n" + car);
+        } else {
+            lines.add(top.toString());
+            lines.add(car);
+        }
+        lines.add(ownChecks(thai));
+        if (!passed.isEmpty()) {
+            StringBuilder ok = new StringBuilder(thai ? "ผ่าน: " : "OK: ");
+            for (int i = 0; i < passed.size(); i++) ok.append(i == 0 ? "" : " · ").append(passed.get(i));
+            lines.add(ok.toString());
+        }
         return lines;
     }
 
-    private static void addOwnChecks(List<String> lines, boolean thai) {
-        lines.add(thai ? "เช็คเอง:" : "Check yourself:");
-        lines.add(thai ? "• BYD Disable Autostart: ต้องปิดทั้ง Maps และ MicroG RE โดย BYD จะเปิดกลับทุกครั้งที่ลงหรืออัปเดตแอป"
-                : "• BYD Disable Autostart: Maps and MicroG RE must be OFF. BYD turns them back on after each install or update.");
-        lines.add(thai ? "• มือถือ: ใช้บัญชี Google เดียวกัน และในหน้าเส้นทางให้เลือกรถชื่อด้านบน"
-                : "• Phone: the same Google account, and in Directions pick the car name above.");
-        lines.add(thai ? "กดเริ่มใหม่ แอปจะลองส่งชื่อรถและลงทะเบียน push ใหม่ภายในราว 20 วินาที"
-                : "Restart makes the app send the car name and register for push again within about 20 s.");
+    // What no app can read: BYD's Disable Autostart, and the phone's account and car entry.
+    private static String ownChecks(boolean thai) {
+        return thai
+                ? "ถ้าทริปมาไม่ถึง เช็คเอง:"
+                + "\n• BYD Disable Autostart: ปิดทั้ง Maps และ MicroG-RE (BYD เปิดกลับทุกครั้งที่ลงหรืออัปเดตแอป)"
+                + "\n• มือถือ: บัญชี Google เดียวกัน และเลือกรถชื่อด้านบนในหน้าเส้นทาง"
+                : "If trips do not arrive, check yourself:"
+                + "\n• BYD Disable Autostart: Maps and MicroG-RE OFF (BYD turns them back on after each install or update)"
+                + "\n• Phone: the same Google account, and in Directions pick the car name above";
     }
 
+    /** The name phone Maps should list; what Maps last tried to send only while that is not this name. */
     static String carNameLine(Snapshot s, boolean thai, long nowMs, TimeZone zone) {
         String name = s.carName == null ? "Vehicle 1" : s.carName;
-        StringBuilder line = new StringBuilder(thai ? "ในมือถือ รถคันนี้ควรชื่อ \"" + name + "\"" : "Your phone should list this car as \"" + name + "\"");
+        StringBuilder line = new StringBuilder(thai ? "ชื่อรถในมือถือ: \"" + name + "\"" : "Car name on the phone: \"" + name + "\"");
         if (s.mapsName) line.append(thai ? " (ชื่อของ Maps)" : " (Maps' name)");
         if (s.uploadAt <= 0) {
-            line.append(thai ? " Maps ยังไม่ได้ลองส่งชื่อขึ้น เปิด Maps ค้างไว้สัก 1 นาที หรือกดเริ่มใหม่"
+            line.append(thai ? " · Maps ยังไม่ได้ลองส่งชื่อขึ้น เปิด Maps ค้างไว้สัก 1 นาที หรือกดเริ่มใหม่"
                     : ". Maps has not tried to send it yet: keep Maps open for a minute or tap Restart.");
         } else if (s.uploadName != null && !s.uploadName.equals(name)) {
-            line.append(thai ? " Maps ลองส่ง \"" + s.uploadName + "\" ล่าสุดเมื่อ " + clock(s.uploadAt, nowMs, zone, true) + " ชื่อใหม่จะส่งหลังเริ่มใหม่"
+            line.append(thai ? " · Maps ลองส่ง \"" + s.uploadName + "\" ล่าสุดเมื่อ " + clock(s.uploadAt, nowMs, zone, true) + " ชื่อใหม่จะส่งหลังเริ่มใหม่"
                     : ". Maps last tried to send \"" + s.uploadName + "\" at " + clock(s.uploadAt, nowMs, zone, false)
                     + "; the new name goes up after a restart.");
-        } else {
-            line.append(thai ? " Maps ลองส่งชื่อนี้ล่าสุดเมื่อ " + clock(s.uploadAt, nowMs, zone, true)
-                    : ". Maps last tried to send it at " + clock(s.uploadAt, nowMs, zone, false) + ".");
         }
         return line.toString();
     }
 
+    /**
+     * The last trip that reached Maps and how it went; how Maps opened it stays in the report's log. A newer trip push,
+     * within a day, comes first: one Maps only posted as a notification waits for a tap; one Maps started its screen
+     * for that has not opened within 30 s did not open (Android may block a screen started from the background, and
+     * Maps then counts the trip as shown until it restarts).
+     */
     static String tripLine(Snapshot s, boolean thai, long nowMs, TimeZone zone) {
-        if (s.tripAt <= 0) return thai ? "ยังไม่เคยได้รับทริปจากมือถือ" : "No trip received from the phone yet.";
+        if (waitsInNotification(s, nowMs)) {
+            return thai ? "ทริปล่าสุด: " + clock(s.tripPushAt, nowMs, zone, true) + " รออยู่ใน notification แตะเพื่อเปิด หรือเปิด Maps ขึ้นมา"
+                    : "Last trip: " + clock(s.tripPushAt, nowMs, zone, false) + ", waiting in a notification: tap it or bring Maps to the front";
+        }
+        if (didNotOpen(s, nowMs)) {
+            // Maps shows a saved trip again when its screen opens in a new process; once that has had 60 s and did
+            // not, only a new send helps.
+            boolean restarted = s.processStartAt > s.tripPushAt && s.screenAt > 0 && nowMs - s.screenAt >= OPEN_WITHIN_MS;
+            return thai ? "ทริปล่าสุด: " + clock(s.tripPushAt, nowMs, zone, true) + " มาถึงแต่ไม่ขึ้น "
+                    + (restarted ? "ส่งใหม่จากมือถือ" : "กดเริ่มใหม่เพื่อเปิด")
+                    : "Last trip: " + clock(s.tripPushAt, nowMs, zone, false) + ", arrived but did not open: "
+                    + (restarted ? "send it again from the phone" : "tap Restart to show it");
+        }
+        if (s.tripAt <= 0) return thai ? "ทริปล่าสุด: ยังไม่เคยได้รับ" : "Last trip: none received yet";
         String result = s.tripResult == null ? "" : s.tripResult;
         String outcome;
         if (result.equals(OPENED)) outcome = thai ? "เปิดแล้ว" : "opened";
         else if (result.equals(MAPS_FAILED)) outcome = thai ? "Maps เปิดไม่ได้" : "Maps did not open it";
+        else if (result.equals(SCREEN_CLOSED)) outcome = thai ? "ไม่ได้เปิดเพราะปิดหน้า Maps ไปก่อน" : "not opened, Maps' screen closed first";
         else if (result.startsWith(LINK_FAILED)) outcome = linkProblem(result.substring(LINK_FAILED.length()).trim(), thai);
         else outcome = thai ? "ไม่ทราบผล" : "result unknown";
-        return thai
-                ? "ทริปล่าสุดที่ได้รับ: " + clock(s.tripAt, nowMs, zone, true) + " (" + tripType(s.tripType, true) + ") " + outcome
-                : "Last trip received: " + clock(s.tripAt, nowMs, zone, false) + " (" + tripType(s.tripType, false) + "), " + outcome + ".";
+        return thai ? "ทริปล่าสุด: " + clock(s.tripAt, nowMs, zone, true) + " " + outcome
+                : "Last trip: " + clock(s.tripAt, nowMs, zone, false) + ", " + outcome;
+    }
+
+    /** A trip push Maps only posted as a notification, later than the last trip that reached Maps, within a day. */
+    static boolean waitsInNotification(Snapshot s, long nowMs) {
+        return newerTripPush(s, nowMs) && SendToCarPush.SHOWN_NOTIFICATION.equals(s.tripPushShown);
+    }
+
+    /**
+     * A trip push Maps started its screen for, later than the last trip that reached Maps, and no sent trip reached
+     * Maps' screen since it, 60 s on.
+     */
+    static boolean didNotOpen(Snapshot s, long nowMs) {
+        return newerTripPush(s, nowMs) && SendToCarPush.SHOWN_NOW.equals(s.tripPushShown) && s.tripSeenAt < s.tripPushAt
+                && nowMs - s.tripPushAt >= OPEN_WITHIN_MS;
+    }
+
+    private static boolean newerTripPush(Snapshot s, long nowMs) {
+        return s.tripPushAt > 0 && s.tripPushAt > s.tripAt + PENDING_AFTER_MS && nowMs - s.tripPushAt < PENDING_FOR_MS;
+    }
+
+    /**
+     * The last push from Google and how long after its sending it came, null when none was seen. It tells a push that
+     * came late (a push connection that had died, or a car that was off) from one that never came.
+     */
+    static String pushLine(Snapshot s, boolean thai, long nowMs, TimeZone zone) {
+        if (s.pushAt <= 0) return null;
+        String at = clock(s.pushAt, nowMs, zone, thai);
+        if (s.pushDelayS < 0) return thai ? "push ล่าสุดจาก Google: " + at : "Last push from Google: " + at;
+        if (s.pushDelayS < 60) {
+            return thai ? "push ล่าสุดจาก Google: " + at + " มาถึงภายใน 1 นาที" : "Last push from Google: " + at + ", within a minute of sending";
+        }
+        return thai ? "push ล่าสุดจาก Google: " + at + " มาถึงหลังส่ง " + age(s.pushDelayS, true)
+                : "Last push from Google: " + at + ", " + age(s.pushDelayS, false) + " after sending";
     }
 
     /** A failed link in plain words, the technical detail in brackets. */
@@ -330,19 +457,6 @@ final class SendToCarStatus {
             reason = thai ? "เปิดลิงก์ไม่ได้" : "the link did not open";
         }
         return detail.isEmpty() ? reason : reason + " (" + detail + ")";
-    }
-
-    static String tripType(String type, boolean thai) {
-        if (type == null) return thai ? "ลิงก์" : "link";
-        switch (type) {
-            case "NOTIFICATION_TAP": return thai ? "กดจาก notification" : "notification tap";
-            case "FIRST_SHOW_ACTIVITY_IN_FOREGROUND": return thai ? "Maps อยู่หน้าจอ" : "Maps on screen";
-            case "FIRST_SHOW_ACTIVITY_IN_BACKGROUND": return thai ? "Maps อยู่เบื้องหลัง" : "Maps in the background";
-            case "FIRST_SHOW_ON_ACTIVITY_RESUME": return thai ? "ตอนเปิด Maps ขึ้นมา" : "when Maps came on screen";
-            case "FIRST_SHOW_AFTER_RESTART": return thai ? "หลังเริ่มแอปใหม่" : "after a restart";
-            case "RESHOW": return thai ? "แสดงซ้ำ" : "shown again";
-            default: return thai ? "ลิงก์" : "link";
-        }
     }
 
     static String networkName(String type, boolean thai) {
@@ -397,6 +511,8 @@ final class SendToCarStatus {
         Activity host = activity;
         try {
             Utils.runOnBackgroundThread(() -> {
+                // Opening the status also asks MicroG-RE to check its push connection (SendToCarPush).
+                SendToCarPush.nudge(host.getApplicationContext(), "status");
                 Snapshot snapshot;
                 try {
                     snapshot = compute(host);
@@ -446,8 +562,9 @@ final class SendToCarStatus {
             boolean thai = UiDensityPatch.isThai(host);
             new AlertDialog.Builder(host)
                     .setTitle(CarName.getSettingsTitle(host))
-                    .setMessage(thai ? "เริ่มแอปใหม่ตอนนี้ไหม การนำทางที่กำลังทำงานจะหยุด"
-                            : "Restart the app now? Active navigation stops.")
+                    .setMessage(thai ? "เริ่มแอปใหม่ตอนนี้ไหม แอปจะส่งชื่อรถและลงทะเบียน push ใหม่ในราว 20 วินาที การนำทางที่กำลังทำงานจะหยุด"
+                            : "Restart the app now? It sends the car name and registers for push again within about 20 s."
+                            + " Active navigation stops.")
                     .setPositiveButton(thai ? "เริ่มใหม่" : "Restart", (dialog, which) -> {
                         ReportLog.i(TAG, "restarting for Send to car");
                         Utils.restartApp(host);

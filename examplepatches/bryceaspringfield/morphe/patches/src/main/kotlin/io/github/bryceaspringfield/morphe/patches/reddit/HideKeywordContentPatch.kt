@@ -752,10 +752,12 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.mediaLinksInApp() {
         logger.warning("Could not find the step opening a post's link; media links open in the browser")
         return
     }
+    // The range form, since the step has 32 registers in 2026.45.0 and p0 (v30) is outside the plain form's 16. The
+    // plain form was dropped there, and Android refused the class, so no feed link opened (bundle 0.3.1).
     method.addInstructionsWithLabels(
         0,
         """
-            invoke-static { p0 }, $EXTENSION_CLASS->onLinkClick(Ljava/lang/Object;)Z
+            invoke-static/range { p0 .. p0 }, $EXTENSION_CLASS->onLinkClick(Ljava/lang/Object;)Z
             move-result v0
             if-eqz v0, :open_link
             sget-object v0, Lkotlin/Unit;->${unit.name}:Lkotlin/Unit;

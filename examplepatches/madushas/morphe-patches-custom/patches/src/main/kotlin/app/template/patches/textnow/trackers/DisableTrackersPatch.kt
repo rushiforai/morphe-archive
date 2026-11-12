@@ -18,6 +18,7 @@ val textnowDisableTrackersPatch = bytecodePatch(
         "so no tracking payload is collected or sent.",
     default = true,
 ) {
+    category("Privacy")
     compatibleWith(TEXTNOW_COMPATIBILITY)
 
     execute {

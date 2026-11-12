@@ -1,0 +1,17 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const crypto = require('node:crypto');
+const repo = path.resolve(__dirname, '../..');
+const resources = path.join(repo, 'patches/src/main/resources/joplin');
+const props = Object.fromEntries(fs.readFileSync(path.join(resources, 'target.properties'), 'utf8').trim().split(/\r?\n/).map(line => { const i=line.indexOf('=');return [line.slice(0,i),line.slice(i+1)]; }));
+if (!/^\d+\.\d+\.\d+$/.test(props.version) || !/^[a-f0-9]{64}$/.test(props.originalSha256)) throw Error('Invalid target metadata');
+const adapters = path.join(resources, 'adapters');
+fs.mkdirSync(adapters, { recursive: true });
+const bytes = fs.readFileSync(path.join(resources, 'index.android.bundle'));
+const patchedSha256 = crypto.createHash('sha256').update(bytes).digest('hex');
+const target = path.join(adapters, props.version);
+fs.writeFileSync(target + '.bundle', bytes);
+fs.writeFileSync(target + '.properties', Object.entries({ ...props, patchedSha256 }).map(([k,v]) => k+'='+v).join('\n')+'\n');
+const versions = fs.readdirSync(adapters).filter(x=>/^\d+\.\d+\.\d+\.properties$/.test(x)).map(x=>x.slice(0,-11)).sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
+fs.writeFileSync(path.join(adapters, 'index.properties'), 'versions='+versions.join(',')+'\n');
+console.log('Registered UI adapters: ' + versions.join(', '));

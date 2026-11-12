@@ -1,6 +1,9 @@
 package app.zeldrisho.patches.zalo.native
 
+import app.morphe.patcher.patch.deleteResource
+import app.morphe.patcher.patch.listApkEntries
 import app.morphe.patcher.patch.rawResourcePatch
+import app.morphe.patcher.patch.resourcePatch
 import app.zeldrisho.patches.shared.Constants.COMPATIBILITY_ZALO
 import java.io.RandomAccessFile
 
@@ -17,6 +20,19 @@ private val ORIGINAL_EXIT_CALL = byteArrayOf(0x00, 0x01, 0x3f, 0xd6.toByte())
 private val NOP = byteArrayOf(0x1f, 0x20, 0x03, 0xd5.toByte())
 private const val HEX_RADIX = 16
 
+/** Returns entries under `lib/` outside `lib/arm64-v8a/`, including directories but excluding `lib/` itself. */
+internal fun nonArm64NativeEntries(entries: Iterable<String>): List<String> =
+    entries.filter { it.startsWith("lib/") && it != "lib/" && !it.startsWith("lib/arm64-v8a/") }
+
+private val keepArm64NativeLibraries = resourcePatch {
+    compatibleWith(COMPATIBILITY_ZALO)
+    execute {
+        val libraries = listApkEntries("lib/")
+        check(LIBRARY_PATH in libraries) { "Validated arm64 native library is missing" }
+        nonArm64NativeEntries(libraries).forEach { deleteResource(it) }
+    }
+}
+
 /**
  * Forces the successful native cryptographic initialization path while
  * suppressing the JNI CallStaticVoidMethodV that dispatches
@@ -29,10 +45,11 @@ private const val HEX_RADIX = 16
 @Suppress("unused")
 val bypassZaloNativeStartupTamperPatch = rawResourcePatch(
     name = "Bypass native startup tamper check",
-    description = "Allows the re-signed app to start on the supported arm64 Zalo build.",
+    description = "Allows the re-signed app to start on the supported arm64 Zalo build; removes other native ABIs.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_ZALO)
+    dependsOn(keepArm64NativeLibraries)
 
     execute {
         patchNativeLibrary(get(LIBRARY_PATH, true))

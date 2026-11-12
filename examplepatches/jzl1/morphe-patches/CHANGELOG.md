@@ -1,3 +1,10 @@
+## [1.5.0](https://github.com/jzl1/morphe-patches/compare/v1.4.0...v1.5.0) (2026-11-11)
+
+### ✨ New Features
+
+* **hutch:** add environment checks removal patch for 4.4.1 ([0e5a2f1](https://github.com/jzl1/morphe-patches/commit/0e5a2f13691ea766e84e6e7c9e8fa9608710ab95))
+* **ltediscovery:** add Disable emulator check patch and 7.6.34 support ([704d58c](https://github.com/jzl1/morphe-patches/commit/704d58ca8b8f70906ec9e41fd1def21ea4d9924a))
+
 ## [1.4.0](https://github.com/jzl1/morphe-patches/compare/v1.3.0...v1.4.0) (2026-11-08)
 
 ### ✨ New Features

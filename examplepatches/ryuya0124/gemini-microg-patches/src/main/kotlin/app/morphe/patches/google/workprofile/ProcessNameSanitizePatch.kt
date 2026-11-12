@@ -104,13 +104,16 @@ val processNameSanitizePatch = bytecodePatch(
                             val ins = insList[idx]
                             if (ins.opcode == Opcode.RETURN_OBJECT) {
                                 val reg = (ins as OneRegisterInstruction).registerA
+                                // Keep the original return's labels on the first normalization instruction.
+                                // Inserting before a labelled return lets cached branches skip the insertion.
+                                method.replaceInstruction(idx, "const-string v1, \".morphe\"")
                                 method.addInstructions(
-                                    idx,
+                                    idx + 1,
                                     """
-                                        const-string v1, ".morphe"
                                         const-string v2, ""
                                         invoke-virtual {v$reg, v1, v2}, Ljava/lang/String;->replace(Ljava/lang/CharSequence;Ljava/lang/CharSequence;)Ljava/lang/String;
                                         move-result-object v$reg
+                                        return-object v$reg
                                     """
                                 )
                                 println("[ProcessNameSanitizePatch] Injected sanitization before return-object in $methodSignature at instruction $idx")

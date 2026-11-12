@@ -128,7 +128,7 @@ internal enum class PatchList(
     ),
     ENABLE_DEBUG_LOGGING(
         "Enable debug logging",
-        "Adds an option for debugging and exporting RVX logs to the clipboard."
+        "Adds debugging, log export and a Feature flags manager with Binary search."
     ),
     ENABLE_GRADIENT_LOADING_SCREEN(
         "Enable gradient loading screen",
@@ -323,6 +323,11 @@ internal enum class PatchList(
     SANITIZE_SHARING_LINKS(
         "Sanitize sharing links",
         "Adds an option to sanitize sharing links by removing tracking query parameters."
+    ),
+    WATCH_LATER_IMPROVEMENTS(
+        "Watch later improvements",
+        "Adds options to widen the drag handles of the Watch later videos " +
+                "and to hide the snackbar shown after removing a video."
     ),
     SAVE_TO_WATCH_LATER(
         "Save to Watch later",

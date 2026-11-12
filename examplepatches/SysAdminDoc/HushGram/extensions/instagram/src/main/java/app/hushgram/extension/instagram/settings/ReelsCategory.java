@@ -17,6 +17,7 @@ import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragme
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.likeAnimationRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.reelCapBreakRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.reelCapCountRow;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.reelSkipLengthRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.scrollBreakLengthRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.scrollBreakRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.slowsOlderPhones;
@@ -126,6 +127,9 @@ final class ReelsCategory {
             reels.add(toggle(context, Settings.HIDE_REELS_CREATE_BUTTON, L10n.t("Hide the Create button on reels"),
                     L10n.t("Takes the plus button that opens the camera off the top of reels, on the Reels tab and "
                             + "everywhere else, and closes up the gap. The rest of the bar stays.")));
+            reels.add(toggle(context, Settings.HIDE_SAVED_REELS_CREATE_BUTTON, L10n.t("Hide the Create button on saved reels"),
+                    L10n.t("Takes the plus button off the top of reels you open from Saved or a collection and "
+                            + "closes up the gap. The Reels tab and other reels keep theirs.")));
             reels.add(toggle(context, Settings.HIDE_REELS_YOUR_ALGORITHM, L10n.t("Hide Your algorithm on reels"),
                     L10n.t("Takes the Your algorithm button off the top of the Reels tab and closes up the gap. The "
                             + "rest of the bar stays.")));
@@ -228,6 +232,11 @@ final class ReelsCategory {
                     L10n.t("Lock a reel at 2x (hold its edge, then slide down) and the next reels play at 2x too. "
                             + "Slide the lock off, or hold the edge and let go, to go back to normal speed.")));
         }
+        if (build.contains(PatchFamily.REEL_LINKS)) {
+            reels.add(toggle(context, Settings.OPEN_REEL_LINKS_FIRST, L10n.t("Open reel links on that reel"),
+                    L10n.t("A reel link opens on the reel it points to. Instagram doesn't play another reel "
+                            + "it kept on your phone while that one loads.")));
+        }
         if (build.contains(PatchFamily.REEL_POST_TIME)) {
             reels.add(toggle(context, Settings.SHOW_REEL_POST_TIME, L10n.t("Show a reel's exact time"),
                     L10n.t("Shows the date and time a reel was posted under the author's name, like Oct 2, 3:45 PM. "
@@ -261,8 +270,10 @@ final class ReelsCategory {
         }
         if (build.contains(PatchFamily.REEL_DOUBLE_TAP_SKIP)) {
             reels.add(toggle(context, Settings.DOUBLE_TAP_SKIP_REELS, L10n.t("Double tap to skip"),
-                    L10n.t("A double tap on the left side of a reel goes back 10 seconds, and on the right side it goes "
-                            + "ahead 10 seconds. A double tap in the middle still likes it. Reels under 10 seconds don't skip.")));
+                    L10n.t("A double tap on the left side of a reel goes back, and on the right side it goes ahead, as far "
+                            + "as Skip length says. A double tap in the middle still likes it. Reels no longer than that "
+                            + "don't skip.")));
+            reels.add(reelSkipLengthRow(context));
         }
         if (build.contains(PatchFamily.HIDE_REEL_2X_POPUP)) {
             reels.add(toggle(context, Settings.HIDE_REEL_2X_POPUP, L10n.t("Hide the 2x popup"),

@@ -695,6 +695,9 @@ final class FeedPages {
                 stories.addPreference(toggle(context, Settings.HIDE_STORY_PROMPTS,
                         L10n.t("Hides cards beside Create story that suggest a story to make, like Share music you love. Applies "
                                 + "when Facebook next loads the tray.")));
+                stories.addPreference(toggle(context, Settings.HIDE_CREATE_STORY,
+                        L10n.t("Takes the Create story tile off the start of the Stories tray. The stories stay. "
+                                + "Applies when Facebook next loads the tray.")));
                 stories.addPreference(toggle(context, Settings.HIDE_PAGE_STORIES,
                         L10n.t("Shows only people's stories in the Stories tray, without the Pages you follow. Applies when "
                                 + "Facebook next loads the tray.")));
@@ -893,6 +896,8 @@ final class FeedPages {
                     L10n.t("Takes the thumbs-down off comments. Like and Reply stay.")));
             comments.addPreference(toggle(context, Settings.HIDE_COMMENT_LIKE_BUTTON,
                     L10n.t("Takes Like off the row under comments. Reply and the reaction count stay.")));
+            comments.addPreference(toggle(context, Settings.HIDE_COMMENT_REPLY_BUTTON,
+                    L10n.t("Takes Reply off the row under comments. View replies, Like and the reaction count stay.")));
             comments.addPreference(toggle(context, Settings.COMMENT_BLOCK_BUTTON,
                     L10n.t("The thumbs-down on a comment becomes Block. One tap opens Facebook's own block screen for that person.")));
             comments.addPreference(toggle(context, Settings.REACTOR_BLOCK_BUTTON,
@@ -929,6 +934,12 @@ final class FeedPages {
             comments.addPreference(toggle(context, Settings.SEARCH_COMMENTS,
                     L10n.t("A magnifier at the top of the comments opens a search box that finds the comments with "
                             + "your words.")));
+            // The comments leave the list through Comment sheet options' hooks on the comment and the list.
+            if (options) {
+                comments.addPreference(toggle(context, Settings.FILTER_COMMENT_SEARCH,
+                        L10n.t("While the search box holds words, comments without them are hidden. Clearing the "
+                                + "box brings them back.")));
+            }
         }
         // Writing had a section of its own for this one switch.
         if (tags) {

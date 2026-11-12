@@ -55,6 +55,7 @@ val hideFolderCountersPatch = bytecodePatch(
     execute {
         val counter = resolveHideFolderCounters()
         requireLaunchFolderRuntime()
+        requireTabIconsRuntime()
         // The folder at launch switch rides along while the catalog is held. A build without its shape
         // keeps the counters and leaves the switch out.
         val launch = resolveLaunchFolder()
@@ -155,6 +156,20 @@ val hideFolderCountersPatch = bytecodePatch(
             launch.apply()
             enableCapability("launchFolder")
             if (launch.refs!!.range != null) enableCapability("fitTabs")
+            // The tab icons ride on the same strip, where it makes a tab and where a tab takes a new title.
+            val icons = resolveTabIcons(launch.refs!!.tabs.substringBefore("->"))
+            val noIcons = icons.missing ?: try {
+                writeTabIconsStubs(icons)
+                null
+            } catch (failed: Exception) {
+                "the folder tab icons' stubs don't build (${failed.javaClass.simpleName}: ${failed.message})"
+            }
+            if (noIcons == null) {
+                icons.apply()
+                enableCapability("tabIcons")
+            } else {
+                patchLog.warning("Hide folder tab counters: $noIcons. The patch goes on without folder tab icons.")
+            }
             if (launch.refs!!.scrollTo == null) {
                 patchLog.warning("Hide folder tab counters: the folder tabs can't be scrolled. A picked folder past the screen's edge opens out of view.")
             }

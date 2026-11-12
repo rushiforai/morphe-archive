@@ -1,6 +1,6 @@
 # 引き継ぎメモ
 
-更新: 2026-09-06
+更新: 2026-11-12（最新の追記は末尾）
 
 ## 現在の状態
 
@@ -119,3 +119,49 @@
 - プロセス名探索では定数文字列googleappを返す別ヘルパーを除外。版別完全記述子に一致する本物のプロセス名取得関数だけを選択する。
 - キーは既存のlocal/keys/gemini-release.p12を維持。バックアップはBドライブの既存アプリ別フォルダを維持。
 - 入力ハッシュ/版定義/DEX分岐・資格判定・認定チェック・trampoline/Manifestを検証。実機更新をuser 150へ実施し、利用者の確認待ち。
+
+## 2026-11-12: Issue #8（最新）
+
+- 公式Clone appの名前・権限/Provider設定を明記し、Google/Geminiの許可参照を宣言済み権限に限って同じクローン名前空間へ補正。宣言そのものは公式Clone appがfinalizeで変更するため、こちらで先に変更して二重.morphe化しない。
+- APKの固定packageName、permission宣言とprotectionLevel、Manifest/DEX参照、Provider競合をビルド・署名・インストール前に検証。
+- default=falseの失敗実験3パッチは、HookIdのenabled=falseを実行時にも強制し、選択時に理由付きで停止。
+- パッチ失敗時にMorpheの終了コードだけを信用しない。fresh出力とresult JSONを検証し、前回成功APKを失敗結果で置き換えない。
+- 専用API36 Google APIsエミュレータで、元Googleが存在して権限を所有する条件から重複インストール失敗を再現。ユーザー削除後も失敗することを確認し復元。v0.3.0のLens許可参照不足と修正版の解消、元Google無効時の改造Googleへの起動を確認。adb root/suは未使用。詳細はdocs/testing/issue-8-emulator.md。
+- 構成違い3ケースを拒否、失敗実験3つを停止、既存出力を維持するテストが成功。Manager内で外部ソースのオプションを強制する機能ではないため、英語手順を守る必要がある。
+- エミュレータはアカウント未登録。チャット・実際のLens処理・OnePlus8実機/API31の動作を確認したという意味ではない。現行入力のminSdk=32は維持。
+- 新たな署名キーは作成していない。Bドライブの既存キーとMacの.envを維持。Issueへの返信/クローズはしていない。
+
+### リリース前の追加クラッシュ修正
+
+エミュレータ画面の追加確認でGoogle (Morphe) keeps stoppingを検出。元のプロセス名補正がlabel付きreturnの手前への挿入だったため、キャッシュ済みIF_NEZが補正を飛び越えていた。RETURN_OBJECTを補正の先頭命令に置換し、ラベルを保持して解消。
+
+ProcessNameProbeがインストール済みAPKの実コードを呼び、初回/キャッシュ/seeded cacheの差を検証。旧版の未補正キャッシュとwidget receiverのClassCastExceptionを再現し、修正版の正常化とクラッシュ消失を確認。最終26項目+設定9項目が成功。保護されたAPPWIDGET_UPDATEは偽装せず、同じexported receiverのDI入口へ無害な独自actionを明示送信する。
+
+公開前の最終証拠はlocal/issue8/emulator-verified/。スクリーンショットはログイン待ち画面（アカウント未登録）で、エラーのDownload Google画面でもクラッシュダイアログでもない。チャット/Lensの実処理を検証した意味ではない。
+
+## Android 12での追加確認（2026-11-12）
+
+- ユーザーからAndroid12エミュレータでの検証を指定された。API31イメージrevision11の専用AVD `GeminiPatch_Issue8_API31` を作成し、同じv0.3.1実装で26項目すべて成功。公開前のAPI36確認とは別の、公開後の追加検証。
+- 既定入力のminSdk32をバージョン全体の制限のように説明した点を訂正。同じGoogle17.72.17.ve.arm64/301831138にAPI30 nodpi単体APK、同じGemini1.0.995038376/345にAPI29バリアントがある。Mac側Codexへユーザーの許可で取得だけを依頼し、通常ブラウザから原本を取得、ハッシュを検証した。
+- 原本Google全14DEX・Gemini全3DEXが既定入力と完全一致。フックの追加変更・新しいMPP・署名キーは不要。最低SDKは原本もパッチ後も30/29を維持。minSdkを書き換えたローカル実験はインストールせず不採用。
+- 元Googleあり／ユーザーのみ削除後の重複権限エラーを再現。API31で最初の衝突はC2D_MESSAGE。v0.3.0のLens許可不整合とキャッシュ後のWidget ClassCastExceptionを再現し、修正版で解消。元Google無効時の改造Googleへの起動、独自action受信後のクラッシュ無しを確認。元Googleの状態を復元。
+- API31のdumpsysは `mResumedActivity:` を使うため、最初のテストは起動済みにもかかわらずAPI36向けの文字列判定で失敗。実際の両フォーマットを扱うようテストを修正し、全26項目を再実行。専用AVD・SDK・通常shellの制約は維持。
+- 再現用ビルドは `scripts/emulator/build-android12-fixtures.sh`。既定の `inputs/` / `dist/` を置き換えない。記録・ハッシュ・コマンドは `docs/testing/issue-8-android12.md`、ローカル証拠は `local/issue8/api31/emulator-verified/`。
+- エミュレータはGoogleアカウント・microG未登録。画面はSign in to use Gemini。インストール／権限／プロセス／起動確認であり、アカウント認証・チャット・Lens処理・OnePlus8実機の確認ではない。Galaxyの既存アプリは今回更新していない。
+- v0.3.1公開済み。Issue #8へは利用者の指示で短い英語の返信を投稿済み。バージョン質問とAPI31非対応の段落は利用者の指示で削除。Issueは開いたまま。
+
+## Morphe標準設定への対応・実機更新作業（2026-11-12）
+
+- ユーザーが実機の更新と「Morpheの標準設定でインストールが通ること」を指定。v0.3.2としてAutomatic Clone Setupをdefault=trueで追加し、Google/Geminiの必須依存にもした。通常ビルドは独自ソースの既定選択のみで、公式Clone app/Expert mode/-O指定が不要。
+- 原本Manifestの権限・Providerを先に記録し、Patcher1.12の名前順実行・逆順finalizeを使って最後に固定.morphe名前空間へ設定。既存のpermissionSupportは参照だけを更新する。旧公式Clone appの既定false/false、従来true/trueでも二重変換なし。任意名は明示的に停止。Automatic Clone Setupの既定選択を維持すること。
+- 生成後の権限保護レベル、Manifest/DEX参照、Provider競合、各フックの命令幅/分岐を検証済み。既存キーで署名、公開MPPに26 JVMクラスのAndroid DEXを収録し検証済み。
+- 配布MPPからの既定生成と旧設定の互換性/出力保持/実験拒否11項目成功。API31とAPI36で各26項目を再実行し、旧不具合の再現と修正版の解消が成功。詳細はdocs/testing/default-clone.md。
+- install-device.shはANDROID_USERを両installへ渡す。未指定時は0、Secure Folderは150を明示。新規キー生成・アンインストール・データ消去は行わない。
+- 実機のlease取得・同一署名でのuser150更新・データ領域/端末状態/インストール済みAPKハッシュ確認は、ユーザーが依頼を許可したMac側Codexへ担当を分離。端末の元Google/microGやuser0/10へは変更を加えない。実機チャットは利用者の確認待ちとして扱う。
+
+### 実機への適用結果
+
+- SM-S948Q / Android17のSecure Folder user150にGoogle/Gemini修正版を-r更新済み。Google base+xxhdpiは同一PackageInstallerセッション。インストール済み3APKのSHA256・既存署名を照合し一致。
+- LensServiceは `com.google.android.googlequicksearchbox.morphe.permission.LENS_SERVICE` を要求する状態へ修正済み。user150のCE/DE領域を維持し、user0/10は未導入のまま。OS/SystemUI識別・SELinux状態も維持。
+- Samsungがshellのcross-userアクセスを拒否したため、このSecure Folderへの自動更新では許可済みroot PackageInstallerを使用。通常ユーザーでのエミュレータインストールはshell UID2000で確認済み。
+- 一時APKと所有したleaseを解放。親も `local/issue8/auto-clone/device-update/RESULT.md` と `verified-summary.json` を照合。更新後、利用者がログイン状態の維持とチャット返答成功を「返答できた」と確認。自動照合結果と利用者の動作確認を区別して記録。秘密の端末識別子・生ログはGitへ含めない。

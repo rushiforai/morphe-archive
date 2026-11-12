@@ -26,6 +26,7 @@ import java.lang.ref.WeakReference;
 import java.util.Locale;
 
 import app.fblite.extension.settings.MorpheLog;
+import app.fblite.extension.settings.MorpheSettings;
 
 /**
  * A floating button over the video that is playing, which saves it to Movies/Facebook Lite, see
@@ -52,6 +53,13 @@ final class DownloadButton {
     private static final Rect RECT = new Rect();
     private static final int[] LOCATION = new int[2];
     private static boolean following;
+    /** Where the button's center is in the window, set by {@link #place}. */
+    private static float centerX;
+    private static float centerY;
+    private static long coverCheckedAt;
+    private static boolean covered;
+    private static final long COVER_CHECK_MS = 120;
+    private static final Overlay.Probe PROBE = new Overlay.Probe();
     /** Set while the button is for a story photo instead of a video. */
     private static String photoUrl;
     private static String photoName;
@@ -68,6 +76,10 @@ final class DownloadButton {
             return;
         }
         place(activity, video);
+        if (coveredNow(video)) {
+            hide();
+            return;
+        }
         reveal(button);
         button.bringToFront();
         follow();
@@ -78,6 +90,7 @@ final class DownloadButton {
         if (owner.get() != activity || button == null) create(activity);
         photoUrl = url;
         photoName = null;
+        covered = false;
         target = new WeakReference<>(anchor);
         place(activity, anchor);
         reveal(button);
@@ -121,6 +134,43 @@ final class DownloadButton {
         }
         button.setTranslationX(left);
         button.setTranslationY(top);
+        centerX = left + size / 2f;
+        centerY = top + size / 2f;
+    }
+
+    /**
+     * True while a view of another layer (the comment sheet, a menu, a dim layer) is drawn over the button's spot.
+     * Only for Reels and for videos in a list (the opened player): a story's tap zones are views of the same screen
+     * that would be taken for a cover. The result is kept for 120 ms, and every change is written to the debug log.
+     */
+    private static boolean coveredNow(View video) {
+        long now = SystemClock.uptimeMillis();
+        if (now - coverCheckedAt < COVER_CHECK_MS) return covered;
+        coverCheckedAt = now;
+        boolean result = false;
+        String why = null;
+        try {
+            Activity activity = owner.get();
+            if (photoUrl == null && activity != null
+                    && MorpheSettings.isEnabled(activity, MorpheSettings.HIDE_OVER_COMMENTS)) {
+                View hit = PROBE.covering(video, FeedItems.pagerOf(video), centerX, centerY);
+                if (hit != null) {
+                    result = true;
+                    if (MorpheLog.enabled()) why = Overlay.chain(hit);
+                }
+            }
+        } catch (Throwable t) {
+            VideoFeatures.log("Cover check failed", t);
+        }
+        if (result != covered) {
+            covered = result;
+            if (MorpheLog.enabled()) {
+                MorpheLog.log("cover", result ? "Button hidden: covered at " + Math.round(centerX) + "," + Math.round(centerY)
+                        + " by " + why + " | video " + Overlay.describe(video)
+                        : "Button allowed again: nothing covers it");
+            }
+        }
+        return covered;
     }
 
     private static final Runnable FOLLOW = new Runnable() {
@@ -139,6 +189,10 @@ final class DownloadButton {
                 return;
             }
             place(activity, video);
+            if (coveredNow(video)) {
+                hide();
+                return;
+            }
             following = true;
             view.postOnAnimation(this);
         }
@@ -152,6 +206,7 @@ final class DownloadButton {
 
     /** Fades the button out. */
     static void hide() {
+        if (!covered) PROBE.reset();
         final Icon view = button;
         if (view == null || view.getVisibility() != View.VISIBLE || hiding) return;
         if (!view.isAttachedToWindow()) {
@@ -177,6 +232,8 @@ final class DownloadButton {
         button.animate().cancel();
         button.setVisibility(View.GONE);
         hiding = false;
+        covered = false;
+        PROBE.reset();
     }
 
     static void forget(Activity activity) {
@@ -186,6 +243,8 @@ final class DownloadButton {
             button = null;
             hiding = false;
             following = false;
+            covered = false;
+            PROBE.reset();
         }
     }
 
@@ -211,7 +270,7 @@ final class DownloadButton {
 
     private static void create(final Activity activity) {
         int size = dp(activity, 40);
-        Icon view = new Icon(activity);
+        Icon view = Overlay.mark(new Icon(activity));
         view.setContentDescription(vi() ? "Tải video" : "Download video");
         view.setOnClickListener(v -> download(activity));
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(size, size, Gravity.TOP | Gravity.START);

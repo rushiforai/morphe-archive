@@ -12,7 +12,6 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 
 private object SetSensorLandscapeFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    returnType = "V",
     parameters = listOf(),
     strings = listOf("set SENSOR_LANDSCAPE orientation"),
     filters = listOf(

@@ -10,7 +10,9 @@ val gemini10995038376 = AppVersionProfile(
     versionName = "1.0.995038376",
     versionCode = "345",
     inputSha256 = mapOf("gemini-base.apk" to "af62293b20afe73748ff23eb7de7836f3322b62881291ac88434629cdf58afbe"),
-    validation = listOf("2026-11-03: four exact-package references; user confirmed Secure Folder chat send/response after component restoration fix"),
+    validation = listOf("2026-11-03: four exact-package references; user confirmed Secure Folder chat send/response after component restoration fix",
+        "2026-11-12: API36 emulator shell UID2000: original Google coexistence, Lens permission-gate before/after and clone launcher routing verified; no account/chat test"
+    ),
     hooks = mapOf(
         HookId.GEMINI_TARGET_REDIRECT to TargetSpec(
             anchorStrings = listOf("com.google.android.googlequicksearchbox"),

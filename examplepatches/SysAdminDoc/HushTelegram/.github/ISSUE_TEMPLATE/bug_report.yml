@@ -138,6 +138,14 @@ body:
         - Strip link tracking
         - Test server sign-in
         - Bot token sign-in
+        - Never send an uncropped photo
+        - Keep captions with their photos
+        - Proxy in the chat list menu
+        - Free proxies
+        - My messages
+        - Text direction
+        - Lyrics and song dates
+        - Chat preview buttons
         - HushTelegram settings
     validations:
       required: true

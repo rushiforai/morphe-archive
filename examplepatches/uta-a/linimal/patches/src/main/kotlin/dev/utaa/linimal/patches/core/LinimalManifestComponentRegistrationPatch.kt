@@ -11,7 +11,7 @@ import dev.utaa.linimal.patches.status.patchStatusResourcePatch
 
 /** MPE の manifest が自動では merge されないため、必要な component を明示的に登録します。 */
 val linimalManifestComponentRegistrationPatch = resourcePatch(
-    name = "Linimal 設定画面の登録",
+    name = "Linimal settings component",
     description = "Linimal の設定画面を AndroidManifest へ component として登録します。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)

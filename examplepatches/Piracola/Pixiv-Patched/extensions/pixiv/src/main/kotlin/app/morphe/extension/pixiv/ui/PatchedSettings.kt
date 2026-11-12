@@ -22,6 +22,7 @@ import android.widget.TextView
 import android.widget.Toast
 import app.morphe.extension.pixiv.aiflag.AiFilterSettingsView
 import app.morphe.extension.pixiv.history.HistoryStore
+import app.morphe.extension.pixiv.search.SearchRankingConfig
 import java.net.HttpURLConnection
 import java.net.URL
 import java.text.SimpleDateFormat
@@ -58,6 +59,7 @@ object PatchedSettings {
     fun show(host: View?) {
         val activity = findActivity(host?.context) ?: return
         try {
+            SearchRankingConfig.ensureLoaded()
             val palette = Palette(activity)
             val dialog = Dialog(activity, dialogTheme(palette))
             val root = LinearLayout(activity).apply {
@@ -149,6 +151,8 @@ object PatchedSettings {
         column.addView(
             card(context, palette).apply {
                 addView(entryRow(context, palette, Strings.aiSettingsEntry, Strings.aiSettingsHint))
+                addView(divider(context, palette))
+                addView(searchRankingRow(context, palette, onClear))
             }
         )
 
@@ -436,6 +440,53 @@ object PatchedSettings {
                     text = "›"
                     textSize = 22f
                     setTextColor(palette.secondary)
+                    setPadding(dp(context, 8f), 0, 0, 0)
+                }
+            )
+        }
+
+    private fun searchRankingRow(
+        context: Context,
+        palette: Palette,
+        onChanged: () -> Unit
+    ): View =
+        LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(context, 16f), dp(context, 14f), dp(context, 16f), dp(context, 14f))
+            setOnClickListener {
+                SearchRankingConfig.setMode(
+                    context,
+                    SearchRankingConfig.next(SearchRankingConfig.current)
+                )
+                onChanged()
+            }
+            addView(
+                LinearLayout(context).apply {
+                    orientation = LinearLayout.VERTICAL
+                    layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                    addView(
+                        TextView(context).apply {
+                            text = Strings.searchRanking
+                            textSize = 15f
+                            setTextColor(palette.primary)
+                        }
+                    )
+                    addView(
+                        TextView(context).apply {
+                            text = Strings.searchRankingHint
+                            textSize = 11f
+                            setTextColor(palette.secondary)
+                            setPadding(0, dp(context, 2f), 0, 0)
+                        }
+                    )
+                }
+            )
+            addView(
+                TextView(context).apply {
+                    text = Strings.searchRankingMode(SearchRankingConfig.current)
+                    textSize = 14f
+                    setTextColor(palette.accent)
                     setPadding(dp(context, 8f), 0, 0, 0)
                 }
             )

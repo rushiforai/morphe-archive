@@ -1,3 +1,25 @@
+## [1.73.1](https://github.com/SatanMerde/D-moniakPatches/compare/v1.73.0...v1.73.1) (2026-11-11)
+
+### 🐛 Bug Fixes
+
+* **picturemushroom:** bypass splash connection error trap and enforce network readiness ([91dc950](https://github.com/SatanMerde/D-moniakPatches/commit/91dc9501e4f42fbd380c170b99a2b2797436afcb))
+
+## [1.73.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.72.0...v1.73.0) (2026-11-11)
+
+### 🐛 Bug Fixes
+
+* **claude:** add Play Integrity and installer bypass, modernize patch suite ([cec757c](https://github.com/SatanMerde/D-moniakPatches/commit/cec757cf5e4b3f8cddafa4259b812447b50d3312))
+
+### ✨ New Features
+
+* **deepl:** overhaul patch suite for v26.45 with correct package name and 2 new patches ([ae1b3fc](https://github.com/SatanMerde/D-moniakPatches/commit/ae1b3fcb2ed5ec4db36b3f82c99209626306c06e))
+* **macrodroid:** add Pro unlock, unlimited macros, ad-free, and screenshot patches for v6.1.5 ([c928d83](https://github.com/SatanMerde/D-moniakPatches/commit/c928d834bde7e84cce55c5fcb774a87abd4d4906))
+* **mtmanager:** add VIP unlock, ad removal, and signature bypass patches for v2.26.11 ([b1ea7ba](https://github.com/SatanMerde/D-moniakPatches/commit/b1ea7ba872fcbdf00c5d5bbf60dfea2b43a912a3))
+* **picturemushroom:** add Unlock Premium, Ad-Free, and Allow Screenshots patches ([5dba900](https://github.com/SatanMerde/D-moniakPatches/commit/5dba900dc228c123106ec45f77da7bc49dee628e))
+* **shroomid:** add Unlock Premium, Ad-Free, and Allow Screenshots patches ([7892aa3](https://github.com/SatanMerde/D-moniakPatches/commit/7892aa356b549fb10c739681adabaa08b5ccf467))
+* **snapchat:** overhaul patch suite for v14.31.0.56 with enhanced safety warnings and zero arobase ([3368b94](https://github.com/SatanMerde/D-moniakPatches/commit/3368b94ee7b4a692b773a5fab1024449f580d3c9))
+* **youtube:** overhaul and sanitize full patch suite for v21.44.539 with zero arobase ([31a9604](https://github.com/SatanMerde/D-moniakPatches/commit/31a960495cd682db96b0fc362cec772a1b7eebe7))
+
 ## [1.72.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.71.1...v1.72.0) (2026-11-10)
 
 ### ✨ New Features

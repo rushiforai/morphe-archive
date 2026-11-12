@@ -1,3 +1,21 @@
+## [1.12.0](https://github.com/callMeBeyonder/morphe-patches/compare/v1.11.0...v1.12.0) (2026-11-11)
+
+### ✨ New Features
+
+* **c25k:** add premium unlock patch for C25K 144.27 ([424767e](https://github.com/callMeBeyonder/morphe-patches/commit/424767e92b1b4555c35f21c83af06e686660bfcf))
+
+## [1.11.0](https://github.com/callMeBeyonder/morphe-patches/compare/v1.10.0...v1.11.0) (2026-11-11)
+
+### ✨ New Features
+
+* **macrofactor-diet:** add premium unlock patch for MacroFactor 5.8.11 ([7348fe3](https://github.com/callMeBeyonder/morphe-patches/commit/7348fe374a65742e38f0e65d846c786df179ba93))
+
+## [1.10.0](https://github.com/callMeBeyonder/morphe-patches/compare/v1.9.0...v1.10.0) (2026-11-11)
+
+### ✨ New Features
+
+* **macrofactor:** support Workouts 1.4.3 ([ac31da2](https://github.com/callMeBeyonder/morphe-patches/commit/ac31da2a6d89c3b30d29376df023ecaa936d799f))
+
 ## [1.9.0](https://github.com/callMeBeyonder/morphe-patches/compare/v1.8.1...v1.9.0) (2026-11-09)
 
 ### ✨ New Features

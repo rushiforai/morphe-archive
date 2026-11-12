@@ -36,7 +36,7 @@ keyboard with no visible input target is worse than stock. Restore with
   ```sh
   cd /home/ezflow/coding/oxbow
   export ANDROID_HOME=$HOME/Android/Sdk GITHUB_ACTOR="$(gh api user --jq .login)" GITHUB_TOKEN="$(gh auth token)"
-  ./build.sh com.instagram.android_453*.apkm --clone   # 16 "INFO: Applied" = ok
+  ./build.sh com.instagram.android_455*.apkm --clone   # 20 "INFO: Applied" = ok (19 + Clone)
   adb install -r oxbow-clone.apk
   adb logcat -c && adb shell monkey -p com.instagram.android.oxbow -c android.intent.category.LAUNCHER 1
   ```
@@ -47,9 +47,9 @@ keyboard with no visible input target is worse than stock. Restore with
   `unzip -p patches/build/libs/patches-1.0.1.mpp extensions/extension.mpe | strings | grep <newMethodName>`
 - Decompile for static work (~2.5 min, /tmp does not survive reboots):
   ```sh
-  java -jar tools/APKEditor-1.4.9.jar d -i build/merged/com.instagram.android_453*.apk -o /tmp/dec453 -no-dex-debug -res-dir res
+  java -jar tools/APKEditor-1.4.9.jar d -i build/merged/com.instagram.android_455*.apk -o /tmp/dec455 -no-dex-debug -res-dir res
   ```
-  (build/merged contains the APKEditor-merged 453 apk; build.sh recreates it.)
+  (build/merged contains the APKEditor-merged 455 apk; build.sh recreates it.)
 - Method dumper (prints smali-level instructions with registers straight from an
   apk — dexlib2 from the morphe jar, single-file java): `/tmp/DumpA02.java`.
   Usage: `java -cp tools/morphe-desktop-1.18.1-all.jar /tmp/DumpA02.java <apk> "LX/...;" "<method>" <from> <to>`.

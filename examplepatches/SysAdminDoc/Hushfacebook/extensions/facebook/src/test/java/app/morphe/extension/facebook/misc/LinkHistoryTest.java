@@ -6,6 +6,7 @@ package app.morphe.extension.facebook.misc;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.After;
@@ -112,6 +113,82 @@ public class LinkHistoryTest {
         Settings.HOLD_LINK_HISTORY.resetToDefault();
         PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
         assertFalse(LinkHistory.holdAutofillReport());
+        assertEquals(LinkHistory.ROUTE + ": 2 lists, 2 items, 0 removed", counterLine());
+    }
+
+    @Test
+    public void onByDefaultASampledBrowserEventIsntSent() {
+        assertFalse("the landing page event went out", LinkHistory.sendBrowserEvent(1));
+        assertFalse("the pixel event went out", LinkHistory.sendBrowserEvent(1));
+        assertEquals(LinkHistory.ROUTE + ": 2 lists, 2 items, 2 removed. Last reason: " + LinkHistory.BROWSER_EVENTS
+                + ". Removed: " + LinkHistory.BROWSER_EVENTS + " 2", counterLine());
+    }
+
+    /** An event Facebook's own sampling turned away stays unsent, and isn't counted as held. */
+    @Test
+    public void anUnsampledBrowserEventStaysUnsentAndUncounted() {
+        assertFalse(LinkHistory.sendBrowserEvent(0));
+        Settings.HOLD_LINK_HISTORY.save(false);
+        assertFalse(LinkHistory.sendBrowserEvent(0));
+        assertNull(counterLine());
+    }
+
+    @Test
+    public void offOrPausedASampledBrowserEventIsSent() {
+        Settings.HOLD_LINK_HISTORY.save(false);
+        assertTrue(LinkHistory.sendBrowserEvent(1));
+        Settings.HOLD_LINK_HISTORY.resetToDefault();
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        assertTrue(LinkHistory.sendBrowserEvent(1));
+        assertEquals(LinkHistory.ROUTE + ": 2 lists, 2 items, 0 removed", counterLine());
+    }
+
+    @Test
+    public void onByDefaultAnAdEventIsHeldAndCountedApart() {
+        assertTrue("the call button's tap was logged", LinkHistory.holdAdEvent());
+        assertFalse(LinkHistory.sendBrowserEvent(1));
+        assertEquals(LinkHistory.ROUTE + ": 2 lists, 2 items, 2 removed. Last reason: " + LinkHistory.BROWSER_EVENTS
+                + ". Removed: " + LinkHistory.AD_EVENTS + " 1, " + LinkHistory.BROWSER_EVENTS + " 1", counterLine());
+    }
+
+    @Test
+    public void offOrPausedAnAdEventIsLogged() {
+        Settings.HOLD_LINK_HISTORY.save(false);
+        assertFalse(LinkHistory.holdAdEvent());
+        Settings.HOLD_LINK_HISTORY.resetToDefault();
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        assertFalse(LinkHistory.holdAdEvent());
+        assertEquals(LinkHistory.ROUTE + ": 2 lists, 2 items, 0 removed", counterLine());
+    }
+
+    @Test
+    public void onByDefaultEachIntegrityReportIsHeldAndCountedApart() {
+        assertTrue("the cloaking check got the page", LinkHistory.holdIntegrityReport("INTEGRITY_LOGGER"));
+        assertTrue("the redirect chain was logged", LinkHistory.holdIntegrityReport("INTEGRITY_SIGNALS_EVENT"));
+        assertTrue("the outbound click was logged", LinkHistory.holdIntegrityReport("INTEGRITY_OUTBOUND_CLICK_EVENT"));
+        assertTrue(LinkHistory.holdAdEvent());
+        assertEquals(LinkHistory.ROUTE + ": 4 lists, 4 items, 4 removed. Last reason: " + LinkHistory.AD_EVENTS
+                + ". Removed: " + LinkHistory.INTEGRITY_REPORTS + " 3, " + LinkHistory.AD_EVENTS + " 1", counterLine());
+    }
+
+    /** The callback's other events do things (autofill, translation, the login dialog), so they always run. */
+    @Test
+    public void theCallbacksOtherEventsRunAndArentCounted() {
+        for (String event : new String[] {"SAVE_AUTOFILL_DIALOG_COMPLETED", "AUTOFILL_BAR_ACCEPTED",
+                "CALL_EXTENSION_DATA_FETCH", "TOGGLE_WEB_PAGE_TRANSLATION", "SHOW_BWP_MORE_INFO_BOTTOM_SHEET",
+                "FBLOGIN_ACTION_SEND_REPONSE_BACK", "FBLOGIN_JS_SHOW_DIALOG", "integrity_logger", "", null}) {
+            assertFalse(String.valueOf(event), LinkHistory.holdIntegrityReport(event));
+        }
+        assertNull(counterLine());
+    }
+
+    @Test
+    public void offOrPausedAnIntegrityReportGoesOut() {
+        Settings.HOLD_LINK_HISTORY.save(false);
+        assertFalse(LinkHistory.holdIntegrityReport("INTEGRITY_SIGNALS_EVENT"));
+        Settings.HOLD_LINK_HISTORY.resetToDefault();
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        assertFalse(LinkHistory.holdIntegrityReport("INTEGRITY_LOGGER"));
         assertEquals(LinkHistory.ROUTE + ": 2 lists, 2 items, 0 removed", counterLine());
     }
 }

@@ -320,6 +320,8 @@ The Reels tab only shows reels from people and Pages you follow, starting with t
 Facebook has no more reels your filters would keep, so these reels aren't filtered for now.	Facebook 沒有更多能通過你的篩選的 Reels 了，所以這些 Reels 暫時不篩選。
 Hush hid the suggested posts after this, so Home ends here.	Hush 隱藏了之後的推薦貼文，所以首頁到這裡就結束了。
 Download quality	下載畫質
+Choose quality on each save	每次儲存時選擇畫質
+A reel's Download button and a video's Download to phone show the qualities first, and the save takes the one you pick. Download quality stays as it is.	Reels 的下載按鈕和影片的「下載到手機」會先列出畫質，儲存你選的那一個。下載畫質設定保持不變。
 Best	最佳
 Smallest	最小
 Each video saves at the best quality the player streams.	每部影片皆以播放器串流提供的最佳畫質儲存。
@@ -467,6 +469,10 @@ The Also from Meta section leaves Facebook's Menu, with its links to Meta's othe
 Hide Help and support	隱藏使用說明和支援
 # context: summary of that switch; Settings and privacy is Facebook's own Menu section
 The Help and support section leaves Facebook's Menu, header and all. Settings and privacy stays.	從 Facebook 選單移除整個「使用說明和支援」區段，包含標題。「設定和隱私」仍會保留。
+Hide Your shortcuts	隱藏「你的捷徑」
+The Your shortcuts row leaves Facebook's Menu, with the groups and Pages Facebook keeps putting back in it. The Menu tiles under it stay.	從 Facebook 選單移除「你的捷徑」這一列，包含 Facebook 一直放回去的社團和粉絲專頁。下方的選單圖塊仍會保留。
+Hide Create Facebook Page	隱藏「建立 Facebook 粉絲專頁」
+The Create Facebook Page row leaves the top of Facebook's Menu. Your profile above it stays.	從 Facebook 選單頂部移除「建立 Facebook 粉絲專頁」這一列。上方的個人檔案仍會保留。
 # context: switch title under Menu; Settings and privacy is a section of Facebook's own Menu that folds and unfolds when its header is tapped
 Keep Settings and privacy expanded	保持展開設定和隱私
 # context: summary of that switch
@@ -494,6 +500,8 @@ Hide dislike on comments	隱藏留言的倒讚按鈕
 Takes the thumbs-down off comments. Like and Reply stay.	移除留言旁的倒讚按鈕。讚和回覆保留。
 Hide Like on comments	隱藏留言的讚按鈕
 Takes Like off the row under comments. Reply and the reaction count stay.	移除留言下方那一列的讚。回覆和心情數量保留。
+Hide Reply on comments	隱藏留言的回覆按鈕
+Takes Reply off the row under comments. View replies, Like and the reaction count stay.	移除留言下方那一列的回覆。「查看回覆」、讚和心情數量保留。
 # context: switch title under Comments; Like is the button under a post or a comment
 Like only	僅使用讚
 # context: summary of that switch; the reactions are the row of Love, Haha, Wow and the rest that a long press on Like opens
@@ -1108,6 +1116,10 @@ Hides the Stories tray card that asks to upload your contacts. Applies when Face
 Hide story prompts	隱藏限時動態提示
 # context: summary of that switch; Share music you love is the name of one such card
 Hides cards beside Create story that suggest a story to make, like Share music you love. Applies when Facebook next loads the tray.	隱藏「建立限時動態」旁建議製作限時動態的卡片，例如「分享你喜愛的音樂」。從 Facebook 下次載入橫幅起生效。
+# context: switch title under Stories; Create story is the first tile of the Stories tray, the one that starts a new story of your own
+Hide Create story	隱藏「建立限時動態」
+# context: summary of that switch
+Takes the Create story tile off the start of the Stories tray. The stories stay. Applies when Facebook next loads the tray.	從限時動態橫幅開頭移除「建立限時動態」卡片。限時動態會保留。從 Facebook 下次載入橫幅起生效。
 # context: summary of Hide "People you may know" when the build also hides tray cards; Add is the card's button
 Hides friend suggestions between posts, on your own profile, and as cards with an Add button in the Stories tray.	隱藏貼文之間、你個人檔案上，以及限時動態橫幅中附有「加朋友」按鈕的交友推薦。
 Feeds opens on	動態消息預設篩選
@@ -2707,3 +2719,18 @@ Playback speed in the post menu	貼文選單中的播放速度
 A feed or Watch video's 3-dot menu gets Playback speed, from 0.5x to 3x, live videos too. Off by default, since it hasn't been tried on a real account yet.	動態消息或 Watch 影片的三點選單會加入播放速度，從 0.5 倍到 3 倍，直播影片也適用。預設停用，因為尚未使用真實帳號測試。
 Double tap to skip on feed videos	動態影片雙擊跳轉
 Double tap the right side of a playing feed video to jump ahead 10 seconds, or the left side to go back 10. Keep tapping to go further. Live videos work too when they can be rewound. One tap on a side still opens the video, a moment later than usual. With Tap to play on, it needs Inline feed video controls on too.	在播放中的動態影片右側點兩下可快轉 10 秒，左側點兩下可倒轉 10 秒。繼續點按可以跳得更遠。直播影片在可以倒轉時也適用。點一下側邊仍會開啟影片，只是比平常稍晚一點。開啟「點按播放」時，也需要開啟「動態消息影片控制項」。
+Show only comments that match	只顯示相符的留言
+While the search box holds words, comments without them are hidden. Clearing the box brings them back.	搜尋框中有文字時，不含這些文字的留言會被隱藏。清空搜尋框即可恢復。
+Queue reel saves	排隊儲存 Reels
+Each reel you tap Download on joins a queue that saves one reel at a time in the background. Pause or cancel it from its notification or from Downloads here. A reel already in the queue is skipped, and one that fails gets one more try. The queue lasts until Facebook closes.	每個你點了「下載」的 Reels 都會加入一個佇列，在背景中一次儲存一個。可以從它的通知或這裡的「下載」暫停或取消。已在佇列中的 Reels 會略過，儲存失敗的會再試一次。佇列會保留到 Facebook 關閉為止。
+Added to the reel queue	已加入 Reels 佇列
+Added to the reel queue. To pause or cancel it, open Downloads in Hushfacebook settings.	已加入 Reels 佇列。如要暫停或取消，請開啟 Hushfacebook 設定中的「下載」。
+Already in the reel queue	已在 Reels 佇列中
+That reel is already saved	這個 Reels 已經儲存過了
+The reel queue is full. Try again when it's shorter.	Reels 佇列已滿。請等佇列變短後再試。
+Saving queued reels	正在儲存佇列中的 Reels
+Reel queue paused	Reels 佇列已暫停
+Reel queue done	Reels 佇列已完成
+%1$d saved, %2$d waiting, %3$d failed	已儲存 %1$d 個，等待 %2$d 個，失敗 %3$d 個
+Reel queue canceled	Reels 佇列已取消
+Cancel the reel queue	取消 Reels 佇列

@@ -70,9 +70,29 @@ import com.android.tools.smali.dexlib2.AccessFlags
 //      patch; onCreate's conditional finish() NOP'd) — Strava's own
 //      feature-switch/inspection console, reachable via adb.
 //
-//   5) DEBUG probe (investigation builds only): GenericLayoutEntryJsonAdapter
-//      .deserialize logs every module "type" as the feed parses — identifies
-//      the module types driving home-feed banners. REMOVE BEFORE RELEASE.
+//   5) (removed in v4 — the investigation-only "log every module type" probe was
+//      deleted; the type set it produced is recorded in the v4 note below.)
+//
+// v4 (2026-11-11) — LEAK FIX. The upsell module gate compared the type against a
+// fixed 5-string list, so any upsell type Strava added since leaked (the gate
+// defaults to SHOW for unknown types). Proven leaks in 486.x: toolbar-upsell,
+// yis-2026-upsell-card-{generic,legendary,rare}, best-efforts-peek-upsell-chart,
+// sub-android-year-in-sport-2026-upsell-*, year-in-sport-2026-upsell-android,
+// achieve--instant-workouts--runna-banner--android. Fixes:
+//   (a) the gate now uses an upsell-SHAPE PREDICATE (contains "upsell", plus the
+//       explicit sub-preview-banner / subscriber-feature-header /
+//       recap-progress-entrypoint / yis-2026 / year-in-sport-2026 / runna-banner
+//       names) → new server types are covered automatically;
+//   (b) NEW chokepoint 2b: ww4.a(FragmentManager, SubscriptionsUpsellLocation)V
+//       is the single method that shows EVERY subscription bottom-sheet upsell;
+//   (c) NEW 2c: dedicated upsell screens (YearInSportUpsellActivity,
+//       BestEffortsDataPeekUpsellActivity, DeviceConnectUpsellActivity) get a
+//       finish() gate after super.onCreate — the second, non-modular upsell
+//       delivery system the v3 patch never covered.
+// NOTE: only MODULAR upsells pass through hts.a; the yis/toolbar/
+// best-efforts types are NOT converters (verified: only ActivityReplayUpsellCard
+// and DataPeekUpsell converters implement createModule(GenericLayoutModule,…)),
+// which is why (b)+(c) are needed and why the predicate alone is not enough.
 //
 // Version history: 486.9 (2026-10-23): obfuscated param types renamed
 // (Lzsn;→Lsxn;, Lwns;→Lhts;) — fingerprints updated. 486.11 (2026-10-28):
@@ -92,43 +112,58 @@ private const val MODULE_GATE_SMALI = """
     move-result-object v0
     invoke-virtual {p1}, Lcom/strava/modularframework/data/GenericLayoutModule;->getType()Ljava/lang/String;
     move-result-object v1
+
+    # ── Upsell predicate (v4) ────────────────────────────────────────────────
+    # The default for a type is HIDE when its name is upsell-shaped. Substring
+    # matching (not an exact type list) so server-added upsell types stay covered
+    # automatically — the v3 list missed toolbar-upsell, yis-2026-upsell-card-*,
+    # best-efforts-peek-upsell-chart, sub-*-year-in-sport-2026-upsell-* and
+    # achieve--instant-workouts--runna-banner--android, which all leaked.
     const/4 v3, 0x0
-    const-string v2, "activity-replay-upsell-card"
-    invoke-virtual {v1, v2}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+    const-string v2, "upsell"
+    invoke-virtual {v1, v2}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
     move-result v2
-    if-eqz v2, :morphe_t2
+    if-eqz v2, :morphe_p1
     const/4 v3, 0x1
-    :morphe_t2
+    :morphe_p1
+    const-string v2, "sub-preview-banner"
+    invoke-virtual {v1, v2}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v2
+    if-eqz v2, :morphe_p2
+    const/4 v3, 0x1
+    :morphe_p2
     const-string v2, "subscriber-feature-header"
     invoke-virtual {v1, v2}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
     move-result v2
-    if-eqz v2, :morphe_t3
+    if-eqz v2, :morphe_p3
     const/4 v3, 0x1
-    :morphe_t3
-    const-string v2, "sub-preview-banner-large"
-    invoke-virtual {v1, v2}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
-    move-result v2
-    if-eqz v2, :morphe_t4
-    const/4 v3, 0x1
-    :morphe_t4
-    const-string v2, "sub-preview-banner-small"
-    invoke-virtual {v1, v2}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
-    move-result v2
-    if-eqz v2, :morphe_t5
-    const/4 v3, 0x1
-    :morphe_t5
-    const-string v2, "data-peek-upsell"
-    invoke-virtual {v1, v2}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
-    move-result v2
-    if-eqz v2, :morphe_t6
-    const/4 v3, 0x1
-    :morphe_t6
+    :morphe_p3
     const-string v2, "recap-progress-entrypoint"
     invoke-virtual {v1, v2}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
     move-result v2
-    if-eqz v2, :morphe_t7
+    if-eqz v2, :morphe_p4
     const/4 v3, 0x1
-    :morphe_t7
+    :morphe_p4
+    const-string v2, "yis-2026"
+    invoke-virtual {v1, v2}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v2
+    if-eqz v2, :morphe_p5
+    const/4 v3, 0x1
+    :morphe_p5
+    const-string v2, "year-in-sport-2026"
+    invoke-virtual {v1, v2}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v2
+    if-eqz v2, :morphe_p6
+    const/4 v3, 0x1
+    :morphe_p6
+    const-string v2, "runna-banner"
+    invoke-virtual {v1, v2}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v2
+    if-eqz v2, :morphe_p7
+    const/4 v3, 0x1
+    :morphe_p7
+
+    # Per-type user override: morphe.hide.<type> (default = predicate result).
     new-instance v4, Ljava/lang/StringBuilder;
     const-string v2, "morphe.hide."
     invoke-direct {v4, v2}, Ljava/lang/StringBuilder;-><init>(Ljava/lang/String;)V
@@ -159,12 +194,59 @@ private const val MAPS_GATE_SMALI = """
     return-void
 """
 
+// v4: the subscription **bottom-sheet** upsells ("Unlock our best training tools"
+// half-sheets). Every one of them is shown by the single method
+//   ww4.a(FragmentManager, SubscriptionsUpsellLocation)V
+// which maps an upsell location to a BottomSheetUpsell enum and instantiates
+// BottomSheetUpsellDialogFragment. Returning early here removes the whole family
+// (one chokepoint instead of the 20+ call sites). .locals 4 → v0-v2 dead at entry.
+private const val UPSELL_SHEET_GATE = """
+    invoke-static {}, Landroid/app/ActivityThread;->currentApplication()Landroid/app/Application;
+    move-result-object v0
+    if-eqz v0, :morphe_ret
+    const-string v1, "com.strava_preferences"
+    const/4 v2, 0x0
+    invoke-virtual {v0, v1, v2}, Landroid/app/Application;->getSharedPreferences(Ljava/lang/String;I)Landroid/content/SharedPreferences;
+    move-result-object v0
+    const-string v1, "morphe.hide.upsell_sheets"
+    const/4 v2, 0x1
+    invoke-interface {v0, v1, v2}, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String;Z)Z
+    move-result v0
+    if-eqz v0, :morphe_ret
+    return-void
+"""
+
+// v4: dedicated upsell **screens** (activities) that no gate covered:
+//   subscriptionsyearinsport/upsell/YearInSportUpsellActivity   (YIS-2026 campaign)
+//   subscriptionsdatapeek/BestEffortsDataPeekUpsellActivity     (Best Efforts peek)
+//   subscriptionsdeviceconnect/DeviceConnectUpsellActivity      (device-connect promo)
+// Injected right after super.onCreate (v0-v2 dead there) → the screen calls
+// finish() and the previous screen stays. Same proven pattern as the
+// celebration gate. A dedicated pref keeps it independently toggleable.
+private const val UPSELL_ACTIVITY_GATE = """
+    invoke-static {}, Landroid/app/ActivityThread;->currentApplication()Landroid/app/Application;
+    move-result-object v0
+    if-eqz v0, :morphe_go
+    const-string v1, "com.strava_preferences"
+    const/4 v2, 0x0
+    invoke-virtual {v0, v1, v2}, Landroid/app/Application;->getSharedPreferences(Ljava/lang/String;I)Landroid/content/SharedPreferences;
+    move-result-object v0
+    const-string v1, "morphe.hide.upsell_screens"
+    const/4 v2, 0x1
+    invoke-interface {v0, v1, v2}, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String;Z)Z
+    move-result v0
+    if-eqz v0, :morphe_go
+    invoke-virtual {p0}, Landroid/app/Activity;->finish()V
+    return-void
+"""
+
 @Suppress("unused")
 val removeDataPeekUpsellPatch = bytecodePatch(
-    name = "Remove Data Peek upsells",
-    description = "Removes server-driven subscription upsells (Data Peek carousel, replay card, prediction banner, SubPreview banners, Maps explore card) with runtime toggles in Extra Settings, and strips the Settings Subscriptions section.",
+    name = "Remove upsells & promos",
+    description = "Removes Strava's subscription upsells and promos: server-driven modular upsells (matched by an upsell-shape predicate so new server types stay covered), subscription bottom-sheet upsells, and the dedicated upsell screens (Year in Sport 2026, Best Efforts Data Peek, Device Connect). Runtime toggles in Extra Settings; the Settings Subscriptions section is stripped.",
     default = true,
 ) {
+    category("Upsells")
     compatibleWith(STRAVA_COMPATIBILITY)
 
     execute {
@@ -236,7 +318,49 @@ val removeDataPeekUpsellPatch = bytecodePatch(
         }
         println("Extra settings: converter-level gates wired (4 upsell converters)")
 
-        // 2b) Celebrations.
+        // 2b) Subscription bottom-sheet upsells — ONE chokepoint (v4).
+        mutableClassDefBy("Lww4;").methods.first {
+            it.name == "a" && it.returnType == "V" &&
+                it.parameters.size == 2 &&
+                it.parameters[0].type == "Landroidx/fragment/app/FragmentManager;" &&
+                it.parameters[1].type ==
+                "Lcom/strava/subscriptions/data/models/SubscriptionsUpsellLocation;"
+        }.apply {
+            addInstructionsWithLabels(
+                0,
+                UPSELL_SHEET_GATE.trimIndent(),
+                ExternalLabel("morphe_ret", getInstruction(0)),
+            )
+        }
+        println("Extra settings: subscription bottom-sheet upsell gate wired (ww4.a)")
+
+        // 2c) Dedicated upsell screens (v4).
+        for (actClass in listOf(
+            "Lcom/strava/subscriptionsyearinsport/upsell/YearInSportUpsellActivity;",
+            "Lcom/strava/subscriptionsdatapeek/BestEffortsDataPeekUpsellActivity;",
+            "Lcom/strava/subscriptionsdeviceconnect/DeviceConnectUpsellActivity;",
+        )) {
+            val onCreate = mutableClassDefBy(actClass)
+                .methods
+                .first { it.name == "onCreate" && it.parameters.size == 1 }
+            val impl = onCreate.implementation!!
+            val superIdx = impl.instructions.indexOfFirst {
+                it is com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction &&
+                    it.opcode == com.android.tools.smali.dexlib2.Opcode.INVOKE_SUPER &&
+                    it.reference.toString().contains("onCreate")
+            }
+            if (superIdx < 0) {
+                throw PatchException("$actClass onCreate super not found — re-audit.")
+            }
+            onCreate.addInstructionsWithLabels(
+                superIdx + 1,
+                UPSELL_ACTIVITY_GATE.trimIndent(),
+                ExternalLabel("morphe_go", onCreate.getInstruction(superIdx + 1)),
+            )
+        }
+        println("Extra settings: upsell screen gates wired (3 activities)")
+
+        // 2d) Celebrations.
         val CELEB_GATE = """
     invoke-static {}, Landroid/app/ActivityThread;->currentApplication()Landroid/app/Application;
     move-result-object v0
@@ -388,45 +512,7 @@ val removeDataPeekUpsellPatch = bytecodePatch(
             println("Extra settings: SuperUserTools console unlocked")
         }
 
-        // 5) DEBUG probe — REMOVE BEFORE RELEASE. Materialize the class from
-        // its raw ClassDef first: the patcher's lazy MutableClass NPEs on
-        // .methods for untouched classes in FULL mode (486.11).
-        try {
-            val adapterCd = classDefByOrNull(
-                "Lcom/strava/modularframework/serialization/GenericLayoutEntryJsonAdapter;",
-            ) ?: throw PatchException("adapter class not found")
-            mutableClassDefBy(adapterCd).methods.first {
-                it.name == "deserialize" && it.returnType == "Ljava/lang/Object;"
-            }.apply {
-            addInstructionsWithLabels(
-                0,
-                """
-                    invoke-virtual {p1}, Lcom/google/gson/JsonElement;->isJsonObject()Z
-                    move-result v0
-                    if-eqz v0, :morphe_done
-                    check-cast p1, Lcom/google/gson/JsonObject;
-                    const-string v0, "type"
-                    invoke-virtual {p1, v0}, Lcom/google/gson/JsonObject;->get(Ljava/lang/String;)Lcom/google/gson/JsonElement;
-                    move-result-object v0
-                    if-eqz v0, :morphe_done
-                    invoke-virtual {v0}, Lcom/google/gson/JsonElement;->isJsonPrimitive()Z
-                    move-result v1
-                    if-eqz v1, :morphe_done
-                    invoke-virtual {v0}, Lcom/google/gson/JsonElement;->getAsString()Ljava/lang/String;
-                    move-result-object v0
-                    const-string v1, "MorpheTypes"
-                    invoke-static {v1, v0}, Landroid/util/Log;->i(Ljava/lang/String;Ljava/lang/String;)I
-                    :morphe_done
-                """.trimIndent(),
-                ExternalLabel("morphe_done", getInstruction(15)),
-            )
-            }
-            println("Extra settings: adapter type probe wired (DEBUG)")
-        } catch (e: Exception) {
-            println("Extra settings: adapter type probe skipped (${e.message?.take(60)})")
-        }
-
-        // 6) STABILITY: Strava's modular-UI "Print module data to logcat"
+        // 5) STABILITY: Strava's modular-UI "Print module data to logcat"
         // debug switch (pref modular_ui_dev_tools_data_logging → pss.a) makes
         // every ViewHolder run kotlin-reflect over its module data class —
         // which crashes FATAL on metadata-less data classes (e.g.
@@ -471,7 +557,7 @@ val removeDataPeekUpsellPatch = bytecodePatch(
         }
         println("Extra settings: module-data-logging crash guard wired")
 
-        // 7) Performance Predictions home banner ("Your predictions are
+        // 6) Performance Predictions home banner ("Your predictions are
         // ready / Start a free trial …"): NOT modular-UI — a native
         // composable (fg60.c, Rive text "Performance Predictions") fed by
         // RaceBannerRepository.getSuggestedRaces. Gate the renderer
@@ -503,7 +589,7 @@ val removeDataPeekUpsellPatch = bytecodePatch(
                 ExternalLabel("morphe_show", getInstruction(0)),
             )
         }
-        // 7b) The server-driven banner itself: RaceBannerRepositoryImpl
+        // 6b) The server-driven banner itself: RaceBannerRepositoryImpl
         // .getSuggestedRaces (.locals 0, 3-instruction delegate, no
         // try-blocks). When the hide-pref is set, park the coroutine on
         // COROUTINE_SUSPENDED and never resume: the flow never emits, so

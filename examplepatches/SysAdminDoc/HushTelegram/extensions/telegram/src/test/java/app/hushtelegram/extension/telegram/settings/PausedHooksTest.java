@@ -240,7 +240,8 @@ public class PausedHooksTest {
                 app.hushtelegram.extension.telegram.misc.DoubleTapReactions::stopReaction,
                 () -> app.hushtelegram.extension.telegram.misc.DoubleTapReactions.rows(new Object(), false, false) == null,
                 () -> app.hushtelegram.extension.telegram.misc.DoubleTapReactions.spoken(new org.telegram.tgnet.TLRPC.TL_messageReactions()) == null,
-                () -> !app.hushtelegram.extension.telegram.misc.DoubleTapReactions.picker(true)));
+                () -> !app.hushtelegram.extension.telegram.misc.DoubleTapReactions.picker(true),
+                app.hushtelegram.extension.telegram.misc.DoubleTapReactions::hideEffect));
         probes.put(PatchFamily.HIDE_CONTACTS_BLOCK, Arrays.asList(
                 () -> app.hushtelegram.extension.telegram.misc.ContactsBlock.rows(new java.util.ArrayList<>(Collections.singletonList("contact"))) == null,
                 () -> !app.hushtelegram.extension.telegram.misc.ContactsBlock.placeholder(true)));
@@ -429,7 +430,11 @@ public class PausedHooksTest {
                 // Typing and going online are kept back too, and a pause lets both go out.
                 () -> app.hushtelegram.extension.telegram.misc.GhostMode.drop(new org.telegram.tgnet.TLRPC.TL_messages_setTyping(), null),
                 () -> app.hushtelegram.extension.telegram.misc.GhostMode.drop(new org.telegram.tgnet.TLRPC.TL_messages_setEncryptedTyping(), null),
-                () -> app.hushtelegram.extension.telegram.misc.GhostMode.drop(new org.telegram.tgnet.tl.TL_account.updateStatus(), null)));
+                () -> app.hushtelegram.extension.telegram.misc.GhostMode.drop(new org.telegram.tgnet.tl.TL_account.updateStatus(), null),
+                // Instant lock shortens Auto-lock, and a pause gives the user's own delay back.
+                () -> app.hushtelegram.extension.telegram.misc.InstantLock.autoLockIn(60) != 60,
+                // Don't notify contacts asks for a quiet sign-up, and a pause leaves Telegram's own request.
+                () -> app.hushtelegram.extension.telegram.misc.QuietSignUp.noJoinedNotifications(0)));
         // Links open in the browser, and Mini Apps and web pages inside Telegram get no location.
         probes.put(PatchFamily.OPEN_EXTERNAL_LINKS, Arrays.asList(
                 PausedHooksTest::externalBrowserOpened,
@@ -471,6 +476,28 @@ public class PausedHooksTest {
         probes.put(PatchFamily.BYPASS_INTEGRITY_CHECK, Arrays.asList(
                 () -> app.hushtelegram.extension.telegram.misc.IntegrityBypass.skipIntegrityCheck(1),
                 () -> app.hushtelegram.extension.telegram.misc.IntegrityBypass.spoofSignature(1)));
+        probes.put(PatchFamily.CROP_GUARD, Collections.singletonList(
+                () -> app.hushtelegram.extension.telegram.misc.CropGuard.missing(null)));
+        // Unpicking the first of several captioned photos asks for the new first photo's caption.
+        probes.put(PatchFamily.CAPTION_ORDER, Collections.singletonList(() -> {
+            ArrayList<Object> order = new ArrayList<>(Arrays.asList(1, 2));
+            app.hushtelegram.extension.telegram.misc.CaptionOrder.before(order, 0, new Object());
+            order.remove(0);
+            return app.hushtelegram.extension.telegram.misc.CaptionOrder.after(order, 0) != null;
+        }));
+        probes.put(PatchFamily.PROXY_MENU, Collections.singletonList(
+                () -> app.hushtelegram.extension.telegram.misc.ProxyMenu.show(1)));
+        probes.put(PatchFamily.FREE_PROXIES, Collections.singletonList(
+                () -> app.hushtelegram.extension.telegram.misc.FreeProxies.signInButton(1)));
+        probes.put(PatchFamily.MY_MESSAGES, Collections.singletonList(
+                () -> app.hushtelegram.extension.telegram.misc.MyMessagesForTests.active()));
+        probes.put(PatchFamily.TEXT_DIRECTION, Collections.singletonList(
+                () -> app.hushtelegram.extension.telegram.misc.TextDirectionForTests.active()));
+        probes.put(PatchFamily.LYRICS, Arrays.asList(
+                () -> app.hushtelegram.extension.telegram.misc.LyricsForTests.lyrics(),
+                () -> app.hushtelegram.extension.telegram.misc.LyricsForTests.songDates()));
+        probes.put(PatchFamily.CHAT_PREVIEW_BUTTONS, Collections.singletonList(
+                () -> app.hushtelegram.extension.telegram.misc.ChatPreviewForTests.active()));
         // New messages are looked at for forwarding.
         probes.put(PatchFamily.AUTO_FORWARDING, Collections.singletonList(() -> {
             List<String> before = HookStatus.report();

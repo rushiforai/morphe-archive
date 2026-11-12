@@ -28,6 +28,9 @@ public final class DoubleTapReactions {
         }
     }
 
+    /** Whether the row rows() last hid belongs to a message with unread reactions; setMessage runs on the UI thread. */
+    private static boolean hiddenUnread;
+
     /**
      * Called first thing by the reaction row's setMessage. Answering null makes Telegram lay the row
      * out as empty, which it already does for a message with no reactions, and the stored reactions
@@ -35,13 +38,63 @@ public final class DoubleTapReactions {
      */
     public static Object rows(Object message, boolean small, boolean tag) {
         HookStatus.invoked(FamilyNames.DISABLE_DOUBLE_TAP_REACTIONS);
+        hiddenUnread = false;
         try {
             if (message == null || tag || !Utils.settingsReady() || !Settings.HIDE_REACTION_ROWS.get()) return message;
+            hiddenUnread = unreadOf(message);
             HookStatus.counted(FamilyNames.DISABLE_DOUBLE_TAP_REACTIONS, "reaction row hidden");
             return null;
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.DISABLE_DOUBLE_TAP_REACTIONS, "reaction row switch", failure);
             return message;
+        }
+    }
+
+    /** {@code MessageObject.hasUnreadReactions(message.messageOwner)}; false when it can't be read, so the row still hides. */
+    private static boolean unreadOf(Object message) {
+        try {
+            Object owner = HostNames.field(message.getClass(), "messageOwner").get(message);
+            Object reactions = owner == null ? null : HostNames.field(owner.getClass(), "reactions").get(owner);
+            Object recent = reactions == null ? null : HostNames.field(reactions.getClass(), "recent_reactions").get(reactions);
+            if (!(recent instanceof List)) return false;
+            for (Object item : (List<?>) recent) {
+                if (item != null && HostNames.field(item.getClass(), "unread").getBoolean(item)) return true;
+            }
+            return false;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.DISABLE_DOUBLE_TAP_REACTIONS, "unread reactions on a hidden row", failure);
+            return false;
+        }
+    }
+
+    /**
+     * Called with the row's "has unread reactions" answer as setMessage returns. A hidden row was
+     * handed no message, so Telegram's answer is always false there, and the chat never marked the
+     * reactions seen: the heart in the chat list and the chat's reactions button stayed for good.
+     * Answering the hidden message's own state lets the chat mark them read once the message scrolls in.
+     */
+    public static boolean unreadRow(int stock) {
+        HookStatus.invoked(FamilyNames.DISABLE_DOUBLE_TAP_REACTIONS);
+        boolean hidden = hiddenUnread;
+        hiddenUnread = false;
+        if (stock != 0 || !hidden) return stock != 0;
+        HookStatus.counted(FamilyNames.DISABLE_DOUBLE_TAP_REACTIONS, "hidden row's reactions marked seen");
+        return true;
+    }
+
+    /**
+     * Called first thing by MessageObject.getRandomUnreadReaction(), which the chat asks only to
+     * play a reaction's animation over its row. True answers null, so a hidden row plays nothing.
+     */
+    public static boolean hideEffect() {
+        HookStatus.invoked(FamilyNames.DISABLE_DOUBLE_TAP_REACTIONS);
+        try {
+            if (!Utils.settingsReady() || !Settings.HIDE_REACTION_ROWS.get()) return false;
+            HookStatus.counted(FamilyNames.DISABLE_DOUBLE_TAP_REACTIONS, "reaction effect skipped");
+            return true;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.DISABLE_DOUBLE_TAP_REACTIONS, "reaction effect switch", failure);
+            return false;
         }
     }
 

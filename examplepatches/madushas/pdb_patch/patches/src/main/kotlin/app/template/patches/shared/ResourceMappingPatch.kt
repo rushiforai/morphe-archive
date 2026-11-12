@@ -146,6 +146,7 @@ fun resourceLiteral(
 val resourceMappingPatch = resourcePatch(
     default = false
 ) {
+    category("Shared")
     execute {
         // Use a stream of the file, since no modifications are done
         // and using a File parameter causes the file to be re-written when closed.

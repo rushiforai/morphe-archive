@@ -521,6 +521,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean favoritesFeed() {
+        return false;
+    }
+
     public static boolean storiesTray() {
         return false;
     }
@@ -567,6 +571,11 @@ public final class SettingsStatus {
     }
 
     public static boolean keepReelSpeed() {
+        return false;
+    }
+
+    /** Rewritten by the Open reel links on that reel patch. */
+    public static boolean reelLinks() {
         return false;
     }
 

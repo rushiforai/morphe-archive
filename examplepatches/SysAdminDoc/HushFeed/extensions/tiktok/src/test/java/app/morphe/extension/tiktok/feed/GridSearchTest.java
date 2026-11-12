@@ -13,6 +13,7 @@ import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceScreen;
@@ -23,6 +24,7 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.ss.android.ugc.aweme.feed.model.Aweme;
@@ -33,6 +35,7 @@ import com.ss.android.ugc.aweme.feed.model.PhotoModeTextInfo;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import app.morphe.extension.shared.Utils;
@@ -41,6 +44,7 @@ import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.tiktok.SettingsContextRule;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
+import app.morphe.extension.tiktok.settings.preference.BackupRuns;
 import app.morphe.extension.tiktok.settings.preference.SettingsUi;
 import app.morphe.extension.tiktok.settings.preference.categories.InterfacePreferenceCategory;
 
@@ -585,7 +589,7 @@ public class GridSearchTest {
 
             // First into a parent that can't hold a chip, then into a frame that can.
             FrameLayout first = (FrameLayout) adapter.mmRecyclerView.getParent();
-            LinearLayout stop = new LinearLayout(activity);
+            RelativeLayout stop = new RelativeLayout(activity);
             first.removeView(adapter.mmRecyclerView);
             stop.addView(adapter.mmRecyclerView);
             activity.setContentView(stop);
@@ -617,7 +621,7 @@ public class GridSearchTest {
 
             // The grid in a parent that can't hold a chip, so the chip waits out of any window.
             FrameLayout first = (FrameLayout) adapter.mmRecyclerView.getParent();
-            LinearLayout stop = new LinearLayout(activity);
+            RelativeLayout stop = new RelativeLayout(activity);
             first.removeView(adapter.mmRecyclerView);
             stop.addView(adapter.mmRecyclerView);
             activity.setContentView(stop);
@@ -633,6 +637,105 @@ public class GridSearchTest {
             idle(50);
             assertFalse(GridSearch.searching(adapter));
             assertEquals("the grid stayed narrowed", "abcdef", ids(adapter.mmItems));
+        }
+    }
+
+    /** The grid stays where it is, so nothing brings the chip back, and the switch has to. */
+    @Test public void theSwitchAloneRedrawsAGridWhoseChipWaitsOutsideAFrame() {
+        Settings.GRID_SEARCH.save(true);
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            GridSortTest.GridAdapter adapter = gridOnScreen(activity, GridSort.TAB_LIKED);
+            adapter.mmItems = GridSort.data(adapter, library());
+            idle(0);
+            GridSearch.search(adapter, "cat");
+            FrameLayout first = (FrameLayout) adapter.mmRecyclerView.getParent();
+            RelativeLayout stop = new RelativeLayout(activity);
+            first.removeView(adapter.mmRecyclerView);
+            stop.addView(adapter.mmRecyclerView);
+            activity.setContentView(stop);
+            idle(50);
+            assertNull(stop.findViewWithTag(GridSearch.CHIP_TAG));
+            assertEquals("abcd", ids(adapter.mmItems));
+
+            Settings.GRID_SEARCH.save(false);
+            GridSearch.onSettingChanged();
+            idle(50);
+            assertEquals("the grid stayed narrowed", "abcdef", ids(adapter.mmItems));
+
+            Settings.GRID_SEARCH.save(true);
+            GridSearch.onSettingChanged();
+            idle(50);
+            // The same as a grid whose chip sat in its frame: off dropped the search.
+            assertFalse("the old search came back with the switch", GridSearch.searching(adapter));
+            assertEquals("abcdef", ids(adapter.mmItems));
+        }
+    }
+
+    /** A grid on screen with its chip in the frame, the way TikTok shows it, through the settings' redraw. */
+    @Test public void theSwitchOffAndOnAgainLeavesAGridWholeWithItsChipReadingSearch() {
+        Settings.GRID_SEARCH.save(true);
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            GridSortTest.GridAdapter adapter = gridOnScreen(controller.get(), GridSort.TAB_LIKED);
+            adapter.mmItems = GridSort.data(adapter, library());
+            idle(0);
+            GridSearch.search(adapter, "cat");
+            GridSearch.showChip(adapter);
+            TextView control = chip(adapter);
+            assertEquals("cat", String.valueOf(control.getText()));
+
+            Settings.GRID_SEARCH.save(false);
+            GridSearch.onSettingChanged();
+            idle(0);
+            assertEquals("abcdef", ids(adapter.mmItems));
+
+            Settings.GRID_SEARCH.save(true);
+            GridSearch.onSettingChanged();
+            control.getViewTreeObserver().dispatchOnGlobalLayout();
+            idle(0);
+            assertEquals("abcdef", ids(adapter.mmItems));
+            assertEquals(View.VISIBLE, control.getVisibility());
+            assertEquals("the chip still named a search the grid no longer had", "Search",
+                    String.valueOf(control.getText()));
+        }
+    }
+
+    /**
+     * A restore, a reset or an undo writes the switch with every other setting at once, so it never
+     * goes through the switch's redraw, and the end of the run has to redraw the grid instead.
+     */
+    @Test public void aSettingsResetAndItsUndoRedrawAGridWhoseChipWaitsOutsideAFrame() throws Exception {
+        Settings.GRID_SEARCH.save(true);
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            GridSortTest.GridAdapter adapter = gridOnScreen(activity, GridSort.TAB_LIKED);
+            adapter.mmItems = GridSort.data(adapter, library());
+            idle(0);
+            GridSearch.search(adapter, "cat");
+            FrameLayout first = (FrameLayout) adapter.mmRecyclerView.getParent();
+            RelativeLayout stop = new RelativeLayout(activity);
+            first.removeView(adapter.mmRecyclerView);
+            stop.addView(adapter.mmRecyclerView);
+            activity.setContentView(stop);
+            idle(50);
+            assertEquals("abcd", ids(adapter.mmItems));
+
+            Setting.saveAll(Collections.singletonMap(Settings.GRID_SEARCH, false));
+            idle(50);
+            assertEquals("the batch write alone redrew the grid", "abcd", ids(adapter.mmItems));
+            BackupRuns.finish(BackupRuns.BACKUP);
+            idle(50);
+            assertEquals("a backup only reads the settings, so it redraws nothing", "abcd", ids(adapter.mmItems));
+            BackupRuns.finish(BackupRuns.RESET);
+            idle(50);
+            assertEquals("a reset that turned search off left the grid narrowed", "abcdef", ids(adapter.mmItems));
+
+            Setting.saveAll(Collections.singletonMap(Settings.GRID_SEARCH, true));
+            BackupRuns.finish(BackupRuns.UNDO);
+            idle(50);
+            // The reset dropped the search the way the switch does, and an undo puts settings back, not searches.
+            assertFalse("the undo brought back a search the reset dropped", GridSearch.searching(adapter));
+            assertEquals("abcdef", ids(adapter.mmItems));
         }
     }
 
@@ -684,6 +787,121 @@ public class GridSearchTest {
             search.setVisibility(View.GONE);
             GridSort.placeChip(order, adapter.mmRecyclerView);
             assertEquals("with no search chip the whole name shows", Integer.MAX_VALUE, order.getMaxWidth());
+        }
+    }
+
+    /** Like androidx's FragmentContainerView, which throws on any view not from a fragment. */
+    static final class FragmentContainer extends FrameLayout {
+        boolean sealed;
+
+        FragmentContainer(Context context) {
+            super(context);
+        }
+
+        @Override public void addView(View child, int index, ViewGroup.LayoutParams params) {
+            if (sealed) throw new IllegalStateException("Views added to a FragmentContainerView must be associated with a Fragment");
+            super.addView(child, index, params);
+        }
+    }
+
+    /**
+     * TikTok 47.7.3 holds the Favorites grid in a LinearLayout, in a fragment container that
+     * refuses other views, in a plain FrameLayout of the same size.
+     */
+    @Test public void aFavoritesGridInALinearLayoutGetsItsChipsInTheFrameAroundIt() {
+        Settings.GRID_SEARCH.save(true);
+        Settings.PROFILE_GRID_SORT.save("newest");
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            FrameLayout frame = new FrameLayout(activity);
+            // An overlay at the top already starts below the frame's padding, so it counts once.
+            frame.setPadding(0, 20, 0, 0);
+            FragmentContainer container = new FragmentContainer(activity);
+            LinearLayout column = new LinearLayout(activity);
+            column.setOrientation(LinearLayout.VERTICAL);
+            column.addView(new View(activity), new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, 100));
+            // A ViewGroup, since the chips are placed against the grid's rows.
+            FrameLayout grid = new FrameLayout(activity);
+            column.addView(grid, new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            container.addView(column, new FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            container.sealed = true;
+            FrameLayout.LayoutParams containerAt = new FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+            containerAt.topMargin = 50;
+            frame.addView(container, containerAt);
+            activity.setContentView(frame);
+            idle(50);
+            GridSortTest.GridAdapter adapter = new GridSortTest.GridAdapter();
+            adapter.mmRecyclerView = grid;
+            GridSort.tab(adapter, GridSort.TAB_FAVORITES);
+            adapter.mmItems = GridSort.data(adapter, library());
+            idle(50);
+
+            TextView search = frame.findViewWithTag(GridSearch.CHIP_TAG);
+            TextView order = frame.findViewWithTag(GridSort.CHIP_TAG);
+            assertNotNull("the search chip shows", search);
+            assertNotNull("the order chip shows", order);
+            assertSame(frame, search.getParent());
+            assertSame(frame, order.getParent());
+            assertEquals("under the row above the grid, counted through each layout", 150f, search.getTranslationY(), 0f);
+            assertEquals(150f, order.getTranslationY(), 0f);
+            assertEquals(View.VISIBLE, search.getVisibility());
+            View hold = frame.findViewWithTag(GridSort.HOLD_TAG);
+            assertNotNull("the grid waits out of sight for its pages", hold);
+            assertSame(frame, hold.getParent());
+            assertEquals("the row above the grid stays in reach", 150,
+                    ((FrameLayout.LayoutParams) hold.getLayoutParams()).topMargin);
+
+            GridSearch.search(adapter, "cat");
+            idle(50);
+            assertEquals("dcba", ids(adapter.mmItems));
+            assertSame("the chip stays put through its own redraw", search, frame.findViewWithTag(GridSearch.CHIP_TAG));
+            assertEquals(View.VISIBLE, search.getVisibility());
+
+            // Another sub-tab hides the grid inside its layout and leaves the frame showing.
+            grid.setVisibility(View.GONE);
+            idle(50);
+            assertEquals("the order chip goes with the grid", View.GONE, order.getVisibility());
+            grid.setVisibility(View.VISIBLE);
+            idle(50);
+            assertEquals(View.VISIBLE, order.getVisibility());
+        }
+    }
+
+    /** With only frames that refuse views around its layout, a grid gets no overlay rather than a crash. */
+    @Test public void aGridInFramesThatRefuseViewsGetsNoOverlay() {
+        Settings.GRID_SEARCH.save(true);
+        Settings.PROFILE_GRID_SORT.save("newest");
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            FragmentContainer outer = new FragmentContainer(activity);
+            FragmentContainer inner = new FragmentContainer(activity);
+            LinearLayout column = new LinearLayout(activity);
+            FrameLayout grid = new FrameLayout(activity);
+            column.addView(grid, new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            inner.addView(column, new FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            outer.addView(inner, new FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            inner.sealed = true;
+            outer.sealed = true;
+            activity.setContentView(outer);
+            idle(50);
+            assertNull(GridSort.overlayFrame(grid));
+
+            GridSortTest.GridAdapter adapter = new GridSortTest.GridAdapter();
+            adapter.mmRecyclerView = grid;
+            GridSort.tab(adapter, GridSort.TAB_FAVORITES);
+            adapter.mmItems = GridSort.data(adapter, library());
+            idle(50);
+            assertNull(outer.findViewWithTag(GridSearch.CHIP_TAG));
+            assertNull(outer.findViewWithTag(GridSort.CHIP_TAG));
+            assertNull(outer.findViewWithTag(GridSort.HOLD_TAG));
+            assertEquals("still in sight", 1f, grid.getAlpha(), 0f);
         }
     }
 

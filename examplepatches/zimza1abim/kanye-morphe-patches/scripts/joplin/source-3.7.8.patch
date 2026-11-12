@@ -1,0 +1,268 @@
+diff --git a/packages/app-mobile/components/ExtendedWebView/index.tsx b/packages/app-mobile/components/ExtendedWebView/index.tsx
+index 9dda055..85c2272 100644
+--- a/packages/app-mobile/components/ExtendedWebView/index.tsx
++++ b/packages/app-mobile/components/ExtendedWebView/index.tsx
+@@ -15,10 +15,12 @@ import { Props, WebViewControl } from './types';
+ import useCss from './utils/useCss';
+ import { Platform } from 'react-native';
+ 
++const { useFont, prepareHtml } = require('../../utils/morpheFont');
+ const logger = Logger.create('ExtendedWebView');
+ 
+ const ExtendedWebView = (props: Props, ref: Ref<WebViewControl>) => {
+ 	const webviewRef = useRef(null);
++	const font = useFont();
+ 	const [source, setSource] = useState<WebViewSource|undefined>(undefined);
+ 
+ 	useImperativeHandle(ref, (): WebViewControl => {
+@@ -55,7 +57,7 @@ const ExtendedWebView = (props: Props, ref: Ref<WebViewControl>) => {
+ 		let cancelled = false;
+ 		async function createHtmlFile() {
+ 			const tempFile = `${baseDirectory}/${props.webviewInstanceId}.html`;
+-			await shim.fsDriver().writeFile(tempFile, props.html, 'utf8');
++			await shim.fsDriver().writeFile(tempFile, prepareHtml(props.html, font), 'utf8');
+ 			if (cancelled) return;
+ 
+ 			// Now that we are sending back a file instead of an HTML string, we're always sending back the
+@@ -69,8 +71,8 @@ const ExtendedWebView = (props: Props, ref: Ref<WebViewControl>) => {
+ 			setSource(newSource);
+ 		}
+ 
+-		if (props.html && props.html.length > 0) {
+-			void createHtmlFile();
++		if (font.ready && props.html && props.html.length > 0) {
++			void createHtmlFile().catch(error => { if (!cancelled) logger.error('Preparing note document failed', error); });
+ 		} else {
+ 			setSource(undefined);
+ 		}
+@@ -78,7 +80,7 @@ const ExtendedWebView = (props: Props, ref: Ref<WebViewControl>) => {
+ 		return () => {
+ 			cancelled = true;
+ 		};
+-	}, [props.html, props.webviewInstanceId, baseDirectory, baseUrl]);
++	}, [props.html, props.webviewInstanceId, baseDirectory, baseUrl, font]);
+ 
+ 	const onError = useCallback((event: WebViewErrorEvent) => {
+ 		logger.error('Error', event.nativeEvent.description);
+diff --git a/packages/app-mobile/components/screens/ConfigScreen/ConfigScreen.tsx b/packages/app-mobile/components/screens/ConfigScreen/ConfigScreen.tsx
+index 57ce58d..7d09165 100644
+--- a/packages/app-mobile/components/screens/ConfigScreen/ConfigScreen.tsx
++++ b/packages/app-mobile/components/screens/ConfigScreen/ConfigScreen.tsx
+@@ -549,6 +549,12 @@ class ConfigScreenComponent extends BaseScreenComponent<ConfigScreenProps, Confi
+ 
+ 		}
+ 
++		if (section.name === 'appearance') {
++			addSettingButton('morphe_custom_font', 'Custom font', () => {
++				void Linking.openURL('joplin-font://settings').catch(error => Alert.alert('Font settings unavailable', String(error)));
++			}, { description: 'Font for all Joplin text. Icons and emoji keep theirs.' });
++		}
++
+ 		if (section.name === 'sync') {
+ 			addSettingButton('sync_wizard_button', _('Open Sync Wizard...'), this.onShowSyncWizard_);
+ 			addSettingButton('e2ee_config_button', _('Encryption Config'), this.e2eeConfig_);
+diff --git a/packages/app-mobile/index.js b/packages/app-mobile/index.js
+index 0d7a3b2..1afb44b 100644
+--- a/packages/app-mobile/index.js
++++ b/packages/app-mobile/index.js
+@@ -10,6 +10,8 @@ import './utils/initReact';
+ import './utils/polyfills';
+ 
+ import Root from './root';
++import React from 'react';
++import { FontReady } from './utils/morpheFont';
+ import { LogBox } from 'react-native';
+ import { registerRootComponent } from 'expo';
+ // Allows loading image assets. See https://github.com/expo/expo/issues/31240
+@@ -49,7 +51,7 @@ LogBox.ignoreLogs([
+ 	'Did not receive response to shouldStartLoad in time, defaulting to YES',
+ ]);
+ 
+-registerRootComponent(Root);
++registerRootComponent(() => React.createElement(FontReady, null, React.createElement(Root)));
+ 
+ // Using streams on react-native requires to polyfill process.nextTick()
+ global.process.nextTick = setImmediate;
+diff --git a/packages/lib/models/Setting.ts b/packages/lib/models/Setting.ts
+index d76fd79..5645235 100644
+--- a/packages/lib/models/Setting.ts
++++ b/packages/lib/models/Setting.ts
+@@ -240,6 +240,7 @@ class Setting extends BaseModel {
+ 	public static THEME_LIGHT = 1;
+ 	public static THEME_DARK = 2;
+ 	public static THEME_OLED_DARK = 22;
++	public static THEME_BLUSH_PINK = 23;
+ 	public static THEME_SOLARIZED_LIGHT = 3;
+ 	public static THEME_SOLARIZED_DARK = 4;
+ 	public static THEME_DRACULA = 5;
+diff --git a/packages/lib/models/settings/builtInMetadata.ts b/packages/lib/models/settings/builtInMetadata.ts
+index f94e9db..725daed 100644
+--- a/packages/lib/models/settings/builtInMetadata.ts
++++ b/packages/lib/models/settings/builtInMetadata.ts
+@@ -81,6 +81,7 @@ const builtInMetadata = (Setting: typeof SettingType) => {
+ 		output[Setting.THEME_NORD] = _('Nord');
+ 		output[Setting.THEME_ARITIM_DARK] = _('Aritim Dark');
+ 		output[Setting.THEME_OLED_DARK] = _('OLED Dark');
++		output[Setting.THEME_BLUSH_PINK] = 'Blush Pink';
+ 		return output;
+ 	};
+ 
+diff --git a/packages/lib/theme.ts b/packages/lib/theme.ts
+index f97d140..dfb7a26 100644
+--- a/packages/lib/theme.ts
++++ b/packages/lib/theme.ts
+@@ -6,6 +6,7 @@ import theme_solarizedDark from './themes/solarizedDark';
+ import theme_nord from './themes/nord';
+ import theme_aritimDark from './themes/aritimDark';
+ import theme_oledDark from './themes/oledDark';
++import theme_blushPink from './themes/blushPink';
+ import Setting from './models/Setting';
+ import { Theme, ThemeAppearance } from './themes/type';
+ 
+@@ -20,6 +21,7 @@ const themes: Record<number, Theme> = {
+ 	[Setting.THEME_NORD]: theme_nord,
+ 	[Setting.THEME_ARITIM_DARK]: theme_aritimDark,
+ 	[Setting.THEME_OLED_DARK]: theme_oledDark,
++	[Setting.THEME_BLUSH_PINK]: theme_blushPink,
+ };
+ 
+ export function themeById(themeId: number) {
+diff --git a/packages/app-mobile/utils/morpheFont.js b/packages/app-mobile/utils/morpheFont.js
+new file mode 100644
+index 0000000..f59cda4
+--- /dev/null
++++ b/packages/app-mobile/utils/morpheFont.js
+@@ -0,0 +1,109 @@
++/* Morphe font runtime. No device paths are embedded in the release bundle. */
++const React = require('react');
++const RN = require('react-native');
++const FSModule = require('@dr.pogodin/react-native-fs');
++const FS = FSModule.default || FSModule;
++const listeners = new Set();
++let state = Object.freeze({ ready: false, enabled: false, revision: 0 });
++let pending;
++const FontContext = React.createContext(undefined);
++const wrappers = new WeakMap();
++
++function ordinaryFamily(family) {
++    return family == null || family === '' || /^JoplinCustomFont_[0-9]+$/.test(family)
++        || /^(Roboto(?: (?:Light|Medium|Thin|Condensed))?|sans-serif(?:-(?:light|medium|thin|condensed))?|serif|monospace|System|system-ui|Arial|Helvetica|Courier New|Menlo|Avenir)$/i.test(family);
++}
++function subscribe(callback) { listeners.add(callback); return () => listeners.delete(callback); }
++function useFont() { return React.useSyncExternalStore(subscribe, () => state, () => state); }
++async function refresh() {
++    if (pending) return pending;
++    pending = (async () => {
++        let next = { ready: true, enabled: false, revision: 0 };
++        let timer;
++        try {
++            next = await Promise.race([(async () => {
++                const next = { ready: true, enabled: false, revision: 0 };
++            const dir = FS.DocumentDirectoryPath + '/joplin-custom-font/';
++            if (await FS.exists(dir + 'state.json')) {
++                const data = JSON.parse(await FS.readFile(dir + 'state.json', 'utf8'));
++                if (!Number.isSafeInteger(data.revision)) throw Error('Invalid font revision');
++                next.revision = data.revision;
++                next.name = data.name;
++                if (data.enabled) {
++                    if (!data.fontPath || !data.fontPath.startsWith(dir)
++                        || !/^font-[0-9]+\.ttf$/.test(data.fontPath.slice(dir.length)))
++                        throw Error('Invalid font path');
++                    if (!await FS.exists(data.fontPath)) throw Error('Font file missing');
++                    next.enabled = true;
++                    next.fontUrl = 'https://morphe-font.invalid/' + data.fontPath.slice(dir.length);
++                    next.family = 'JoplinCustomFont_' + data.revision;
++                }
++            }
++                return next;
++            })(), new Promise((_, reject) => { timer = setTimeout(() => reject(Error('Font state read timed out')), 3000); })]);
++        } catch (error) { console.warn('JoplinFontPatch: font state unavailable', String(error)); }
++        finally { clearTimeout(timer); }
++        if (!state.ready || state.revision !== next.revision || state.enabled !== next.enabled) {
++            state = Object.freeze(next);
++            console.info('JoplinFontPatch v10: state ready, enabled=' + next.enabled + ', revision=' + next.revision);
++            listeners.forEach(fn => fn());
++        }
++    })().finally(() => { pending = null; });
++    return pending;
++}
++
++function wrapText(Component) {
++    if (wrappers.has(Component)) return wrappers.get(Component);
++    const Wrapped = React.forwardRef((props, ref) => {
++        const font = useFont();
++        const inheritedFamily = React.useContext(FontContext);
++        const flat = RN.StyleSheet.flatten(props.style) || {};
++        const family = flat.fontFamily == null ? inheritedFamily : flat.fontFamily;
++        const style = React.useMemo(() => font.enabled && ordinaryFamily(family)
++            ? [props.style, { fontFamily: font.family }] : props.style,
++            [props.style, font.enabled, font.family, family]);
++        return React.createElement(FontContext.Provider, { value: family },
++            React.createElement(Component, { ...props, ref, style }));
++    });
++    // Keep TextInput.State and its other public static APIs, not forwardRef internals.
++    for (const key of Object.keys(Component)) {
++        if (!['$$typeof', 'render', 'displayName', 'propTypes'].includes(key)) Wrapped[key] = Component[key];
++    }
++    Wrapped.displayName = 'MorpheFontText';
++    wrappers.set(Component, Wrapped);
++    return Wrapped;
++}
++function FontReady({ children }) { return useFont().ready ? children : null; }
++
++function prepareHtml(html, font) {
++    if (!font.enabled || !html || html.includes('id="morphe-font-style"')) return html;
++    const family = font.family;
++    const url = font.fontUrl.replace(/["\\\r\n]/g, c => '\\' + c);
++    const textSelector = 'body,p,h1,h2,h3,h4,h5,h6,li,td,th,blockquote,a,b,strong,em,code,pre,kbd,samp,'
++        + 'input,textarea,.cm-editor,.cm-content,.cm-line,.cm-scroller,.CodeMirror,.CodeMirror-line,'
++        + '#rendered-md,.markdown-body,.exported-note';
++    const protectedSelector = textSelector.split(',').map(s => s + ':not([class*="icon"]):not([class*="fa-"]):not(.fa)').join(',');
++    const css = '@font-face{font-family:"' + family + '";src:url("' + url + '");font-display:block;}'
++        + 'html[data-morphe-font-pending] body{visibility:hidden!important;}'
++        + protectedSelector + '{font-family:"' + family + '",sans-serif!important;}';
++    const script = '(function(){var root=document.documentElement;root.setAttribute("data-morphe-font-pending","");'
++        + 'var done=false;var finish=function(ok){if(done)return;done=true;clearTimeout(timer);'
++        + 'if(!ok){var s=document.getElementById("morphe-font-style");if(s)s.remove();'
++        + 'console.warn("JoplinFontPatch: font load failed or timed out; default retained");}'
++        + 'root.removeAttribute("data-morphe-font-pending");};'
++        + 'var timer=setTimeout(function(){finish(false);},4000);'
++        + 'try{document.fonts.load(' + JSON.stringify('16px "' + family + '"') + ',"한글ABC").then(function(f){finish(f.length>0);},function(){finish(false);});}'
++        + 'catch(e){finish(false);}})();';
++    const injection = '<style id="morphe-font-style">' + css + '</style><script>' + script + '</script>';
++    const head = /<head(?:\s[^>]*)?>/i.exec(html);
++    if (!head) return injection + html;
++    const at = head.index + head[0].length;
++    return html.slice(0, at) + injection + html.slice(at);
++}
++if (RN.Platform.OS === 'android') {
++    RN.AppState.addEventListener('change', status => { if (status === 'active') void refresh(); });
++    void refresh();
++} else {
++    state = Object.freeze({ ready: true, enabled: false, revision: 0 });
++}
++module.exports = { useFont, refresh, wrapText, FontReady, prepareHtml, ordinaryFamily };
+diff --git a/packages/lib/themes/blushPink.ts b/packages/lib/themes/blushPink.ts
+new file mode 100644
+index 0000000..69b511d
+--- /dev/null
++++ b/packages/lib/themes/blushPink.ts
+@@ -0,0 +1,18 @@
++import light from './light';
++import { Theme } from './type';
++
++const theme: Theme = {
++	...light,
++	backgroundColor: '#fff8fb',
++	backgroundColorTransparent: 'rgba(255,248,251,0.95)',
++	color: '#4b3540', colorFaded: '#785866',
++	dividerColor: '#ead5de', selectedColor: '#f6d9e5',
++	urlColor: '#a02d5a',
++	backgroundColor2: '#a83e66', color2: '#ffffff', selectedColor2: '#80304e',
++	backgroundColor3: '#fff0f5', backgroundColorHover3: '#f7d9e5', color3: '#725260',
++	backgroundColor4: '#fff8fb', color4: '#a02d5a', backgroundColor4Dimmed: '#f8dce7',
++	raisedBackgroundColor: '#f7e4ec', raisedColor: '#4b3540',
++	headerBackgroundColor: '#fbeaf1', textSelectionColor: '#d887a6',
++	tableBackgroundColor: '#fff0f5', codeBackgroundColor: '#f9eaf0', codeBorderColor: '#ead5de',
++};
++export default theme;

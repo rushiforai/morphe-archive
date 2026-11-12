@@ -5,6 +5,7 @@
  * https://github.com/anddea/revanced-patches
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-11.
  * Written by lavinhoque33, 2026-11-05.
  */
 package app.morphe.extension.youtube.patches.general.offline;
@@ -12,9 +13,11 @@ package app.morphe.extension.youtube.patches.general.offline;
 import static app.morphe.extension.shared.utils.StringRef.str;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.drawable.RippleDrawable;
 import android.util.LruCache;
 import android.view.Gravity;
 import android.view.View;
@@ -35,6 +38,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.BooleanSupplier;
 
+import app.morphe.extension.shared.ui.CustomDialog;
 import app.morphe.extension.shared.ui.Dim;
 import app.morphe.extension.shared.utils.Utils;
 import app.morphe.extension.youtube.patches.general.offline.OfflinePlaylistSelection.Item;
@@ -74,8 +78,9 @@ final class OfflinePlaylistPicker {
         }
     };
 
-    OfflinePlaylistPicker(Activity activity, ListView list, LinearLayout header, Button download,
-                          List<Item> items, int foreground, BooleanSupplier active, Consumer<List<Item>> onPick) {
+    OfflinePlaylistPicker(Activity activity, ListView list, LinearLayout header, LinearLayout actions,
+                          Button download, List<Item> items, int foreground, BooleanSupplier active,
+                          Consumer<List<Item>> onPick) {
         this.activity = activity;
         this.foreground = foreground;
         this.active = active;
@@ -86,18 +91,19 @@ final class OfflinePlaylistPicker {
         quality.setOnClickListener(view -> showGlobalQuality());
         header.addView(quality);
 
-        LinearLayout actions = new LinearLayout(activity);
+        actions.setPadding(Dim.dp16, Dim.dp8, Dim.dp16, Dim.dp8);
         for (boolean all : new boolean[]{true, false}) {
-            Button button = new Button(activity);
-            button.setText(str(all ? "revanced_offline_batch_select_all" : "revanced_offline_batch_select_none"));
+            Button button = actionButton(activity,
+                    str(all ? "revanced_offline_batch_select_all" : "revanced_offline_batch_select_none"), false);
             button.setOnClickListener(view -> {
                 selection.selectAll(all);
                 changed();
             });
-            actions.addView(button, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                    0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+            if (all) params.setMarginEnd(Dim.dp8);
+            actions.addView(button, params);
         }
-        header.addView(actions);
-        list.addHeaderView(header, null, false);
         list.setAdapter(adapter);
         boolean[] picked = {false};
         download.setOnClickListener(view -> {
@@ -108,9 +114,26 @@ final class OfflinePlaylistPicker {
         changed();
     }
 
+    /** RVX dialog pills with wrapping labels and full-height touch targets, only for the playlist picker. */
+    static Button actionButton(Context context, CharSequence label, boolean primary) {
+        Button button = CustomDialog.createButton(context, null, label, null, primary, false);
+        button.setSingleLine(false);
+        button.setMaxLines(Integer.MAX_VALUE);
+        button.setEllipsize(null);
+        button.setMinHeight(Dim.dp(48));
+        button.setMinimumHeight(Dim.dp(48));
+        button.setPadding(Dim.dp16, Dim.dp8, Dim.dp16, Dim.dp8);
+
+        int color = button.getCurrentTextColor();
+        int ripple = (color & 0x00FFFFFF) | 0x33000000;
+        button.setBackground(new RippleDrawable(ColorStateList.valueOf(ripple), button.getBackground(), null));
+        return button;
+    }
+
     private void changed() {
         download.setText(str("revanced_offline_batch_download_selected", selection.selectedCount()));
         download.setEnabled(selection.selectedCount() > 0);
+        download.setAlpha(download.isEnabled() ? 1f : 0.38f);
         quality.setText(str("revanced_offline_batch_global_quality", heightLabel(selection.heightLimit)));
         adapter.notifyDataSetChanged();
     }
@@ -166,7 +189,7 @@ final class OfflinePlaylistPicker {
         private final TextView duration = label(11);
         private final TextView title = label(14);
         private final TextView format = label(12);
-        private final Button edit = new Button(activity);
+        private final Button edit = actionButton(activity, str("revanced_offline_batch_edit"), false);
         private String imageKey;
 
         Row() {
@@ -197,10 +220,10 @@ final class OfflinePlaylistPicker {
             format.setAlpha(0.7f);
             labels.addView(format);
             addView(labels, new LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-            edit.setText(str("revanced_offline_batch_edit"));
-            edit.setMinWidth(0);
-            edit.setMinimumWidth(0);
-            addView(edit);
+            LayoutParams editParams = new LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            editParams.topMargin = Dim.dp8;
+            labels.addView(edit, editParams);
         }
 
         void bind(int position) {

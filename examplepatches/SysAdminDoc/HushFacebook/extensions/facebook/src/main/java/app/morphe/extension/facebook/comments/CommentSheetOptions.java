@@ -48,7 +48,9 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * nothing, and the socket of a comment's buttons draws the rest of the row as it would without a
  * Dislike. Like in that row is written by one of two plugins, the Like text or the Like button
  * beside the Dislike, both through one method, and the patch asks {@link #holdsCommentLike} first
- * there the same way. A long press on Like opens the reaction
+ * there the same way. Reply in that row has no builder of its own, so the patch asks
+ * {@link #holdsCommentReply} first in the check of the socket of a comment's buttons, with the
+ * plugin's name, and a yes answers no for either Reply plugin. A long press on Like opens the reaction
  * picker through one method, and the patch asks {@link #skipReactionPicker} first there; a yes
  * returns before anything opens. A comment keeps whether its reply thread is open in its state,
  * which starts closed until a tap on View replies opens it. The patch hands
@@ -104,6 +106,14 @@ public final class CommentSheetOptions {
     public static final String INLINE_COMMENT_COMPOSER_ANONYMOUS =
             "com.facebook.feed.plugins.belowufifooter.impl.anoninlinecommentcomposer.AnonInlineCommentComposerPlugin";
 
+    /** The plugin that writes Reply in the row under a comment, as that socket's name table gives it (#447). */
+    public static final String REPLY_PLUGIN =
+            "com.facebook.feedback.comments.plugins.commentufi.reply.InlineCommentReplyPlugin";
+
+    /** The plugin that draws Reply as a button on public Pages' comments, in the same name table. */
+    public static final String REPLY_BUTTON_PLUGIN =
+            "com.facebook.feedback.comments.plugins.commentufi.reply.ReplyPlugin";
+
     /** Every plugin that draws comments, or a comment box with comments above it, under a feed post's buttons. */
     private static final String[] POST_COMMENT_PLUGINS = {
             INLINE_COMMENTS, INLINE_COMMENTS_DWELL_TIME, INLINE_COMMENTS_CLIENT_RANKING,
@@ -121,6 +131,12 @@ public final class CommentSheetOptions {
 
     /** The member the report names once the Like plugin's builder has asked. */
     static final String COMMENT_LIKE = "comment like";
+
+    /** Counted each time Reply is kept out of a comment's row (#447). */
+    static final String REPLY_HIDDEN = "Comment Reply kept out";
+
+    /** The member the report names once the socket of a comment's buttons has asked about Reply. */
+    static final String COMMENT_REPLY = "comment reply";
 
     /** Counted each time a feed post's inline comments are kept out from under its buttons. */
     static final String POST_COMMENTS_HIDDEN = "Comments under a post kept out";
@@ -154,6 +170,9 @@ public final class CommentSheetOptions {
 
     /** Counted each time a comment is left out for a phrase from Words to hide. */
     static final String WORDS_HIDDEN = "Comment with your words left out";
+
+    /** Counted each time a comment is left out for not holding the comment search's words. */
+    static final String SEARCH_HIDDEN = "Comment without the searched words left out";
 
     /** Counted each time a count of people typing is answered as nobody. */
     static final String TYPING_HIDDEN = "Incoming typing kept out";
@@ -664,6 +683,26 @@ public final class CommentSheetOptions {
     }
 
     /**
+     * The hook, first thing in the check of the buttons under a comment, handed the plugin's name.
+     * True answers no for either Reply plugin while Hide Reply on comments is on; false leaves the
+     * check to Facebook, for Like, Dislike, the reaction icons and every other plugin, and otherwise
+     * (#447). View replies is drawn by a section of its own, so it stays.
+     */
+    public static boolean holdsCommentReply(@Nullable String plugin) {
+        try {
+            HookStatus.invoked(FAMILY);
+            if (!REPLY_PLUGIN.equals(plugin) && !REPLY_BUTTON_PLUGIN.equals(plugin)) return false;
+            HookStatus.bound(FAMILY, COMMENT_REPLY);
+            if (!Utils.settingsReady() || !Settings.HIDE_COMMENT_REPLY_BUTTON.get()) return false;
+            HookStatus.counted(FAMILY, REPLY_HIDDEN);
+            return true;
+        } catch (Throwable failure) {
+            HookStatus.threw(FAMILY, COMMENT_REPLY, failure);
+            return false;
+        }
+    }
+
+    /**
      * The hook, first thing where a long press on Like opens the reaction picker. True returns
      * before the picker opens while Like only is on; false lets it open.
      */
@@ -777,7 +816,8 @@ public final class CommentSheetOptions {
      * The hook, first thing as a comment is drawn, handed the GraphQLComment it draws. True leaves
      * the comment out, with its replies: while Hide comments with shop links is on and its words
      * link to a shop, or while Hide comments with your words is on and they hold a phrase from
-     * Words to hide and none from the keep list. False draws it as Facebook does, and so does
+     * Words to hide and none from the keep list, or while the comment search box holds words they
+     * aren't in (Show only comments that match). False draws it as Facebook does, and so does
      * anything this can't read.
      */
     public static boolean hidesComment(@Nullable Object comment) {
@@ -787,8 +827,14 @@ public final class CommentSheetOptions {
             if (!Utils.settingsReady()) return false;
             boolean links = Settings.HIDE_SHOP_LINK_COMMENTS.get();
             boolean words = Settings.HIDE_COMMENTS_WITH_WORDS.get();
-            if (!links && !words) return false;
+            boolean search = Settings.FILTER_COMMENT_SEARCH.get();
+            if (!links && !words && !search) return false;
             String text = CommentText.body(comment);
+            // First, so every comment drawn is noted under the search words in use.
+            if (search && CommentSearch.filtersOut(comment, text)) {
+                HookStatus.counted(FAMILY, SEARCH_HIDDEN);
+                return true;
+            }
             if (text == null) return false;
             if (links && ShopLinks.holds(text)) {
                 HookStatus.counted(FAMILY, SHOP_LINK_HIDDEN);

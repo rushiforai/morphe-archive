@@ -22,6 +22,8 @@ public final class FeatureCatalog {
         private final SettingsSection section;
         private final String title;
         private final String summary;
+        private final LinimalFeature blockedBy;
+        private final String blockedSummary;
 
         Entry(
                 LinimalFeature feature,
@@ -37,11 +39,29 @@ public final class FeatureCatalog {
                 SettingsSection section,
                 String title,
                 String summary) {
+            this(feature, page, section, title, summary, null, null);
+        }
+
+        private Entry(
+                LinimalFeature feature,
+                SettingsPage page,
+                SettingsSection section,
+                String title,
+                String summary,
+                LinimalFeature blockedBy,
+                String blockedSummary) {
             this.feature = feature;
             this.page = page;
             this.section = section;
             this.title = title;
             this.summary = summary;
+            this.blockedBy = blockedBy;
+            this.blockedSummary = blockedSummary;
+        }
+
+        /** {@code blocker} が ON の間は操作できない項目にします。保存値は書き換えません。 */
+        Entry blockedBy(LinimalFeature blocker, String reason) {
+            return new Entry(feature, page, section, title, summary, blocker, reason);
         }
 
         public LinimalFeature getFeature() {
@@ -72,6 +92,24 @@ public final class FeatureCatalog {
         public String getSummary() {
             return LinimalText.t(summary);
         }
+
+        /** ON の間この項目を操作できなくする機能。制約がなければ null です。 */
+        public LinimalFeature getBlockedBy() {
+            return blockedBy;
+        }
+
+        /** 操作できない理由として説明に足す文。制約がなければ null です。 */
+        public String getBlockedSummary() {
+            return blockedSummary == null ? null : LinimalText.t(blockedSummary);
+        }
+
+        /**
+         * 制約元の機能が利用可能で、かつ ON のときだけ操作できなくします。制約元が適用されていない・
+         * 設定を読めない場合は止めず、この項目だけで判断します。
+         */
+        public boolean isBlocked(boolean blockerAvailable, boolean blockerEnabled) {
+            return blockedBy != null && blockerAvailable && blockerEnabled;
+        }
     }
 
     /**
@@ -97,6 +135,9 @@ public final class FeatureCatalog {
             return entries;
         }
     }
+
+    private static final String PREVIEW_DISABLED_SUMMARY =
+            "「トークのプレビューを無効にする」が ON の間は変更できません。";
 
     private static final List<Entry> ENTRIES = Collections.unmodifiableList(Arrays.asList(
             new Entry(LinimalFeature.SMART_CHANNEL_ADS, SettingsPage.ADS,
@@ -126,6 +167,10 @@ public final class FeatureCatalog {
                     SettingsSection.AGENT_I_CHAT,
                     "チャット入力欄の Agent i を表示しない",
                     "チャット入力欄にある Agent i の入口を表示しません。"),
+            new Entry(LinimalFeature.AGENT_I_CHAT_PLUS_MENU, SettingsPage.AGENT_I,
+                    SettingsSection.AGENT_I_CHAT,
+                    "＋メニューの Agent i を表示しない",
+                    "トークの ＋ メニュー上部にある「トークルームのAgent iを表示」の切り替えを表示しません。"),
             new Entry(LinimalFeature.LINE_AI_MESSAGE_CONTEXT_MENU, SettingsPage.AGENT_I,
                     SettingsSection.AGENT_I_CHAT,
                     "メッセージ長押しメニューの LINE AI を表示しない",
@@ -195,6 +240,10 @@ public final class FeatureCatalog {
                     SettingsSection.HIDE_HOME,
                     "特集枠を表示しない",
                     "ホームの特集枠にある動画のグリッドを表示しません。"),
+            new Entry(LinimalFeature.HOME_FEED_LIVE, SettingsPage.HIDE,
+                    SettingsSection.HIDE_HOME,
+                    "ライブ配信を表示しない",
+                    "ホームのフィードにある、公式アカウントなどのライブ配信のカードを表示しません。"),
             new Entry(LinimalFeature.HOME_RECENT_HISTORY, SettingsPage.HIDE,
                     SettingsSection.HIDE_HOME,
                     "最近の履歴を表示しない",
@@ -208,6 +257,33 @@ public final class FeatureCatalog {
                     "通知から既読をつけずに開く",
                     "メッセージ通知から開いたトークは未読を維持し、上部に案内を表示します。送信後の既読は下の設定で選べます。"),
 
+            new Entry(LinimalFeature.READ_RECEIPT_READERS_ICONS, SettingsPage.READ_RECEIPT_READERS,
+                    SettingsSection.READ_RECEIPT_READERS_OWN,
+                    "既読マークの横にアイコンを並べる",
+                    "グループと複数人トークで、自分のメッセージの「既読」の横に、読んだメンバーのアイコンを小さく並べます。"),
+            new Entry(LinimalFeature.READ_RECEIPT_READERS_OTHERS_COUNT, SettingsPage.READ_RECEIPT_READERS,
+                    SettingsSection.READ_RECEIPT_READERS_OTHERS,
+                    "他人のメッセージに既読数を表示",
+                    "グループと複数人トークで、他人のメッセージの時刻の上に、送信者と自分を除いて読んだ人数を「既読 N」で表示します。"),
+            new Entry(LinimalFeature.READ_RECEIPT_READERS_OTHERS_ICONS, SettingsPage.READ_RECEIPT_READERS,
+                    SettingsSection.READ_RECEIPT_READERS_OTHERS,
+                    "他人のメッセージに既読者のアイコンを表示",
+                    "他人のメッセージの時刻の上に、読んだメンバーのアイコンを小さく並べます。既読数も ON にすると、既読数の外側（吹き出しから遠い側）にアイコンが並びます。"),
+            new Entry(LinimalFeature.READ_RECEIPT_READERS_TAP, SettingsPage.READ_RECEIPT_READERS,
+                    SettingsSection.READ_RECEIPT_READERS_OPEN,
+                    "既読マークのタップで一覧を開く",
+                    "自分のメッセージの「既読」や、他人のメッセージに表示した既読数・アイコンをタップすると、"
+                            + "読んだメンバーと未読のメンバーの一覧を開きます。"),
+            new Entry(LinimalFeature.READ_RECEIPT_READERS_MENU, SettingsPage.READ_RECEIPT_READERS,
+                    SettingsSection.READ_RECEIPT_READERS_OPEN,
+                    "長押しメニューに「既読者」を追加",
+                    "メッセージの長押しメニューに、読んだメンバーの一覧を開く項目を追加します。相手のメッセージにも使えます。"),
+            new Entry(LinimalFeature.READ_RECEIPT_READERS_SERVER_SYNC, SettingsPage.READ_RECEIPT_READERS,
+                    SettingsSection.READ_RECEIPT_READERS_DATA,
+                    "一覧を開くときにサーバーと同期する",
+                    "一覧は LINE がこの端末に保存した既読の記録から作ります。ON にすると、一覧を開くたびに LINE 自身の同期処理で"
+                            + "そのトークの既読の記録を取り直します。OFF のときは通信しません。"),
+
             new Entry(LinimalFeature.AMOLED_THEME, SettingsPage.THEME,
                     "ダークモードの背景を黒にする",
                     "端末がダークモードのとき、画面の背景と下部タブを真っ黒にします。カードや吹き出しは元の色のままです。"
@@ -219,12 +295,17 @@ public final class FeatureCatalog {
             new Entry(LinimalFeature.PREMIUM_SETTINGS_ROW, SettingsPage.GENERAL,
                     "設定のプレミアムを表示しない",
                     "LINE の設定画面にある LINE Premium の行を表示しません。"),
+            new Entry(LinimalFeature.PREVIEW_DISABLE, SettingsPage.GENERAL,
+                    "トークのプレビューを無効にする",
+                    "トーク一覧の長押しで、プレビューではなく従来の長押しメニューを開きます。LINE ラボや Premium の契約状態は変わりません。"),
             new Entry(LinimalFeature.PREMIUM_PREVIEW_PROMOTION, SettingsPage.GENERAL,
                     "プレビューの Premium の案内を表示しない",
-                    "トーク一覧の長押しで開くスクロールプレビューにある LINE Premium の案内とメニューの行を表示しません。"),
+                    "トーク一覧の長押しで開くスクロールプレビューにある LINE Premium の案内とメニューの行を表示しません。")
+                    .blockedBy(LinimalFeature.PREVIEW_DISABLE, PREVIEW_DISABLED_SUMMARY),
             new Entry(LinimalFeature.PREVIEW_SCROLL, SettingsPage.GENERAL,
                     "プレビューをスクロール可能にする",
-                    "トーク一覧の長押しで開くプレビューをスクロール可能にします。プレビュー自体の提供や Premium の契約状態は変わりません。"),
+                    "トーク一覧の長押しで開くプレビューをスクロール可能にします。プレビュー自体の提供や Premium の契約状態は変わりません。")
+                    .blockedBy(LinimalFeature.PREVIEW_DISABLE, PREVIEW_DISABLED_SUMMARY),
             new Entry(LinimalFeature.EXTERNAL_BROWSER, SettingsPage.GENERAL,
                     "リンクを外部ブラウザで開く",
                     "トークの本文、リッチメッセージ、リッチメニュー、カードの http/https リンクを外部ブラウザへ渡します。LINE のログインや決済は元のまま開きます。"),
