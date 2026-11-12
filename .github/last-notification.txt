@@ -1,9 +1,4 @@
-# Repos reported by the last notification (8)
-Johannes7k75/gemini-work-profile-patches
-Martinikaws/spotify-merged-patches
-ShortEnigma0/expertraw-morphe-patches
-jair1c/farotv-patches
-mich111discord/MightyMichs-Patches
-saadbinyousaf1/sby-patches
-sabbirdj/viper-patches
-zimza1abim/kanye-morphe-patches
+# Repos reported by the last notification (3)
+Akshayykadam/Pixel-Camera
+RizkLee/morphe-bilibili-danmaku
+kmru/nai64extrapatches
