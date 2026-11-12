@@ -4899,12 +4899,68 @@
                 "updatedAt": 1794291704427
             },
             {
-                "name": "morphe-bilibili-danmaku",
-                "source": "https://raw.githubusercontent.com/RizkLee/morphe-bilibili-danmaku/main/patches-bundle.json",
+                "name": "farotv-patches",
+                "source": "https://raw.githubusercontent.com/jair1c/farotv-patches/main/patches-bundle.json",
                 "autoUpdate": true,
                 "sortOrder": 685,
-                "createdAt": 1794373395409,
-                "updatedAt": 1794373395409
+                "createdAt": 1794464951422,
+                "updatedAt": 1794464951422
+            },
+            {
+                "name": "gemini-work-profile-patches",
+                "source": "https://raw.githubusercontent.com/Johannes7k75/gemini-work-profile-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 686,
+                "createdAt": 1794464952947,
+                "updatedAt": 1794464952947
+            },
+            {
+                "name": "spotify-merged-patches",
+                "source": "https://raw.githubusercontent.com/Martinikaws/spotify-merged-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 687,
+                "createdAt": 1794464956192,
+                "updatedAt": 1794464956192
+            },
+            {
+                "name": "MightyMichs-Patches",
+                "source": "https://raw.githubusercontent.com/mich111discord/MightyMichs-Patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 688,
+                "createdAt": 1794464956731,
+                "updatedAt": 1794464956731
+            },
+            {
+                "name": "sby-patches",
+                "source": "https://raw.githubusercontent.com/saadbinyousaf1/sby-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 689,
+                "createdAt": 1794464960834,
+                "updatedAt": 1794464960834
+            },
+            {
+                "name": "viper-patches",
+                "source": "https://raw.githubusercontent.com/sabbirdj/viper-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 690,
+                "createdAt": 1794464961137,
+                "updatedAt": 1794464961137
+            },
+            {
+                "name": "expertraw-morphe-patches",
+                "source": "https://raw.githubusercontent.com/ShortEnigma0/expertraw-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 691,
+                "createdAt": 1794464961658,
+                "updatedAt": 1794464961658
+            },
+            {
+                "name": "kanye-morphe-patches",
+                "source": "https://raw.githubusercontent.com/zimza1abim/kanye-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 692,
+                "createdAt": 1794464966675,
+                "updatedAt": 1794464966675
             }
         ]
     }
