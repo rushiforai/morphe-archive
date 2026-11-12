@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -229,13 +230,22 @@ public final class ProxyOrder {
         return false;
     }
 
-    /** What the Proxy order row says under its title. */
+    /**
+     * What the Proxy order row says under its title. Only proxies still in Telegram's list count, so
+     * one deleted there no longer shows as pinned. Its line stays, so saving it again brings it back
+     * in its place. When the list can't be read, every line counts.
+     */
     public static String summary() {
+        Set<String> saved = savedKeys();
         int pins = 0;
+        boolean own = false;
         for (String line : lines(Stored.ARRANGED.savedValue())) {
-            if (line.startsWith(PIN)) pins++;
+            boolean pinned = line.startsWith(PIN);
+            if (saved != null && !saved.contains(pinned ? line.substring(PIN.length()) : line)) continue;
+            if (pinned) pins++;
+            else own = true;
         }
-        if (ownOrder()) {
+        if (own) {
             return pins == 0
                     ? L10n.t("Telegram's proxy list is in your order. Tap to change it.")
                     : L10n.quantity(pins, "Telegram's proxy list is in your order, with %1$d proxy pinned on top.",
@@ -246,6 +256,24 @@ public final class ProxyOrder {
                     "%1$d proxies pinned on top of Telegram's proxy list. The rest keep Telegram's order.", pins);
         }
         return L10n.t("Drag the proxies in Telegram's proxy list into your own order, or pin some on top.");
+    }
+
+    /** The keys of Telegram's saved proxies, or null when the list can't be read. */
+    @Nullable
+    private static Set<String> savedKeys() {
+        try {
+            Store from = store;
+            List<?> entries = from.entries();
+            if (entries == null) return null;
+            Set<String> keys = new HashSet<>();
+            for (Object entry : new ArrayList<>(entries)) {
+                if (entry != null) keys.add(from.key(entry));
+            }
+            return keys;
+        } catch (RuntimeException failure) {
+            Logger.printException(() -> "Proxy order: Telegram's proxy list couldn't be read", failure);
+            return null;
+        }
     }
 
     // ---- Keys -----------------------------------------------------------------------------------

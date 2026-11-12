@@ -29,6 +29,14 @@ final class MediaGallery {
     static int step(float dx,float dy,float threshold) {
         return Math.abs(dx)>=threshold&&Math.abs(dx)>Math.abs(dy)*1.5f?(dx<0?1:-1):0;
     }
+    /** Still-image previews already have a smooth native pager, including upload previews. */
+    static boolean needsExternalPaging(Collection<String> links, boolean nativeGif, boolean nativeVideo) {
+        if (links != null) for (String link : links) {
+            if (!nativeGif && GifAutoFetchPolicy.supported(link)
+                    || !nativeVideo && DirectVideoUrls.supported(link)) return true;
+        }
+        return false;
+    }
     static int gestureStep(float dx,float dy,float threshold,boolean thread) {
         return thread?threadStep(dx,dy,threshold):step(dx,dy,threshold);
     }

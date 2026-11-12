@@ -1633,6 +1633,7 @@ private val haiagaruBytecodePatch = bytecodePatch {
         // post can be rejected as "device information only".  Let the posting
         // endpoint perform the authoritative body validation instead.
         patchPostPreflightValidation(packageMetadata.versionName)
+        patchOutgoingReplacementBody(packageMetadata.versionName)
         if (packageMetadata.versionName == "0.8.10.191 dev") {
             patchLegacyExternalEmojiPostBody()
         } else {
@@ -2302,6 +2303,33 @@ private fun BytecodePatchContext.patchExternalEmojiPostCopy(version: String) {
         }
     }
     check(patched == 1) { "Expected one external post-copy boundary for $version, found $patched" }
+}
+
+/** Pinned send-only getters shared by ordinary replies and new-thread posting. */
+private fun BytecodePatchContext.patchOutgoingReplacementBody(version: String) {
+    val (owner, getter) = when (version) {
+        "0.8.10.191 dev" -> "Lo/p9ExternalSyntheticLambda6;" to "i"
+        "0.8.10.226 dev" -> "Ljp/syoboi/a2chMate/feature/resedit/ResEditFragment;" to "j"
+        "0.8.10.242 dev" -> "Ljp/syoboi/a2chMate/feature/resedit/ResEditFragment;" to "f"
+        else -> return
+    }
+    val body = mutableClassDefBy(owner).methods.single { it.name == getter && it.parameterTypes.isEmpty()
+        && it.returnType == "Ljava/lang/String;" }
+    val returns = body.implementation!!.instructions.toList().mapIndexedNotNull { index, instruction ->
+        if (instruction.opcode == Opcode.RETURN_OBJECT)
+            index to (instruction as OneRegisterInstruction).registerA else null
+    }
+    check(returns.isNotEmpty()) { "$version outgoing body has no return" }
+    returns.asReversed().forEach { (index, register) ->
+        // Retarget existing branches to the cleanup, rather than leaving their
+        // label on the old return and skipping cleanup when trimming is OFF.
+        body.replaceInstruction(index,
+            "invoke-static/range {v$register .. v$register}, $EXTENSION->cleanOutgoingBody(Ljava/lang/String;)Ljava/lang/String;")
+        body.addInstructions(index + 1, """
+            move-result-object v$register
+            return-object v$register
+        """.trimIndent())
+    }
 }
 
 /** 191 passes the URL and body as the first and fifth n7a constructor values. */
@@ -3282,6 +3310,14 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchXVideoAttachmentP
  * start with bottom-only automatic scrolling. Never emit a tailing state, so
  * neither the forced sort nor the forced jump-to-bottom collector runs. */
 private fun BytecodePatchContext.patchPostEditorTextSize(version: String) {
+    patchPostingIpWarning(version)
+    if (version == "0.8.10.191 dev") {
+        val command = mutableClassDefBy("Lo/pa;").methods.single {
+            it.name == "e" && it.parameterTypes == listOf("I", "Ljava/lang/Object;") && it.returnType == "Z"
+        }
+        command.addInstructionsWithLabels(0,
+            "invoke-static/range {p0 .. p1}, Lapp/morphe/extension/chmate/PostAutoReload191;->command(Ljava/lang/Object;I)V")
+    }
     val fragment = mutableClassDefBy(if (version == "0.8.10.191 dev")
         "Lo/p9ExternalSyntheticLambda6;" else "Ljp/syoboi/a2chMate/feature/resedit/ResEditFragment;")
     val created = fragment.methods.single { it.name == "onViewCreated" && it.parameterTypes == listOf("Landroid/view/View;", "Landroid/os/Bundle;") }
@@ -3300,6 +3336,45 @@ private fun BytecodePatchContext.patchPostEditorTextSize(version: String) {
             "invoke-static/range {p0 .. p0}, Lapp/morphe/extension/chmate/PostEditorTextSize;->apply(Landroid/app/Activity;)V")
     }
     println("Posting editor configurable text size: ${returns.size} resume exits")
+}
+
+/** Keep the exact submit body/registers in a delegate; guard every native caller. */
+private fun BytecodePatchContext.patchPostingIpWarning(version: String) {
+    val old = version == "0.8.10.191 dev"
+    val middle = version == "0.8.10.226 dev"
+    if (!old && !middle && version != "0.8.10.242 dev") return
+    val type = if (old) "Lo/p9ExternalSyntheticLambda6;" else if (middle)
+        "Ljp/syoboi/a2chMate/feature/resedit/ResEditFragment;" else
+        "Ljp/syoboi/a2chMate/feature/resedit/ResEditFragmentViewModel;"
+    val owner = mutableClassDefBy(type)
+    val submit = owner.methods.single {
+        it.name == (if (old) "b" else if (middle) "n" else "h") && it.returnType == "V" &&
+            it.parameterTypes == (if (middle) listOf(type) else emptyList<String>()) &&
+            (it.accessFlags and 8 != 0) == middle
+    }
+    check(submit.implementation!!.instructions.count() > 8) { "Native submit body changed: $type" }
+    val delegate = MutableMethod(com.android.tools.smali.dexlib2.immutable.ImmutableMethod(type,
+        "haiagaruIpOriginal", submit.parameters, submit.returnType, (submit.accessFlags and 6.inv()) or 1,
+        submit.annotations, submit.hiddenApiRestrictions, submit.implementation))
+    val wrapper = MutableMethod(com.android.tools.smali.dexlib2.immutable.ImmutableMethod(type,
+        submit.name, submit.parameters, submit.returnType, submit.accessFlags, submit.annotations,
+        submit.hiddenApiRestrictions, com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation(
+            2, emptyList(), emptyList(), emptyList())))
+    val invoke = if (middle) "invoke-static" else "invoke-virtual"
+    wrapper.addInstructions(0, """
+        invoke-static {p0}, Lapp/morphe/extension/chmate/PostingIpWarning;->intercept(Ljava/lang/Object;)Z
+        move-result v0
+        if-nez v0, :ip_warning_wait
+        $invoke {p0}, $delegate
+        :ip_warning_wait
+        return-void
+    """.trimIndent())
+    val bridge = MutableMethod(com.android.tools.smali.dexlib2.immutable.ImmutableMethod(type,
+        "haiagaruIpConfirmed", emptyList(), "V", 1, emptySet(), emptySet(),
+        com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation(1, emptyList(), emptyList(), emptyList())))
+    bridge.addInstructions(0, "$invoke {p0}, $delegate\nreturn-void")
+    owner.methods.remove(submit);owner.methods.add(delegate);owner.methods.add(wrapper);owner.methods.add(bridge)
+    println("IP posting confirmation: $type -> ${submit.name}; native body preserved")
 }
 
 /** Only tint the two native auto-scroll icons; preserve click/hold callbacks and timing. */
@@ -4768,14 +4843,6 @@ val haiagaruPatch = resourcePatch(
         description = "true=ChMate内の専用ビュワーを有効化、false=ChMate本来の外部ブラウザ動作。",
     )
 
-    val edgeArchiveToolbarIconPath = filePathOption(
-        key = "edgeArchiveToolbarIconPath",
-        default = "",
-        title = "エッジ過去ログのツールバー画像（任意）",
-        description = "PNG/WebP画像ファイルの絶対パス（file path）。フォルダではなくファイルを選択してください。空欄なら内蔵アイコンを使用します。",
-        allowedExtensions = listOf("png", "webp"),
-    )
-
     val imageNgTfliteFix = stringOption(
         key = "imageNgTfliteFix",
         default = "true",
@@ -4829,6 +4896,24 @@ val haiagaruPatch = resourcePatch(
             intent.setAttributeNS(ANDROID_XML_NAMESPACE,"android:targetClass","app.morphe.extension.chmate.ExternalBoardEditorActivity")
             entry.appendChild(intent)
             settings.documentElement.appendChild(entry)
+            val sites = settings.createElement("Preference")
+            sites.setAttributeNS(ANDROID_XML_NAMESPACE,"android:key","haiagaruSiteBoards")
+            sites.setAttributeNS(ANDROID_XML_NAMESPACE,"android:title","追加掲示板の認証・手動登録")
+            sites.setAttributeNS(ANDROID_XML_NAMESPACE,"android:summary","爆サイ・ふたば・あにまんの一覧は上の標準設定から更新できます")
+            sites.appendChild(settings.createElement("intent").apply {
+                setAttributeNS(ANDROID_XML_NAMESPACE,"android:targetPackage",boardEditorPackage)
+                setAttributeNS(ANDROID_XML_NAMESPACE,"android:targetClass","app.morphe.extension.chmate.SiteBoardSettingsActivity")
+            })
+            // Native rebuilds every child of "bbs" as BbsPreference, by index.
+            // A generic child crashes (or is overwritten/removed on refresh).
+            // Keep the row immediately after that category, before BBSMENU.
+            val categories = settings.getElementsByTagName("PreferenceCategory")
+            val bbsCategories = (0 until categories.length).map { categories.item(it) as Element }
+                .filter { it.getAttribute("android:key") == "bbs" ||
+                    it.getAttributeNS(ANDROID_XML_NAMESPACE, "key") == "bbs" }
+            check(bbsCategories.size == 1) { "Native board settings category changed (${bbsCategories.size})" }
+            val bbsCategory = bbsCategories.single()
+            settings.documentElement.insertBefore(sites, bbsCategory.nextSibling)
         }
         val cacheArrayNames = document("res/values/arrays.xml").use {
             ImageCacheSizeOptions.expand(it)
@@ -5060,7 +5145,6 @@ val haiagaruPatch = resourcePatch(
                 <path android:fillColor="#FFFFFFFF" android:pathData="M16,1H4c-1.1,0 -2,0.9 -2,2v14h2V3h12V1zM19,5H8c-1.1,0 -2,0.9 -2,2v14c0,1.1 0.9,2 2,2h11c1.1,0 2,-0.9 2,-2V7c0,-1.1 -0.9,-2 -2,-2zM19,21H8V7h11v14z"/>
             </vector>
         """.trimIndent())
-        val iconSourcePath = edgeArchiveToolbarIconPath.value.orEmpty().trim()
         for ((name, label) in listOf(
             "haiagaru_wacchoi_search" to "ﾜｯﾁｮｲで検索",
             "haiagaru_wacchoi_lower" to "ﾜｯﾁｮｲ下4桁で検索",
@@ -5110,25 +5194,12 @@ val haiagaruPatch = resourcePatch(
             checkNotNull(EmojiFontResourceMarker::class.java.getResourceAsStream("/chmate/material-icons/$name"))
                 .use { source -> notice.outputStream().use(source::copyTo) }
         }
-        if (iconSourcePath.isEmpty()) {
-            val iconTarget = get("res").resolve("drawable/haiagaru_edge_archive.xml")
-            iconTarget.parentFile.mkdirs()
-            checkNotNull(EmojiFontResourceMarker::class.java.getResourceAsStream(
-                "/chmate/drawable/haiagaru_edge_archive.xml",
-            )) { "Bundled Edge archive toolbar icon is missing" }.use { source ->
-                iconTarget.outputStream().use(source::copyTo)
-            }
-        } else {
-            val iconSource = File(iconSourcePath)
-            if (!iconSource.isFile || !iconSource.canRead() ||
-                iconSource.extension.lowercase(Locale.ROOT) !in setOf("png", "webp")) {
-                throw PatchException("edgeArchiveToolbarIconPathは読み込み可能なPNG/WebP画像を指定してください")
-            }
-            val iconTarget = get("res").resolve(
-                "drawable-nodpi/haiagaru_edge_archive.${iconSource.extension.lowercase(Locale.ROOT)}",
-            )
-            iconTarget.parentFile.mkdirs()
-            iconSource.copyTo(iconTarget, overwrite = true)
+        val iconTarget = get("res").resolve("drawable/haiagaru_edge_archive.xml")
+        iconTarget.parentFile.mkdirs()
+        checkNotNull(EmojiFontResourceMarker::class.java.getResourceAsStream(
+            "/chmate/drawable/haiagaru_edge_archive.xml",
+        )) { "Bundled Edge archive toolbar icon is missing" }.use { source ->
+            iconTarget.outputStream().use(source::copyTo)
         }
         // Mega constructs Ktor's default client before we can replace it.
         // Preserve the ServiceLoader entry in the host APK so initialization
@@ -5284,6 +5355,16 @@ val haiagaruPatch = resourcePatch(
             // Separate filters keep custom hosts and paths from being combined.
             // External checker apps discover renamed installations by URL handlers.
             // Never encode a distribution package name into this contract.
+            for ((host, path) in listOf(
+                "bbs.animanch.com" to "/board/",
+                "bbs.animanch.com" to "/category",
+                "bakusai.com" to "/thr_res/",
+                "bakusai.com" to "/thr_tl/",
+                "bakusai.com" to "/yamibaito/",
+            )) document.addOpenUrlFilter(openUrlActivity, listOf("http", "https"), host,
+                path = path, pathAttribute = "android:pathPrefix")
+            document.addOpenUrlFilter(openUrlActivity, listOf("http", "https"), "*.2chan.net",
+                path = "/.*/res/.*", pathAttribute = "android:pathPattern")
             if (!dedicatedViewerEnabled) {
                 document.addOpenUrlFilter(
                     openUrlActivity, listOf("http", "https"), "hissi.org",
@@ -5410,6 +5491,37 @@ val haiagaruPatch = resourcePatch(
                 setAttributeNS(ANDROID_XML_NAMESPACE, "android:theme", "@android:style/Theme.Material.Light.NoActionBar")
                 setAttributeNS(ANDROID_XML_NAMESPACE, "android:windowSoftInputMode", "adjustResize")
             })
+            application.appendChild(document.createElement("activity").apply {
+                setAndroidAttribute("name", "app.morphe.extension.chmate.SiteBoardSettingsActivity")
+                setAndroidAttribute("exported", "false")
+                setAndroidAttribute("theme", "@android:style/Theme.Material.Light.NoActionBar")
+                setAndroidAttribute("windowSoftInputMode", "adjustResize")
+            })
+            application.appendChild(document.createElement("activity").apply {
+                setAndroidAttribute("name", "app.morphe.extension.chmate.SitePostingImageActivity")
+                setAndroidAttribute("exported", "false")
+                setAndroidAttribute("theme", "@android:style/Theme.Material.Light.NoActionBar")
+            })
+            application.appendChild(document.createElement("activity").apply {
+                setAndroidAttribute("name", "app.morphe.extension.chmate.RegisteredImageNgSettingsActivity")
+                setAndroidAttribute("exported", "false")
+                setAndroidAttribute("theme", "@android:style/Theme.Material.Light.NoActionBar")
+            })
+            application.appendChild(document.createElement("activity").apply {
+                setAndroidAttribute("name", "app.morphe.extension.chmate.SettingLinkActivity")
+                setAndroidAttribute("exported", "true")
+                setAndroidAttribute("theme", "@android:style/Theme.Material.Light.NoActionBar")
+                setAndroidAttribute("windowSoftInputMode", "adjustResize")
+                appendChild(document.createElement("intent-filter").apply {
+                    appendChild(document.createElement("action").apply { setAndroidAttribute("name", "android.intent.action.VIEW") })
+                    for (category in listOf("android.intent.category.DEFAULT", "android.intent.category.BROWSABLE"))
+                        appendChild(document.createElement("category").apply { setAndroidAttribute("name", category) })
+                    appendChild(document.createElement("data").apply {
+                        setAndroidAttribute("scheme", "haiagaru")
+                        setAndroidAttribute("host", "settings")
+                    })
+                })
+            })
             application.appendChild(document.createElement("provider").apply {
                 setAndroidAttribute("name", "app.morphe.extension.chmate.SettingsShareProvider")
                 setAndroidAttribute("authorities", document.documentElement.getAttribute("package") + ".haiagaru.settings")
@@ -5450,6 +5562,11 @@ val haiagaruPatch = resourcePatch(
                 setAttributeNS(ANDROID_XML_NAMESPACE,"android:name","app.morphe.extension.chmate.ThreadWatchService")
                 setAttributeNS(ANDROID_XML_NAMESPACE,"android:exported","false")
                 setAttributeNS(ANDROID_XML_NAMESPACE,"android:permission","android.permission.BIND_JOB_SERVICE")
+            })
+            application.appendChild(document.createElement("activity").apply {
+                setAttributeNS(ANDROID_XML_NAMESPACE,"android:name","app.morphe.extension.chmate.ThreadWatchOpenActivity")
+                setAttributeNS(ANDROID_XML_NAMESPACE,"android:exported","false")
+                setAttributeNS(ANDROID_XML_NAMESPACE,"android:theme","@android:style/Theme.Translucent.NoTitleBar")
             })
             application.appendChild(document.createElement("service").apply {
                 setAttributeNS(ANDROID_XML_NAMESPACE,"android:name","app.morphe.extension.chmate.VideoFrameDecodeService")

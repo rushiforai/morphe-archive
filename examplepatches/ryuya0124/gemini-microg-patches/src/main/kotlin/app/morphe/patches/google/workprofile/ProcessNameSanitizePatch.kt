@@ -6,11 +6,18 @@ import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.google.common.HookId
 import app.morphe.patches.google.common.VersionHookRegistry
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.MethodParameter
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 
 /**
  * クローン環境下で Google アプリのプロセス名取得 API の戻り値を偽装・正規化するパッチ
@@ -37,21 +44,6 @@ val processNameSanitizePatch = bytecodePatch(
         val targetProcessKey = spec.anchorStrings.single()
         val candidateClasses = getAllClassesWithString(targetProcessKey)
         println("[ProcessNameSanitizePatch] Found ${candidateClasses.size} candidate classes with '$targetProcessKey'")
-
-        fun ensureRegisters(impl: Any?, minRegs: Int) {
-            if (impl == null) return
-            try {
-                val field = impl.javaClass.getDeclaredField("registerCount")
-                field.isAccessible = true
-                val cur = field.getInt(impl)
-                if (cur < minRegs) {
-                    field.setInt(impl, minRegs)
-                    println("[ProcessNameSanitizePatch] Expanded registerCount from $cur to $minRegs")
-                }
-            } catch (e: Exception) {
-                println("[ProcessNameSanitizePatch] Note expanding registerCount: ${e.message}")
-            }
-        }
 
         val targetMethodsToPatch = mutableSetOf<String>()
 
@@ -94,24 +86,43 @@ val processNameSanitizePatch = bytecodePatch(
             val classDef = classDefByOrNull(classType)
             if (classDef != null) {
                 val mutableClass = mutableClassDefBy(classDef)
+                val helperName = "morpheNormalizeProcessName"
+                check(mutableClass.methods.none { it.name == helperName }) { "Use an unpatched original APK" }
+                // Construct a new method with a declared register layout. Mutating dexlib's
+                // private final registerCount field is not portable to Android Manager.
+                val helper = MutableMethod(ImmutableMethod(
+                    classType, helperName,
+                    listOf<MethodParameter>(ImmutableMethodParameter("Ljava/lang/String;", emptySet(), null)),
+                    "Ljava/lang/String;", AccessFlags.PRIVATE.value or AccessFlags.STATIC.value or AccessFlags.SYNTHETIC.value,
+                    emptySet(), emptySet(),
+                    ImmutableMethodImplementation(3, emptyList<Instruction>(), emptyList(), emptyList())
+                ))
+                helper.addInstructions("""
+                    const-string v0, ".morphe"
+                    const-string v1, ""
+                    invoke-virtual {v2, v0, v1}, Ljava/lang/String;->replace(Ljava/lang/CharSequence;Ljava/lang/CharSequence;)Ljava/lang/String;
+                    move-result-object v0
+                    return-object v0
+                """)
+                check(helper.implementation!!.registerCount == 3)
+                mutableClass.methods.add(helper)
                 for (method in mutableClass.methods) {
                     if (method.name == methodName && spec.matches(method) && method.implementation != null) {
-                        // v1, v2 を安全に使用できるようレジスタ数を最低 4 に拡張
-                        ensureRegisters(method.implementation, 4)
-
+                        check(AccessFlags.STATIC.isSet(method.accessFlags) && method.parameterTypes.isEmpty())
+                        val originalRegisters = method.implementation!!.registerCount
                         val insList = method.instructions.toList()
                         for (idx in insList.indices.reversed()) {
                             val ins = insList[idx]
                             if (ins.opcode == Opcode.RETURN_OBJECT) {
                                 val reg = (ins as OneRegisterInstruction).registerA
+                                check(reg in 0 until originalRegisters && reg <= 15)
                                 // Keep the original return's labels on the first normalization instruction.
                                 // Inserting before a labelled return lets cached branches skip the insertion.
-                                method.replaceInstruction(idx, "const-string v1, \".morphe\"")
+                                method.replaceInstruction(idx,
+                                    "invoke-static {v$reg}, $classType->$helperName(Ljava/lang/String;)Ljava/lang/String;")
                                 method.addInstructions(
                                     idx + 1,
                                     """
-                                        const-string v2, ""
-                                        invoke-virtual {v$reg, v1, v2}, Ljava/lang/String;->replace(Ljava/lang/CharSequence;Ljava/lang/CharSequence;)Ljava/lang/String;
                                         move-result-object v$reg
                                         return-object v$reg
                                     """
@@ -120,6 +131,7 @@ val processNameSanitizePatch = bytecodePatch(
                                 patchedProviderCount++
                             }
                         }
+                        check(method.implementation!!.registerCount == originalRegisters)
                     }
                 }
             }

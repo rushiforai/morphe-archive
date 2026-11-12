@@ -30,7 +30,6 @@ val pdbStandaloneInstallPatch = resourcePatch(
         "installs. Required when patching the App Bundle's base APK.",
     default = true,
 ) {
-    category("Misc")
     compatibleWith(PDB_COMPATIBILITY)
 
     execute {

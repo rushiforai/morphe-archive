@@ -27,17 +27,20 @@ private fun Instruction.stringRef(): String? = ((this as? ReferenceInstruction)?
 private fun Method.lastRegister(): Int = implementation!!.registerCount - 1
 
 /**
- * Applies only "DNS filter" to [apk] with the non-default options (fallback mode, [OTHER_DOH_URL]),
+ * Applies only "DNS filter" to [apk] with the non-default options (fallback mode, [OTHER_DOH_URL] as the custom resolver),
  * from a freshly loaded bundle: the first run's patch and Fingerprint objects keep their matches.
  */
 internal fun applyDnsFilterFallback(apk: File, workDir: File, pkg: String, version: String): List<ClassDef> {
     val root = repoRoot()
     val patches: Set<Patch<*>> = loadAllPatches(newestPatchBundle(root))
     val dnsFilter = patches.single { it.name == DNS_FILTER && it.compatibility.orEmpty().any { c -> c.packageName == pkg } }
-    assertEquals(setOf("dohUrl", "dohMode"), dnsFilter.options.keys, "$pkg DNS filter options")
+    assertEquals(setOf("dohUrl", "customDohUrl", "dohMode"), dnsFilter.options.keys, "$pkg DNS filter options")
     assertEquals(DEFAULT_DOH_URL, dnsFilter.options["dohUrl"]?.default, "$pkg DNS filter default resolver")
     assertEquals("strict", dnsFilter.options["dohMode"]?.default, "$pkg DNS filter default mode")
-    dnsFilter.options.set("dohUrl", OTHER_DOH_URL)
+    assertEquals(null, dnsFilter.options["customDohUrl"]?.default, "$pkg DNS filter has no custom resolver by default")
+    // The custom address replaces the list choice, so the list is set to another preset to prove it.
+    dnsFilter.options.set("dohUrl", "https://doh.cleanbrowsing.org/doh/adult-filter/")
+    dnsFilter.options.set("customDohUrl", OTHER_DOH_URL)
     dnsFilter.options.set("dohMode", "fallback")
     return applyPatches(
         apk = apk,

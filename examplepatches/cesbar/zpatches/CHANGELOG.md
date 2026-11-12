@@ -1,3 +1,9 @@
+## [1.14.0](https://github.com/cesbar/zpatches/compare/v1.13.1...v1.14.0) (2026-11-12)
+
+### ✨ New Features
+
+* **misc:** Export all app activites, services, receivers ([8d5efb2](https://github.com/cesbar/zpatches/commit/8d5efb2f7cd51b2d9cb125d024012dcbee6f635d))
+
 ## [1.13.1](https://github.com/cesbar/zpatches/compare/v1.13.0...v1.13.1) (2026-09-12)
 
 ### 🚀 Updated App Support

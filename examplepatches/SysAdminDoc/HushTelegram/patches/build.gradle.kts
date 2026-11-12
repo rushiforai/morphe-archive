@@ -957,6 +957,9 @@ val fixtureTestClasses = listOf(
 val fixtureTest = tasks.register<Test>("fixtureTest") {
     group = "verification"
     description = "Runs the patch tests that read the vendor Telegram APKs."
+    // One JVM for every fixture class ran out of its 2 GB heap at 498 tests, so each fork takes at
+    // most 32 classes and the heap stays where the machine's build limits put it.
+    forkEvery = 32L
     testClassesDirs = sourceSets.test.get().output.classesDirs
     classpath = sourceSets.test.get().runtimeClasspath
     include(fixtureTestClasses)

@@ -1,3 +1,10 @@
+## [1.70.0](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.69.2...v1.70.0) (2026-11-12)
+
+### ✨ New Features
+
+* **subwaysurfers:** add Subway Surfers compatibility (3.70.0, 3.71.0) for currency port ([807b29d](https://github.com/mwbra130/Retro-Bowl-College/commit/807b29df6968d488567618508ac3e7c125f46b9f))
+* **subwaysurfers:** unlimited coins and keys (port of legendsciber currency hack, re-anchored for 3.71.0) ([f836c0c](https://github.com/mwbra130/Retro-Bowl-College/commit/f836c0cf2860347e2804464ba536934b519f87b5))
+
 ## [1.69.2](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.69.1...v1.69.2) (2026-11-11)
 
 ### 🐛 Bug Fixes

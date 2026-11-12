@@ -67,7 +67,7 @@ class LyricsFixtureTest {
             val context = PatchContexts.of(hosts(build))
             val menu = context.resolveLyricsMenu()
             val dates = context.resolveSongDates(menu.player)
-            if (name.contains("-72919")) {
+            if (name.contains("-73039")) {
                 assertEquals("Lorg/telegram/ui/Components/d8;", menu.player)
                 assertEquals("Lorg/telegram/ui/Components/x6;", menu.method.definingClass)
                 assertEquals("Lorg/telegram/ui/Components/p60;", menu.item.definingClass)

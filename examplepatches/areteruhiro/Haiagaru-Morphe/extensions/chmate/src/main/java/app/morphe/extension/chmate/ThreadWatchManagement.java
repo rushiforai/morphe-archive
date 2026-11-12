@@ -4,6 +4,9 @@ import android.app.Activity;
 import android.content.Context;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.EditText;
+import android.text.InputType;
+import android.widget.Toast;
 import org.json.JSONObject;
 import java.util.*;
 
@@ -33,10 +36,19 @@ final class ThreadWatchManagement {
     static void durationButton(LinearLayout box,Activity a,int[] value){
         Button button=new Button(a);button.setAllCaps(false);box.addView(button);
         Runnable label=()->button.setText("監視期限："+durationLabel(value[0]));label.run();
-        int[] choices={60,360,1440,4320,10080,43200,0};
-        String[] labels=new String[choices.length];for(int i=0;i<choices.length;i++)labels[i]=durationLabel(choices[i]);
+        int[] choices={60,120,180,360,1440,4320,10080,43200,0};
+        String[] labels=new String[choices.length+1];for(int i=0;i<choices.length;i++)labels[i]=durationLabel(choices[i]);labels[choices.length]="任意の時間を指定";
         button.setOnClickListener(v->new HaiagaruDialog.Builder(a).setTitle("登録・再開からの監視期限")
-            .setItems(labels,(d,w)->{value[0]=choices[w];label.run();}).setNegativeButton("キャンセル",null).show());
+            .setItems(labels,(d,w)->{
+                if(w<choices.length){value[0]=choices[w];label.run();return;}
+                EditText hours=new EditText(a);hours.setHint("時間数（例：12）");hours.setInputType(InputType.TYPE_CLASS_NUMBER);hours.setText(value[0]>0?Integer.toString(Math.max(1,value[0]/60)):"");
+                new HaiagaruDialog.Builder(a).setTitle("監視期限を任意指定（時間）").setView(hours)
+                    .setPositiveButton("設定",(dialog,which)->{try{
+                        long parsed=Long.parseLong(hours.getText().toString().trim());if(parsed<1||parsed>8760)throw new NumberFormatException();
+                        value[0]=(int)(parsed*60);label.run();
+                    }catch(NumberFormatException invalid){Toast.makeText(a,"1～8760時間で入力してください",Toast.LENGTH_LONG).show();}})
+                    .setNegativeButton("キャンセル",null).show();
+            }).setNegativeButton("キャンセル",null).show());
     }
     static void addButton(LinearLayout box,Activity a){
         Button button=new Button(a);button.setText("通知の監視スレ一覧・停止・再開");box.addView(button);

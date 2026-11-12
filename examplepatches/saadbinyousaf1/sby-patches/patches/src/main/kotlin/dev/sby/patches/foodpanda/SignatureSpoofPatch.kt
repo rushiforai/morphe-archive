@@ -26,6 +26,7 @@ val signatureSpoofPatch = bytecodePatch(
     // © https://saadbinyousaf.dev/ © //
     execute {
         getPackageInfoFingerprint.matchAllMethodIndicesForEach(requireMatches = false) { index ->
+            if (definingClass == EXTENSION_CLASS) return@matchAllMethodIndicesForEach
             val instruction = getInstruction(index)
             val registers = instruction.registersUsed
             if (registers.size == 3) {

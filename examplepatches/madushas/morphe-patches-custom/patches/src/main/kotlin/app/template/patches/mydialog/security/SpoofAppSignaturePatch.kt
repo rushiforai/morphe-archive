@@ -39,7 +39,6 @@ val myDialogSpoofAppSignaturePatch = bytecodePatch(
         "the re-signed APK.",
     default = true,
 ) {
-    category("Security")
     compatibleWith(MYDIALOG_COMPATIBILITY)
 
     execute {

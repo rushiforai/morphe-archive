@@ -1,0 +1,747 @@
+﻿package patches.universal.ads
+
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
+import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.booleanOption
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.stringOption
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import patches.universal.ads.util.cloneParameters
+import patches.universal.ads.util.findMutableMethodOf
+import patches.universal.ads.util.fireRewardedAdCallbacks
+import patches.universal.ads.util.repeatLines
+import java.util.logging.Logger
+import patches.universal.ads.util.DiscordPromo
+
+@Suppress("unused")
+val adsFreeRewardsPatch = bytecodePatch(
+    name = "Ads Free Rewards",
+    description = "Get rewards without watching ads. Combine with No Ads for other formats, but keep No Ads' rewarded block off.",
+    default = false,
+) {
+    category("Featured")
+    val rewardStrategy by stringOption(
+        key = "rewardStrategy",
+        default = "auto",
+        title = "Reward Strategy",
+        description = "Which ad-network integration to patch. 'Auto' covers every supported network",
+        values = mapOf(
+            "Auto (all networks)" to "auto",
+            "AppLovin MAX" to "max",
+            "Unity Ads" to "unityAds",
+            "ironSource / LevelPlay" to "ironSource",
+            "RuStore / VK MyTarget" to "rustore",
+            "Huawei Ads Kit / Petal Ads" to "huawei",
+        ),
+    )
+    val rewardMultiplier by stringOption(
+        key = "rewardMultiplier",
+        default = "1",
+        title = "Reward multiplier",
+        description = "How many times the reward callback runs per ad.",
+    )
+    execute {
+        val logger = Logger.getLogger(this::class.java.name)
+        DiscordPromo.logOnce(logger)
+        // Claiming the reward without showing the ad, reporting ads as
+        // available, and dropping the countdown are what this patch is for.
+        // They used to be switches that only ever made the patch do nothing,
+        // so they are unconditional now.
+        val instantReward: Boolean? = true
+        val fakeAdAvailability: Boolean? = true
+        val skipAdCountdown: Boolean? = true
+        logger.info("Ads Free Rewards: strategy=$rewardStrategy")
+
+        val requested = (rewardMultiplier ?: "1").trim()
+        val parsed = requested.toIntOrNull()
+        val multiplier = when {
+            parsed == null -> {
+                logger.warning("Ads Free Rewards: rewardMultiplier '$requested' is not a number - using 1")
+                1
+            }
+            parsed < 1 -> {
+                logger.warning("Ads Free Rewards: rewardMultiplier $parsed is below 1 - using 1")
+                1
+            }
+            parsed > MAX_REPEAT_MULTIPLIER -> {
+                logger.warning("Ads Free Rewards: rewardMultiplier $parsed is above the $MAX_REPEAT_MULTIPLIER limit - using $MAX_REPEAT_MULTIPLIER")
+                MAX_REPEAT_MULTIPLIER
+            }
+            else -> parsed
+        }
+        logger.info("Ads Free Rewards: rewardMultiplier=$multiplier mode=reward")
+
+        if (multiplier > 1) {
+            logger.info("Ads Free Rewards: repeating the reward callback $multiplier time(s)")
+        }
+        val killed = skipAdCountdowns(logger)
+        logger.info("Ads Free Rewards: removed ad countdown in $killed place(s)")
+        applyAdsFreeRewardsV1190(logger, rewardStrategy, instantReward, multiplier)
+        val faked = forceAdAvailability(logger)
+        if (faked > 0) logger.info("Ads Free Rewards: faked availability for $faked SDK check(s)")
+    }
+}
+
+/**
+ * Ceiling for the reward multiplier.
+ *
+ * Repeating the callback writes the reward out once per step, so this is
+ * bounded by dex output size rather than by int range. Each repeated
+ * invoke-interface is 3 code units and a method body is capped at 65535, which
+ * puts the theoretical ceiling near 21k. [repeatLines] caps the unroll at the
+ * same value. Reaching much beyond this needs the repeat emitted as a counted
+ * loop instead of an unroll, which needs a spare register at every injection
+ * site; three of them do not currently grow their frames.
+ */
+private const val MAX_REPEAT_MULTIPLIER = 10_000
+
+/**
+ * Removes the rewarded-ad countdown.
+ *
+ * Rewarded units show a countdown and keep the reward control disabled until
+ * it reaches zero, so the player waits out dead time. Folding the call that
+ * shows the timer to a no-op removes both the countdown and the wait it
+ * gates.
+ */
+private fun BytecodePatchContext.skipAdCountdowns(logger: Logger): Int {
+    val targets = listOf(
+        "Pangle TopLayoutDislike2.showCountDownText" to PangleCountdownShowFingerprint,
+        "Pangle top/zmn.showCountDownText" to PangleCountdownShowAltFingerprint,
+        "Pangle top/zn.showCountDownText" to PangleCountdownShowAlt2Fingerprint,
+    )
+    var patched = 0
+    for ((label, fingerprint) in targets) {
+        val method = fingerprint.methodOrNull
+        if (method == null) {
+            logger.info("Ads Free Rewards: countdown skipped $label - not present")
+            continue
+        }
+        if (method.implementation == null) {
+            logger.info("Ads Free Rewards: countdown skipped $label - no implementation")
+            continue
+        }
+        try {
+            method.addInstructions(0, "return-void")
+            logger.info("Ads Free Rewards: removed countdown $label")
+            patched++
+        } catch (e: Exception) {
+            logger.warning("Ads Free Rewards: countdown failed $label - ${e.message}")
+        }
+    }
+    return patched
+}
+
+/**
+ * Forces ad SDKs to report that an ad is currently available.
+ *
+ * Many games gate their rewarded / interstitial buttons behind an SDK
+ * "isReady" / "isAvailable" check (e.g. Unity Ads Advertisement.isReady,
+ * ironSource isRewardedVideoAvailable, AppLovin MAX isReady, or the Yandex
+ * MyTarget mediation adapter's isLoaded). When no real ad can fill (no
+ * network, ad-blocker, or re-signed build), these return false and the game
+ * never calls show(), so the instant-reward hooks above never fire. Forcing
+ * the gates to return true makes the game proceed to show(), letting the
+ * reward flow grant without a real ad.
+ */
+private fun BytecodePatchContext.forceAdAvailability(logger: Logger): Int {
+    var patched = 0
+    fun patchIsReady(label: String, fingerprint: app.morphe.patcher.Fingerprint) {
+        val method = fingerprint.methodOrNull ?: return
+        val impl = method.implementation ?: run {
+            logger.warning("Ads Free Rewards: skip $label  -  no implementation")
+            return
+        }
+        if (impl.registerCount < 1) {
+            logger.warning("Ads Free Rewards: skip $label  -  registerCount ${impl.registerCount} < 1")
+            return
+        }
+        method.addInstructions(
+            0,
+            """
+            const/4 v0, 0x1
+            return v0
+            """.trimIndent(),
+        )
+        logger.info("Ads Free Rewards: faked availability for $label")
+        patched++
+    }
+
+    patchIsReady("Unity Ads Advertisement.isReady()", UnityAdsAdvertisementIsReadyFingerprint)
+    patchIsReady("Unity Ads Advertisement.isReady(placement)", UnityAdsAdvertisementIsReadyPlacementFingerprint)
+    patchIsReady("Unity Ads UnityAds.isReady()", UnityAdsSdkIsReadyFingerprint)
+    patchIsReady("ironSource isRewardedVideoAvailable()", IronSourceIsRewardedVideoAvailableFingerprint)
+    patchIsReady("ironSource isInterstitialReady()", IronSourceIsInterstitialReadyFingerprint)
+    patchIsReady("AppLovin MAX InterstitialAd.isReady()", MaxInterstitialAdIsReadyFingerprint)
+    patchIsReady("AppLovin MAX AppOpenAd.isReady()", MaxAppOpenAdIsReadyFingerprint)
+    patchIsReady("Yandex/MyTarget rewarded mediation isLoaded()", YandexMyTargetRewardedIsLoadedFingerprint)
+    patchIsReady("Yandex/MyTarget interstitial mediation isLoaded()", YandexMyTargetInterstitialIsLoadedFingerprint)
+    patchIsReady("Huawei Ads Kit RewardAd.isLoaded()", HuaweiRewardAdIsLoadedFingerprint)
+    patchIsReady("InMobi isReady()", InMobiIsReadyFingerprint)
+    patchIsReady("AdMob rewarded isLoaded()", AdMobRewardedShowFingerprint) // will fail gracefully, just to log
+    return patched
+}
+
+private fun BytecodePatchContext.applyAdsFreeRewardsV1190(logger: Logger, rewardStrategy: String?, instantReward: Boolean?, multiplier: Int) {
+    val strategy = rewardStrategy
+    val useMax = strategy == "auto" || strategy == "max"
+    val useUnityAds = strategy == "auto" || strategy == "unityAds"
+    val useIronSource = strategy == "auto" || strategy == "ironSource"
+    val useRustore = strategy == "auto" || strategy == "rustore"
+    val useHuawei = strategy == "auto" || strategy == "huawei"
+
+    logger.info("Ads Free Rewards: strategy=$strategy instantReward=$instantReward fakeAdAvailability=true rewardMultiplier=$multiplier")
+
+    val hasMaxUnity = ShowRewardedAdFingerprint.methodOrNull != null &&
+        IsRewardedAdReadyFingerprint.methodOrNull != null
+    val hasNativeMax = MaxRewardedAdIsReadyFingerprint.methodOrNull != null &&
+        MaxRewardedAdShowAdFingerprint.methodOrNull != null
+    val hasUnityAds = UnityRewardedAdShowFingerprint.methodOrNull != null
+    val hasUnityAdsV4 = UnityAdsV4Show3ArgFingerprint.methodOrNull != null ||
+        UnityAdsV4Show4ArgFingerprint.methodOrNull != null
+    val hasLevelPlay = LevelPlayRewardedAdIsReadyFingerprint.methodOrNull != null
+    val hasIronSourceUnityBridge = IronSourceUnityRewardedAdIsReadyFingerprint.methodOrNull != null &&
+        IronSourceLevelPlayFullScreenShowAdFingerprint.methodOrNull != null
+    val hasMyTarget = MyTargetBaseInterstitialShowFingerprint.methodOrNull != null
+    val hasYandexUnityRewarded = YandexUnityRewardedWrapperShowFingerprint.methodOrNull != null
+    val hasHuawei = HuaweiRewardAdIsLoadedFingerprint.methodOrNull != null &&
+        HuaweiRewardAdShowFingerprint.methodOrNull != null
+    val hasAdMob = AdMobRewardedShowFingerprint.methodOrNull != null
+    val hasInMobi = InMobiInterstitialShowFingerprint.methodOrNull != null || InMobiRewardedShowFingerprint.methodOrNull != null
+    val hasInMobiRewarded = InMobiRewardedShowFingerprint.methodOrNull != null
+    val hasIronSourceAds = IronSourceAdsRewardedShowFingerprint.methodOrNull != null ||
+        IronSourceAdsRewardedShowPreciseFingerprint.methodOrNull != null
+    val hasMads = MadsWrapperShowAdFingerprint.methodOrNull != null &&
+        MadsRvHandlerOnRewardedFingerprint.methodOrNull != null
+
+    if (multiplier != 1) {
+        logger.info("Ads Free Rewards: reward multiplier $multiplier - the ad break is repeated $multiplier time(s)")
+    }
+
+    logger.info("Ads Free Rewards: detected SDKs  -  MAX Unity=$hasMaxUnity native MAX=$hasNativeMax UnityAds=$hasUnityAds UnityAdsV4=$hasUnityAdsV4 LevelPlay=$hasLevelPlay ironSourceBridge=$hasIronSourceUnityBridge MyTarget=$hasMyTarget Yandex=$hasYandexUnityRewarded Huawei=$hasHuawei AdMob=$hasAdMob InMobi=$hasInMobi InMobiRewarded=$hasInMobiRewarded IronSourceAds=$hasIronSourceAds MADS=$hasMads")
+
+    if (!hasMaxUnity && !hasNativeMax && !hasUnityAds && !hasUnityAdsV4 && !hasLevelPlay && !hasIronSourceUnityBridge && !hasMyTarget && !hasYandexUnityRewarded && !hasHuawei && !hasAdMob && !hasInMobiRewarded && !hasIronSourceAds && !hasMads) {
+        logger.warning("Ads Free Rewards: no supported ad SDK found for reward strategy $strategy  -  no changes applied")
+        return
+    }
+
+    // -- Huawei Ads Kit / Petal Ads --
+    // Huawei's rewarded callback carries the reward object as a singleton
+    // DEFAULT value, so no SDK-internal implementation class is required.
+    val huaweiReady = HuaweiRewardAdIsLoadedFingerprint.methodOrNull
+    val huaweiShow = HuaweiRewardAdShowFingerprint.methodOrNull
+    if (useHuawei && instantReward == true && huaweiReady != null && huaweiShow != null) {
+        val showClass = HuaweiRewardAdShowFingerprint.classDefOrNull
+        if (showClass != null) {
+            val huaweiOnRewarded = "invoke-virtual {v1, v0}, Lcom/huawei/hms/ads/reward/RewardAdStatusListener;->onRewarded(Lcom/huawei/hms/ads/reward/Reward;)V"
+            huaweiShow.cloneParameters().addInstructions(
+                0, """
+                move-object/from16 v1, p2
+                if-eqz v1, :morphe_huawei_reward_done
+                invoke-virtual {v1}, Lcom/huawei/hms/ads/reward/RewardAdStatusListener;->onRewardAdOpened()V
+                sget-object v0, Lcom/huawei/hms/ads/reward/Reward;->DEFAULT:Lcom/huawei/hms/ads/reward/Reward;
+                ${repeatLines(multiplier, "                ", huaweiOnRewarded)}
+                invoke-virtual {v1}, Lcom/huawei/hms/ads/reward/RewardAdStatusListener;->onRewardAdClosed()V
+                :morphe_huawei_reward_done
+                return-void
+            """.trimIndent()
+            )
+            logger.info("Huawei Ads Kit rewarded patch succeeded${if (multiplier > 1) " (reward x$multiplier)" else ""}")
+        } else {
+            logger.warning("Ads Free Rewards: Huawei show class not found  -  skipping")
+        }
+    } else {
+        if (!useHuawei) logger.info("Ads Free Rewards: Huawei strategy disabled by rewardStrategy=$strategy")
+        else if (!hasHuawei) logger.info("Ads Free Rewards: Huawei SDK not detected  -  skipping")
+        else logger.info("Ads Free Rewards: Huawei skipped (instantReward=$instantReward)")
+    }
+
+    if (useRustore && instantReward == true) {
+        applyMyTargetStrategy(logger, multiplier)
+        applyYandexWrapperStrategy(logger, multiplier)
+    }
+    if (applyMaxUnityStrategy(logger, useMax, instantReward, multiplier)) return
+    applyNativeMaxStrategy(logger, useMax, instantReward, multiplier)
+    applyInMobiRewardedStrategy(logger, useMax, instantReward, multiplier)
+    applyIronSourceAdsStrategy(logger, useIronSource, instantReward, multiplier)
+    applyIronSourceAdsWrapperStrategy(logger, useIronSource, instantReward)
+    applyMadsStrategy(logger, useIronSource, instantReward, multiplier)
+    applyAdMobRewardedStrategy(logger, useMax, instantReward, multiplier)
+    applyLevelPlayStrategy(logger, useIronSource)
+    if (applyIronSourceBridgeStrategy(logger, useIronSource, instantReward, multiplier)) return
+    applyUnityAdsStrategy(logger, useUnityAds, instantReward, multiplier)
+    applyUnityAdsV4Strategy(logger, useUnityAds, instantReward, multiplier)
+}
+
+private fun BytecodePatchContext.applyMyTargetStrategy(logger: Logger, multiplier: Int) {
+    val myTargetShow = MyTargetBaseInterstitialShowFingerprint.methodOrNull ?: return
+    val hasShow = myTargetShow.implementation?.registerCount ?: 0 >= 2
+    if (!hasShow) {
+        logger.warning("Ads Free Rewards: skip MyTarget  -  low registerCount")
+        return
+    }
+    val myTargetOnReward = "invoke-interface {v0, v2, v1}, Lcom/my/target/ads/RewardedAd\$RewardedAdListener;->onReward(Lcom/my/target/ads/Reward;Lcom/my/target/ads/RewardedAd;)V"
+    myTargetShow.cloneParameters().addInstructions(
+        0, """
+        move-object/from16 v1, p0
+        instance-of v0, v1, Lcom/my/target/ads/RewardedAd;
+        if-eqz v0, :morphe_rustore_mytarget_original_show
+        check-cast v1, Lcom/my/target/ads/RewardedAd;
+        invoke-virtual {v1}, Lcom/my/target/ads/RewardedAd;->getListener()Lcom/my/target/ads/RewardedAd${'$'}RewardedAdListener;
+        move-result-object v0
+        if-eqz v0, :morphe_rustore_mytarget_done
+        invoke-interface {v0, v1}, Lcom/my/target/ads/RewardedAd${'$'}RewardedAdListener;->onDisplay(Lcom/my/target/ads/RewardedAd;)V
+        invoke-static {}, Lcom/my/target/ads/Reward;->getDefault()Lcom/my/target/ads/Reward;
+        move-result-object v2
+        ${repeatLines(multiplier, "        ", myTargetOnReward)}
+        invoke-interface {v0, v1}, Lcom/my/target/ads/RewardedAd${'$'}RewardedAdListener;->onDismiss(Lcom/my/target/ads/RewardedAd;)V
+        :morphe_rustore_mytarget_done
+        return-void
+        :morphe_rustore_mytarget_original_show
+    """.trimIndent()
+    )
+    logger.info("Ads Free Rewards: RuStore / VK MyTarget rewarded patch succeeded${if (multiplier > 1) " (reward x$multiplier)" else ""}")
+}
+
+private fun BytecodePatchContext.applyYandexWrapperStrategy(logger: Logger, multiplier: Int) {
+    val yandexRewardedShow = YandexUnityRewardedWrapperShowFingerprint.methodOrNull ?: return
+    val yandexOnRewarded = YandexUnityRewardedListenerOnRewardedFingerprint.methodOrNull ?: return
+    val yandexOnRewardedCall = "invoke-interface {v0, v1, v2}, Lcom/yandex/mobile/ads/unity/wrapper/rewarded/UnityRewardedAdListener;->onRewarded(ILjava/lang/String;)V"
+    yandexOnRewarded.cloneParameters().addInstructions(0, """
+        move-object/from16 v2, p0
+        iget-object v0, v2, Lcom/yandex/mobile/ads/unity/wrapper/rewarded/a;->b:Lcom/yandex/mobile/ads/unity/wrapper/rewarded/UnityRewardedAdListener;
+        if-eqz v0, :morphe_rustore_yandex_reward_done
+        const/4 v1, 0x1
+        const-string v2, "default"
+        ${repeatLines(multiplier, "        ", yandexOnRewardedCall)}
+        :morphe_rustore_yandex_reward_done
+        return-void
+    """.trimIndent())
+    val clonedShow = yandexRewardedShow.cloneParameters()
+    // Replace the original method instead of prepending to it. Yandex's wrapper
+    // can contain branch targets that become invalid when instructions are
+    // inserted before its existing implementation, causing VerifyError at runtime.
+    val showImplementation = clonedShow.implementation ?: return
+    showImplementation.removeInstructions(showImplementation.instructions.size)
+    clonedShow.addInstructions(0, """
+        move-object/from16 v1, p0
+        iget-object v0, v1, Lcom/yandex/mobile/ads/unity/wrapper/rewarded/RewardedAdWrapper;->b:Lcom/yandex/mobile/ads/unity/wrapper/rewarded/a;
+        if-eqz v0, :morphe_rustore_yandex_show_done
+        invoke-virtual {v0}, Lcom/yandex/mobile/ads/unity/wrapper/rewarded/a;->onAdShown()V
+        const/4 v1, 0x0
+        invoke-virtual {v0, v1}, Lcom/yandex/mobile/ads/unity/wrapper/rewarded/a;->onRewarded(Lcom/yandex/mobile/ads/rewarded/Reward;)V
+        invoke-virtual {v0}, Lcom/yandex/mobile/ads/unity/wrapper/rewarded/a;->onAdDismissed()V
+        :morphe_rustore_yandex_show_done
+        return-void
+    """.trimIndent())
+    logger.info("Ads Free Rewards: RuStore / Yandex Unity rewarded patch succeeded${if (multiplier > 1) " (reward x$multiplier)" else ""}")
+}
+
+private fun BytecodePatchContext.applyInMobiRewardedStrategy(logger: Logger, useMax: Boolean, instantReward: Boolean?, multiplier: Int) {
+    if (instantReward != true) return
+    if (multiplier > 1) logger.warning("Ads Free Rewards: InMobi show is forced to success - there is no reward callback to repeat for this network")
+    val inMobiShow = InMobiInterstitialShowFingerprint.methodOrNull ?: InMobiRewardedShowFingerprint.methodOrNull ?: return
+    // InMobi mediated via AppLovin MAX - patching the show to instantly reward covers both interstitial and rewarded
+    // Use the rewarded fingerprint if available, otherwise fallback to interstitial
+    val target = InMobiRewardedShowFingerprint.methodOrNull ?: InMobiInterstitialShowFingerprint.methodOrNull ?: return
+    try {
+        target.addInstructions(0, """
+            const/4 v0, 0x1
+            return v0
+        """.trimIndent())
+        logger.info("Ads Free Rewards: InMobi patch - forced show to success")
+    } catch (e: Exception) {
+        logger.warning("Ads Free Rewards: InMobi patch failed: ${e.message}")
+    }
+}
+
+private fun BytecodePatchContext.applyIronSourceAdsStrategy(logger: Logger, useIronSource: Boolean, instantReward: Boolean?, multiplier: Int) {
+    if (instantReward != true || !useIronSource) return
+    if (multiplier > 1) logger.warning("Ads Free Rewards: ironSourceAds show is forced to success - there is no reward callback to repeat for this network")
+    val ironAds = IronSourceAdsRewardedShowFingerprint.methodOrNull ?: return
+    try {
+        ironAds.addInstructions(0, """
+            const/4 v0, 0x1
+            return v0
+        """.trimIndent())
+        logger.info("Ads Free Rewards: Unity IronSourceAds patch - forced show to success")
+    } catch (e: Exception) {
+        logger.warning("Ads Free Rewards: IronSourceAds patch failed: ${e.message}")
+    }
+}
+
+// Precise ironSourceAds Unity wrapper (com.unity3d.ironsourceads.rewarded.RewardedAd).
+// Fires shown -> earned -> dismissed on the registered listener so the Unity
+// side grants the reward without a real ad. isReadyToShow is RV-only, force true.
+private fun BytecodePatchContext.applyIronSourceAdsWrapperStrategy(logger: Logger, useIronSource: Boolean, instantReward: Boolean?) {
+    if (instantReward != true || !useIronSource) return
+    val ready = IronSourceAdsRewardedIsReadyPreciseFingerprint.methodOrNull
+    val show = IronSourceAdsRewardedShowPreciseFingerprint.methodOrNull
+    if (ready == null || show == null) return
+    try {
+        ready.addInstructions(0, """
+            const/4 v0, 0x1
+            return v0
+        """.trimIndent())
+        show.cloneParameters().addInstructions(
+            0, """
+            move-object/from16 v1, p0
+            invoke-virtual {v1}, Lcom/unity3d/ironsourceads/rewarded/RewardedAd;->getListener()Lcom/unity3d/ironsourceads/rewarded/RewardedAdListener;
+            move-result-object v0
+            if-eqz v0, :morphe_isads_done
+            invoke-interface {v0, v1}, Lcom/unity3d/ironsourceads/rewarded/RewardedAdListener;->onRewardedAdShown(Lcom/unity3d/ironsourceads/rewarded/RewardedAd;)V
+            invoke-interface {v0, v1}, Lcom/unity3d/ironsourceads/rewarded/RewardedAdListener;->onUserEarnedReward(Lcom/unity3d/ironsourceads/rewarded/RewardedAd;)V
+            invoke-interface {v0, v1}, Lcom/unity3d/ironsourceads/rewarded/RewardedAdListener;->onRewardedAdDismissed(Lcom/unity3d/ironsourceads/rewarded/RewardedAd;)V
+            :morphe_isads_done
+            return-void
+        """.trimIndent()
+        )
+        logger.info("Ads Free Rewards: ironSourceAds wrapper patch succeeded (instant reward)")
+    } catch (e: Exception) {
+        logger.warning("Ads Free Rewards: ironSourceAds wrapper patch failed: ${e.message}")
+    }
+}
+
+// Miniclip MADS mediation (madsunityplugin). The Unity-facing entry is
+// MAdsAdsManagementWrapper.showAd(format, entryPoint, params) which serves
+// banners, interstitials AND rewarded videos, so the injection checks the
+// format against the RewardedVideos enum id and falls through to the
+// original body for other formats. Reward fires via the RV handler
+// singleton with a fresh info + reward payload.
+private fun BytecodePatchContext.applyMadsStrategy(logger: Logger, useIronSource: Boolean, instantReward: Boolean?, multiplier: Int) {
+    if (instantReward != true || !useIronSource) return
+    val show = MadsWrapperShowAdFingerprint.methodOrNull ?: return
+    if (MadsRvHandlerOnRewardedFingerprint.methodOrNull == null) return
+    val enumClass = try {
+        mutableClassDefByOrNull("Lcom/miniclip/madsunityplugin/utils/MAdsSDKWrapperUtils\$MAdsWrapperAdFormat;")
+    } catch (_: Exception) {
+        null
+    }
+    val hasRvEnum = enumClass?.fields?.any { it.name == "RewardedVideos" } == true &&
+        enumClass.fields.any { it.name == "id" }
+    if (!hasRvEnum) {
+        logger.warning("Ads Free Rewards: MADS patch skipped  -  RewardedVideos enum not found")
+        return
+    }
+    try {
+        val madsReward = """
+            sget-object v0, Lcom/miniclip/madsandroidsdk/base/adunit/RewardedVideosAdHandler;->INSTANCE:Lcom/miniclip/madsandroidsdk/base/adunit/RewardedVideosAdHandler;
+            new-instance v1, Lcom/miniclip/madsandroidsdk/base/MediationAdInfo;
+            invoke-direct {v1}, Lcom/miniclip/madsandroidsdk/base/MediationAdInfo;-><init>()V
+            new-instance v2, Lcom/miniclip/madsandroidsdk/base/Reward;
+            const-string v3, "1.0"
+            invoke-static {v3}, Ljava/lang/Double;->parseDouble(Ljava/lang/String;)D
+            move-result-wide v6
+            const-string v3, "reward"
+            invoke-direct {v2, v3, v6, v7}, Lcom/miniclip/madsandroidsdk/base/Reward;-><init>(Ljava/lang/String;D)V
+            move-object/from16 v3, p2
+            invoke-virtual {v0, v1, v2, v3}, Lcom/miniclip/madsandroidsdk/base/adunit/RewardedVideosAdHandler;->onAdRewarded(Lcom/miniclip/madsandroidsdk/base/MediationAdInfo;Lcom/miniclip/madsandroidsdk/base/Reward;Ljava/lang/String;)V
+        """.trimIndent()
+        show.cloneParameters().addInstructions(
+            0, """
+            sget-object v0, Lcom/miniclip/madsunityplugin/utils/MAdsSDKWrapperUtils${'$'}MAdsWrapperAdFormat;->RewardedVideos:Lcom/miniclip/madsunityplugin/utils/MAdsSDKWrapperUtils${'$'}MAdsWrapperAdFormat;
+            iget v0, v0, Lcom/miniclip/madsunityplugin/utils/MAdsSDKWrapperUtils${'$'}MAdsWrapperAdFormat;->id:I
+            move/from16 v4, p1
+            if-ne v4, v0, :morphe_mads_original
+            ${repeatLines(multiplier, "            ", madsReward)}
+            const/4 v0, 0x1
+            return v0
+            :morphe_mads_original
+        """.trimIndent()
+        )
+        logger.info("Ads Free Rewards: MADS patch succeeded (instant reward${if (multiplier > 1) ", reward x$multiplier" else ""})")
+        val ready = MadsWrapperIsReadyFingerprint.methodOrNull
+        if (ready != null) {
+            ready.cloneParameters().addInstructions(
+                0, """
+                sget-object v0, Lcom/miniclip/madsunityplugin/utils/MAdsSDKWrapperUtils${'$'}MAdsWrapperAdFormat;->RewardedVideos:Lcom/miniclip/madsunityplugin/utils/MAdsSDKWrapperUtils${'$'}MAdsWrapperAdFormat;
+                iget v0, v0, Lcom/miniclip/madsunityplugin/utils/MAdsSDKWrapperUtils${'$'}MAdsWrapperAdFormat;->id:I
+                move/from16 v1, p1
+                if-ne v1, v0, :morphe_mads_ready_original
+                const/4 v0, 0x1
+                return v0
+                :morphe_mads_ready_original
+            """.trimIndent()
+            )
+            logger.info("Ads Free Rewards: MADS patch succeeded (fake ready)")
+        }
+    } catch (e: Exception) {
+        logger.warning("Ads Free Rewards: MADS patch failed: ${e.message}")
+    }
+}
+
+private fun BytecodePatchContext.applyMaxUnityStrategy(logger: Logger, useMax: Boolean, instantReward: Boolean?, multiplier: Int): Boolean {
+    val unityShow = ShowRewardedAdFingerprint.methodOrNull
+    val unityReady = IsRewardedAdReadyFingerprint.methodOrNull
+    if (!useMax || unityShow == null || unityReady == null) return false
+    logger.info("Ads Free Rewards: MAX Unity Ad wrapper patch succeeded${if (instantReward == true && multiplier > 1) " (reward x$multiplier)" else ""}")
+    unityReady.addInstructions(0, """
+        const/4 v0, 0x1
+        return v0
+    """.trimIndent())
+    if (instantReward == true) {
+        val unityRewardEvent = """
+            new-instance v1, Lorg/json/JSONObject;
+            invoke-direct {v1}, Lorg/json/JSONObject;-><init>()V
+            const-string v2, "name"
+            const-string v3, "OnRewardedAdReceivedRewardEvent"
+            invoke-static {v1, v2, v3}, Lcom/applovin/impl/sdk/utils/JsonUtils;->putString(Lorg/json/JSONObject;Ljava/lang/String;Ljava/lang/String;)V
+            const-string v2, "adUnitId"
+            invoke-static {v1, v2, v0}, Lcom/applovin/impl/sdk/utils/JsonUtils;->putString(Lorg/json/JSONObject;Ljava/lang/String;Ljava/lang/String;)V
+            const-string v2, "adFormat"
+            const-string v3, "rewarded"
+            invoke-static {v1, v2, v3}, Lcom/applovin/impl/sdk/utils/JsonUtils;->putString(Lorg/json/JSONObject;Ljava/lang/String;Ljava/lang/String;)V
+            const-string v2, "rewardLabel"
+            const-string v3, "reward"
+            invoke-static {v1, v2, v3}, Lcom/applovin/impl/sdk/utils/JsonUtils;->putString(Lorg/json/JSONObject;Ljava/lang/String;Ljava/lang/String;)V
+            const-string v2, "rewardAmount"
+            const-string v3, "1"
+            invoke-static {v1, v2, v3}, Lcom/applovin/impl/sdk/utils/JsonUtils;->putString(Lorg/json/JSONObject;Ljava/lang/String;Ljava/lang/String;)V
+            invoke-static {v1}, Lcom/applovin/mediation/unity/MaxUnityAdManager;->forwardUnityEvent(Lorg/json/JSONObject;)V
+        """.trimIndent()
+        val unityDisplayedEvent = """
+            new-instance v1, Lorg/json/JSONObject;
+            invoke-direct {v1}, Lorg/json/JSONObject;-><init>()V
+            const-string v2, "name"
+            const-string v3, "OnRewardedAdDisplayedEvent"
+            invoke-static {v1, v2, v3}, Lcom/applovin/impl/sdk/utils/JsonUtils;->putString(Lorg/json/JSONObject;Ljava/lang/String;Ljava/lang/String;)V
+            const-string v2, "adUnitId"
+            invoke-static {v1, v2, v0}, Lcom/applovin/impl/sdk/utils/JsonUtils;->putString(Lorg/json/JSONObject;Ljava/lang/String;Ljava/lang/String;)V
+            const-string v2, "adFormat"
+            const-string v3, "rewarded"
+            invoke-static {v1, v2, v3}, Lcom/applovin/impl/sdk/utils/JsonUtils;->putString(Lorg/json/JSONObject;Ljava/lang/String;Ljava/lang/String;)V
+            invoke-static {v1}, Lcom/applovin/mediation/unity/MaxUnityAdManager;->forwardUnityEvent(Lorg/json/JSONObject;)V
+        """.trimIndent()
+        val unityHiddenEvent = """
+            new-instance v1, Lorg/json/JSONObject;
+            invoke-direct {v1}, Lorg/json/JSONObject;-><init>()V
+            const-string v2, "name"
+            const-string v3, "OnRewardedAdHiddenEvent"
+            invoke-static {v1, v2, v3}, Lcom/applovin/impl/sdk/utils/JsonUtils;->putString(Lorg/json/JSONObject;Ljava/lang/String;Ljava/lang/String;)V
+            const-string v2, "adUnitId"
+            invoke-static {v1, v2, v0}, Lcom/applovin/impl/sdk/utils/JsonUtils;->putString(Lorg/json/JSONObject;Ljava/lang/String;Ljava/lang/String;)V
+            const-string v2, "adFormat"
+            const-string v3, "rewarded"
+            invoke-static {v1, v2, v3}, Lcom/applovin/impl/sdk/utils/JsonUtils;->putString(Lorg/json/JSONObject;Ljava/lang/String;Ljava/lang/String;)V
+            invoke-static {v1}, Lcom/applovin/mediation/unity/MaxUnityAdManager;->forwardUnityEvent(Lorg/json/JSONObject;)V
+        """.trimIndent()
+        // The whole ad break is repeated, not just the reward callback. Games that
+        // collapse repeated reward callbacks within a single ad break - common
+        // in Unity IL2CPP titles, where one break means one payout no matter how
+        // many reward events arrive - would otherwise pay out exactly once.
+        // Replaying displayed -> reward -> hidden gives every iteration its own
+        // break, so the guard resets in between and each one pays out.
+        val oneBreak = "$unityDisplayedEvent\n$unityRewardEvent\n$unityHiddenEvent"
+        val body = repeatLines(multiplier, "            ", oneBreak)
+        unityShow.cloneParameters().addInstructions(
+            0, """
+            move-object/from16 v0, p1
+            $body
+            return-void
+        """.trimIndent()
+        )
+        val unityLoad = LoadRewardedAdFingerprint.methodOrNull
+        if (unityLoad != null) {
+            logger.info("Ads Free Rewards: MAX Unity loadRewardedAd patching")
+            unityLoad.cloneParameters().addInstructions(
+                0, """
+                move-object/from16 v0, p1
+                new-instance v1, Lorg/json/JSONObject;
+                invoke-direct {v1}, Lorg/json/JSONObject;-><init>()V
+                const-string v2, "name"
+                const-string v3, "OnRewardedAdLoadedEvent"
+                invoke-static {v1, v2, v3}, Lcom/applovin/impl/sdk/utils/JsonUtils;->putString(Lorg/json/JSONObject;Ljava/lang/String;Ljava/lang/String;)V
+                const-string v2, "adUnitId"
+                invoke-static {v1, v2, v0}, Lcom/applovin/impl/sdk/utils/JsonUtils;->putString(Lorg/json/JSONObject;Ljava/lang/String;Ljava/lang/String;)V
+                const-string v2, "adFormat"
+                const-string v3, "rewarded"
+                invoke-static {v1, v2, v3}, Lcom/applovin/impl/sdk/utils/JsonUtils;->putString(Lorg/json/JSONObject;Ljava/lang/String;Ljava/lang/String;)V
+                invoke-static {v1}, Lcom/applovin/mediation/unity/MaxUnityAdManager;->forwardUnityEvent(Lorg/json/JSONObject;)V
+                return-void
+            """.trimIndent()
+            )
+        }
+    }
+    return true
+}
+
+private fun BytecodePatchContext.applyNativeMaxStrategy(logger: Logger, useMax: Boolean, instantReward: Boolean?, multiplier: Int) {
+    val nativeReady = MaxRewardedAdIsReadyFingerprint.methodOrNull
+    val nativeShow = MaxRewardedAdShowAdFingerprint.methodOrNull
+    if (!useMax || nativeReady == null || nativeShow == null) return
+    logger.info("Ads Free Rewards: native MAX patch succeeded${if (instantReward == true && multiplier > 1) " (reward x$multiplier)" else ""}")
+    nativeReady.addInstructions(0, """
+        const/4 v0, 0x1
+        return v0
+    """.trimIndent())
+    if (instantReward == true) {
+        val rc = nativeShow.implementation?.registerCount ?: 0
+        if (rc >= 7) {
+            nativeShow.addInstructions(0, fireRewardedAdCallbacks(multiplier))
+        } else {
+            try {
+                nativeShow.cloneParameters()
+                    .addInstructions(0, fireRewardedAdCallbacks(multiplier))
+                logger.info("Ads Free Rewards: native MAX via clone (low regs $rc)")
+            } catch (e: Exception) {
+                logger.warning("Ads Free Rewards: clone failed for native MAX: ${e.message}")
+            }
+        }
+    }
+}
+
+private fun BytecodePatchContext.applyAdMobRewardedStrategy(logger: Logger, useMax: Boolean, instantReward: Boolean?, multiplier: Int) {
+    if (!useMax || instantReward != true) return
+    // AdMob RewardedAd is from GMS (not in app dex), so patch call sites instead of definition
+    var patchedCallSites = 0
+    classDefForEach { classDef ->
+        val tl = classDef.type.lowercase()
+        if (tl.contains("okhttp") || tl.contains("androidx") || tl.contains("com/google/android/gms/ads/rewarded")) return@classDefForEach
+        // Must create mutable classes/methods only if required to prevent out of memory errors.
+        val mutableClass by lazy { mutableClassDefBy(classDef) }
+        for (method in classDef.methods) {
+            val mutableMethod by lazy {
+                mutableClass.findMutableMethodOf(method)
+            }
+            val impl = method.implementation ?: continue
+            val instructions = impl.instructions.toList()
+            for ((index, insn) in instructions.withIndex()) {
+                val ref = (insn as? com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction)?.reference as? com.android.tools.smali.dexlib2.iface.reference.MethodReference ?: continue
+                if (ref.definingClass != "Lcom/google/android/gms/ads/rewarded/RewardedAd;" || ref.name != "show" || ref.returnType != "V") continue
+                if (ref.parameterTypes.size != 2 || ref.parameterTypes[1] != "Lcom/google/android/gms/ads/OnUserEarnedRewardListener;") continue
+                // Found call site: RewardedAd.show(Activity, OnUserEarnedRewardListener)
+                // Replace it with direct reward: if p2 != null, p2.onUserEarnedReward(null)
+                    try {
+                        // Determine registers for Activity and listener (35c or 3rc)
+                        val (activityReg, listenerReg) = when (insn) {
+                            // invoke-virtual {v0, v1, v2}, RewardedAd.show
+                            // v0 = this (RewardedAd), v1 = Activity, v2 = listener
+                            // Need to parse: for 35c, registerCount, registers C/D/E etc.
+                            // For show with 3 regs (this, activity, listener), C=this, D=activity, E=listener
+                            is com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction35c -> {
+                                // invoke-virtual/range {v0..v2}
+                                if (insn.registerCount < 3) continue
+                                Pair(insn.registerD, insn.registerE)
+                            }
+                            is com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction3rc -> {
+                                val start = insn.startRegister
+                                Pair(start + 1, start + 2)
+                            }
+                            else -> continue
+                        }
+                        // The reward callback is repeated `multiplier` times. Each repetition needs
+                        // its own label to stay unique inside the enclosing method.
+                        val rewardCalls = (1..multiplier).joinToString("\n") { iteration ->
+                            """
+                            if-eqz v$listenerReg, :morphe_admob_skip_${index}_$iteration
+                            const/4 v0, 0x0
+                            invoke-interface {v$listenerReg, v0}, Lcom/google/android/gms/ads/OnUserEarnedRewardListener;->onUserEarnedReward(Lcom/google/android/gms/ads/rewarded/RewardItem;)V
+                            :morphe_admob_skip_${index}_$iteration
+                            """.trimIndent().prependIndent("                        ")
+                        }
+                        mutableMethod.addInstructions(index, rewardCalls)
+                    // Keep original invoke as well? Actually we want to skip the ad, so we should nop the original invoke
+                    // Instead, we just inserted reward before, and let original show still run  -  it will show ad but also give reward instantly
+                    // To fully skip ad, we could nop the invoke, but that may break flow; for now we give instant reward plus still show ad (user sees ad but also gets reward)
+                    // For Ringdale, the ad is via MAX mediation, not direct, so this call site may not be the primary  -  but patching it still gives instant reward
+                    patchedCallSites++
+                } catch (_: Exception) {}
+            }
+        }
+    }
+    if (patchedCallSites > 0) {
+        logger.info("Ads Free Rewards: AdMob patch - patched $patchedCallSites call site(s)")
+    } else {
+        logger.info("Ads Free Rewards: AdMob show call sites not found - skipping")
+    }
+}
+
+private fun BytecodePatchContext.applyLevelPlayStrategy(logger: Logger, useIronSource: Boolean) {
+    val levelPlayReady = LevelPlayRewardedAdIsReadyFingerprint.methodOrNull ?: return
+    if (!useIronSource) return
+    levelPlayReady.addInstructions(0, """
+        const/4 v0, 0x1
+        return v0
+    """.trimIndent())
+    logger.info("Ads Free Rewards: LevelPlay patch succeeded")
+}
+
+private fun BytecodePatchContext.applyIronSourceBridgeStrategy(logger: Logger, useIronSource: Boolean, instantReward: Boolean?, multiplier: Int): Boolean {
+    val bridgeReady = IronSourceUnityRewardedAdIsReadyFingerprint.methodOrNull
+    val bridgeShow = IronSourceLevelPlayFullScreenShowAdFingerprint.methodOrNull
+    if (!useIronSource || bridgeReady == null || bridgeShow == null) return false
+    logger.info("Ads Free Rewards: IronSource patch succeeded${if (instantReward == true && multiplier > 1) " (reward x$multiplier)" else ""}")
+    bridgeReady.addInstructions(0, """
+        const/4 v0, 0x1
+        return v0
+    """.trimIndent())
+    if (instantReward == true) {
+        val ironSourceReward = """
+            new-instance v4, Lcom/unity3d/mediation/rewarded/LevelPlayReward;
+            const-string v2, "reward"
+            const/4 v3, 0x1
+            invoke-direct {v4, v2, v3}, Lcom/unity3d/mediation/rewarded/LevelPlayReward;-><init>(Ljava/lang/String;I)V
+            invoke-interface {v0, v4, v1}, Lcom/ironsource/Za;->onAdRewarded(Lcom/unity3d/mediation/rewarded/LevelPlayReward;Lcom/unity3d/mediation/LevelPlayAdInfo;)V
+        """.trimIndent()
+        bridgeShow.cloneParameters().addInstructions(0, """
+            move-object/from16 v3, p0
+            iget-object v0, v3, Lcom/ironsource/Ya;->k:Lcom/ironsource/Za;
+            if-eqz v0, :morphe_ads_free_rewards_done
+            iget-object v1, v3, Lcom/ironsource/Ya;->m:Lcom/ironsource/q6;
+            invoke-interface {v1}, Lcom/ironsource/q6;->b()Lcom/unity3d/mediation/LevelPlayAdInfo;
+            move-result-object v1
+            invoke-interface {v0, v1}, Lcom/ironsource/Za;->onAdDisplayed(Lcom/unity3d/mediation/LevelPlayAdInfo;)V
+            ${repeatLines(multiplier, "            ", ironSourceReward)}
+            invoke-interface {v0, v1}, Lcom/ironsource/Za;->onAdClosed(Lcom/unity3d/mediation/LevelPlayAdInfo;)V
+            :morphe_ads_free_rewards_done
+            return-void
+        """.trimIndent())
+    }
+    return true
+}
+
+private fun BytecodePatchContext.applyUnityAdsStrategy(logger: Logger, useUnityAds: Boolean, instantReward: Boolean?, multiplier: Int) {
+    val adsShow = UnityRewardedAdShowFingerprint.methodOrNull ?: return
+    if (!useUnityAds || instantReward != true) return
+    val unityOnRewarded = "invoke-interface {v0, v1}, Lcom/unity3d/ads/RewardedShowListener;->onRewarded(Lcom/unity3d/ads/RewardedAd;)V"
+    adsShow.addInstructions(0, """
+        move-object/from16 v0, p3
+        move-object/from16 v1, p0
+        ${repeatLines(multiplier, "        ", unityOnRewarded)}
+        invoke-interface {v0, v1}, Lcom/unity3d/ads/ShowListener;->onStarted(Ljava/lang/Object;)V
+        sget-object v2, Lcom/unity3d/ads/ShowFinishState;->COMPLETED:Lcom/unity3d/ads/ShowFinishState;
+        invoke-interface {v0, v1, v2}, Lcom/unity3d/ads/ShowListener;->onCompleted(Ljava/lang/Object;Lcom/unity3d/ads/ShowFinishState;)V
+        return-void
+    """.trimIndent())
+    logger.info("Ads Free Rewards: Unity Ads patch succeeded${if (multiplier > 1) " (reward x$multiplier)" else ""}")
+}
+
+private fun BytecodePatchContext.applyUnityAdsV4Strategy(logger: Logger, useUnityAds: Boolean, instantReward: Boolean?, multiplier: Int) {
+    if (!useUnityAds || instantReward != true) return
+    val unityAdsOnComplete = "invoke-interface {v1, v2, v0}, Lcom/unity3d/ads/IUnityAdsShowListener;->onUnityAdsShowComplete(Ljava/lang/String;Lcom/unity3d/ads/UnityAds${'$'}UnityAdsShowCompletionState;)V"
+    val v4Show3 = UnityAdsV4Show3ArgFingerprint.methodOrNull
+    if (v4Show3 != null) {
+        v4Show3.addInstructions(0, """
+            move-object/from16 v1, p2
+            move-object/from16 v2, p1
+            invoke-interface {v1, v2}, Lcom/unity3d/ads/IUnityAdsShowListener;->onUnityAdsShowStart(Ljava/lang/String;)V
+            sget-object v0, Lcom/unity3d/ads/UnityAds${'$'}UnityAdsShowCompletionState;->COMPLETED:Lcom/unity3d/ads/UnityAds${'$'}UnityAdsShowCompletionState;
+            ${repeatLines(multiplier, "            ", unityAdsOnComplete)}
+            return-void
+        """.trimIndent())
+        logger.info("Ads Free Rewards: Unity Ads v4 patch succeeded (3-arg show${if (multiplier > 1) ", reward x$multiplier" else ""})")
+    }
+    val v4Show4 = UnityAdsV4Show4ArgFingerprint.methodOrNull
+    if (v4Show4 != null) {
+        v4Show4.addInstructions(0, """
+            move-object/from16 v1, p3
+            move-object/from16 v2, p1
+            invoke-interface {v1, v2}, Lcom/unity3d/ads/IUnityAdsShowListener;->onUnityAdsShowStart(Ljava/lang/String;)V
+            sget-object v0, Lcom/unity3d/ads/UnityAds${'$'}UnityAdsShowCompletionState;->COMPLETED:Lcom/unity3d/ads/UnityAds${'$'}UnityAdsShowCompletionState;
+            ${repeatLines(multiplier, "            ", unityAdsOnComplete)}
+            return-void
+        """.trimIndent())
+        logger.info("Ads Free Rewards: Unity Ads v4 patch succeeded (4-arg show${if (multiplier > 1) ", reward x$multiplier" else ""})")
+    }
+}
+

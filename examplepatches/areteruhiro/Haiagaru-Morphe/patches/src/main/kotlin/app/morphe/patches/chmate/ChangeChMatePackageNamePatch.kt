@@ -28,6 +28,7 @@ import java.io.File
 import java.nio.file.Files
 
 private const val ORIGINAL_PACKAGE_NAME = "jp.co.airfront.android.a2chMate"
+private const val ORIGINAL_FILE_PROVIDER_AUTHORITY = "$ORIGINAL_PACKAGE_NAME.provider"
 private const val DEFAULT_PACKAGE_NAME = "$ORIGINAL_PACKAGE_NAME.haiagaru"
 private const val ANDROID_NAMESPACE = "http://schemas.android.com/apk/res/android"
 private const val MAIN_EXTENSION = "Lapp/morphe/extension/chmate/Haiagaru;"
@@ -76,25 +77,7 @@ val changeChMatePackageNamePatch = resourcePatch(
     dependsOn(bytecodePatch {
         execute {
             val newPackageName = packageNameOption.value!!
-            // Native backup uses an exact preference-store allowlist. Its
-            // package-derived store name is not an exact package literal.
-            val backupOwner = when (packageMetadata.versionName) {
-                "0.8.10.191 dev" -> "Lo/showFullscreenAd\$RemoteActionCompatParcelizer;"
-                "0.8.10.226 dev" -> "Lo/CloseGuard\$read;"
-                "0.8.10.242 dev" -> "Lo/setBackupListener;"
-                else -> null
-            }
-            backupOwner?.let { owner ->
-                val initializer = mutableClassDefBy(owner).methods.single { it.name == "<clinit>" }
-                val sites = initializer.implementation!!.instructions.mapIndexedNotNull { index, instruction ->
-                    if (instruction.packageNameLiteralOrNull() == ORIGINAL_PACKAGE_NAME + "_preferences")
-                        index to (instruction as OneRegisterInstruction).registerA else null
-                }
-                check(sites.size == 1) { "Native backup preference store changed" }
-                sites.forEach { (index, register) ->
-                    initializer.replaceInstruction(index, "const-string v$register, \"${newPackageName}_preferences\"")
-                }
-            }
+            patchCanonicalNativeBackup(packageMetadata.versionName)
             patchPackageNameDerivedObfuscationInputs()
             patchSelfNavigationIntents()
             boundClassForEach("ChangeChMatePackageNamePatch:1") { classDef ->
@@ -103,7 +86,7 @@ val changeChMatePackageNamePatch = resourcePatch(
                 }
                 val methodsWithPackageLiteral = classDef.methods.filter { method ->
                     method.implementation?.instructions?.any { instruction ->
-                        instruction.packageNameLiteralOrNull() == ORIGINAL_PACKAGE_NAME
+                        instruction.packageNameReplacement(newPackageName) != null
                     } == true
                 }
                 if (methodsWithPackageLiteral.isEmpty()) return@boundClassForEach
@@ -414,22 +397,26 @@ private fun Element.hasChildElementWithName(tag: String, name: String): Boolean 
         .any { it.getAttribute("android:name") == name }
 
 private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction
-    .packageNameLiteralOrNull(): String? {
-    if (opcode !in setOf(Opcode.CONST_STRING, Opcode.CONST_STRING_JUMBO)) return null
-    return ((this as? ReferenceInstruction)?.reference as? StringReference)?.string
+    .packageNameReplacement(newPackageName: String): String? {
+    if (opcode != Opcode.CONST_STRING && opcode != Opcode.CONST_STRING_JUMBO) return null
+    val literal = ((this as? ReferenceInstruction)?.reference as? StringReference)?.string
+    return when (literal) {
+        ORIGINAL_PACKAGE_NAME -> newPackageName
+        ORIGINAL_FILE_PROVIDER_AUTHORITY -> "$newPackageName.provider"
+        else -> null
+    }
 }
 
 private fun MutableMethod.replacePackageNameLiterals(newPackageName: String) {
     implementation?.instructions
         ?.mapIndexedNotNull { index, instruction ->
-            if (instruction.packageNameLiteralOrNull() == ORIGINAL_PACKAGE_NAME) {
-                index to (instruction as OneRegisterInstruction).registerA
-            } else {
-                null
-            }
+            val replacement = instruction.packageNameReplacement(newPackageName)
+                ?: return@mapIndexedNotNull null
+            val register = (instruction as OneRegisterInstruction).registerA
+            Triple(index, register, replacement)
         }
         ?.asReversed()
-        ?.forEach { (index, register) ->
-            replaceInstruction(index, "const-string v$register, \"$newPackageName\"")
+        ?.forEach { (index, register, replacement) ->
+            replaceInstruction(index, "const-string/jumbo v$register, \"$replacement\"")
         }
 }

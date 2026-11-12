@@ -1,21 +1,25 @@
 package app.badfella.extension.linkedin;
 
-import android.animation.ValueAnimator;
-import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.RectF;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.GradientDrawable;
-import android.graphics.drawable.RippleDrawable;
+import android.os.Build;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.DecelerateInterpolator;
+import android.view.WindowInsets;
 
 /** Draws LinkedIn's bottom bar as a floating, translucent capsule, using the {@link GlassCapsule}. */
 final class GlassNavigationBar {
     private static final int SIDE_MARGIN_DP = 12;
-    private static final int INNER_PADDING_DP = 14;
+    private static final int INNER_PADDING_DP = 7;
+    /** Room the capsule leaves above and below the tabs, so the icons sit in the middle of it. */
+    private static final int CAPSULE_ROOM_DP = 6;
+    /** Room the floating capsule leaves under itself, on top of the system navigation bar. */
+    private static final int FLOATING_MARGIN_DP = 10;
+    /** How far the pill behind the selected tab is inset from the capsule. */
+    private static final int PILL_INSET_DP = 4;
+    private static final int PILL_GROW_DP = 4;
     /** The widest a tab gets, so the capsule stays compact on a wide screen. */
     private static final int MAX_TAB_DP = 96;
 
@@ -34,8 +38,13 @@ final class GlassNavigationBar {
         }
         GlassCapsule.clearSystemBar(bar.getContext());
         bar.setElevation(0);
+        // The room the capsule floats in is the bar's own padding, and its shadow reaches into it.
+        if (bar instanceof ViewGroup) {
+            ((ViewGroup) bar).setClipToPadding(false);
+            ((ViewGroup) bar).setClipChildren(false);
+        }
         float density = bar.getResources().getDisplayMetrics().density;
-        Selection selection = new Selection(tabs, density);
+        Selection selection = new Selection(bar, tabs, density);
         GlassCapsule capsule = new GlassCapsule(color, density, selection);
         selection.glass = capsule;
         bar.setBackground(capsule);
@@ -45,11 +54,12 @@ final class GlassNavigationBar {
             if (tabs.getBackground() != null) tabs.setBackground(null);
             // Selecting a tab redraws the tab, not the bar, so the pill behind the selected tab is refreshed here.
             selection.refreshSelection();
+            selection.floatOverSystemBar();
             return true;
         });
     }
 
-    /** Gives the tabs equal shares of the capsule, and a ripple that stays inside the tab. */
+    /** Gives the tabs equal shares of the capsule, and no press ripple: the selection pill provides feedback. */
     static void arrangeTabs(ViewGroup tabs, int barWidth) {
         int count = tabs.getChildCount();
         if (count == 0 || barWidth <= 0) return;
@@ -63,44 +73,35 @@ final class GlassNavigationBar {
                 params.width = width;
                 tab.setLayoutParams(params);
             }
-            if (!(tab.getBackground() instanceof TabRipple)) tab.setBackground(new TabRipple());
-        }
-    }
-
-    /** A ripple that stays inside its tab, as a pill, where LinkedIn's own one spreads past the capsule. */
-    private static final class TabRipple extends RippleDrawable {
-        TabRipple() {
-            super(ColorStateList.valueOf(0x33808080), null, mask());
-        }
-
-        private static Drawable mask() {
-            GradientDrawable mask = new GradientDrawable();
-            mask.setColor(Color.WHITE);
-            mask.setCornerRadius(Float.MAX_VALUE);
-            return mask;
+            if (tab.getBackground() != null) tab.setBackground(null);
+            if (tab.getForeground() != null) tab.setForeground(null);
         }
     }
 
     /**
      * Where the capsule and the pill behind the selected tab are, for the {@link GlassCapsule}: the capsule
-     * wraps the tabs, which the row centers, and the pill slides to the tab that became selected.
+     * wraps the tabs and the room above and below them, which the row centers, and the pill slides to the tab that
+     * became selected. The bar is also padded so the capsule floats clear of the system navigation bar.
      */
     private static final class Selection implements GlassCapsule.Layout {
+        private final View bar;
         private final ViewGroup tabs;
         private final float density;
+        /** The bar's own padding, taken before the floating room was added to it. */
+        private final int[] own = new int[4];
+        /** The padding this last gave the bar, so a change by the app can be told apart from its own. */
+        private final int[] given = {-1, -1, -1, -1};
         private GlassCapsule glass;
         private int selected = -1;
-        /** Where the pill was drawn last (in the tabs' coordinates), and how far it is on its way to the selected tab. */
-        private float lastLeft;
-        private float lastRight;
-        private float fromLeft;
-        private float fromRight;
-        private float progress = 1;
-        private ValueAnimator slide;
-        /** Left edge of the tabs in the bar, set by {@link #capsule} for {@link #pill}. */
+        /** The capsule's edges in the bar, set by {@link #capsule} for {@link #pill}. */
         private float left;
+        private float top;
+        private float bottom;
+        private float capsuleLeft;
+        private float capsuleRight;
 
-        Selection(ViewGroup tabs, float density) {
+        Selection(View bar, ViewGroup tabs, float density) {
+            this.bar = bar;
             this.tabs = tabs;
             this.density = density;
         }
@@ -111,26 +112,58 @@ final class GlassNavigationBar {
             for (int i = 0; i < tabs.getChildCount() && now < 0; i++) {
                 if (tabs.getChildAt(i).isSelected()) now = i;
             }
-            if (now == selected) return;
-            boolean moving = selected >= 0 && now >= 0 && lastRight > lastLeft;
-            selected = now;
-            if (slide != null) slide.cancel();
-            if (moving) {
-                // The pill slides from where it is to the new tab.
-                fromLeft = lastLeft;
-                fromRight = lastRight;
-                progress = 0;
-                slide = ValueAnimator.ofFloat(0, 1).setDuration(260);
-                slide.setInterpolator(new DecelerateInterpolator());
-                slide.addUpdateListener(a -> {
-                    progress = (float) a.getAnimatedValue();
-                    glass.invalidateSelf();
-                });
-                slide.start();
-            } else {
-                progress = 1;
+            if (now >= 0) {
+                View tab = tabs.getChildAt(now);
+                glass.slider().select(tab.getLeft(), tab.getRight());
             }
+            if (now == selected) return;
+            selected = now;
             glass.invalidateSelf();
+        }
+
+        /**
+         * Pads the bar so the capsule floats above the system navigation bar: the bar keeps its own padding, and the
+         * room the capsule needs above and below the tabs, the floating margin and whatever the tab row is still
+         * short of clearing the navigation bar are added to it. The row already clear of the bar, as on a phone
+         * whose app is inset from the system bars, only gets the capsule's room and the margin.
+         */
+        void floatOverSystemBar() {
+            int height = tabs.getHeight();
+            if (height <= 0 || bar.getHeight() <= 0) return;
+            // A padding that is not the one this gave the bar was set by the app, and becomes the new starting point.
+            if (bar.getPaddingLeft() != given[0] || bar.getPaddingTop() != given[1]
+                    || bar.getPaddingRight() != given[2] || bar.getPaddingBottom() != given[3]) {
+                own[0] = bar.getPaddingLeft();
+                own[1] = bar.getPaddingTop();
+                own[2] = bar.getPaddingRight();
+                own[3] = bar.getPaddingBottom();
+            }
+            int room = Math.round(CAPSULE_ROOM_DP * density);
+            int margin = Math.round(FLOATING_MARGIN_DP * density);
+            // How much of the window is below the bar, which the system navigation bar overlays: 0 on a bar that
+            // runs to the bottom edge of the screen. The slide that hides the bar does not move its layout.
+            int[] at = new int[2];
+            bar.getLocationInWindow(at);
+            int below = Math.round(bar.getRootView().getHeight()
+                    - (at[1] - bar.getTranslationY() + bar.getHeight()));
+            int under = room + Math.max(0, navigationBar() - below + margin - own[3]);
+            int above = own[1] + room;
+            int down = own[3] + under;
+            if (bar.getPaddingTop() != above || bar.getPaddingBottom() != down) {
+                bar.setPadding(own[0], above, own[2], down);
+            }
+            given[0] = own[0];
+            given[1] = above;
+            given[2] = own[2];
+            given[3] = down;
+        }
+
+        /** The height of the system navigation bar over the window's bottom edge, or 0 when the phone has none. */
+        private int navigationBar() {
+            WindowInsets insets = bar.getRootWindowInsets();
+            // The stable inset is the navigation bar without the keyboard. LinkedIn runs on Android 10 and newer.
+            if (insets == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return 0;
+            return insets.getStableInsetBottom();
         }
 
         @Override
@@ -138,29 +171,24 @@ final class GlassNavigationBar {
             int count = tabs.getChildCount();
             if (count == 0) return false;
             View row = (View) tabs.getParent();
-            float top = row.getTop() + tabs.getTop();
+            float room = Math.round(CAPSULE_ROOM_DP * density);
             left = row.getLeft() + tabs.getLeft();
+            top = row.getTop() + tabs.getTop() - room;
+            bottom = top + tabs.getHeight() + 2 * room;
             float padding = INNER_PADDING_DP * density;
-            out.set(left + tabs.getChildAt(0).getLeft() - padding, top,
-                    left + tabs.getChildAt(count - 1).getRight() + padding, top + tabs.getHeight());
+            capsuleLeft = left + tabs.getChildAt(0).getLeft() - padding;
+            capsuleRight = left + tabs.getChildAt(count - 1).getRight() + padding;
+            out.set(capsuleLeft, top, capsuleRight, bottom);
             return true;
         }
 
         @Override
         public boolean pill(RectF out) {
-            if (selected < 0 || selected >= tabs.getChildCount()) return false;
-            // A pill behind the selected tab, inset from the capsule so a thin rim of it stays around the pill.
-            View tab = tabs.getChildAt(selected);
-            float inset = 5 * density;
-            lastLeft = fromLeft + (tab.getLeft() - fromLeft) * progress;
-            lastRight = fromRight + (tab.getRight() - fromRight) * progress;
-            if (progress >= 1) {
-                lastLeft = tab.getLeft();
-                lastRight = tab.getRight();
-            }
-            View row = (View) tabs.getParent();
-            float top = row.getTop() + tabs.getTop();
-            out.set(left + lastLeft + inset, top + inset, left + lastRight - inset, top + tabs.getHeight() - inset);
+            if (selected < 0 || selected >= tabs.getChildCount() || !glass.slider().has()) return false;
+            float inset = PILL_INSET_DP * density;
+            float grow = PILL_GROW_DP * density;
+            out.set(Math.max(capsuleLeft + inset, left + glass.slider().start() - grow), top + inset,
+                    Math.min(capsuleRight - inset, left + glass.slider().end() + grow), bottom - inset);
             return true;
         }
     }

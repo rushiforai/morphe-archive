@@ -55,7 +55,6 @@ val unlockSubscriptionPatch = bytecodePatch(
     description = "Unlocks Strava Premium features (spoofs PAID state + far-future expiry). Also re-enables password login after OTP.",
     default = true,
 ) {
-    category("Premium")
     compatibleWith(STRAVA_COMPATIBILITY)
 
     execute {

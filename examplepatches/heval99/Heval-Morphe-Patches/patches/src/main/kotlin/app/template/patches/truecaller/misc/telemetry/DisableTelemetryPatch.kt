@@ -8,6 +8,7 @@ import app.morphe.util.returnEarly
 import app.template.patches.shared.Constants.COMPATIBILITY_TRUECALLER
 import app.template.patches.shared.addInstructionChecked
 import app.template.patches.shared.addInstructionsChecked
+import app.template.patches.truecaller.shared.overrideReadFeatureToggles
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
@@ -198,6 +199,26 @@ val disableTelemetryPatch = bytecodePatch(
                 sget-object p0, Ljava/lang/Boolean;->FALSE:Ljava/lang/Boolean;
                 return-object p0
             """,
+        )
+
+        // 8. First-party reporting toggles (off by default, on when the server says so) now read
+        // as off in every toggle resolver, whatever the server says. The patch fails if a key is
+        // no longer read through one.
+        // - "featureAppsInstalledHeartbeat": the installed-apps report work action (skips).
+        // - "featureUploadTelecomOperatorNames": the carrier caller-name and SIM MCC/MNC upload
+        //   work action (skips).
+        // - "featureAppProcessHeartbeatReporter": the daily app process heartbeat event and its
+        //   OkHttp/gRPC interceptors (the event returns early, the interceptors are not added).
+        // - "featureCleverTapNotificationsTracking": the push-received event and its CleverTap
+        //   listener; showing the push is not affected.
+        overrideReadFeatureToggles(
+            listOf(
+                "featureAppsInstalledHeartbeat",
+                "featureUploadTelecomOperatorNames",
+                "featureAppProcessHeartbeatReporter",
+                "featureCleverTapNotificationsTracking",
+            ),
+            false,
         )
     }
 }

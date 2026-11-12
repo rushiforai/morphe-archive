@@ -39,7 +39,6 @@ import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.Toolbar;
 
-import androidx.annotation.ColorInt;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
@@ -57,8 +56,10 @@ import app.morphe.extension.shared.ResourceType;
 import app.morphe.extension.shared.ResourceUtils;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.AppLanguage;
+import app.morphe.extension.shared.settings.BaseActivityHook;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.Setting;
+import app.morphe.extension.shared.settings.preference.NewIndicatorSpan;
 import app.morphe.extension.shared.settings.preference.NoTitlePreferenceCategory;
 import app.morphe.extension.shared.settings.preference.ToolbarPreferenceFragment;
 import app.morphe.extension.shared.theme.ThemeUtils;
@@ -140,7 +141,10 @@ public abstract class BaseSearchViewController {
         // Initialize components
         initializeSearchView();
         initializeOverlayContainer();
-        initializeSearchHistoryManager();
+        searchHistoryManager = new SearchHistoryManager(activity, overlayContainer, query -> {
+            searchView.setQuery(query, true);
+            hideSearchHistory();
+        });
         setupToolbarMenu();
         setupListeners();
     }
@@ -238,16 +242,6 @@ public abstract class BaseSearchViewController {
         }
     }
 
-    /**
-     * Initializes the search history manager with the specified overlay container and listener.
-     */
-    private void initializeSearchHistoryManager() {
-        searchHistoryManager = new SearchHistoryManager(activity, overlayContainer, query -> {
-            searchView.setQuery(query, true);
-            hideSearchHistory();
-        });
-    }
-
     // Abstract interface for preference fragments.
     public interface BasePreferenceFragment {
         PreferenceScreen getPreferenceScreenForSearch();
@@ -330,7 +324,7 @@ public abstract class BaseSearchViewController {
             if (isSearchActive) {
                 closeSearch();
             } else {
-                activity.finish();
+                BaseActivityHook.closeSettings(activity);
             }
         });
     }
@@ -401,7 +395,7 @@ public abstract class BaseSearchViewController {
 
                 // Append the group title to the path and save key for navigation.
                 if (!(preference instanceof NoTitlePreferenceCategory)) {
-                    CharSequence title = preference.getTitle();
+                    CharSequence title = NewIndicatorSpan.removeFrom(preference.getTitle());
                     if (!TextUtils.isEmpty(title)) {
                         newPath = TextUtils.isEmpty(parentPath)
                                 ? title.toString()
@@ -608,21 +602,14 @@ public abstract class BaseSearchViewController {
     }
 
     /**
-     * Gets the background color for search view components based on current theme.
-     */
-    @ColorInt
-    public static int getSearchViewBackground() {
-        return Utils.adjustColorBrightness(ThemeUtils.getDialogBackgroundColor(), Utils.isDarkModeEnabled() ? 1.11f : 0.95f);
-    }
-
-    /**
      * Creates a rounded background drawable for the main search view.
      */
     protected static GradientDrawable createBackgroundDrawable() {
         GradientDrawable background = new GradientDrawable();
         background.setShape(GradientDrawable.RECTANGLE);
         background.setCornerRadius(Dim.dp28);
-        background.setColor(getSearchViewBackground());
+        background.setColor(Utils.adjustColorBrightness(ThemeUtils.getDialogBackgroundColor(),
+                Utils.isDarkModeEnabled() ? 1.11f : 0.95f));
         return background;
     }
 

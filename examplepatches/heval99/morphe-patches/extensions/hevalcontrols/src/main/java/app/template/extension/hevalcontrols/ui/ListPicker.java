@@ -88,7 +88,7 @@ final class ListPicker {
         panel.addView(header);
 
         if (!feature.description.isEmpty()) {
-            views.add(panel, views.text(feature.description, 13, palette.muted, false), 6);
+            views.add(panel, views.description(feature.description, 0), 6);
         }
         summary = views.text("", 14, palette.text, true);
         // Spoken after every change without moving focus.

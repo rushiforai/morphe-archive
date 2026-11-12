@@ -26,6 +26,7 @@ public sealed class PostList(AndroidDriver driver)
     private const string Message = "errorText";
     private static readonly OpenQA.Selenium.By NoData = Locate.AppIdWithText("text", "No data");
     private const string Card = "card";
+    private const string LinkIcon = "Open link";
     private const string Row = "post";
     private const string Points = "points";
     private const string MoreButton = "more_button";
@@ -186,6 +187,13 @@ public sealed class PostList(AndroidDriver driver)
     /// <summary>Taps the ⋮ of the card of the post titled <paramref name="title"/>, which opens its menu.</summary>
     public Task ClickMenuButtonAsync(string title) =>
         OnScreen.PressAtAsync(driver, () => PostOrFail(Screen(), title).WithAppId(MoreButton).First().Center);
+
+    /// <summary>
+    /// Taps the link icon in the bar of the card of the post titled <paramref name="title"/>, which opens the post's link:
+    /// "Open web pages in the browser" labels it "Open link", as BaconReader gives it no label.
+    /// </summary>
+    public Task ClickLinkIconAsync(string title) =>
+        OnScreen.PressAtAsync(driver, () => PostOrFail(Screen(), title).Descendants().First(view => view.Description == LinkIcon).Center);
 
     /// <summary>Taps <paramref name="button"/> on the post titled <paramref name="title"/>, which opens or closes its text.</summary>
     public Task ClickTextButtonAsync(string title, TextPostButton button) =>

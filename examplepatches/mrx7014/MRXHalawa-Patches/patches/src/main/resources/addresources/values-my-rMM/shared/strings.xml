@@ -17,7 +17,6 @@ Second \"item\" text"</string>
 -->
 <resources>
   <!-- misc.settings.settingsResourcePatch -->
-  <string name="morphe_settings_submenu_title">မ်ားလာေၞး</string>
   <!-- String is also duplicated in Reddit import / export preference -->
   <!-- String is also duplicated in Reddit about preference -->
   <!-- misc.debugging.enableDebuggingPatch -->
@@ -34,5 +33,6 @@ Second \"item\" text"</string>
   <!-- "Don't kill my app" should be kept in English and not translated -->
   <!-- misc.gms.linkHandlingPatch -->
   <!-- misc.checks.experimentalAppNoticePatch -->
+  <!-- misc.announcements.patchesUpdateNoticePatch -->
   <!-- misc.crashlog.crashLogPatch -->
 </resources>

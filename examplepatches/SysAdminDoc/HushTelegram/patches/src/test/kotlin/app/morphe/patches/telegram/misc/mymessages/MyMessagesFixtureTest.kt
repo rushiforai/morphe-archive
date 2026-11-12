@@ -55,12 +55,12 @@ class MyMessagesFixtureTest {
             val name = build.name
             val context = PatchContexts.of(ExtensionDex.classes() + hosts(build))
             val site = context.resolveMyMessages()
-            if (name.contains("-72919")) {
+            if (name.contains("-73039")) {
                 // Read from the build's own instant search: open the search, press the member button, pick the member.
-                assertEquals("Lorg/telegram/ui/pn;", site.chat)
-                assertEquals("Lorg/telegram/ui/pn;->La(Ljava/lang/String;)V", site.openSearch.toString())
-                assertEquals("Lorg/telegram/ui/pn;->i3:Landroid/widget/ImageView;", site.searchButton.toString())
-                assertEquals("Lorg/telegram/ui/pn;->zb($chat$user)V", site.searchUser.toString())
+                assertEquals("Lorg/telegram/ui/rn;", site.chat)
+                assertEquals("Lorg/telegram/ui/rn;->Na(Ljava/lang/String;)V", site.openSearch.toString())
+                assertEquals("Lorg/telegram/ui/rn;->i3:Landroid/widget/ImageView;", site.searchButton.toString())
+                assertEquals("Lorg/telegram/ui/rn;->Cb($chat$user)V", site.searchUser.toString())
             }
             assertEquals("$name: the member button", "Landroid/widget/ImageView;", site.searchButton.type)
             val shownBefore = ImmutableMethod.of(site.header.visibility).controlBody()

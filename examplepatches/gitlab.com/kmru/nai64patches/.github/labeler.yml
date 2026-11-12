@@ -1,0 +1,23 @@
+ads:
+  - changed-files:
+      - any-glob-to-any-file: ['patches/**/ads/**']
+
+unlock:
+  - changed-files:
+      - any-glob-to-any-file: ['patches/**/unlock/**']
+
+manifest:
+  - changed-files:
+      - any-glob-to-any-file: ['patches/**/manifest/**']
+
+docs:
+  - changed-files:
+      - any-glob-to-any-file: ['**.md', '.github/ISSUE_TEMPLATE/**']
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file: ['.github/workflows/**', '.github/dependabot.yml']
+
+tests:
+  - changed-files:
+      - any-glob-to-any-file: ['tests/**']

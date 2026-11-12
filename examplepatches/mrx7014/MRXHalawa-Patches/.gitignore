@@ -1,3 +1,6 @@
+# Private key that signs the patches file
+morphe-signing.key
+
 # Gradle files
 .gradle/
 build/
@@ -6,6 +9,7 @@ build/
 local.properties
 
 # Log/OS Files
+.DS_Store
 *.log
 
 # Android Studio generated files and folders

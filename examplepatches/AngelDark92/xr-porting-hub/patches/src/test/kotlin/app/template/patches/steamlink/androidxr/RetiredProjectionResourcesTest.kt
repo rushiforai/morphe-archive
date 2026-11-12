@@ -4,6 +4,7 @@ import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -13,11 +14,15 @@ class RetiredProjectionResourcesTest {
     private val alpha0Manifest = "XR_APILAYER_local_GalaxyXR_android_surface_trigger_passthrough_v1.json"
 
     @Test
+    fun `bundled alpha0 resources are restored`() {
+        listOf(alpha0Library, alpha0TwoProjectionLibrary, alpha0Manifest).forEach { resource ->
+            assertNotNull(javaClass.getResourceAsStream("/steamlink/androidxr/$resource"), resource)
+        }
+    }
+
+    @Test
     fun `retired layer, projection and permission-matrix resources are absent`() {
         listOf(
-            alpha0Library,
-            alpha0TwoProjectionLibrary,
-            alpha0Manifest,
             "libgxr_foveal_canvas.so",
             "XR_APILAYER_local_GalaxyXR_foveal_canvas.json",
             "libgxr_surface_video.so",
@@ -47,23 +52,24 @@ class RetiredProjectionResourcesTest {
     }
 
     @Test
-    fun `alpha0 trigger and appear on top sources are gone`() {
+    fun `alpha0 trigger is restored while appear on top stays gone`() {
         val optional = source("patches/src/main/kotlin/app/template/patches/steamlink/androidxr/OptionalXrPatches.kt")
-        listOf("alpha0HighResolutionTriggerPatch", "name = \"Alpha-0", "appearOnTopPatch",
-            "name = \"Appear on top", "appearOnTopManifestPatch", "androidSurfaceTriggerResourcesPatch",
-            "installProjectionModeResources", "projectionModesConflict").forEach { removed ->
+        listOf("alpha0HighResolutionTriggerPatch", "name = \"Alpha-0", "androidSurfaceTriggerResourcesPatch",
+            "installProjectionModeResources", "projectionModesConflict").forEach { restored ->
+            assertTrue(optional.contains(restored), restored)
+        }
+        listOf("appearOnTopPatch", "name = \"Appear on top", "appearOnTopManifestPatch").forEach { removed ->
             assertFalse(optional.contains(removed), removed)
         }
     }
 
     @Test
-    fun `retired cleanup removes alpha0 leftovers and retired layers on reapplication`() {
+    fun `retired cleanup removes retired layers and keeps active helpers`() {
         val root = java.nio.file.Files.createTempDirectory("retired-projection").toFile()
         try {
             val lib = File(root, "lib").apply { mkdirs() }
             val layers = File(root, "layers").apply { mkdirs() }
             val retired = listOf(
-                File(lib, alpha0Library), File(lib, alpha0TwoProjectionLibrary), File(layers, alpha0Manifest),
                 File(lib, "libgxr_surface_video.so"), File(layers, "XR_APILAYER_local_GalaxyXR_surface_video_v1.json"),
                 File(lib, "libgxr_surface_video_trigger.so"),
                 File(layers, "XR_APILAYER_local_GalaxyXR_surface_video_trigger_v1.json"),
@@ -71,10 +77,12 @@ class RetiredProjectionResourcesTest {
             ).onEach { it.writeText("retired") }
             val unrelated = File(lib, "unrelated.so").apply { writeText("preserved") }
             val stockQuad = File(lib, STOCK_QUAD_LIBRARY).apply { writeText("keep") }
+            val alpha0 = File(lib, alpha0Library).apply { writeText("keep") }
             repeat(2) { removeRetiredProjectionResources(lib, layers) }
             retired.forEach { assertFalse(it.exists(), it.name) }
             assertEquals("preserved", unrelated.readText())
             assertTrue(stockQuad.isFile)
+            assertTrue(alpha0.isFile)
         } finally { root.deleteRecursively() }
     }
 

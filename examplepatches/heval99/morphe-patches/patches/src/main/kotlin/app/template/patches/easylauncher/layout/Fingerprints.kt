@@ -37,6 +37,6 @@ internal object SponsoredLinkSuggestionsFingerprint : Fingerprint(
     definingClass = "Lcom/eet/feature/search2/suggest/SponsoredLinkSuggestionProvider;",
     name = "getSuggestions",
     returnType = "Ljava/lang/Object;",
-    parameters = listOf("Ljava/lang/String;", "Ljava/util/List;", "I", "Lkotlin/coroutines/Continuation;"),
+    parameters = listOf("Ljava/lang/String;", "Ljava/util/List;", "I", "L"), // Continuation is R8-renamed since 1.10.31
     custom = { method, _ -> method.implementation != null },
 )

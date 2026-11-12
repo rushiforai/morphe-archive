@@ -37,7 +37,6 @@ val myDialogSimAccessFixPatch = bytecodePatch(
         "on SIM-less devices.",
     default = true,
 ) {
-    category("Security")
     compatibleWith(MYDIALOG_COMPATIBILITY)
 
     execute {

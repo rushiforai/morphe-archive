@@ -65,6 +65,9 @@ public class BaconReaderPreferenceFragment extends PreferenceFragment {
             }
 
             PreferenceCategory links = category(screen, "revanced_settings_baconreader_screen_2_links_title");
+            if (IncludedPatches.openWebPagesInBrowser()) {
+                links.addPreference(switchPreference(context, Settings.OPEN_WEB_PAGES_IN_BROWSER));
+            }
             if (IncludedPatches.embedCommentImages()) {
                 links.addPreference(switchPreference(context, Settings.YOUTUBE_TITLES));
                 links.addPreference(switchPreference(context, Settings.YOUTUBE_THUMBNAILS));

@@ -122,12 +122,15 @@ val disableTelemetryPatch = bytecodePatch(
         singularInits.forEach { it.returnEarly(false) }
 
         // 5. Braze: the push service's initialize returns Unit without enqueuing BrazeInitWorker.
-        val unit = classDefBy("Lkotlin/Unit;").staticFields.firstOrNull { it.type == "Lkotlin/Unit;" }
-            ?: throw PatchException("kotlin.Unit has no singleton field")
+        // kotlin.Unit is R8-renamed since 1.10.31 (like Continuation), so find it by its
+        // toString literal "kotlin.Unit" and take its singleton field.
+        val unitType = KotlinUnitToStringFingerprint.classDef.type
+        val unit = classDefBy(unitType).staticFields.firstOrNull { it.type == unitType }
+            ?: throw PatchException("kotlin.Unit ($unitType) has no singleton field")
         BrazePushInitializeFingerprint.method.addInstructionsChecked(
             0,
             """
-                sget-object p0, Lkotlin/Unit;->${unit.name}:Lkotlin/Unit;
+                sget-object p0, $unitType->${unit.name}:$unitType
                 return-object p0
             """,
         )

@@ -9,12 +9,14 @@ class Sheet{
  appendRow(r){if(failSheet===this.name){failSheet='';throw Error('Injected append failure');}this.rows.push(r.slice());}
 }
 const book={getId:()=> '1mKo9ogD2ePwu16hgya8pu2-fF7g-I3ERPgm18PCO_oc',getActiveSheet:()=>activeSheet,getSheetByName:n=>sheets.get(n),insertSheet:n=>{const s=new Sheet(n);sheets.set(n,s);return s;}};
-const props={getProperty:k=>properties.get(k)||null,setProperty:(k,v)=>properties.set(k,String(v)),deleteProperty:k=>properties.delete(k)};
+const props={getProperty:k=>properties.get(k)||null,setProperty:(k,v)=>properties.set(k,String(v)),deleteProperty:k=>properties.delete(k),getKeys:()=>Array.from(properties.keys())};
+// Exercise historical protocol behavior explicitly; the production default rejects it.
+properties.set('REQUIRE_DEVICE_KEY','false');
 let locked=false;
 const context=vm.createContext({console,Date,Map,Set,JSON,Number,String,Object,Array,Error,
  SpreadsheetApp:{openById:()=>book,getActiveSpreadsheet:()=>activeBook,flush(){}},PropertiesService:{getScriptProperties:()=>props},
  CacheService:{getScriptCache:()=>({get:k=>cache.get(k),put:(k,v)=>cache.set(k,v),remove:k=>cache.delete(k)})},
- LockService:{getScriptLock:()=>({waitLock(){assert.ok(!locked);locked=true;},releaseLock(){locked=false;},hasLock(){return locked;}})},
+ LockService:{getScriptLock:()=>({waitLock(){assert.ok(!locked);locked=true;},tryLock(){if(locked)return false;locked=true;return true;},releaseLock(){locked=false;},hasLock(){return locked;}})},
  Utilities:{newBlob:v=>({getBytes:()=>Array.from(Buffer.from(v,'utf8'))}),getUuid:()=>crypto.randomUUID(),DigestAlgorithm:{SHA_256:1},Charset:{UTF_8:1},computeDigest:(_,v)=>Array.from(crypto.createHash('sha256').update(v).digest())},
  ContentService:{MimeType:{JSON:'json'},createTextOutput:text=>({text,setMimeType(){return this;}})}
 });
@@ -145,3 +147,32 @@ properties.delete('IGNORED_REPORTERS');
 check(!bind('a'.repeat(64),'invalid').ok,'reject malformed stable identity');
 check(context.auditReviewedSharedNg().ok,'audit accepts public provenance without private metadata');
 console.log('PASS '+checks+' including public-contributor/device-binding checks');
+// Production default: accept only the device-binding capable submission protocol.
+properties.delete('REQUIRE_DEVICE_KEY');
+properties.set('ALLOW_LEGACY_REPORTS','true');
+const oldOpen=context.SpreadsheetApp.openById,oldLock=context.LockService.getScriptLock;
+let guardedOpens=0,guardedLocks=0;
+context.SpreadsheetApp.openById=(...args)=>{guardedOpens++;return oldOpen(...args);};
+context.LockService.getScriptLock=(...args)=>{guardedLocks++;return oldLock(...args);};
+const gateBefore=JSON.stringify(all());guardedOpens=0;
+const rejectedBodies=[
+ {version:1,device,reports:[{board:'5ch/poverty',kind:'id',value:'LegacyProbe',period:'2026-10-22'}]},
+ {version:1,device,deviceKey:stableKey,reports:[]},
+ {version:2,action:'personal',device,reports:[condition('id','OldProtocolProbe')]},
+ ...['',null,123,'G'.repeat(64),'a'.repeat(63),'a'.repeat(65)].map(deviceKey=>({version:2,action:'personal',device,deviceKey,reports:[condition('id','MalformedKeyProbe')]})),
+ {version:2,action:'identity',device},
+];
+for(const body of rejectedBodies){const answer=JSON.parse(context.doPost({postData:{contents:JSON.stringify(body)}}).text);check(!answer.ok&&answer.code==='client_update_required'&&!answer.ack,'old or malformed sender gets update error without ACK');}
+check(guardedOpens===0&&guardedLocks===0,'rejected senders never access sheets or acquire locks');
+check(JSON.stringify(all())===gateBefore,'old submissions never change history');
+context.SpreadsheetApp.openById=oldOpen;context.LockService.getScriptLock=oldLock;
+check(feed().ok,'old receiver GET remains available');
+check(bind('e'.repeat(64),stableKey).ok,'current identity registration remains available');
+const modern={version:2,action:'personal',device:'e'.repeat(64),deviceKey:stableKey,reports:[condition('id','ModernProtocolProbe')]};
+const modernAnswer=JSON.parse(context.doPost({postData:{contents:JSON.stringify(modern)}}).text);
+check(modernAnswer.ok&&modernAnswer.accepted===1&&modernAnswer.ack.length===1,'current sender accepted with device binding');
+const modernReplay=JSON.parse(context.doPost({postData:{contents:JSON.stringify(modern)}}).text);
+check(modernReplay.ok&&modernReplay.accepted===0,'current replay stays deduplicated');
+properties.set('REQUIRE_DEVICE_KEY','true');
+check(context.ngSubmissionUpgradeRequired_({version:2})&&!context.ngSubmissionUpgradeRequired_(modern),'explicit requirement matches default');
+console.log('PASS '+checks+' including production old-sender gate checks');

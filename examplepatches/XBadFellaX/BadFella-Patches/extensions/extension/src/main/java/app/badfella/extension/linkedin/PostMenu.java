@@ -31,7 +31,6 @@ final class PostMenu {
     private static final String PAGE = "feed-control-menu-page";
     private static final String ROW_MARKER = "feed-control-menu-";
     private static final String TEMPLATE = "feed-control-menu-save";
-    private static final String COMMENTARY = "feed-commentary";
     private static final Pattern POST_URN = Pattern.compile("urn:li:(?:activity|ugcPost|share):\\d+");
     private static final Pattern DOCUMENT_URN = Pattern.compile("urn:li:digitalmediaAsset:([A-Za-z0-9_-]+)");
 
@@ -94,7 +93,7 @@ final class PostMenu {
                 while (d.find()) post.documentIds.add(d.group(1));
             }
             if (!urns.isEmpty()) {
-                post.text = commentary(payload);
+                post.text = PostCommentary.text(payload);
                 post.media = MediaItem.extract(scanner, false);
                 synchronized (posts) {
                     for (String urn : urns) posts.put(urn, post);
@@ -106,35 +105,6 @@ final class PostMenu {
         } catch (Throwable t) {
             Diagnostics.error("post menu remember failed", t);
         }
-    }
-
-    /** The post text: the longest text inside the commentary component. */
-    private static String commentary(byte[] payload) {
-        byte[] part = smallestContaining(payload, COMMENTARY);
-        if (part == null) return null;
-        String best = null;
-        for (String s : ProtoScanner.scan(part).strings) {
-            if (s.equals(COMMENTARY) || s.startsWith("urn:li:") || s.startsWith("http")) continue;
-            if (best == null || s.length() > best.length()) best = s;
-        }
-        return best;
-    }
-
-    /** The innermost message that still contains the marker. */
-    private static byte[] smallestContaining(byte[] data, String marker) {
-        if (data == null || !ProtoEdit.contains(data, marker)) return null;
-        List<ProtoEdit.Field> fields = ProtoEdit.parse(data);
-        if (fields != null) {
-            for (ProtoEdit.Field field : fields) {
-                if (field.wireType != 2 || !ProtoEdit.contains(field.data, marker)) continue;
-                byte[] inner = smallestContaining(field.data, marker);
-                if (inner != null && inner.length < data.length) {
-                    // The marker string itself is not a message worth descending into.
-                    return ProtoEdit.parse(inner) == null ? field.data : inner;
-                }
-            }
-        }
-        return data;
     }
 
     // endregion
@@ -250,7 +220,9 @@ final class PostMenu {
                 kept.add(field);
             }
         }
-        row.data = relabel(ProtoEdit.write(kept), label, viewName);
+        MenuIconIds.Result icons = new MenuIconIds.Result();
+        byte[] built = MenuIconIds.swap(ProtoEdit.write(kept), action, icons);
+        row.data = relabel(built, label, viewName);
         return row;
     }
 

@@ -30,6 +30,27 @@ public final class OpenUrlActivity extends Activity {
                     && uri.getPath()!=null && uri.getPath().startsWith("/read.php/")) {
                 target.setClass(this,HissiMenuActivity.class);
             } else {
+                String local=SiteNativeBoards.localUrl(uri.toString());
+                String host=uri.getHost().toLowerCase(java.util.Locale.ROOT);
+                boolean addedSite=host.equals("bbs.animanch.com")||host.equals("bakusai.com")||host.endsWith(".2chan.net");
+                if(local==null&&host.equals("bbs.animanch.com")&&AnimanchProtocol.threadId(uri.toString())!=null){
+                    resolvingAnimanch=true;
+                    final Uri original=uri;final boolean returnFromArchive=incoming.getBooleanExtra("haiagaru.archive.return",false);
+                    new Thread(()->{
+                        String resolved=SiteNativeBoards.resolveUnclassifiedAnimanch(original.toString());
+                        runOnUiThread(()->{
+                            if(isFinishing()||isDestroyed())return;
+                            if(resolved==null){android.widget.Toast.makeText(this,"スレの所属板を確認できません。該当する板を追加し、有効化してください。",android.widget.Toast.LENGTH_LONG).show();finish();return;}
+                            try{Intent open=new Intent(Intent.ACTION_VIEW,normalizeEdge(Uri.parse(resolved))).setClassName(this,THREAD_ACTIVITY);
+                                if(returnFromArchive)open.putExtra("forwardTabletHome",false);
+                                startActivity(open);
+                            }catch(RuntimeException error){Log.e(TAG,"Could not open resolved Animanch URL",error);}finally{finish();}
+                        });
+                    },"Haiagaru-animanch-category").start();
+                    return;
+                }
+                if(local!=null)uri=Uri.parse(local);
+                else if(addedSite){android.widget.Toast.makeText(this,"対応する板を板一覧へ追加し、「使用する」をオンにしてください。対応していない形式のURLは開けません。",android.widget.Toast.LENGTH_LONG).show();return;}
                 uri=normalizeEdge(uri);
                 target.setData(uri);
                 target.setClassName(this, isThreadUrl(uri) ? THREAD_ACTIVITY : BOARD_ACTIVITY);
@@ -41,9 +62,11 @@ public final class OpenUrlActivity extends Activity {
         } catch (RuntimeException error) {
             Log.e(TAG, "Could not open URL in ChMate", error);
         } finally {
-            finish();
+            // Asynchronous Animanch resolution completes and closes the activity itself.
+            if(!resolvingAnimanch)finish();
         }
     }
+    private boolean resolvingAnimanch;
 
     private static boolean isWebScheme(String scheme) {
         return "http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme);

@@ -10,14 +10,13 @@ import app.template.patches.sofascore.countries.sofascoreListFiltersPatch
 
 internal val HIDDEN_COMPETITIONS = HevalListFeature(
     id = "sofascore.hidden_competitions",
-    name = "Hidden competitions",
-    description = "Matches of the competitions you pick are hidden, favourites too. A competition shows up here " +
-        "once you open its country or find it in search.",
+    name = "Hide competitions",
+    description = "Hides matches of the competitions you pick, even favourites.",
     category = SofascoreControlsCategory.LEAGUES,
     restartRequired = true,
 )
 
-// A Patch settings list next to "Hidden countries" (2026-11-03, owner request), opt-in in Manager.
+// A Patch settings list next to "Hide countries" (2026-11-03, owner request), opt-in in Manager.
 // Keys are UniqueTournament ids ("17" Premier League); labels "category · name" ("England · Premier
 // League") so the picker groups by country; the picker draws Sofascore's competition logo
 // (img.sofascore.com/api/v1/unique-tournament/{id}/image) over the country's flag or a trophy.

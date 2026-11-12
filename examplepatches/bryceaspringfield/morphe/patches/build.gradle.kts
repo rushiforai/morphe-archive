@@ -12,6 +12,11 @@ patches {
     }
 }
 
+// -PnoKick=true leaves the KICK patch out of a release while its features wait for a test on an ARM device.
+if (project.hasProperty("noKick")) {
+    (sourceSets["main"].extensions.getByName("kotlin") as SourceDirectorySet).exclude("**/patches/kick/**")
+}
+
 // Separate configuration so gson is available at runtime for the
 // generatePatchesList task but never bundled into the APK.
 val patchListGeneratorClasspath = configurations.create("patchListGeneratorClasspath")

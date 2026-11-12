@@ -17,6 +17,7 @@ import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.MatrixCursor;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -40,10 +41,15 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 30)
@@ -198,6 +204,75 @@ public class CallRecordingsTest {
         assertEquals(0, left.length);
     }
 
+    @Test public void aNameSaysWhoTheCallWasWithWhenThereIsSomeone() {
+        long began = new GregorianCalendar(2026, Calendar.OCTOBER, 30, 21, 15).getTimeInMillis();
+        assertEquals("Telegram call with Alex Kim 2026-10-30 21-15.m4a", CallRecordings.name(began, "Alex Kim"));
+        assertEquals(NAME, CallRecordings.name(began, null));
+        assertEquals(NAME, CallRecordings.name(began, " \t "));
+    }
+
+    @Test public void aNameKeepsNothingAFileNameCantCarry() {
+        assertEquals("a b c d e f g h i j", CallRecordings.fileSafe("a/b\\c:d*e?f\"g<h>i|j"));
+        assertEquals("two lines", CallRecordings.fileSafe("two\n\tlines"));
+        assertEquals("hidden", CallRecordings.fileSafe(". .hidden"));
+        // A direction mark could turn the rest of the name around, and a zero width one hides.
+        String marks = "evil" + (char) 0x202E + "gpj.exe" + (char) 0x200B;
+        assertEquals("evil gpj.exe", CallRecordings.fileSafe(marks));
+        assertEquals("", CallRecordings.fileSafe(null));
+
+        String face = new String(Character.toChars(0x1F600));
+        StringBuilder long61 = new StringBuilder();
+        for (int i = 0; i < 61; i++) long61.append(face);
+        String cut = CallRecordings.fileSafe(long61.toString());
+        assertEquals("cut by characters, never through one", 60, cut.codePointCount(0, cut.length()));
+        assertEquals(120, cut.length());
+    }
+
+    private static final long BEFORE = new GregorianCalendar(2026, Calendar.NOVEMBER, 1).getTimeInMillis();
+
+    private void listed(long id, String name, String path, Long added) {
+        recordings.rows.put(id, new ContentValues());
+        recordings.listing.add(new Object[]{id, name, path, added});
+    }
+
+    @Test public void cleanupDeletesOnlyOurOldRecordingsInOurFolder() {
+        recordings.listing = new ArrayList<>();
+        long old = BEFORE / 1000 - 86_400;
+        listed(1, "Telegram call 2026-01-01 10-00.m4a", "Music/Telegram calls/", old);
+        listed(2, "Telegram call 2026-11-10 10-00.m4a", "Music/Telegram calls/", BEFORE / 1000);
+        listed(3, "Voice memo.m4a", "Music/Telegram calls/", old);
+        listed(4, "Telegram call 2026-01-01 10-00.m4a", "Music/Other/", old);
+        listed(5, "Telegram call 2026-01-02 10-00.m4a", "Music/Telegram calls/", old);
+        listed(6, "Telegram call 2026-01-03 10-00.m4a", "Music/Telegram calls/", null);
+        listed(7, "Telegram call with Alex 2026-01-04 10-00.m4a", "Music/Telegram calls/", old);
+        recordings.notOurs.add(5L);
+
+        assertEquals(2, CallRecordings.clean(context(), BEFORE));
+        assertEquals(new HashSet<>(Arrays.asList(2L, 3L, 4L, 5L, 6L)), recordings.rows.keySet());
+        assertArrayEquals(new String[]{"Music/Telegram calls/", "Telegram call %", String.valueOf(BEFORE / 1000)},
+                recordings.selectionArgs);
+        assertTrue(recordings.selection, recordings.selection.contains(MediaStore.MediaColumns.DATE_ADDED + "<?"));
+    }
+
+    @Config(sdk = 28)
+    @Test public void android9CleansTheMusicFolderByTheFilesDates() throws IOException {
+        @SuppressWarnings("deprecation")
+        File music = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC), CallRecordings.FOLDER);
+        assertTrue(music.mkdirs() || music.isDirectory());
+        File old = new File(music, "Telegram call 2026-01-01 10-00.m4a");
+        File fresh = new File(music, "Telegram call 2026-11-10 10-00.m4a");
+        File theirs = new File(music, "Voice memo.m4a");
+        for (File file : new File[]{old, fresh, theirs}) assertTrue(file.createNewFile());
+        assertTrue(old.setLastModified(BEFORE - 1_000));
+        assertTrue(fresh.setLastModified(BEFORE));
+        assertTrue(theirs.setLastModified(BEFORE - 1_000));
+
+        assertEquals(1, CallRecordings.clean(context(), BEFORE));
+        assertFalse(old.exists());
+        assertTrue(fresh.exists());
+        assertTrue(theirs.exists());
+    }
+
     /** MediaStore's audio table, as much of it as saving a call touches. */
     public static final class Recordings extends ContentProvider {
         final Map<Long, ContentValues> rows = new LinkedHashMap<>();
@@ -230,9 +305,22 @@ public class CallRecordingsTest {
             return uriFor(id);
         }
 
+        /** What a cleanup's query answers, every row whatever it asked, so the code's own check is what picks. */
+        List<Object[]> listing;
+        String selection;
+        String[] selectionArgs;
+        /** Entries an earlier install saved, which MediaStore won't let this one delete. */
+        final Set<Long> notOurs = new HashSet<>();
+
         @Override public Cursor query(Uri uri, String[] projection, String selection,
                 String[] selectionArgs, String sortOrder) {
-            throw new AssertionError("saving a call looks nothing up");
+            if (listing == null) throw new AssertionError("saving a call looks nothing up");
+            assertEquals(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, uri);
+            this.selection = selection;
+            this.selectionArgs = selectionArgs;
+            MatrixCursor cursor = new MatrixCursor(projection);
+            for (Object[] row : listing) cursor.addRow(row);
+            return cursor;
         }
 
         @Override public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
@@ -243,6 +331,7 @@ public class CallRecordingsTest {
         }
 
         @Override public int delete(Uri uri, String selection, String[] selectionArgs) {
+            if (notOurs.contains(ContentUris.parseId(uri))) throw new SecurityException("owned by another install");
             return rows.remove(ContentUris.parseId(uri)) == null ? 0 : 1;
         }
 

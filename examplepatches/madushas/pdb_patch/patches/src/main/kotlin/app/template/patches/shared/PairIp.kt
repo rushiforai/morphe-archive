@@ -222,7 +222,6 @@ val disablePairIPLicenseCheckPatch = bytecodePatch(
     description = "Disables PairIP license verification, VM checks, and repeated background checks.",
     default = false,
 ) {
-    category("PairIP")
     execute {
         killPairIpFull()
     }
@@ -257,7 +256,6 @@ fun pairIPManifestPatch(replacementAppClass: String? = null) = resourcePatch(
         "Optionally replaces the PairIP Application class with the real one.",
     default = false,
 ) {
-    category("PairIP")
     execute {
         document("AndroidManifest.xml").use { doc ->
             if (replacementAppClass != null) {

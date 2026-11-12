@@ -7,12 +7,16 @@ Couldn't add the caption. Saving without it.	Açıklama eklenemedi. Açıklamas�
 Dim when idle	Boştayken karart
 Dim when idle and shift	Boştayken karart ve kaydır
 For OLED screens. After 5 seconds without a touch, the buttons, caption and tabs over the video dim to a quarter, and your next touch brings them back. Shift also moves everything on the feed a few pixels every 2 minutes.	OLED ekranlar için. 5 saniye dokunulmazsa videonun üzerindeki düğmeler, açıklama ve sekmeler dörtte bire kadar kararır, bir sonraki dokunuşun onları geri getirir. Kaydırma ayrıca akıştaki her şeyi 2 dakikada bir birkaç piksel kaydırır.
+Hashtags	Hashtagler
 Importing new history ended Undo for the earlier clear. You can clear the imported history.	Yeni geçmişi içe aktarmak önceki temizlemeyi geri alma seçeneğini sonlandırdı. İçe aktarılan geçmişi temizleyebilirsiniz.
 %1$d setting in that file can't be restored here and was skipped	Dosyadaki %1$d ayar burada geri yüklenemedi ve atlandı
 %1$d settings in that file can't be restored here and were skipped	Dosyadaki %1$d ayar burada geri yüklenemedi ve atlandı
 Import watch history	İzleme geçmişini içe aktar
 Keep the language picked in TikTok	TikTok'ta seçilen dili koru
 Freeze TikTok's experiments	TikTok'un deneylerini dondur
+Photos	Fotoğraflar
+Places	Yerler
+Sounds	Sesler
 TikTok's servers keep sending it new settings, which is how it tests new layouts and features on people. With this on, TikTok keeps the ones it has now and ignores new ones. If something in TikTok stops working, turn this off so it can get fixes.	TikTok'un sunucuları ona sürekli yeni ayarlar gönderir, TikTok yeni düzenleri ve özellikleri insanlar üzerinde böyle dener. Bu açıkken TikTok şu anki ayarlarını korur ve yenilerini yok sayar. TikTok'ta bir şey çalışmayı bırakırsa düzeltmeleri alabilmesi için bunu kapat.
 Nothing is playing to speed up	Hızlandırılacak bir şey oynatılmıyor
 One language code, like en or es. Comments and captions TikTok translates come out in this language instead of the app's. Leave it empty to keep TikTok's choice.	Tek bir dil kodu, örneğin en veya es. TikTok'un çevirdiği yorumlar ve açıklamalar uygulamanın dili yerine bu dilde çıkar. TikTok'un seçimini korumak için boş bırak.
@@ -36,6 +40,8 @@ Translate into	Şu dile çevir
 Type one language code here, like en.	Buraya tek bir dil kodu yaz, örneğin en.
 Use this account's TikTok JSON export, up to %1$s MB and %2$s entries. Dates without a time zone use this phone's time zone.	Bu hesabın en fazla %1$s MB ve %2$s kayıt içeren TikTok JSON dışa aktarımını kullanın. Saat dilimi olmayan tarihler için bu telefonun saat dilimi kullanılır.
 Sign in to TikTok before importing watch history.	İzleme geçmişini içe aktarmadan önce TikTok'a giriş yapın.
+Users	Kullanıcılar
+Videos	Videolar
 When TikTok starts and decides the phone's language changed, it forgets the language you picked in its settings and follows the phone. With this on, your pick stays. Counts from TikTok's next start.	TikTok açılırken telefonun dilinin değiştiğine karar verirse, ayarlarında seçtiğin dili bırakır ve telefona uyar. Bu açıkken seçimin kalır. TikTok'un bir sonraki açılışından itibaren geçerlidir.
 Write the username and caption on the video	Kullanıcı adını ve açıklamayı videonun üzerine yaz
 Writing the caption on the video	Açıklama videonun üzerine yazılıyor
@@ -2015,6 +2021,10 @@ Hide Check your sources warnings	Kaynaklarını kontrol et uyarılarını gizle
 Hide the Check your sources banner TikTok puts across the top of some videos, and the prompt it shows when you share one.	TikTok'un bazı videoların üst kısmına koyduğu Kaynaklarını kontrol et bandını ve böyle bir videoyu paylaşırken gösterdiği uyarıyı gizle.
 Keep offline videos until you delete them	Çevrimdışı videoları sen silene kadar tut
 TikTok removes videos saved for offline viewing after a set time, sometimes only two days, watched or not. With this on they stay until you delete them in TikTok's Offline videos settings. TikTok can still clear watched ones when your phone is low on space.	TikTok, çevrimdışı izlemek için kaydedilen videoları belirli bir süre sonra, bazen yalnızca iki gün sonra, izlenmiş olsun olmasın kaldırır. Bu açıkken videolar, TikTok'un Çevrimdışı videolar ayarlarında sen silene kadar kalır. Telefonunda yer azaldığında TikTok izlenmiş olanları yine de temizleyebilir.
+Delete watched offline videos	İzlenen çevrimdışı videoları sil
+Each time TikTok starts, deletes the offline videos you've already watched, so the next download fills their places with new ones. A video counts as watched once it's been on screen.	TikTok her açıldığında izlediğin çevrimdışı videoları siler, böylece sonraki indirme onların yerini yenileriyle doldurur. Bir video ekranda göründüğü anda izlenmiş sayılır.
+1 unwatched offline video left	1 izlenmemiş çevrimdışı video kaldı
+%1$d unwatched offline videos left	%1$d izlenmemiş çevrimdışı video kaldı
 Hide Thoughts on profiles	Profillerde Thoughts'u gizle
 Hide the Thoughts bubble TikTok shows above a profile picture, and the prompt to share one on your own profile. Restart TikTok to apply this.	TikTok'un bir profil fotoğrafının üstünde gösterdiği Thoughts balonunu ve kendi profilinde bir tane paylaşma önerisini gizle. Bunu uygulamak için TikTok'u yeniden başlat.
 Turn on Thoughts	Thoughts'u aç
@@ -2710,3 +2720,17 @@ How many lines of a long comment show before more.	Uzun bir yorumun devamı yaz�
 %1$s lines	%1$s satır
 # context: The tappable word at the end of a cut comment, after an ellipsis, that opens the rest of it
 … more	… devamı
+# context: A setting and the title of the screen it puts over the For You feed
+Pause before the feed	Akıştan önce mola
+Zero switches this off. The first time the feed opens after TikTok starts or comes back from the background, a countdown covers it for that many seconds before you can continue, or leave. Messages, profiles and search open without it.	Sıfır bunu kapatır. TikTok açıldıktan veya arka plandan döndükten sonra akış ilk kez açıldığında, devam edebilmeden ya da çıkabilmeden önce bir geri sayım onu o kadar saniye boyunca kapatır. Mesajlar, profiller ve arama onsuz açılır.
+# context: The button on that screen that opens the feed once the countdown ends
+Continue	Devam et
+# context: The button on that screen that sends TikTok to the background instead
+Leave TikTok	TikTok'tan çık
+You can continue now.	Artık devam edebilirsin.
+# context: A checklist in Feed filter of the tabs along the top of TikTok's search results (Top, Shop, LIVE, Places...)
+Hide search result tabs	Arama sonucu sekmelerini gizle
+Pick the tabs to remove from the top of the search results, such as Shop, LIVE or Places. The list holds the tabs TikTok has shown you, and Top always stays.	Arama sonuçlarının üstünden kaldırılacak sekmeleri seç, örneğin Mağaza, LIVE veya Yerler. Listede TikTok'un sana gösterdiği sekmeler var ve Popüler her zaman kalır.
+# context: Shown in that checklist before TikTok has served any search tabs on this phone
+No search tabs have been seen yet	Henüz hiç arama sekmesi görülmedi
+Search for something once, then return here to choose its tabs.	Bir kez bir şey ara, sonra sekmelerini seçmek için buraya dön.

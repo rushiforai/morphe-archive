@@ -614,6 +614,12 @@ public class Settings extends BaseSettings {
      * accounts that press is TikTok's account switcher, which this takes over while it's on.
      */
     public static final BooleanSetting PROFILE_TAB_OPENS_WATCH_HISTORY = new BooleanSetting("profile_tab_opens_watch_history", FALSE);
+    /**
+     * Holding the Profile tab opens TikTok's account switcher on accounts where TikTok left that
+     * hold off (#388). TikTok's switch_account_gesture experiment answers yes, which is what puts
+     * the hold on the tab and lets its handler show the sheet. Read as the bottom bar is built.
+     */
+    public static final BooleanSetting PROFILE_TAB_SWITCHES_ACCOUNTS = new BooleanSetting("profile_tab_switches_accounts", FALSE, true);
     /** A long press on the Inbox tab flips Hide read receipts and toasts the new state (#333). */
     public static final BooleanSetting INBOX_TAB_FLIPS_READ_RECEIPTS = new BooleanSetting("inbox_tab_flips_read_receipts", FALSE);
     /** The tab TikTok opens on from its icon: tiktok (its own pick), for_you, following, friends, inbox or profile. */
@@ -920,6 +926,13 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting PAUSE_FIRST_VIDEO = new BooleanSetting(
             "pause_first_video", FALSE, true);
+    /**
+     * Seconds of countdown in front of the first feed after TikTok starts or comes back from the
+     * background, or zero for none. Off by default. A shorter pause loosens the budget, so it
+     * waits for the next day the way the budget's own numbers do. See PausePlayback.
+     */
+    public static final IntegerSetting PAUSE_BEFORE_FEED_SECONDS = new IntegerSetting(
+            "pause_before_feed_seconds", 0).withRange(0, 60);
     /**
      * Keep a paused video paused. It reads the player in the pre-pause callback, which arrived in
      * Android 10, so older versions have nothing to read it by and the row is greyed there.
@@ -1564,6 +1577,10 @@ public class Settings extends BaseSettings {
     /** Keeps the comment search box behind a button in the sheet's header until it's tapped (#254). */
     public static final BooleanSetting COMMENT_SEARCH_FOLDED = new BooleanSetting("comment_search_folded", FALSE);
     public static final BooleanSetting COMMENT_LINKS = new BooleanSetting("comment_links", FALSE);
+    /** Shows the first few lines of a long comment and a "more" that opens the rest in place. */
+    public static final BooleanSetting FOLD_LONG_COMMENTS = new BooleanSetting("fold_long_comments", FALSE);
+    public static final IntegerSetting FOLD_LONG_COMMENTS_LINES = new IntegerSetting(
+            "fold_long_comments_lines", 4, false, Setting.parent(FOLD_LONG_COMMENTS)).withRange(1, 20);
     public static final BooleanSetting HIDE_COMMENT_MEDIA = new BooleanSetting("hide_comment_media", FALSE);
     /**
      * Drops comments carrying a voice recording with something to play (a vid or a local file),

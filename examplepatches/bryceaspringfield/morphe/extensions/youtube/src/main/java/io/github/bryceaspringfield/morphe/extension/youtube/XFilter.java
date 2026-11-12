@@ -26,6 +26,8 @@ public final class XFilter extends Filter {
             "video_with_context.e",
             "related_video_with_context.e",
             "video_lockup_with_attachment.e",
+            // The card layout (Morphe's feed card layout, or YouTube's own A/B test): lockup.eml-fe|hash.
+            "lockup.e",
             "compact_video.e",
             "compact_playlist.e",
             "compact_radio.e",
@@ -80,6 +82,17 @@ public final class XFilter extends Filter {
         if (contentIndex != 0 || !isTopLevel(path)) return false;
 
         Place place = place(contextInterface);
+        // Morphe's own keyword filter reads the classic feed templates only, so its keywords never reach the cards of
+        // its card layout (lockup.eml): they are applied here, with Morphe's own list and its Home, Subscriptions,
+        // and Search switches.
+        if (path.toString().startsWith("lockup.") && MorpheKeywords.applies(place == Place.SEARCH, place == Place.SUBSCRIPTIONS)) {
+            VideoItem card = VideoItem.parse(buffer, path);
+            String kw = MorpheKeywords.match(card);
+            if (kw != null) {
+                if (XSettings.DEBUG.get()) Logger.printDebug(() -> "YouTube Extras: " + place + " " + card + " HIDDEN by Morphe keyword " + kw);
+                return true;
+            }
+        }
         // Mark watched videos is its own option: it applies on Home and under the player whatever the filters' places.
         boolean filters = applies(place);
         if (!filters && ("off".equals(XSettings.AUTO_WATCHED.get()) || !watchedPlace(contextInterface))) return false;
@@ -87,18 +100,30 @@ public final class XFilter extends Filter {
         Channels.learn(item);
         LAST_ITEM.set(item);
         String found = filters ? reason(item, place) : null;
+        if (found == null && place == Place.HOME && Resuggested.onHome(item)) found = "suggested on Home " + Resuggested.limit() + " times, never opened";
         final String reason = found != null ? found
                 : watchedPlace(contextInterface) && watchedItem(item, buffer) ? "watched" : null;
         if ("watched".equals(reason)) Feedback.onWatched(item);
         if (XSettings.DEBUG.get()) {
             Logger.printDebug(() -> "YouTube Extras: " + place + " " + item + (reason == null ? "" : " HIDDEN by " + reason));
         }
+        boolean feedbackPlace = watchedPlace(contextInterface) || NavigationBar.NavigationButton
+                .getSelectedNavigationButton(contextInterface) == NavigationBar.NavigationButton.SUBSCRIPTIONS;
         if (reason == null) {
             if (watchedPlace(contextInterface)) Feedback.onFeedItem(item);
+            // A category lookup slower than its wait shows the item; when the answer names a hidden category, the
+            // item still gets Not interested, as the other filters' hidden items do (it hides at its next layout).
+            if (filters && feedbackPlace && XSettings.AUTO_DISLIKE_FILTERED.get() && item.videoId != null
+                    && !item.playlist && !item.mix && !Categories.hidden().isEmpty() && Categories.pending(item.videoId)) {
+                Categories.onLate(item.videoId, cat -> {
+                    if (!Categories.hidden().contains(cat.toLowerCase())) return;
+                    if (XSettings.DEBUG.get()) Logger.printDebug(() -> "YouTube Extras: late category " + cat + " for " + item.videoId + ", Not interested");
+                    Feedback.onHidden(item, "category " + cat);
+                });
+            }
             return false;
         }
-        if (watchedPlace(contextInterface) || NavigationBar.NavigationButton.getSelectedNavigationButton(contextInterface)
-                == NavigationBar.NavigationButton.SUBSCRIPTIONS) Feedback.onHidden(item, reason);
+        if (feedbackPlace) Feedback.onHidden(item, reason);
         return true;
     }
 
@@ -123,6 +148,8 @@ public final class XFilter extends Filter {
         ChannelRules.Rule rule = ChannelRules.match(item);
         if (rule != null) return "channel rule " + rule.channel.label() + " " + rule.kind;
         if (place == Place.HOME && XSettings.HIDE_HOME_PLAYLISTS.get() && item.playlist) return "home playlist";
+        if (XSettings.HIDE_PAST_STREAMS.get() && !item.live && !item.shorts && item.text != null
+                && VideoItem.PAST_STREAM.matcher(item.text).find()) return "past stream";
         if (item.seconds >= 0 && !item.shorts) {
             int min = Lengths.parse(XSettings.MIN_LENGTH.get());
             int max = Lengths.parse(XSettings.MAX_LENGTH.get());

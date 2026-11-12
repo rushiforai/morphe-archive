@@ -50,6 +50,7 @@ public final class ExternalBoardEditor {
     public static void rewriteBoard(Object o) { rewrite(o,boardFields(),true); }
     public static void rewriteInfo(Object o) { rewrite(o,infoFields(),false); }
     public static String rewriteInfoUrl(Object info,String value) {
+        value=SiteNativeBoards.rewriteInfoUrl(info,value);
         if(routes.isEmpty() || value==null) return value;
         try {
             String[] fields=infoFields().split(",");

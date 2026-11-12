@@ -1,0 +1,20 @@
+# 動画エラー多数時のレイアウトクラッシュ修正（2026-11-06）
+
+報告: 動画を多数含むスレで、サムネイル取得失敗が続くとFrameLayout.layoutChildrenのView.getVisibilityでNullPointerException。古い動画URLの消滅等で失敗表示が多発。
+
+## 原因と修正
+
+VideoThumbnailRetryは失敗画像へ再取得/再生操作をroot FrameLayoutの子として追加していた。detach通知だけはHandlerへ延期していたが、通常画像へbindし直すclose()はその場でroot.removeViewを実行していた。rootのlayoutChildrenが保持した子数と子配列が不一致になり、次の子がnullになる。
+
+取り外しを常にMAIN Handlerへ延期し、閉じた操作はその場でGONE/再取得無効にする。closed状態とタグを確認して古いクリック・attachを抑止、後片付けを一回にまとめ、再取得状態確認のcallbackも解除する。画像の再生経路、失敗分類・ダウンロード・解析処理は変更していない。191/226/242共通Java修正。
+
+## 検証
+
+- scripts/LayoutMutationInstrumentation.javaはAndroid実FrameLayoutに128サムネイルと128操作を追加し、子のonLayout中にbindを解除する。外部通信/ユーザーデータなし、通信・native補助クラスだけを試験stubへ置換し、製品VideoThumbnailRetryをそのままコンパイルして検証。
+- 旧公開ソースで同じFrameLayout null参照を再現し、baseline試験3項目成功。新ソースで8回の大量切替・即時close中の配列保持・次のloopでの全削除・古い操作の復活抑止・画面detach後の全削除を含め34項目成功。build/thumbnail-layout-baseline-runtime.log、thumbnail-layout-fixed-final-runtime.log。
+- 最初の試験は固定寸法の子へ再layoutが伝わらずassert失敗。試験側で子の寸法変更とmeasureを行い、実際の子onLayoutを通して旧例外再現→新成功を確認した。最初の失敗を製品の成功へ含めない。
+- 製品Javaコンパイル成功1m29s、通常Lint/R8最終build成功4m29s/91tasks。初回の全体buildは会話中断後にプロセスが残っておらず、成功扱いせずretryログで再実行した。
+- MPP build/layout-search226-final.mpp SHA256 af48610699b3a9e8bfab374f29c33210ed0789b5ac909835455bc2ef000fdec2。226検索追加と同じ候補、公開版番号の更新はしていない。
+- 端末の報告実スレ・実動画での最終確認は未実施。実機は今回ADB接続なし。製品APKの226最終試験結果はintegration-status/導入台帳へ追記する。
+
+再現用scripts/RunLayoutMutationRegression.ps1はエミュレータserial必須、専用試験packageだけ同署名更新。既存ChMateのアンインストールやデータ消去は不要。

@@ -1,5 +1,7 @@
 # Default Morphe clone setup — v0.3.2
 
+Later Android Manager generation exposed a separate startup VerifyError. See the [v0.3.3 Manager reproduction and fix](issue-8-manager-registers.md); the v0.3.2 checks below used the Desktop generation backend.
+
 ## Behavior
 
 Keep this source's default selection, including **Automatic Clone Setup**. It creates the fixed `.morphe` package and isolates owned permission declarations and provider authorities. The dependent permission support patch updates Manifest and DEX references. The source works without loading official patches, enabling Clone app, opening Expert mode or supplying `-O` options.

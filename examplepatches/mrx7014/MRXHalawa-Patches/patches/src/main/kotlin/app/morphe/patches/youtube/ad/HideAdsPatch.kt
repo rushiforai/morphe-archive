@@ -15,11 +15,12 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.patch
 import app.morphe.patcher.resource.ResourceType
 import app.morphe.patcher.resourceLiteral
+import app.morphe.patcher.util.matchAllMethodIndicesForEach
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.registersUsed
 import app.morphe.patches.shared.ad.hideFullscreenAdsPatch
 import app.morphe.patches.shared.misc.litho.filter.addLithoFilter
 import app.morphe.patches.shared.misc.proto.hookElement
@@ -38,8 +39,6 @@ import app.morphe.patches.youtube.misc.settings.PreferenceScreen
 import app.morphe.patches.youtube.misc.settings.settingsPatch
 import app.morphe.patches.youtube.shared.BuildClientContextBodyConstructorFingerprint
 import app.morphe.patches.youtube.shared.Constants.COMPATIBILITY_YOUTUBE
-import app.morphe.util.matchAllMethodIndicesForEach
-import app.morphe.util.registersUsed
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
@@ -47,7 +46,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 
 private const val EXTENSION_CLASS = "Lapp/morphe/extension/youtube/patches/components/AdsFilter;"
 
-private val hideAdsResourcePatch = resourcePatch {
+private val hideAdsResourcePatch = patch {
     dependsOn(
         lithoFilterPatch,
         settingsPatch,
@@ -77,7 +76,7 @@ private val hideAdsResourcePatch = resourcePatch {
 }
 
 @Suppress("unused")
-val hideAdsPatch = bytecodePatch(
+val hideAdsPatch = patch(
     name = "Hide ads",
     description = "Adds options to hide general ads, Premium promotions and video ads."
 ) {
@@ -251,13 +250,17 @@ val hideAdsPatch = bytecodePatch(
         setOf(
             Endpoint.GET_WATCH,
             Endpoint.PLAYER,
-            Endpoint.REEL,
         ).forEach { endpoint ->
             addOSNameHook(
                 endpoint,
                 "$EXTENSION_CLASS->hideVideoAds(Ljava/lang/String;)Ljava/lang/String;"
             )
         }
+
+        addOSNameHook(
+            Endpoint.REEL,
+            "$EXTENSION_CLASS->hideShortsAds(Ljava/lang/String;)Ljava/lang/String;"
+        )
 
         addOSNameHook(
             Endpoint.GUIDE,

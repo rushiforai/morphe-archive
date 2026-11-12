@@ -98,9 +98,10 @@ Pour traduire de nouvelles langues ou améliorer les traductions existantes, vis
   <!-- misc.debugging.enableDebuggingPatch -->
   <string name="morphe_debug_screen_title">Débogage</string>
   <string name="morphe_debug_screen_summary">Configurer les options avancées de développement et les journaux de diagnostic</string>
-  <string name="morphe_debug_title">Activer la journalisation de débogage</string>
-  <string name="morphe_debug_stacktrace_title">Journal de débogage de trace de pile</string>
-  <string name="morphe_debug_stacktrace_summary">Inclut les traces de pile dans les journaux de débogage pour aider à identifier les erreurs</string>
+  <string name="morphe_debug_level_title">Journaux de débogage</string>
+  <string name="morphe_debug_level_entry_disabled">Désactivée</string>
+  <string name="morphe_debug_level_entry_debug">Débogage</string>
+  <string name="morphe_debug_level_entry_verbose">Détaillé</string>
   <string name="morphe_debug_toast_on_error_title">Afficher une notification en cas d\'erreur de Morphe</string>
   <string name="morphe_debug_toast_on_error_user_dialog_message">"Désactiver les notifications toast d'erreur masque toutes les notifications d'erreur de Morphe.
 
@@ -182,14 +183,14 @@ Le comportement a disparu plus tôt au cours de la recherche, donc plusieurs ind
   <!-- Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
   <string name="gms_core_toast_not_installed_message">MicroG n\'est pas installé. Installez-le</string>
   <string name="gms_core_dialog_title">Action nécessaire</string>
-  <string name="gms_core_dialog_outdated_message">"Votre version de MicroG v%1s est obsolète et peut entraîner des problèmes.
+  <string name="gms_core_dialog_outdated_message">"Votre version de MicroG v%1$s est obsolète et peut entraîner des problèmes.
 
-Veuillez mettre à jour MicroG vers la dernière version v%2s"</string>
+Veuillez mettre à jour MicroG vers la dernière version v%2$s"</string>
   <string name="gms_core_dialog_update_text">Mettre à jour</string>
   <string name="gms_core_dialog_ignore_text">Ignorer</string>
   <string name="gms_core_dialog_conflict_message">"Le MicroG installé n'est pas recommandé par Morphe :
 
-%1s
+%s
 
 Appuyez pour le désinstaller, puis rouvrez cette application et installez MicroG RE"</string>
   <string name="gms_core_dialog_uninstall_text">Désinstaller</string>
@@ -230,6 +231,19 @@ Si les optimisations de la batterie ne sont pas modifiées, vous pourriez rencon
 Si vous souhaitez une expérience la plus stable possible, &lt;b&gt;désinstallez&lt;/b&gt; cette version et patchez la version recommandée de l'application ✅ &lt;b&gt;%2$s&lt;/b&gt;"</string>
   <string name="morphe_experimental_app_version_dialog_confirm">⚠️ Je veux l\'expérimentale</string>
   <string name="morphe_experimental_app_version_dialog_open_homepage">✅ Je veux la stable</string>
+  <!-- misc.announcements.patchesUpdateNoticePatch -->
+  <string name="morphe_patches_update_notice_title">Afficher une notification dans l\'application pour les mises à jour de patchs</string>
+  <string name="morphe_patches_update_notice_entry_off">Désactivée</string>
+  <string name="morphe_patches_update_notice_entry_stable">Versions stables</string>
+  <string name="morphe_patches_update_notice_entry_dev">Versions stables et de développement</string>
+  <string name="morphe_patches_update_notice_dialog_title">Nouveaux patchs disponibles</string>
+  <string name="morphe_patches_update_notice_dialog_message">Morphe Patches &lt;b&gt;%1$s&lt;/b&gt; (actuelle : %2$s)</string>
+  <string name="morphe_patches_update_notice_dialog_features">✨ Nouvelles fonctionnalités</string>
+  <string name="morphe_patches_update_notice_dialog_fixes">🐛 Corrections de bugs</string>
+  <string name="morphe_patches_update_notice_dialog_other">🚀 Autres changements</string>
+  <string name="morphe_patches_update_notice_dialog_more">…et %s autres</string>
+  <string name="morphe_patches_update_notice_dialog_update">Mettre à jour</string>
+  <string name="morphe_patches_update_notice_dialog_dismiss">Ignorer</string>
   <!-- misc.crashlog.crashLogPatch -->
   <string name="morphe_crash_log_saved_documents">Le journal de plantage a été enregistré dans les documents de l\'utilisateur : %s</string>
   <string name="morphe_crash_log_saved">Journal de plantage enregistré : %s</string>

@@ -30,7 +30,7 @@ public final class ViewingUserAgent {
         if (prefs == null || !prefs.getBoolean(BrowserUaTemplates.ENABLED, false)
                 || !ViewingUserAgentRules.eligible(url, method)) return null;
         String agent = BrowserUaTemplates.resolve(prefs.getString("userAgent", defaultAgent));
-        return ViewingUserAgentRules.valid(agent) ? agent : null;
+        return ViewingUserAgentRules.valid(agent) ? (ViewingUserAgentRules.catboxImage(url) ? ViewingUserAgentRules.imageAgent(agent) : agent) : null;
     }
 
     /** The original setter and its validation still run, with all other headers untouched. */
@@ -47,7 +47,11 @@ public final class ViewingUserAgent {
         if (!(connection instanceof HttpURLConnection)
                 || !"User-Agent".equalsIgnoreCase(name)) return original;
         String value = selected(connection.getURL().toExternalForm(), ((HttpURLConnection) connection).getRequestMethod());
-        return value == null ? original : ReadingAuth.agent(connection.getURL().toExternalForm(),((HttpURLConnection)connection).getRequestMethod())!=null?value:ViewingUserAgentRules.withNativeIdentity(original, value);
+        if (value == null) return original;
+        String url = connection.getURL().toExternalForm();
+        String method = ((HttpURLConnection)connection).getRequestMethod();
+        if (ReadingAuth.agent(url, method) != null || ViewingUserAgentRules.catboxImage(url)) return value;
+        return ViewingUserAgentRules.withNativeIdentity(original, value);
     }
     /** Called immediately before native connect/read/write calls, after the method is selected. */
     public static void prepare(URLConnection connection) {
@@ -56,7 +60,11 @@ public final class ViewingUserAgent {
         String method = http.getRequestMethod();
         String agent = selected(http.getURL().toExternalForm(), method);
         if (agent == null) return;
-        try { http.setRequestProperty("User-Agent", ReadingAuth.agent(http.getURL().toExternalForm(),method)!=null?agent:ViewingUserAgentRules.withNativeIdentity(http.getRequestProperty("User-Agent"),agent)); }
+        String url = http.getURL().toExternalForm();
+        boolean browserIdentity = ReadingAuth.agent(url, method) != null || ViewingUserAgentRules.catboxImage(url);
+        String replacement = browserIdentity ? agent
+                : ViewingUserAgentRules.withNativeIdentity(http.getRequestProperty("User-Agent"), agent);
+        try { http.setRequestProperty("User-Agent", replacement); }
         catch (IllegalStateException connected) { /* An earlier prepare/setter already had its opportunity. */ }
     }
     static String browserAgent(android.content.Context context){
@@ -87,7 +95,7 @@ public final class ViewingUserAgent {
             if (original == null) return;
             Class<?> headersType = original.getClass();
             String[] pairs = (String[]) field(headersType, "namesAndValues").get(original);
-            boolean readingSession=ReadingAuth.agent(url.toString(),method)!=null;
+            boolean readingSession=ReadingAuth.agent(url.toString(),method)!=null||ViewingUserAgentRules.catboxImage(url.toString());
             String[] input=pairs;
             if(readingSession){input=pairs.clone();for(int i=0;i<input.length;i+=2)if("User-Agent".equalsIgnoreCase(input[i]))input[i+1]=agent;}
             String[] changed = ViewingUserAgentRules.headers(input, agent);

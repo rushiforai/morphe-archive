@@ -45,7 +45,7 @@ val disableAdsPatch = bytecodePatch(
         // 4. The native ad cache never preloads.
         NativeAdCacheReplenishFingerprint.method.returnEarly()
 
-        // 5. Optional: the ad-free view model's copy of the gate.
-        AdFreeViewModelIsAdsEnabledFingerprint.methodOrNull?.returnEarly(false)
+        // 5. The ad-free view model's copy of the gate (present in 1.10.28 through 1.10.31).
+        AdFreeViewModelIsAdsEnabledFingerprint.method.returnEarly(false)
     }
 }

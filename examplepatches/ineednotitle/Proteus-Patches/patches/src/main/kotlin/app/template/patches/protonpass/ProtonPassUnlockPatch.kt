@@ -3,11 +3,12 @@ package app.template.patches.protonpass
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.template.patches.shared.Constants.PROTON_PASS_COMPATIBILITY
+import app.template.patches.shared.Constants.PROTON_PASS_FDROID_COMPATIBILITY
 import app.template.patches.shared.firebase.spoofFirebaseCertHashPatch
 import app.template.patches.shared.installer.spoofInstallSourcePatch
 import app.template.patches.shared.signature.spoofSignatureVerificationPatch
 
-// Proton Pass: Password Manager (proton.android.pass) v1.40.3
+// Proton Pass: Password Manager (proton.android.pass / proton.android.pass.fdroid) v1.41.3
 //
 // ROOT CAUSE OF PREVIOUS FAILURE
 // The first patch attempt only forced vaultLimit/aliasLimit/totpLimit = Unlimited
@@ -75,7 +76,7 @@ import app.template.patches.shared.signature.spoofSignatureVerificationPatch
 //
 //   PlanType$Paid$Plus → PlanType$Paid → Credential — assignment to planType:Credential is valid.
 //
-// SMALI VERIFIED (classes4.dex, v1.40.3):
+// SMALI VERIFIED (1.41.3 FDroid universal APK, classes3.dex):
 //   Plan.<init>: .registers 8, super = Object, planType field type = Credential
 //   PlanType$Paid$Plus.<init>(String, String): public constructor ✓
 //   PlanType$Paid$Plus.super = PlanType$Paid.super = Credential ✓
@@ -87,7 +88,7 @@ val protonPassUnlockPatch = bytecodePatch(
     description = "Forces Proton Pass Plus plan with all limits removed and paid features unlocked.",
     default = true,
 ) {
-    compatibleWith(PROTON_PASS_COMPATIBILITY)
+    compatibleWith(PROTON_PASS_COMPATIBILITY, PROTON_PASS_FDROID_COMPATIBILITY)
 
     dependsOn(
         spoofSignatureVerificationPatch,

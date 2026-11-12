@@ -7,6 +7,7 @@ Couldn't add the caption. Saving without it.	Описание не добавл�
 Dim when idle	Затемнять при бездействии
 Dim when idle and shift	Затемнять при бездействии и сдвигать
 For OLED screens. After 5 seconds without a touch, the buttons, caption and tabs over the video dim to a quarter, and your next touch brings them back. Shift also moves everything on the feed a few pixels every 2 minutes.	Для OLED-экранов. Через 5 секунд без касаний кнопки, подпись и вкладки поверх видео затемняются до четверти, а следующее касание возвращает их. Сдвиг также смещает всё в ленте на несколько пикселей каждые 2 минуты.
+Hashtags	Хештеги
 Importing new history ended Undo for the earlier clear. You can clear the imported history.	После импорта новой истории нельзя отменить предыдущую очистку. Вы можете очистить импортированную историю.
 %1$d setting in that file can't be restored here and was skipped	%1$d настройку из файла нельзя восстановить здесь, и она пропущена
 %1$d settings in that file can't be restored here and were skipped	%1$d настроек из файла нельзя восстановить здесь, и они пропущены
@@ -16,6 +17,9 @@ Importing new history ended Undo for the earlier clear. You can clear the import
 Import watch history	Импортировать историю просмотров
 Keep the language picked in TikTok	Сохранять язык, выбранный в TikTok
 Freeze TikTok's experiments	Заморозить эксперименты TikTok
+Photos	Фото
+Places	Места
+Sounds	Звуки
 TikTok's servers keep sending it new settings, which is how it tests new layouts and features on people. With this on, TikTok keeps the ones it has now and ignores new ones. If something in TikTok stops working, turn this off so it can get fixes.	Серверы TikTok постоянно присылают ему новые настройки, так он испытывает на людях новые макеты и функции. Когда это включено, TikTok сохраняет текущие настройки и не принимает новые. Если что-то в TikTok перестанет работать, выключи это, чтобы он мог получить исправления.
 Nothing is playing to speed up	Нет воспроизведения для ускорения
 One language code, like en or es. Comments and captions TikTok translates come out in this language instead of the app's. Leave it empty to keep TikTok's choice.	Один код языка, например en или es. Комментарии и описания, которые переводит TikTok, будут на этом языке, а не на языке приложения. Оставьте поле пустым, чтобы TikTok выбирал сам.
@@ -39,6 +43,8 @@ Translate into	Переводить на
 Type one language code here, like en.	Введите здесь один код языка, например en.
 Use this account's TikTok JSON export, up to %1$s MB and %2$s entries. Dates without a time zone use this phone's time zone.	Выберите экспорт JSON из TikTok для этого аккаунта, до %1$s МБ и %2$s записей. Для дат без часового пояса используется часовой пояс этого телефона.
 Sign in to TikTok before importing watch history.	Войдите в TikTok перед импортом истории просмотров.
+Users	Пользователи
+Videos	Видео
 When TikTok starts and decides the phone's language changed, it forgets the language you picked in its settings and follows the phone. With this on, your pick stays. Counts from TikTok's next start.	Когда TikTok запускается и решает, что язык телефона изменился, он сбрасывает язык, выбранный в его настройках, и следует за телефоном. Если это включено, ваш выбор остаётся. Действует со следующего запуска TikTok.
 Write the username and caption on the video	Писать имя пользователя и описание на видео
 Writing the caption on the video	Описание пишется на видео
@@ -2183,6 +2189,13 @@ Hide Check your sources warnings	Скрывать предупреждения �
 Hide the Check your sources banner TikTok puts across the top of some videos, and the prompt it shows when you share one.	Скрывать баннер «Проверьте свои источники», который TikTok показывает поверх некоторых видео, и предупреждение при попытке поделиться таким видео.
 Keep offline videos until you delete them	Хранить офлайн-видео, пока вы их не удалите
 TikTok removes videos saved for offline viewing after a set time, sometimes only two days, watched or not. With this on they stay until you delete them in TikTok's Offline videos settings. TikTok can still clear watched ones when your phone is low on space.	TikTok удаляет видео, сохранённые для просмотра офлайн, через определённое время, иногда всего через два дня, просмотрены они или нет. Когда это включено, они остаются, пока вы сами не удалите их в настройках офлайн-видео TikTok. TikTok всё же может удалить просмотренные, если на телефоне мало места.
+Delete watched offline videos	Удалять просмотренные офлайн-видео
+Each time TikTok starts, deletes the offline videos you've already watched, so the next download fills their places with new ones. A video counts as watched once it's been on screen.	При каждом запуске TikTok удаляет офлайн-видео, которые вы уже посмотрели, чтобы следующая загрузка заменила их новыми. Видео считается просмотренным, как только оно появилось на экране.
+1 unwatched offline video left	Осталось 1 непросмотренное офлайн-видео
+%1$d unwatched offline videos left	Осталось %1$d непросмотренных офлайн-видео
+%1$d unwatched offline videos left|one	Осталось %1$d непросмотренное офлайн-видео
+%1$d unwatched offline videos left|few	Осталось %1$d непросмотренных офлайн-видео
+%1$d unwatched offline videos left|many	Осталось %1$d непросмотренных офлайн-видео
 Hide Thoughts on profiles	Скрывать Thoughts в профилях
 Hide the Thoughts bubble TikTok shows above a profile picture, and the prompt to share one on your own profile. Restart TikTok to apply this.	Скрывать облачко Thoughts, которое TikTok показывает над фото профиля, а в вашем профиле и предложение поделиться им. Перезапустите TikTok, чтобы это применить.
 Turn on Thoughts	Включить Thoughts
@@ -2890,3 +2903,17 @@ How many lines of a long comment show before more.	Сколько строк д�
 %1$s lines|many	%1$s строк
 # context: The tappable word at the end of a cut comment, after an ellipsis, that opens the rest of it
 … more	… ещё
+# context: A setting and the title of the screen it puts over the For You feed
+Pause before the feed	Пауза перед лентой
+Zero switches this off. The first time the feed opens after TikTok starts or comes back from the background, a countdown covers it for that many seconds before you can continue, or leave. Messages, profiles and search open without it.	Ноль отключает это. Когда лента впервые открывается после запуска TikTok или его возвращения из фона, обратный отсчёт закрывает её на столько секунд, прежде чем вы сможете продолжить или выйти. Сообщения, профили и поиск открываются без него.
+# context: The button on that screen that opens the feed once the countdown ends
+Continue	Продолжить
+# context: The button on that screen that sends TikTok to the background instead
+Leave TikTok	Выйти из TikTok
+You can continue now.	Теперь можно продолжить.
+# context: A checklist in Feed filter of the tabs along the top of TikTok's search results (Top, Shop, LIVE, Places...)
+Hide search result tabs	Скрывать вкладки результатов поиска
+Pick the tabs to remove from the top of the search results, such as Shop, LIVE or Places. The list holds the tabs TikTok has shown you, and Top always stays.	Выберите вкладки, которые нужно убрать сверху результатов поиска, например Магазин, LIVE или Места. В списке есть вкладки, которые TikTok вам показывал, а Топ остаётся всегда.
+# context: Shown in that checklist before TikTok has served any search tabs on this phone
+No search tabs have been seen yet	Вкладки поиска пока не встречались
+Search for something once, then return here to choose its tabs.	Один раз что-нибудь найдите, затем вернитесь сюда, чтобы выбрать вкладки.

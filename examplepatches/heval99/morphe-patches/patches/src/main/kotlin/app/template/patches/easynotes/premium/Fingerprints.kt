@@ -28,9 +28,8 @@ object AppIsVipFingerprint : Fingerprint(
  * Matches [notes.easy.android.mynotes.App.isGoogleVip].
  *
  * Same entitlement expression as [AppIsVipFingerprint] minus the two early-outs; it only drives the
- * "Google VIP" badge in the UI. Best-effort: unlike [AppIsVipFingerprint] it carries no unique
- * string literal, so it is matched on class + method name and is allowed to fail resolution
- * without failing the patch.
+ * "Google VIP" badge in the UI. Unlike [AppIsVipFingerprint] it carries no unique string literal,
+ * so it is matched on class + method name (both kept in the APK, checked unique in 1.3.65.1019).
  */
 object AppIsGoogleVipFingerprint : Fingerprint(
     custom = { method, classDef ->

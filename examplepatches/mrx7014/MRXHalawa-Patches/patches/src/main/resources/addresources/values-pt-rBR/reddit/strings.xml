@@ -18,6 +18,13 @@ Second \"item\" text"</string>
 <resources>
   <string name="reddit_privacy_policy">Política de privacidade do Reddit</string>
   <string name="morphe_google_signin_not_available_toast">Login do Google não disponível. Use o e-mail para entrar</string>
+  <string name="morphe_app_downgrade_dialog_title">Downgrade não suportado</string>
+  <string name="morphe_app_downgrade_dialog_message">"Esta instalação do Reddit foi rebaixada de &lt;b&gt;%1$s&lt;/b&gt; para &lt;b&gt;%2$s&lt;/b&gt;
+&lt;br/&gt;&lt;br/&gt;
+Os dados do aplicativo de uma versão mais recente não funcionam com versões mais antigas e o aplicativo pode não funcionar corretamente.
+&lt;br/&gt;&lt;br/&gt;
+Para usar uma versão mais antiga, você deve &lt;b&gt;desinstalar&lt;/b&gt; o Reddit e então instalar a versão mais antiga."</string>
+  <string name="morphe_app_downgrade_dialog_open_app_info">Abrir informações do app</string>
   <string name="morphe_screen_ads_title">Anúncios</string>
   <string name="morphe_hide_post_ads_title">Ocultar anúncios no feed</string>
   <string name="morphe_hide_comment_ads_title">Ocultar anúncios nos comentários</string>
@@ -58,6 +65,8 @@ Second \"item\" text"</string>
   <string name="morphe_hide_trending_shelves_summary">Oculta as prateleiras de Tendências do feed e das sugestões de pesquisa</string>
   <string name="morphe_remove_notification_dialog_title">Remover diálogo de sugestão de notificação</string>
   <string name="morphe_remove_notification_dialog_summary">Fecha automaticamente a caixa de diálogo de sugestão de notificação ao visitar um subreddit</string>
+  <string name="morphe_high_quality_avatars_title">Avatares de alta qualidade</string>
+  <string name="morphe_high_quality_avatars_summary">Exibe avatares de usuário em resolução total</string>
   <string name="morphe_show_flairs_in_home_feed_title">Mostrar flairs no feed principal</string>
   <string name="morphe_show_flairs_in_home_feed_summary">Mostra badges de flair nos posts do feed principal</string>
   <string name="morphe_show_flairs_in_home_feed_user_dialog_message">Alguns itens do feed podem não exibir um flair</string>
@@ -84,10 +93,6 @@ Second \"item\" text"</string>
   <string name="morphe_keep_feed_position_summary">Mantém o feed na mesma posição após fechar uma publicação, imagem ou vídeo, em vez de mover a publicação aberta para o topo</string>
   <string name="morphe_feed_media_max_height_title">Altura máxima da mídia do feed</string>
   <string name="morphe_feed_media_max_height_summary">Altura máxima de imagens, vídeos e galerias no feed, como um múltiplo da própria largura. Mídias mais altas são cortadas. 1,33 é o padrão do Reddit</string>
-  <string name="morphe_redgifs_audio_title">Reproduzir Redgifs com áudio</string>
-  <string name="morphe_redgifs_audio_summary">Reproduz o vídeo original do Redgifs em vez da cópia do Reddit, que geralmente não tem áudio</string>
-  <string name="morphe_redgifs_hd_title">Qualidade HD do Redgifs</string>
-  <string name="morphe_redgifs_hd_summary">Reproduz o vídeo do Redgifs em HD. Vídeos em HD são maiores e podem pausar para carregar</string>
   <string name="morphe_download_location_title">Local de download</string>
   <string name="morphe_download_location_all_title">Todas as contas</string>
   <string name="morphe_download_location_default_summary">Padrão do Reddit: imagens em Pictures/Reddit, vídeos em Download</string>

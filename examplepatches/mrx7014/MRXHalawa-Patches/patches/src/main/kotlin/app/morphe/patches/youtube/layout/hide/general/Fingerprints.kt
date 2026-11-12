@@ -100,7 +100,7 @@ internal object ParseElementFromBufferFingerprint : Fingerprint(
     filters = listOf(
         opcode(Opcode.IGET_OBJECT),
         // IGET_BOOLEAN // 20.07+
-        opcode(Opcode.INVOKE_INTERFACE, location = MatchAfterWithin(1)),
+        methodCall(parameters = listOf("[B", "Z"), location = MatchAfterWithin(1)),
         opcode(Opcode.MOVE_RESULT_OBJECT, location = MatchAfterImmediately()),
         string("Failed to parse Element", StringComparisonType.STARTS_WITH),
         methodCall(
@@ -398,9 +398,7 @@ internal object SearchSuggestionEndpointFingerprint : Fingerprint(
 )
 
 internal object LatestVideosContentPillFingerprint : Fingerprint(
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "V",
-    parameters = listOf("L", "Z"),
     filters = listOf(
         resourceLiteral(ResourceType.LAYOUT, "content_pill"),
         methodCall(
@@ -458,7 +456,7 @@ internal object ContextualMenuItemBuilderFingerprint : Fingerprint(
             returnType = "I",
             location = MatchAfterWithin(7),
         ),
-        resourceLiteral(ResourceType.DIMEN, "poster_art_width_default"),
+        resourceLiteral(ResourceType.ATTR, "ytTextPrimary"),
     )
 )
 
@@ -467,14 +465,47 @@ internal object ContextualMenuItemBuilderOnClickFingerprint : Fingerprint(
     name = "onClick",
     parameters = listOf("Landroid/view/View;"),
     filters = listOf(
-        fieldAccess(
-            opcode = Opcode.IGET_OBJECT,
-            definingClass = "this",
-            type = "Ljava/lang/Object;"
-        ),
+        fieldAccess(opcode = Opcode.IGET_OBJECT, definingClass = "this"),
         opcode(Opcode.CHECK_CAST, location = MatchAfterImmediately()),
         opcode(Opcode.INVOKE_STATIC, location = MatchAfterImmediately()),
         opcode(Opcode.MOVE_RESULT_OBJECT, location = MatchAfterImmediately())
+    )
+)
+
+/**
+ * Lists the items of a menu for the popup menus.
+ */
+internal object MenuItemListBuilderFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    returnType = "L",
+    parameters = listOf("L", "Ljava/lang/Object;", "L", "L"),
+    filters = listOf(
+        methodCall(smali = "Ljava/util/List;->iterator()Ljava/util/Iterator;"),
+        methodCall(smali = "Ljava/util/Iterator;->hasNext()Z"),
+        methodCall(smali = "Ljava/util/Iterator;->next()Ljava/lang/Object;"),
+        opcode(Opcode.MOVE_RESULT_OBJECT, location = MatchAfterImmediately()),
+        opcode(Opcode.CHECK_CAST, location = MatchAfterImmediately()),
+        methodCall(
+            opcode = Opcode.INVOKE_STATIC,
+            parameters = listOf("L", "Ljava/lang/Object;", "L", "L"),
+            returnType = "L",
+            location = MatchAfterImmediately()
+        ),
+        opcode(Opcode.MOVE_RESULT_OBJECT, location = MatchAfterImmediately()),
+        methodCall(parameters = listOf("Ljava/lang/Iterable;"), location = MatchAfterImmediately())
+    )
+)
+
+/**
+ * Adds the items of the toolbar menu, such as the overflow menu of a playlist page.
+ */
+internal object ActionBarMenuBuilderFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    returnType = "V",
+    filters = listOf(
+        methodCall(smali = "Landroid/util/SparseArray;->size()I"),
+        methodCall(smali = "Landroid/view/MenuInflater;->inflate(ILandroid/view/Menu;)V"),
+        methodCall(smali = "Landroid/view/Menu;->add(IIILjava/lang/CharSequence;)Landroid/view/MenuItem;")
     )
 )
 
@@ -525,11 +556,6 @@ internal object ChannelTabBuilderLegacyFingerprint : Fingerprint(
 internal object ChannelTabRendererFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "V",
-    parameters = listOf(
-        "L",
-        "Ljava/util/List;",
-        "I"
-    ),
     filters = listOf(
         opcode(Opcode.IF_EQ),
         anyInstruction(
@@ -591,6 +617,14 @@ internal object InformationButtonFingerprint : Fingerprint(
         resourceLiteral(ResourceType.ID, "information_button"),
         opcode(Opcode.CHECK_CAST)
     )
+)
+
+/**
+ * Reads the payload of an entity sent by the server. Its field number is the type of the entity.
+ */
+internal object EntityMutationPayloadFingerprint : Fingerprint(
+    returnType = "[B",
+    strings = listOf("There can be only one field in EntityMutationPayload")
 )
 
 internal object CreateSearchSuggestionsFingerprint : Fingerprint(
@@ -752,101 +786,6 @@ internal object AccountMenuLegacyFingerprint : Fingerprint(
     )
 )
 
-internal object BottomUIContainerFingerprint : Fingerprint(
-    definingClass = "Lcom/google/android/apps/youtube/app/common/ui/bottomui/BottomUiContainer;",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    returnType = "V",
-    parameters = listOf("Landroid/view/View;", "L"),
-    filters = listOf(
-        methodCall(
-            definingClass = "this",
-            name = "removeAllViews"
-        )
-    )
-)
-
-internal object LithoSnackbarLayoutFingerprint : Fingerprint(
-    returnType = "Landroid/view/View;",
-    parameters = listOf(
-        "Landroid/view/LayoutInflater;",
-        "Landroid/view/ViewGroup;",
-        "Landroid/os/Bundle;"
-    ),
-    filters = listOf(
-        fieldAccess(
-            definingClass = "this",
-            opcode = Opcode.IPUT_OBJECT,
-            type = "Landroid/widget/FrameLayout;"
-        )
-    ),
-    strings = listOf(
-        "instance_action_bar_color",
-        "instance_status_bar_color",
-        "instance_activated_text_color",
-        "instance_secondary_text_color"
-    )
-)
-
-internal object MaterialSnackbarFingerprint : Fingerprint(
-    definingClass = $$"Lcom/google/android/material/snackbar/Snackbar$SnackbarLayout;",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.CONSTRUCTOR),
-    parameters = listOf("Landroid/content/Context;", "Landroid/util/AttributeSet;"),
-    filters = listOf(
-        methodCall(
-            opcode = Opcode.INVOKE_DIRECT,
-            name = "<init>"
-        )
-    )
-)
-
-internal object AppSnackbarFingerprint : Fingerprint(
-    definingClass = "Lcom/google/android/apps/youtube/app/common/ui/bottomui/AppSnackbar;",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.CONSTRUCTOR),
-    parameters = listOf("Landroid/content/Context;"),
-    filters = listOf(
-        methodCall(
-            opcode = Opcode.INVOKE_DIRECT,
-            name = "<init>"
-        )
-    )
-)
-
-internal object YouTubeSnackbarFingerprint : Fingerprint(
-    definingClass = "Lcom/google/android/apps/youtube/app/common/ui/bottomui/YouTubeSnackbar;",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.CONSTRUCTOR),
-    parameters = listOf("Landroid/content/Context;", "Landroid/util/AttributeSet;", "I"),
-    filters = listOf(
-        methodCall(
-            opcode = Opcode.INVOKE_DIRECT,
-            name = "<init>"
-        )
-    )
-)
-
-internal object MealbarFingerprint : Fingerprint(
-    definingClass = "Lcom/google/android/apps/youtube/app/common/ui/bottomui/Mealbar;",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.CONSTRUCTOR),
-    parameters = listOf("Landroid/content/Context;", "Landroid/util/AttributeSet;", "I"),
-    filters = listOf(
-        methodCall(
-            opcode = Opcode.INVOKE_DIRECT,
-            name = "<init>"
-        )
-    )
-)
-
-internal object QuantumSnackbarFingerprint : Fingerprint(
-    definingClass = "Lcom/google/android/libraries/quantum/snackbar/Snackbar;",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.CONSTRUCTOR),
-    parameters = listOf("Landroid/content/Context;", "Landroid/util/AttributeSet;"),
-    filters = listOf(
-        methodCall(
-            opcode = Opcode.INVOKE_DIRECT,
-            name = "<init>"
-        )
-    )
-)
-
 internal object SyncButtonFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PROTECTED, AccessFlags.FINAL),
     filters = listOf(
@@ -930,18 +869,6 @@ internal object HideTimeBarChapterTitleFingerprint : Fingerprint(
     )
 )
 
-internal object CommentReplyPaddingFeatureFlagFingerprint : Fingerprint(
-    filters = listOf(
-        literal(45752241)
-    )
-)
-
-internal object IncognitoSearchPaddingFeatureFlagFingerprint : Fingerprint(
-    filters = listOf(
-        literal(45724388)
-    )
-)
-
 /**
  * Called while the fullscreen "More videos" panel is dragged.
  * Shows the player controls when the drag goes up while the panel is peeking.
@@ -961,4 +888,14 @@ internal object ShowControlsOnRelatedPanelDragFingerprint : Fingerprint(
         ),
         opcode(Opcode.RETURN_VOID, MatchAfterImmediately())
     )
+)
+
+/**
+ * Rounded box of an element in the fullscreen engagement panel, such as the channel bar.
+ */
+internal object MetadataHighlightsColumnMeasureFingerprint : Fingerprint(
+    definingClass = "Lcom/google/android/apps/youtube/app/player/overlay/fullscreenengagement/layout/MetadataHighlightsColumnLinearLayout;",
+    name = "onMeasure",
+    returnType = "V",
+    parameters = listOf("I", "I")
 )

@@ -1,0 +1,19 @@
+package app.morphe.extension.chmate;
+import java.nio.file.*;import java.io.*;import java.util.*;
+public final class SiteMobileThreadPostTest {
+ static int checks;static void ok(boolean b,String s){if(!b)throw new AssertionError(s);checks++;}interface Op{void run()throws Exception;}static void bad(Op op)throws Exception{try{op.run();throw new AssertionError("expected rejection");}catch(IOException expected){checks++;}}
+ public static void main(String[] args)throws Exception{
+  String html=Files.readString(Path.of(args[0]));var board=SiteBoardProtocol.address("https://bakusai.com/thr_res/acode=1/ctgid=137/bid=1150/tid=13611010/");
+  var page=SiteBoardProtocol.thread(board,board.thread,html);ok(page.entries.size()==8,"real mobile OP plus seven replies");ok(page.title.contains("SNS"),"native thread title");for(int n=0;n<page.entries.size();n++)ok(page.entries.get(n).original.equals(""+n),"actual reply sequence, excludes hidden popup");ok(page.entries.get(0).media.size()==1,"article image without toolbar icons/logos");ok(!page.entries.get(0).body.contains("<script"),"article scripts removed");
+  bad(()->SiteBoardProtocol.thread(board,"12345",html));bad(()->SiteBoardProtocol.thread(board,board.thread,html.replace("id=\"res0_body\"","id=\"missing\"")));bad(()->SiteBoardProtocol.thread(board,board.thread,html.replace("id=\"res7_block\"","id=\"missing\"")));
+  var plan=SitePostProtocol.reply(board,board.thread,html,"fixture","sage",">>1\n検証用本文","");ok(plan.url.contains("/thr_cp/")&&plan.multipart,"current real mobile form endpoint and encoding");ok(plan.fields.get("tid").equals(board.thread)&&plan.fields.get("bid").equals("1150")&&plan.fields.get("acode").equals("1"),"exact target from real hidden fields");ok(plan.fields.get("body").equals(">>1\n検証用本文")&&plan.fields.containsKey("loaded_at"),"body and current form token preserved");ok(!SitePostProtocol.success(board,board.thread,200,null,html),"thread page is not posting success");
+  String form="<form id=ajax_directForm method=post action='/thr_cp/usp=fixture/'><input type=hidden name=tid value=13611010><input type=hidden name=bid value=1150><input type=hidden name=ctgid value=137><input type=hidden name=acode value=1><input type=file name=image_post></form>";
+  bad(()->SitePostProtocol.reply(board,board.thread,form.replace("value=13611010","value=12345"),"","","body",""));bad(()->SitePostProtocol.reply(board,board.thread,form.replace("value=1150","value=9999"),"","","body",""));bad(()->SitePostProtocol.reply(board,board.thread,form.replace("/thr_cp/usp=fixture/","https://evil.invalid/thr_cp/"),"","","body",""));bad(()->SitePostProtocol.reply(board,board.thread,form.replace("</form>","<input type=checkbox required></form>"),"","","body",""));
+  var image=new SitePostProtocol.Image(Base64.getDecoder().decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j7t8AAAAASUVORK5CYII="));var reply=SitePostProtocol.reply(board,board.thread,form,"","","body","");var attached=SitePostProtocol.attach(reply,board,form,image);ok(attached.imageField.equals("image_post")&&attached.image==image,"mobile attachment field supported only when offered");
+  var general=SiteBoardProtocol.address("https://bakusai.com/thr_tl/acode=1/ctgid=104/bid=440/");String create=Files.readString(Path.of(args[1]));
+  var created=SitePostProtocol.create(general,create,"検証タイトル","","","本文","",null);ok(created.url.contains("/thr_tc1/")&&created.fields.get("bid").equals("440"),"real mobile general-board creation form");
+  bad(()->SitePostProtocol.create(general,create.replace("value=\"440\"","value=\"9999\""),"タイトル","","","本文","",null));
+  String news=Files.readString(Path.of(args[2]));bad(()->SitePostProtocol.create(board,news,"タイトル","","","本文","",null));bad(()->SitePostProtocol.create(board,news,"タイトル","","","本文","",image));
+  System.out.println("PASS "+checks+" mobile thread/reply/attachment/creation/target checks; public posts=0");
+ }
+}

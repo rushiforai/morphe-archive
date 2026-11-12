@@ -50,6 +50,9 @@ public class Settings extends BaseSettings {
             "bsky.app\nimgur.com\ninstagram.com\nreddit.com\nstreamable.com\ntwitch.tv\ntwitter.com\nvimeo.com\nx.com\nyoutu.be\nyoutube.com",
             parentNot(LINK_PREVIEW_JAVASCRIPT));
 
+    // Open web pages in the browser.
+    public static final BooleanSetting OPEN_WEB_PAGES_IN_BROWSER = new BooleanSetting("revanced_baconreader_open_web_pages_in_browser", FALSE);
+
     // Video autoplay in detail view.
     public static final BooleanSetting AUTOPLAY_VIDEOS_IN_DETAIL_VIEW = new BooleanSetting("revanced_baconreader_autoplay_videos_in_detail_view", TRUE);
 

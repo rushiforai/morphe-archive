@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 JoanComasFdz
 // SPDX-License-Identifier: GPL-3.0-only
 
+using System.Drawing;
 using OpenQA.Selenium.Appium.Android;
 
 namespace BaconReader.E2E.Infrastructure.Phone.BaconReader.Screens;
@@ -20,6 +21,14 @@ public sealed class MediaViewer(AndroidDriver driver)
     private static readonly OpenQA.Selenium.By GalleryStrip = Locate.AppId("recyclerView");
     private static readonly OpenQA.Selenium.By GalleryThumbnail = Locate.AppId("imageView");
     private static readonly OpenQA.Selenium.By Video = Locate.AppId("videoView");
+    // An image, zoomable, in the media's view.
+    private static readonly OpenQA.Selenium.By Image = Locate.AppId("subsamplingScaleImageContainer");
+    // The toolbar's title: the host of the post's link ("127.0.0.1", "v.redd.it").
+    private static readonly OpenQA.Selenium.By ToolbarTitle = Locate.AppId("toolbarTitle");
+    // A gallery's arrows, at each side of its image: the first image shows only the one after, the last only the one
+    // before.
+    private static readonly OpenQA.Selenium.By GalleryBack = Locate.AppId("backButton");
+    private static readonly OpenQA.Selenium.By GalleryForward = Locate.AppId("forwardButton");
     // BaconReader's message in place of media it can't show: "Improve post media loading" says so for a RedGIFs video
     // that was deleted, "This RedGIFs video was deleted", or that RedGIFs never had, "This RedGIFs video was not found".
     private static readonly OpenQA.Selenium.By Message = Locate.AppId("errorText");
@@ -50,9 +59,32 @@ public sealed class MediaViewer(AndroidDriver driver)
     public Task WaitUntilGalleryShownAsync() =>
         Waiting.UntilAsync(() => GalleryThumbnails() > 0 && LoadingState() is null, TimeSpan.FromSeconds(10), "The gallery");
 
+    /// <summary>
+    /// Waits until the gallery shows its image <paramref name="position"/> of <paramref name="count"/>: its image over
+    /// <paramref name="count"/> thumbnails, with the arrows that image shows.
+    /// </summary>
+    public Task WaitUntilGalleryImageShownAsync(int position, int count) =>
+        Waiting.UntilAsync(
+            () => GalleryThumbnails() == count && GalleryArrowShown(GalleryBack) == position > 1 && GalleryArrowShown(GalleryForward) == position < count,
+            TimeSpan.FromSeconds(10),
+            $"The gallery's image {position} of {count}");
+
+    /// <summary>Swipes left on the gallery's image ("Swipe through albums"), which goes to the image after.</summary>
+    public Task SwipeLeftOnTheImageAsync() => OnScreen.DoAsync(driver, () => AlbumGestures.Swipe(driver, GalleryImage(), toTheLeft: true));
+
+    /// <summary>Swipes right on the gallery's image ("Swipe through albums"), which goes to the image before.</summary>
+    public Task SwipeRightOnTheImageAsync() => OnScreen.DoAsync(driver, () => AlbumGestures.Swipe(driver, GalleryImage(), toTheLeft: false));
+
+    /// <summary>Zooms in on the gallery's image, two fingers moving apart.</summary>
+    public Task ZoomInOnTheImageAsync() => OnScreen.DoAsync(driver, () => AlbumGestures.ZoomIn(driver, GalleryImage()));
+
     /// <summary>Waits until a video plays in the media's player.</summary>
     public Task WaitUntilVideoPlaysAsync() =>
         Waiting.UntilShownAsync(driver, Video, TimeSpan.FromSeconds(15), "The video playing");
+
+    /// <summary>Waits until the media shows an image.</summary>
+    public Task WaitUntilImageShownAsync() =>
+        Waiting.UntilShownAsync(driver, Image, TimeSpan.FromSeconds(15), "The image");
 
     /// <summary>Waits until the media shows the message "<paramref name="text"/>" in its place.</summary>
     public Task WaitUntilMessageShownAsync(string text) =>
@@ -72,8 +104,13 @@ public sealed class MediaViewer(AndroidDriver driver)
     public Task<MediaViewerSnapshot> ReadAsync() =>
         OnScreen.ReadAsync(driver, () => new MediaViewerSnapshot(LoadingState(), GalleryThumbnails())
         {
+            ShowsGalleryBack = GalleryArrowShown(GalleryBack),
+            ShowsGalleryForward = GalleryArrowShown(GalleryForward),
             PlaysAVideo = driver.FindElements(Video).Any(video => video.Displayed),
             Message = ShownMessage(),
+            ShowsAnImage = driver.FindElements(Image).Any(image => image.Displayed),
+            ShowsAPage = driver.FindElements(Page).Any(page => page.Displayed),
+            Title = driver.FindElements(ToolbarTitle).FirstOrDefault(title => title.Displayed)?.Text,
         });
 
     // The description of the media's view on the screen, while the loading bar shows; null without one. The viewer is a
@@ -85,6 +122,19 @@ public sealed class MediaViewer(AndroidDriver driver)
     // The message shown in the media's place; null without one.
     private string? ShownMessage() =>
         driver.FindElements(Message).Where(message => message.Displayed).Select(message => message.Text).FirstOrDefault(text => text is { Length: > 0 });
+
+    // Whether the gallery on the screen shows the arrow: the pager's posts before and after, to each side of the screen,
+    // have theirs too.
+    private bool GalleryArrowShown(OpenQA.Selenium.By arrow) =>
+        driver.FindElements(arrow).Any(view => view.Displayed && view.Location.X >= 0 && view.Location.X < driver.Manage().Window.Size.Width);
+
+    // The gallery's image on the screen: the media's view above its strip of thumbnails.
+    private Rectangle GalleryImage()
+    {
+        var media = driver.FindElements(Media).First(view => view.Displayed && Math.Abs(view.Location.X) < 10);
+        var strip = driver.FindElements(GalleryStrip).First(view => view.Displayed && Math.Abs(view.Location.X) < 10);
+        return Rectangle.FromLTRB(media.Location.X, media.Location.Y, media.Location.X + media.Size.Width, strip.Location.Y);
+    }
 
     // The thumbnails in a gallery's strip, under the image it shows; 0 without a gallery.
     private int GalleryThumbnails() =>
@@ -102,4 +152,19 @@ public sealed record MediaViewerSnapshot(string? Loading, int GalleryThumbnails)
 
     /// <summary>The message shown in the media's place ("This RedGIFs video was deleted"); null without one.</summary>
     public string? Message { get; init; }
+
+    /// <summary>Whether a gallery shows its arrow to the image before: every image but the first.</summary>
+    public bool ShowsGalleryBack { get; init; }
+
+    /// <summary>Whether a gallery shows its arrow to the image after: every image but the last.</summary>
+    public bool ShowsGalleryForward { get; init; }
+
+    /// <summary>Whether the media shows an image.</summary>
+    public bool ShowsAnImage { get; init; }
+
+    /// <summary>Whether the screen shows a web page.</summary>
+    public bool ShowsAPage { get; init; }
+
+    /// <summary>The toolbar's title, the host of the post's link ("127.0.0.1"); null without one.</summary>
+    public string? Title { get; init; }
 }

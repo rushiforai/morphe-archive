@@ -19,6 +19,10 @@ final class VideoItem {
     private static final Pattern CHANNEL_ID = Pattern.compile("(?<![\\w-])(UC[\\w-]{22})(?![\\w-])");
     private static final Pattern HANDLE = Pattern.compile("/@([\\w.\\-]{3,30}?)(?=[^\\w.\\-]|.?https?://|$)");
     /** The live badge's icon: yt_outline_radar_live_black_24 (Nov 6, 2026 early), yt_outline_experimental_live_black_24 (later). */
+    /** A recording of a past live stream: its metadata line says when it streamed ("Streamed 2 days ago",
+     * "Streamed live on Jan 2", "Emitido hace 3 días", "Transmitido hace 5 horas"). */
+    static final Pattern PAST_STREAM = Pattern.compile("(?:^|[\\s•·])(?:streamed|emitido|transmitido|se emitió|se transmitió)"
+            + "\\s+(?:\\d|hace|live|en directo|en vivo|el\\s)");
     private static final Pattern LIVE_ICON = Pattern.compile("yt_(?:outline|fill)_[a-z_]*?live_(?:black|white)_\\d+");
     private static final Pattern FEEDBACK_TOKEN = Pattern.compile("AB9zfp[A-Za-z0-9_-]{60,}");
     private static final Pattern DURATION = Pattern.compile("(?<![\\d:])(?:(\\d{1,2}):)?(\\d{1,2}):(\\d{2})(?![\\d:])");
@@ -81,6 +85,21 @@ final class VideoItem {
         return -1;
     }
 
+    private static final Pattern VIEWS_PART = Pattern.compile("(?i)^[\\d.,]+\\s*\\S*\\s*(views|view|visualizaciones|vistas|reproducciones)\\b.*");
+
+    /**
+     * A channel name as a card's description states it, "TITLE - CHANNEL - 5.1 million views - 10 years ago - play
+     * video", cut to the part before the views; any other name as it is.
+     */
+    static String cleanName(String name) {
+        if (name == null || !name.contains(" - ")) return name;
+        String[] parts = name.split(" - ");
+        for (int i = 1; i < parts.length; i++) {
+            if (VIEWS_PART.matcher(parts[i].trim()).matches()) return parts[i - 1].trim();
+        }
+        return name;
+    }
+
     static VideoItem parse(byte[] buffer, CharSequence path) {
         String text = new String(buffer, StandardCharsets.UTF_8);
         String videoId = null;
@@ -99,7 +118,7 @@ final class VideoItem {
                 int start = i + prefix.length();
                 int end = start;
                 while (end < text.length() && text.charAt(end) >= ' ' && text.charAt(end) != '\uFFFD' && end - start < 100) end++;
-                name = text.substring(start, end).trim();
+                name = cleanName(text.substring(start, end).trim());
                 break;
             }
         }
@@ -118,9 +137,12 @@ final class VideoItem {
         // Path only: "shorts-lockup-image" is in every buffer.
         boolean shorts = p.startsWith("shorts") || p.startsWith("inline_shorts") || p.contains("shorts_lockup");
         boolean live = LIVE_ICON.matcher(text).find() || text.contains("BADGE_STYLE_TYPE_LIVE_NOW");
-        // A playlist lockup may link "watch?v=FIRST&list=PL..." as well as "playlist?list=PL...".
-        boolean playlist = text.contains("list=PL");
-        boolean mix = !playlist && text.contains("youtube.com/playlist?list=RD") && !text.contains("youtube.com/watch?v=");
+        // A playlist lockup may link "watch?v=FIRST&list=PL..." as well as "playlist?list=PL..."; a card (lockup.eml)
+        // names the playlist page's browse ID, "VLPL...". Albums are playlists too (OLAK5uy_).
+        boolean playlist = text.contains("list=PL") || text.contains("VLPL") || text.contains("list=OLAK5uy")
+                || text.contains("VLOLAK5uy");
+        boolean mix = !playlist && ((text.contains("youtube.com/playlist?list=RD") && !text.contains("youtube.com/watch?v="))
+                || (p.startsWith("lockup.") && text.contains("VLRD")));
         if (live || playlist || mix) seconds = -1;
         Matcher fm = FEEDBACK_TOKEN.matcher(text);
         String token = null;

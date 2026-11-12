@@ -46,7 +46,6 @@ val glassdoorRemoveAdsPatch = resourcePatch(
         "(and disables any ad-SDK init provider). Glassdoor ships no third-party ad SDK.",
     default = true,
 ) {
-    category("Ads")
     compatibleWith(GLASSDOOR_COMPATIBILITY)
 
     execute {

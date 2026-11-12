@@ -110,3 +110,17 @@ Per app: decode → inventory SDKs → write v2 patches under
 `<APP>_COMPATIBILITY` (signer, per-ABI versionCode, minSdk) → build + patch-run →
 verify (smali/manifest; device where an ABI-compatible emulator exists) → `docs/<app>.md`
 → next app. Release stays batched (target **v0.6.0**), clean-worktree publish like v0.5.9.
+
+## Status changes (2026-11-13)
+
+- **Proton VPN — dropped.** hxReborn's community patch is a better implementation, so our
+  three-patch set (Plus unlock via the single entitlement choke point, server-change delay,
+  Sentry off) was removed from the bundle rather than shipped as a second, narrower option.
+  Recoverable from git history (`patches/.../protonvpn/`) if ever wanted.
+- **TextNow — retargeted.** The original 6.1.0.1 download was wrong (an ancient build with a
+  completely different ad/tracker stack). Now targets **26.45.0.0** (vc 15780) and is
+  device-verified; see `docs/textnow.md`.
+- **Catalogue standard aligned with upstream**: no authored patch categories, README patch
+  list generated between `<!-- PATCHES_START -->`/`<!-- PATCHES_END -->` in the per-app +
+  `🌐 Universal` format, changelog in the release notes. See `docs/TEMPLATE-ALIGNMENT.md`
+  and the updated `morphe-patching` skill (§8b).

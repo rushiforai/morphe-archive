@@ -17,6 +17,7 @@ source,target
 %1$d settings in that file can't be restored here and were skipped,%1$d settings in that file can't be restored here and were skipped
 %1$d settings weren't in that file and were left as they are,%1$d settings weren't in that file and were left as they are
 %1$d unavailable,%1$d unavailable
+%1$d unwatched offline videos left,%1$d unwatched offline videos left
 %1$s (%2$s),%1$s (%2$s)
 %1$s (TikTok value),%1$s (TikTok value)
 "%1$s (custom, unverified)","%1$s (custom, unverified)"
@@ -124,6 +125,7 @@ source,target
 1 min left,1 min left
 1 result,1 result
 1 result so far,1 result so far
+1 unwatched offline video left,1 unwatched offline video left
 1 video left,1 video left
 "1, from Background play in the long-press menu","1, from Background play in the long-press menu"
 2 taps a second,2 taps a second
@@ -451,6 +453,7 @@ Confirm before following,Confirm before following
 Confirm before liking,Confirm before liking
 Confirm before liking a comment,Confirm before liking a comment
 Confirm before liking a story,Confirm before liking a story
+Continue,Continue
 Continue supported videos from where you stopped when you scroll back to them.,Continue supported videos from where you stopped when you scroll back to them.
 Controls,Controls
 Conversations,Conversations
@@ -570,6 +573,7 @@ Default,Default
 Default playback speed,Default playback speed
 Delete recording files,Delete recording files
 Delete search,Delete search
+Delete watched offline videos,Delete watched offline videos
 Deletes %1$s from TikTok's storage.,Deletes %1$s from TikTok's storage.
 Delivery unconfirmed: %1$d/%2$d chats. Remaining chats still need a message.,Delivery unconfirmed: %1$d/%2$d chats. Remaining chats still need a message.
 Delivery unconfirmed: %1$d/%2$d chats. Those chats won't be retried today.,Delivery unconfirmed: %1$d/%2$d chats. Those chats won't be retried today.
@@ -619,6 +623,7 @@ Drama and Series,Drama and Series
 "Draw a larger handle and a slightly thicker line on the progress bar, so it's easier to see where you are.","Draw a larger handle and a slightly thicker line on the progress bar, so it's easier to see where you are."
 "Draw the main feed's floating pill as glass, lighter and more see-through, with a bright rim along its top edge. Needs Floating bottom bar.","Draw the main feed's floating pill as glass, lighter and more see-through, with a bright rim along its top edge. Needs Floating bottom bar."
 Each area shows how many of the things Hushfeed looks for were found in this TikTok and how many are missing.,Each area shows how many of the things Hushfeed looks for were found in this TikTok and how many are missing.
+"Each time TikTok starts, deletes the offline videos you've already watched, so the next download fills their places with new ones. A video counts as watched once it's been on screen.","Each time TikTok starts, deletes the offline videos you've already watched, so the next download fills their places with new ones. A video counts as watched once it's been on screen."
 Earlier this session,Earlier this session
 Easier comment likes,Easier comment likes
 Edge strip width,Edge strip width
@@ -771,6 +776,7 @@ Hand-off,Hand-off
 Handle or id,Handle or id
 Haptic style,Haptic style
 Haptics on the tabs,Haptics on the tabs
+Hashtags,Hashtags
 Hid a CAPTCHA. Stuck? Turn off Hide CAPTCHA popups.,Hid a CAPTCHA. Stuck? Turn off Hide CAPTCHA popups.
 Hidden %1$s on this phone,Hidden %1$s on this phone
 Hidden LIVE categories,Hidden LIVE categories
@@ -859,6 +865,7 @@ Hide reply previews,Hide reply previews
 Hide root,Hide root
 Hide root status and details about root tools from TikTok.,Hide root status and details about root tools from TikTok.
 Hide rows by title,Hide rows by title
+Hide search result tabs,Hide search result tabs
 Hide search rewards,Hide search rewards
 Hide search suggestions above comments,Hide search suggestions above comments
 Hide share actions,Hide share actions
@@ -1140,6 +1147,7 @@ Layout recorded. Export the report to send it.,Layout recorded. Export the repor
 "Layout, search, profile and system","Layout, search, profile and system"
 Least liked first,Least liked first
 Least viewed first,Least viewed first
+Leave TikTok,Leave TikTok
 Leave after no touch,Leave after no touch
 Leave maximum empty to keep it unlimited.,Leave maximum empty to keep it unlimited.
 "Leave out the interest picker, the language and gender questions, the creators to follow, the swipe up tutorial and TikTok's notification page when TikTok runs its setup. Consent, age and sign-in screens still show.","Leave out the interest picker, the language and gender questions, the creators to follow, the swipe up tutorial and TikTok's notification page when TikTok runs its setup. Consent, age and sign-in screens still show."
@@ -1333,6 +1341,7 @@ No profile shortcuts have been seen yet,No profile shortcuts have been seen yet
 No reviewed presets for TikTok %1$s yet,No reviewed presets for TikTok %1$s yet
 No rule matches this text.,No rule matches this text.
 "No rules yet, so nothing would match.","No rules yet, so nothing would match."
+No search tabs have been seen yet,No search tabs have been seen yet
 No seen videos recorded yet.,No seen videos recorded yet.
 No share actions have been seen yet,No share actions have been seen yet
 No share actions match this search,No share actions match this search
@@ -1477,6 +1486,7 @@ Pass TikTok's install checks,Pass TikTok's install checks
 Pause,Pause
 Pause Hushfeed,Pause Hushfeed
 "Pause Hushfeed's switches after TikTok restarts. Your settings stay saved. Changes made when you patched, like the app's name or icon, stay.","Pause Hushfeed's switches after TikTok restarts. Your settings stay saved. Changes made when you patched, like the app's name or icon, stay."
+Pause before the feed,Pause before the feed
 Pause the video while comments are open,Pause the video while comments are open
 Paused,Paused
 Pauses the video behind the comment sheet while you read. It plays on from the same spot when the sheet closes.,Pauses the video behind the comment sheet while you read. It plays on from the same spot when the sheet closes.
@@ -1489,6 +1499,7 @@ Photo,Photo
 Photo and image posts,Photo and image posts
 Photo destination,Photo destination
 Photo filename,Photo filename
+Photos,Photos
 Photos and stickers,Photos and stickers
 "Photos can't be saved to the folder in that file, so your photo folder was kept","Photos can't be saved to the folder in that file, so your photo folder was kept"
 Pick a .ttf or .otf file of up to %1$s MB.,Pick a .ttf or .otf file of up to %1$s MB.
@@ -1502,6 +1513,7 @@ Pick the buttons to take off the column. The rest stay where they are.,Pick the 
 "Pick the phone the effects server is told about, or type any model. An effect turned down for one phone may open for another. Empty means the Galaxy S24 Ultra.","Pick the phone the effects server is told about, or type any model. An effect turned down for one phone may open for another. Empty means the Galaxy S24 Ultra."
 "Pick the popups to stop. The list holds the ones TikTok has tried to show on this phone, so a popup appears here after its first showing. CAPTCHA, verification, sign-in, age, ban and legal consent screens are never listed or blocked.","Pick the popups to stop. The list holds the ones TikTok has tried to show on this phone, so a popup appears here after its first showing. CAPTCHA, verification, sign-in, age, ban and legal consent screens are never listed or blocked."
 "Pick the shortcuts to remove from the row under a profile's bio, such as TikTok Studio or Your orders. Restart TikTok to apply this.","Pick the shortcuts to remove from the row under a profile's bio, such as TikTok Studio or Your orders. Restart TikTok to apply this."
+"Pick the tabs to remove from the top of the search results, such as Shop, LIVE or Places. The list holds the tabs TikTok has shown you, and Top always stays.","Pick the tabs to remove from the top of the search results, such as Shop, LIVE or Places. The list holds the tabs TikTok has shown you, and Top always stays."
 Pick videos to save from profile grids,Pick videos to save from profile grids
 "Picked %1$s. Save, then tap Pick all for more.","Picked %1$s. Save, then tap Pick all for more."
 Picked videos,Picked videos
@@ -1511,6 +1523,7 @@ Pill corners,Pill corners
 Pill height,Pill height
 Pill is the wide bubble with a row of dots under the speed. Circle is a small round dial with a notch for each speed around its edge.,Pill is the wide bubble with a row of dots under the speed. Circle is a small round dial with a notch for each speed around its edge.
 Pin more chats,Pin more chats
+Places,Places
 Play,Play
 Play SDR instead of HDR,Play SDR instead of HDR
 Play Store,Play Store
@@ -1807,6 +1820,7 @@ Search by name or gate key,Search by name or gate key
 "Search by name, description or category.","Search by name, description or category."
 Search countries or operators,Search countries or operators
 Search didn't open. Restart TikTok and try again.,Search didn't open. Restart TikTok and try again.
+"Search for something once, then return here to choose its tabs.","Search for something once, then return here to choose its tabs."
 Search hidden creators,Search hidden creators
 Search instead of Home,Search instead of Home
 Search is unavailable on this screen,Search is unavailable on this screen
@@ -2007,6 +2021,7 @@ Sound on,Sound on
 Sound position,Sound position
 Sound saved to %1$s,Sound saved to %1$s
 Sound: %1$s,Sound: %1$s
+Sounds,Sounds
 Source,Source
 Speed,Speed
 Speed menu choices,Speed menu choices
@@ -2472,6 +2487,7 @@ User ID copied,User ID copied
 Username copied,Username copied
 Username last changed,Username last changed
 "Usernames or group chat names, separated by commas or new lines. Each chat must already exist. A group is found by the name your Inbox shows for it.","Usernames or group chat names, separated by commas or new lines. Each chat must already exist. A group is found by the name your Inbox shows for it."
+Users,Users
 Using TikTok's value,Using TikTok's value
 Value,Value
 Value to return,Value to return
@@ -2495,6 +2511,7 @@ Video player settings,Video player settings
 Video saved,Video saved
 Video saved with %1$s subtitles in %2$s,Video saved with %1$s subtitles in %2$s
 Video text color,Video text color
+Videos,Videos
 "Videos can't be saved to the folder in that file, so your video folder was kept","Videos can't be saved to the folder in that file, so your video folder was kept"
 Videos from %1$s,Videos from %1$s
 Videos in search results show their cover and play when you open them. The feed and the videos you open play as usual.,Videos in search results show their cover and play when you open them. The feed and the videos you open play as usual.
@@ -2563,6 +2580,7 @@ YTDLnis background mode,YTDLnis background mode
 YTDLnis download type,YTDLnis download type
 Yellow,Yellow
 Yes,Yes
+You can continue now.,You can continue now.
 You can pick up to %1$s at a time,You can pick up to %1$s at a time
 "You have %1$s. Update the patches in Morphe Manager, then patch TikTok again.","You have %1$s. Update the patches in Morphe Manager, then patch TikTok again."
 You stay off the Profile views list of people whose profile you open. Needs Ghost mode on.,You stay off the Profile views list of people whose profile you open. Needs Ghost mode on.
@@ -2590,6 +2608,7 @@ Your settings,Your settings
 "Zero switches this off. After that many minutes with no touch on the screen, the video stops and TikTok goes to the background, for when you fall asleep watching. Any touch starts the wait over.","Zero switches this off. After that many minutes with no touch on the screen, the video stops and TikTok goes to the background, for when you fall asleep watching. Any touch starts the wait over."
 "Zero switches this off. Count the minutes the player spends running in the feed. Time on messages, a profile or search doesn't count.","Zero switches this off. Count the minutes the player spends running in the feed. Time on messages, a profile or search doesn't count."
 "Zero switches this off. Counts every video that comes up in the feed and tells you when you reach the limit. Separate from the auto-advance session limit under Playback, which counts only videos Hushfeed moved past for you.","Zero switches this off. Counts every video that comes up in the feed and tells you when you reach the limit. Separate from the auto-advance session limit under Playback, which counts only videos Hushfeed moved past for you."
+"Zero switches this off. The first time the feed opens after TikTok starts or comes back from the background, a countdown covers it for that many seconds before you can continue, or leave. Messages, profiles and search open without it.","Zero switches this off. The first time the feed opens after TikTok starts or comes back from the background, a countdown covers it for that many seconds before you can continue, or leave. Messages, profiles and search open without it."
 autoplay auto play,autoplay auto play
 collapsed,collapsed
 debug debugging logs logging,debug debugging logs logging

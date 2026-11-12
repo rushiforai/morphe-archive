@@ -1,13 +1,13 @@
-// FMKOREA_AD_SPACES_BEGIN v1.2.0
+// FMKOREA_AD_SPACES_BEGIN v1.3.4
 (function () {
     'use strict';
 
     if (!/(^|\.)fmkorea\.com$/.test(location.hostname)) return;
-    if (window.__dongminFmkoreaAdsV12) return;
-    window.__dongminFmkoreaAdsV12 = true;
+    if (window.__dongminFmkoreaAdsV134) return;
+    window.__dongminFmkoreaAdsV134 = true;
 
     var marker = 'data-dongmin-fmkorea-ad-space';
-    var styleId = 'dongmin-fmkorea-ad-spaces-style-v12';
+    var styleId = 'dongmin-fmkorea-ad-spaces-style-v134';
     var queued = false;
 
     var collapsedStyle = {
@@ -23,13 +23,24 @@
 
     var hardAdSelector = [
         '[class$="_ad"]',
+        'div[class^="ad"]',
+        'div[id^="ad"]',
+        '.fmad_wrapper',
+        'div[id^="fmad_"] + div[style^="height:"][class]',
+        'div[id^="fm_read_vote_sq_"]',
+        '.adpost',
         'ins.adsbygoogle',
         '[id^="google_ads_"]',
         'iframe[src*="doubleclick.net"]',
         'iframe[src*="googlesyndication.com"]',
         'iframe[src*="googleadservices.com"]',
         'iframe[src*="adnmore.co.kr"]',
-        'iframe[src*="adison.co"]'
+        'iframe[src*="adison.co"]',
+        'iframe[src*="m.fmkorea.com/_adpage/"]',
+        'iframe[src*="loader.fmkorea.com/"][src*="_loader/"]',
+        'iframe[src*="loader2.fmkorea.com/_myphp/adpost/content_new.php"]',
+        '.fm_vote ~ div[style*="max-width:"]',
+        '.rd_ft > div[style^="margin:"][style*="max-width:"]'
     ].join(',');
 
     var protectedSelector = [
@@ -73,19 +84,35 @@
         return !!node.querySelector(protectedSelector);
     }
 
+    function isAdOnlyWrapper(node) {
+        if (!node || containsProtectedContent(node)) return false;
+
+        var meaningful = Array.prototype.filter.call(node.children || [], function (child) {
+            return child.tagName !== 'SCRIPT' && child.tagName !== 'STYLE' && child.tagName !== 'LINK';
+        });
+
+        if (!meaningful.length) return true;
+
+        return meaningful.every(function (child) {
+            return child.hasAttribute(marker) ||
+                (child.matches && child.matches(hardAdSelector));
+        });
+    }
+
     function collapseAdAndWrapper(node) {
         collapse(node);
 
         var parent = node.parentElement;
         var depth = 0;
-        while (parent && parent !== document.body && depth++ < 3) {
+        while (parent && parent !== document.body && depth++ < 4) {
             if (containsProtectedContent(parent)) break;
 
             var className = typeof parent.className === 'string' ? parent.className : '';
             var knownWrapper =
                 /(^|\s)bd_mobile(\s|$)/.test(className) ||
                 /(^|[_-])(ad|ads)([_-]|$)/i.test(className) ||
-                /(^|[_-])(ad|ads)([_-]|$)/i.test(parent.id || '');
+                /(^|[_-])(ad|ads)([_-]|$)/i.test(parent.id || '') ||
+                isAdOnlyWrapper(parent);
 
             if (!knownWrapper) break;
             collapse(parent);
@@ -125,6 +152,31 @@
         });
     }
 
+    function hasListKrSpacerPadding(node) {
+        var c = window.getComputedStyle(node);
+        var h = parseFloat(c.height);
+        return c.paddingTop === '5px' &&
+            c.paddingRight === '10px' &&
+            c.paddingBottom === '20px' &&
+            c.paddingLeft === '10px' &&
+            Number.isFinite(h) && h >= 10 && h < 1000;
+    }
+
+    function collapseListKrFmkoreaSpacers() {
+        document.querySelectorAll(
+            'body[class*="mac_os"] div.hd ~ *[id][class*=" "], ' +
+            'header.hd ~ .fmad_wrapper ~ *[class], ' +
+            'body div.bd div[style] > *[class*=" "], ' +
+            'body div.hd div[style] > *[class*=" "]'
+        ).forEach(function (node) {
+            if (!containsProtectedContent(node) && hasListKrSpacerPadding(node)) collapse(node);
+        });
+
+        document.querySelectorAll('.bd.bd_mobile').forEach(function (node) {
+            if (!node.children.length && !node.textContent.trim()) collapse(node);
+        });
+    }
+
     function sweep() {
         queued = false;
         if (!document.documentElement) return;
@@ -156,6 +208,7 @@
         });
 
         collapseKnownMobileContainers();
+        collapseListKrFmkoreaSpacers();
         collapseLegacyFooterGaps();
     }
 

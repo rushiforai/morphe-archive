@@ -18,6 +18,13 @@ Second \"item\" text"</string>
 <resources>
   <string name="reddit_privacy_policy">Reddit-privacybeleid</string>
   <string name="morphe_google_signin_not_available_toast">Google-login niet beschikbaar. Gebruik e-mail om in te loggen</string>
+  <string name="morphe_app_downgrade_dialog_title">Downgrade niet ondersteund</string>
+  <string name="morphe_app_downgrade_dialog_message">"Deze Reddit-installatie is gedowngraded van &lt;b&gt;%1$s&lt;/b&gt; naar &lt;b&gt;%2$s&lt;/b&gt;
+&lt;br/&gt;&lt;br/&gt;
+Appgegevens van een nieuwere versie werken niet met oudere versies en de app werkt mogelijk niet correct.
+&lt;br/&gt;&lt;br/&gt;
+Om een oudere versie te gebruiken, moet je Reddit &lt;b&gt;deïnstalleren&lt;/b&gt; en vervolgens de oudere versie installeren."</string>
+  <string name="morphe_app_downgrade_dialog_open_app_info">App-info openen</string>
   <string name="morphe_screen_ads_title">Advertenties</string>
   <string name="morphe_hide_post_ads_title">Advertenties in de feed verbergen</string>
   <string name="morphe_hide_comment_ads_title">Advertenties in reacties verbergen</string>
@@ -58,6 +65,8 @@ Second \"item\" text"</string>
   <string name="morphe_hide_trending_shelves_summary">Verbergt de Trending planken van de feed en zoekopdrachten</string>
   <string name="morphe_remove_notification_dialog_title">Verwijder notificatie suggestie dialoog</string>
   <string name="morphe_remove_notification_dialog_summary">Sluit de suggestiedialoog voor meldingen automatisch wanneer je een subreddit bezoekt</string>
+  <string name="morphe_high_quality_avatars_title">Hoogwaardige avatars</string>
+  <string name="morphe_high_quality_avatars_summary">Toont gebruikersavatars in volledige resolutie</string>
   <string name="morphe_show_flairs_in_home_feed_title">Flairs in het startscherm weergeven</string>
   <string name="morphe_show_flairs_in_home_feed_summary">Toont post-flair-emblemen in het startscherm</string>
   <string name="morphe_show_flairs_in_home_feed_user_dialog_message">Sommige items in de feed hebben mogelijk geen flair</string>
@@ -84,10 +93,6 @@ Second \"item\" text"</string>
   <string name="morphe_keep_feed_position_summary">Houdt de feed op dezelfde positie na het sluiten van een bericht, afbeelding of video, in plaats van het geopende bericht naar boven te verplaatsen</string>
   <string name="morphe_feed_media_max_height_title">Maximale hoogte van feedmedia</string>
   <string name="morphe_feed_media_max_height_summary">Maximale hoogte van afbeeldingen, video\'s en galerijen in de feed, als een veelvoud van hun breedte. Hogere media worden bijgesneden. 1,33 is de standaard van Reddit</string>
-  <string name="morphe_redgifs_audio_title">Redgifs afspelen met audio</string>
-  <string name="morphe_redgifs_audio_summary">Afspelen van de originele Redgifs-video in plaats van de versie op Reddit, die vaak geen audio bevat</string>
-  <string name="morphe_redgifs_hd_title">Redgifs HD-kwaliteit</string>
-  <string name="morphe_redgifs_hd_summary">HD-Redgifs-video\'s afspelen. HD-video\'s zijn groter en kunnen onderbroken worden om te laden</string>
   <string name="morphe_download_location_title">Downloadlocatie</string>
   <string name="morphe_download_location_all_title">Alle accounts</string>
   <string name="morphe_download_location_default_summary">Standaard van Reddit: afbeeldingen in Pictures/Reddit, video\'s in Download</string>
@@ -109,7 +114,7 @@ Second \"item\" text"</string>
   <string name="morphe_download_location_example_images">Afbeeldingen: %s</string>
   <string name="morphe_download_location_example_videos">Video\'s: %s</string>
   <string name="morphe_download_location_save">Opslaan</string>
-  <string name="morphe_download_location_reset">Reset</string>
+  <string name="morphe_download_location_reset">Terugzetten</string>
   <string name="morphe_download_location_delete">Verwijderen</string>
   <string name="morphe_download_location_reset_confirm">De downloadlocatie van alle accounts resetten naar de standaard van Reddit?</string>
   <string name="morphe_download_location_delete_confirm">De downloadlocatie van %s verwijderen?</string>

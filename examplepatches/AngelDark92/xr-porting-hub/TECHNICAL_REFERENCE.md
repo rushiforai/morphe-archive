@@ -4,7 +4,7 @@ Implementation notes, compatibility details, validation status, and build instru
 
 ## Steam Link 2.0.20–2.0.22 (5001712, 5001812, 5001968, 5002244)
 
-The four legacy builds share one recommended set of 20 patches: the XR foundation and startup patches, Device identity, Stock quad composition, GXR face bridge, microphone, OLED, blue noise, unrestricted battery, Visual Delay, Codecs Support and Controller velocity frame. Network Optimizations is optional and not recommended on any base. High resolution is the recommended Stock quad composition layer on all four. All four HMD/controller configs are byte-identical. Headset validation remains pending for 5001812, 5001968 and 5002244.
+The four legacy builds share one recommended set of 20 patches: the XR foundation and startup patches, Device identity, Alpha-0 high-resolution trigger, GXR face bridge, microphone, OLED, blue noise, unrestricted battery, Visual Delay, Codecs Support and Controller velocity frame. Network Optimizations is optional and not recommended on any base. High resolution uses the recommended Alpha-0 high-resolution trigger. Stock quad composition is experimental, off by default, and mutually exclusive with it. All four HMD/controller configs are byte-identical. Headset validation remains pending for 5001812, 5001968 and 5002244.
 
 ## Steam Link 2.0.23 / 5002363
 
@@ -25,9 +25,9 @@ The Full-FOV foveal canvas was retired on 2026-10-24; it did not solve the high-
 
 Steam Link VR (`com.valvesoftware.steamlinkvr`) was not built for Android XR. These patches adapt it to run on the Samsung Galaxy XR headset by injecting the missing OpenXR permissions and features, bundling the Galaxy XR XR-bridge native library, providing an optional standalone face-bridge layer for face-tracking, fixing broken permission flows, tuning the rendering pipeline, and optionally allowing the patched APK to coexist with the original install.
 
-Target APK: `com.valvesoftware.steamlinkvr`. Exact compatibility metadata and guarded adaptations cover v2.0.20/5001712, v2.0.20/5001812, v2.0.21/5001968, v2.0.22/5002244, v2.0.23/5002363 and v2.0.24/5002395. Stock quad composition (recommended high resolution) accepts exactly those six builds; the Alpha-0 high-resolution trigger was retired on 2026-11-06. Network Optimizations also covers v2.0.24/5002527 with its own exact layout. Reconstruction, quad-view, permission-matrix, warm-up/omit, and DFR re-arm experiments are retired.
+Target APK: `com.valvesoftware.steamlinkvr`. Exact compatibility metadata and guarded adaptations cover v2.0.20/5001712, v2.0.20/5001812, v2.0.21/5001968, v2.0.22/5002244, v2.0.23/5002363 and v2.0.24/5002395. The Alpha-0 high-resolution trigger (recommended high resolution) accepts exactly those six builds; Stock quad composition is a separate experimental, default-off layer over the same six. The native quad far-plane experiment targets only 2.0.20/5001712. Network Optimizations also covers v2.0.24/5002527 with its own exact layout. Reconstruction, quad-view, permission-matrix, warm-up/omit, and DFR re-arm experiments are retired.
 
-Use Morphe Manager 1.30.0 or newer with compatibility checks enabled for build-specific filtering. Expert mode may intentionally show incompatible patches. Morphe's `default` flag is one global value per patch, so the recommended defaults live on the individual patches: every pre-2363 build default-enables the same 20-patch set — the XR foundation and startup patches, Device identity (Galaxy XR, model `xrvst2ue`), Stock quad composition, face bridge, microphone, OLED, blue noise, unrestricted battery, Visual Delay, Codecs Support and Controller velocity frame. 2.0.23/5002363 and 2.0.24/5002395 default-enable the same 9-patch native set: GXR face and tongue bridge, Stock quad composition, Microphone input preset (Voice Recognition), OLED (`final-balanced`), Blue-noise dithering, Unrestricted battery, Visual Delay (60 ms), Codecs Support and Controller velocity frame. Network Optimizations is optional on all seven supported bases. Device identity is legacy-only; stock 2.0.23/2.0.24 identity is authoritative. **Change package name** is never recommended; Appear on top was removed on 2026-11-06.
+Use Morphe Manager 1.30.0 or newer with compatibility checks enabled for build-specific filtering. Expert mode may intentionally show incompatible patches. Morphe's `default` flag is one global value per patch, so the recommended defaults live on the individual patches: every pre-2363 build default-enables the same 20-patch set — the XR foundation and startup patches, Device identity (Galaxy XR, model `xrvst2ue`), Alpha-0 high-resolution trigger, face bridge, microphone, OLED, blue noise, unrestricted battery, Visual Delay, Codecs Support and Controller velocity frame. 2.0.23/5002363 and 2.0.24/5002395 default-enable the same 9-patch native set: GXR face and tongue bridge, Alpha-0 high-resolution trigger, Microphone input preset (Voice Recognition), OLED (`final-balanced`), Blue-noise dithering, Unrestricted battery, Visual Delay (60 ms), Codecs Support and Controller velocity frame. Network Optimizations is optional on all seven supported bases. Device identity is legacy-only; stock 2.0.23/2.0.24 identity is authoritative. **Change package name** is never recommended; Appear on top was removed on 2026-11-06. Stock quad composition and the native quad far plane are experimental and off by default.
 
 **Startup permission requests (before 5002322)** and **Startup splash and XR launch mode (before 5002322)** are members of the legacy recommended set, default-enabled on the 2.0.20/5001712 legacy base and independently deselectable. The permission patch declares missing hand, eye, face, microphone and Bluetooth permissions and enables their startup requests. The splash patch enables the black startup screen and unmanaged VRLink start-mode override; older legacy builds also receive panel sizing. The shared helper defaults both behaviors off. Earlier battery/overlay settings flows use a transparent bootstrap unless those explicit patches are selected.
 
@@ -42,9 +42,9 @@ The recommended selection does not broaden native compatibility: unsupported bui
 
 **The standalone Video dither patch remains retired.** The existing OLED patch now offers optional Comparison dithering (Off, Low, Standard), a Neutral calibration profile, and sRGB8/RGB10/experimental FP16 output. Defaults are Final balanced, 8-bit sRGB, and dithering Off. RGB10 and FP16 remain optional. See the [controlled comparison guide](PATCH_CATALOG.md#controlled-oled-comparison).
 
-### Alpha-0 high-resolution trigger and Appear on top retired — 2026-11-06
+### Alpha-0 high-resolution trigger restored — 2026-11-12
 
-Both patches, the Alpha-0 helper payloads and the native source under `extensions/resolution-trace-layer/` are removed. The two sections below describe the retired Alpha-0 helper and are kept as history only. See [the retirement record](diagnostics/steamlink-alpha0-retirement/README.md).
+The patch, its 2-/3-projection helper payloads (`libgxr_ast.so`, `libgxr_ast_5001712.so`), its API-layer manifest and the native source under `extensions/resolution-trace-layer/` are restored from v2.6.0 and recommended on the exact bases it declares. Stock quad composition and the native quad far plane are separate experimental modes that reject an Alpha-0 install. Appear on top remains retired; see [the retirement record](diagnostics/steamlink-alpha0-retirement/README.md).
 
 ### Retired underside experiment — 2026-09-03
 
@@ -72,7 +72,7 @@ No desktop IP, pairing token, APK hash, or native telemetry enrollment is requir
 This section is generated from the patch catalog during releases.
 
 <!-- PATCHES_START EXPANDED -->
-> **[v2.7.2](https://github.com/AngelDark92/xr-porting-hub/releases/tag/v2.7.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;45 patches total
+> **[v2.8.0](https://github.com/AngelDark92/xr-porting-hub/releases/tag/v2.8.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;46 patches total
 <details open>
 <summary>📦 4XVR&nbsp;&nbsp;•&nbsp;&nbsp;16 patches</summary>
 <br>
@@ -132,23 +132,22 @@ This section is generated from the patch catalog during releases.
 </details>
 
 <details open>
-<summary>📦 Steam Link&nbsp;&nbsp;•&nbsp;&nbsp;23 patches</summary>
+<summary>📦 Steam Link&nbsp;&nbsp;•&nbsp;&nbsp;22 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 2.0.20 (5001712) | 2.0.20 (5001812) | 2.0.21 (5001968) | 2.0.22 (5002244) | 2.0.23 (5002363) | 2.0.24 (5002395) | 2.0.24 (5002527) | 2.0.20 (5001712) | 2.0.20 (5001812) | 2.0.21 (5001968) | 2.0.22 (5002244) | 2.0.23 (5002363) | 2.0.24 (5002395) |
+| 2.0.20 (5001712) | 2.0.20 (5001812) | 2.0.21 (5001968) | 2.0.22 (5002244) | 2.0.23 (5002363) | 2.0.24 (5002395) | 2.0.20 (5001712) | 2.0.20 (5001812) | 2.0.21 (5001968) | 2.0.22 (5002244) | 2.0.23 (5002363) | 2.0.24 (5002395) | 2.0.24 (5002527) |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| Steam Link 2.0.20/5001712 legacy base. | Steam Link 2.0.20/5001812 legacy base. | Steam Link 2.0.21/5001968 legacy base. | Steam Link 2.0.22/5002244 legacy base. | Steam Link 2.0.23/5002363 native Android XR. | Steam Link 2.0.24/5002395 native Android XR. | Steam Link 2.0.24/5002527 native Android XR. | Steam Link 2.0.20/5001712 high-resolution target. | Steam Link 2.0.20/5001812 high-resolution target. | Steam Link 2.0.21/5001968 high-resolution target. | Steam Link 2.0.22/5002244 high-resolution target. | Steam Link 2.0.23/5002363 high-resolution target. | Steam Link 2.0.24/5002395 high-resolution target. |
+| Steam Link 2.0.20/5001712 high-resolution target. | Steam Link 2.0.20/5001812 high-resolution target. | Steam Link 2.0.21/5001968 high-resolution target. | Steam Link 2.0.22/5002244 high-resolution target. | Steam Link 2.0.23/5002363 high-resolution target. | Steam Link 2.0.24/5002395 high-resolution target. | Steam Link 2.0.20/5001712 legacy base. | Steam Link 2.0.20/5001812 legacy base. | Steam Link 2.0.21/5001968 legacy base. | Steam Link 2.0.22/5002244 legacy base. | Steam Link 2.0.23/5002363 native Android XR. | Steam Link 2.0.24/5002395 native Android XR. | Steam Link 2.0.24/5002527 native Android XR. |
 
 #### Image quality
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | 🔢&nbsp;Builds | ⚙️&nbsp;Options |
 |----------|----------------|----------------|-----------|
+| [Alpha-0 high-resolution trigger](#alpha-0-high-resolution-trigger) | Fully transparent high-resolution trigger quad that keeps Valve's native projection layout and formats untouched. Builds: 2.0.20 (5001712, 5001812), 2.0.21/5001968, 2.0.22/5002244, 2.0.23/5002363, 2.0.24/5002395. | 5001712, 5001812, 5001968, 5002244, 5002363, 5002395 |  |
 | [Blue-noise dithering](#blue-noise-dithering) | Adds fine grain that hides color steps; center and background can be toggled. Builds: 5001712, 5001812, 5001968, 5002244, 5002363, 5002395, 5002527. | 5001712, 5001812, 5001968, 5002244, 5002363, 5002395, 5002527 | • Center of the view<br>• Background |
-| [Native quad composition (experimental)](#native-quad-composition-experimental) | Builds eye-aware quads directly in Steam Link's renderer. Builds: 2.0.20 (5001712, 5001812), 2.0.21/5001968, 2.0.22/5002244, 2.0.23/5002363, 2.0.24/5002395. Needs: disable Stock quad composition. | 5001712, 5001812, 5001968, 5002244, 5002363, 5002395 |  |
 | [OLED color calibration](#oled-color-calibration) | Tunes OLED color with gamma and saturation presets. Builds: 5001712, 5001812, 5001968, 5002244, 5002363, 5002395, 5002527. Headset verification pending. | 5001712, 5001812, 5001968, 5002244, 5002363, 5002395, 5002527 | • Calibration profile<br>• Gamma<br>• Saturation<br>• VD-like center mode<br>• Center gamma adjustment |
-| [Stock quad composition](#stock-quad-composition) | Rebuilds Steam Link's projection layers as eye-aware stock-style quads in a separate OpenXR layer. Builds: 2.0.20 (5001712, 5001812), 2.0.21/5001968, 2.0.22/5002244, 2.0.23/5002363, 2.0.24/5002395. | 5001712, 5001812, 5001968, 5002244, 5002363, 5002395 |  |
 
 #### Tracking & audio
 
@@ -202,14 +201,21 @@ This section is generated from the patch catalog during releases.
 </details>
 
 <details open>
-<summary>📦 Steam Link Experimental&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
+<summary>📦 Steam Link Experimental&nbsp;&nbsp;•&nbsp;&nbsp;8 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 2.0.20 (5001712) | 2.0.20 (5001812) | 2.0.21 (5001968) | 2.0.22 (5002244) | 2.0.23 (5002363) | 2.0.24 (5002395) | 2.0.24 (5002527) | 2.0.20 (5001712) | 2.0.20 (5001812) | 2.0.21 (5001968) | 2.0.22 (5002244) | 2.0.23 (5002363) | 2.0.24 (5002395) | 2.0.24 (5002527) |
-| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| Experimental Steam Link 2.0.20/5001712. | Experimental Steam Link 2.0.20/5001812. | Experimental Steam Link 2.0.21/5001968. | Experimental Steam Link 2.0.22/5002244. | Experimental Steam Link 2.0.23/5002363. | Experimental Steam Link 2.0.24/5002395. | Experimental Steam Link 2.0.24/5002527. | Controller pose extrapolation layer for exact Steam Link 2.0.20/5001712; measured on 2.0.23/5002363 only, not run on this base. | Controller pose extrapolation layer for exact Steam Link 2.0.20/5001812; measured on 2.0.23/5002363 only, not run on this base. | Controller pose extrapolation layer for exact Steam Link 2.0.21/5001968; measured on 2.0.23/5002363 only, not run on this base. | Controller pose extrapolation layer for exact Steam Link 2.0.22/5002244; measured on 2.0.23/5002363 only, not run on this base. | Controller pose extrapolation layer for exact Steam Link 2.0.23/5002363; measured on a Galaxy XR headset. | Controller pose extrapolation layer for exact Steam Link 2.0.24/5002395; measured on 2.0.23/5002363 only, not run on this base. | Controller pose extrapolation layer for exact Steam Link 2.0.24/5002527; measured on 2.0.23/5002363 only, not run on this base. |
+| 2.0.20 (5001712) | 2.0.20 (5001812) | 2.0.21 (5001968) | 2.0.22 (5002244) | 2.0.23 (5002363) | 2.0.24 (5002395) | 2.0.24 (5002527) | 2.0.20 (5001712) | 2.0.20 (5001812) | 2.0.21 (5001968) | 2.0.22 (5002244) | 2.0.23 (5002363) | 2.0.24 (5002395) | 2.0.24 (5002527) | 2.0.20 (5001712) | 2.0.20 (5001812) | 2.0.21 (5001968) | 2.0.22 (5002244) | 2.0.23 (5002363) | 2.0.24 (5002395) |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| Experimental Steam Link 2.0.20/5001712. | Experimental Steam Link 2.0.20/5001812. | Experimental Steam Link 2.0.21/5001968. | Experimental Steam Link 2.0.22/5002244. | Experimental Steam Link 2.0.23/5002363. | Experimental Steam Link 2.0.24/5002395. | Experimental Steam Link 2.0.24/5002527. | Controller pose extrapolation layer for exact Steam Link 2.0.20/5001712; measured on 2.0.23/5002363 only, not run on this base. | Controller pose extrapolation layer for exact Steam Link 2.0.20/5001812; measured on 2.0.23/5002363 only, not run on this base. | Controller pose extrapolation layer for exact Steam Link 2.0.21/5001968; measured on 2.0.23/5002363 only, not run on this base. | Controller pose extrapolation layer for exact Steam Link 2.0.22/5002244; measured on 2.0.23/5002363 only, not run on this base. | Controller pose extrapolation layer for exact Steam Link 2.0.23/5002363; measured on a Galaxy XR headset. | Controller pose extrapolation layer for exact Steam Link 2.0.24/5002395; measured on 2.0.23/5002363 only, not run on this base. | Controller pose extrapolation layer for exact Steam Link 2.0.24/5002527; measured on 2.0.23/5002363 only, not run on this base. | Steam Link 2.0.20/5001712 high-resolution target. | Steam Link 2.0.20/5001812 high-resolution target. | Steam Link 2.0.21/5001968 high-resolution target. | Steam Link 2.0.22/5002244 high-resolution target. | Steam Link 2.0.23/5002363 high-resolution target. | Steam Link 2.0.24/5002395 high-resolution target. |
+
+#### Image quality
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | 🔢&nbsp;Builds | ⚙️&nbsp;Options |
+|----------|----------------|----------------|-----------|
+| [Native quad far plane (experimental)](#native-quad-far-plane-experimental) | Builds head-oriented quads directly in Steam Link's renderer, placed far from the eye. Build: 2.0.20/5001712. Needs: deselect Alpha-0 high-resolution trigger and Stock quad composition (experimental). | 5001712 | • Quad distance<br>• Layer settings |
+| [Stock quad composition (experimental)](#stock-quad-composition-experimental) | Rebuilds Steam Link's projection layers as eye-aware stock-style quads in a separate OpenXR layer. Builds: 2.0.20 (5001712, 5001812), 2.0.21/5001968, 2.0.22/5002244, 2.0.23/5002363, 2.0.24/5002395. Needs: deselect Alpha-0 high-resolution trigger. | 5001712, 5001812, 5001968, 5002244, 5002363, 5002395 |  |
 
 #### App & device identity
 

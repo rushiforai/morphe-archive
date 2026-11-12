@@ -52,7 +52,7 @@ class ShazamSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "16.66.0-261029",
+            version = "16.67.0-261105",
             patchNames = setOf("Disable telemetry", "Open in Morphe YouTube apps", "Spoof signature", "GmsCore support"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

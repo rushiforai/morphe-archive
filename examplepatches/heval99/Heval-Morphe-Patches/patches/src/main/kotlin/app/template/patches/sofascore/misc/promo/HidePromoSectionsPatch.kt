@@ -41,11 +41,12 @@ internal val PROMO_SECTION_FEATURES: List<Pair<String, HevalFeature>> = listOf(
 ).map { (key, id, title) ->
     key to HevalFeature(
         id = "sofascore.hide_promo_$id",
-        name = "Hide ${title.replaceFirstChar(Char::uppercaseChar)}",
+        name = "Hide $title",
         description = "Hides the $title.",
         category = SofascoreControlsCategory.PROMO_SECTIONS,
         default = false,
         restartRequired = true,
+        icon = "tag",
     )
 }
 

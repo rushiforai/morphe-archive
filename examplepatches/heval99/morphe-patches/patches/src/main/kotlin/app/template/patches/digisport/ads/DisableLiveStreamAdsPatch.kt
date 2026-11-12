@@ -2,7 +2,7 @@ package app.template.patches.digisport.ads
 
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.util.returnEarly
-import app.template.patches.shared.Constants.COMPATIBILITY_DIGISPORT_EXPERIMENTAL
+import app.template.patches.shared.Constants.COMPATIBILITY_DIGISPORT
 
 // Live channels with an enabled IMA DAI balancer play as an ssai:// IMA DAI item, with the ads
 // inserted into the stream by Google's server. Turning DAI off makes the app build the plain live
@@ -16,7 +16,7 @@ val disableLiveStreamAdsPatch = bytecodePatch(
     name = "Disable live stream ads",
     description = "Removes ads from live channels. Turn off if a channel stops playing."
 ) {
-    compatibleWith(COMPATIBILITY_DIGISPORT_EXPERIMENTAL)
+    compatibleWith(COMPATIBILITY_DIGISPORT)
 
     execute {
         // 1. DAI is never enabled: GetLiveStream skips the DAI balancer request and

@@ -66,7 +66,7 @@ class DrtvSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "4.39.0",
+            version = "4.40.4",
             patchNames = setOf("Disable telemetry", "Auto skip intro", "Allow free rotation"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

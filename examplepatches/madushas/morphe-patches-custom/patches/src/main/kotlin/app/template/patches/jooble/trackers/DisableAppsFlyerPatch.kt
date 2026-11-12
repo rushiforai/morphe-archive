@@ -22,7 +22,6 @@ val joobleDisableAppsFlyerPatch = bytecodePatch(
         "attribution or analytics events are sent.",
     default = true,
 ) {
-    category("Privacy")
     compatibleWith(JOOBLE_COMPATIBILITY)
 
     execute {

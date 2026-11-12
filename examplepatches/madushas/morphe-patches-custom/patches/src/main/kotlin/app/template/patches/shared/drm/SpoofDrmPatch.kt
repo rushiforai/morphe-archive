@@ -99,7 +99,6 @@ val spoofDrmPatch = bytecodePatch(
     """.trimIndent(),
     default = false,
 ) {
-    category("DRM")
     val targetSecurityLevel by stringOption(
         key = "securityLevel",
         default = "L1",

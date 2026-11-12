@@ -253,7 +253,8 @@ Turn on Tap to play to use this choice.	Aktiviere „Zum Abspielen tippen“, um
 Resume long videos	Lange Videos fortsetzen
 Videos and reels over two minutes pick up where you left off. Seek to start elsewhere. Live videos and ads start as usual.	Videos und Reels über zwei Minuten laufen an deiner letzten Stelle weiter. Die Suchleiste ändert den Start. Live-Videos und Werbung starten wie gewohnt.
 Default playback quality	Standard-Wiedergabequalität
-Videos, reels and stories play at the quality below, starting with the next one you open.	Videos, Reels und Stories laufen in der Qualität unten, ab dem nächsten Video, das du öffnest.
+# context: description of the Default playback quality switch on the Playback page, with the list of qualities below it. A video that keeps stalling because the connection is too slow for its quality switches to the next lower quality that video offers (#599)
+Videos, reels and stories play at the quality below, starting with the next one you open. When your connection can't keep up, a video drops to the next lower quality.	Videos, Reels und Stories laufen in der Qualität unten, ab dem nächsten Video, das du öffnest. Kommt deine Verbindung nicht mit, schaltet ein Video eine Qualitätsstufe herunter.
 Playback quality	Wiedergabequalität
 Auto	Automatisch
 Data saver	Datensparmodus
@@ -1374,6 +1375,9 @@ Takes the arrow off the end of a profile's row of buttons, along with the menu i
 # context: Layout: Glass tab bar's switch that stops the liquid pill shrinking as you scroll (#256)
 Keep the pill full size	Pille in voller Größe lassen
 Scrolling a list down leaves the liquid pill as it is, every tab in place. Restart Instagram after changing it.	Scrollst du eine Liste nach unten, bleibt die Liquid-Glass-Pille, wie sie ist, mit jedem Tab an seinem Platz. Starte Instagram nach der Änderung neu.
+# context: a switch under Glass tab bar that makes the standard pill (the one without the liquid look) smaller while a list scrolls down, and its description. Liquid glass look and Hide the tab bar as you scroll are the names of two other switches on the same page (#638)
+Shrink the pill as you scroll	Pille beim Scrollen verkleinern
+With Liquid glass look off, scrolling a list down makes the pill smaller, and scrolling up or changing tab brings it back to full size. Hide the tab bar as you scroll takes over when it's on. Restart Instagram after changing it.	Ist der Liquid-Glass-Look aus, wird die Pille kleiner, wenn du eine Liste nach unten scrollst, und nach oben scrollen oder ein Tabwechsel bringt sie in voller Größe zurück. Ist Tab-Leiste beim Scrollen ausblenden an, hat das Vorrang. Starte Instagram nach der Änderung neu.
 # context: Layout: Glass tab bar's switch that makes the liquid pill's rim bend and mirror what's behind it like glass (#369)
 Bend light at the edges	Licht an den Rändern brechen
 The pill's rim bends what's behind it like real glass, so what passes under the edge shows upside down. Android 13 and newer. Restart Instagram after changing it.	Der Rand der Pille bricht, was dahinter liegt, wie echtes Glas, sodass alles, was unter dem Rand vorbeizieht, kopfüber erscheint. Ab Android 13. Starte Instagram nach der Änderung neu.
@@ -1522,7 +1526,7 @@ Couldn't use that folder. Saves go where they did.	Ordner nicht nutzbar. Gespeic
 Saves go to Movies and Pictures again.	Speicherungen landen wieder in Movies und Pictures.
 %1$s didn't take this save, so it went to Movies and Pictures.	%1$s hat diese Speicherung nicht angenommen, deshalb ist sie in Movies und Pictures gelandet.
 Start reels with sound	Reels mit Ton starten
-A reel you open from the Reels tab or a post on Home plays with sound, and Home is muted again when you go back. Your phone's ringer and volume still count.	Ein Reel, das du im Reels-Tab oder über einen Beitrag auf der Startseite öffnest, spielt mit Ton, und die Startseite ist wieder stumm, wenn du zurückgehst. Klingelmodus und Lautstärke deines Telefons zählen weiterhin.
+A reel you open from the Reels tab, a profile or a post on Home plays with sound, and Home is muted again when you go back. Your phone's ringer and volume still count.	Ein Reel, das du im Reels-Tab, auf einem Profil oder über einen Beitrag auf der Startseite öffnest, spielt mit Ton, und die Startseite ist wieder stumm, wenn du zurückgehst. Klingelmodus und Lautstärke deines Telefons zählen weiterhin.
 Keep your place in Home	Deine Stelle auf der Startseite behalten
 Coming back to Instagram leaves Home on the post you were on, however long you were away. Pull down to refresh still reloads it.	Wenn du zu Instagram zurückkehrst, bleibt die Startseite bei dem Beitrag, bei dem du warst, egal wie lange du weg warst. Zum Aktualisieren nach unten ziehen lädt sie weiterhin neu.
 Filter the Stories tray by verified accounts	Stories-Leiste nach verifizierten Konten filtern
@@ -1590,7 +1594,7 @@ Previous page	Vorherige Seite
 Next page	Nächste Seite
 # context: Feed settings: the Page dots on a pill switch, right under Carousel arrows (#419). A pill is a small bar with round ends that holds the dots.
 Page dots on a pill	Seitenpunkte in einer Kapsel
-Moves a carousel post's page dots onto a round pill at the bottom of its photo or video, with the page you're on in blue.	Verschiebt die Seitenpunkte eines Karussellbeitrags in eine runde Kapsel unten auf dem Foto oder Video. Die Seite, auf der du bist, ist blau.
+Moves a carousel post's page dots onto a round pill at the bottom of its photo or video, with the page you're on in blue. Hold the pill and slide left or right to move through the pages.	Verschiebt die Seitenpunkte eines Karussellbeitrags in eine runde Kapsel unten auf dem Foto oder Video. Die Seite, auf der du bist, ist blau. Halte die Kapsel gedrückt und wische nach links oder rechts, um die Seiten zu wechseln.
 # context: Feed settings: the Hide page number switch, under Carousel arrows (#581). The number is the 3/5 in the corner of a carousel post.
 Hide page number	Seitenzahl ausblenden
 Takes the number like 3/5 off the corner of a carousel post's photo or video.	Entfernt die Zahl wie 3/5 aus der Ecke des Fotos oder Videos eines Karussellbeitrags.
@@ -1668,6 +1672,12 @@ Stop videos looping	Videos nicht wiederholen
 Feed videos and reels stop at their last frame instead of playing again. Reels still loop while auto scroll is on, so it can move on.	Videos im Feed und Reels bleiben am letzten Bild stehen, statt noch einmal abzuspielen. Reels laufen weiter in Schleife, solange das automatische Scrollen an ist, damit es weitergehen kann.
 Not used while you've picked a folder. Saves go there.	Wird nicht verwendet, solange du einen Ordner gewählt hast. Gespeichert wird dort.
 All	Alle
+# context: names of the groups the settings categories fall into, shown over each group on the list of categories and on the chips above it next to All (#642): privacy, what the app shows, media and storage, how the app looks, and App for HushGram's own updates, backup, pause and about
+Privacy	Datenschutz
+Content	Inhalte
+Media and storage	Medien und Speicher
+Look	Aussehen
+App	App
 Posts	Beiträge
 Nothing matches.	Keine Treffer.
 Couldn't open that one.	Das ließ sich nicht öffnen.
@@ -1759,7 +1769,7 @@ Open a chat, tap the clock button next to the call buttons at the top, or long p
 Open a chat, tap the clock button next to the call buttons at the top, or long press the chat's name, and pick Export chat. The whole chat is saved as a text file in Downloads, HushGram folder, one line per message.	Öffne einen Chat, tippe oben auf die Uhr-Taste neben den Anruf-Tasten oder halte den Namen des Chats gedrückt und wähle Chat exportieren. Der ganze Chat wird als Textdatei im Ordner HushGram unter Downloads gespeichert, eine Zeile pro Nachricht.
 Instagram stopped loading older messages.	Instagram lädt keine älteren Nachrichten mehr.
 Black settings page	Schwarze Einstellungsseite
-Black rows and dialogs, HushGram's name at the top, and each category on one line.	Schwarze Zeilen und Dialoge, der Name HushGram oben und jede Kategorie in einer Zeile.
+Black rows and dialogs, with HushGram's name at the top.	Schwarze Zeilen und Dialoge, mit dem Namen HushGram oben.
 Mark as read	Als gelesen markieren
 Nothing to mark as read	Nichts als gelesen zu markieren
 Mark as read button in chats	Als-gelesen-Taste in Chats
@@ -1976,6 +1986,9 @@ Leaves out the live broadcasts Instagram puts between reels in the Reels tab and
 # context: a switch on the Feed page; Watch again is the button on the card Instagram shows when a reel in the feed ends, next to Watch more reels
 Watch again in the feed	Erneut ansehen im Feed
 When a reel in your feed ends, Watch again plays it over right there instead of opening Reels.	Wenn ein Reel in deinem Feed endet, spielt „Erneut ansehen“ es direkt dort noch einmal ab, statt Reels zu öffnen.
+# context: a switch on the Feed page under Watch again in the feed; Watch more reels is the big button on the card Instagram shows when a reel in the feed ends, it opens Reels
+Hide Watch more reels	„Mehr Reels ansehen“ ausblenden
+Takes the Watch more reels button off the card a reel in your feed shows when it ends. Watch again stays.	Entfernt die Schaltfläche „Mehr Reels ansehen“ von der Karte, die erscheint, wenn ein Reel in deinem Feed endet. „Erneut ansehen“ bleibt.
 # context: a switch on the Playback page under Keep playing in the background; Android's own name for picture in picture
 Picture in picture for reels	Bild-im-Bild für Reels
 Leaving Instagram while a reel plays shrinks it into a small window over your other apps. Works in Reels and on reels opened from the feed, on Android 15 or newer.	Wenn du Instagram verlässt, während ein Reel läuft, schrumpft es zu einem kleinen Fenster über deinen anderen Apps. Funktioniert in Reels und bei Reels, die du aus dem Feed öffnest, ab Android 15.
@@ -2033,6 +2046,9 @@ Posts from your hidden accounts still show in Favorites. For you and Following l
 # context: switch next to Lock your messages; Saved is Instagram's page of your saved posts and collections (#597)
 Lock Saved	„Gespeichert“ sperren
 Saved and everything in it stay covered until your fingerprint, face or screen lock says it's you.	„Gespeichert“ und alles darin bleibt abgedeckt, bis dein Fingerabdruck, dein Gesicht oder deine Displaysperre bestätigt, dass du es bist.
+# context: switch under Lock your messages; on, an unlock opens only the chat it was asked in, so the next chat, or going back to the inbox, asks for the fingerprint, face, screen lock or PIN again (#649)
+Ask for each chat	Für jeden Chat fragen
+Every chat you open asks again, and so does your inbox when you go back to it. Off, one unlock opens everything until you leave Instagram.	Jeder Chat, den du öffnest, fragt erneut, und dein Posteingang auch, wenn du zu ihm zurückkehrst. Ist es aus, öffnet eine Entsperrung alles, bis du Instagram verlässt.
 Saved is locked	„Gespeichert“ ist gesperrt
 Unlock Saved	„Gespeichert“ entsperren
 # context: three-dot menu row on a reel or feed video with Stop videos looping on; makes only the video on screen play again and again (#610)

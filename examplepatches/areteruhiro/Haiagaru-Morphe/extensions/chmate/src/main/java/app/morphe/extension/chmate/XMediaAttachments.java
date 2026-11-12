@@ -10,6 +10,10 @@ import org.json.JSONObject;
 
 /** Public X embed metadata only; no login credentials or third-party mirrors. */
 public final class XMediaAttachments {
+    private static final java.util.Map<String,String> FAILURE_POSTERS=java.util.Collections.synchronizedMap(
+            new java.util.LinkedHashMap<String,String>(){
+                @Override protected boolean removeEldestEntry(java.util.Map.Entry<String,String> entry){return size()>256;}
+            });
     private static final java.util.Map<String, String> FRAME_POSTERS = java.util.Collections.synchronizedMap(
             new java.util.LinkedHashMap<String, String>() {
                 @Override protected boolean removeEldestEntry(java.util.Map.Entry<String, String> entry) { return size() > 256; }
@@ -51,11 +55,12 @@ public final class XMediaAttachments {
 
     static void setGeneratedPoster(String url, String poster) { POSTERS.put(url, poster); }
     static boolean hasFramePoster(String url,String variant){return FRAME_POSTERS.containsKey(variant+":"+url);}
-    static void setFramePoster(String url, String variant, String poster) { FRAME_POSTERS.put(variant + ":" + url, poster); }
-    static boolean isPoster(String url) { return POSTERS.containsValue(url) || FRAME_POSTERS.containsValue(url); }
+    static void setFramePoster(String url, String variant, String poster) { FRAME_POSTERS.put(variant + ":" + url, poster);FAILURE_POSTERS.remove(variant+":"+url); }
+    static void setFailurePoster(String url,String variant,String poster){FAILURE_POSTERS.put(variant+":"+url,poster);}
+    static boolean isPoster(String url) { return POSTERS.containsValue(url) || FRAME_POSTERS.containsValue(url) || FAILURE_POSTERS.containsValue(url); }
     static String sourceVideo(String poster){
         String result=null;
-        for(java.util.Map<String,String> map:new java.util.Map[]{POSTERS,FRAME_POSTERS})synchronized(map){
+        for(java.util.Map<String,String> map:new java.util.Map[]{POSTERS,FRAME_POSTERS,FAILURE_POSTERS})synchronized(map){
             for(java.util.Map.Entry<String,String> entry:map.entrySet())if(java.util.Objects.equals(poster,entry.getValue())){
                 String key=entry.getKey();int start=key.indexOf("https://");if(start<0)start=key.indexOf("http://");
                 if(start<0)continue;String url=key.substring(start);if(!isVideo(url))continue;
@@ -67,7 +72,13 @@ public final class XMediaAttachments {
     static String generatedPoster(String url) {
         if (VideoFrameThumbnail.fourAllowed()) VideoFrameThumbnail.request(url);
         String frame = FRAME_POSTERS.get(VideoFrameThumbnail.currentVariant() + ":" + url);
-        return frame != null ? frame : POSTERS.get(url);
+        if(frame!=null)return frame;String poster=POSTERS.get(url);
+        return poster!=null?poster:FAILURE_POSTERS.get(VideoFrameThumbnail.currentVariant()+":"+url);
+    }
+    /** Only usable images: never project video failure cards into thread-list rows. */
+    static String readyThumbnailPoster(String url) {
+        String frame=FRAME_POSTERS.get(VideoFrameThumbnail.currentVariant()+":"+url);
+        return frame!=null?frame:POSTERS.get(url);
     }
     public static boolean isVideo(String url) { return DirectVideoUrls.supported(url); }
 

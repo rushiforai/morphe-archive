@@ -126,6 +126,7 @@ public final class PosterIdChainNg {
      * These maps are rebuilt by ChMate; no saved NG registrations or DAT are changed.
      */
     public static void applyHidden(Object owner) {
+        RegisteredImageNg.apply(owner);
         EdgeLevelNg.apply(owner);
         ChainAboneVisibility.apply(owner);
         if (owner == null || !Haiagaru.hideNgWordIdReplies()) return;

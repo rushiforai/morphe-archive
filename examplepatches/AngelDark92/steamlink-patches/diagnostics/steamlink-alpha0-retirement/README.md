@@ -1,3 +1,14 @@
+# Alpha-0 high-resolution trigger - restored (2026-11-12)
+
+> **Current state (2026-11-12):** the 2026-11-06 retirement below was reversed.
+> Alpha-0 high-resolution trigger is restored verbatim from v2.6.0: default on,
+> six exact bases (5001712, 5001812, 5001968, 5002244, 5002363, 5002395), original
+> helper libraries and manifest. Stock quad composition is restored to its v2.6.0
+> state, experimental and default off. The removed `Native quad composition`
+> patch is not restored; a separate `Native quad far plane (experimental)` patch
+> targets `2.0.20/5001712` only. The sections below are the historical retirement
+> record and no longer describe the shipped patch set.
+
 # Alpha-0 high-resolution trigger and Appear on top - retired (2026-11-06)
 
 Owner decision: Stock quad composition replaces the Alpha-0 high-resolution trigger as

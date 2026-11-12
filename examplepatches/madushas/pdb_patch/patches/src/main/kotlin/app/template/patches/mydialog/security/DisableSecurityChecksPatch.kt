@@ -47,7 +47,6 @@ val myDialogDisableSecurityChecksPatch = bytecodePatch(
         "reported clean so patched builds pass.",
     default = true,
 ) {
-    category("Security")
     compatibleWith(MYDIALOG_COMPATIBILITY)
 
     execute {

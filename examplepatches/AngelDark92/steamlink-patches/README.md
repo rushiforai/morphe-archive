@@ -86,7 +86,7 @@ For the best Optical Flow experience, install the [Galaxy XR Driver](https://git
 
 - **Face and tongue tracking:** install VRCFaceTracking and the [Galaxy XR LinkFT module](https://github.com/compdoge/LinkFT); enable OSC, eye and face sharing in Steam Link; set the output port to **9015**.
 - **USB streaming** (2.0.23/5002363): [setup guide](Install/USB-STREAMING.md). Wi-Fi must stay on for discovery; longer stability untested.
-- **Experimental patches:** Stock quad composition, Controller pose time, OpenXR CPU and GPU BOOST and the 4XVR premium unlock are off by default, not in the recommended set; headset validation is pending.
+- **Experimental patches:** Stock quad composition, Native quad far plane (2.0.20/5001712 only), Controller pose time, OpenXR CPU and GPU BOOST and the 4XVR premium unlock are off by default, not in the recommended set; headset validation is pending.
 
 ---
 

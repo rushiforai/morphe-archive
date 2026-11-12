@@ -185,6 +185,42 @@ public class RegistryCodecTest {
     }
 
     @Test
+    public void decodesTheIconFixture() throws IOException {
+        RegistryCodec.Result result = RegistryCodec.decode(fixture("registry-v1-icons.txt"));
+        assertTrue(result.supported);
+        assertEquals(0, result.skipped);
+        assertEquals(6, result.features.size());
+        // The calm-mode flag is the twelfth field.
+        assertTrue(result.features.get(5).calm);
+        assertFalse(result.features.get(0).calm);
+        assertFalse(result.features.get(1).calm);
+        // The fourth and fifth switches form one choice group; the first three are plain.
+        assertEquals("", result.features.get(0).choice);
+        assertEquals("", result.features.get(2).choice);
+        assertEquals("Animation speed", result.features.get(3).choice);
+        assertEquals("Animation speed", result.features.get(4).choice);
+        assertEquals("play", result.features.get(3).icon);
+        Feature ads = result.features.get(0);
+        assertEquals("ads", ads.icon);
+        assertFalse(ads.isList());
+        assertTrue(ads.defaultEnabled);
+        Feature countries = result.features.get(1);
+        assertEquals("globe", countries.icon);
+        assertTrue(countries.isList());
+        // No icon field: the category's icon applies, signalled by an empty key.
+        assertEquals("", result.features.get(2).icon);
+    }
+
+    @Test
+    public void aBadIconEscapeFallsBackToNoIcon() {
+        String record = "hevalcontrols-registry:1\n"
+                + "x.a\tA\t\tX\t1\t0\t0\t\t\t\\q\n";
+        RegistryCodec.Result result = RegistryCodec.decode(record);
+        assertEquals(1, result.features.size());
+        assertEquals("", result.features.get(0).icon);
+    }
+
+    @Test
     public void listFeatureConstructorRules() {
         Feature legacy = new Feature("x.a", "A", "", "X", true, false, false, null);
         assertEquals(Feature.KIND_SWITCH, legacy.kind);

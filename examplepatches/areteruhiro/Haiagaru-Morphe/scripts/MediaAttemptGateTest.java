@@ -20,6 +20,10 @@ public final class MediaAttemptGateTest {
         AtomicInteger accepted=new AtomicInteger();List<Future<?>> futures=new ArrayList<>();
         for(int i=0;i<100;i++)futures.add(workers.submit(()->{if(single.begin("same",1))accepted.incrementAndGet();}));
         for(Future<?> f:futures)f.get();workers.shutdown();check(accepted.get()==1);
+        check(single.running("same"));check(!single.beginManual("same",2));
+        single.finish("same",false,3);check(!single.running("same"));check(!single.begin("same",4));
+        check(single.beginManual("same",4));check(!single.beginManual("same",5));
+        single.finish("same",true,6);check(!single.running("same"));
         System.out.println("PASS media retry gate "+checks);
     }
 }

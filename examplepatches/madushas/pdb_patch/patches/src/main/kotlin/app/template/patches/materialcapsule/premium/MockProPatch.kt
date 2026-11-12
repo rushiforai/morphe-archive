@@ -60,7 +60,6 @@ val materialCapsuleMockProPatch = bytecodePatch(
         "No purchase is fabricated; real purchases and restore still work.",
     default = true,
 ) {
-    category("Premium")
     compatibleWith(MATERIAL_CAPSULE_COMPATIBILITY)
 
     val returnTrue = "sget-object v0, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;\n" +

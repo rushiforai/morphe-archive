@@ -5,7 +5,8 @@ import app.morphe.util.returnEarly
 import app.template.patches.shared.Constants.COMPATIBILITY_INTERVALTIMER
 
 // "Ad-free" (adbuster) is the app's only entitlement. The ad state is an int: 3 = ad-free, 2 =
-// rewarded-ad window active, 1 = show ads (User also has 0 = unknown). Every ad path asks the
+// rewarded-ad window active (AppInstallation only since 2.3.31), 1 = show ads (User also has
+// 0 = unknown). Every ad path asks the
 // signed-in User first and falls back to the AppInstallation, so both getters answer 3:
 //   - ApplicationViewModel: 3 or 2 publishes an empty native-ad slot map and never calls
 //     MobileAds.initialize (the only call site), so no native ad rows are reserved or loaded.

@@ -18,6 +18,13 @@ Second \"item\" text"</string>
 <resources>
   <string name="reddit_privacy_policy">นโยบายความเป็นส่วนตัวของ Reddit</string>
   <string name="morphe_google_signin_not_available_toast">ไม่สามารถเข้าสู่ระบบด้วย Google ได้ กรุณาใช้อีเมลเพื่อเข้าสู่ระบบ</string>
+  <string name="morphe_app_downgrade_dialog_title">ไม่รองรับการลดเวอร์ชัน</string>
+  <string name="morphe_app_downgrade_dialog_message">"การติดตั้ง Reddit นี้ถูกลดเวอร์ชันจาก &lt;b&gt;%1$s&lt;/b&gt; เป็น &lt;b&gt;%2$s&lt;/b&gt;
+&lt;br/&gt;&lt;br/&gt;
+ข้อมูลแอปจากเวอร์ชันที่ใหม่กว่าไม่สามารถใช้งานกับเวอร์ชันที่เก่ากว่าได้ และแอปอาจทำงานไม่ถูกต้อง
+&lt;br/&gt;&lt;br/&gt;
+หากต้องการใช้เวอร์ชันที่เก่ากว่า คุณต้อง &lt;b&gt;ถอนการติดตั้ง&lt;/b&gt; Reddit จากนั้นจึงติดตั้งเวอร์ชันที่เก่ากว่า"</string>
+  <string name="morphe_app_downgrade_dialog_open_app_info">เปิดข้อมูลแอป</string>
   <string name="morphe_screen_ads_title">โฆษณา</string>
   <string name="morphe_hide_post_ads_title">ซ่อนโฆษณาในฟีด</string>
   <string name="morphe_hide_comment_ads_title">ซ่อนโฆษณาในความคิดเห็น</string>
@@ -55,9 +62,11 @@ Second \"item\" text"</string>
   <string name="morphe_hide_communities_shelf_title">ซ่อนชั้นชุมชน</string>
   <string name="morphe_hide_communities_shelf_summary">ซ่อนชั้นชุมชนที่เกี่ยวข้องหรือแนะนำในซับเรดดิต</string>
   <string name="morphe_hide_trending_shelves_title">ซ่อนชั้นวางกำลังเป็นที่นิยม</string>
-  <string name="morphe_hide_trending_shelves_summary">ซ่อนชั้นวางสินค้าที่กำลังเป็นที่นิยมออกจากฟีดและคำแนะนำในการค้นหา</string>
+  <string name="morphe_hide_trending_shelves_summary">ซ่อนชั้นวางที่กำลังมาแรงจากฟีดและคำแนะนำในการค้นหา</string>
   <string name="morphe_remove_notification_dialog_title">นำกล่องโต้ตอบคำแนะนำการแจ้งเตือนออก</string>
   <string name="morphe_remove_notification_dialog_summary">ปิดกล่องโต้ตอบคำแนะนำการแจ้งเตือนโดยอัตโนมัติเมื่อเข้าสู่ subreddit</string>
+  <string name="morphe_high_quality_avatars_title">อวตารคุณภาพสูง</string>
+  <string name="morphe_high_quality_avatars_summary">แสดงอวตารของผู้ใช้ด้วยความละเอียดเต็มรูปแบบ</string>
   <string name="morphe_show_flairs_in_home_feed_title">แสดงแฟลร์ในฟีดหน้าแรก</string>
   <string name="morphe_show_flairs_in_home_feed_summary">แสดงตราสัญลักษณ์แฟลร์ของโพสต์ในฟีดหน้าแรก</string>
   <string name="morphe_show_flairs_in_home_feed_user_dialog_message">บางรายการในฟีดอาจไม่แสดงแฟลร์</string>
@@ -84,10 +93,6 @@ Second \"item\" text"</string>
   <string name="morphe_keep_feed_position_summary">คงฟีดไว้ที่ตำแหน่งเดิมหลังจากปิดโพสต์ รูปภาพ หรือวิดีโอ แทนที่จะเลื่อนโพสต์ที่เปิดไปไว้ด้านบน</string>
   <string name="morphe_feed_media_max_height_title">ความสูงสูงสุดของสื่อในฟีด</string>
   <string name="morphe_feed_media_max_height_summary">ความสูงสูงสุดของรูปภาพ วิดีโอ และแกลเลอรีในฟีด โดยคิดเป็นเท่าของความกว้าง สื่อที่สูงเกินไปจะถูกครอบตัด 1.33 คือค่าเริ่มต้นของ Reddit</string>
-  <string name="morphe_redgifs_audio_title">เล่นวิดีโอ Redgifs พร้อมเสียง</string>
-  <string name="morphe_redgifs_audio_summary">เล่นวิดีโอต้นฉบับจาก Redgifs แทนเวอร์ชันจาก Reddit ซึ่งมักไม่มีเสียง</string>
-  <string name="morphe_redgifs_hd_title">คุณภาพ HD ของ Redgifs</string>
-  <string name="morphe_redgifs_hd_summary">เล่นวิดีโอ Redgifs ความละเอียดสูง HD วิดีโอขนาดใหญกว่าอาจหยุดชั่วคราวเพื่อโหลด</string>
   <string name="morphe_download_location_title">ตำแหน่งที่ดาวน์โหลด</string>
   <string name="morphe_download_location_all_title">ทุกบัญชี</string>
   <string name="morphe_download_location_default_summary">ค่าเริ่มต้นของ Reddit: รูปภาพใน Pictures/Reddit, วิดีโอใน Download</string>
@@ -120,7 +125,7 @@ Second \"item\" text"</string>
   <string name="morphe_download_location_account_current">%s (ปัจจุบัน)</string>
   <string name="morphe_download_location_account_logged_out">%s (ออกจากระบบ)</string>
   <string name="morphe_download_location_account_anonymous">ผู้ใช้ทั่วไป (ออกจากระบบหรือโหมดไม่ระบุตัวตน)</string>
-  <string name="morphe_hide_media_viewer_overlay_title">ซ่อนโอเวอร์เลย์ของตัวแสดงสื่อ</string>
+  <string name="morphe_hide_media_viewer_overlay_title">ซ่อนภาพซ้อนทับของตัวแสดงสื่อ</string>
   <string name="morphe_hide_media_viewer_overlay_summary">ซ่อนชื่อเรื่อง ปุ่ม และตัวควบคุมวิดีโอเมื่อเปิดรูปภาพหรือวิดีโอ แตะที่สื่อเพื่อแสดงสิ่งเหล่านั้น</string>
   <string name="morphe_hide_join_conversation_button_title">ซ่อนปุ่มดูการสนทนา</string>
   <string name="morphe_hide_join_conversation_button_summary">ซ่อนปุ่ม \"ดูการสนทนา\" ที่ด้านล่างของตัวแสดงสื่อ</string>

@@ -43,7 +43,16 @@ internal object BrazePushInitializeFingerprint : Fingerprint(
     definingClass = "Lcom/eet/service/braze/push/BrazePushService;",
     name = "initialize",
     returnType = "Ljava/lang/Object;",
-    parameters = listOf("Landroid/content/Context;", "Lkotlin/coroutines/Continuation;"),
+    parameters = listOf("Landroid/content/Context;", "L"), // Continuation is R8-renamed since 1.10.31
+)
+
+// kotlin.Unit is R8-renamed since 1.10.31; its toString still returns "kotlin.Unit" (same anchor
+// as Niagara's).
+internal object KotlinUnitToStringFingerprint : Fingerprint(
+    name = "toString",
+    returnType = "Ljava/lang/String;",
+    parameters = listOf(),
+    strings = listOf("kotlin.Unit"),
 )
 
 internal object FirebaseSetCrashCollectionEnabledFingerprint : Fingerprint(

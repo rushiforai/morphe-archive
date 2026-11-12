@@ -58,13 +58,14 @@ public sealed partial class ScenarioShapeTests
 
     [Theory]
     [MemberData(nameof(Scenarios))]
-    public void Scenario_IsInTheStartupOrTheLoggedInGroup(string scenario)
+    public void Scenario_IsInTheStartupTheLoggedInOrTheManagerGroup(string scenario)
     {
         var method = Find(scenario);
         Assert.True(
             ScenarioGroups.Of(method.DeclaringType!) is not null,
             $"{scenario} is in Scenarios/{ScenarioNaming.ToDomainFolder(method.DeclaringType!)}: a scenario goes under Scenarios/Startup/ "
-            + "(how the app starts: patched with only the patches its Given names) or Scenarios/LoggedIn/ (patched with every patch).");
+            + "(how the app starts: patched with only the patches its Given names), Scenarios/LoggedIn/ (patched with every patch) "
+            + "or Scenarios/Manager/ (patched through the patcher's manager).");
     }
 
     [Theory]
@@ -78,7 +79,20 @@ public sealed partial class ScenarioShapeTests
         switch (ScenarioGroups.Of(method.DeclaringType!), Vocabulary.PatchSet.Of(method))
         {
             case (_, null):
-                Assert.Fail($"{scenario} needs one of [PatchedWith(…)] (Startup) or [PatchedWithEveryPatch] (LoggedIn): BaseE2E wouldn't know what to patch BaconReader with.");
+                Assert.Fail($"{scenario} needs one of [PatchedWith(…)] (Startup), [PatchedWithEveryPatch] (LoggedIn) or [PatchedByTheManager] (Manager): "
+                    + "BaseE2E wouldn't know what to patch BaconReader with.");
+                break;
+            case (ScenarioGroup.Manager, Vocabulary.PatchSet.ByTheManager):
+                Assert.True(
+                    given.Any(line => ManagerLine().IsMatch(line)) && named.Length == 0 && !saysEveryPatch,
+                    $"{scenario} is patched through the patcher's manager, so its Given says the manager is installed, and names no patch: "
+                    + "Given Morphe Manager is installed.");
+                break;
+            case (ScenarioGroup.Manager, _):
+                Assert.Fail($"{scenario} is a Manager scenario: the patcher's manager patches its app, through the screens, [PatchedByTheManager].");
+                break;
+            case (_, Vocabulary.PatchSet.ByTheManager):
+                Assert.Fail($"{scenario} is patched through the patcher's manager, [PatchedByTheManager]: it goes under Scenarios/Manager/.");
                 break;
             case (ScenarioGroup.LoggedIn, Vocabulary.PatchSet.Every):
                 Assert.True(
@@ -143,6 +157,9 @@ public sealed partial class ScenarioShapeTests
 
     [GeneratedRegex("^(?:Given|And) BaconReader is patched with \"([^\"]+)\"$")]
     private static partial Regex PatchLine();
+
+    [GeneratedRegex("^(?:Given|And) (?:Morphe|Reseam) Manager is installed$")]
+    private static partial Regex ManagerLine();
 
     [GeneratedRegex("^(?:Given|And) BaconReader is patched with every patch$")]
     private static partial Regex EveryPatchLine();

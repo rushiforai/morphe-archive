@@ -1,9 +1,11 @@
 package app.template.patches.steamlink.androidxr
 
+import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.rawResourcePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.template.patches.shared.Constants.COMPATIBILITIES_STEAM_LINK_HIGH_RESOLUTION
+import app.template.patches.shared.Constants.EXPERIMENTAL_COMPATIBILITY_NAME
 import app.template.patches.shared.Constants.isHighResolutionSteamLinkBuild
 import app.template.patches.shared.PatchCategories
 import app.template.patches.shared.buildLabel
@@ -17,16 +19,20 @@ internal const val STOCK_QUAD_MANIFEST = "XR_APILAYER_local_GalaxyXR_stock_quad_
 internal const val STOCK_QUAD_BUILD_ID = "stock-quad-5002527-v1"
 private const val STEAM_LINK_PACKAGE = "com.valvesoftware.steamlinkvr"
 
-// Keep the two quad modes exclusive without introducing a patch dependency between them.
-private const val NATIVE_QUAD_LIBRARY_MARKER = "libgxr_quad_native.so"
-private const val MUTUAL_EXCLUSION_MESSAGE =
-    "Choose only one quad-composition mode. Disable the other one and start from a clean APK when switching."
-
 // Pins of the bundled payload built from extensions/stock-quad-composition.
 internal const val STOCK_QUAD_HELPER_SHA256 =
     "d2cd78acdb6072ee461fa3f5729087a7ad988b13399b90fa4d07d8e670afb964"
 internal const val STOCK_QUAD_MANIFEST_SHA256 =
     "08ac03af8e80f11ca78f92e99e7f5622139211b41e50794f61f61d1c61132fc6"
+
+private val STOCK_QUAD_COMPATIBILITIES =
+    COMPATIBILITIES_STEAM_LINK_HIGH_RESOLUTION.map { exact ->
+        Compatibility(
+            name = EXPERIMENTAL_COMPATIBILITY_NAME,
+            packageName = requireNotNull(exact.packageName),
+            targets = exact.targets,
+        )
+    }
 
 internal fun isStockQuadSteamLinkBuild(versionName: String, versionCode: String): Boolean =
     isHighResolutionSteamLinkBuild(versionName, versionCode)
@@ -56,8 +62,9 @@ internal fun validateStockQuadPayload(helper: ByteArray, manifest: ByteArray) {
 
 /**
  * Installs the stock-quad layer into an unpacked APK. Returns false, touching nothing, for any
- * package/build outside the exact registry. Fails closed on retired renderer hooks and stale or
- * modified stock-quad files; removes retired Alpha-0 leftovers; writes are staged and rolled back together.
+ * package/build outside the exact registry. Fails closed on retired renderer hooks, an Alpha-0 or
+ * native far-plane payload, and stale or modified stock-quad files; writes are staged and rolled
+ * back together.
  */
 internal fun installStockQuadResources(
     apkRoot: File,
@@ -84,18 +91,25 @@ internal fun installStockQuadResources(
     }
 
     val libDir = sceneFile.parentFile!!
+    val layerDir = File(apkRoot, "assets/openxr/1/api_layers/implicit.d")
 
-    // Mutual exclusion with the native-quad mode, checked before loading or staging stock resources.
-    if (File(libDir, NATIVE_QUAD_LIBRARY_MARKER).exists() ||
-        sceneBytes.toString(Charsets.ISO_8859_1).contains(NATIVE_QUAD_LIBRARY_MARKER)
+    // The native far-plane experiment owns its own renderer hook and helper file; two quad modes
+    // on one frame are not a defined topology.
+    if (File(libDir, NATIVE_QUAD_LIBRARY).exists() ||
+        sceneBytes.toString(Charsets.ISO_8859_1).contains(NATIVE_QUAD_LIBRARY)
     ) {
-        throw PatchException(MUTUAL_EXCLUSION_MESSAGE)
+        throw PatchException(QUAD_MODE_EXCLUSION_MESSAGE)
     }
 
-    val layerDir = File(apkRoot, "assets/openxr/1/api_layers/implicit.d")
     val helper = helperBytes ?: projectionModeResource(STOCK_QUAD_LIBRARY)
     val manifest = manifestBytes ?: projectionModeResource(STOCK_QUAD_MANIFEST)
     validateStockQuadPayload(helper, manifest)
+
+    // Alpha-0 appends its own trigger quad; both layers on one frame are not a defined topology.
+    if (File(libDir, ANDROID_SURFACE_TRIGGER_LIBRARY).exists() ||
+        File(layerDir, ANDROID_SURFACE_TRIGGER_MANIFEST).exists()) {
+        throw PatchException("Stock quad composition needs Alpha-0 high-resolution trigger deselected")
+    }
 
     val files = listOf(
         File(libDir, STOCK_QUAD_LIBRARY) to helper,
@@ -161,13 +175,14 @@ private val stockQuadResourcesPatch = rawResourcePatch {
 
 @Suppress("unused")
 val stockQuadCompositionPatch = resourcePatch(
-    name = "Stock quad composition",
+    name = "Stock quad composition (experimental)",
     description = "Rebuilds Steam Link's projection layers as eye-aware stock-style quads in a separate OpenXR layer. " +
-        buildLabel(COMPATIBILITIES_STEAM_LINK_HIGH_RESOLUTION),
-    default = true,
+        buildLabel(STOCK_QUAD_COMPATIBILITIES) +
+        " Needs: deselect Alpha-0 high-resolution trigger.",
+    default = false,
 ) {
     category(PatchCategories.IMAGE_QUALITY)
-    compatibleWith(*COMPATIBILITIES_STEAM_LINK_HIGH_RESOLUTION.toTypedArray())
+    compatibleWith(*STOCK_QUAD_COMPATIBILITIES.toTypedArray())
     dependsOn(stockQuadResourcesPatch)
 
     finalize {

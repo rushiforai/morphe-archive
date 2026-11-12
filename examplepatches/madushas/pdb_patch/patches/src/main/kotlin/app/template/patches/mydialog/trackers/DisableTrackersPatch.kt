@@ -52,7 +52,6 @@ val myDialogDisableTrackersPatch = resourcePatch(
         "opt-out flags.",
     default = true,
 ) {
-    category("Privacy")
     compatibleWith(MYDIALOG_COMPATIBILITY)
 
     execute {

@@ -1,5 +1,8 @@
 # Stock-style quad composition layer (experimental)
 
+Default-off experimental layer, not part of any recommended set. The Alpha-0 high-resolution trigger
+is the recommended high-resolution path; select only one of the two.
+
 Separate OpenXR API layer that reproduces the Steam Link 5002527 submission from the projection
 layers older Steam Link bases submit. It is not the Alpha-0 trigger and shares no code, library or
 manifest name with Alpha-0 or any retired quad mode. Static/host evidence only: there is no headset

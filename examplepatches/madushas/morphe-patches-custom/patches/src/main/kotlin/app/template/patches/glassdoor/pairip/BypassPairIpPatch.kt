@@ -33,7 +33,6 @@ val glassdoorBypassPairIpPatch = bytecodePatch(
         "and restores the runtime strings the VM would have provided.",
     default = true,
 ) {
-    category("PairIP")
     compatibleWith(GLASSDOOR_COMPATIBILITY)
 
     dependsOn(

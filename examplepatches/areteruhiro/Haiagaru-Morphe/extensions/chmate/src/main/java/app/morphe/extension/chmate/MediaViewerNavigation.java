@@ -16,6 +16,29 @@ public final class MediaViewerNavigation {
     static final String THREAD_EXTRA="haiagaru.media.thread";
     private static final WeakHashMap<Activity,Swipe> SWIPES=new WeakHashMap<>();
     private static final WeakHashMap<Intent,ThreadGallery> THREAD_GALLERIES=new WeakHashMap<>();
+    public static final class NativeSelection {
+        public final ArrayList<String> links; public final int index;
+        NativeSelection(ArrayList<String> links,int index){this.links=links;this.index=index;}
+    }
+    private static int nativeViewerType(android.content.Context context) {
+        android.content.SharedPreferences prefs=android.preference.PreferenceManager.getDefaultSharedPreferences(context);
+        try{return prefs.getInt("imageViewerType",0);}
+        catch(ClassCastException mismatch){try{return Integer.parseInt(prefs.getString("imageViewerType","0"));}catch(RuntimeException invalid){return 0;}}
+    }
+    /** Expand before native's size/type decision, so its own viewer and first-page policy remain authoritative. */
+    public static NativeSelection wholeThreadSelection(Activity activity,ArrayList<String> original,int index) {
+        if(activity==null||original==null||index<0||index>=original.size()||!Haiagaru.videoViewerEnabled()
+                ||!VideoViewerSettings.prefs(activity).getBoolean(VideoViewerSettings.THREAD_MEDIA,false))return null;
+        int mode=nativeViewerType(activity);if(mode!=1&&mode!=2)return null;
+        // Tapping inside the continuous viewer keeps its current scope/page.
+        if(activity.getClass().getName().equals("jp.syoboi.a2chMate.activity.ImageListActivity"))return null;
+        String selected=original.get(index),video=XMediaAttachments.sourceVideo(selected);
+        if(video!=null)selected=video;
+        ArrayList<String> all=ExtraQuickFilters.threadMedia(activity,selected);
+        if(all==null||all.size()<2)return null;
+        int position=all.indexOf(PreviewUrls.normalize(selected));
+        return position<0?null:new NativeSelection(all,position);
+    }
     private static final class ThreadGallery {
         final ArrayList<String> source,links;final String selected;
         ThreadGallery(ArrayList<String> source,String selected,ArrayList<String> links){this.source=source;this.selected=selected;this.links=links;}
@@ -47,7 +70,7 @@ public final class MediaViewerNavigation {
         if(intent==null||context==null||!Haiagaru.videoViewerEnabled())return;
         ArrayList<String> nativeLinks=intent.getStringArrayListExtra("links");int index=intent.getIntExtra("index",0);
         if(nativeLinks==null||index<0||index>=nativeLinks.size())return;
-        if(VideoViewerSettings.prefs(context).getBoolean(VideoViewerSettings.THREAD_MEDIA,false)){
+        if(VideoViewerSettings.prefs(context).getBoolean(VideoViewerSettings.THREAD_MEDIA,false)||nativeLinks.get(index).contains("/video-error-")){
             String video=XMediaAttachments.sourceVideo(nativeLinks.get(index));
             if(video!=null){nativeLinks=new ArrayList<>(nativeLinks);nativeLinks.set(index,video);intent.putStringArrayListExtra("links",nativeLinks);}
         }
@@ -60,6 +83,7 @@ public final class MediaViewerNavigation {
     /** 242 normally opens an embedded image Fragment, bypassing the Activity Intent factory. */
     static boolean openThreadThumbnail(android.content.Context context,String selected){
         if(context==null||!Haiagaru.videoViewerEnabled()||!VideoViewerSettings.prefs(context).getBoolean(VideoViewerSettings.THREAD_MEDIA,false))return false;
+        int mode=nativeViewerType(context);if(mode==1||mode==2)return false;
         String video=XMediaAttachments.sourceVideo(selected);if(video!=null)selected=video;
         android.content.Context base=context;
         for(int depth=0;depth<16&&base instanceof android.content.ContextWrapper&&!(base instanceof Activity);depth++)base=((android.content.ContextWrapper)base).getBaseContext();
@@ -226,7 +250,27 @@ public final class MediaViewerNavigation {
         if(current<0||next<0||next>=links.size())return false;
         activity.startActivity(destination(activity,links,next));activity.finish();activity.overridePendingTransition(0,0);return true;
     }
-    public static boolean onNativeTouch(Activity activity,MotionEvent event) {return onTouch(activity,event,null);}
+    public static boolean onNativeTouch(Activity activity,MotionEvent event) {
+        if (event.getActionMasked() == MotionEvent.ACTION_DOWN
+                && hasNativeStillPager(activity)
+                && !activity.getIntent().getBooleanExtra(THREAD_EXTRA,false)) {
+            Intent intent = activity.getIntent();
+            ArrayList<String> gallery = intent.getStringArrayListExtra(EXTRA);
+            if (gallery == null) gallery = intent.getStringArrayListExtra("links");
+            if (!MediaGallery.needsExternalPaging(gallery,VideoViewerSettings.nativeGif(activity),VideoViewerSettings.nativeVideo(activity))) {
+                // Do not cancel the native drag or replace the Activity for each still image.
+                // Its live pager index can differ from the original launch Intent index.
+                SWIPES.remove(activity); return false;
+            }
+        }
+        return onTouch(activity,event,null);
+    }
+    private static boolean hasNativeStillPager(Activity activity) {
+        try {
+            Class.forName("jp.syoboi.a2chMate.activity.ImagesViewerViewModel",false,activity.getClassLoader());
+            return true;
+        } catch (ClassNotFoundException legacy) { return false; }
+    }
     static boolean onTouch(Activity activity,MotionEvent event,View surface) {
         int action=event.getActionMasked();Swipe swipe=SWIPES.get(activity);
         // Validate installation/version once per gesture, not on every MOVE frame.

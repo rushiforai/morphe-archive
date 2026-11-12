@@ -2,14 +2,14 @@
 
 [![Release](https://img.shields.io/github/v/release/ineednotitle/Proteus-Patches?include_prereleases&label=release&color=2563eb)](https://github.com/ineednotitle/Proteus-Patches/releases)
 [![Build](https://github.com/ineednotitle/Proteus-Patches/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/ineednotitle/Proteus-Patches/actions/workflows/build.yml)
-[![Patches](https://img.shields.io/badge/patches-179-2563eb)](patches-list.json)
-[![Universal](https://img.shields.io/badge/universal-25-7c3aed)](#universal-patches)
+[![Patches](https://img.shields.io/badge/patches-177-2563eb)](patches-list.json)
+[![Universal](https://img.shields.io/badge/universal-23-7c3aed)](#universal-patches)
 [![Apps](https://img.shields.io/badge/apps-31-f59e0b)](#whats-inside)
 [![License](https://img.shields.io/badge/license-GPL--3.0--only-16a34a)](LICENSE)
 
 **Proteus Patches** is a curated [Morphe](https://github.com/MorpheApp/Morphe)
 patch bundle for Android. It removes ads, trackers and privacy-hostile defaults
-from **31 popular apps**, and ships **25 universal patches** that work on almost
+from **31 popular apps**, and ships **23 universal patches** that work on almost
 any APK.
 
 > **Current pre-release:** [v2.2.10](https://github.com/ineednotitle/Proteus-Patches/releases/tag/v2.2.10) —
@@ -28,14 +28,28 @@ https://github.com/ineednotitle/Proteus-Patches
 
 ## Contents
 
+- [Support](#support)
 - [Install](#install)
 - [What's inside](#whats-inside)
 - [Safety](#safety)
 - [Documentation](#documentation)
 - [Build from source](#build-from-source)
 - [Contributing](#contributing)
-- [Support](#support)
 - [License](#license)
+
+## Support
+
+If these patches save you time or make an app more usable, you can support
+ongoing development:
+
+<p align="center">
+  <a href="https://liberapay.com/ineednotitle"><img alt="Donate via Liberapay" src="https://img.shields.io/badge/Liberapay-Donate-F6C915?style=for-the-badge&logo=liberapay&logoColor=black"></a>
+  <a href="https://ko-fi.com/A1A62AJ2Q8"><img alt="Support me on Ko-fi" src="https://img.shields.io/badge/Ko--fi-Support%20me-72A4F2?style=for-the-badge&logo=kofi&logoColor=white"></a>
+  <a href="https://coindrop.to/ineednotitle"><img alt="Donate via CoinDrop" src="https://img.shields.io/badge/CoinDrop-Donate-3D5A98?style=for-the-badge&logo=bitcoin&logoColor=white"></a>
+</p>
+
+Donations are optional. Bug reports, testing and focused pull requests help just
+as much.
 
 ## Install
 
@@ -56,7 +70,7 @@ The catalog below is generated from `patches-list.json`. Expand an app to see it
 compatible versions, patches and options.
 
 <!-- PATCHES_START -->
-> **[v2.2.10](https://github.com/ineednotitle/Proteus-Patches/releases/tag/v2.2.10)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;179 patches total
+> **[v2.3.0](https://github.com/ineednotitle/Proteus-Patches/releases/tag/v2.3.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;187 patches total
 
 ### Supported apps
 
@@ -71,7 +85,7 @@ compatible versions, patches and options.
 | [Everything Widgets](#app-com-jndapp-nothing-widgets-pack) | 2.1.014 | 3 |
 | [Excel](#app-com-microsoft-office-excel) | 16.0.20228.20090 | 1 |
 | [Firefox](#app-org-mozilla-firefox) | 158.0.2 | 2 |
-| [Gboard](#app-com-google-android-inputmethod-latin) | 18.5.4.993608717-release-arm64-v8a | 1 |
+| [Gboard](#app-com-google-android-inputmethod-latin) | 18.5.4.993608717-release-arm64-v8a · 18.5.4.993608717-release-armeabi-v7a | 2 |
 | [Google Photos](#app-com-google-android-apps-photos) | 7.97.0.997578476 | 7 |
 | [Hindustan Times](#app-com-ht-news) | 4.9.16 | 3 |
 | [Inure App Manager](#app-app-simple-inure-play) | build107.2.1 | 1 |
@@ -82,7 +96,8 @@ compatible versions, patches and options.
 | [Mint](#app-com-htmedia-mint) | 5.7.5 · 5.8.4 | 3 |
 | [MUBI](#app-com-mubi) | 100.0 · 99.1 | 16 |
 | [Pinterest](#app-com-pinterest) | 14.41.0 | 4 |
-| [Proton Pass](#app-proton-android-pass) | 1.41.3 | 1 |
+| [Proton Pass](#app-proton-android-pass) | 1.41.3 | 5 |
+| [Proton Pass (F-Droid)](#app-proton-android-pass-fdroid) | 1.41.3 | 5 |
 | [Proton VPN](#app-ch-protonvpn-android) | 5.19.78.0 | 1 |
 | [Proxyman](#app-com-proxyman-proxymanandroid) | 1.21.0 | 1 |
 | [Reddit](#app-com-reddit-frontpage) | 2026.42.0 · 2026.41.0 · 2026.40.0 · +3 more | 14 |
@@ -93,7 +108,7 @@ compatible versions, patches and options.
 | [trakt.TV Shows & Movies](#app-tv-trakt-trakt) | 3.26.1 | 1 |
 | [Word](#app-com-microsoft-office-word) | 16.0.20228.20090 | 1 |
 | [Yatri](#app-com-yatrirailways-yatri) | 5.0.6 | 1 |
-| [Universal patches](#universal-patches) | Any app | 25 |
+| [Universal patches](#universal-patches) | Any app | 23 |
 
 <a id="app-in-amazon-mshop-android-shopping"></a>
 <details>
@@ -276,17 +291,18 @@ compatible versions, patches and options.
 
 <a id="app-com-google-android-inputmethod-latin"></a>
 <details>
-<summary><strong>Gboard</strong> · 1 patch</summary>
+<summary><strong>Gboard</strong> · 2 patches</summary>
 <br>
 
 **Compatible versions**
 
-| 18.5.4.993608717-release-arm64-v8a |
-| :---: |
+| 18.5.4.993608717-release-arm64-v8a | 18.5.4.993608717-release-armeabi-v7a |
+| :---: | :---: |
 
 | Patch | Description | Options |
 | :--- | :--- | :--- |
-| [Offline-only voice typing & telemetry reduction](#offline-only-voice-typing-telemetry-reduction) | On Gboard 18.5.4.993608717 arm64, routes core voice typing only through the on-device<br>recognizers and returns no recognizer when a local provider/model is unavailable (no<br>online fallback). Disables Agentic Dictation's server/batch retry path, reduces selected<br>metrics/telemetry and disables app backup. INTERNET and unrelated network features are<br>retained; this is best-effort telemetry reduction, not a guarantee of zero Google traffic.<br><br>Requires the appropriate offline speech model/provider to be installed. Without one,<br>voice typing is unavailable by design. Agentic Dictation is disabled. |  |
+| [Disable Bluetooth voice routing](#disable-bluetooth-voice-routing) | Treats every Bluetooth audio device as an unusable car device so Gboard voice typing keeps using the built-in microphone. |  |
+| [Offline-only voice typing & telemetry reduction](#offline-only-voice-typing-telemetry-reduction) | On Gboard 18.5.4.993608717 arm/arm64, routes core voice typing only through the on-device<br>recognizers and returns no recognizer when a local provider/model is unavailable (no<br>online fallback). Disables Agentic Dictation's server/batch retry path, reduces selected<br>metrics/telemetry and disables app backup. INTERNET and unrelated network features are<br>retained; this is best-effort telemetry reduction, not a guarantee of zero Google traffic.<br><br>Requires the appropriate offline speech model/provider to be installed. Without one,<br>voice typing is unavailable by design. Agentic Dictation is disabled. |  |
 
 </details>
 
@@ -485,7 +501,7 @@ compatible versions, patches and options.
 
 <a id="app-proton-android-pass"></a>
 <details>
-<summary><strong>Proton Pass</strong> · 1 patch</summary>
+<summary><strong>Proton Pass</strong> · 5 patches</summary>
 <br>
 
 **Compatible versions**
@@ -495,6 +511,30 @@ compatible versions, patches and options.
 
 | Patch | Description | Options |
 | :--- | :--- | :--- |
+| [Allow screenshots](#allow-screenshots) | Removes FLAG_SECURE from Proton Pass activities, allowing screenshots and screen recording. |  |
+| [Disable app lock](#disable-app-lock) | Forces Proton Pass app lock and biometric authentication into the disabled/authenticated state and prevents auto-lock timeouts. |  |
+| [Disable clipboard auto-clear](#disable-clipboard-auto-clear) | Forces the clipboard clear delay to Never so copied passwords and aliases are not removed automatically. |  |
+| [Suppress telemetry](#suppress-telemetry) | Disables Proton Pass telemetry event dispatch, listeners and repository upload entry points. |  |
+| [Unlock Unlimited Plan](#unlock-unlimited-plan) | Forces Proton Pass Plus plan with all limits removed and paid features unlocked. |  |
+
+</details>
+
+<a id="app-proton-android-pass-fdroid"></a>
+<details>
+<summary><strong>Proton Pass (F-Droid)</strong> · 5 patches</summary>
+<br>
+
+**Compatible versions**
+
+| 1.41.3 |
+| :---: |
+
+| Patch | Description | Options |
+| :--- | :--- | :--- |
+| [Allow screenshots](#allow-screenshots) | Removes FLAG_SECURE from Proton Pass activities, allowing screenshots and screen recording. |  |
+| [Disable app lock](#disable-app-lock) | Forces Proton Pass app lock and biometric authentication into the disabled/authenticated state and prevents auto-lock timeouts. |  |
+| [Disable clipboard auto-clear](#disable-clipboard-auto-clear) | Forces the clipboard clear delay to Never so copied passwords and aliases are not removed automatically. |  |
+| [Suppress telemetry](#suppress-telemetry) | Disables Proton Pass telemetry event dispatch, listeners and repository upload entry points. |  |
 | [Unlock Unlimited Plan](#unlock-unlimited-plan) | Forces Proton Pass Plus plan with all limits removed and paid features unlocked. |  |
 
 </details>
@@ -716,36 +756,34 @@ compatible versions, patches and options.
 
 <a id="universal-patches"></a>
 <details>
-<summary><strong>Universal patches</strong> · 25 patches</summary>
+<summary><strong>Universal patches</strong> · 23 patches</summary>
 <br>
 
 | Patch | Description | Options |
 | :--- | :--- | :--- |
 | [Allow screenshots & screen recording](#allow-screenshots-screen-recording) | Attempts to remove recognizable FLAG_SECURE and secure SurfaceView settings<br>so screenshots and screen recordings can work. Some screens or protection<br>methods may still block capture, including payment or banking screens.<br><br>Applies to any app. Do not combine with "Block screenshots & screen recording". |  |
+| [Block Play Billing purchase prompts](#block-play-billing-purchase-prompts) | Removes Google Play Billing purchase-flow calls whose return value is unused,<br>so the purchase sheet does not open.<br><br>Applies to any app using Play Billing. This does not unlock paid features or<br>fake purchases. Best effort: flows that consume the returned BillingResult<br>are skipped. | • Block purchase flows |
+| [Block advertising & device IDs](#block-advertising-device-ids) | Makes the Google advertising ID empty, marks ad tracking as limited, and<br>blanks Android ID reads.<br><br>Applies to any app. Features that rely on a stable device identifier may<br>degrade or reset. | • Block advertising ID<br>• Block Android ID |
 | [Block analytics & tracking SDKs](#block-analytics-tracking-sdks) | Disables common analytics/tracking SDKs (Firebase Analytics, AppsFlyer, Adjust,<br>Facebook AppEvents, Segment, Amplitude, Mixpanel and similar) by removing their<br>event-reporting calls.<br><br>Heuristic: obfuscated or reflection-based reporting is not covered. Applies to<br>any app. |  |
 | [Block cleartext (HTTP) traffic](#block-cleartext-http-traffic) | Sets android:usesCleartextTraffic="false" so the app cannot send plaintext<br>HTTP requests. Breaks apps that still use legacy HTTP endpoints.<br><br>Applies to any app. |  |
+| [Block crash-reporting SDKs](#block-crash-reporting-sdks) | Removes reporting calls to Sentry, Firebase Crashlytics, Bugsnag, Datadog,<br>New Relic and AppCenter.<br><br>Applies to any app. Best effort: obfuscated SDKs and calls whose return value<br>is consumed are skipped. Crash reports will no longer reach the developer. | • Block crash reporting |
+| [Block in-app update & review prompts](#block-in-app-update-review-prompts) | Stops the app from offering Play Core in-app updates and review prompts.<br>Update availability is reported as unavailable, update flows and completion<br>calls are removed when safe, and review flows are removed when their return<br>value is unused.<br><br>Applies to any app using Google Play Core. Best effort: obfuscated Play Core<br>integrations or review flows that consume the returned Task are not covered. | • Block in-app update prompts<br>• Block in-app review prompts |
 | [Block screenshots & screen recording](#block-screenshots-screen-recording) | Attempts to add FLAG_SECURE to activity windows and secure SurfaceViews.<br>This can make screenshots and screen recordings show a black surface.<br>Only recognizable code with available registers can be changed, so this<br>is not a guarantee that all screens or capture methods are protected.<br><br>Applies to any app. Do not combine with "Allow screenshots & screen recording". |  |
 | [Block user-added certificate authorities](#block-user-added-certificate-authorities) | Removes user-added certificate authorities from the app's network security<br>config (if it declares one), so the app does not trust certificates installed<br>on the device.<br><br>Applies to any app. No effect if the app has no network security config. |  |
-| [Change package name (clone app)](#change-package-name-clone-app) | Installs a clone of any app beside the original by changing the package,<br>permission names, provider authorities and launcher label.<br><br>The clone is re-signed: payments, SDK logins, Google sign-in and anti-fraud<br>checks bound to the original signature may not work on the clone. | • Package name<br>• App name |
 | [Disable PairIP license check](#disable-pairip-license-check) | Disables PairIP license verification: integrity/VM checks, the licensing<br>client and repeated background checks.<br><br>Applies to any app. No effect if the app does not use PairIP. |  |
 | [Disable app backup (allowBackup=false)](#disable-app-backup-allowbackup-false) | Sets android:allowBackup="false" so the app's private data is excluded from<br>ADB backups, cloud backups and device-to-device transfers.<br><br>Applies to any app. You lose automatic backup/restore of this app's data. |  |
 | [Disable video autoplay (ExoPlayer/Media3)](#disable-video-autoplay-exoplayer-media3) | Stops ExoPlayer/Media3 players from starting on their own by flipping<br>literal 'setPlayWhenReady(true)' call sites to false.<br><br>Applies to any app bundling ExoPlayer/Media3. Heuristic: reflection or<br>obfuscated player setup is not covered. Can stop playback entirely in<br>apps whose only play path is a flipped literal call — turn it off if<br>videos never start. Applies best alongside the per-app Mint/HT entries.<br>Unverified on device. |  |
 | [Empty telephony identifiers (IMEI, phone number, SIM)](#empty-telephony-identifiers-imei-phone-number-sim) | Makes TelephonyManager device-identifier getters (IMEI, device ID, phone<br>number, subscriber ID, SIM serial, software version) return an empty string<br>to the app.<br><br>Applies to any app. Features that need the real IMEI/number may degrade. |  |
 | [Fix Firebase after re-signing](#fix-firebase-after-re-signing) | Fixes Firebase services (push notifications, Remote Config, Firebase Auth) that break after Morphe re-signs the app with a different certificate.<br><br>Apply with Original app certificate patch — no other config needed. |  |
-| [Force not debuggable](#force-not-debuggable) | Sets android:debuggable="false" in the manifest so the patched app cannot be<br>inspected or modified over ADB/USB debugging.<br><br>Applies to any app. Safe for release builds. |  |
+| [Force offline mode (simulate no network)](#force-offline-mode-simulate-no-network) | Makes connectivity APIs report no active network, no network capabilities and<br>disconnected network info, so apps that check connectivity behave as if the<br>device is offline.<br><br>Applies to any app. This is a best-effort simulation, not a firewall: sockets,<br>HTTP clients and code that ignores connectivity state can still reach the<br>network. | • Simulate offline device |
 | [GmsCore support (MicroG)](#gmscore-support-microg) | Routes Google Play Services calls through MicroG instead of real GPS.<br><br>Works for: Google apps (YouTube, Maps, News, Photos) and third-party apps using classic Google Sign-In (Android 13 and below).<br><br>Does not work for: Android 14+ Credential Manager sign-in (most modern third-party apps), Play Integrity / SafetyNet checks, or apps with custom auth.<br><br>Requires MicroG RE installed. Apply with Original app certificate patch. | • MicroG package name<br>• Main activity class (optional)<br>• Custom package name (optional) |
 | [Hide developer options & USB debugging](#hide-developer-options-usb-debugging) | Makes the app think Developer Options, USB (ADB) debugging and wireless<br>debugging are disabled, by forcing the settings reads apps use for these<br>checks to return "off" / "0".<br><br>Applies to any app. Only affects what the app itself sees. |  |
-| [Lock down exported components](#lock-down-exported-components) | Sets android:exported="false" on activities, services and receivers that have no<br>intent filter, so other apps cannot start them directly. Deep links, share-in<br>targets and the launcher activity (all of them have intent filters) are never<br>touched.<br><br>Applies to any app. May break apps that rely on explicitly exported entry points. |  |
 | [Prefer external browser over Custom Tabs](#prefer-external-browser-over-custom-tabs) | Opens links in the default external browser instead of an in-app Custom Tab,<br>by rewriting CustomTabsIntent.launchUrl call sites into ACTION_VIEW intents.<br><br>Applies to any app. Some apps rely on the Custom Tab session (shared cookies,<br>return results) and may misbehave. |  |
 | [Provide Original app certificate](#provide-original-app-certificate) | Automatically reads the signing certificate from the APK you are patching — no original app installed or file provided needed. Only fill the options below if you are patching an APK that was already re-signed (e.g. a previously patched build): in that case point to the original APK file, or enter the certificate manually. | • Path to original APK (if uninstalled)<br>• Certificate SHA-1 (manual)<br>• Certificate SHA-256 (manual)<br>• Certificate Base64 DER (manual) |
 | [Remove dangerous permissions](#remove-dangerous-permissions) | Removes selected permission declarations from an app's manifest. The patch<br>is off by default. When enabled, all category switches start ON, including<br>camera, storage, SMS and notifications. Turn off categories the app needs.<br><br>Permissions to keep always wins. Extra permissions are added to the selected<br>categories. A non-empty advanced list replaces the category selections,<br>except that AdServices remains controlled by its own switch.<br><br>Removing permissions can break features or prevent an app from starting.<br>This does not block every way an app may collect data. | • Package visibility<br>• Phone state & numbers<br>• Accounts<br>• Location<br>• Contacts<br>• Microphone<br>• Camera<br>• Storage & media<br>• SMS<br>• Calendar<br>• Sensors & activity<br>• Nearby devices<br>• Screen-capture detection<br>• Advertising ID<br>• AdServices permissions<br>• Notifications<br>• Permissions to keep<br>• Extra permissions to remove<br>• Advanced: exact removal list |
 | [Spoof Widevine / DRM level](#spoof-widevine-drm-level) | Reports Widevine L1 (hardware DRM) to apps that check DRM level locally.<br><br>Useful for apps that refuse to play HD/4K content on L3 devices or after re-signing.<br><br>Does not bypass server-side DRM - Netflix, Disney+ and similar are not affected.<br>Applies to any app; no effect if the app does not query Widevine. | • Widevine security level to report<br>• HDCP level to report |
-| [Spoof app signature](#spoof-app-signature) | Makes the app think its signing certificate is unchanged after Morphe re-signs it.<br><br>Useful when an app crashes or shows a tamper warning because it checks its own certificate.<br><br>Does not bypass Play Integrity / SafetyNet hardware attestation.<br><br>Apply with Original app certificate patch. | • Package name override (optional)<br>• Certificate Base64 override (optional) |
-| [Spoof install source](#spoof-install-source) | Makes the app think it was installed from a specific store (default: Google Play).<br><br>Useful when an app blocks features or shows errors because it detects it was not installed from the Play Store.<br><br>Only affects what the app itself sees - does not change the real system install record. | • Store to impersonate |
 | [Strip logging (android.util.Log)](#strip-logging-android-util-log) | Removes all android.util.Log calls from the app, so logcat cannot leak<br>URLs, tokens, PII or debug output produced by the app.<br><br>Applies to any app. Safe. |  |
-| [WebView: block mixed content (HTTPS pages load HTTP subresources)](#webview-block-mixed-content-https-pages-load-http-subresources) | Forces WebSettings.setMixedContentMode to NEVER_ALLOW, so HTTPS pages in the<br>app's WebViews cannot load plaintext HTTP subresources.<br><br>Applies to any app. May break legacy web content inside the app. |  |
-| [WebView: disable local file access](#webview-disable-local-file-access) | Disables WebView local file access (file://, content://, universal/file-URL<br>access) in every app, so web content cannot read the app's private files.<br><br>Applies to any app. Safe. |  |
-| [WebView: remove JavaScript interface objects](#webview-remove-javascript-interface-objects) | Removes addJavascriptInterface bridges from the app's WebViews so loaded web<br>content cannot invoke injected Java objects.<br><br>Applies to any app. Web flows that depend on the bridge (some logins) may break. |  |
+| [WebView hardening](#webview-hardening) | Hardens every WebView in the app with selectable protections: block mixed<br>content, disable local file access, remove JavaScript bridges, block media<br>autoplay, disable geolocation, block third-party cookies and stop JavaScript<br>popups.<br><br>Applies to any app. Web logins or legacy web content may break when bridges,<br>popups or third-party cookies are disabled. Turn off individual switches if<br>a web flow stops working. | • Block mixed content<br>• Disable local file access<br>• Remove JavaScript bridges<br>• Block media autoplay<br>• Disable WebView geolocation<br>• Block third-party cookies<br>• Block JavaScript popups |
 
 </details>
 
@@ -799,21 +837,6 @@ are published by semantic-release from `main`. Run the verification scripts in
 Bug reports and focused pull requests are welcome. Please read
 [CONTRIBUTING.md](CONTRIBUTING.md) before opening an issue or PR. Report security
 problems privately using [SECURITY.md](SECURITY.md), not in a public issue.
-
-## Support
-
-If these patches save you time or make an app more usable, you can support
-ongoing development:
-
-<p align="center">
-  <a href="#scan-to-donate"><img alt="Donate via UPI (scan QR)" src="https://img.shields.io/badge/UPI-Scan%20QR-FF6B00?style=for-the-badge&logo=googlepay&logoColor=white"></a>
-  <a href="https://paypal.me/ineednotitle"><img alt="Donate via PayPal" src="https://img.shields.io/badge/PayPal-Donate-00457C?style=for-the-badge&logo=paypal&logoColor=white"></a>
-  <a href="https://buymeacoffee.com/ADD_BMC_HANDLE"><img alt="Buy Me a Coffee" src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-Support-FFDD00?style=for-the-badge&logo=buymeacoffee&logoColor=black"></a>
-</p>
-
-
-Donations are optional. Bug reports, testing and focused pull requests help just
-as much.
 
 ## Acknowledgements
 

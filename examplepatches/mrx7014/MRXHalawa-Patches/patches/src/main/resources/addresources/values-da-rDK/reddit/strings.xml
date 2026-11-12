@@ -18,6 +18,13 @@ Second \"item\" text"</string>
 <resources>
   <string name="reddit_privacy_policy">Reddit privatlivspolitik</string>
   <string name="morphe_google_signin_not_available_toast">Google-login er ikke tilgængelig. Brug e-mail til login</string>
+  <string name="morphe_app_downgrade_dialog_title">Nedgradering understøttes ikke</string>
+  <string name="morphe_app_downgrade_dialog_message">"Denne Reddit-installation blev nedgraderet fra &lt;b&gt;%1$s&lt;/b&gt; til &lt;b&gt;%2$s&lt;/b&gt;
+&lt;br/&gt;&lt;br/&gt;
+Appdata fra en nyere version fungerer ikke med ældre versioner, og appen fungerer muligvis ikke korrekt.
+&lt;br/&gt;&lt;br/&gt;
+For at bruge en ældre version skal du &lt;b&gt;afinstallere&lt;/b&gt; Reddit og derefter installere den ældre version."</string>
+  <string name="morphe_app_downgrade_dialog_open_app_info">Åbn app-info</string>
   <string name="morphe_screen_ads_title">Annoncer</string>
   <string name="morphe_hide_post_ads_title">Skjul annoncefeed</string>
   <string name="morphe_hide_comment_ads_title">Skjul kommentarannoncer</string>
@@ -58,6 +65,8 @@ Second \"item\" text"</string>
   <string name="morphe_hide_trending_shelves_summary">Skjuler de Trending hylder fra feed og søgeforslag</string>
   <string name="morphe_remove_notification_dialog_title">Fjern notifikationsforslagsdialog</string>
   <string name="morphe_remove_notification_dialog_summary">Lukker automatisk forslag til notifikationsdialogen, når du besøger et subreddit</string>
+  <string name="morphe_high_quality_avatars_title">Avatarer i høj kvalitet</string>
+  <string name="morphe_high_quality_avatars_summary">Viser brugeravatarer i fuld opløsning</string>
   <string name="morphe_show_flairs_in_home_feed_title">Vis flairs i hjem-feed</string>
   <string name="morphe_show_flairs_in_home_feed_summary">Vis post-flair badges i hjem-feed</string>
   <string name="morphe_show_flairs_in_home_feed_user_dialog_message">Nogle feed-elementer viser måske ikke en flair</string>
@@ -84,10 +93,6 @@ Second \"item\" text"</string>
   <string name="morphe_keep_feed_position_summary">Beholder feedet på samme position, efter du lukker et opslag, et billede eller en video, i stedet for at flytte det åbnede opslag til toppen</string>
   <string name="morphe_feed_media_max_height_title">Maksimal højde for feed-medier</string>
   <string name="morphe_feed_media_max_height_summary">Maksimal højde for billeder, videoer og gallerier i feedet, som et multiplum af deres bredde. Højere medier beskæres. 1,33 er Reddits standard</string>
-  <string name="morphe_redgifs_audio_title">Afspil Redgifs med lyd</string>
-  <string name="morphe_redgifs_audio_summary">Afspiller den originale Redgifs-video i stedet for reddits kopiering, som ofte ikke har lyd</string>
-  <string name="morphe_redgifs_hd_title">Redgifs HD-kvalitet</string>
-  <string name="morphe_redgifs_hd_summary">Afspiller HD Redgifs-video. HD-videoer er større og kan pausere for at indlæse</string>
   <string name="morphe_download_location_title">Hentningsmappe</string>
   <string name="morphe_download_location_all_title">Alle kontoer</string>
   <string name="morphe_download_location_default_summary">Reddits standard: billeder i Billeder/Reddit, videoer i Hentninger</string>

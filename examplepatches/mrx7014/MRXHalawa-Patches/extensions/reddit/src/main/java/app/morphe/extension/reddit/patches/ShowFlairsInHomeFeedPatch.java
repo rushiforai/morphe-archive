@@ -66,9 +66,9 @@ public final class ShowFlairsInHomeFeedPatch {
     /**
      * Injection point.
      * <p>
-     * After a feed page is shown, Reddit loads the full posts of the page. A feature flag
-     * removes this secondary fetch for post previews (text posts), and then the post previews
-     * never get flair data. Keep the secondary fetch so they have flairs.
+     * After a feed page is shown, Reddit loads the full posts of the page. This secondary fetch
+     * is removed for post previews (text posts), by a feature flag before 2026.45.0, and then
+     * the post previews never get flair data. Keep the secondary fetch so they have flairs.
      */
     public static boolean isPostPreviewSecondaryFetchRemoved(boolean original) {
         return original && !Settings.SHOW_FLAIRS_IN_HOME_FEED.get();
@@ -150,17 +150,13 @@ public final class ShowFlairsInHomeFeedPatch {
         }
 
         if (WAITING_POSTS.size() > WAITING_POSTS_CLEANUP_SIZE) {
-            removeCollectedPosts();
+            WAITING_POSTS.values().removeIf(references -> {
+                references.removeIf(reference -> reference.get() == null);
+                return references.isEmpty();
+            });
         }
         WAITING_POSTS.computeIfAbsent(fullId, id -> new CopyOnWriteArrayList<>())
                 .add(new WeakReference<>(post));
-    }
-
-    private static void removeCollectedPosts() {
-        WAITING_POSTS.values().removeIf(references -> {
-            references.removeIf(reference -> reference.get() == null);
-            return references.isEmpty();
-        });
     }
 
     /**

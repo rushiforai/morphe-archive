@@ -116,7 +116,7 @@ public final class XPostPreviewTouch {
         if(action==MotionEvent.ACTION_UP || action==MotionEvent.ACTION_CANCEL) {
             PRESSES.remove(view);
             if(action==MotionEvent.ACTION_UP && !press.moved
-                    && (press.link instanceof SiteCards.SiteLink ? Haiagaru.siteCardsEnabled() : Haiagaru.xPostPreviewEnabled())
+                    && (press.link instanceof SettingsOptionLinks.OptionLink || (press.link instanceof SiteCards.SiteLink ? Haiagaru.siteCardsEnabled() : Haiagaru.xPostPreviewEnabled()))
                     && event.getEventTime()-event.getDownTime()<ViewConfiguration.getLongPressTimeout()
                     && hit(view,event)==press.link)press.link.onClick(view);
         }

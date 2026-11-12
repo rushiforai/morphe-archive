@@ -10,14 +10,16 @@
 
 package app.morphe.patches.youtube.misc.gms
 
-import app.morphe.patches.shared.CastContextFetchFingerprint
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patches.shared.PrimeMethodFingerprint
+import app.morphe.patches.shared.misc.gms.EXTENSION_CLASS
 import app.morphe.patches.shared.misc.gms.gmsCoreSupportPatch
 import app.morphe.patches.shared.misc.gms.gmsCoreSupportResourcePatch
-import app.morphe.patches.youtube.layout.buttons.overlay.hidePlayerOverlayButtonsPatch
 import app.morphe.patches.youtube.misc.extension.sharedExtensionPatch
 import app.morphe.patches.youtube.misc.gms.Constants.MORPHE_YOUTUBE_PACKAGE_NAME
 import app.morphe.patches.youtube.misc.gms.Constants.YOUTUBE_PACKAGE_NAME
+import app.morphe.patches.youtube.misc.playservice.is_21_45_or_greater
+import app.morphe.patches.youtube.misc.playservice.versionCheckPatch
 import app.morphe.patches.youtube.misc.settings.PreferenceScreen
 import app.morphe.patches.youtube.misc.settings.settingsPatch
 import app.morphe.patches.youtube.misc.spoof.spoofVideoStreamsPatch
@@ -29,16 +31,32 @@ val gmsCoreSupportPatch = gmsCoreSupportPatch(
     fromPackageName = YOUTUBE_PACKAGE_NAME,
     toPackageNameDefault = MORPHE_YOUTUBE_PACKAGE_NAME,
     primeMethodFingerprint = PrimeMethodFingerprint,
-    earlyReturnFingerprints = setOf(
-        CastContextFetchFingerprint,
-    ),
     mainActivityOnCreateFingerprint = YouTubeActivityOnCreateFingerprint,
     extensionPatch = sharedExtensionPatch,
-    gmsCoreSupportResourcePatchFactory = ::gmsCoreSupportResourcePatch
+    gmsCoreSupportResourcePatchFactory = ::gmsCoreSupportResourcePatch,
+    useLegacyGnpFingerprint = { !is_21_45_or_greater },
+    executeBlock = {
+        // GmsCore allows the capabilities it can not look up, which makes every account a supervised account.
+        AccountHasCapabilitiesFingerprint.method.addInstructionsWithLabels(
+            0,
+            """
+                invoke-static/range { p2 .. p2 }, $EXTENSION_CLASS->denySupervisedAccountCapability([Ljava/lang/String;)Z
+                move-result v0
+                if-eqz v0, :ask_gms_core
+                # Same result as Google Play services for accounts without the capability.
+                const/4 v0, 0x2
+                invoke-static { v0 }, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+                move-result-object v0
+                return-object v0
+                :ask_gms_core
+                nop
+            """
+        )
+    }
 ) {
     dependsOn(
         sharedExtensionPatch,
-        hidePlayerOverlayButtonsPatch, // Hide non-functional cast button.
+        versionCheckPatch,
         spoofVideoStreamsPatch,
         deviceComplianceCheckPatch
     )

@@ -12,7 +12,7 @@ import android.widget.FrameLayout;
  */
 final class AspectRatioFrameLayout extends FrameLayout {
     private float ratio;
-    private final int maxHeight;
+    private int maxHeight;
 
     AspectRatioFrameLayout(Context context, float ratio, int maxHeight) {
         super(context);
@@ -23,6 +23,16 @@ final class AspectRatioFrameLayout extends FrameLayout {
     void setRatio(float ratio) {
         if (this.ratio == ratio) return;
         this.ratio = ratio;
+        requestLayout();
+    }
+
+    float getRatio() {
+        return ratio;
+    }
+
+    void setMaxHeight(int maxHeight) {
+        if (this.maxHeight == maxHeight) return;
+        this.maxHeight = maxHeight;
         requestLayout();
     }
 

@@ -19,7 +19,7 @@ import java.util.Properties
 @Suppress("unused")
 val playerAdCardsPatch = bytecodePatch(
     name = "Hide player ad cards",
-    description = "Hides image brand-ad cards and embedded ad pages in Now Playing. " +
+    description = "NOT SUPPORTED ON 9.2.0.26 - only works on 9.1.80.2221. " + "Hides image brand-ad cards and embedded ad pages in Now Playing. " +
         "Does not suppress audio ads or other player overlays. Experimental.",
     default = false,
 ) {

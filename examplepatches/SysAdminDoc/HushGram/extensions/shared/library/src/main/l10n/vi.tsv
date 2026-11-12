@@ -251,7 +251,8 @@ Turn on Tap to play to use this choice.	Hãy bật Nhấn để phát để dùn
 Resume long videos	Tiếp tục xem video dài
 Videos and reels over two minutes pick up where you left off. Seek to start elsewhere. Live videos and ads start as usual.	Video và reel dài hơn hai phút tiếp tục từ chỗ bạn dừng. Hãy tua để bắt đầu ở nơi khác. Video trực tiếp và quảng cáo bắt đầu như bình thường.
 Default playback quality	Chất lượng phát mặc định
-Videos, reels and stories play at the quality below, starting with the next one you open.	Video, reel và tin phát ở chất lượng bên dưới, bắt đầu từ mục tiếp theo bạn mở.
+# context: description of the Default playback quality switch on the Playback page, with the list of qualities below it. A video that keeps stalling because the connection is too slow for its quality switches to the next lower quality that video offers (#599)
+Videos, reels and stories play at the quality below, starting with the next one you open. When your connection can't keep up, a video drops to the next lower quality.	Video, reel và tin phát ở chất lượng bên dưới, bắt đầu từ mục tiếp theo bạn mở. Khi kết nối không theo kịp, video sẽ hạ xuống mức chất lượng thấp hơn kế tiếp.
 Playback quality	Chất lượng phát
 Auto	Tự động
 Data saver	Tiết kiệm dữ liệu
@@ -1320,6 +1321,9 @@ Hide the arrow at the end of the buttons	Ẩn mũi tên ở cuối hàng nút
 Takes the arrow off the end of a profile's row of buttons, along with the menu it opens, and the other buttons stretch to fill the space.	Gỡ mũi tên ở cuối hàng nút của trang cá nhân, cùng menu mà nó mở, và các nút khác giãn ra lấp chỗ trống.
 Keep the pill full size	Giữ viên thanh đủ cỡ
 Scrolling a list down leaves the liquid pill as it is, every tab in place. Restart Instagram after changing it.	Cuộn danh sách xuống để viên kính lỏng nguyên vẹn, mọi tab vẫn ở chỗ cũ. Hãy khởi động lại Instagram sau khi thay đổi.
+# context: a switch under Glass tab bar that makes the standard pill (the one without the liquid look) smaller while a list scrolls down, and its description. Liquid glass look and Hide the tab bar as you scroll are the names of two other switches on the same page (#638)
+Shrink the pill as you scroll	Thu nhỏ viên thanh khi cuộn
+With Liquid glass look off, scrolling a list down makes the pill smaller, and scrolling up or changing tab brings it back to full size. Hide the tab bar as you scroll takes over when it's on. Restart Instagram after changing it.	Khi tắt Kiểu kính lỏng, cuộn danh sách xuống sẽ làm viên thanh nhỏ lại, còn cuộn lên hoặc đổi tab sẽ đưa nó về đủ cỡ. Nếu Ẩn thanh tab khi cuộn đang bật thì cài đặt đó được ưu tiên. Hãy khởi động lại Instagram sau khi thay đổi.
 Bend light at the edges	Bẻ cong ánh sáng ở mép
 The pill's rim bends what's behind it like real glass, so what passes under the edge shows upside down. Android 13 and newer. Restart Instagram after changing it.	Viền của viên kính bẻ cong những gì phía sau như kính thật, nên cái đi qua dưới mép hiện lộn ngược. Android 13 trở lên. Hãy khởi động lại Instagram sau khi thay đổi.
 All of them. Tap to leave some out, and Ghost mode leaves those as you set them.	Tất cả. Nhấn để bỏ một số, và Chế độ ẩn để chúng như bạn đã đặt.
@@ -1464,7 +1468,7 @@ Couldn't use that folder. Saves go where they did.	Không dùng được thư m�
 Saves go to Movies and Pictures again.	Bản lưu lại vào Movies và Pictures.
 %1$s didn't take this save, so it went to Movies and Pictures.	%1$s không nhận bản lưu này nên nó vào Movies và Pictures.
 Start reels with sound	Bắt đầu reel có tiếng
-A reel you open from the Reels tab or a post on Home plays with sound, and Home is muted again when you go back. Your phone's ringer and volume still count.	Reel bạn mở từ tab Reels hoặc từ bài viết trên trang chủ phát có tiếng, và trang chủ tắt tiếng lại khi bạn quay về. Chuông và âm lượng điện thoại vẫn có tác dụng.
+A reel you open from the Reels tab, a profile or a post on Home plays with sound, and Home is muted again when you go back. Your phone's ringer and volume still count.	Reel bạn mở từ tab Reels, từ trang cá nhân hoặc từ bài viết trên trang chủ phát có tiếng, và trang chủ tắt tiếng lại khi bạn quay về. Chuông và âm lượng điện thoại vẫn có tác dụng.
 Keep your place in Home	Giữ vị trí của bạn trên trang chủ
 Coming back to Instagram leaves Home on the post you were on, however long you were away. Pull down to refresh still reloads it.	Quay lại Instagram thì trang chủ vẫn ở bài viết bạn đang xem, dù bạn rời đi bao lâu. Kéo xuống để làm mới vẫn tải lại.
 Filter the Stories tray by verified accounts	Lọc khay Tin theo tài khoản đã xác minh
@@ -1530,7 +1534,7 @@ Puts a back and a next arrow on a carousel post's photos and videos. Tap one to 
 Previous page	Trang trước
 Next page	Trang sau
 Page dots on a pill	Chấm trang trên viên thuốc
-Moves a carousel post's page dots onto a round pill at the bottom of its photo or video, with the page you're on in blue.	Đưa các chấm trang của bài viết nhiều trang lên viên thuốc tròn ở cuối ảnh hoặc video, trang đang xem màu xanh dương.
+Moves a carousel post's page dots onto a round pill at the bottom of its photo or video, with the page you're on in blue. Hold the pill and slide left or right to move through the pages.	Đưa các chấm trang của bài viết nhiều trang lên viên thuốc tròn ở cuối ảnh hoặc video, trang đang xem màu xanh dương. Giữ viên thuốc rồi trượt sang trái hoặc phải để chuyển trang.
 # context: Feed settings: the Hide page number switch, under Carousel arrows (#581). The number is the 3/5 in the corner of a carousel post.
 Hide page number	Ẩn số trang
 Takes the number like 3/5 off the corner of a carousel post's photo or video.	Bỏ số như 3/5 ở góc ảnh hoặc video của bài viết dạng băng chuyền.
@@ -1583,6 +1587,12 @@ Stop videos looping	Ngừng lặp video
 Feed videos and reels stop at their last frame instead of playing again. Reels still loop while auto scroll is on, so it can move on.	Video bảng feed và reel dừng ở khung hình cuối thay vì phát lại. Reel vẫn lặp khi tự động cuộn bật, để nó chuyển tiếp được.
 Not used while you've picked a folder. Saves go there.	Không dùng khi bạn đã chọn thư mục. Bản lưu vào đó.
 All	Tất cả
+# context: names of the groups the settings categories fall into, shown over each group on the list of categories and on the chips above it next to All (#642): privacy, what the app shows, media and storage, how the app looks, and App for HushGram's own updates, backup, pause and about
+Privacy	Quyền riêng tư
+Content	Nội dung
+Media and storage	Phương tiện và bộ nhớ
+Look	Giao diện
+App	Ứng dụng
 Posts	Bài viết
 Nothing matches.	Không có kết quả phù hợp.
 Couldn't open that one.	Không mở được mục đó.
@@ -1674,7 +1684,7 @@ Open a chat, tap the clock button next to the call buttons at the top, or long p
 Open a chat, tap the clock button next to the call buttons at the top, or long press the chat's name, and pick Export chat. The whole chat is saved as a text file in Downloads, HushGram folder, one line per message.	Mở một cuộc trò chuyện, nhấn nút đồng hồ cạnh các nút gọi ở đầu màn hình, hoặc nhấn giữ tên cuộc trò chuyện, rồi chọn Xuất cuộc trò chuyện. Toàn bộ cuộc trò chuyện được lưu thành tệp văn bản trong thư mục HushGram của Downloads, mỗi tin nhắn một dòng.
 Instagram stopped loading older messages.	Instagram đã ngừng tải tin nhắn cũ hơn.
 Black settings page	Trang cài đặt màu đen
-Black rows and dialogs, HushGram's name at the top, and each category on one line.	Hàng và hộp thoại màu đen, tên HushGram ở trên cùng, mỗi danh mục trên một dòng.
+Black rows and dialogs, with HushGram's name at the top.	Hàng và hộp thoại màu đen, tên HushGram ở trên cùng.
 Mark as read	Đánh dấu là đã đọc
 Nothing to mark as read	Không có gì để đánh dấu
 Mark as read button in chats	Nút Đánh dấu là đã đọc trong cuộc trò chuyện
@@ -1891,6 +1901,9 @@ Leaves out the live broadcasts Instagram puts between reels in the Reels tab and
 # context: a switch on the Feed page; Watch again is the button on the card Instagram shows when a reel in the feed ends, next to Watch more reels
 Watch again in the feed	Xem lại ngay trong bảng feed
 When a reel in your feed ends, Watch again plays it over right there instead of opening Reels.	Khi một thước phim trong bảng feed kết thúc, Xem lại sẽ phát lại ngay tại đó thay vì mở Reels.
+# context: a switch on the Feed page under Watch again in the feed; Watch more reels is the big button on the card Instagram shows when a reel in the feed ends, it opens Reels
+Hide Watch more reels	Ẩn Xem thêm thước phim
+Takes the Watch more reels button off the card a reel in your feed shows when it ends. Watch again stays.	Bỏ nút Xem thêm thước phim khỏi thẻ hiện ra khi một thước phim trong bảng feed kết thúc. Nút Xem lại vẫn giữ nguyên.
 # context: a switch on the Playback page under Keep playing in the background; Android's own name for picture in picture
 Picture in picture for reels	Hình trong hình cho reel
 Leaving Instagram while a reel plays shrinks it into a small window over your other apps. Works in Reels and on reels opened from the feed, on Android 15 or newer.	Khi bạn rời Instagram lúc một reel đang phát, nó thu nhỏ thành một cửa sổ nhỏ nằm trên các ứng dụng khác. Hoạt động trong Reels và với reel mở từ bảng feed, trên Android 15 trở lên.
@@ -1948,6 +1961,9 @@ Posts from your hidden accounts still show in Favorites. For you and Following l
 # context: switch next to Lock your messages; Saved is Instagram's page of your saved posts and collections (#597)
 Lock Saved	Khóa mục Đã lưu
 Saved and everything in it stay covered until your fingerprint, face or screen lock says it's you.	Mục Đã lưu và mọi thứ trong đó vẫn bị che cho đến khi vân tay, khuôn mặt hoặc khóa màn hình xác nhận là bạn.
+# context: switch under Lock your messages; on, an unlock opens only the chat it was asked in, so the next chat, or going back to the inbox, asks for the fingerprint, face, screen lock or PIN again (#649)
+Ask for each chat	Hỏi cho từng đoạn chat
+Every chat you open asks again, and so does your inbox when you go back to it. Off, one unlock opens everything until you leave Instagram.	Mỗi đoạn chat bạn mở sẽ hỏi lại, hộp thư cũng vậy khi bạn quay lại. Khi tắt, một lần mở khóa sẽ mở mọi thứ cho đến khi bạn rời Instagram.
 Saved is locked	Mục Đã lưu đã khóa
 Unlock Saved	Mở khóa mục Đã lưu
 # context: three-dot menu row on a reel or feed video with Stop videos looping on; makes only the video on screen play again and again (#610)

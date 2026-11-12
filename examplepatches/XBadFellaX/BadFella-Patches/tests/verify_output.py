@@ -73,10 +73,12 @@ with zipfile.ZipFile(APK) as archive:
             string_index = struct.unpack_from('<I', data, type_offset + 4 * type_index)[0]
             descriptor = string(string_index)
             classes[descriptor] += 1
-            if descriptor not in ['Ljd/d;', 'Lb7/a;', 'Lcom/google/firebase/installations/remote/FirebaseInstallationServiceClient;']:
+            if descriptor not in ['Ljd/d;', 'Lbo;', 'Lb7/a;', 'Ld24;',
+                                  'Lcom/google/firebase/installations/remote/FirebaseInstallationServiceClient;']:
                 continue
 
-            # The runtime regression is in this scheduler's h()Z method in supported build 8240.
+            # The runtime regression is in this scheduler's h()Z guard in build 8240 and
+            # its i()Z equivalent in 8.3.0.1.
             offset = struct.unpack_from('<I', data, class_offset + index * 32 + 24)[0]
 
             def read_uleb(position):
@@ -105,10 +107,11 @@ with zipfile.ZipFile(APK) as archive:
                     _, offset = read_uleb(offset)
                     code_offset, offset = read_uleb(offset)
                     name_index = struct.unpack_from('<I', data, method_offset + method_index * 8 + 4)[0]
-                    if descriptor == 'Ljd/d;' and string(name_index) == 'h':
+                    if ((descriptor == 'Ljd/d;' and string(name_index) == 'h')
+                            or (descriptor == 'Lbo;' and string(name_index) == 'i')):
                         assert code_offset and data[code_offset + 16:code_offset + 20] == bytes([0x12, 0, 0x0f, 0]), 'Reminder guard must return false'
                         reminder_guard_checked = True
-                    if descriptor == 'Lb7/a;' and string(name_index) == '<init>':
+                    if descriptor in ('Lb7/a;', 'Ld24;') and string(name_index) == '<init>':
                         assert code_offset, 'Legacy analytics constructor has no code'
                         registers, incoming = struct.unpack_from('<HH', data, code_offset)
                         opcode, callee, arguments, end = struct.unpack_from('<HHHH', data, code_offset + 16)

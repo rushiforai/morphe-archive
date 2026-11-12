@@ -1798,3 +1798,59 @@ Not in secret chats	Não em chats secretos
 This chat doesn't allow saving	Este chat não permite salvar
 # context: Toast once the Screenshot button's picture is saved. Pictures is the phone's pictures folder. Two short lines at most.
 Screenshot saved to Pictures	Captura salva em Imagens
+
+# context: Title of a settings row and of its dialog: type a user, group or channel ID and that chat opens
+Open a chat by ID	Abrir um chat pelo ID
+# context: Summary of the Open a chat by ID row. Telegram only opens people and chats it already has stored on the phone
+Type a user, group or channel ID to open that chat. It works for anyone this app has already seen, such as someone who wrote in a group you opened.	Digite o ID de um usuário, grupo ou canal para abrir esse chat. Funciona com qualquer pessoa que este app já viu, como alguém que escreveu em um grupo que você abriu.
+# context: Hint and label of the number field in the Open a chat by ID dialog
+User or chat ID	ID de usuário ou chat
+# context: Note in the Open a chat by ID dialog. The ID row is the one Show user and chat IDs adds to a profile; bots write a group ID with a minus sign and a channel ID starting with -100
+The number from a profile's ID row, or a chat ID the way bots write it.	O número da linha ID de um perfil, ou um ID de chat do jeito que os bots escrevem.
+# context: Button in the Open a chat by ID dialog that opens the chat
+Open	Abrir
+# context: Toast when what was typed in Open a chat by ID isn't a number. Two short lines at most.
+Type the ID in numbers	Digite o ID em números
+# context: Toast when Telegram on this phone has never stored that user or chat, so it can't open it. Two short lines at most.
+This app hasn't seen that ID yet	Este app ainda não viu esse ID
+# context: Title of a settings row under Free proxies and of its dialog: the addresses of proxy lists the person adds
+Your proxy lists	Suas listas de proxies
+# context: Summary of the Your proxy lists row when none are added. Free proxies is the name of the switch above it
+Add the addresses of proxy lists you trust, and Free proxies reads those instead of the public ones.	Adicione os endereços de listas de proxies em que você confia, e Proxies gratuitos lê essas listas em vez das públicas.
+# context: Summary of the Your proxy lists row with the number of lists added. Free proxies is the name of the switch above it
+Lists added: %1$s. Free proxies reads these instead of the public ones.	Listas adicionadas: %1$s. Proxies gratuitos lê estas em vez das públicas.
+# context: Hint and label of the box in the Your proxy lists dialog, where each line is one web address
+One https address a line	Um endereço https por linha
+# context: Note in the Your proxy lists dialog. t.me/proxy and tg://proxy are link forms and stay as they are
+Each list is a page of t.me/proxy or tg://proxy links. Free proxies times them and adds the 10 fastest. Leave it empty to use the public lists again.	Cada lista é uma página de links t.me/proxy ou tg://proxy. Proxies gratuitos mede cada um e adiciona os 10 mais rápidos. Deixe vazio para usar as listas públicas de novo.
+# context: Toast when a line in Your proxy lists isn't an https web address. Two short lines at most.
+Each line needs an https address	Cada linha precisa de um endereço https
+# context: Toast when more lists are typed than Your proxy lists keeps; %1$s is the most it keeps (5). Two short lines at most.
+Up to %1$s lists	Até %1$s listas
+# context: Toast when Your proxy lists couldn't be saved. Two short lines at most.
+Couldn't save the lists. Try again in a moment.	As listas não foram salvas. Tente de novo em instantes.
+# context: Summary of the Find free proxies now row before its first try, when the person has added lists of their own
+Downloads your proxy lists now, times them and adds the fastest to Telegram's proxy list, even with the switch above off.	Baixa agora suas listas de proxies, mede cada um e adiciona os mais rápidos à lista de proxies do Telegram, mesmo com a chave acima desligada.
+# context: Toast and dialog note when Open a chat by ID couldn't look the ID up or couldn't start the chat. Two short lines at most.
+Couldn't open that. Try again.	Não deu para abrir. Tente de novo.
+# context: Record calls (#72). The chat list long press item and its toasts, the call screen's pause button and toasts, and three settings rows: which calls are recorded, the chats picked for it, and how long recordings are kept.
+Record calls here	Gravar chamadas aqui
+Calls in these chats aren't recorded anymore.	As chamadas dessas conversas não são mais gravadas.
+Calls in these chats are recorded.	As chamadas dessas conversas são gravadas.
+Recording paused	Gravação pausada
+Recording resumed	Gravação retomada
+Pause recording	Pausar gravação
+Resume recording	Retomar gravação
+Calls to record	Chamadas a gravar
+Every call	Todas as chamadas
+Private calls only	Só chamadas privadas
+Voice chats and live streams only	Só chats de voz e transmissões ao vivo
+Only calls in the chats you pick below	Só as chamadas das conversas que você escolher abaixo
+Chats to record	Conversas a gravar
+Keep recordings	Manter gravações
+Recordings stay until you delete them.	As gravações ficam até você apagá-las.
+Recordings older than %1$d day are deleted when the next one is saved.	Gravações com mais de %1$d dia são apagadas quando a próxima é salva.
+Recordings older than %1$d days are deleted when the next one is saved.	Gravações com mais de %1$d dias são apagadas quando a próxima é salva.
+Until you delete them	Até você apagá-las
+%1$d day	%1$d dia
+%1$d days	%1$d dias

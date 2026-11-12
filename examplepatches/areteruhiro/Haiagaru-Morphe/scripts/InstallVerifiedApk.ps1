@@ -7,7 +7,7 @@ $ErrorActionPreference='Stop'
 $adb='C:/Users/narum/AppData/Local/Android/Sdk/platform-tools/adb.exe'
 $tools='C:/Users/narum/AppData/Local/Android/Sdk/build-tools/36.0.0'
 function Read-Certificate([string]$File){
-    $out=& "$tools/apksigner.bat" verify --print-certs $File
+    $out=& "$tools/apksigner.bat" -JXmx128m -JXX:+UseSerialGC verify --print-certs $File
     if($LASTEXITCODE -ne 0){throw "Invalid APK signature: $File"}
     $line=$out | Where-Object {$_ -match '^Signer #1 certificate SHA-256 digest: ([a-f0-9]+)$'} | Select-Object -First 1
     if(!$line -or $line -notmatch 'digest: ([a-f0-9]+)$'){throw 'Certificate digest missing'}

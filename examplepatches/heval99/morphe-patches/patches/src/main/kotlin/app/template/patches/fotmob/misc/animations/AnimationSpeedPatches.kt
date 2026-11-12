@@ -32,6 +32,8 @@ internal val DISABLE_ANIMATIONS = HevalFeature(
     description = "Turns off animations in the app.",
     category = FotMobControlsCategory.DISPLAY,
     restartRequired = true,
+    icon = "play",
+    choice = "Animation speed",
 )
 
 internal val FASTER_ANIMATIONS = HevalFeature(
@@ -40,6 +42,8 @@ internal val FASTER_ANIMATIONS = HevalFeature(
     description = "Plays animations at twice the speed.",
     category = FotMobControlsCategory.DISPLAY,
     restartRequired = true,
+    icon = "play",
+    choice = "Animation speed",
 )
 
 internal fun Instruction.isSettingsGlobalGetFloat(): Boolean {

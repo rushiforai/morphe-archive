@@ -31,8 +31,10 @@ internal val settingsPatch = bytecodePatch {
                 (rootInstructions.getOrNull(index - 2) as? ReferenceInstruction)?.reference.toString() ==
                 "Lp/f46;->i0([Ljava/lang/Object;)Ljava/util/List;"
         }
-        root.addInstructions(freezeCall,
-            "invoke-static {v0, p0}, ${EXTENSION}nativebridge/SettingsBridge;->append(Ljava/util/List;Lp/dns;)V")
+        root.addInstructions(freezeCall, """
+            move-object/from16 v1, p0
+            invoke-static {v0, v1}, ${EXTENSION}nativebridge/SettingsBridge;->append(Ljava/util/List;Lp/dns;)V
+        """.trimIndent())
 
         val analytics = mutableClassDefBy("Lp/opl0;").methods.single {
             it.name == "<init>" && it.parameterTypes == listOf("I", "Lp/r6h1;", "B")
@@ -53,9 +55,12 @@ internal val settingsPatch = bytecodePatch {
         """.trimIndent(), ExternalLabel("native_labels", analytics.getInstruction(switch)),
             ExternalLabel("label_sink", analytics.getInstruction(sink)))
 
-        mutableClassDefBy("Lcom/spotify/music/SpotifyApplication;").methods.single { it.name == "onCreate" }
-            .addInstructions(0,
-                "invoke-static/range {p0 .. p0}, ${EXTENSION}PatchSettings;->initialize(Landroid/content/Context;)V")
+        var appType: String? = "Lcom/spotify/music/SpotifyApplication;"
+        while (appType != null && classDefByOrNull(appType)?.methods?.none { it.name == "onCreate" && it.parameterTypes.isEmpty() } == true) {
+            appType = classDefByOrNull(appType)?.superclass
+        }
+        mutableClassDefBy(appType ?: "Lcom/spotify/music/SpotifyApplication;").methods.single { it.name == "onCreate" && it.parameterTypes.isEmpty() }
+            .addInstructions(0, "invoke-static/range {p0 .. p0}, ${EXTENSION}PatchSettings;->initialize(Landroid/content/Context;)V")
     }
 }
 

@@ -10,6 +10,8 @@
 
 package app.morphe.extension.shared.settings.preference;
 
+import static app.morphe.extension.shared.StringRef.str;
+
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
@@ -25,14 +27,17 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.util.Set;
 import java.util.function.IntConsumer;
 
 import app.morphe.extension.shared.ResourceType;
 import app.morphe.extension.shared.ResourceUtils;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.shared.theme.ThemeUtils;
 import app.morphe.extension.shared.ui.CustomDialog;
 import app.morphe.extension.shared.ui.Dim;
@@ -52,34 +57,11 @@ public class CustomDialogListPreference extends ListPreference {
     public static final int DRAWABLE_CHECKMARK_BOLD = ResourceUtils.getIdentifierOrThrow(
             ResourceType.DRAWABLE, "morphe_settings_custom_checkmark_bold");
 
-    private String staticSummary = null;
     private CharSequence[] highlightedEntriesForDialog = null;
-
-    /**
-     * Set a static summary that will not be overwritten by value changes.
-     */
-    public void setStaticSummary(String summary) {
-        this.staticSummary = summary;
-    }
-
-    /**
-     * Returns the static summary if set, otherwise null.
-     */
     @Nullable
-    public String getStaticSummary() {
-        return staticSummary;
-    }
-
-    /**
-     * Always return static summary if set.
-     */
-    @Override
-    public CharSequence getSummary() {
-        if (staticSummary != null) {
-            return staticSummary;
-        }
-        return super.getSummary();
-    }
+    private Set<String> newEntryValues;
+    @ColorInt
+    private int newEntryColor;
 
     /**
      * Sets highlighted entries for display in the dialog.
@@ -97,11 +79,40 @@ public class CustomDialogListPreference extends ListPreference {
     }
 
     /**
+     * @return If an entry that was not shown before is a new option added by an update.
+     *         False if the entries depend on the device, installed apps or user data.
+     */
+    public boolean tracksNewEntries() {
+        return true;
+    }
+
+    /**
+     * Sets the entry values that are shown with a dot in the dialog.
+     */
+    public void setNewEntryValues(@Nullable Set<String> values, @ColorInt int color) {
+        this.newEntryValues = values;
+        this.newEntryColor = color;
+    }
+
+    /**
      * Returns entries for display in the dialog.
      * If highlighted entries exist, they are used; otherwise, the original entries are returned.
+     * New entries are shown with a dot.
      */
     protected CharSequence[] getEntriesForDialog() {
-        return highlightedEntriesForDialog != null ? highlightedEntriesForDialog : getEntries();
+        CharSequence[] entries = highlightedEntriesForDialog != null ? highlightedEntriesForDialog : getEntries();
+        CharSequence[] entryValues = getEntryValues();
+        if (newEntryValues == null || entries == null || entryValues == null) {
+            return entries;
+        }
+
+        CharSequence[] marked = entries.clone();
+        for (int i = 0, length = Math.min(entries.length, entryValues.length); i < length; i++) {
+            if (newEntryValues.contains(entryValues[i].toString())) {
+                marked[i] = NewIndicatorSpan.addTo(entries[i], newEntryColor);
+            }
+        }
+        return marked;
     }
 
     /**
@@ -221,6 +232,19 @@ public class CustomDialogListPreference extends ListPreference {
     }
 
     /**
+     * Uses the title and entry arrays declared for the setting key.
+     */
+    public CustomDialogListPreference(Context context, Setting<?> setting) {
+        this(context);
+
+        String key = setting.key;
+        setKey(key);
+        setTitle(str(key + "_title"));
+        setEntries(ResourceUtils.getStringArray(key + "_entries"));
+        setEntryValues(ResourceUtils.getStringArray(key + "_entry_values"));
+    }
+
+    /**
      * Opens the selection dialog, as if the preference row itself was tapped.
      * Allows another preference to present this list on its behalf.
      */
@@ -235,6 +259,19 @@ public class CustomDialogListPreference extends ListPreference {
     public static Dialog createListDialog(Context context, String title,
                                           CharSequence[] entries, CharSequence[] entryValues,
                                           @Nullable String selectedValue, IntConsumer onSelected) {
+        return createListDialog(context, title, entries, entryValues, selectedValue, onSelected,
+                null, null);
+    }
+
+    /**
+     * @param neutralText  The text of an extra button, or null for none.
+     * @param neutralClick What the extra button does.
+     */
+    public static Dialog createListDialog(Context context, String title,
+                                          CharSequence[] entries, CharSequence[] entryValues,
+                                          @Nullable String selectedValue, IntConsumer onSelected,
+                                          @Nullable CharSequence neutralText,
+                                          @Nullable Runnable neutralClick) {
         // Create ListView.
         ListView listView = new ListView(context);
         listView.setId(android.R.id.list);
@@ -270,8 +307,8 @@ public class CustomDialogListPreference extends ListPreference {
                 null,
                 null,
                 () -> {}, // Cancel button action.
-                null,
-                null,
+                neutralText,
+                neutralClick,
                 true
         );
 
@@ -311,11 +348,9 @@ public class CustomDialogListPreference extends ListPreference {
                         setValue(selectedValue);
 
                         // Update summaries from the original entries (without highlighting).
-                        if (staticSummary == null) {
-                            CharSequence[] originalEntries = getEntries();
-                            if (originalEntries != null && position < originalEntries.length) {
-                                setSummary(originalEntries[position]);
-                            }
+                        CharSequence[] originalEntries = getEntries();
+                        if (originalEntries != null && position < originalEntries.length) {
+                            setSummary(originalEntries[position]);
                         }
                     }
                 }

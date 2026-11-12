@@ -18,6 +18,8 @@ public final class ToolbarIcons {
     static final String[] RESOURCES = {"haiagaru_edge_archive", "haiagaru_quick_filter", "haiagaru_mark_all_read", "haiagaru_direct_copy", "haiagaru_wacchoi_lower", "haiagaru_wacchoi_upper", "haiagaru_favorite_threads", "haiagaru_quick_filter", "haiagaru_hissi_droid_plus", "haiagaru_auto_ng_exclusions", "haiagaru_refresh_target_threads", "haiagaru_refresh_open_tabs"};
     private static final int[] ACTION_IDS = {0x7e000001, 0x7e000002, 0x7e000003, 0x7e000004, 0x7e000005, 0x7e000006, FavoriteThreads.TAB, FLOATING_FILTER, 0x7e000009, AUTO_NG_EXCLUSIONS, HomeRefreshTargets.TAB, OpenTabsRefresh.ACTION};
     private static final Bitmap[] CACHE = new Bitmap[NAMES.length];
+    private static final Bitmap[] DISPLAY_CACHE = new Bitmap[NAMES.length];
+    private static final int[] DISPLAY_DENSITY = new int[NAMES.length];
     private ToolbarIcons() {}
     static int index(int action) {
         for (int i = 0; i < ACTION_IDS.length; i++) if (ACTION_IDS[i] == action) return i;
@@ -31,6 +33,7 @@ public final class ToolbarIcons {
     static File file(Context context, int i) { return new File(context.getFilesDir(), "haiagaru-toolbar-icons/" + i + ".png"); }
     static synchronized void invalidate(int i) {
         CACHE[i] = null;
+        DISPLAY_CACHE[i] = null;
         if (i == index(FLOATING_FILTER)) FloatingFilterButton.iconsChanged();
     }
     private static final class PreviewItem {
@@ -62,7 +65,7 @@ public final class ToolbarIcons {
                 if (candidate >= 0) { if (i >= 0) return original; i = candidate; }
             }
             if (i < 0) return original;
-            Bitmap bitmap;
+            Bitmap bitmap,display=null;
             synchronized (ToolbarIcons.class) {
                 bitmap = CACHE[i];
                 File image = file(context, i);
@@ -73,13 +76,22 @@ public final class ToolbarIcons {
                     if (bounds.outWidth > 0 && bounds.outWidth <= 256 && bounds.outHeight > 0 && bounds.outHeight <= 256)
                         CACHE[i] = bitmap = BitmapFactory.decodeFile(image.getPath());
                 }
+                if(bitmap!=null){
+                    int size=Math.round(24*context.getResources().getDisplayMetrics().density);
+                    int density=context.getResources().getDisplayMetrics().densityDpi;
+                    display=DISPLAY_CACHE[i];
+                    if(display==null||display.getWidth()!=size||display.getHeight()!=size||DISPLAY_DENSITY[i]!=density){
+                        display=Bitmap.createScaledBitmap(bitmap,size,size,true);
+                        if(display==bitmap)display=bitmap.copy(Bitmap.Config.ARGB_8888,false);
+                        display.setDensity(density);
+                        DISPLAY_CACHE[i]=display;DISPLAY_DENSITY[i]=density;
+                    }
+                }
             }
-            if (bitmap != null) {
-                final int size = Math.round(24 * context.getResources().getDisplayMetrics().density);
-                BitmapDrawable custom = new BitmapDrawable(context.getResources(), bitmap) {
-                    @Override public int getIntrinsicWidth() { return size; }
-                    @Override public int getIntrinsicHeight() { return size; }
-                };
+            if (display != null) {
+                // Framework/native renderers clone ConstantState, which drops subclass size
+                // overrides. Keep the real bitmap size/density correct in every clone instead.
+                BitmapDrawable custom = new BitmapDrawable(context.getResources(), display);
                 custom.setFilterBitmap(true); custom.setAntiAlias(true);
                 return custom; // Preserve user image colors rather than applying the theme tint.
             }

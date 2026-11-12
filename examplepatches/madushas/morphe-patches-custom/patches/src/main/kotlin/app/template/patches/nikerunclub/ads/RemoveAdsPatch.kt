@@ -43,7 +43,6 @@ val nikeRemoveAdsPatch = resourcePatch(
         "permissions so no advertising ID is exposed.",
     default = true,
 ) {
-    category("Ads")
     compatibleWith(NIKE_RUN_CLUB_COMPATIBILITY)
 
     execute {

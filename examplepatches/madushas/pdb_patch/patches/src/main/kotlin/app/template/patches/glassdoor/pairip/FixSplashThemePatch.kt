@@ -27,7 +27,6 @@ val glassdoorFixSplashThemePatch = resourcePatch(
         "the splash theme, whose runtime theme-swap lives in the removed PairIP VM.",
     default = false,
 ) {
-    category("PairIP")
     compatibleWith(GLASSDOOR_COMPATIBILITY)
 
     execute {

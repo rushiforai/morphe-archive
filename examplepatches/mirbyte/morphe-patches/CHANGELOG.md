@@ -1,3 +1,29 @@
+## [1.4.0](https://github.com/mirbyte/morphe-patches/compare/v1.3.0...v1.4.0) (2026-11-12)
+
+### ✨ New Features
+
+* Add Bergfex Tours force Pro status patch ([9118f57](https://github.com/mirbyte/morphe-patches/commit/9118f5792982803eeddd4f3bec7b3d17c62976a6))
+* Add Bergfex Tours live tracking patch and switch Pro unlock to Subscription ([1213c17](https://github.com/mirbyte/morphe-patches/commit/1213c17c83178078bba5e9fd86a3aeead75fd631))
+* Add Bergfex Tours tracker and ad ID patches ([079fe47](https://github.com/mirbyte/morphe-patches/commit/079fe47ec559ea8405dd4aa937e20ab8ec7d02a8))
+
+## [1.4.0-dev.3](https://github.com/mirbyte/morphe-patches/compare/v1.4.0-dev.2...v1.4.0-dev.3) (2026-11-11)
+
+### ✨ New Features
+
+* Add Bergfex Tours live tracking patch and switch Pro unlock to Subscription ([1213c17](https://github.com/mirbyte/morphe-patches/commit/1213c17c83178078bba5e9fd86a3aeead75fd631))
+
+## [1.4.0-dev.2](https://github.com/mirbyte/morphe-patches/compare/v1.4.0-dev.1...v1.4.0-dev.2) (2026-11-11)
+
+### ✨ New Features
+
+* Add Bergfex Tours tracker and ad ID patches ([079fe47](https://github.com/mirbyte/morphe-patches/commit/079fe47ec559ea8405dd4aa937e20ab8ec7d02a8))
+
+## [1.4.0-dev.1](https://github.com/mirbyte/morphe-patches/compare/v1.3.0...v1.4.0-dev.1) (2026-11-11)
+
+### ✨ New Features
+
+* Add Bergfex Tours force Pro status patch ([9118f57](https://github.com/mirbyte/morphe-patches/commit/9118f5792982803eeddd4f3bec7b3d17c62976a6))
+
 ## [1.3.0](https://github.com/mirbyte/morphe-patches/compare/v1.2.1...v1.3.0) (2026-11-09)
 
 ### ✨ New Features

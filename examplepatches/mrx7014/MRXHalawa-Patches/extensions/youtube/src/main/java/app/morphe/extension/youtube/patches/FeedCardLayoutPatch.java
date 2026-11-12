@@ -33,13 +33,14 @@ import androidx.annotation.Nullable;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.CodedOutputStream;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.MessageLite;
 import com.google.protobuf.WireFormat;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -47,6 +48,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.WeakHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -55,7 +57,10 @@ import app.morphe.extension.shared.ByteTrieSearch;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.ResourceType;
 import app.morphe.extension.shared.ResourceUtils;
+import app.morphe.extension.shared.StringRef;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.innertube.utils.AuthUtils;
+import app.morphe.extension.shared.requests.Requester;
 import app.morphe.extension.shared.ui.Dim;
 import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.AccessibilityContext;
 import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.ActionButton;
@@ -66,10 +71,16 @@ import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.AvatarVie
 import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.AvatarViewModelHolder;
 import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.ButtonViewModel;
 import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.ButtonViewModelHolder;
+import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.CardLayoutExperiments;
 import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.CapabilitiesSubscriptionConfig;
 import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.ChannelAvatar;
 import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.ClientResource;
+import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.CollectionPrimaryThumbnail;
+import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.CollectionStackColors;
+import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.CollectionThumbnailViewModel;
 import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.CommandContext;
+import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.CompactPlaylistData;
+import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.CompactPlaylistModel;
 import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.ComponentType;
 import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.ContentImage;
 import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.ContentMetadata;
@@ -99,9 +110,11 @@ import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.LockupVie
 import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.LockupViewModelHolder;
 import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.MetadataPart;
 import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.MetadataRow;
+import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.OpenPopupAction;
 import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.RendererContext;
 import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.ShelfHeaderData;
 import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.ShelfHeaderModel;
+import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.GridVideoMetadata;
 import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.GridVideoModel;
 import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.ShortsShelfModel;
 import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.ShortsVideoCellData;
@@ -117,6 +130,7 @@ import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.Thumbnail
 import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.ThumbnailBottomOverlayViewModel;
 import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.ThumbnailElementOverlay;
 import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.ThumbnailOverlay;
+import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.ThumbnailOverlayBadgeViewModel;
 import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.ThumbnailOverlayProgressBar;
 import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.ThumbnailOverlayProgressBarViewModel;
 import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.ThumbnailViewModel;
@@ -127,9 +141,15 @@ import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.VideoData
 import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.VideoThumbnail;
 import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.VideoWithContextData;
 import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.VideoWithContextModel;
+import app.morphe.extension.youtube.innertube.IconOuterClass.Icon;
+import app.morphe.extension.youtube.innertube.IconOuterClass.YTIconType;
+import app.morphe.extension.youtube.innertube.PlaylistEdit;
+import app.morphe.extension.youtube.innertube.queue.PlaylistQueueRenderer;
+import app.morphe.extension.youtube.patches.components.LayoutComponentsFilter;
 import app.morphe.extension.youtube.patches.theme.SeekbarColorPatch;
-import app.morphe.extension.youtube.patches.utils.FlyoutUtils;
+import app.morphe.extension.youtube.patches.utils.FeedVideoCardsPatch;
 import app.morphe.extension.youtube.patches.utils.ProtoNode;
+import app.morphe.extension.youtube.patches.utils.requests.PlaylistRoutes;
 import app.morphe.extension.youtube.settings.Settings;
 import app.morphe.extension.youtube.shared.NavigationBar;
 import app.morphe.extension.youtube.shared.PlayerType;
@@ -143,6 +163,10 @@ import app.morphe.extension.youtube.shared.PlayerType;
 public class FeedCardLayoutPatch {
 
     public enum FeedCardLayout {
+        /**
+         * The layout that the server sends to the account.
+         */
+        DEFAULT,
         CLASSIC,
         CARDS,
         CARDS_WITH_ACTION_BUTTONS
@@ -156,8 +180,10 @@ public class FeedCardLayoutPatch {
         byte[] patch_getElementBytes();
     }
 
-    private static final boolean CARD_LAYOUT = Settings.FEED_CARD_LAYOUT.get() != FeedCardLayout.CLASSIC;
-    private static final boolean ACTION_BUTTONS = Settings.FEED_CARD_LAYOUT.get() == FeedCardLayout.CARDS_WITH_ACTION_BUTTONS;
+    private static final FeedCardLayout LAYOUT = Settings.FEED_CARD_LAYOUT.get();
+    private static final boolean CARD_LAYOUT = LAYOUT == FeedCardLayout.CARDS
+            || LAYOUT == FeedCardLayout.CARDS_WITH_ACTION_BUTTONS;
+    private static final boolean ACTION_BUTTONS = LAYOUT == FeedCardLayout.CARDS_WITH_ACTION_BUTTONS;
 
     /**
      * Template names, followed by "|hash" or by a suffix and "|hash" (newer app versions), such as "-fe|hash".
@@ -170,6 +196,16 @@ public class FeedCardLayoutPatch {
     private static final String SHORTS_VIDEO_CELL_TEMPLATE = "shorts_video_cell.eml";
     private static final String SHORTS_SHELF_TEMPLATE = "shorts_shelf.eml";
     private static final String GRID_VIDEO_TEMPLATE = "grid_video_wrapper.eml";
+    /**
+     * Template of the playlists and the podcasts of the vertical shelves, such as in the channel home,
+     * with the same model as {@link #GRID_VIDEO_TEMPLATE}.
+     */
+    private static final String GRID_COLLECTION_TEMPLATE = "grid_video.eml";
+    /**
+     * Template of the playlists and the podcasts in a row of a list, such as in the vertical shelves
+     * of the channel home, below the playlists of {@link #GRID_COLLECTION_TEMPLATE}.
+     */
+    private static final String COMPACT_PLAYLIST_TEMPLATE = "compact_playlist.eml";
 
     private static final int LOCKUP_CONTENT_TYPE_VIDEO = 1;
     private static final int LOCKUP_CONTENT_TYPE_PLAYLIST = 2;
@@ -177,6 +213,16 @@ public class FeedCardLayoutPatch {
      * Browse id of the playlist pages, followed by the playlist id.
      */
     private static final String PLAYLIST_BROWSE_ID_PREFIX = "VL";
+    private static final String MIX_PLAYLIST_ID_PREFIX = "RD";
+    /**
+     * Values of the playlists and the mixes of the classic layout.
+     */
+    private static final int PLAYLIST_BADGE_ICON_TYPE = 4;
+    private static final int MIX_BADGE_ICON_TYPE = 8;
+    private static final int COLLECTION_BADGE_COLOR = 0xCC595959;
+    private static final int COLLECTION_BADGE_DARK_COLOR = 0xCC232323;
+    private static final int COLLECTION_STACK_FRONT_COLOR = 0xCC999999;
+    private static final int COLLECTION_STACK_BACK_COLOR = 0xCC8C8C8C;
 
     /**
      * Templates of the feed videos, with the field of their model and the known fields of the model
@@ -199,9 +245,9 @@ public class FeedCardLayoutPatch {
      */
     private static final int CARD_TITLE_STYLE = 29;
     /**
-     * Corner radius of the cards.
+     * Corner radius of the cards, in dp.
      */
-    private static final int CARD_CORNER_RADIUS = Dim.dp(12);
+    private static final int CARD_CORNER_RADIUS_DP = 12;
     /**
      * Padding of the cards, in dp, which is the spacing between the cards in every list.
      * The spacing that the lists add between the cards is removed.
@@ -213,9 +259,14 @@ public class FeedCardLayoutPatch {
      * with the menu button near the right edge, so their card is wider than the other cards.
      */
     private static final int VIDEO_SHELF_HORIZONTAL_PADDING_DP = 4;
+    /**
+     * Spacing between the edges of the horizontal shelf cards and the content of the first and the last item
+     * of their list. The items of the shelves have different paddings, and some have none.
+     */
+    private static final int SHELF_LIST_PADDING_DP = 8;
 
     private static final CardOutlineProvider CARD_OUTLINE = new CardOutlineProvider(
-            Dim.dp(CARD_HORIZONTAL_PADDING_DP), Dim.dp(CARD_VERTICAL_PADDING_DP));
+            CARD_HORIZONTAL_PADDING_DP, CARD_VERTICAL_PADDING_DP);
     /**
      * Outline of the items of the feed that are not converted, such as the cards that YouTube sends.
      */
@@ -243,32 +294,53 @@ public class FeedCardLayoutPatch {
     private static final int LIKE_STATUS_LIKE = 0;
     private static final int LIKE_STATUS_INDIFFERENT = 2;
     private static final int LIKE_STATUS_ENTITY_TYPE = 62;
+    private static final int ACTION_ADD_VIDEO = PlaylistEdit.PlaylistEditActionType.ACTION_ADD_VIDEO_VALUE;
 
     /**
      * Fields of the innertube commands.
      */
-    private static final int INNERTUBE_COMMAND_FIELD = 169495254;
     private static final int WATCH_ENDPOINT_FIELD = 48687757;
     private static final int WATCH_ENDPOINT_VIDEO_ID_FIELD = 1;
-    private static final int PLAYLIST_EDIT_ENDPOINT_FIELD = 60666189;
-    private static final int PLAYLIST_EDIT_ENDPOINT_PLAYLIST_ID_FIELD = 1;
     private static final int SHOW_ENGAGEMENT_PANEL_ENDPOINT_FIELD = 138681778;
     private static final int SHOW_ENGAGEMENT_PANEL_ENDPOINT_PANEL_ID_FIELD = 1;
+    private static final int SHOW_ENGAGEMENT_PANEL_ENDPOINT_PANEL_FIELD = 2;
+    private static final int SHOW_ENGAGEMENT_PANEL_ENDPOINT_IDENTIFIER_FIELD = 10;
+    /**
+     * Fields of the engagement panels of the watch next response.
+     */
+    private static final int WATCH_NEXT_ENGAGEMENT_PANELS_FIELD = 25;
+    private static final int ENGAGEMENT_PANEL_SECTION_LIST_RENDERER_FIELD = 138681066;
+    private static final int ENGAGEMENT_PANEL_PANEL_ID_FIELD = 1;
+    private static final int ENGAGEMENT_PANEL_HEADER_FIELD = 2;
+    private static final int ENGAGEMENT_PANEL_TITLE_HEADER_RENDERER_FIELD = 138681548;
+    private static final int ENGAGEMENT_PANEL_TITLE_HEADER_SUBHEADER_FIELD = 19;
+    private static final int ENGAGEMENT_PANEL_VISIBILITY_FIELD = 9;
+    private static final int ENGAGEMENT_PANEL_VISIBILITY_EXPANDED = 1;
+    private static final int ENGAGEMENT_PANEL_IDENTIFIER_FIELD = 18;
+    private static final int ENGAGEMENT_PANEL_IDENTIFIER_SURFACE_FIELD = 1;
+    private static final int ENGAGEMENT_PANEL_IDENTIFIER_TAG_FIELD = 3;
+    /**
+     * The panels of this surface can be shown over the feed, and load their content with 'next' requests,
+     * as the comments of Shorts.
+     */
+    private static final int ENGAGEMENT_PANEL_SURFACE_SHORTS = 4;
 
     private static final String WATCH_LATER_PLAYLIST_ID = "WL";
+    /**
+     * Menu items that the menu of the cards with a save button doesn't have.
+     */
+    private static final StringRef SAVE_TO_WATCH_LATER = StringRef.sfc("morphe_save_to_watch_later_flyout_title");
+    private static final StringRef SAVE_TO_PLAYLIST = StringRef.sfc("accessibility_save_to_playlists");
     private static final String SENDER_VIEW_KEY = "com.google.android.libraries.youtube.rendering.elements.sender_view";
     /**
-     * Comments panel of the watch page. Newer app versions use the first id.
+     * Comments panel of the watch page. Newer clients use the first id.
      */
     private static final String[] COMMENTS_PANEL_IDS = {"comment-item-section", "engagement-panel-comments-section"};
     /**
-     * Id of the comments panel of other app versions, looked for if the response has none of the known ids.
+     * Start of the ids of the replies panels that the comments open, such as 'FEcomment_watch_replies_panel'.
      */
-    private static final Pattern COMMENTS_PANEL_ID_PATTERN = Pattern.compile("[a-z][a-z-]*comment[a-z-]*-section");
-    /**
-     * Maximum time between the tap on the comment button and the loading of the watch page.
-     */
-    private static final long COMMENTS_OPEN_TIMEOUT_MILLIS = 30_000;
+    private static final String COMMENT_REPLIES_PANEL_ID_PREFIX = "FEcomment";
+    private static final String ENGAGEMENT_PANEL_SURFACE_UNKNOWN = "ENGAGEMENT_PANEL_SURFACE_UNKNOWN";
 
     /**
      * Invisible characters at the end of the accessibility labels of the cards and of their comment button.
@@ -292,6 +364,10 @@ public class FeedCardLayoutPatch {
      */
     private static final char VIDEO_SHELF_ROW_LABEL_MARKER = '\u2061';
     /**
+     * Invisible character before the marker of the cards, in the label of the cards without inline playback.
+     */
+    private static final char NO_INLINE_PLAYBACK_CARD_LABEL_MARKER = '\u2062';
+    /**
      * Icon of the Shorts shelf header, which the modern header of the card layout doesn't show.
      */
     private static final String SHORTS_SHELF_ICON = "ic_youtube_shorts";
@@ -305,12 +381,26 @@ public class FeedCardLayoutPatch {
      */
     private static final Pattern METADATA_SEPARATOR_PATTERN = Pattern.compile(" {2,}| · ");
 
-    private static final ByteTrieSearch elementSearch = new ByteTrieSearch(
-            CARD_LAYOUT
-                    ? ByteTrieSearch.convertStringsToBytes(CLASSIC_TEMPLATE, SHELF_HEADER_TEMPLATE,
-                    HORIZONTAL_SHELF_TEMPLATE, SHORTS_VIDEO_CELL_TEMPLATE, SHORTS_SHELF_TEMPLATE,
-                    GRID_VIDEO_TEMPLATE)
-                    : ByteTrieSearch.convertStringsToBytes(CARD_TEMPLATE)
+    /**
+     * Templates of the elements that are converted. Every element is searched on the main thread,
+     * so the element is searched as a string in native code, see {@link FeedVideoCardsPatch#getElementText(byte[])}.
+     */
+    private static final String[] elementTemplates = CARD_LAYOUT
+            ? new String[]{CLASSIC_TEMPLATE, SHELF_HEADER_TEMPLATE, HORIZONTAL_SHELF_TEMPLATE,
+            SHORTS_VIDEO_CELL_TEMPLATE, SHORTS_SHELF_TEMPLATE, GRID_VIDEO_TEMPLATE, GRID_COLLECTION_TEMPLATE,
+            COMPACT_PLAYLIST_TEMPLATE}
+            : new String[]{CARD_TEMPLATE};
+    /**
+     * Label of the shelf headers, in the bytes of the converted elements.
+     */
+    private static final ByteTrieSearch shelfHeaderLabelSearch = new ByteTrieSearch(
+            ByteTrieSearch.convertStringsToBytes(String.valueOf(SHELF_HEADER_LABEL_MARKER))
+    );
+    /**
+     * Link to the movies page, in the bytes of the movies.
+     */
+    private static final ByteTrieSearch moviesPageSearch = new ByteTrieSearch(
+            ByteTrieSearch.convertStringsToBytes("FEstorefront")
     );
     /**
      * Thumbnails of the Shorts, the same that the Shorts filter looks for.
@@ -325,9 +415,14 @@ public class FeedCardLayoutPatch {
     );
 
     /**
-     * Minimum time between the lookups of a template that is not cached yet.
+     * Minimum time between the lookups of a template in the template cache of the app.
      */
     private static final long TEMPLATE_LOOKUP_INTERVAL_MILLIS = 10_000;
+    /**
+     * Time before the cache is looked up again while no version of a template is known,
+     * or while the version that is used was not found by the last lookup.
+     */
+    private static final long TEMPLATE_CONFIRM_INTERVAL_MILLIS = 1000;
     /**
      * Minimum time between the checks of the elements of a template, after the template is taken from an element.
      */
@@ -369,7 +464,8 @@ public class FeedCardLayoutPatch {
          */
         @Override
         public void getOutline(View view, Outline outline) {
-            outline.setRoundRect(0, 0, view.getWidth(), view.getHeight() + CARD_CORNER_RADIUS, CARD_CORNER_RADIUS);
+            final int radius = getCardCornerRadius();
+            outline.setRoundRect(0, 0, view.getWidth(), view.getHeight() + radius, radius);
         }
     };
     /**
@@ -383,9 +479,34 @@ public class FeedCardLayoutPatch {
      */
     private static final Map<View, Boolean> videoShelfRows = new WeakHashMap<>();
     /**
+     * List items that are horizontal shelves or Shorts carousels with the card layout, found by the converted
+     * element of the item when the list sets its spacing. Their header, which has the label of the shelf,
+     * is not mounted while it is scrolled out of the list. The views are recycled, and the list sets
+     * the spacing of a view again whenever the view shows another element.
+     */
+    private static final Map<View, Boolean> shelfCardItems = new WeakHashMap<>();
+    /**
+     * Lists of horizontal shelves whose padding was changed while they were scrolled to the start.
+     */
+    private static final Map<View, Boolean> shelfListsAtStart = new WeakHashMap<>();
+    /**
+     * The list item whose spacing is set, until its element is known.
+     */
+    private static WeakReference<View> dividerItemView = new WeakReference<>(null);
+    /**
+     * Whether the elements are shelves with the card layout, by the bytes of the converted element.
+     * The arrays are compared by identity.
+     */
+    private static final Map<byte[], Boolean> shelfCardElements = Collections.synchronizedMap(new WeakHashMap<>());
+    /**
      * Backgrounds of the items of the feed that were not mounted yet when their color was looked up.
      */
     private static final Map<Drawable, Boolean> unmountedItemBackgrounds = new WeakHashMap<>();
+    /**
+     * Litho backgrounds of the cards. They keep their color on the see-through watch page of the
+     * Enhanced Ambient mode, which otherwise turns them translucent where nothing else covers them.
+     */
+    public static final Map<Drawable, Boolean> cardBackgrounds = new WeakHashMap<>();
     /**
      * Edges of the last Shorts shelf card, for the header of a shelf whose Shorts are not in the list yet.
      */
@@ -406,18 +527,21 @@ public class FeedCardLayoutPatch {
                 }
             };
     private static int feedId;
-    @Nullable
-    private static volatile String commentsVideoId;
-    private static volatile long commentsRequestTime;
+    /**
+     * Density that the app used to lay out the cards, measured from the padding of the cards, or 0 until it
+     * differs from the density of the display. The app keeps the layout of the lists when the density
+     * of the display changes, until the lists are laid out again.
+     */
+    private static float cardLayoutDensity;
 
     /**
-     * Template of the feed videos that the elements are converted to.
+     * Template that the elements are converted to, such as the feed videos.
      * The uri includes the hash of the template version, and the subscriptions of the element write
      * the theme and the capabilities to fields of the model. Both are taken from the elements of the template
      * that the server sends, so they follow the new versions of the template. Until such an element is seen,
      * the uri is taken from the template cache of the app, and the fields are the known ones.
      */
-    private static final class VideoTemplate {
+    static final class VideoTemplate {
         final String name;
         final int modelField;
         final ByteTrieSearch search;
@@ -429,7 +553,13 @@ public class FeedCardLayoutPatch {
          * Whether the uri and the fields were taken from an element.
          */
         private volatile boolean fromElement;
-        private long cacheLookupTime;
+        /**
+         * Whether the last lookup did not find the version of the uri in the cache,
+         * which is replaced only if the next lookup does not find it either.
+         */
+        private volatile boolean missingInCache;
+        private volatile long cacheLookupTime;
+        private volatile long synchronousLookupTime;
         private long checkTime;
 
         VideoTemplate(String name, int modelField, int themeField, int capabilitiesField) {
@@ -442,60 +572,103 @@ public class FeedCardLayoutPatch {
 
         @Nullable
         String getUri() {
-            if (uri == null) {
-                final long now = System.currentTimeMillis();
-                if (now - cacheLookupTime > TEMPLATE_LOOKUP_INTERVAL_MILLIS) {
-                    cacheLookupTime = now;
-                    String cached = findCachedTemplateUri(name);
-                    // An element of the template can be seen while the cache is read.
-                    if (uri == null) {
-                        uri = cached;
+            // The app drops the older versions of the templates from its cache, also while it runs,
+            // and the elements of a template version that is no longer cached are not shown.
+            // So the version is looked up again once in a while, also the version of an element,
+            // which is the one the server sends now, and is kept while the app has it.
+            // Until a version is found, the cache is looked up more often, as the elements that are
+            // converted meanwhile keep the layout of the server.
+            final long now = System.currentTimeMillis();
+            if (now - cacheLookupTime > (uri == null || missingInCache
+                    ? TEMPLATE_CONFIRM_INTERVAL_MILLIS
+                    : TEMPLATE_LOOKUP_INTERVAL_MILLIS)) {
+                // The element that is converted now gets the uri of a lookup on its thread,
+                // at most as often as before a version is found.
+                final boolean synchronous = uri == null
+                        && now - synchronousLookupTime > TEMPLATE_LOOKUP_INTERVAL_MILLIS;
+                if (synchronous) {
+                    synchronousLookupTime = now;
+                }
+                cacheLookupTime = now;
+                // The uri of a template includes the hash of its version, so it's taken from the template
+                // cache of the app, which has the templates the app received. The last cached version
+                // of the template is used, or none if the template is not cached.
+                Runnable lookup = () -> {
+                    // The cached versions of the template, from the oldest to the newest.
+                    List<String> cached = new ArrayList<>();
+                    try {
+                        File metadata = new File(Utils.getContext().getFilesDir(), "ElementsResourceCacheMetadata");
+                        if (metadata.isFile()) {
+                            CodedInputStream input = CodedInputStream.newInstance(
+                                    Files.readAllBytes(metadata.toPath()));
+                            while (!input.isAtEnd()) {
+                                final int tag = input.readTag();
+                                if (WireFormat.getTagWireType(tag) != WireFormat.WIRETYPE_LENGTH_DELIMITED) {
+                                    input.skipField(tag);
+                                    continue;
+                                }
+
+                                CodedInputStream entry = CodedInputStream.newInstance(input.readByteArray());
+                                while (!entry.isAtEnd()) {
+                                    final int entryTag = entry.readTag();
+                                    if (WireFormat.getTagFieldNumber(entryTag) == 1
+                                            && WireFormat.getTagWireType(entryTag)
+                                            == WireFormat.WIRETYPE_LENGTH_DELIMITED) {
+                                        String key = entry.readString();
+                                        if (isTemplate(key, name)) {
+                                            cached.add(key);
+                                        }
+                                    } else {
+                                        entry.skipField(entryTag);
+                                    }
+                                }
+                            }
+                        }
+                    } catch (InvalidProtocolBufferException ex) {
+                        // The app rewrites the cache while it runs, so the file can be read while it's
+                        // incomplete. The uri found before is kept, and the cache is read again soon.
+                        Logger.printDebug(() -> "Template cache is being written", ex);
+                        cacheLookupTime = System.currentTimeMillis() - TEMPLATE_LOOKUP_INTERVAL_MILLIS
+                                + TEMPLATE_CONFIRM_INTERVAL_MILLIS;
+                        return;
+                    } catch (Exception ex) {
+                        Logger.printException(() -> "getUri failure", ex);
+                        return;
                     }
+                    // An element of the template can be seen while the cache is read.
+                    synchronized (this) {
+                        String current = uri;
+                        // The app rewrites the cache in the same file while it runs, so a file that is read
+                        // while it's rewritten can end before the template without an error. Without the uri,
+                        // the elements would keep the layout of the server, so a version that is not found
+                        // is replaced only if the next lookup does not find it either.
+                        if (current != null && !cached.contains(current) && !missingInCache) {
+                            missingInCache = true;
+                            Logger.printDebug(() -> "Template not found in the cache: " + current);
+                            return;
+                        }
+                        missingInCache = false;
+
+                        String newest = cached.isEmpty() ? null : cached.get(cached.size() - 1);
+                        // The version of an element is kept while it's cached, and while no version is cached,
+                        // as the app can use it before it's written to the cache.
+                        if (fromElement
+                                ? newest == null || cached.contains(current)
+                                : Objects.equals(current, newest)) {
+                            return;
+                        }
+                        Logger.printDebug(() -> "Cached template: " + newest);
+                        uri = newest;
+                        fromElement = false;
+                    }
+                };
+                if (synchronous) {
+                    lookup.run();
+                } else {
+                    Utils.runOnBackgroundThread(lookup);
                 }
             }
             return uri;
-        }
-
-        /**
-         * Takes the uri and the fields from the element, if it's an element of the template.
-         * After the first element, the elements are checked once in a while, to follow a new version.
-         */
-        void update(byte[] bytes) throws IOException {
-            final long now = System.currentTimeMillis();
-            if (fromElement && now - checkTime < TEMPLATE_CHECK_INTERVAL_MILLIS) {
-                return;
-            }
-            if (!search.matches(bytes)) {
-                return;
-            }
-
-            ComponentType componentType = Element.parseFrom(bytes).getType().getComponentType();
-            String elementUri = componentType.getTemplateConfig().getUriTemplateConfig().getUri();
-            if (!isTemplate(elementUri, name)) {
-                return;
-            }
-            checkTime = now;
-
-            SubscriptionConfig config = componentType.getSubscriptionConfig();
-            if (config.hasThemeSubscriptionConfig()) {
-                ThemeSubscriptionConfig theme = config.getThemeSubscriptionConfig();
-                if (theme.getModelField() == modelField && theme.getMapping().getResultField() > 0) {
-                    themeField = theme.getMapping().getResultField();
-                }
-            }
-            if (config.hasCapabilitiesSubscriptionConfig()) {
-                CapabilitiesSubscriptionConfig capabilities = config.getCapabilitiesSubscriptionConfig();
-                if (capabilities.getModelField() == modelField && capabilities.getMapping().getResultField() > 0) {
-                    capabilitiesField = capabilities.getMapping().getResultField();
-                }
-            }
-
-            if (!elementUri.equals(uri)) {
-                Logger.printDebug(() -> "Template of an element: " + elementUri + " theme field: " + themeField
-                        + " capabilities field: " + capabilitiesField);
-            }
-            uri = elementUri;
-            fromElement = true;
         }
     }
 
@@ -516,39 +689,59 @@ public class FeedCardLayoutPatch {
             this.save = save;
             this.saved = saved;
         }
-
-        static Icons get() {
-            if (ResourceUtils.getDrawableIdentifier("yt_delhi_thumbs_up_not_filled_24dp") != 0
-                    && ResourceUtils.getDrawableIdentifier("yt_delhi_comment_24dp") != 0
-                    && ResourceUtils.getDrawableIdentifier("yt_delhi_bookmark_not_filled_24dp") != 0) {
-                return new Icons(
-                        "yt_delhi_thumbs_up_not_filled_24dp",
-                        "yt_delhi_thumbs_up_filled_24dp",
-                        "yt_delhi_comment_24dp",
-                        "yt_delhi_bookmark_not_filled_24dp",
-                        "yt_delhi_bookmark_filled_24dp"
-                );
-            }
-
-            return new Icons(
-                    "yt_outline_thumb_up_black_24",
-                    "yt_fill_thumb_up_black_24",
-                    "yt_outline_message_bubble_left_black_24",
-                    "yt_outline_bookmark_black_24",
-                    "yt_fill_bookmark_black_24"
-            );
-        }
     }
-
 
     /**
      * Injection point.
      */
     public static byte[] setFeedCardLayout(byte[] bytes) {
+        if (LAYOUT == FeedCardLayout.DEFAULT) {
+            return bytes;
+        }
+
         try {
-            if (!elementSearch.matches(bytes)) {
-                // The elements of the layout of the setting give the current version of its template.
-                (CARD_LAYOUT ? CARD : CLASSIC).update(bytes);
+            final String elementText = FeedVideoCardsPatch.getElementText(bytes);
+            if (!Utils.containsAny(elementText, elementTemplates)) {
+                // The elements of the layout of the setting give the current version of its template:
+                // the uri and the fields are taken from the element, if it's an element of the template.
+                // After the first element, the elements are checked once in a while, to follow a new version.
+                VideoTemplate template = CARD_LAYOUT ? CARD : CLASSIC;
+                final long now = System.currentTimeMillis();
+                if ((!template.fromElement || now - template.checkTime >= TEMPLATE_CHECK_INTERVAL_MILLIS)
+                        && elementText.contains(template.name)) {
+                    ComponentType componentType = Element.parseFrom(bytes).getType().getComponentType();
+                    String elementUri = componentType.getTemplateConfig().getUriTemplateConfig().getUri();
+                    if (isTemplate(elementUri, template.name)) {
+                        template.checkTime = now;
+
+                        SubscriptionConfig config = componentType.getSubscriptionConfig();
+                        if (config.hasThemeSubscriptionConfig()) {
+                            ThemeSubscriptionConfig theme = config.getThemeSubscriptionConfig();
+                            if (theme.getModelField() == template.modelField
+                                    && theme.getMapping().getResultField() > 0) {
+                                template.themeField = theme.getMapping().getResultField();
+                            }
+                        }
+                        if (config.hasCapabilitiesSubscriptionConfig()) {
+                            CapabilitiesSubscriptionConfig capabilities = config.getCapabilitiesSubscriptionConfig();
+                            if (capabilities.getModelField() == template.modelField
+                                    && capabilities.getMapping().getResultField() > 0) {
+                                template.capabilitiesField = capabilities.getMapping().getResultField();
+                            }
+                        }
+
+                        if (!elementUri.equals(template.uri)) {
+                            Logger.printDebug(() -> "Template of an element: " + elementUri + " theme field: "
+                                    + template.themeField + " capabilities field: " + template.capabilitiesField);
+                        }
+                        // A lookup of the cache can replace the uri at the same time.
+                        synchronized (template) {
+                            template.uri = elementUri;
+                            template.fromElement = true;
+                            template.missingInCache = false;
+                        }
+                    }
+                }
                 return bytes;
             }
 
@@ -560,20 +753,663 @@ public class FeedCardLayoutPatch {
             ComponentType converted = null;
             if (CARD_LAYOUT) {
                 if (isTemplate(uri, CLASSIC_TEMPLATE) && model.hasVideoWithContextModel()) {
-                    converted = convertToCard(componentType, model.getVideoWithContextModel());
+                    VideoWithContextModel classic = model.getVideoWithContextModel();
+                    toCard: {
+                        VideoWithContextData data = classic.getData();
+                        VideoData videoData = data.getVideoData();
+                        VideoThumbnail thumbnail = videoData.getThumbnail();
+
+                        // The compact items are rows of lists, such as the videos of a playlist or the 'Downloads' row
+                        // of the library. The cards have no attachment, such as the description and the 'Buy or rent'
+                        // button of the movies. The horizontal items, such as the search results on tablets, keep their
+                        // layout.
+                        if (data.getCompact() || data.getHorizontal() || !data.getAttachment().isEmpty()) {
+                            break toCard;
+                        }
+
+                        // The filters find the hidden Shorts, live streams, mix playlists and movies by the classic layout.
+                        if (thumbnail.getBadgeStyle() == THUMBNAIL_BADGE_STYLE_LIVE
+                                && Settings.HIDE_LIVE_STREAMS.get()) {
+                            break toCard;
+                        }
+                        // The mix playlists are found by the url of the mix, which the cards don't have.
+                        if (LayoutComponentsFilter.filterMixPlaylists(bytes)) {
+                            break toCard;
+                        }
+                        // The movies are found by the link to the movies page, as in the ads filter.
+                        if (Settings.HIDE_MOVIES_SECTION.get() && moviesPageSearch.matches(bytes)) {
+                            break toCard;
+                        }
+                        if ((Settings.HIDE_SHORTS_HOME.get() || Settings.HIDE_SHORTS_SUBSCRIPTIONS.get()
+                                || Settings.HIDE_SHORTS_SEARCH.get() || Settings.HIDE_SHORTS_HISTORY.get())
+                                && shortsThumbnailSearch.matches(thumbnail.getImage().toByteArray())) {
+                            // The elements are parsed when the feed that shows them is loaded, so the Shorts keep the
+                            // classic layout only in the feed whose setting hides them, the same feeds of the Shorts
+                            // filter, and are cards in the others.
+                            final boolean shortsHidden;
+                            if (PlayerType.getCurrent().isMaximizedOrFullscreen()) {
+                                // The Shorts below the player are treated as the Shorts of the Home feed.
+                                shortsHidden = Settings.HIDE_SHORTS_HOME.get();
+                            } else if (NavigationBar.isSearchBarActive()) {
+                                // Must check second, as search can be from any tab.
+                                shortsHidden = Settings.HIDE_SHORTS_SEARCH.get();
+                            } else {
+                                NavigationBar.NavigationButton selectedNavButton =
+                                        NavigationBar.NavigationButton.getSelectedNavigationButton();
+                                if (selectedNavButton == null) {
+                                    // Unknown tab, treat the same as home.
+                                    shortsHidden = Settings.HIDE_SHORTS_HOME.get();
+                                } else {
+                                    shortsHidden = switch (selectedNavButton) {
+                                        case HOME -> Settings.HIDE_SHORTS_HOME.get();
+                                        case SEARCH -> Settings.HIDE_SHORTS_SEARCH.get();
+                                        case SUBSCRIPTIONS -> Settings.HIDE_SHORTS_SUBSCRIPTIONS.get();
+                                        case LIBRARY -> Settings.HIDE_SHORTS_HISTORY.get();
+                                        default -> false;
+                                    };
+                                }
+                            }
+                            if (shortsHidden) {
+                                break toCard;
+                            }
+                        }
+
+                        String templateUri = CARD.getUri();
+                        if (templateUri == null ||!videoData.getLockupMetadata().hasLockupMetadataViewModel()) {
+                            break toCard;
+                        }
+
+                        // Playlists open their page, and show the number of videos instead of the duration.
+                        InnertubeCommandHolder onTap = InnertubeCommandHolder.parseFrom(data.getOnTap());
+                        final boolean isPlaylist = onTap.getInnertubeCommand().hasBrowseEndpoint();
+                        String contentId;
+                        String badgeText;
+                        String badgeLabel;
+                        if (isPlaylist) {
+                            String browseId = onTap.getInnertubeCommand().getBrowseEndpoint().getBrowseId();
+                            if (!browseId.startsWith(PLAYLIST_BROWSE_ID_PREFIX)
+                                    || thumbnail.getVideoCountText().isEmpty()) {
+                                break toCard;
+                            }
+                            contentId = browseId.substring(PLAYLIST_BROWSE_ID_PREFIX.length());
+                            badgeText = thumbnail.getVideoCountText();
+                            badgeLabel = badgeText;
+                        } else {
+                            Matcher videoId = VIDEO_ID_PATTERN.matcher(
+                                    thumbnail.getImage().toString(StandardCharsets.ISO_8859_1));
+                            contentId = videoId.find() ? videoId.group(1) : null;
+                            if (contentId == null) {
+                                break toCard;
+                            }
+                            badgeText = thumbnail.getTimestampText();
+                            badgeLabel = thumbnail.getTimestampAccessibilityText();
+                        }
+
+                        ThumbnailViewModel.Builder thumbnailViewModel = ThumbnailViewModel.newBuilder()
+                                .setImage(thumbnail.getImage());
+                        if (!badgeText.isEmpty()) {
+                            ThumbnailBadgeViewModel.Builder badge = ThumbnailBadgeViewModel.newBuilder()
+                                    .setText(badgeText)
+                                    .setBadgeStyle(THUMBNAIL_BADGE_STYLE_DEFAULT)
+                                    .setRendererContext(RendererContext.newBuilder()
+                                            .setAccessibilityContext(AccessibilityContext.newBuilder()
+                                                    .setLabel(badgeLabel)));
+                            // The badge of the videos that are live now is red, with the live icon of the classic
+                            // layout.
+                            if (!isPlaylist && thumbnail.getBadgeStyle() == THUMBNAIL_BADGE_STYLE_LIVE) {
+                                badge.setBadgeStyle(THUMBNAIL_BADGE_STYLE_LIVE);
+                                if (!thumbnail.getBadgeIcon().isEmpty()) {
+                                    badge.setIcon(ThumbnailBadgeIcon.newBuilder()
+                                            .addSources(ThumbnailBadgeIconSource.newBuilder()
+                                                    .setClientResource(ClientResource.newBuilder()
+                                                            .setImageName(thumbnail.getBadgeIcon()))));
+                                }
+                            }
+
+                            thumbnailViewModel.addOverlays(ThumbnailOverlay.newBuilder()
+                                    .setThumbnailBottomOverlayViewModel(ThumbnailBottomOverlayViewModel.newBuilder()
+                                            .addBadges(ThumbnailBadge.newBuilder().setThumbnailBadgeViewModel(badge))));
+                        }
+
+                        // The card thumbnail shows only the badges of the bottom overlays,
+                        // so the watch progress is drawn by the bottom overlay template in an element over the
+                        // thumbnail.
+                        final float progress = thumbnail.getProgress();
+                        if (SeekbarColorPatch.showWatchHistoryProgressDrawable(progress > 0)) {
+                            String bottomOverlayUri = THUMBNAIL_BOTTOM_OVERLAY.getUri();
+                            if (bottomOverlayUri != null) {
+                                ThumbnailBottomOverlayViewModel progressBar =
+                                        ThumbnailBottomOverlayViewModel.newBuilder()
+                                        .setProgressBar(ThumbnailOverlayProgressBar.newBuilder()
+                                                .setThumbnailOverlayProgressBarViewModel(
+                                                        ThumbnailOverlayProgressBarViewModel.newBuilder()
+                                                        .setProgress(progress)
+                                                        .setStyle(THUMBNAIL_PROGRESS_BAR_STYLE_EDGE)))
+                                        .build();
+                                ComponentType progressComponent = ComponentType.newBuilder()
+                                        .setTemplateConfig(templateConfig(bottomOverlayUri))
+                                        .setModel(ElementModel.newBuilder().setLockupModel(LockupModel.newBuilder()
+                                                .setViewModel(LockupViewModelHolder.newBuilder()
+                                                        .setThumbnailBottomOverlayViewModel(progressBar))
+                                                .setContext(classic.getContext())))
+                                        .setSubscriptionConfig(subscriptionConfig(
+                                                componentType.getSubscriptionConfig(), THUMBNAIL_BOTTOM_OVERLAY))
+                                        .build();
+                                thumbnailViewModel.addOverlays(ThumbnailOverlay.newBuilder()
+                                        .setThumbnailElementOverlay(ThumbnailElementOverlay.newBuilder()
+                                                .setElement(Element.newBuilder()
+                                                        .setType(ElementType.newBuilder()
+                                                                .setComponentType(progressComponent)))));
+                            }
+                        }
+
+                        LockupMetadataViewModel.Builder metadata = videoData.getLockupMetadata()
+                                .getLockupMetadataViewModel().toBuilder()
+                                .setTitleStyle(TextStyle.newBuilder().setStyle(CARD_TITLE_STYLE));
+                        // The classic layout shows the channel, the views and the date in one text separated by spaces,
+                        // and the cards show the channel above the views and the date.
+                        splitRows: {
+                            ContentMetadataViewModel viewModel = metadata.getMetadata().getContentMetadataViewModel();
+                            MetadataPart part = null;
+                            for (MetadataRow row : viewModel.getMetadataRowsList()) {
+                                if (row.getMetadataPartsCount() > 0) {
+                                    if (part != null || row.getMetadataPartsCount() > 1) {
+                                        break splitRows; // Already split.
+                                    }
+                                    part = row.getMetadataParts(0);
+                                }
+                            }
+                            if (part == null) {
+                                break splitRows;
+                            }
+
+                            AttributedText text = part.getText();
+                            String content = text.getContent();
+                            Matcher separator = METADATA_SEPARATOR_PATTERN.matcher(content);
+                            if (!separator.find()) {
+                                break splitRows;
+                            }
+
+                            // The views icon is an attachment on the spaces before the views.
+                            final int channelEnd = separator.start();
+                            int secondRowStart = separator.end();
+                            for (AttachmentRun run : text.getAttachmentRunsList()) {
+                                final int start = run.getStartIndex();
+                                if (start >= channelEnd && start < secondRowStart) {
+                                    secondRowStart = start;
+                                }
+                            }
+
+                            AttributedText.Builder secondRowText = AttributedText.newBuilder()
+                                    .setContent(content.substring(secondRowStart));
+                            for (AttachmentRun run : text.getAttachmentRunsList()) {
+                                if (run.getStartIndex() >= secondRowStart) {
+                                    secondRowText.addAttachmentRuns(run.toBuilder()
+                                            .setStartIndex(run.getStartIndex() - secondRowStart));
+                                }
+                            }
+
+                            // The accessibility label is 'Channel, views, date'.
+                            String label = part.getAccessibilityLabel();
+                            final int labelSeparator = label.indexOf(", ");
+
+                            metadata.setMetadata(ContentMetadata.newBuilder()
+                                    .setContentMetadataViewModel(viewModel.toBuilder()
+                                            .clearMetadataRows()
+                                            .addMetadataRows(MetadataRow.newBuilder()
+                                                    .addMetadataParts(MetadataPart.newBuilder()
+                                                            .setText(AttributedText.newBuilder()
+                                                                    .setContent(content.substring(0, channelEnd)))))
+                                            .addMetadataRows(MetadataRow.newBuilder()
+                                                    .addMetadataParts(MetadataPart.newBuilder()
+                                                            .setText(secondRowText)
+                                                            .setAccessibilityLabel(labelSeparator < 0
+                                                                    ? label
+                                                                    : label.substring(labelSeparator + 2))))
+                                            .setDelimiter(" "))
+                                    .build());
+                        }
+
+                        // The images of the classic layout have the same format of the images of the cards.
+                        if (videoData.hasDecoratedAvatar()) {
+                            metadata.setImage(videoData.getDecoratedAvatar());
+                        } else if (videoData.hasAvatarStack()) {
+                            metadata.setImage(videoData.getAvatarStack());
+                        } else if (videoData.hasAvatar()) {
+                            ChannelAvatar avatar = videoData.getAvatar();
+                            metadata.setImage(LockupImage.newBuilder()
+                                    .setDecoratedAvatarViewModel(DecoratedAvatarViewModel.newBuilder()
+                                            .setAvatar(AvatarViewModelHolder.newBuilder()
+                                                    .setAvatarViewModel(AvatarViewModel.newBuilder()
+                                                            .setImage(avatar.getImage())
+                                                            .setAvatarImageSize(avatar.getAvatarImageSize())))
+                                            .setA11YLabel(avatar.getAccessibilityText())
+                                            .setRendererContext(RendererContext.newBuilder()
+                                                    .setCommandContext(CommandContext.newBuilder()
+                                                            .setOnTap(avatar.getEndpoint())))));
+                        }
+
+                        InnertubeCommandHolder menuOnTap = InnertubeCommandHolder.parseFrom(data.getMenuOnTap());
+                        metadata.setMenuButton(ButtonViewModelHolder.newBuilder()
+                                .setButtonViewModel(button("MORE_VERT", data.getMenuAccessibilityText(), menuOnTap)));
+
+                        // The comment button opens the video with the comments, which are opened when the watch page
+                        // is loaded, and the save button saves the video to 'Watch later'.
+                        if (ACTION_BUTTONS && !isPlaylist) {
+                            if (icons == null) {
+                                // The bold icons are not available on older versions of the app.
+                                if (ResourceUtils.getDrawableIdentifier("yt_delhi_thumbs_up_not_filled_24dp") != 0
+                                        && ResourceUtils.getDrawableIdentifier("yt_delhi_comment_24dp") != 0
+                                        && ResourceUtils.getDrawableIdentifier("yt_delhi_bookmark_not_filled_24dp")
+                                        != 0) {
+                                    icons = new Icons(
+                                            "yt_delhi_thumbs_up_not_filled_24dp",
+                                            "yt_delhi_thumbs_up_filled_24dp",
+                                            "yt_delhi_comment_24dp",
+                                            "yt_delhi_bookmark_not_filled_24dp",
+                                            "yt_delhi_bookmark_filled_24dp"
+                                    );
+                                } else {
+                                    icons = new Icons(
+                                            "yt_outline_thumb_up_black_24",
+                                            "yt_fill_thumb_up_black_24",
+                                            "yt_outline_message_bubble_left_black_24",
+                                            "yt_outline_bookmark_black_24",
+                                            "yt_fill_bookmark_black_24"
+                                    );
+                                }
+                            }
+
+                            // The command of the 'Save to Watch later' item of the menu.
+                            // Without the item, such as in some menus, the button opens the menu.
+                            PlaylistQueueRenderer.NavigationEndpoint watchLaterCommand = findWatchLaterCommand(
+                                    PlaylistQueueRenderer.Menu.parseFrom(menuOnTap.getInnertubeCommand()
+                                            .getOpenPopupAction().getPopup()).getMenuRenderer());
+                            InnertubeCommandHolder saveOnTap = menuOnTap;
+                            if (watchLaterCommand != null) {
+                                saveOnTap = InnertubeCommandHolder.newBuilder()
+                                        .setInnertubeCommand(InnertubeCommand.parseFrom(watchLaterCommand.toByteString()))
+                                        .build();
+                            }
+
+                            String entityKey = Base64.encodeToString(LikeStatusEntityKey.newBuilder()
+                                            .setVideoId(contentId)
+                                            .setEntityType(LIKE_STATUS_ENTITY_TYPE)
+                                            .setVersion(1)
+                                            .build()
+                                            .toByteArray(),
+                                    Base64.URL_SAFE | Base64.NO_WRAP).replace("=", "%3D");
+
+                            metadata.addActionButtons(ActionButton.newBuilder()
+                                            .setLikeButtonViewModel(LikeButtonViewModel.newBuilder()
+                                                    .setToggleButtonViewModel(toggleButton(
+                                                            button(icons.like, "",
+                                                                    likeCommand(contentId, LIKE_STATUS_LIKE)),
+                                                            button(icons.liked, "",
+                                                                    likeCommand(contentId, LIKE_STATUS_INDIFFERENT))))
+                                                    .setLikeStatusEntityKey(entityKey)
+                                                    .setLikeStatusEntity(LikeStatusEntity.newBuilder()
+                                                            .setKey(entityKey)
+                                                            .setLikeStatus(LIKE_STATUS_INDIFFERENT))
+                                                    .setLikeCountEnabled(1)))
+                                    .addActionButtons(ActionButton.newBuilder()
+                                            .setButtonViewModel(button(icons.comment,
+                                                    str("morphe_feed_card_layout_comments")
+                                                            + COMMENT_BUTTON_LABEL_MARKER,
+                                                    InnertubeCommandHolder.parseFrom(data.getOnTap()))))
+                                    .addActionButtons(ActionButton.newBuilder()
+                                            .setAddToPlaylistButtonViewModel(AddToPlaylistButtonViewModel.newBuilder()
+                                                    .setToggleButtonViewModel(toggleButton(
+                                                            button(icons.save, "", saveOnTap),
+                                                            button(icons.saved, "", saveOnTap)))));
+                        }
+
+                        // The template draws the background below the thumbnail only for the cards with inline
+                        // playback, so the list draws it for the other cards, such as the playlists.
+                        String label = data.getAccessibilityText();
+                        if (data.getInlinePlayback().isEmpty()) {
+                            label += NO_INLINE_PLAYBACK_CARD_LABEL_MARKER;
+                        }
+
+                        LockupViewModel.Builder lockupViewModel = LockupViewModel.newBuilder()
+                                .setContentImage(ContentImage.newBuilder().setThumbnailViewModel(thumbnailViewModel))
+                                .setMetadata(LockupMetadata.newBuilder().setLockupMetadataViewModel(metadata))
+                                .setContentId(contentId)
+                                .setContentType(isPlaylist ? LOCKUP_CONTENT_TYPE_PLAYLIST : LOCKUP_CONTENT_TYPE_VIDEO)
+                                .setRendererContext(RendererContext.newBuilder()
+                                        .setAccessibilityContext(AccessibilityContext.newBuilder()
+                                                .setLabel(label + CARD_LABEL_MARKER))
+                                        .setCommandContext(CommandContext.newBuilder().setOnTap(data.getOnTap())));
+                        // The cards play the video inline (feed autoplay) with the same commands of the classic layout.
+                        if (!data.getInlinePlayback().isEmpty()) {
+                            lockupViewModel.setInlinePlayback(LockupInlinePlayback.newBuilder()
+                                    .setInlinePlayback(data.getInlinePlayback()));
+                        }
+
+                        LockupModel card = LockupModel.newBuilder()
+                                .setViewModel(LockupViewModelHolder.newBuilder().setLockupViewModel(lockupViewModel))
+                                .setContext(setCardExperiments(classic.getContext(), true))
+                                .setEnvironment(classic.getEnvironment())
+                                .setPadding(LockupPadding.newBuilder()
+                                        .setStart(CARD_HORIZONTAL_PADDING_DP)
+                                        .setEnd(CARD_HORIZONTAL_PADDING_DP)
+                                        .setTop(CARD_VERTICAL_PADDING_DP)
+                                        .setBottom(CARD_VERTICAL_PADDING_DP))
+                                .build();
+
+                        converted = componentType.toBuilder()
+                                .setTemplateConfig(templateConfig(templateUri))
+                                .setModel(ElementModel.newBuilder().setLockupModel(card))
+                                .setSubscriptionConfig(subscriptionConfig(componentType.getSubscriptionConfig(), CARD))
+                                .build();
+                    }
                 } else if (isTemplate(uri, SHELF_HEADER_TEMPLATE) && model.hasShelfHeaderModel()) {
-                    converted = setModernShelfHeader(componentType, model.getShelfHeaderModel());
+                    // The shelves of the card layout, such as the Shorts shelf, have the modern header,
+                    // with a bigger title and without the icon.
+                    // The template shows it if the server enables it and the header asks for it.
+                    ShelfHeaderModel header = model.getShelfHeaderModel();
+                    ShelfHeaderData data = header.getData();
+                    if (!data.getIcon().toString(StandardCharsets.ISO_8859_1).contains(SHORTS_SHELF_ICON)) {
+                        // The other shelf headers keep their own style, and are only found in the lists by their label,
+                        // to draw a card behind the videos below them.
+                        converted = componentType.toBuilder()
+                                .setModel(ElementModel.newBuilder().setShelfHeaderModel(header.toBuilder()
+                                        .setData(data.toBuilder()
+                                                .setTitle(data.getTitle() + VIDEO_SHELF_HEADER_LABEL_MARKER)
+                                                .setAccessibilityText(data.getAccessibilityText()
+                                                        + VIDEO_SHELF_HEADER_LABEL_MARKER))))
+                                .build();
+                    } else {
+                        converted = componentType.toBuilder()
+                                .setModel(ElementModel.newBuilder().setShelfHeaderModel(header.toBuilder()
+                                        .setData(modernShelfHeader(data))))
+                                .build();
+                    }
                 } else if (isTemplate(uri, HORIZONTAL_SHELF_TEMPLATE) && model.hasHorizontalShelfModel()) {
-                    converted = setHorizontalShelfCard(componentType, model.getHorizontalShelfModel());
+                    // The horizontal shelves of videos have the modern header, like the Shorts shelf,
+                    // and the shelf is a card with the header and the videos.
+                    HorizontalShelfModel shelf = model.getHorizontalShelfModel();
+                    HorizontalShelfData data = shelf.getData();
+                    if (data.hasHeader()) {
+                        converted = componentType.toBuilder()
+                                .setModel(ElementModel.newBuilder().setHorizontalShelfModel(shelf.toBuilder()
+                                        .setData(data.toBuilder()
+                                                .setHeader(modernShelfHeader(data.getHeader())))))
+                                .build();
+                    }
                 } else if (isTemplate(uri, SHORTS_VIDEO_CELL_TEMPLATE) && model.hasShortsVideoCellModel()) {
-                    converted = setShortsCellLabel(componentType, model.getShortsVideoCellModel());
+                    // The label of the Shorts ends with an invisible character, to find the Shorts shelf in the lists.
+                    ShortsVideoCellModel cell = model.getShortsVideoCellModel();
+                    ShortsVideoCellData data = cell.getData();
+                    converted = componentType.toBuilder()
+                            .setModel(ElementModel.newBuilder().setShortsVideoCellModel(cell.toBuilder()
+                                    .setData(data.toBuilder()
+                                            .setAccessibilityText(data.getAccessibilityText()
+                                                    + SHORTS_CELL_LABEL_MARKER))))
+                            .build();
                 } else if (isTemplate(uri, SHORTS_SHELF_TEMPLATE) && model.hasShortsShelfModel()) {
-                    converted = setShortsShelfCard(componentType, model.getShortsShelfModel());
-                } else if (isTemplate(uri, GRID_VIDEO_TEMPLATE) && model.hasGridVideoModel()) {
-                    converted = setVideoShelfRowLabel(componentType, model.getGridVideoModel());
+                    // The shelves of Shorts in a carousel, such as in the search results, have the modern header
+                    // like the other shelves, and the shelf is a card with the header and the Shorts.
+                    ShortsShelfModel shelf = model.getShortsShelfModel();
+                    if (shelf.hasHeader()) {
+                        converted = componentType.toBuilder()
+                                .setModel(ElementModel.newBuilder().setShortsShelfModel(shelf.toBuilder()
+                                        .setHeader(modernShelfHeader(shelf.getHeader()))))
+                                .build();
+                    }
+                } else if ((isTemplate(uri, GRID_VIDEO_TEMPLATE) || isTemplate(uri, GRID_COLLECTION_TEMPLATE))
+                        && model.hasGridVideoModel()) {
+                    // The label of the videos of the vertical shelves ends with an invisible character,
+                    // to draw the shelf below the header as a card.
+                    GridVideoModel video = model.getGridVideoModel();
+                    String label = video.getAccessibilityText();
+                    if (label.isEmpty()) {
+                        // The playlists and the podcasts have no label, so they get the label of their texts,
+                        // as a compact playlist, such as "Title - Channel · Playlist - 20 videos - Updated 2 days ago".
+                        // Accessibility services read the label instead of the texts.
+                        GridVideoMetadata metadata = video.getData().getMetadata();
+                        StringBuilder texts = new StringBuilder();
+                        for (ByteString text : List.of(metadata.getTitle(), metadata.getSubtitle(),
+                                video.getData().getThumbnail().getCollectionCountText(), metadata.getDetails())) {
+                            if (!text.isEmpty()) {
+                                if (texts.length() > 0) {
+                                    texts.append(" - ");
+                                }
+                                texts.append(text.toStringUtf8());
+                            }
+                        }
+                        label = texts.toString();
+                    }
+                    converted = componentType.toBuilder()
+                            .setModel(ElementModel.newBuilder().setGridVideoModel(video.toBuilder()
+                                    .setAccessibilityText(label + VIDEO_SHELF_ROW_LABEL_MARKER)))
+                            .build();
+                } else if (isTemplate(uri, COMPACT_PLAYLIST_TEMPLATE) && model.hasCompactPlaylistModel()) {
+                    // The playlists in a row of a vertical shelf are drawn on the card of the shelf too.
+                    CompactPlaylistModel playlist = model.getCompactPlaylistModel();
+                    CompactPlaylistData data = playlist.getData();
+                    if (!data.getAccessibilityText().isEmpty()) {
+                        converted = componentType.toBuilder()
+                                .setModel(ElementModel.newBuilder().setCompactPlaylistModel(playlist.toBuilder()
+                                        .setData(data.toBuilder()
+                                                .setAccessibilityText(data.getAccessibilityText()
+                                                        + VIDEO_SHELF_ROW_LABEL_MARKER))))
+                                .build();
+                    }
                 }
             } else if (isTemplate(uri, CARD_TEMPLATE) && model.hasLockupModel()) {
-                converted = convertToClassic(componentType, model.getLockupModel());
+                LockupModel card = model.getLockupModel();
+                toClassic: {
+                    LockupViewModel lockupViewModel = card.getViewModel().getLockupViewModel();
+                    final boolean isPlaylist = lockupViewModel.getContentType() == LOCKUP_CONTENT_TYPE_PLAYLIST;
+                    ContentImage contentImage = lockupViewModel.getContentImage();
+                    // The playlists and the mixes show a stack of thumbnails.
+                    ThumbnailViewModel thumbnailViewModel = contentImage.hasCollectionThumbnailViewModel()
+                            ? contentImage.getCollectionThumbnailViewModel().getPrimaryThumbnail().getThumbnailViewModel()
+                            : contentImage.getThumbnailViewModel();
+                    if ((!isPlaylist && lockupViewModel.getContentType() != LOCKUP_CONTENT_TYPE_VIDEO)
+                            || thumbnailViewModel.getImage().isEmpty()) {
+                        break toClassic;
+                    }
+
+                    String templateUri = CLASSIC.getUri();
+                    if (templateUri == null) {
+                        break toClassic;
+                    }
+
+                    VideoThumbnail.Builder thumbnail = VideoThumbnail.newBuilder()
+                            .setImage(thumbnailViewModel.getImage());
+                    for (ThumbnailOverlay overlay : thumbnailViewModel.getOverlaysList()) {
+                        List<ThumbnailBadge> badges = overlay.hasThumbnailOverlayBadgeViewModel()
+                                ? overlay.getThumbnailOverlayBadgeViewModel().getThumbnailBadgesList()
+                                : overlay.getThumbnailBottomOverlayViewModel().getBadgesList();
+                        for (ThumbnailBadge badge : badges) {
+                            ThumbnailBadgeViewModel badgeViewModel = badge.getThumbnailBadgeViewModel();
+                            if (!badgeViewModel.getText().isEmpty()) {
+                                if (isPlaylist) {
+                                    thumbnail.setVideoCountText(badgeViewModel.getText());
+                                } else {
+                                    thumbnail.setTimestampText(badgeViewModel.getText())
+                                            .setTimestampAccessibilityText(badgeViewModel.getRendererContext()
+                                                    .getAccessibilityContext().getLabel());
+                                }
+                            }
+                        }
+                    }
+
+                    final String playlistId = lockupViewModel.getContentId();
+                    Matcher mixVideoId = VIDEO_ID_PATTERN.matcher(
+                            thumbnailViewModel.getImage().toString(StandardCharsets.ISO_8859_1));
+                    final boolean isMix = isPlaylist && playlistId.startsWith(MIX_PLAYLIST_ID_PREFIX) && mixVideoId.find();
+                    if (isPlaylist) {
+                        // The server samples these colors from the thumbnail, so the gray values are used.
+                        thumbnail.setIsPlaylist(!isMix)
+                                .setIsMix(isMix)
+                                .setCollectionStyle1(1)
+                                .setCollectionStyle2(1)
+                                .setCollectionStyle3(3)
+                                .setBadgeIconType(isMix ? MIX_BADGE_ICON_TYPE : PLAYLIST_BADGE_ICON_TYPE)
+                                .setBadgeColor(COLLECTION_BADGE_COLOR)
+                                .setBadgeDarkColor(COLLECTION_BADGE_DARK_COLOR)
+                                .setStackColors(CollectionStackColors.newBuilder()
+                                        .setFrontColor(COLLECTION_STACK_FRONT_COLOR)
+                                        .setBackColor(COLLECTION_STACK_BACK_COLOR));
+                    }
+
+                    LockupMetadataViewModel metadata = lockupViewModel.getMetadata().getLockupMetadataViewModel();
+                    // Joins the metadata rows of a card into one text, like the classic layout.
+                    ContentMetadata rows = metadata.getMetadata();
+                    ContentMetadataViewModel viewModel = rows.getContentMetadataViewModel();
+                    if (viewModel.getMetadataRowsCount() >= 2) {
+
+                        StringBuilder content = new StringBuilder();
+                        StringBuilder label = new StringBuilder();
+                        AttributedText.Builder text = AttributedText.newBuilder();
+                        for (MetadataRow row : viewModel.getMetadataRowsList()) {
+                            for (MetadataPart part : row.getMetadataPartsList()) {
+                                String partContent = part.getText().getContent();
+                                if (partContent.isEmpty()) {
+                                    continue;
+                                }
+                                if (content.length() > 0) {
+                                    content.append("   ");
+                                }
+                                final int offset = content.length();
+                                content.append(partContent);
+                                for (AttachmentRun run : part.getText().getAttachmentRunsList()) {
+                                    text.addAttachmentRuns(run.toBuilder().setStartIndex(run.getStartIndex() + offset));
+                                }
+
+                                String partLabel = part.getAccessibilityLabel().isEmpty()
+                                        ? partContent.trim()
+                                        : part.getAccessibilityLabel();
+                                if (label.length() > 0) {
+                                    label.append(", ");
+                                }
+                                label.append(partLabel);
+                            }
+                        }
+
+                        rows = ContentMetadata.newBuilder()
+                                .setContentMetadataViewModel(viewModel.toBuilder()
+                                        .clearMetadataRows()
+                                        .addMetadataRows(MetadataRow.newBuilder()
+                                                .addMetadataParts(MetadataPart.newBuilder()
+                                                        .setText(text.setContent(content.toString()))
+                                                        .setAccessibilityLabel(label.toString())))
+                                        .clearDelimiter())
+                                .build();
+                    }
+                    VideoData.Builder videoData = VideoData.newBuilder()
+                            .setThumbnail(thumbnail)
+                            .setLockupMetadata(LockupMetadata.newBuilder()
+                                    .setLockupMetadataViewModel(metadata.toBuilder()
+                                            .setMetadata(rows)
+                                            .clearImage()
+                                            .clearMenuButton()
+                                            .clearTitleStyle()
+                                            .clearActionButtons()));
+                    if (isPlaylist) {
+                        // The mix playlists are found by the url of the mix, which the cards don't have.
+                        videoData.setUrl(isMix
+                                ? "https://www.youtube.com/watch?v=" + mixVideoId.group(1) + "&list=" + playlistId
+                                : "https://www.youtube.com/playlist?list=" + playlistId);
+                    }
+                    if (metadata.getImage().hasDecoratedAvatarViewModel()) {
+                        DecoratedAvatarViewModel avatar = metadata.getImage().getDecoratedAvatarViewModel();
+                        AvatarViewModel avatarViewModel = avatar.getAvatar().getAvatarViewModel();
+                        videoData.setAvatar(ChannelAvatar.newBuilder()
+                                .setImage(avatarViewModel.getImage())
+                                .setAccessibilityText(avatar.getA11YLabel())
+                                .setAvatarImageSize(avatarViewModel.getAvatarImageSize())
+                                .setEndpoint(avatar.getRendererContext().getCommandContext().getOnTap()));
+                    }
+
+                    ButtonViewModel menuButton = metadata.getMenuButton().getButtonViewModel();
+                    InnertubeCommandHolder menuOnTap = menuButton.getOnTap();
+                    // The cards with a save button have no save items in the menu,
+                    // so the items are added to the menu of the classic layout, which has no save button.
+                    boolean hasSaveButton = false;
+                    for (ActionButton button : metadata.getActionButtonsList()) {
+                        hasSaveButton |= button.hasAddToPlaylistButtonViewModel();
+                    }
+                    OpenPopupAction openPopupAction = menuOnTap.getInnertubeCommand().getOpenPopupAction();
+                    PlaylistQueueRenderer.Menu popup = hasSaveButton && !isPlaylist
+                            ? PlaylistQueueRenderer.Menu.parseFrom(openPopupAction.getPopup())
+                            : PlaylistQueueRenderer.Menu.getDefaultInstance();
+                    PlaylistQueueRenderer.MenuRenderer menu = popup.getMenuRenderer();
+                    if (menu.getItemsCount() > 0 && findWatchLaterCommand(menu) == null) {
+                        // The save items follow the items shown by a condition, such as the queue items.
+                        int saveItemsIndex = 0;
+                        while (saveItemsIndex < menu.getItemsCount()
+                                && (menu.getItems(saveItemsIndex).hasMenuConditionalServiceItemRenderer()
+                                || menu.getItems(saveItemsIndex).hasMenuConditionalNavigationItemRenderer())) {
+                            saveItemsIndex++;
+                        }
+
+                        // The commands of the save items of the classic layout.
+                        final String videoId = lockupViewModel.getContentId();
+                        var saveToWatchLater = PlaylistQueueRenderer.MenuServiceItem.newBuilder()
+                                .setText(PlaylistQueueRenderer.Text.newBuilder()
+                                        .setSimpleText(SAVE_TO_WATCH_LATER.toString()))
+                                .setIcon(Icon.newBuilder().setYtIconType(YTIconType.ADD_TO_WATCH_LATER))
+                                .setServiceEndpoint(PlaylistQueueRenderer.NavigationEndpoint.newBuilder()
+                                        .setPlaylistEditEndpoint(PlaylistQueueRenderer.PlaylistEditEndpoint.newBuilder()
+                                                .setPlaylistId(WATCH_LATER_PLAYLIST_ID)
+                                                .addActions(PlaylistQueueRenderer.PlaylistEditAction.newBuilder()
+                                                        .setAction(ACTION_ADD_VIDEO)
+                                                        .setAddedVideoId(videoId))));
+                        var saveToPlaylist = PlaylistQueueRenderer.MenuNavigationItem.newBuilder()
+                                .setText(PlaylistQueueRenderer.Text.newBuilder()
+                                        .setSimpleText(SAVE_TO_PLAYLIST.toString()))
+                                .setIcon(Icon.newBuilder().setYtIconType(YTIconType.BOOKMARK_BORDER))
+                                .setNavigationEndpoint(PlaylistQueueRenderer.NavigationEndpoint.newBuilder()
+                                        .setAddToPlaylistEndpoint(PlaylistQueueRenderer.AddToPlaylistEndpoint.newBuilder()
+                                                .setVideoId(videoId)));
+                        menu = menu.toBuilder()
+                                .addItems(saveItemsIndex, PlaylistQueueRenderer.MenuItem.newBuilder()
+                                        .setMenuServiceItemRenderer(saveToWatchLater))
+                                .addItems(saveItemsIndex + 1, PlaylistQueueRenderer.MenuItem.newBuilder()
+                                        .setMenuNavigationItemRenderer(saveToPlaylist))
+                                .build();
+
+                        menuOnTap = menuOnTap.toBuilder()
+                                .setInnertubeCommand(menuOnTap.getInnertubeCommand().toBuilder()
+                                        .setOpenPopupAction(openPopupAction.toBuilder()
+                                                .setPopup(popup.toBuilder().setMenuRenderer(menu).build().toByteString())))
+                                .build();
+                    }
+                    RendererContext rendererContext = lockupViewModel.getRendererContext();
+                    VideoWithContextModel classic = VideoWithContextModel.newBuilder()
+                            .setData(VideoWithContextData.newBuilder()
+                                    .setCollectionStack(isPlaylist ? 1 : 0)
+                                    .setVideoData(videoData)
+                                    .setAccessibilityText(rendererContext.getAccessibilityContext().getLabel())
+                                    .setMenuAccessibilityText(menuButton.getAccessibilityText())
+                                    .setOnTap(rendererContext.getCommandContext().getOnTap())
+                                    .setMenuOnTap(menuOnTap.toByteString())
+                                    .setInlinePlayback(lockupViewModel.getInlinePlayback().getInlinePlayback()))
+                            .setContext(setCardExperiments(card.getContext(), false))
+                            .setEnvironment(card.getEnvironment())
+                            .build();
+
+                    converted = componentType.toBuilder()
+                            .setTemplateConfig(templateConfig(templateUri))
+                            .setModel(ElementModel.newBuilder().setVideoWithContextModel(classic))
+                            .setSubscriptionConfig(subscriptionConfig(componentType.getSubscriptionConfig(), CLASSIC))
+                            .build();
+                }
+
+                // The other cards, such as the posts, have no classic layout. The experiments of the card layout are
+                // sent only to the accounts of the A/B test, so without them the card style is not drawn.
+                ElementsExperiments experiments = card.getContext().getElementsExperiments();
+                if (converted == null && experiments.hasCardLayoutExperiments()) {
+                    converted = componentType.toBuilder()
+                            .setModel(model.toBuilder().setLockupModel(card.toBuilder()
+                                    .setContext(card.getContext().toBuilder()
+                                            .setElementsExperiments(experiments.toBuilder().clearCardLayoutExperiments()))))
+                            .build();
+                }
             }
 
             if (converted == null) {
@@ -622,11 +1458,48 @@ public class FeedCardLayoutPatch {
      */
     public static int getCardColor(Drawable drawable, int color) {
         try {
-            if (CARD_LAYOUT && Color.alpha(color) == 255 && isInCard(drawable)) {
-                // The theme patch changes only some exact colors, such as the background of the cards.
-                // The lowest bit of blue is not visible.
-                return color ^ 1;
+            if (CARD_LAYOUT && Color.alpha(color) == 255) {
+                boolean inCard = false;
+                View view = getDrawableView(drawable);
+                while (view != null) {
+                    // The card can be drawn before it's added to the list.
+                    if (isCardLabel(view.getContentDescription())) {
+                        // The label can be on a view inside the list item, which the padding of the card
+                        // already moves in, so the outline is set on the list item, or on the column of a row of cards.
+                        View item = view;
+                        View column = view;
+                        while (item.getParent() instanceof View parentView && !(parentView instanceof RecyclerView)) {
+                            column = item;
+                            item = parentView;
+                        }
+                        setCardOutline(isCardRow(item) ? column : item, CARD_OUTLINE);
+                        inCard = true;
+                        break;
+                    }
+                    ViewParent parent = view.getParent();
+                    if (parent instanceof RecyclerView recyclerView) {
+                        if (recyclerView.getId() == getFeedId()) {
+                            // The background is mounted before the content of the item,
+                            // so a bar of chips is found only after the item is mounted.
+                            if (view instanceof ViewGroup group && group.getChildCount() == 0) {
+                                unmountedItemBackgrounds.put(drawable, Boolean.TRUE);
+                            }
+                            inCard = !isChipBar(view);
+                        }
+                        break;
+                    }
+                    view = parent instanceof View parentView ? parentView : null;
+                }
+
+                if (inCard) {
+                    cardBackgrounds.put(drawable, Boolean.TRUE);
+                    // The theme patch changes only some exact colors, such as the background of the cards.
+                    // The lowest bit of blue is not visible.
+                    return color ^ 1;
+                }
             }
+            // The drawables are recycled for other elements.
+            cardBackgrounds.remove(drawable);
         } catch (Exception ex) {
             Logger.printException(() -> "getCardColor failure", ex);
         }
@@ -641,9 +1514,20 @@ public class FeedCardLayoutPatch {
      */
     public static Object getDividerItem(@Nullable Object item) {
         try {
-            if (CARD_LAYOUT && item instanceof ElementItemInterface element
-                    && isCardElement(element.patch_getElementBytes())) {
-                return ITEM_WITHOUT_DIVIDER;
+            if (CARD_LAYOUT && item instanceof ElementItemInterface element) {
+                byte[] bytes = element.patch_getElementBytes();
+                if (bytes != null) {
+                    Boolean card = cardElements.get(bytes);
+                    if (card == null) {
+                        card = CARD.search.matches(bytes) && isCardLabel(Element.parseFrom(bytes).getType()
+                                .getComponentType().getModel().getLockupModel().getViewModel().getLockupViewModel()
+                                .getRendererContext().getAccessibilityContext().getLabel());
+                        cardElements.put(bytes, card);
+                    }
+                    if (card) {
+                        return ITEM_WITHOUT_DIVIDER;
+                    }
+                }
             }
         } catch (Exception ex) {
             Logger.printException(() -> "getDividerItem failure", ex);
@@ -651,18 +1535,67 @@ public class FeedCardLayoutPatch {
         return item;
     }
 
-    private static boolean isCardElement(@Nullable byte[] bytes) throws IOException {
-        if (bytes == null) {
-            return false;
+    /**
+     * Injection point.
+     * Called when the list sets the spacing of an item, with the view of the item.
+     */
+    public static void setDividerItemView(View view) {
+        try {
+            if (!CARD_LAYOUT) {
+                return;
+            }
+
+            shelfCardItems.remove(view);
+            dividerItemView = new WeakReference<>(view);
+        } catch (Exception ex) {
+            Logger.printException(() -> "setDividerItemView failure", ex);
         }
-        Boolean card = cardElements.get(bytes);
-        if (card == null) {
-            card = CARD.search.matches(bytes) && isCardLabel(Element.parseFrom(bytes).getType()
-                    .getComponentType().getModel().getLockupModel().getViewModel().getLockupViewModel()
-                    .getRendererContext().getAccessibilityContext().getLabel());
-            cardElements.put(bytes, card);
+    }
+
+    /**
+     * Injection point.
+     * Called with the item of the view of {@link #setDividerItemView(View)}, before the spacing is looked up.
+     * The item is a shelf with the card layout if the header of its horizontal shelf or Shorts carousel
+     * has the label of the shelf header.
+     */
+    public static void setDividerItem(@Nullable Object item) {
+        try {
+            if (!CARD_LAYOUT) {
+                return;
+            }
+
+            View view = dividerItemView.get();
+            dividerItemView.clear();
+            if (view == null || !(item instanceof ElementItemInterface element)) {
+                return;
+            }
+            byte[] bytes = element.patch_getElementBytes();
+            if (bytes == null) {
+                return;
+            }
+
+            Boolean shelf = shelfCardElements.get(bytes);
+            if (shelf == null) {
+                shelf = false;
+                // Only the elements with the marker are parsed.
+                if (shelfHeaderLabelSearch.matches(bytes)) {
+                    ElementModel model = Element.parseFrom(bytes).getType().getComponentType().getModel();
+                    if (model.hasHorizontalShelfModel()) {
+                        shelf = endsWith(model.getHorizontalShelfModel().getData().getHeader()
+                                .getAccessibilityText(), SHELF_HEADER_LABEL_MARKER);
+                    } else if (model.hasShortsShelfModel()) {
+                        shelf = endsWith(model.getShortsShelfModel().getHeader().getAccessibilityText(),
+                                SHELF_HEADER_LABEL_MARKER);
+                    }
+                }
+                shelfCardElements.put(bytes, shelf);
+            }
+            if (shelf) {
+                shelfCardItems.put(view, Boolean.TRUE);
+            }
+        } catch (Exception ex) {
+            Logger.printException(() -> "setDividerItem failure", ex);
         }
-        return card;
     }
 
     @Nullable
@@ -674,40 +1607,26 @@ public class FeedCardLayoutPatch {
         return callback instanceof View view ? view : null;
     }
 
-    private static boolean isInCard(Drawable drawable) {
-        View view = getDrawableView(drawable);
-        if (view == null) {
-            return false;
-        }
-
-        while (true) {
-            // The card can be drawn before it's added to the list.
-            CardOutlineProvider outline = getCardOutline(view.getContentDescription());
-            if (outline != null) {
-                setCardOutline(view, outline);
-                return true;
-            }
-            ViewParent parent = view.getParent();
-            if (parent instanceof RecyclerView recyclerView) {
-                if (recyclerView.getId() != getFeedId()) {
-                    return false;
-                }
-                // The background is mounted before the content of the item,
-                // so a bar of chips is found only after the item is mounted.
-                if (view instanceof ViewGroup group && group.getChildCount() == 0) {
-                    unmountedItemBackgrounds.put(drawable, Boolean.TRUE);
-                }
-                return !isChipBar(view);
-            }
-            if (!(parent instanceof View parentView)) {
-                return false;
-            }
-            view = parentView;
-        }
-    }
-
     private static void updateCardOutline(View child) {
-        CardOutlineProvider outline = getCardOutline(child.getContentDescription());
+        if (isCardRow(child)) {
+            setCardOutline(child, null);
+            ViewGroup row = (ViewGroup) child;
+            for (int i = 0, count = row.getChildCount(); i < count; i++) {
+                View column = row.getChildAt(i);
+                setCardOutline(column, hasLabelMarker(column, CARD_LABEL_MARKER, 0) ? CARD_OUTLINE : null);
+            }
+            return;
+        }
+
+        // The columns of a recycled row of cards keep their outline.
+        if (child instanceof ViewGroup group) {
+            for (int i = 0, count = group.getChildCount(); i < count; i++) {
+                setCardOutline(group.getChildAt(i), null);
+            }
+        }
+
+        // The label is on the list item, or on a view inside it.
+        CardOutlineProvider outline = hasLabelMarker(child, CARD_LABEL_MARKER, 0) ? CARD_OUTLINE : null;
         // The items of the feed are cards, also the ones that YouTube sends as cards and are not converted.
         if (outline == null && child.getParent() instanceof RecyclerView recyclerView
                 && recyclerView.getId() == getFeedId() && !isChipBar(child)) {
@@ -717,44 +1636,34 @@ public class FeedCardLayoutPatch {
     }
 
     /**
+     * The grids of the watch page on large screens have a row of cards per list item, with each card
+     * in a column of the row. The padding of the card moves the content inside the column,
+     * so the outline is set on the columns. The label is on the column or on a view inside it.
+     * A column is at most half as wide as the row, while the card of a list item that is one card
+     * is only narrower than the item by its padding, which doesn't follow the density of the display
+     * until the list is laid out again.
+     */
+    private static boolean isCardRow(View item) {
+        if (!(item instanceof ViewGroup row) || isCardLabel(item.getContentDescription())) {
+            return false;
+        }
+        for (int i = 0, count = row.getChildCount(); i < count; i++) {
+            View column = row.getChildAt(i);
+            final int width = column.getWidth();
+            if (width > 0 && 2 * width <= item.getWidth() && hasLabelMarker(column, CARD_LABEL_MARKER, 0)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * The bar of chips of the feed, such as the sort buttons of the channel tabs, is an item of the feed
      * with the chips in a nested list, and it's not a card. The horizontal shelves also have a nested list,
      * but they are cards with a shelf header.
      */
     private static boolean isChipBar(View item) {
         return hasNestedList(item, 0) && !isShelfHeader(item);
-    }
-
-    /**
-     * The color of the backgrounds of the items that were not mounted yet is looked up again
-     * once the item is mounted, if the item is a bar of chips.
-     */
-    private static void updateUnmountedItemBackgrounds() {
-        if (unmountedItemBackgrounds.isEmpty()) {
-            return;
-        }
-        for (Drawable background : new ArrayList<>(unmountedItemBackgrounds.keySet())) {
-            View view = getDrawableView(background);
-            while (view != null && !(view.getParent() instanceof RecyclerView)) {
-                view = view.getParent() instanceof View parent ? parent : null;
-            }
-            if (!(view instanceof ViewGroup item)) {
-                unmountedItemBackgrounds.remove(background);
-                continue;
-            }
-            if (item.getChildCount() == 0) {
-                continue;
-            }
-            unmountedItemBackgrounds.remove(background);
-            if (isChipBar(item)) {
-                // The color is looked up when the bounds change.
-                Rect bounds = background.copyBounds();
-                background.setBounds(0, 0, 0, 0);
-                background.setBounds(bounds);
-                background.invalidateSelf();
-                updateCardOutline(item);
-            }
-        }
     }
 
     private static void setCardOutline(View view, @Nullable CardOutlineProvider outline) {
@@ -774,14 +1683,7 @@ public class FeedCardLayoutPatch {
     /**
      * The accessibility label of the converted videos ends with an invisible character,
      * to find the cards in lists that have other items.
-     *
-     * @return The outline of the card, or null if the label is not the label of a card.
      */
-    @Nullable
-    private static CardOutlineProvider getCardOutline(@Nullable CharSequence label) {
-        return isCardLabel(label) ? CARD_OUTLINE : null;
-    }
-
     private static boolean isCardLabel(@Nullable CharSequence label) {
         return endsWith(label, CARD_LABEL_MARKER);
     }
@@ -807,10 +1709,228 @@ public class FeedCardLayoutPatch {
                     try {
                         RecyclerView current = listRef.get();
                         if (current != null) {
-                            updateUnmountedItemBackgrounds();
-                            updateLateCardOutlines(current);
-                            updateShortsCellOutlines(current);
-                            updateCardInlinePlayerOutline(current);
+                            // The color of the backgrounds of the items that were not mounted yet is looked up
+                            // again once the item is mounted, if the item is a bar of chips.
+                            if (!unmountedItemBackgrounds.isEmpty()) {
+                                for (Drawable background : new ArrayList<>(unmountedItemBackgrounds.keySet())) {
+                                    View view = getDrawableView(background);
+                                    while (view != null && !(view.getParent() instanceof RecyclerView)) {
+                                        view = view.getParent() instanceof View parent ? parent : null;
+                                    }
+                                    if (!(view instanceof ViewGroup item)) {
+                                        unmountedItemBackgrounds.remove(background);
+                                        continue;
+                                    }
+                                    if (item.getChildCount() == 0) {
+                                        continue;
+                                    }
+                                    unmountedItemBackgrounds.remove(background);
+                                    if (isChipBar(item)) {
+                                        // The color is looked up when the bounds change.
+                                        Rect bounds = background.copyBounds();
+                                        background.setBounds(0, 0, 0, 0);
+                                        background.setBounds(bounds);
+                                        background.invalidateSelf();
+                                        updateCardOutline(item);
+                                    }
+                                }
+                            }
+
+                            // The padding of a card, around the view with the label of the card, gives the density
+                            // that the app used to lay out the cards. It changes when the density of the display
+                            // changes and the list is laid out again.
+                            for (int i = 0, count = current.getChildCount(); i < count; i++) {
+                                if (!(current.getChildAt(i) instanceof ViewGroup item) || item.getChildCount() != 1) {
+                                    continue;
+                                }
+                                View card = item.getChildAt(0);
+                                final int left = card.getLeft();
+                                if (left <= 0 || !isCardLabel(card.getContentDescription())
+                                        || Math.abs(card.getTop() * CARD_HORIZONTAL_PADDING_DP
+                                        - left * CARD_VERTICAL_PADDING_DP) > CARD_HORIZONTAL_PADDING_DP) {
+                                    continue;
+                                }
+                                if (cardPx(CARD_HORIZONTAL_PADDING_DP) != left) {
+                                    cardLayoutDensity = (float) left / CARD_HORIZONTAL_PADDING_DP;
+                                    for (int j = 0; j < count; j++) {
+                                        invalidateCardOutlines(current.getChildAt(j), 0);
+                                    }
+                                    View container = cardInlinePlayerContainer == null
+                                            ? null
+                                            : cardInlinePlayerContainer.get();
+                                    if (container != null) {
+                                        container.invalidateOutline();
+                                    }
+                                    current.invalidate();
+                                }
+                                break;
+                            }
+
+                            // The label of a recycled card can be set after the card is laid out, so the card
+                            // keeps the outline of the item it replaced, without the spacing of the cards.
+                            // The label can be on a view inside the item.
+                            for (int i = 0, count = current.getChildCount(); i < count; i++) {
+                                View item = current.getChildAt(i);
+                                if (item.getOutlineProvider() != CARD_OUTLINE
+                                        && hasLabelMarker(item, CARD_LABEL_MARKER, 0)) {
+                                    updateCardOutline(item);
+                                }
+                            }
+
+                            // The card of a horizontal shelf clips its list, and the items of some shelves have
+                            // no padding, so their content is cut by the edges of the card. The padding of the list
+                            // moves the content of the first item, and of the last item at the end of the list,
+                            // inside the card.
+                            for (int i = 0, count = current.getChildCount(); i < count; i++) {
+                                View shelf = current.getChildAt(i);
+                                if (shelf.getHeight() <= 0
+                                        || !(shelfCardItems.containsKey(shelf) || isShelfHeader(shelf))
+                                        || !(findNestedList(shelf, 0) instanceof ViewGroup shelfList)) {
+                                    continue;
+                                }
+
+                                View first = null;
+                                View last = null;
+                                for (int j = 0, listCount = shelfList.getChildCount(); j < listCount; j++) {
+                                    View child = shelfList.getChildAt(j);
+                                    if (child.getWidth() <= 0) {
+                                        continue;
+                                    }
+                                    if (first == null || child.getLeft() < first.getLeft()) {
+                                        first = child;
+                                    }
+                                    if (last == null || child.getRight() > last.getRight()) {
+                                        last = child;
+                                    }
+                                }
+                                if (first == null) {
+                                    continue;
+                                }
+                                // The list keeps its scroll position when its padding changes, which moves the first
+                                // item before the padding, so the list is scrolled back to its start.
+                                if (shelfListsAtStart.remove(shelfList) != null
+                                        && first.getLeft() != shelfList.getPaddingLeft()) {
+                                    shelfList.scrollBy(first.getLeft() - shelfList.getPaddingLeft(), 0);
+                                    continue;
+                                }
+
+                                int[] shelfLocation = new int[2];
+                                shelf.getLocationOnScreen(shelfLocation);
+                                int[] listLocation = new int[2];
+                                shelfList.getLocationOnScreen(listLocation);
+                                final int cardInset = cardPx(CARD_HORIZONTAL_PADDING_DP + SHELF_LIST_PADDING_DP);
+                                int[] content = new int[2];
+                                int paddingLeft = shelfList.getPaddingLeft();
+                                int paddingRight = shelfList.getPaddingRight();
+
+                                // The first item is the leftmost one only while the list is scrolled to the start.
+                                if (!shelfList.canScrollHorizontally(-1) && getContentBounds(first, content)) {
+                                    paddingLeft += shelfLocation[0] + cardInset
+                                            - (listLocation[0] + first.getLeft() + content[0]);
+                                }
+                                // The last item is at the end of the list only if the items don't fit the list.
+                                if (shelfList.canScrollHorizontally(-1) && !shelfList.canScrollHorizontally(1)
+                                        && getContentBounds(last, content)) {
+                                    paddingRight += listLocation[0] + last.getLeft() + content[1]
+                                            - (shelfLocation[0] + shelf.getWidth() - cardInset);
+                                }
+
+                                paddingLeft = Math.max(0, paddingLeft);
+                                paddingRight = Math.max(0, paddingRight);
+                                if (paddingLeft == shelfList.getPaddingLeft()
+                                        && paddingRight == shelfList.getPaddingRight()) {
+                                    continue;
+                                }
+                                if (paddingLeft != shelfList.getPaddingLeft()) {
+                                    shelfListsAtStart.put(shelfList, Boolean.TRUE);
+                                }
+                                // The items are drawn in the padding while scrolling, up to the edges of the card.
+                                shelfList.setClipToPadding(false);
+                                shelfList.setPadding(paddingLeft, shelfList.getPaddingTop(), paddingRight,
+                                        shelfList.getPaddingBottom());
+                            }
+
+                            // Updates the clips of the Shorts of the Shorts shelves, without drawing the shelves.
+                            shortsCellOutlines.clear();
+                            for (int i = 0, count = current.getChildCount(); i < count; i++) {
+                                View item = current.getChildAt(i);
+                                if (item.getHeight() > 0 && isShortsRow(item)) {
+                                    View above = findItemAbove(current, item);
+                                    if (above == null || !isShortsRow(above)) {
+                                        drawShortsShelfCard(current, above, item, null);
+                                    }
+                                }
+                            }
+
+                            final boolean feed = current.getId() == getFeedId();
+                            if (feed) {
+                                // The autoplay of a Short shows the player in a container above the Short, outside
+                                // the list, which clips the player with its own rounded background. It has the clip
+                                // of the Short below it.
+                                View container = inlinePlayerContainer == null ? null : inlinePlayerContainer.get();
+                                if (container == null || !container.isAttachedToWindow()) {
+                                    final long now = System.currentTimeMillis();
+                                    if (shortsCellOutlines.isEmpty()
+                                            || now - inlinePlayerSearchTime < INLINE_PLAYER_SEARCH_INTERVAL_MILLIS) {
+                                        container = null;
+                                    } else {
+                                        inlinePlayerSearchTime = now;
+                                        container = findInlinePlayerContainer(current.getRootView(), current, 0);
+                                        inlinePlayerContainer = container == null
+                                                ? null
+                                                : new WeakReference<>(container);
+                                    }
+                                }
+
+                                if (container != null) {
+                                    ViewOutlineProvider outline = shortsCellOutlines.get(getScreenBounds(container));
+                                    if (outline != null) {
+                                        if (container.getOutlineProvider() != outline) {
+                                            container.setOutlineProvider(outline);
+                                        }
+                                    } else if (container.getOutlineProvider() instanceof ShortsCellOutlineProvider) {
+                                        container.setOutlineProvider(ViewOutlineProvider.BACKGROUND);
+                                    }
+                                }
+                            }
+
+                            if (feed) {
+                                // The autoplay of a video shows the player in a container below the list, outside
+                                // the list, and the card shows it through its thumbnail. The container has square
+                                // corners, so it gets the rounded top corners of the card while it's over
+                                // the thumbnail of a card.
+                                View container = cardInlinePlayerContainer == null
+                                        ? null
+                                        : cardInlinePlayerContainer.get();
+                                if (container == null || !container.isAttachedToWindow()) {
+                                    final long now = System.currentTimeMillis();
+                                    if (now - cardInlinePlayerSearchTime < INLINE_PLAYER_SEARCH_INTERVAL_MILLIS) {
+                                        container = null;
+                                    } else {
+                                        cardInlinePlayerSearchTime = now;
+                                        container = findCardInlinePlayerContainer(current.getRootView(), current, 0);
+                                        cardInlinePlayerContainer = container == null
+                                                ? null
+                                                : new WeakReference<>(container);
+                                    }
+                                }
+
+                                if (container != null) {
+                                    if (isOverCardThumbnail(current, container)) {
+                                        if (container.getOutlineProvider() != CARD_INLINE_PLAYER_OUTLINE) {
+                                            cardInlinePlayerClipToOutline = container.getClipToOutline();
+                                            container.setOutlineProvider(CARD_INLINE_PLAYER_OUTLINE);
+                                            container.setClipToOutline(true);
+                                        }
+                                    } else if (container.getOutlineProvider() == CARD_INLINE_PLAYER_OUTLINE) {
+                                        container.setOutlineProvider(ViewOutlineProvider.BACKGROUND);
+                                        // Over a Short, the container keeps its clip, which gets the outline of the
+                                        // Short.
+                                        container.setClipToOutline(cardInlinePlayerClipToOutline
+                                                || shortsCellOutlines.containsKey(getScreenBounds(container)));
+                                    }
+                                }
+                            }
                         }
                     } catch (Exception ex) {
                         Logger.printException(() -> "onPreDraw failure", ex);
@@ -819,6 +1939,7 @@ public class FeedCardLayoutPatch {
                 });
             }
 
+            final int cornerRadius = getCardCornerRadius();
             for (int i = 0, count = list.getChildCount(); i < count; i++) {
                 View item = list.getChildAt(i);
                 if (item.getHeight() <= 0) {
@@ -829,7 +1950,31 @@ public class FeedCardLayoutPatch {
                 if (isVideoShelfRow(item)) {
                     View above = findItemAbove(list, item);
                     if (above == null || !isVideoShelfRow(above)) {
-                        drawVideoShelfCard(list, above, item, canvas);
+                        // The videos of a vertical shelf are below the shelf header, and the shelf is one card
+                        // with the header and the videos. The videos are also used in lists without a shelf
+                        // header, so a card is drawn only if the videos are below a shelf header, or were below
+                        // one before the header was scrolled out of the list.
+                        final boolean belowHeader = above != null && isVideoShelfHeader(above);
+                        if (!belowHeader && above != null) {
+                            // Not a shelf. The views are recycled, so they are no longer videos of a shelf.
+                            for (View row = item; row != null && isVideoShelfRow(row); row = findItemBelow(list, row)) {
+                                videoShelfRows.remove(row);
+                            }
+                        } else if (belowHeader || videoShelfRows.containsKey(item)) {
+                            float bottom = item.getY() + item.getHeight();
+                            View row = item;
+                            while (row != null && isVideoShelfRow(row)) {
+                                videoShelfRows.put(row, Boolean.TRUE);
+                                bottom = row.getY() + row.getHeight();
+                                row = findItemBelow(list, row);
+                            }
+
+                            final float top = belowHeader ? above.getY() : item.getY();
+                            final float x = item.getX();
+                            final int horizontalPadding = cardPx(VIDEO_SHELF_HORIZONTAL_PADDING_DP);
+                            canvas.drawRoundRect(x + horizontalPadding, top, x + item.getWidth() - horizontalPadding,
+                                    bottom, cornerRadius, cornerRadius, getShelfPaint(list.getContext()));
+                        }
                     }
                     continue;
                 }
@@ -838,28 +1983,53 @@ public class FeedCardLayoutPatch {
                 if (isShortsRow(item)) {
                     View above = findItemAbove(list, item);
                     if (above == null || !isShortsRow(above)) {
-                        drawShortsShelfCard(list, getShortsShelfHeader(above),
-                                item, canvas);
+                        drawShortsShelfCard(list, above, item, canvas);
+                    }
+                    continue;
+                }
+
+                // The rows of cards of the grids have the cards in the columns of the row.
+                if (isCardRow(item)) {
+                    ViewGroup row = (ViewGroup) item;
+                    final int horizontalPadding = cardPx(CARD_HORIZONTAL_PADDING_DP);
+                    final int verticalPadding = cardPx(CARD_VERTICAL_PADDING_DP);
+                    for (int j = 0, columns = row.getChildCount(); j < columns; j++) {
+                        View column = row.getChildAt(j);
+                        if (isCardWithoutBackground(column)) {
+                            final float x = row.getX() + column.getX();
+                            final float y = row.getY() + column.getY();
+                            canvas.drawRoundRect(x + horizontalPadding, y + verticalPadding,
+                                    x + column.getWidth() - horizontalPadding,
+                                    y + column.getHeight() - verticalPadding,
+                                    cornerRadius, cornerRadius, getShelfPaint(list.getContext()));
+                        }
                     }
                     continue;
                 }
 
                 View header = item;
-                if (!isShelfHeader(header)) {
+                final boolean shelfHeader = isShelfHeader(header);
+                final boolean cardWithoutBackground = isCardWithoutBackground(item);
+                if (!shelfHeader && !shelfCardItems.containsKey(item) && !cardWithoutBackground) {
                     continue;
                 }
 
                 // The horizontal shelves have the header and the videos in the same list item,
-                // which is a card like the videos of the feed.
-                if (hasNestedList(header, 0)) {
+                // which is a card like the videos of the feed. The header is not mounted while
+                // it is scrolled out of the list, and the item is then found by its element.
+                if (cardWithoutBackground || hasNestedList(header, 0)) {
                     setCardOutline(header, CARD_OUTLINE);
                     final float x = header.getX();
                     final float y = header.getY();
-                    final int horizontalPadding = Dim.dp(CARD_HORIZONTAL_PADDING_DP);
-                    final int verticalPadding = Dim.dp(CARD_VERTICAL_PADDING_DP);
+                    final int horizontalPadding = cardPx(CARD_HORIZONTAL_PADDING_DP);
+                    final int verticalPadding = cardPx(CARD_VERTICAL_PADDING_DP);
                     canvas.drawRoundRect(x + horizontalPadding, y + verticalPadding,
                             x + header.getWidth() - horizontalPadding, y + header.getHeight() - verticalPadding,
-                            CARD_CORNER_RADIUS, CARD_CORNER_RADIUS, getShelfPaint(list.getContext()));
+                            cornerRadius, cornerRadius, getShelfPaint(list.getContext()));
+                    continue;
+                }
+
+                if (!shelfHeader) {
                     continue;
                 }
 
@@ -869,61 +2039,18 @@ public class FeedCardLayoutPatch {
                     final float x = header.getX();
                     final float top = header.getY();
                     final float bottom = top + header.getHeight();
-                    final int left = shortsCardLeft > 0 ? shortsCardLeft : Dim.dp(CARD_HORIZONTAL_PADDING_DP);
+                    final int left = shortsCardLeft > 0 ? shortsCardLeft : cardPx(CARD_HORIZONTAL_PADDING_DP);
                     final int right = shortsCardRight > 0 ? shortsCardRight : header.getWidth() - left;
                     canvas.save();
                     canvas.clipRect(x + left, top, x + right, bottom);
-                    canvas.drawRoundRect(x + left, top, x + right, bottom + CARD_CORNER_RADIUS,
-                            CARD_CORNER_RADIUS, CARD_CORNER_RADIUS, getShelfPaint(list.getContext()));
+                    canvas.drawRoundRect(x + left, top, x + right, bottom + cornerRadius,
+                            cornerRadius, cornerRadius, getShelfPaint(list.getContext()));
                     canvas.restore();
                 }
             }
         } catch (Exception ex) {
             Logger.printException(() -> "onListDraw failure", ex);
         }
-    }
-
-    /**
-     * The videos of a vertical shelf are below the shelf header, and the shelf is one card
-     * with the header and the videos. The videos are also used in lists without a shelf header,
-     * so a card is drawn only if the videos are below a shelf header, or were below one before
-     * the header was scrolled out of the list.
-     */
-    private static void drawVideoShelfCard(RecyclerView list, @Nullable View above, View firstRow, Canvas canvas) {
-        final boolean belowHeader = above != null && isVideoShelfHeader(above);
-        if (!belowHeader && above != null) {
-            // Not a shelf. The views are recycled, so they are no longer videos of a shelf.
-            for (View item = firstRow; item != null && isVideoShelfRow(item); item = findItemBelow(list, item)) {
-                videoShelfRows.remove(item);
-            }
-            return;
-        }
-        if (!belowHeader && !videoShelfRows.containsKey(firstRow)) {
-            return;
-        }
-
-        float bottom = firstRow.getY() + firstRow.getHeight();
-        View item = firstRow;
-        while (item != null && isVideoShelfRow(item)) {
-            videoShelfRows.put(item, Boolean.TRUE);
-            bottom = item.getY() + item.getHeight();
-            item = findItemBelow(list, item);
-        }
-
-        final float top = belowHeader ? above.getY() : firstRow.getY();
-        final float x = firstRow.getX();
-        final int horizontalPadding = Dim.dp(VIDEO_SHELF_HORIZONTAL_PADDING_DP);
-        canvas.drawRoundRect(x + horizontalPadding, top, x + firstRow.getWidth() - horizontalPadding, bottom,
-                CARD_CORNER_RADIUS, CARD_CORNER_RADIUS, getShelfPaint(list.getContext()));
-    }
-
-    /**
-     * @return The header of the Shorts shelf, which is the Shorts shelf header or another shelf header
-     *         above the Shorts, or null if the item above the Shorts is not a shelf header.
-     */
-    @Nullable
-    private static View getShortsShelfHeader(@Nullable View above) {
-        return above != null && (isShelfHeader(above) || isVideoShelfHeader(above)) ? above : null;
     }
 
     private static boolean isVideoShelfRow(View item) {
@@ -937,9 +2064,14 @@ public class FeedCardLayoutPatch {
     /**
      * The Shorts shelf is one card, with the header and the rows of Shorts below it.
      * Only the outer corners of the card are rounded, and the Shorts fill the card.
+     *
+     * @param above The list item above the first row of Shorts, or null if the item above it is not in the list.
      */
-    private static void drawShortsShelfCard(RecyclerView list, @Nullable View header, View firstRow,
+    private static void drawShortsShelfCard(RecyclerView list, @Nullable View above, View firstRow,
                                             @Nullable Canvas canvas) {
+        // The Shorts shelf header or another shelf header above the Shorts,
+        // or null if the item above the Shorts is not a shelf header.
+        View header = above != null && (isShelfHeader(above) || isVideoShelfHeader(above)) ? above : null;
         // The rows of Shorts are the list items below the header, which can be scrolled out of the list.
         List<View> rows = new ArrayList<>();
         View item = firstRow;
@@ -949,6 +2081,9 @@ public class FeedCardLayoutPatch {
         }
 
         // The card is as wide as the Shorts, and ends at the bottom of the last row of Shorts.
+        // The Shorts are laid out in columns centered in the row, and the last row can have fewer Shorts,
+        // such as one Short on the left. The card is centered in the row too, so it keeps its width
+        // while only the last row is in the list.
         int left = Integer.MAX_VALUE;
         int right = Integer.MIN_VALUE;
         final float top = header != null ? header.getY() : firstRow.getY();
@@ -963,8 +2098,9 @@ public class FeedCardLayoutPatch {
             for (View cell : cells) {
                 cell.getLocationOnScreen(cellLocation);
                 final int cellLeft = cellLocation[0] - rowLocation[0];
-                left = Math.min(left, cellLeft);
-                right = Math.max(right, cellLeft + cell.getWidth());
+                final int cellRight = cellLeft + cell.getWidth();
+                left = Math.min(left, Math.min(cellLeft, row.getWidth() - cellRight));
+                right = Math.max(right, Math.max(cellRight, row.getWidth() - cellLeft));
                 bottom = Math.max(bottom, row.getY() + cellLocation[1] - rowLocation[1] + cell.getHeight());
             }
             rowCells.add(cells);
@@ -977,8 +2113,11 @@ public class FeedCardLayoutPatch {
 
         // The outer Shorts have rounded outer corners: the top corners in the first row,
         // also below the header, and the bottom corners of the card in the last row.
+        // The first row in the list is the first row of the shelf only if an item is above it,
+        // or if the list is scrolled to the top. Otherwise the rows above it are scrolled out of the list.
+        final boolean firstRowOfShelf = above != null || !list.canScrollVertically(-1);
         for (int i = 0; i < rows.size(); i++) {
-            final boolean topRow = i == 0;
+            final boolean topRow = i == 0 && firstRowOfShelf;
             final boolean bottomRow = i == rows.size() - 1;
             rows.get(i).getLocationOnScreen(rowLocation);
             for (View cell : rowCells.get(i)) {
@@ -988,7 +2127,13 @@ public class FeedCardLayoutPatch {
                 final boolean rightColumn = cellLeft + cell.getWidth() >= right;
                 final int corners = (topRow && leftColumn ? 8 : 0) | (topRow && rightColumn ? 4 : 0)
                         | (bottomRow && leftColumn ? 2 : 0) | (bottomRow && rightColumn ? 1 : 0);
-                setShortsCellOutline(cell, SHORTS_CELL_OUTLINES[corners]);
+                // The Shorts clip their thumbnail with the rounded outline of a view inside the Short,
+                // which is replaced. The views are recycled, so it's checked every time the list is drawn.
+                ViewOutlineProvider outline = SHORTS_CELL_OUTLINES[corners];
+                setShortsCellOutline(cell, cell.getWidth(), outline, 0);
+
+                // The screen bounds of the Short, for the inline player above it.
+                shortsCellOutlines.put(getScreenBounds(cell), outline);
             }
         }
 
@@ -996,65 +2141,9 @@ public class FeedCardLayoutPatch {
             return;
         }
         final float x = firstRow.getX();
+        final int cornerRadius = getCardCornerRadius();
         canvas.drawRoundRect(x + left, top, x + right, bottom,
-                CARD_CORNER_RADIUS, CARD_CORNER_RADIUS, getShelfPaint(list.getContext()));
-    }
-
-    /**
-     * The label of a recycled card can be set after the card is laid out, so the card keeps the outline
-     * of the item it replaced, without the spacing of the cards.
-     */
-    private static void updateLateCardOutlines(RecyclerView list) {
-        for (int i = 0, count = list.getChildCount(); i < count; i++) {
-            View item = list.getChildAt(i);
-            if (item.getOutlineProvider() != CARD_OUTLINE && isCardLabel(item.getContentDescription())) {
-                setCardOutline(item, CARD_OUTLINE);
-            }
-        }
-    }
-
-    /**
-     * Updates the clips of the Shorts of the Shorts shelves, without drawing the shelves.
-     */
-    private static void updateShortsCellOutlines(RecyclerView list) {
-        shortsCellOutlines.clear();
-        for (int i = 0, count = list.getChildCount(); i < count; i++) {
-            View item = list.getChildAt(i);
-            if (item.getHeight() > 0 && isShortsRow(item)) {
-                View above = findItemAbove(list, item);
-                if (above == null || !isShortsRow(above)) {
-                    drawShortsShelfCard(list, getShortsShelfHeader(above), item, null);
-                }
-            }
-        }
-        if (list.getId() != getFeedId()) {
-            return;
-        }
-
-        // The autoplay of a Short shows the player in a container above the Short, outside the list,
-        // which clips the player with its own rounded background. It has the clip of the Short below it.
-        View container = inlinePlayerContainer == null ? null : inlinePlayerContainer.get();
-        if (container == null || !container.isAttachedToWindow()) {
-            final long now = System.currentTimeMillis();
-            if (shortsCellOutlines.isEmpty() || now - inlinePlayerSearchTime < INLINE_PLAYER_SEARCH_INTERVAL_MILLIS) {
-                return;
-            }
-            inlinePlayerSearchTime = now;
-            container = findInlinePlayerContainer(list.getRootView(), list, 0);
-            inlinePlayerContainer = container == null ? null : new WeakReference<>(container);
-            if (container == null) {
-                return;
-            }
-        }
-
-        ViewOutlineProvider outline = shortsCellOutlines.get(getScreenBounds(container));
-        if (outline != null) {
-            if (container.getOutlineProvider() != outline) {
-                container.setOutlineProvider(outline);
-            }
-        } else if (container.getOutlineProvider() instanceof ShortsCellOutlineProvider) {
-            container.setOutlineProvider(ViewOutlineProvider.BACKGROUND);
-        }
+                cornerRadius, cornerRadius, getShelfPaint(list.getContext()));
     }
 
     /**
@@ -1083,44 +2172,6 @@ public class FeedCardLayoutPatch {
             }
         }
         return null;
-    }
-
-    /**
-     * The autoplay of a video shows the player in a container below the list, outside the list,
-     * and the card shows it through its thumbnail. The container has square corners,
-     * so it gets the rounded top corners of the card while it's over the thumbnail of a card.
-     */
-    private static void updateCardInlinePlayerOutline(RecyclerView list) {
-        if (list.getId() != getFeedId()) {
-            return;
-        }
-
-        View container = cardInlinePlayerContainer == null ? null : cardInlinePlayerContainer.get();
-        if (container == null || !container.isAttachedToWindow()) {
-            final long now = System.currentTimeMillis();
-            if (now - cardInlinePlayerSearchTime < INLINE_PLAYER_SEARCH_INTERVAL_MILLIS) {
-                return;
-            }
-            cardInlinePlayerSearchTime = now;
-            container = findCardInlinePlayerContainer(list.getRootView(), list, 0);
-            cardInlinePlayerContainer = container == null ? null : new WeakReference<>(container);
-            if (container == null) {
-                return;
-            }
-        }
-
-        if (isOverCardThumbnail(list, container)) {
-            if (container.getOutlineProvider() != CARD_INLINE_PLAYER_OUTLINE) {
-                cardInlinePlayerClipToOutline = container.getClipToOutline();
-                container.setOutlineProvider(CARD_INLINE_PLAYER_OUTLINE);
-                container.setClipToOutline(true);
-            }
-        } else if (container.getOutlineProvider() == CARD_INLINE_PLAYER_OUTLINE) {
-            container.setOutlineProvider(ViewOutlineProvider.BACKGROUND);
-            // Over a Short, the container keeps its clip, which gets the outline of the Short.
-            container.setClipToOutline(cardInlinePlayerClipToOutline
-                    || shortsCellOutlines.containsKey(getScreenBounds(container)));
-        }
     }
 
     /**
@@ -1166,9 +2217,9 @@ public class FeedCardLayoutPatch {
             }
             item.getLocationOnScreen(itemLocation);
             // The padding of the card is laid out from dp with rounding, so it can differ by a pixel on each side.
-            if (Math.abs(viewLocation[0] - itemLocation[0] - CARD_OUTLINE.horizontalPadding) <= 1
-                    && Math.abs(viewLocation[1] - itemLocation[1] - CARD_OUTLINE.verticalPadding) <= 1
-                    && Math.abs(view.getWidth() - item.getWidth() + 2 * CARD_OUTLINE.horizontalPadding) <= 2) {
+            if (Math.abs(viewLocation[0] - itemLocation[0] - CARD_OUTLINE.horizontalPadding()) <= 1
+                    && Math.abs(viewLocation[1] - itemLocation[1] - CARD_OUTLINE.verticalPadding()) <= 1
+                    && Math.abs(view.getWidth() - item.getWidth() + 2 * CARD_OUTLINE.horizontalPadding()) <= 2) {
                 return true;
             }
         }
@@ -1189,17 +2240,6 @@ public class FeedCardLayoutPatch {
                 findShortsCells(group.getChildAt(i), cells, depth + 1);
             }
         }
-    }
-
-    /**
-     * The Shorts clip their thumbnail with the rounded outline of a view inside the Short,
-     * which is replaced. The views are recycled, so it's checked every time the list is drawn.
-     */
-    private static void setShortsCellOutline(View cell, ViewOutlineProvider outline) {
-        setShortsCellOutline(cell, cell.getWidth(), outline, 0);
-
-        // The screen bounds of the Short, for the inline player above it.
-        shortsCellOutlines.put(getScreenBounds(cell), outline);
     }
 
     private static String getScreenBounds(View view) {
@@ -1257,27 +2297,63 @@ public class FeedCardLayoutPatch {
                 outline.setRect(0, 0, width, height);
                 return;
             }
+            final int radius = getCardCornerRadius();
             outline.setRoundRect(
-                    topLeft || bottomLeft ? 0 : -CARD_CORNER_RADIUS,
-                    topLeft || topRight ? 0 : -CARD_CORNER_RADIUS,
-                    topRight || bottomRight ? width : width + CARD_CORNER_RADIUS,
-                    bottomLeft || bottomRight ? height : height + CARD_CORNER_RADIUS,
-                    CARD_CORNER_RADIUS);
+                    topLeft || bottomLeft ? 0 : -radius,
+                    topLeft || topRight ? 0 : -radius,
+                    topRight || bottomRight ? width : width + radius,
+                    bottomLeft || bottomRight ? height : height + radius,
+                    radius);
         }
     }
 
     private static boolean hasNestedList(View view, int depth) {
+        return findNestedList(view, depth) != null;
+    }
+
+    @Nullable
+    private static View findNestedList(View view, int depth) {
         if (depth > 0 && view instanceof RecyclerView) {
-            return true;
+            return view;
         }
         if (depth < 4 && view instanceof ViewGroup group) {
             for (int i = 0, count = group.getChildCount(); i < count; i++) {
-                if (hasNestedList(group.getChildAt(i), depth + 1)) {
-                    return true;
+                View list = findNestedList(group.getChildAt(i), depth + 1);
+                if (list != null) {
+                    return list;
                 }
             }
         }
-        return false;
+        return null;
+    }
+
+    /**
+     * @param bounds The left and the right edge of the views inside the item, relative to the item.
+     * @return If the item has visible views.
+     */
+    private static boolean getContentBounds(View item, int[] bounds) {
+        bounds[0] = Integer.MAX_VALUE;
+        bounds[1] = Integer.MIN_VALUE;
+        addContentBounds(item, 0, bounds, 0);
+        return bounds[0] < bounds[1];
+    }
+
+    /**
+     * The content is in the views without children, such as the thumbnail and the text of the item.
+     */
+    private static void addContentBounds(View view, int left, int[] bounds, int depth) {
+        if (view.getVisibility() != View.VISIBLE || view.getWidth() <= 0 || view.getHeight() <= 0) {
+            return;
+        }
+        if (depth < 8 && view instanceof ViewGroup group && group.getChildCount() > 0) {
+            for (int i = 0, count = group.getChildCount(); i < count; i++) {
+                View child = group.getChildAt(i);
+                addContentBounds(child, left + child.getLeft(), bounds, depth + 1);
+            }
+            return;
+        }
+        bounds[0] = Math.min(bounds[0], left);
+        bounds[1] = Math.max(bounds[1], left + view.getWidth());
     }
 
     @Nullable
@@ -1310,17 +2386,38 @@ public class FeedCardLayoutPatch {
      * The labels of the shelf header and of the Shorts are on views inside the list item.
      */
     private static boolean hasLabelMarker(View view, char marker, int depth) {
-        if (endsWith(view.getContentDescription(), marker)) {
-            return true;
+        return findLabelMarker(view, marker, depth) != null;
+    }
+
+    /**
+     * @return The label of the view or of a view inside it that ends with the marker,
+     *         or null if no label ends with the marker.
+     */
+    @Nullable
+    private static CharSequence findLabelMarker(View view, char marker, int depth) {
+        CharSequence label = view.getContentDescription();
+        if (endsWith(label, marker)) {
+            return label;
         }
         if (depth < 4 && view instanceof ViewGroup group && !(view instanceof RecyclerView)) {
             for (int i = 0, count = group.getChildCount(); i < count; i++) {
-                if (hasLabelMarker(group.getChildAt(i), marker, depth + 1)) {
-                    return true;
+                CharSequence childLabel = findLabelMarker(group.getChildAt(i), marker, depth + 1);
+                if (childLabel != null) {
+                    return childLabel;
                 }
             }
         }
-        return false;
+        return null;
+    }
+
+    /**
+     * The cards without inline playback, such as the playlists, have no background below the thumbnail.
+     * The label is on the card, or on a view inside it, depending on the server experiments of the account.
+     */
+    private static boolean isCardWithoutBackground(View card) {
+        CharSequence label = findLabelMarker(card, CARD_LABEL_MARKER, 0);
+        return label != null && label.length() > 1
+                && label.charAt(label.length() - 2) == NO_INLINE_PLAYBACK_CARD_LABEL_MARKER;
     }
 
     /**
@@ -1344,121 +2441,216 @@ public class FeedCardLayoutPatch {
         return shelfPaint;
     }
 
-    private static boolean isCommentButtonLabel(@Nullable CharSequence label) {
-        return endsWith(label, COMMENT_BUTTON_LABEL_MARKER);
-    }
-
     private static boolean endsWith(@Nullable CharSequence text, char c) {
         return text != null && text.length() > 0 && text.charAt(text.length() - 1) == c;
     }
 
     /**
      * Injection point.
-     * Called when a video is opened.
+     * The comment button of the cards opens the comments panel of the video over the feed,
+     * the same as the comment button of the cards of the server, instead of opening the video.
+     *
+     * @return If the command was handled, and the video is not opened.
      */
-    public static void onWatchCommand(@Nullable Object command, @Nullable Map<?, ?> map) {
+    public static boolean openCommentsPanel(MessageLite command, @Nullable Map<?, ?> map) {
         try {
-            if (!ACTION_BUTTONS || map == null) {
-                return;
-            }
-
-            commentsVideoId = null;
             // The app keeps only the known fields of the commands, so the button is found by its label.
-            if (!(map.get(SENDER_VIEW_KEY) instanceof View senderView)
-                    || !isCommentButtonLabel(senderView.getContentDescription())
-                    || !(command instanceof MessageLite message)) {
-                return;
+            if (!ACTION_BUTTONS || map == null
+                    || !(map.get(SENDER_VIEW_KEY) instanceof View senderView)
+                    || !endsWith(senderView.getContentDescription(), COMMENT_BUTTON_LABEL_MARKER)) {
+                return false;
             }
 
-            List<ProtoNode> fields = ProtoNode.parse(message.toByteArray());
+            byte[] watchCommand = command.toByteArray();
+            List<ProtoNode> fields = ProtoNode.parse(watchCommand);
             ProtoNode videoIdField = fields == null ? null : ProtoNode.field(
                     ProtoNode.message(fields, WATCH_ENDPOINT_FIELD), WATCH_ENDPOINT_VIDEO_ID_FIELD);
             if (videoIdField == null || !videoIdField.isText()) {
-                return;
+                return false;
             }
 
             String videoId = videoIdField.getText();
-            Logger.printDebug(() -> "Opening the comments of: " + videoId);
-            commentsVideoId = videoId;
-            commentsRequestTime = System.currentTimeMillis();
+            Logger.printDebug(() -> "Opening the comments panel of: " + videoId);
+            // The headers of the account that is signed in now, not when the request runs.
+            Map<String, String> authHeaders = AuthUtils.getRequestHeader();
+
+            Utils.runOnBackgroundThread(() -> {
+                byte[] panelCommand = null;
+                try {
+                    // The comments panel of the watch page has the token that loads the comments.
+                    byte[] requestBody = PlaylistRoutes.videoBody(videoId);
+                    HttpURLConnection connection = PlaylistRoutes.getConnection(
+                            PlaylistRoutes.GET_ENGAGEMENT_PANELS, authHeaders);
+                    connection.setFixedLengthStreamingMode(requestBody.length);
+                    connection.getOutputStream().write(requestBody);
+
+                    final int responseCode = connection.getResponseCode();
+                    List<ProtoNode> response = responseCode == Requester.HTTP_STATUS_CODE_SUCCESS
+                            ? ProtoNode.parse(Requester.parseBytes(connection))
+                            : null;
+                    if (response == null) {
+                        Logger.printInfo(() -> "Engagement panels request failed with code: " + responseCode);
+                    } else {
+                        for (ProtoNode panel : response) {
+                            if (panel.getFieldNumber() != WATCH_NEXT_ENGAGEMENT_PANELS_FIELD
+                                    || panel.children == null) continue;
+
+                            ProtoNode renderer = ProtoNode.field(panel.children,
+                                    ENGAGEMENT_PANEL_SECTION_LIST_RENDERER_FIELD);
+                            ProtoNode panelIdField = renderer == null || renderer.children == null
+                                    ? null
+                                    : ProtoNode.field(renderer.children, ENGAGEMENT_PANEL_PANEL_ID_FIELD);
+                            if (panelIdField == null || !panelIdField.isText()
+                                    || !Utils.equalsAny(panelIdField.getText(), COMMENTS_PANEL_IDS)) continue;
+
+                            String panelId = panelIdField.getText();
+                            // The panel is shown over the feed, which hides the panels of other surfaces.
+                            ByteArrayOutputStream identifier = new ByteArrayOutputStream();
+                            CodedOutputStream identifierOutput = CodedOutputStream.newInstance(identifier);
+                            identifierOutput.writeEnum(ENGAGEMENT_PANEL_IDENTIFIER_SURFACE_FIELD,
+                                    ENGAGEMENT_PANEL_SURFACE_SHORTS);
+                            identifierOutput.writeString(ENGAGEMENT_PANEL_IDENTIFIER_TAG_FIELD, panelId);
+                            identifierOutput.flush();
+
+                            // The sort chips of the header are an Elements component, whose template comes with
+                            // the other templates of the watch page, which the response does not have.
+                            // Without its template, the component is an empty space.
+                            ProtoNode subheader = ProtoNode.field(ProtoNode.message(renderer.children,
+                                            ENGAGEMENT_PANEL_HEADER_FIELD, ENGAGEMENT_PANEL_TITLE_HEADER_RENDERER_FIELD),
+                                    ENGAGEMENT_PANEL_TITLE_HEADER_SUBHEADER_FIELD);
+                            if (subheader != null) {
+                                subheader.remove();
+                            }
+
+                            // The panels of the watch page are hidden until the watch page shows them.
+                            ByteArrayOutputStream shownRenderer = new ByteArrayOutputStream();
+                            CodedOutputStream rendererOutput = CodedOutputStream.newInstance(shownRenderer);
+                            rendererOutput.writeRawBytes(ProtoNode.write(renderer.children));
+                            rendererOutput.writeEnum(ENGAGEMENT_PANEL_VISIBILITY_FIELD,
+                                    ENGAGEMENT_PANEL_VISIBILITY_EXPANDED);
+                            rendererOutput.writeByteArray(ENGAGEMENT_PANEL_IDENTIFIER_FIELD, identifier.toByteArray());
+                            rendererOutput.flush();
+
+                            ByteArrayOutputStream engagementPanel = new ByteArrayOutputStream();
+                            CodedOutputStream panelOutput = CodedOutputStream.newInstance(engagementPanel);
+                            panelOutput.writeByteArray(ENGAGEMENT_PANEL_SECTION_LIST_RENDERER_FIELD,
+                                    shownRenderer.toByteArray());
+                            panelOutput.flush();
+
+                            ByteArrayOutputStream endpoint = new ByteArrayOutputStream();
+                            CodedOutputStream endpointOutput = CodedOutputStream.newInstance(endpoint);
+                            endpointOutput.writeString(SHOW_ENGAGEMENT_PANEL_ENDPOINT_PANEL_ID_FIELD, panelId);
+                            endpointOutput.writeByteArray(SHOW_ENGAGEMENT_PANEL_ENDPOINT_PANEL_FIELD,
+                                    engagementPanel.toByteArray());
+                            endpointOutput.writeByteArray(SHOW_ENGAGEMENT_PANEL_ENDPOINT_IDENTIFIER_FIELD,
+                                    identifier.toByteArray());
+                            endpointOutput.flush();
+
+                            ByteArrayOutputStream commandBytes = new ByteArrayOutputStream();
+                            CodedOutputStream commandOutput = CodedOutputStream.newInstance(commandBytes);
+                            commandOutput.writeByteArray(SHOW_ENGAGEMENT_PANEL_ENDPOINT_FIELD, endpoint.toByteArray());
+                            commandOutput.flush();
+                            panelCommand = commandBytes.toByteArray();
+                            break;
+                        }
+                    }
+                } catch (Exception ex) {
+                    Logger.printInfo(() -> "Engagement panels request failed: " + videoId, ex);
+                }
+
+                // Without the comments panel, such as when the comments are turned off, the video is opened.
+                byte[] commandToRun = panelCommand != null ? panelCommand : watchCommand;
+                Utils.runOnMainThread(() -> CommandRouterPatch.executeCommand(commandToRun, new HashMap<>()));
+            });
+            return true;
         } catch (Exception ex) {
-            Logger.printException(() -> "onWatchCommand failure", ex);
+            Logger.printException(() -> "openCommentsPanel failure", ex);
         }
+        return false;
     }
 
     /**
      * Injection point.
-     * Called when the watch page of a video is loaded.
+     * The commands of the comments, such as the command that opens the replies, show their panel without a surface,
+     * and the app shows a panel without a surface with the panels of the watch page, which is not open.
      *
-     * @return The command that opens the comments panel, or null.
+     * @return If the panel can be shown over the feed, when the feed shows the comments panel.
      */
-    @Nullable
-    public static byte[] getCommentsCommand(@Nullable Object watchNextResponse) {
-        try {
-            String videoId = commentsVideoId;
-            if (videoId == null || !(watchNextResponse instanceof MessageLite message)) {
-                return null;
-            }
-            if (System.currentTimeMillis() - commentsRequestTime > COMMENTS_OPEN_TIMEOUT_MILLIS) {
-                commentsVideoId = null;
-                return null;
-            }
-
-            byte[] response = message.toByteArray();
-            if (FlyoutUtils.byteIndexOf(response, videoId.getBytes(StandardCharsets.UTF_8)) < 0) {
-                return null; // Response of another video.
-            }
-            commentsVideoId = null;
-
-            for (String panelId : COMMENTS_PANEL_IDS) {
-                if (FlyoutUtils.byteIndexOf(response, panelId.getBytes(StandardCharsets.UTF_8)) >= 0) {
-                    Logger.printDebug(() -> "Opening comments panel: " + panelId);
-                    return showEngagementPanelCommand(panelId);
-                }
-            }
-
-            Matcher panelId = COMMENTS_PANEL_ID_PATTERN.matcher(new String(response, StandardCharsets.ISO_8859_1));
-            if (panelId.find()) {
-                String foundId = panelId.group();
-                Logger.printDebug(() -> "Opening unknown comments panel: " + foundId);
-                return showEngagementPanelCommand(foundId);
-            }
-            Logger.printDebug(() -> "Comments panel not found");
-        } catch (Exception ex) {
-            Logger.printException(() -> "getCommentsCommand failure", ex);
-        }
-        return null;
-    }
-
-    private static byte[] showEngagementPanelCommand(String panelId) throws IOException {
-        ByteArrayOutputStream endpoint = new ByteArrayOutputStream();
-        CodedOutputStream endpointOutput = CodedOutputStream.newInstance(endpoint);
-        endpointOutput.writeString(SHOW_ENGAGEMENT_PANEL_ENDPOINT_PANEL_ID_FIELD, panelId);
-        endpointOutput.flush();
-
-        ByteArrayOutputStream command = new ByteArrayOutputStream();
-        CodedOutputStream commandOutput = CodedOutputStream.newInstance(command);
-        commandOutput.writeByteArray(SHOW_ENGAGEMENT_PANEL_ENDPOINT_FIELD, endpoint.toByteArray());
-        commandOutput.flush();
-        return command.toByteArray();
+    public static boolean isPanelWithoutSurface(@Nullable Enum<?> surface) {
+        return ACTION_BUTTONS && surface != null && ENGAGEMENT_PANEL_SURFACE_UNKNOWN.equals(surface.name())
+                && !PlayerType.getCurrent().isMaximizedOrFullscreen();
     }
 
     /**
-     * Outline of the card, inside the padding of the card.
+     * Injection point.
+     *
+     * @param shownPanelId The panel that is shown over the feed, if any.
+     * @return If the panel without a surface is shown over the feed, with the comments panel that the cards opened.
+     */
+    public static boolean showPanelOverFeed(@Nullable String shownPanelId) {
+        if (shownPanelId == null || !(Utils.equalsAny(shownPanelId, COMMENTS_PANEL_IDS)
+                || shownPanelId.startsWith(COMMENT_REPLIES_PANEL_ID_PREFIX))) {
+            return false;
+        }
+
+        Logger.printDebug(() -> "Showing the panel over the feed, above: " + shownPanelId);
+        return true;
+    }
+
+    /**
+     * @return The pixels of the dp of the cards, in the density that the app used to lay out the cards.
+     */
+    private static int cardPx(float dp) {
+        final float density = cardLayoutDensity > 0 ? cardLayoutDensity : Dim.getMetrics().density;
+        return Math.round(dp * density);
+    }
+
+    private static int getCardCornerRadius() {
+        return cardPx(CARD_CORNER_RADIUS_DP);
+    }
+
+    /**
+     * The outlines are built again when the density of the cards changes, because the views keep their outline
+     * until their size changes.
+     */
+    private static void invalidateCardOutlines(View view, int depth) {
+        ViewOutlineProvider outline = view.getOutlineProvider();
+        if (outline instanceof CardOutlineProvider || outline instanceof ShortsCellOutlineProvider) {
+            view.invalidateOutline();
+        }
+        if (depth < 4 && view instanceof ViewGroup group) {
+            for (int i = 0, count = group.getChildCount(); i < count; i++) {
+                invalidateCardOutlines(group.getChildAt(i), depth + 1);
+            }
+        }
+    }
+
+    /**
+     * Outline of the card, inside the padding of the card, in dp.
      */
     private static final class CardOutlineProvider extends ViewOutlineProvider {
-        private final int horizontalPadding;
-        private final int verticalPadding;
+        private final int horizontalPaddingDp;
+        private final int verticalPaddingDp;
 
-        CardOutlineProvider(int horizontalPadding, int verticalPadding) {
-            this.horizontalPadding = horizontalPadding;
-            this.verticalPadding = verticalPadding;
+        CardOutlineProvider(int horizontalPaddingDp, int verticalPaddingDp) {
+            this.horizontalPaddingDp = horizontalPaddingDp;
+            this.verticalPaddingDp = verticalPaddingDp;
+        }
+
+        int horizontalPadding() {
+            return cardPx(horizontalPaddingDp);
+        }
+
+        int verticalPadding() {
+            return cardPx(verticalPaddingDp);
         }
 
         @Override
         public void getOutline(View view, Outline outline) {
+            final int horizontalPadding = horizontalPadding();
+            final int verticalPadding = verticalPadding();
             outline.setRoundRect(horizontalPadding, verticalPadding, view.getWidth() - horizontalPadding,
-                    view.getHeight() - verticalPadding, CARD_CORNER_RADIUS);
+                    view.getHeight() - verticalPadding, getCardCornerRadius());
         }
     }
 
@@ -1467,318 +2659,6 @@ public class FeedCardLayoutPatch {
             feedId = ResourceUtils.getIdentifier(ResourceType.ID, "results");
         }
         return feedId;
-    }
-
-    /**
-     * @return If the video is a Shorts or a live stream that a setting hides.
-     */
-    private static boolean isHiddenByFilters(VideoThumbnail thumbnail) {
-        if (thumbnail.getBadgeStyle() == THUMBNAIL_BADGE_STYLE_LIVE && Settings.HIDE_LIVE_STREAMS.get()) {
-            return true;
-        }
-        return (Settings.HIDE_SHORTS_HOME.get() || Settings.HIDE_SHORTS_SUBSCRIPTIONS.get()
-                || Settings.HIDE_SHORTS_SEARCH.get() || Settings.HIDE_SHORTS_HISTORY.get())
-                && shortsThumbnailSearch.matches(thumbnail.getImage().toByteArray())
-                && isShortsHiddenInLoadedFeed();
-    }
-
-    /**
-     * The elements are parsed when the feed that shows them is loaded, so the Shorts keep the classic layout
-     * only in the feed whose setting hides them, the same feeds of the Shorts filter, and are cards in the others.
-     *
-     * @return If a setting hides the Shorts of the feed that is loaded.
-     */
-    private static boolean isShortsHiddenInLoadedFeed() {
-        // The Shorts below the player are treated as the Shorts of the Home feed.
-        if (PlayerType.getCurrent().isMaximizedOrFullscreen()) {
-            return Settings.HIDE_SHORTS_HOME.get();
-        }
-        // Must check second, as search can be from any tab.
-        if (NavigationBar.isSearchBarActive()) {
-            return Settings.HIDE_SHORTS_SEARCH.get();
-        }
-
-        NavigationBar.NavigationButton selectedNavButton = NavigationBar.NavigationButton.getSelectedNavigationButton();
-        if (selectedNavButton == null) {
-            // Unknown tab, treat the same as home.
-            return Settings.HIDE_SHORTS_HOME.get();
-        }
-        return switch (selectedNavButton) {
-            case HOME -> Settings.HIDE_SHORTS_HOME.get();
-            case SEARCH -> Settings.HIDE_SHORTS_SEARCH.get();
-            case SUBSCRIPTIONS -> Settings.HIDE_SHORTS_SUBSCRIPTIONS.get();
-            case LIBRARY -> Settings.HIDE_SHORTS_HISTORY.get();
-            default -> false;
-        };
-    }
-
-    @Nullable
-    private static ComponentType convertToCard(ComponentType componentType, VideoWithContextModel classic)
-            throws IOException {
-        VideoWithContextData data = classic.getData();
-        VideoData videoData = data.getVideoData();
-        VideoThumbnail thumbnail = videoData.getThumbnail();
-
-        // The compact items are rows of lists, such as the videos of a playlist or the 'Downloads' row of the library.
-        // The cards have no attachment, such as the description and the 'Buy or rent' button of the movies.
-        // The horizontal items, such as the search results on tablets, keep their layout.
-        if (data.getCompact() || data.getHorizontal() || !data.getAttachment().isEmpty()) {
-            return null;
-        }
-
-        // The filters find the hidden Shorts and live streams by the classic layout.
-        if (isHiddenByFilters(thumbnail)) {
-            return null;
-        }
-
-        String templateUri = CARD.getUri();
-        if (templateUri == null ||!videoData.getLockupMetadata().hasLockupMetadataViewModel()) {
-            return null;
-        }
-
-        // Playlists open their page, and show the number of videos instead of the duration.
-        InnertubeCommandHolder onTap = InnertubeCommandHolder.parseFrom(data.getOnTap());
-        final boolean isPlaylist = onTap.getInnertubeCommand().hasBrowseEndpoint();
-        String contentId;
-        String badgeText;
-        String badgeLabel;
-        if (isPlaylist) {
-            String browseId = onTap.getInnertubeCommand().getBrowseEndpoint().getBrowseId();
-            if (!browseId.startsWith(PLAYLIST_BROWSE_ID_PREFIX) || thumbnail.getVideoCountText().isEmpty()) {
-                return null;
-            }
-            contentId = browseId.substring(PLAYLIST_BROWSE_ID_PREFIX.length());
-            badgeText = thumbnail.getVideoCountText();
-            badgeLabel = badgeText;
-        } else {
-            contentId = getVideoId(thumbnail.getImage());
-            if (contentId == null) {
-                return null;
-            }
-            badgeText = thumbnail.getTimestampText();
-            badgeLabel = thumbnail.getTimestampAccessibilityText();
-        }
-
-        ThumbnailViewModel.Builder thumbnailViewModel = ThumbnailViewModel.newBuilder()
-                .setImage(thumbnail.getImage());
-        if (!badgeText.isEmpty()) {
-            ThumbnailBadgeViewModel.Builder badge = ThumbnailBadgeViewModel.newBuilder()
-                    .setText(badgeText)
-                    .setBadgeStyle(THUMBNAIL_BADGE_STYLE_DEFAULT)
-                    .setRendererContext(RendererContext.newBuilder()
-                            .setAccessibilityContext(AccessibilityContext.newBuilder()
-                                    .setLabel(badgeLabel)));
-            // The badge of the videos that are live now is red, with the live icon of the classic layout.
-            if (!isPlaylist && thumbnail.getBadgeStyle() == THUMBNAIL_BADGE_STYLE_LIVE) {
-                badge.setBadgeStyle(THUMBNAIL_BADGE_STYLE_LIVE);
-                if (!thumbnail.getBadgeIcon().isEmpty()) {
-                    badge.setIcon(ThumbnailBadgeIcon.newBuilder()
-                            .addSources(ThumbnailBadgeIconSource.newBuilder()
-                                    .setClientResource(ClientResource.newBuilder()
-                                            .setImageName(thumbnail.getBadgeIcon()))));
-                }
-            }
-
-            thumbnailViewModel.addOverlays(ThumbnailOverlay.newBuilder()
-                    .setThumbnailBottomOverlayViewModel(ThumbnailBottomOverlayViewModel.newBuilder()
-                            .addBadges(ThumbnailBadge.newBuilder().setThumbnailBadgeViewModel(badge))));
-        }
-
-        // The card thumbnail shows only the badges of the bottom overlays,
-        // so the watch progress is drawn by the bottom overlay template in an element over the thumbnail.
-        final float progress = thumbnail.getProgress();
-        if (SeekbarColorPatch.showWatchHistoryProgressDrawable(progress > 0)) {
-            String bottomOverlayUri = THUMBNAIL_BOTTOM_OVERLAY.getUri();
-            if (bottomOverlayUri != null) {
-                ThumbnailBottomOverlayViewModel progressBar = ThumbnailBottomOverlayViewModel.newBuilder()
-                        .setProgressBar(ThumbnailOverlayProgressBar.newBuilder()
-                                .setThumbnailOverlayProgressBarViewModel(ThumbnailOverlayProgressBarViewModel.newBuilder()
-                                        .setProgress(progress)
-                                        .setStyle(THUMBNAIL_PROGRESS_BAR_STYLE_EDGE)))
-                        .build();
-                ComponentType progressComponent = ComponentType.newBuilder()
-                        .setTemplateConfig(templateConfig(bottomOverlayUri))
-                        .setModel(ElementModel.newBuilder().setLockupModel(LockupModel.newBuilder()
-                                .setViewModel(LockupViewModelHolder.newBuilder()
-                                        .setThumbnailBottomOverlayViewModel(progressBar))
-                                .setContext(classic.getContext())))
-                        .setSubscriptionConfig(subscriptionConfig(componentType.getSubscriptionConfig(), THUMBNAIL_BOTTOM_OVERLAY))
-                        .build();
-                thumbnailViewModel.addOverlays(ThumbnailOverlay.newBuilder()
-                        .setThumbnailElementOverlay(ThumbnailElementOverlay.newBuilder()
-                                .setElement(Element.newBuilder()
-                                        .setType(ElementType.newBuilder().setComponentType(progressComponent)))));
-            }
-        }
-
-        LockupMetadataViewModel.Builder metadata = videoData.getLockupMetadata()
-                .getLockupMetadataViewModel().toBuilder()
-                .setTitleStyle(TextStyle.newBuilder().setStyle(CARD_TITLE_STYLE));
-        metadata.setMetadata(splitMetadataRows(metadata.getMetadata()));
-
-        // The images of the classic layout have the same format of the images of the cards.
-        if (videoData.hasDecoratedAvatar()) {
-            metadata.setImage(videoData.getDecoratedAvatar());
-        } else if (videoData.hasAvatarStack()) {
-            metadata.setImage(videoData.getAvatarStack());
-        } else if (videoData.hasAvatar()) {
-            ChannelAvatar avatar = videoData.getAvatar();
-            metadata.setImage(LockupImage.newBuilder()
-                    .setDecoratedAvatarViewModel(DecoratedAvatarViewModel.newBuilder()
-                            .setAvatar(AvatarViewModelHolder.newBuilder()
-                                    .setAvatarViewModel(AvatarViewModel.newBuilder()
-                                            .setImage(avatar.getImage())
-                                            .setAvatarImageSize(avatar.getAvatarImageSize())))
-                            .setA11YLabel(avatar.getAccessibilityText())
-                            .setRendererContext(RendererContext.newBuilder()
-                                    .setCommandContext(CommandContext.newBuilder()
-                                            .setOnTap(avatar.getEndpoint())))));
-        }
-
-        InnertubeCommandHolder menuOnTap = InnertubeCommandHolder.parseFrom(data.getMenuOnTap());
-        metadata.setMenuButton(ButtonViewModelHolder.newBuilder()
-                .setButtonViewModel(button("MORE_VERT", data.getMenuAccessibilityText(), menuOnTap)));
-
-        if (ACTION_BUTTONS && !isPlaylist) {
-            addActionButtons(metadata, contentId, data);
-        }
-
-        LockupViewModel.Builder lockupViewModel = LockupViewModel.newBuilder()
-                .setContentImage(ContentImage.newBuilder().setThumbnailViewModel(thumbnailViewModel))
-                .setMetadata(LockupMetadata.newBuilder().setLockupMetadataViewModel(metadata))
-                .setContentId(contentId)
-                .setContentType(isPlaylist ? LOCKUP_CONTENT_TYPE_PLAYLIST : LOCKUP_CONTENT_TYPE_VIDEO)
-                .setRendererContext(RendererContext.newBuilder()
-                        .setAccessibilityContext(AccessibilityContext.newBuilder()
-                                .setLabel(data.getAccessibilityText() + CARD_LABEL_MARKER))
-                        .setCommandContext(CommandContext.newBuilder().setOnTap(data.getOnTap())));
-        // The cards play the video inline (feed autoplay) with the same commands of the classic layout.
-        if (!data.getInlinePlayback().isEmpty()) {
-            lockupViewModel.setInlinePlayback(LockupInlinePlayback.newBuilder()
-                    .setInlinePlayback(data.getInlinePlayback()));
-        }
-
-        LockupModel card = LockupModel.newBuilder()
-                .setViewModel(LockupViewModelHolder.newBuilder().setLockupViewModel(lockupViewModel))
-                .setContext(setCardExperiments(classic.getContext(), true))
-                .setEnvironment(classic.getEnvironment())
-                .setPadding(LockupPadding.newBuilder()
-                        .setStart(CARD_HORIZONTAL_PADDING_DP)
-                        .setEnd(CARD_HORIZONTAL_PADDING_DP)
-                        .setTop(CARD_VERTICAL_PADDING_DP)
-                        .setBottom(CARD_VERTICAL_PADDING_DP))
-                .build();
-
-        return componentType.toBuilder()
-                .setTemplateConfig(templateConfig(templateUri))
-                .setModel(ElementModel.newBuilder().setLockupModel(card))
-                .setSubscriptionConfig(subscriptionConfig(componentType.getSubscriptionConfig(), CARD))
-                .build();
-    }
-
-    @Nullable
-    private static ComponentType convertToClassic(ComponentType componentType, LockupModel card) {
-        LockupViewModel lockupViewModel = card.getViewModel().getLockupViewModel();
-        if (lockupViewModel.getContentType() != LOCKUP_CONTENT_TYPE_VIDEO
-                || !lockupViewModel.getContentImage().hasThumbnailViewModel()) {
-            return null;
-        }
-
-        String templateUri = CLASSIC.getUri();
-        if (templateUri == null) {
-            return null;
-        }
-
-        ThumbnailViewModel thumbnailViewModel = lockupViewModel.getContentImage().getThumbnailViewModel();
-        VideoThumbnail.Builder thumbnail = VideoThumbnail.newBuilder()
-                .setImage(thumbnailViewModel.getImage());
-        for (ThumbnailOverlay overlay : thumbnailViewModel.getOverlaysList()) {
-            for (ThumbnailBadge badge : overlay.getThumbnailBottomOverlayViewModel().getBadgesList()) {
-                ThumbnailBadgeViewModel badgeViewModel = badge.getThumbnailBadgeViewModel();
-                if (!badgeViewModel.getText().isEmpty()) {
-                    thumbnail.setTimestampText(badgeViewModel.getText())
-                            .setTimestampAccessibilityText(badgeViewModel.getRendererContext()
-                                    .getAccessibilityContext().getLabel());
-                }
-            }
-        }
-
-        LockupMetadataViewModel metadata = lockupViewModel.getMetadata().getLockupMetadataViewModel();
-        VideoData.Builder videoData = VideoData.newBuilder()
-                .setThumbnail(thumbnail)
-                .setLockupMetadata(LockupMetadata.newBuilder()
-                        .setLockupMetadataViewModel(metadata.toBuilder()
-                                .setMetadata(joinMetadataRows(metadata.getMetadata()))
-                                .clearImage()
-                                .clearMenuButton()
-                                .clearTitleStyle()
-                                .clearActionButtons()));
-        if (metadata.getImage().hasDecoratedAvatarViewModel()) {
-            DecoratedAvatarViewModel avatar = metadata.getImage().getDecoratedAvatarViewModel();
-            AvatarViewModel avatarViewModel = avatar.getAvatar().getAvatarViewModel();
-            videoData.setAvatar(ChannelAvatar.newBuilder()
-                    .setImage(avatarViewModel.getImage())
-                    .setAccessibilityText(avatar.getA11YLabel())
-                    .setAvatarImageSize(avatarViewModel.getAvatarImageSize())
-                    .setEndpoint(avatar.getRendererContext().getCommandContext().getOnTap()));
-        }
-
-        ButtonViewModel menuButton = metadata.getMenuButton().getButtonViewModel();
-        RendererContext rendererContext = lockupViewModel.getRendererContext();
-        VideoWithContextModel classic = VideoWithContextModel.newBuilder()
-                .setData(VideoWithContextData.newBuilder()
-                        .setVideoData(videoData)
-                        .setAccessibilityText(rendererContext.getAccessibilityContext().getLabel())
-                        .setMenuAccessibilityText(menuButton.getAccessibilityText())
-                        .setOnTap(rendererContext.getCommandContext().getOnTap())
-                        .setMenuOnTap(menuButton.getOnTap().toByteString())
-                        .setInlinePlayback(lockupViewModel.getInlinePlayback().getInlinePlayback()))
-                .setContext(setCardExperiments(card.getContext(), false))
-                .setEnvironment(card.getEnvironment())
-                .build();
-
-        return componentType.toBuilder()
-                .setTemplateConfig(templateConfig(templateUri))
-                .setModel(ElementModel.newBuilder().setVideoWithContextModel(classic))
-                .setSubscriptionConfig(subscriptionConfig(componentType.getSubscriptionConfig(), CLASSIC))
-                .build();
-    }
-
-    /**
-     * The shelves of the card layout, such as the Shorts shelf, have the modern header,
-     * with a bigger title and without the icon.
-     * The template shows it if the server enables it and the header asks for it.
-     */
-    @Nullable
-    private static ComponentType setModernShelfHeader(ComponentType componentType, ShelfHeaderModel header) {
-        ShelfHeaderData data = header.getData();
-        if (!data.getIcon().toString(StandardCharsets.ISO_8859_1).contains(SHORTS_SHELF_ICON)) {
-            // The other shelf headers keep their own style, and are only found in the lists by their label,
-            // to draw a card behind the videos below them.
-            return componentType.toBuilder()
-                    .setModel(ElementModel.newBuilder().setShelfHeaderModel(header.toBuilder()
-                            .setData(data.toBuilder()
-                                    .setTitle(data.getTitle() + VIDEO_SHELF_HEADER_LABEL_MARKER)
-                                    .setAccessibilityText(data.getAccessibilityText() + VIDEO_SHELF_HEADER_LABEL_MARKER))))
-                    .build();
-        }
-
-        return componentType.toBuilder()
-                .setModel(ElementModel.newBuilder().setShelfHeaderModel(header.toBuilder()
-                        .setData(modernShelfHeader(data))))
-                .build();
-    }
-
-    /**
-     * The label of the Shorts ends with an invisible character, to find the Shorts shelf in the lists.
-     */
-    private static ComponentType setShortsCellLabel(ComponentType componentType, ShortsVideoCellModel cell) {
-        ShortsVideoCellData data = cell.getData();
-        return componentType.toBuilder()
-                .setModel(ElementModel.newBuilder().setShortsVideoCellModel(cell.toBuilder()
-                        .setData(data.toBuilder()
-                                .setAccessibilityText(data.getAccessibilityText() + SHORTS_CELL_LABEL_MARKER))))
-                .build();
     }
 
     /**
@@ -1794,209 +2674,18 @@ public class FeedCardLayoutPatch {
     }
 
     /**
-     * The horizontal shelves of videos have the modern header, like the Shorts shelf,
-     * and the shelf is a card with the header and the videos.
+     * @return The command of the 'Save to Watch later' item of the menu, or null if the menu has no such item.
      */
     @Nullable
-    private static ComponentType setHorizontalShelfCard(ComponentType componentType, HorizontalShelfModel shelf) {
-        HorizontalShelfData data = shelf.getData();
-        if (!data.hasHeader()) {
-            return null;
-        }
-
-        return componentType.toBuilder()
-                .setModel(ElementModel.newBuilder().setHorizontalShelfModel(shelf.toBuilder()
-                        .setData(data.toBuilder()
-                                .setHeader(modernShelfHeader(data.getHeader())))))
-                .build();
-    }
-
-    /**
-     * The label of the videos of the vertical shelves ends with an invisible character,
-     * to draw the shelf below the header as a card.
-     */
-    private static ComponentType setVideoShelfRowLabel(ComponentType componentType, GridVideoModel video) {
-        return componentType.toBuilder()
-                .setModel(ElementModel.newBuilder().setGridVideoModel(video.toBuilder()
-                        .setAccessibilityText(video.getAccessibilityText() + VIDEO_SHELF_ROW_LABEL_MARKER)))
-                .build();
-    }
-
-    /**
-     * The shelves of Shorts in a carousel, such as in the search results, have the modern header
-     * like the other shelves, and the shelf is a card with the header and the Shorts.
-     */
-    @Nullable
-    private static ComponentType setShortsShelfCard(ComponentType componentType, ShortsShelfModel shelf) {
-        if (!shelf.hasHeader()) {
-            return null;
-        }
-
-        return componentType.toBuilder()
-                .setModel(ElementModel.newBuilder().setShortsShelfModel(shelf.toBuilder()
-                        .setHeader(modernShelfHeader(shelf.getHeader()))))
-                .build();
-    }
-
-    /**
-     * The classic layout shows the channel, the views and the date in one text separated by spaces,
-     * and the cards show the channel above the views and the date.
-     */
-    private static ContentMetadata splitMetadataRows(ContentMetadata metadata) {
-        ContentMetadataViewModel viewModel = metadata.getContentMetadataViewModel();
-        MetadataPart part = null;
-        for (MetadataRow row : viewModel.getMetadataRowsList()) {
-            if (row.getMetadataPartsCount() > 0) {
-                if (part != null || row.getMetadataPartsCount() > 1) {
-                    return metadata; // Already split.
-                }
-                part = row.getMetadataParts(0);
+    private static PlaylistQueueRenderer.NavigationEndpoint findWatchLaterCommand(
+            PlaylistQueueRenderer.MenuRenderer menu) {
+        for (PlaylistQueueRenderer.MenuItem item : menu.getItemsList()) {
+            PlaylistQueueRenderer.NavigationEndpoint command = item.getMenuServiceItemRenderer().getServiceEndpoint();
+            if (WATCH_LATER_PLAYLIST_ID.equals(command.getPlaylistEditEndpoint().getPlaylistId())) {
+                return command;
             }
         }
-        if (part == null) {
-            return metadata;
-        }
-
-        AttributedText text = part.getText();
-        String content = text.getContent();
-        Matcher separator = METADATA_SEPARATOR_PATTERN.matcher(content);
-        if (!separator.find()) {
-            return metadata;
-        }
-
-        // The views icon is an attachment on the spaces before the views.
-        final int channelEnd = separator.start();
-        int secondRowStart = separator.end();
-        for (AttachmentRun run : text.getAttachmentRunsList()) {
-            final int start = run.getStartIndex();
-            if (start >= channelEnd && start < secondRowStart) {
-                secondRowStart = start;
-            }
-        }
-
-        AttributedText.Builder secondRowText = AttributedText.newBuilder()
-                .setContent(content.substring(secondRowStart));
-        for (AttachmentRun run : text.getAttachmentRunsList()) {
-            if (run.getStartIndex() >= secondRowStart) {
-                secondRowText.addAttachmentRuns(run.toBuilder()
-                        .setStartIndex(run.getStartIndex() - secondRowStart));
-            }
-        }
-
-        // The accessibility label is 'Channel, views, date'.
-        String label = part.getAccessibilityLabel();
-        final int labelSeparator = label.indexOf(", ");
-
-        return ContentMetadata.newBuilder()
-                .setContentMetadataViewModel(viewModel.toBuilder()
-                        .clearMetadataRows()
-                        .addMetadataRows(MetadataRow.newBuilder()
-                                .addMetadataParts(MetadataPart.newBuilder()
-                                        .setText(AttributedText.newBuilder()
-                                                .setContent(content.substring(0, channelEnd)))))
-                        .addMetadataRows(MetadataRow.newBuilder()
-                                .addMetadataParts(MetadataPart.newBuilder()
-                                        .setText(secondRowText)
-                                        .setAccessibilityLabel(labelSeparator < 0
-                                                ? label
-                                                : label.substring(labelSeparator + 2))))
-                        .setDelimiter(" "))
-                .build();
-    }
-
-    /**
-     * Joins the metadata rows of a card into one text, like the classic layout.
-     */
-    private static ContentMetadata joinMetadataRows(ContentMetadata metadata) {
-        ContentMetadataViewModel viewModel = metadata.getContentMetadataViewModel();
-        if (viewModel.getMetadataRowsCount() < 2) {
-            return metadata;
-        }
-
-        StringBuilder content = new StringBuilder();
-        StringBuilder label = new StringBuilder();
-        AttributedText.Builder text = AttributedText.newBuilder();
-        for (MetadataRow row : viewModel.getMetadataRowsList()) {
-            for (MetadataPart part : row.getMetadataPartsList()) {
-                String partContent = part.getText().getContent();
-                if (partContent.isEmpty()) {
-                    continue;
-                }
-                if (content.length() > 0) {
-                    content.append("   ");
-                }
-                final int offset = content.length();
-                content.append(partContent);
-                for (AttachmentRun run : part.getText().getAttachmentRunsList()) {
-                    text.addAttachmentRuns(run.toBuilder().setStartIndex(run.getStartIndex() + offset));
-                }
-
-                String partLabel = part.getAccessibilityLabel().isEmpty()
-                        ? partContent.trim()
-                        : part.getAccessibilityLabel();
-                if (label.length() > 0) {
-                    label.append(", ");
-                }
-                label.append(partLabel);
-            }
-        }
-
-        return ContentMetadata.newBuilder()
-                .setContentMetadataViewModel(viewModel.toBuilder()
-                        .clearMetadataRows()
-                        .addMetadataRows(MetadataRow.newBuilder()
-                                .addMetadataParts(MetadataPart.newBuilder()
-                                        .setText(text.setContent(content.toString()))
-                                        .setAccessibilityLabel(label.toString())))
-                        .clearDelimiter())
-                .build();
-    }
-
-    /**
-     * The comment button opens the video with the comments, which are opened when the watch page is loaded,
-     * and the save button saves the video to 'Watch later'.
-     */
-    private static void addActionButtons(LockupMetadataViewModel.Builder metadata, String videoId,
-                                         VideoWithContextData data) throws IOException {
-        Icons icons = getIcons();
-        InnertubeCommandHolder saveOnTap = findSaveToWatchLaterCommand(data.getMenuOnTap());
-        if (saveOnTap == null) {
-            // Without the item, such as in some menus, the button opens the menu.
-            saveOnTap = InnertubeCommandHolder.parseFrom(data.getMenuOnTap());
-        }
-
-        metadata.addActionButtons(ActionButton.newBuilder()
-                        .setLikeButtonViewModel(likeButton(videoId, icons)))
-                .addActionButtons(ActionButton.newBuilder()
-                        .setButtonViewModel(button(icons.comment,
-                                str("morphe_feed_card_layout_comments") + COMMENT_BUTTON_LABEL_MARKER,
-                                InnertubeCommandHolder.parseFrom(data.getOnTap()))))
-                .addActionButtons(ActionButton.newBuilder()
-                        .setAddToPlaylistButtonViewModel(AddToPlaylistButtonViewModel.newBuilder()
-                                .setToggleButtonViewModel(toggleButton(
-                                        button(icons.save, "", saveOnTap),
-                                        button(icons.saved, "", saveOnTap)))));
-    }
-
-    private static LikeButtonViewModel likeButton(String videoId, Icons icons) {
-        String entityKey = Base64.encodeToString(LikeStatusEntityKey.newBuilder()
-                        .setVideoId(videoId)
-                        .setEntityType(LIKE_STATUS_ENTITY_TYPE)
-                        .setVersion(1)
-                        .build()
-                        .toByteArray(),
-                Base64.URL_SAFE | Base64.NO_WRAP).replace("=", "%3D");
-
-        return LikeButtonViewModel.newBuilder()
-                .setToggleButtonViewModel(toggleButton(
-                        button(icons.like, "", likeCommand(videoId, LIKE_STATUS_LIKE)),
-                        button(icons.liked, "", likeCommand(videoId, LIKE_STATUS_INDIFFERENT))))
-                .setLikeStatusEntityKey(entityKey)
-                .setLikeStatusEntity(LikeStatusEntity.newBuilder()
-                        .setKey(entityKey)
-                        .setLikeStatus(LIKE_STATUS_INDIFFERENT))
-                .setLikeCountEnabled(1)
-                .build();
+        return null;
     }
 
     private static InnertubeCommandHolder likeCommand(String videoId, int status) {
@@ -2033,7 +2722,7 @@ public class FeedCardLayoutPatch {
                 .build();
     }
 
-    private static TemplateConfig templateConfig(String uri) {
+    static TemplateConfig templateConfig(String uri) {
         return TemplateConfig.newBuilder()
                 .setUriTemplateConfig(UriTemplateConfig.newBuilder().setUri(uri))
                 .build();
@@ -2042,7 +2731,7 @@ public class FeedCardLayoutPatch {
     /**
      * Keeps only the theme and capabilities subscriptions, written to the fields of the new model.
      */
-    private static SubscriptionConfig subscriptionConfig(SubscriptionConfig config, VideoTemplate template) {
+    static SubscriptionConfig subscriptionConfig(SubscriptionConfig config, VideoTemplate template) {
         SubscriptionConfig.Builder builder = SubscriptionConfig.newBuilder();
         if (config.hasThemeSubscriptionConfig()) {
             ThemeSubscriptionConfig theme = config.getThemeSubscriptionConfig();
@@ -2059,13 +2748,21 @@ public class FeedCardLayoutPatch {
         return builder.build();
     }
 
+    /**
+     * The experiments that the templates of the cards and of the classic layout read are sent by the server
+     * for the layout of the account, and some change the layout, such as one that leaves the menu button out
+     * of the cards. The converted elements would get the experiments meant for the other layout, so they have
+     * only the experiments of the style of the cards, which the cards turn on and the classic layout turns off.
+     * Every other experiment of the cards is left out, also the ones that the server adds later.
+     */
     private static ElementContext setCardExperiments(ElementContext context, boolean enabled) {
-        ElementsExperiments experiments = context.getElementsExperiments();
         return context.toBuilder()
-                .setElementsExperiments(experiments.toBuilder()
-                        .setCardLayoutExperiments(experiments.getCardLayoutExperiments().toBuilder()
+                .setElementsExperiments(context.getElementsExperiments().toBuilder()
+                        .setCardLayoutExperiments(CardLayoutExperiments.newBuilder()
                                 .setEnableColorSampledBackground(enabled)
-                                .setEnableMetadataBackground(enabled)))
+                                .setEnableMetadataBackground(enabled))
+                        .clearLockupExperiments()
+                        .clearLockupMetadataExperiments())
                 .build();
     }
 
@@ -2076,90 +2773,5 @@ public class FeedCardLayoutPatch {
         final int hashStart = uri.indexOf('|', template.length());
         return hashStart == template.length() || (hashStart > 0
                 && TEMPLATE_SUFFIX_PATTERN.matcher(uri.substring(template.length(), hashStart)).matches());
-    }
-
-    @Nullable
-    private static String getVideoId(ByteString thumbnailImage) {
-        Matcher matcher = VIDEO_ID_PATTERN.matcher(thumbnailImage.toString(StandardCharsets.ISO_8859_1));
-        return matcher.find() ? matcher.group(1) : null;
-    }
-
-    private static Icons getIcons() {
-        if (icons == null) {
-            icons = Icons.get();
-        }
-        return icons;
-    }
-
-    /**
-     * The uri of a template includes the hash of its version, so it's taken from the template cache
-     * of the app, which has the templates the app received.
-     *
-     * @return The last cached version of the template, or null if the template is not cached.
-     */
-    @Nullable
-    private static String findCachedTemplateUri(String template) {
-        try {
-            File metadata = new File(Utils.getContext().getFilesDir(), "ElementsResourceCacheMetadata");
-            if (!metadata.isFile()) {
-                return null;
-            }
-
-            String uri = null;
-            CodedInputStream input = CodedInputStream.newInstance(Files.readAllBytes(metadata.toPath()));
-            while (!input.isAtEnd()) {
-                final int tag = input.readTag();
-                if (WireFormat.getTagWireType(tag) != WireFormat.WIRETYPE_LENGTH_DELIMITED) {
-                    input.skipField(tag);
-                    continue;
-                }
-
-                CodedInputStream entry = CodedInputStream.newInstance(input.readByteArray());
-                while (!entry.isAtEnd()) {
-                    final int entryTag = entry.readTag();
-                    if (WireFormat.getTagFieldNumber(entryTag) == 1
-                            && WireFormat.getTagWireType(entryTag) == WireFormat.WIRETYPE_LENGTH_DELIMITED) {
-                        String key = entry.readString();
-                        if (isTemplate(key, template)) {
-                            uri = key;
-                        }
-                    } else {
-                        entry.skipField(entryTag);
-                    }
-                }
-            }
-
-            String found = uri;
-            Logger.printDebug(() -> "Cached template: " + found);
-            return uri;
-        } catch (Exception ex) {
-            Logger.printException(() -> "findCachedTemplateUri failure", ex);
-            return null;
-        }
-    }
-
-    /**
-     * @return The command of the 'Save to Watch later' item of the menu, or null if the menu has no such item.
-     */
-    @Nullable
-    private static InnertubeCommandHolder findSaveToWatchLaterCommand(ByteString menu) throws IOException {
-        List<ProtoNode> message = ProtoNode.parse(menu.toByteArray());
-        if (message == null) {
-            return null;
-        }
-
-        for (ProtoNode endpoint : ProtoNode.findMessages(message, PLAYLIST_EDIT_ENDPOINT_FIELD)) {
-            ProtoNode playlistId = ProtoNode.field(endpoint.children, PLAYLIST_EDIT_ENDPOINT_PLAYLIST_ID_FIELD);
-            ProtoNode command = endpoint.getParent();
-            if (playlistId != null && WATCH_LATER_PLAYLIST_ID.equals(playlistId.getText())
-                    && command != null && command.children != null) {
-                ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-                CodedOutputStream output = CodedOutputStream.newInstance(bytes);
-                output.writeByteArray(INNERTUBE_COMMAND_FIELD, ProtoNode.write(command.children));
-                output.flush();
-                return InnertubeCommandHolder.parseFrom(bytes.toByteArray());
-            }
-        }
-        return null;
     }
 }

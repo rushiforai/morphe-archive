@@ -2,8 +2,6 @@ package app.template.patches.brave
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.StringComparisonType
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
@@ -170,7 +168,7 @@ val braveOriginPatch = bytecodePatch(
                 string("SkusService is null, cannot request credential summary", StringComparisonType.CONTAINS),
             ),
             filters = listOf(string("requestCredentialSummary profile is null", StringComparisonType.STARTS_WITH)),
-        ).method.addInstructions(
+        ).method.addInstructionsChecked(
             0,
             """
                 sget-object p0, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;
@@ -214,7 +212,7 @@ val braveOriginPatch = bytecodePatch(
         val j0PutIndex = q4RestartPromptFingerprint.instructionMatches[1].index
         val j0PutReg = q4RestartPromptFingerprint.method
             .getInstruction<TwoRegisterInstruction>(j0PutIndex).registerA
-        q4RestartPromptFingerprint.method.addInstructions(j0PutIndex, "const/4 v$j0PutReg, 0x0")
+        q4RestartPromptFingerprint.method.addInstructionsChecked(j0PutIndex, "const/4 v$j0PutReg, 0x0")
 
         // ── 7. Preference change listener: persist toggle state + show snackbar ──────
         //
@@ -482,7 +480,7 @@ val braveOriginPatch = bytecodePatch(
             ),
         )
         val listenerPutIndex = b5Fingerprint.instructionMatches.first().index
-        b5Fingerprint.method.addInstructions(listenerPutIndex + 1, "return-void")
+        b5Fingerprint.method.addInstructionsChecked(listenerPutIndex + 1, "return-void")
 
         // ── 9. Gatekeeper patches: read SharedPreferences to enforce feature state ────
         //
@@ -517,7 +515,7 @@ val braveOriginPatch = bytecodePatch(
             strings = listOf(string("brave.rewards.disabled_by_policy", StringComparisonType.CONTAINS)),
         ).method.apply {
             removeInstructions(0, implementation!!.instructions.count())
-            addInstructions(0, gatekeeperSmali("BraveRewardsDisabled"))
+            addInstructionsChecked(0, gatekeeperSmali("BraveRewardsDisabled"))
         }
 
         // News disabled check
@@ -525,7 +523,7 @@ val braveOriginPatch = bytecodePatch(
             strings = listOf(string("brave.news.disabled_by_policy", StringComparisonType.CONTAINS)),
         ).method.apply {
             removeInstructions(0, implementation!!.instructions.count())
-            addInstructions(0, gatekeeperSmali("BraveNewsDisabled"))
+            addInstructionsChecked(0, gatekeeperSmali("BraveNewsDisabled"))
         }
 
         // Wallet disabled check
@@ -533,7 +531,7 @@ val braveOriginPatch = bytecodePatch(
             strings = listOf(string("brave.wallet.disabled_by_policy", StringComparisonType.CONTAINS)),
         ).method.apply {
             removeInstructions(0, implementation!!.instructions.count())
-            addInstructions(0, gatekeeperSmali("BraveWalletDisabled"))
+            addInstructionsChecked(0, gatekeeperSmali("BraveWalletDisabled"))
         }
 
         // VPN disabled check
@@ -541,7 +539,7 @@ val braveOriginPatch = bytecodePatch(
             strings = listOf(string("brave.brave_vpn.disabled_by_policy", StringComparisonType.CONTAINS)),
         ).method.apply {
             removeInstructions(0, implementation!!.instructions.count())
-            addInstructions(0, gatekeeperSmali("BraveVPNDisabled"))
+            addInstructionsChecked(0, gatekeeperSmali("BraveVPNDisabled"))
         }
 
         // Leo AI policy disabled check (e(key) && !b(key) = disabled).
@@ -550,7 +548,7 @@ val braveOriginPatch = bytecodePatch(
             strings = listOf(string("brave.ai_chat.enabled_by_policy", StringComparisonType.CONTAINS)),
         ).method.apply {
             removeInstructions(0, implementation!!.instructions.count())
-            addInstructions(0, gatekeeperSmali("BraveAIChatEnabled"))
+            addInstructionsChecked(0, gatekeeperSmali("BraveAIChatEnabled"))
         }
 
         // Leo AI feature flag check. Returns false when user disabled Leo — this stops
@@ -563,7 +561,7 @@ val braveOriginPatch = bytecodePatch(
             strings = listOf(string("AIChat", StringComparisonType.CONTAINS)),
         ).method.apply {
             removeInstructions(0, implementation!!.instructions.count())
-            addInstructions(
+            addInstructionsChecked(
                 0,
                 """
                     invoke-static {}, Landroid/app/ActivityThread;->currentApplication()Landroid/app/Application;

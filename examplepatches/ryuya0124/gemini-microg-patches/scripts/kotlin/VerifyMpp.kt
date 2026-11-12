@@ -21,6 +21,12 @@ fun main(args: Array<String>) {
         check(jvmTypes.isNotEmpty())
         check(dexTypes.containsAll(jvmTypes)) { "Missing Android classes: ${jvmTypes - dexTypes}" }
         check("Lapp/morphe/patches/google/workprofile/WorkProfileEligibilityPatchKt;" in dexTypes)
+        val extension = checkNotNull(jar.getJarEntry("extensions/microg-permissions.bin")) { "Missing permission runtime extension" }
+        val runtimeTypes = jar.getInputStream(extension).buffered().use {
+            DexBackedDexFile.fromInputStream(Opcodes.getDefault(), it).classes.map { clazz -> clazz.type }.toSet()
+        }
+        check("Lapp/geminipatch/extension/MicrogPermissions;" in runtimeTypes)
+        check("Lapp/geminipatch/extension/MicrogPermissions\$PermissionDialog;" in runtimeTypes)
         println("MPP verified: manifest and all ${jvmTypes.size} JVM classes present in Android DEX")
     }
 }

@@ -27,6 +27,24 @@
       "enabled": true,
       "description": "Replace four exact-package string references with the cloned Google package."
     },
+    "GEMINI_ERROR_LOGO_FALLBACK": {
+      "className": null,
+      "methodName": null,
+      "methodDescriptor": null,
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [],
+      "methodSignatures": [],
+      "expectedMatches": 1,
+      "integers": {},
+      "values": {
+        "style": "BardErrorLogo",
+        "attribute": "android:src",
+        "fallback": "@android:drawable/ic_dialog_info"
+      },
+      "enabled": true,
+      "description": "Use a framework drawable on the native error screen, whose original logo is supplied only by density splits. Keep the original error checks and actions."
+    },
     "SPLIT_RESTRICTION_REMOVAL": {
       "className": null,
       "methodName": null,

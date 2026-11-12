@@ -276,7 +276,7 @@ If patching fails or a feature misbehaves, open an issue with your app version, 
 To build the patches from source, run `./gradlew :patches:build` and load `patches/build/libs/patches-*.mpp` in Morphe Desktop.
 
 <!-- PATCHES_START -->
-> **[v1.8.1](https://github.com/tikkamasalla/stremio-morphe-patches/releases/tag/v1.8.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;19 patches total
+> **[v1.8.2](https://github.com/tikkamasalla/stremio-morphe-patches/releases/tag/v1.8.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;19 patches total
 <details open>
 <summary> Vimu&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
 <br>

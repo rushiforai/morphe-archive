@@ -57,11 +57,13 @@ object Constants {
     val TEXTNOW_COMPATIBILITY = Compatibility(
         name = "TextNow",
         packageName = "com.enflick.android.TextNow",
-        apkFileType = ApkFileType.APK,
+        // Split bundle: base.apk + split_config.arm64_v8a + density splits (.apks).
+        apkFileType = ApkFileType.APKS,
         appIconColor = 0x00A8E1,
         signatures = setOf("1428a295a31d63d9e9361cf6c7b71a76b71bf5ff254f7549c7e6d9341e476354"),
         targets = listOf(
-            AppTarget(version = "6.1.0.1", versionCode = 12231, minSdk = 14)
+            // Replaces the earlier 6.1.0.1 target, which was a wrong (very old) download.
+            AppTarget(version = "26.45.0.0", versionCode = 15780, minSdk = 29)
         )
     )
 
@@ -165,17 +167,10 @@ object Constants {
         )
     )
 
-    val PROTON_VPN_COMPATIBILITY = Compatibility(
-        name = "Proton VPN",
-        packageName = "ch.protonvpn.android",
-        // Single APK carrying every ABI (arm64-v8a, armeabi-v7a, x86_64, …) — not a bundle.
-        apkFileType = ApkFileType.APK,
-        appIconColor = 0x6D4AFF,
-        signatures = setOf("dcc9439ec1a6c6a8d0203f3423ee42bcc8b970628e53cb73a0393f398dd5b853"),
-        targets = listOf(
-            AppTarget(version = "5.20.98.0", versionCode = 605209800, minSdk = 26)
-        )
-    )
+    // Proton VPN was removed from the bundle (2026-11-13): hxReborn's community patch is
+    // a better implementation, so shipping a second, narrower unlock would only confuse
+    // users. The git history keeps our version (three patches with toggles) if it is ever
+    // wanted back.
 
     val STRAVA_COMPATIBILITY = Compatibility(
         name = "Strava",

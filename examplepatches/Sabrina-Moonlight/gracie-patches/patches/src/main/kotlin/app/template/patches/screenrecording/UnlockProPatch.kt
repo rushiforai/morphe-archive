@@ -11,6 +11,10 @@ import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import app.template.patches.shared.cert.extractApkCertificatePatch
+import app.template.patches.shared.firebase.spoofFirebaseCertHashPatch
+import app.template.patches.shared.installer.spoofInstallSourcePatch
+import app.template.patches.shared.signature.spoofSignatureVerificationPatch
 
 private val SCREEN_RECORDING_APP = Compatibility(
     name = "Screen Recording App",
@@ -72,12 +76,19 @@ private fun findInsertAfterIapGetBoolean(
 
 @Suppress("unused")
 val unlockProPatch = bytecodePatch(
-    name = "Pro Options",
-    description = "Uses a local preference so optional Pro options stay available.",
+    name = "Unlock pro",
+    description = "Unlocks pro features.",
     default = true,
 ) {
     compatibleWith(SCREEN_RECORDING_APP)
 
+    dependsOn(
+        disablePairipPatch,
+        extractApkCertificatePatch,
+        spoofFirebaseCertHashPatch,
+        spoofInstallSourcePatch,
+        spoofSignatureVerificationPatch,
+    )
     execute {
         // --- Constructor (flag central g) ---
         val ctor = IapPurchasedProConstructorFingerprint.method

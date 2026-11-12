@@ -59,6 +59,7 @@ import app.hushtelegram.extension.shared.settings.preference.AbstractPreferenceF
 import app.hushtelegram.extension.shared.settings.preference.LogBufferManager;
 import app.hushtelegram.extension.shared.settings.preference.QuickSetups;
 import app.hushtelegram.extension.telegram.misc.MessageFilters;
+import app.hushtelegram.extension.telegram.misc.RecordChats;
 import app.hushtelegram.extension.telegram.misc.StickerSize;
 
 /**
@@ -462,6 +463,14 @@ public class SettingsBackupPreference extends Preference {
                 lines.add(L10n.f("%1$s: %2$s to %3$s", L10n.t("Translate into"),
                         TranslateTargetPicker.label(Settings.TRANSLATE_TARGET.savedValue()),
                         TranslateTargetPicker.label((String) change.getValue())));
+            } else if (change.getKey() == Settings.RECORD_CALLS_WHICH) {
+                lines.add(L10n.f("%1$s: %2$s to %3$s", L10n.t("Calls to record"),
+                        HushTelegramPreferenceFragment.recordWhichLabel(RecordChats.scope()),
+                        HushTelegramPreferenceFragment.recordWhichLabel((String) change.getValue())));
+            } else if (change.getKey() == Settings.RECORD_CALLS_KEEP_DAYS) {
+                lines.add(L10n.f("%1$s: %2$s to %3$s", L10n.t("Keep recordings"),
+                        HushTelegramPreferenceFragment.recordKeepShort(Settings.RECORD_CALLS_KEEP_DAYS.savedValue()),
+                        HushTelegramPreferenceFragment.recordKeepShort((Integer) change.getValue())));
             } else if (change.getKey() instanceof StringSetting) {
                 String title = L10n.t(change.getKey() == Settings.MESSAGE_FILTERS_GROUPS ? "Filters for groups" : "Filters for channels");
                 int count = MessageFilters.lines((String) change.getValue()).size();

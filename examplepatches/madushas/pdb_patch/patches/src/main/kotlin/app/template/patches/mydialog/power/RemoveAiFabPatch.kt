@@ -39,7 +39,6 @@ val myDialogRemoveAiFabPatch = rawResourcePatch(
         "(\"ID ⚡<version>\" next to the device id).",
     default = true,
 ) {
-    category("Interface")
     compatibleWith(MYDIALOG_COMPATIBILITY)
 
     execute {

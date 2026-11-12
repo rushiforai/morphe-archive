@@ -1,3 +1,15 @@
+## [1.8.2](https://github.com/tikkamasalla/stremio-morphe-patches/compare/v1.8.1...v1.8.2) (2026-11-12)
+
+### Bug Fixes
+
+* cancel auto-pick when a remote key is pressed on the stream list ([41aea62](https://github.com/tikkamasalla/stremio-morphe-patches/commit/41aea62a8aa3dd1c0c1315b0ea34faa7426577ac))
+
+## [1.8.2-dev.1](https://github.com/tikkamasalla/stremio-morphe-patches/compare/v1.8.1...v1.8.2-dev.1) (2026-11-12)
+
+### Bug Fixes
+
+* cancel auto-pick when a remote key is pressed on the stream list ([41aea62](https://github.com/tikkamasalla/stremio-morphe-patches/commit/41aea62a8aa3dd1c0c1315b0ea34faa7426577ac))
+
 ## [1.8.1](https://github.com/tikkamasalla/stremio-morphe-patches/compare/v1.8.0...v1.8.1) (2026-11-09)
 
 ### Bug Fixes

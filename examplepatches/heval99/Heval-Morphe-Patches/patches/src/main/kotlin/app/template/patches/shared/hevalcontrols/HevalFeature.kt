@@ -30,6 +30,22 @@ data class HevalFeature(
     val buildTimeOnly: Boolean = false,
     val dependencies: List<String> = emptyList(),
     val kind: HevalFeatureKind = HevalFeatureKind.SWITCH,
+    /**
+     * Key of the row's icon on the Patch settings screen (`ads`, `shield`, `eye_off`, `bell`, ...,
+     * see `ui/Icons.java`). Empty uses the icon of the category. Purely visual.
+     */
+    val icon: String = "",
+    /**
+     * Title of a single-choice group (for example "Animation speed"). Switches of one category that
+     * share a title are shown as one row with an option each plus "Normal" (all off); the switches,
+     * their ids and their hooks stay unchanged. Empty is a plain switch.
+     */
+    val choice: String = "",
+    /**
+     * Part of the "Calm mode" preset (a one-tap row of the Profiles section that turns on spoiler
+     * protection and hides betting and promotions). Only for runtime switches.
+     */
+    val calm: Boolean = false,
 ) {
     init {
         require(ID_REGEX.matches(id)) { "Invalid Patch settings feature id: $id" }
@@ -45,10 +61,21 @@ data class HevalFeature(
             require(dependency != id) { "Feature $id depends on itself" }
         }
         require(dependencies.toSet().size == dependencies.size) { "Feature $id lists a dependency twice" }
+        require(icon.isEmpty() || ICON_REGEX.matches(icon)) { "Feature $id has an invalid icon key: $icon" }
+        if (calm) {
+            require(kind == HevalFeatureKind.SWITCH) { "List feature $id cannot be part of Calm mode" }
+            require(!buildTimeOnly) { "Build-time-only feature $id cannot be part of Calm mode" }
+        }
+        if (choice.isNotEmpty()) {
+            require(kind == HevalFeatureKind.SWITCH) { "List feature $id cannot be a choice option" }
+            require(!buildTimeOnly) { "Build-time-only feature $id cannot be a choice option" }
+            require(choice.isNotBlank() && choice.length <= 40) { "Feature $id has an invalid choice title" }
+        }
     }
 
     companion object {
         val ID_REGEX = Regex("^[a-z][a-z0-9_.]{0,63}$")
+        val ICON_REGEX = Regex("^[a-z][a-z0-9_]{0,31}$")
     }
 }
 
@@ -82,6 +109,7 @@ fun HevalListFeature(
     category: String,
     restartRequired: Boolean = false,
     dependencies: List<String> = emptyList(),
+    icon: String = "",
 ) = HevalFeature(
     id = id,
     name = name,
@@ -91,6 +119,7 @@ fun HevalListFeature(
     restartRequired = restartRequired,
     dependencies = dependencies,
     kind = HevalFeatureKind.LIST,
+    icon = icon,
 )
 
 /**
@@ -104,7 +133,8 @@ fun HevalListFeature(
  * CR as `\\`, `\t`, `\n` and `\r`. Bump [VERSION] only for an incompatible change: the decoder
  * ignores extra trailing fields, so adding a field at the end keeps version 1 readable.
  *
- * A list feature ([HevalFeatureKind.LIST], 2026-11-03) adds a ninth field, `list`. Switches never
+ * An icon (2026-11-09) adds a tenth field, the icon key (the ninth is then empty for a switch).
+ * Features without an icon encode exactly as before. A list feature ([HevalFeatureKind.LIST], 2026-11-03) adds a ninth field, `list`. Switches never
  * get one, so a registry without lists encodes exactly as before (pinned by `registry-v1.txt`);
  * `registry-v1-lists.txt` pins a registry with a list.
  */
@@ -131,8 +161,19 @@ object HevalRegistryCodec {
                     flag(feature.restartRequired),
                     flag(feature.buildTimeOnly),
                     feature.dependencies.joinToString(","),
-                ).let { fields -> if (feature.kind == HevalFeatureKind.LIST) fields + KIND_LIST else fields }
-                    .joinTo(this, "\t")
+                ).let { fields ->
+                    val kind = if (feature.kind == HevalFeatureKind.LIST) KIND_LIST else ""
+                    when {
+                        // The calm flag is the twelfth field, the choice title the eleventh, the icon the
+                        // tenth and the kind the ninth; each earlier field is written empty when a later
+                        // one is present.
+                        feature.calm -> fields + kind + escape(feature.icon) + escape(feature.choice) + "1"
+                        feature.choice.isNotEmpty() -> fields + kind + escape(feature.icon) + escape(feature.choice)
+                        feature.icon.isNotEmpty() -> fields + kind + escape(feature.icon)
+                        kind.isNotEmpty() -> fields + kind
+                        else -> fields
+                    }
+                }.joinTo(this, "\t")
                 append('\n')
             }
         }

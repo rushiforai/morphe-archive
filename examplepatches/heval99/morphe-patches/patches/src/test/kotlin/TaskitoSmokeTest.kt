@@ -14,7 +14,6 @@ import org.junit.jupiter.api.io.TempDir
 import java.io.File
 
 private const val PKG = "com.fenchtose.reflog"
-private const val KEEPER = "Lcom/fenchtose/reflog/features/purchase/d;"
 private const val BOTTOM_BAR = "Lcom/fenchtose/reflog/widgets/bottomnavigation/BottomNavigationBar;"
 
 class TaskitoSmokeTest {
@@ -26,13 +25,12 @@ class TaskitoSmokeTest {
         (instruction as? ReferenceInstruction)?.reference as? StringReference
     }.map { it.string }
 
-    /** The no-arg Boolean getter that reads the `premium` preference, found like the patch. */
+    /** The no-arg Boolean getter that reads the `premium` and `sku_` preference keys, found like the patch. */
     private fun premiumGetters(classes: List<ClassDef>) = classes
-        .filter { it.type == KEEPER }
         .flatMap { it.methods }
         .filter { method ->
             method.returnType == "Z" && method.parameterTypes.isEmpty() && method.implementation != null &&
-                "premium" in method.strings()
+                method.strings().let { "premium" in it && "sku_" in it }
         }
 
     /** The bottom-bar builder, found like Hide Premium tab: bar return type plus both strings. */
@@ -81,15 +79,15 @@ class TaskitoSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "1.3.3",
+            version = "1.3.4",
             patchNames = setOf("Enable Premium", "Hide Premium tab"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
 
         // Enable Premium: the purchase keeper's premium getter returns true.
-        val patched = classes.filter { it.type == KEEPER }.flatMap { it.methods }
+        val patched = classes.filter { it.type == getter.definingClass }.flatMap { it.methods }
             .single { it.name == getter.name && it.parameterTypes.isEmpty() && it.returnType == "Z" }
-        assertForcedBoolean(patched, expected = true, label = "$KEEPER->${patched.name}()Z")
+        assertForcedBoolean(patched, expected = true, label = "${getter.definingClass}->${patched.name}()Z")
 
         // Hide Premium tab: the experiment result is zeroed right before the if-eqz that skips
         // the tab, so the branch always jumps past it. The rest of the builder is unchanged.

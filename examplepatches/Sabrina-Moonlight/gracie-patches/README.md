@@ -22,8 +22,25 @@ https://github.com/Sabrina-Moonlight/gracie-patches
 ## 🌷 Available patches
 
 <!-- PATCHES_START -->
-> **[v1.0.81](https://github.com/Sabrina-Moonlight/gracie-patches/releases/tag/v1.0.81)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;21 patches total
-<details>
+> **[v1.0.90](https://github.com/Sabrina-Moonlight/gracie-patches/releases/tag/v1.0.90)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;16 patches total
+<details open>
+<summary>🌸 Quick Settings&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Package name:** `it.simonesestito.ntiles`
+
+**🌻 Supported versions:**
+
+| 12.0.3-17888438 |
+| :---: |
+
+| 🌷&nbsp;Patch | 💐&nbsp;Description | 🪻&nbsp;Options |
+|----------|----------------|-----------|
+| [Hide ads](#hide-ads) | Hides ads. |  |
+
+</details>
+
+<details open>
 <summary>🌸 Orientation Control&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
@@ -36,85 +53,12 @@ https://github.com/Sabrina-Moonlight/gracie-patches
 
 | 🌷&nbsp;Patch | 💐&nbsp;Description | 🪻&nbsp;Options |
 |----------|----------------|-----------|
-| [Disable Ads](#disable-ads) | Removes ads from Orientation Control. |  |
+| [Hide ads](#hide-ads) | Hides ads. |  |
 
 </details>
 
-<details>
-<summary>🌸 Glass Widgets&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
-<br>
-
-**Package name:** `com.jndapp.glass.widgets`
-
-**🌻 Supported versions:**
-
-| 1.0.2 |
-| :---: |
-
-| 🌷&nbsp;Patch | 💐&nbsp;Description | 🪻&nbsp;Options |
-|----------|----------------|-----------|
-| [Disable Pairip](#disable-pairip) | Restores the normal app entry and recovers offline method bodies so the app can keep running. |  |
-| [Local Preference](#local-preference) | Uses a local preference so optional widget features stay available offline. |  |
-| [Remove Pairip Protection](#remove-pairip-protection) | Skips PairIP license checks and the delayed process exit. |  |
-
-</details>
-
-<details>
-<summary>🌸 Minimal Widgets&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
-<br>
-
-**Package name:** `com.jndapp.minimal.widgets`
-
-**🌻 Supported versions:**
-
-| 2.2.11 |
-| :---: |
-
-| 🌷&nbsp;Patch | 💐&nbsp;Description | 🪻&nbsp;Options |
-|----------|----------------|-----------|
-| [Disable Pairip](#disable-pairip) | Skips the local license and integrity checks so the app can keep running offline. |  |
-| [Local Preference](#local-preference) | Uses a local preference so optional widget features stay available offline. |  |
-
-</details>
-
-<details>
-<summary>🌸 Quick Settings&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
-<br>
-
-**Package name:** `it.simonesestito.ntiles`
-
-**🌻 Supported versions:**
-
-| 12.0.3-17888438 |
-| :---: |
-
-| 🌷&nbsp;Patch | 💐&nbsp;Description | 🪻&nbsp;Options |
-|----------|----------------|-----------|
-| [Disable Pairip](#disable-pairip) | Skips the local license and integrity checks so the app can keep running offline. |  |
-| [Hide Ads Preference](#hide-ads-preference) | Uses a local preference so interstitial and banner ads stay off. |  |
-
-</details>
-
-<details>
-<summary>🌸 Screen Recording App&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
-<br>
-
-**Package name:** `de.twokit.screen.recording.app`
-
-**🌻 Supported versions:**
-
-| 1.11 |
-| :---: |
-
-| 🌷&nbsp;Patch | 💐&nbsp;Description | 🪻&nbsp;Options |
-|----------|----------------|-----------|
-| [Disable Pairip](#disable-pairip) | Skips the local license and integrity checks so the app can keep running offline. |  |
-| [Pro Options](#pro-options) | Uses a local preference so optional Pro options stay available. |  |
-
-</details>
-
-<details>
-<summary>🌸 Themezy&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<details open>
+<summary>🌸 Themezy&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
 **Package name:** `com.themezy.theme.iconwidgets`
@@ -126,13 +70,29 @@ https://github.com/Sabrina-Moonlight/gracie-patches
 
 | 🌷&nbsp;Patch | 💐&nbsp;Description | 🪻&nbsp;Options |
 |----------|----------------|-----------|
-| [Disable Pairip](#disable-pairip) | Skips the local license check so the app can keep running offline. |  |
-| [Hide Ads](#hide-ads) | Turns off every ad gate and every show/preload path in Themezy. |  |
-| [Unlock Local](#unlock-local) | Marks icons, wallpapers and widgets as unlocked so only Add/Apply shows, never Unlock. |  |
+| [Hide ads](#hide-ads) | Hides ads. |  |
+| [Unlock premium](#unlock-premium) | Unlocks premium content. |  |
 
 </details>
 
-<details>
+<details open>
+<summary>🌸 Sound Assistant&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Package name:** `com.samsung.android.soundassistant`
+
+**🌻 Supported versions:**
+
+| 8.5.00.2 |
+| :---: |
+
+| 🌷&nbsp;Patch | 💐&nbsp;Description | 🪻&nbsp;Options |
+|----------|----------------|-----------|
+| [Keep sound during ads](#keep-sound-during-ads) | Prevents media from pausing when ads play. |  |
+
+</details>
+
+<details open>
 <summary>🌸 Aesthetic Widgets&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
@@ -145,11 +105,11 @@ https://github.com/Sabrina-Moonlight/gracie-patches
 
 | 🌷&nbsp;Patch | 💐&nbsp;Description | 🪻&nbsp;Options |
 |----------|----------------|-----------|
-| [Local Features](#local-features) | Uses a local preference so optional widget features stay available offline. |  |
+| [Unlock premium](#unlock-premium) | Unlocks premium features. |  |
 
 </details>
 
-<details>
+<details open>
 <summary>🌸 Glassix: Glass Widgets & Theme&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
@@ -162,11 +122,74 @@ https://github.com/Sabrina-Moonlight/gracie-patches
 
 | 🌷&nbsp;Patch | 💐&nbsp;Description | 🪻&nbsp;Options |
 |----------|----------------|-----------|
-| [Local Premium](#local-premium) | Uses a local preference so premium widgets and no-ads stay available offline. |  |
+| [Unlock premium](#unlock-premium) | Unlocks premium features. |  |
 
 </details>
 
-<details>
+<details open>
+<summary>🌸 Glass Widgets&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Package name:** `com.jndapp.glass.widgets`
+
+**🌻 Supported versions:**
+
+| 1.0.2 |
+| :---: |
+
+| 🌷&nbsp;Patch | 💐&nbsp;Description | 🪻&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock premium](#unlock-premium) | Unlocks premium features. |  |
+
+</details>
+
+<details open>
+<summary>🌸 Minimal Widgets&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Package name:** `com.jndapp.minimal.widgets`
+
+**🌻 Supported versions:**
+
+| 2.2.11 |
+| :---: |
+
+| 🌷&nbsp;Patch | 💐&nbsp;Description | 🪻&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock premium](#unlock-premium) | Unlocks premium features. |  |
+
+</details>
+
+<details open>
+<summary>🌸 Screen Recording App&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Package name:** `de.twokit.screen.recording.app`
+
+**🌻 Supported versions:**
+
+| 1.11 |
+| :---: |
+
+| 🌷&nbsp;Patch | 💐&nbsp;Description | 🪻&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock pro](#unlock-pro) | Unlocks pro features. |  |
+
+</details>
+
+<details open>
+<summary>🌸 Hamster Escape&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Package name:** `gg.sunday.hamsterescape`
+
+| 🌷&nbsp;Patch | 💐&nbsp;Description | 🪻&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock purchases](#unlock-purchases) | Unlocks No Ads, skins, and trails; suppresses the weekly subscription paywall. |  |
+
+</details>
+
+<details open>
 <summary>🌸 Kids doctor games&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
@@ -179,21 +202,20 @@ https://github.com/Sabrina-Moonlight/gracie-patches
 
 | 🌷&nbsp;Patch | 💐&nbsp;Description | 🪻&nbsp;Options |
 |----------|----------------|-----------|
+| [Unlock subscription](#unlock-subscription) | Unlocks the full subscription. |  |
 | [Unlock subscription (IL2CPP native)](#unlock-subscription-il2cpp-native) | Forces Unity IL2CPP access getters (HasThisAppPurchase, IsOwnedSharedActive, offline grants, IsFullAccess, IsActive) to true in lib/arm64-v8a/libil2cpp.so. Required together with Unlock subscription (Java / SharedSub). |  |
-| [Unlock subscription (Java / SharedSub)](#unlock-subscription-java-sharedsub) | Unlocks BB Pass shared subscription on the Java/JNI side and marks Play purchases as owned. Activates local SharedSub state when the game starts. Must be used together with Unlock subscription (IL2CPP native). |  |
 
 </details>
 
-<details>
-<summary>🌼 Universal&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<details open>
+<summary>🌼 Universal&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
 
 | 🌷&nbsp;Patch | 💐&nbsp;Description | 🪻&nbsp;Options |
 |----------|----------------|-----------|
-| [Add battery optimization permission (internal)](#add-battery-optimization-permission-internal) | Adds REQUEST_IGNORE_BATTERY_OPTIMIZATIONS to the manifest. |  |
-| [Clone app](#clone-app) | Changes the app package name and label so you can install several clones. Pick a clone number (1–50). Each number is a different package (app.clone1, app.clone2…). On update, re-apply the same number on each clone. | • Clone number<br>• Custom package (optional)<br>• Update permissions<br>• Update providers |
-| [Randomize device identity](#randomize-device-identity) | Generates random Android ID, Wi-Fi MAC, Bluetooth MAC and serial each time the patch is applied. Useful so every clone has a different identity. |  |
-| [Request unrestricted battery](#request-unrestricted-battery) | On app start, shows the system dialog to allow unrestricted battery (ignore battery optimizations) if it is not already allowed. |  |
+| [Clone app](#clone-app) | Installs the app as a numbered clone.Pick a clone number (1–50). Each number is a different package (app.clone1, app.clone2…). On update, re-apply the same number on each clone. | • Clone number<br>• Custom package (optional)<br>• Update permissions<br>• Update providers |
+| [Randomize device identity](#randomize-device-identity) | Gives each clone a random device identity.each time the patch is applied. Useful so every clone has a different identity. |  |
+| [Request unrestricted battery](#request-unrestricted-battery) | Asks for unrestricted battery when the app starts. |  |
 
 </details>
 

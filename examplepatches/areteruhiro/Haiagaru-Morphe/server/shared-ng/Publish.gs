@@ -1,9 +1,10 @@
 /** Generate a full data-only snapshot after review; publish only this output. */
 function exportReviewedSharedNg(){
- const lock=LockService.getScriptLock();lock.waitLock(15000);try{return ngExportReviewedLocked_();}finally{lock.releaseLock();}
+ const lock=LockService.getScriptLock();lock.waitLock(15000);try{const data=ngExportReviewedLocked_();ngReviewedCachePut_(data);return data;}finally{lock.releaseLock();}
 }
-function ngExportReviewedLocked_(){
- ngReviewPersonalLocked_();const book=SpreadsheetApp.openById(NG_CONFIG.spreadsheetId),rows=ngAllPersonalRows_(book),active=new Map(),ignored=new Set(ngIgnoredReporters_());
+function ngExportReviewedLocked_(reviewedRows){
+ if(!reviewedRows){const snapshot={};ngReviewPersonalLocked_(snapshot);reviewedRows=snapshot.rows;}
+ const rows=reviewedRows,active=new Map(),ignored=new Set(ngIgnoredReporters_());
  for(const row of rows){if(ignored.has(row[1]))continue;const c=ngParsedInboxCondition_(row);if(!c)continue;const key=ngConditionKey_(c);active.set(row[1]+':'+key,{row,c,key});}
  const groups=new Map();for(const x of active.values())if(x.row[3]==='upsert'&&x.row[5]==='approved'){
   const key=x.key;if(!groups.has(key))groups.set(key,{id:key,board:ngFamilyBoard_(x.c.board),boardName:ngFamilyName_(x.c.board),kind:x.c.kind,value:x.c.value,period:"",regex:!!x.c.regex,flags:x.c.flags&~9,votes:0,revoked:false,minLevel:JSON.parse(x.row[8]).minLevel,minVotes:1,contributors:[]});const group=groups.get(key);group.votes++;group.contributors.push(ngPublicReporter_(x.row[1]));
@@ -22,7 +23,8 @@ function ngPublishReviewedLocked_(){
  const props=PropertiesService.getScriptProperties(),token=props.getProperty('GITHUB_FEED_TOKEN');if(!token)throw Error('GITHUB_FEED_TOKEN is not configured');
  const repo=props.getProperty('GITHUB_FEED_REPO')||'areteruhiro/Haiagaru-Morphe',branch=props.getProperty('GITHUB_FEED_BRANCH')||'dev',path=props.getProperty('GITHUB_FEED_PATH')||'rules/shared-ng.json';
  if(!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repo)||!/^rules\/[A-Za-z0-9_.\/-]+\.json$/.test(path)||path.includes('..'))throw Error('Invalid GitHub destination');
- const content=ngExportReviewedLocked_(),url='https://api.github.com/repos/'+repo+'/contents/'+path,headers={Authorization:'Bearer '+token,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'};
+ const content=ngExportReviewedLocked_();ngReviewedCachePut_(content);
+ const url='https://api.github.com/repos/'+repo+'/contents/'+path,headers={Authorization:'Bearer '+token,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'};
  const previous=UrlFetchApp.fetch(url+'?ref='+encodeURIComponent(branch),{headers,muteHttpExceptions:true});let sha;
  if(previous.getResponseCode()===200){const data=JSON.parse(previous.getContentText());sha=data.sha;if(Utilities.newBlob(Utilities.base64Decode(data.content)).getDataAsString('UTF-8')===content)return 'unchanged';}
  else if(previous.getResponseCode()!==404)throw Error('GitHub read failed: '+previous.getResponseCode());
@@ -48,21 +50,36 @@ function installSharedNgPublishTrigger(){
 function ngReviewedCacheGet_(){
  const cache=CacheService.getScriptCache(),raw=cache.get(ngReviewedCacheKey_());if(!raw)return null;
  try{const m=JSON.parse(raw);if(!Number.isInteger(m.count)||m.count<1||m.count>1000||!/^[a-f0-9]{64}$/.test(m.hash))return null;
-  let data='';for(let i=0;i<m.count;i++){const part=cache.get('reviewed-part:'+m.hash+':'+i);if(part===null||part===undefined)return null;data+=part;}
+  const keys=Array.from({length:m.count},(_,i)=>'reviewed-part:'+m.hash+':'+i),parts=cache.getAll?cache.getAll(keys):null;
+  let data='';for(const key of keys){const part=parts?parts[key]:cache.get(key);if(part===null||part===undefined)return null;data+=part;}
   return ngHash_(data)===m.hash?data:null;
  }catch(invalid){return null;}
 }
 function ngReviewedCachePut_(data){
- const cache=CacheService.getScriptCache(),hash=ngHash_(data);let count=0;
+ const cache=CacheService.getScriptCache(),hash=ngHash_(data),parts={};let count=0;
  for(let start=0;start<data.length;){let end=Math.min(start+20000,data.length);const last=data.charCodeAt(end-1);if(end<data.length&&last>=0xd800&&last<=0xdbff)end--;
-  if(count>=1000)return;cache.put('reviewed-part:'+hash+':'+count++,data.slice(start,end),300);start=end;
+  if(count>=1000)return;parts['reviewed-part:'+hash+':'+count++]=data.slice(start,end);start=end;
  }
+ if(cache.putAll)cache.putAll(parts,300);else for(const key of Object.keys(parts))cache.put(key,parts[key],300);
  if(count)cache.put(ngReviewedCacheKey_(),JSON.stringify({hash,count}),240);
+}
+/** One cold-cache builder; waiters reuse its committed snapshot instead of re-reviewing. */
+function ngReviewedFeedData_(){
+ let data=ngReviewedCacheGet_();if(data)return data;
+ const lock=LockService.getScriptLock();
+ if(!lock.tryLock(25000)){
+  data=ngReviewedCacheGet_();if(data)return data;
+  throw Error('共有NGの配信データを更新中です。しばらくしてから再同期してください。');
+ }
+ try{
+  data=ngReviewedCacheGet_();
+  if(!data){data=ngExportReviewedLocked_();ngReviewedCachePut_(data);}
+  return data;
+ }finally{lock.releaseLock();}
 }
 /** Anonymous reads expose only the same approved data as the optional GitHub feed. */
 function reviewedSharedNgFeed(e){
- let data=ngReviewedCacheGet_();
- if(!data){data=exportReviewedSharedNg();ngReviewedCachePut_(data);}
+ let data=ngReviewedFeedData_();
  // Older clients reject unknown kinds; expose the new kind only on explicit capability opt-in.
  const feed=JSON.parse(data),cap=e&&e.parameter||{};feed.rules=feed.rules.filter(r=>(cap.regex==='1'||!r.regex)&&(cap.matchModes==='1'||[0,16].includes((r.flags||0)&0x70))&&(cap.reporter==='1'||r.kind!=='reporter')&&(cap.globalIdentity==='1'||r.board!=='*'||!['id','wacchoi','prefix','suffix'].includes(r.kind)));if(cap.contributors!=='1')for(const rule of feed.rules)delete rule.contributors;data=JSON.stringify(feed);
  return ContentService.createTextOutput(data).setMimeType(ContentService.MimeType.JSON);

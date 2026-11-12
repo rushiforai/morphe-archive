@@ -1,0 +1,56 @@
+# あにまん7596018 モバイル分割ページの503（2026-11-07）
+
+報告URL https://bbs.animanch.com/board/7596018/ 。ホストPythonのGETはHTTP200/374882bytes/273レスで解析成功。一方emulator-5580の191内HttpTransportで取得するとHTTP200/246258bytesだが、本文はres1とres75〜res274の201行のみ。元サイトはモバイルでOP+最新200レスを返し、古いレスを別ページへ分ける。既存のAnimanchProtocol.threadは全件連番が同一HTMLにある前提で拒否し、gatewayが503を返していた。実ネットワークの受理エラーや認証失敗ではない。
+
+前版のread-only live probeで実際の503を再現（build/animanch-7596018/android-live.log）。Android取得HTMLはアプリprivate cacheからエミュレータsuで指定ファイルだけを/data/local/tmpへコピーして採取。実機へアクセスせず、credentials/他のprivateデータを列挙・出力していない。baseタグは https://bbs.animanch.com/board/、ページリンクは ./7596018/1/ なので、文字列のURL連結ではなくJsoupのabsUrlを使う。
+
+AnimanchProtocolを単一ページの順序/重複確認と既存の完全連番確認へ分離。既存thread関数の厳密な完全性は維持し、gatewayのAnimanch経路だけを新AnimanchPaginationへ接続する。canonical/タイトル/同一スレを検証し、同host/同thread/数値ページ/HTTPSだけを巡回。query/fragment/userinfo/別port/他host/別thread/エンコードされたpathは追わない。上限50ページ/10000レス。初期ページの#autoCheck nameを全件数目安にし、先頭200だけのページが来ても途中で完了扱いしない。全レスを番号で集約し、最終的な1〜N連番が揃わなければエラーを維持する。不足行を作ってごまかさない。
+
+ページ間のOP/重複表示は1件に集約し、先に読んだスナップショットを優先する。モバイルとdesktopのキャッシュ間で同じリンクのカードpreviewがblockquoteとpに変わるため、HTMLが一致することを要求すると実データで偽の変更エラーになった。各ページ内の重複/逆順は引き続き拒否し、同じ番号の別ページ間だけを重複排除する。実初期HTML201行+次ページ275行で欠番なし275レスに集約した。継続レスが増えるため、この件数は採取時のsnapshot。
+
+ホスト: 新規AnimanchPaginationTest295項目、既存AnimanchProtocolTest228項目（79レス/34画像/360topics）、既存SiteUrlBugsTest20項目成功。最初の既存テストはfixtureパス誤指定でNoSuchFileException、既存のsite-boards-inst/assetsを指定して全件再実行し成功。製品コードやfixture内容の失敗とはしない。
+
+通常Lint/R8製品buildと191での標準本文/元URL/Unicode/画像/模擬投稿の回帰および実HTTP取得を検証中。共有部分のページ解析だけの変更でnative hook/manifest/設定は変更しない。今回の最新指示は不具合報告であり、新規の公開はまだ行わない。
+## 追加報告: 爆サイ8142054
+
+元URL https://bakusai.com/thr_res/acode=7/ctgid=148/bid=1548/tid=8142054/ （コロナウイルスin奈良）。Android実通信でも503を再現した。初期URLへの応答がselected=2、res987〜993で、.res-count/OPコメントカウンターがない。ホスト応答はselected=1、res994〜1000、コメントカウンター1000があり、環境により返るページ位置が違う。両方ともtitleには｜1000レス｜がある。
+
+カウンター欠落時には限定したtitle形式からレス総数を読み取る。body内の任意の数字を採用しない。初期応答のselected pageを確認し、2ページ目から始まった場合はページ1を飛ばさない。実際に返ったページは再取得せず、acode転送前後のURLを同じページ番号として正規化し、formとリンクの二重取得を避ける。既存の別thread/host/bid制約は維持する。
+
+新規BakusaiMissingCountTest1434項目成功。実際の2ページ目HTMLを初期値として、残りのページは合成fixtureを供給し、142ページだけ取得して1000返信+OPの1001行になることを検査。合成fixtureの初版でprettyPrintの違いによりOP一致検査が失敗、次版で初期formの15ページしかadvertiseしないfixtureの限界に達し、完全な143ページ分のfixtureナビを用意して全件再実行し成功。実サイトから1000返信すべてを取得済みという意味ではない。
+
+通常Lint/R8のcombined-build.logは3m27s成功。191の固定hook保持成功、署名照合install-r成功。最初のAndroid回帰は新規合成fixtureの生成でorg.jsoup.Jsoupを反射し、製品側R8でそのクラス名が変わるためClassNotFoundExceptionが発生。1001行の表示は失敗扱いにし、fixtureタイトルをhostで前計算してassetに持たせる方式へ修正した。製品の欠陥として処理を緩める変更はしていない。既存の「まどドラ」82レスと分割あにまん275レスは、この先行回帰で表示確認まで進んだ。
+
+## 追加要望: 元URLコピー/ポート欠落URL/本文照合
+
+ユーザー提示の http://127.0.0.1/test/read.cgi/ha97f9feb0ae67d6d3f05bafa27e9d8b0c/9247427435/ はポートが欠落した既知aliasのURL。従来copy変換が127.0.0.1:portだけを探していたため対象外になっていた。登録済みaliasのポートなしURLも、元サイトURLへコピー変換し、開く時は同じaliasと現在のportに復元する。明示された別portの他serviceや未知aliasは推測して変換しない。
+
+コピー変換はplain textに加え、HTMLの表示text/href、URI item、複数itemにも対応。Intent itemと無関係なitem、ClipDescriptionを維持し、コピー履歴OFFでも働く。内部の通信用URL producerは元URLへ変えず、明示コピーの境界で変換する。191の標準copy APIを静的調査し、4箇所すべてsetPrimaryClipで既存フックの対象であることを確認した。新しい全class走査は追加しない。
+
+Android試験を拡張し、実際の191標準コピーhelperがクリップボードへ元URLを置くことを確認予定。試験前のclipboardをメモリ内で保持してfinallyで戻し、内容はログへ出さない。履歴は試験中だけOFFにして元設定を復元する。「まどドラ」82レスは、標準rendererに載った全レスを原DATのplain textと照合し、改行・引用・画像URL・番号・置換文字の混入を検査する。URL-copy最終ビルド/再検証中。
+
+
+## 2026-11-08 継続検証
+
+URL-copy191の実copy試験は当初clipboard=null/focus=falseで失敗。dumpsys windowでSystem UIのANRダイアログが最前面と確認し、uiautomatorでClose appボタンの実表示を読み、そのダイアログだけ閉じて再検証した。標準native helperが実clipboardへ元URLを書き込む試験はその後成功し、既存のclip内容/履歴設定はfinallyで復元した。端末appの自然クラッシュとSystem UIのANRを混同しない。
+
+まどドラ82レスの厳密照合で、文章はあるがp/blockquoteの段落境界がnative rendererで落ちる問題を実際に検出。先行DATのHtml.fromHtml期待値には改行があるが、表示adapterから抽出した本文は文章が詰まる。SiteNativeDataで段落境界をbrへ変換する修正を追加した。件数が合うだけで内容確認済みとは扱わず、全82行のplain textと番号/置換文字/引用/画像URLを最終APKで再検証中。
+
+最終試験の爆サイ1001行fixtureが使っていたorg.jsoupクラス反射は廃止し、元のtitleをhostで抽出した専用assetへ移した。ホストの新規295/1434、既存20/98項目は改行修正後も成功。
+
+
+
+## 最終確認と公開指示（2026-11-08）
+
+最終製品ビルドreadability-build.logは通常Lint/R8を含め4m38s成功。build/animanch-7596018/readability.mpp SHA256 7369b41dc79a2ba492d906509c2cb2ecd7b851037cb4039da122100e3aef75ea。191の既存固定hook/native fallbackのレジスター・元命令保持PASS。同署名更新した最終APKでfinal-reader191.logの585項目PASS。ソースの最終ビルド後に変更したのは試験/文書だけ。226/242の最終APK生成/端末試験は未実施、共通extensionの修正を含めて配布するが確認済みとは記載しない。
+
+実copyhelper→ClipboardHistory→ClipboardManager経路で元URLの格納を確認。ポートなし/HTML/URI/複数item/無関係なportの維持も成功。まどドラ82レスは標準rendererのnative本文と元DATを全行照合し、全内容/改行/引用/画像URL/番号/Unicode保持を確認。表示上の横方向スペース連続・行頭末スペースだけを揃えて比較し、改行は比較対象のまま維持した。NG用sharedReportInputsはHtml.fromHtmlでネイティブplain本文の改行を再正規化するため、これを表示本文として比較していた初期試験は不適切であった。native rowの本文そのものへ修正し、空白整形の差を除いて全件一致を検査。先行の失敗は成功へ数えない。
+
+分割あにまん275レス/爆サイ1001行は隔離した実HTML+合成継続ページによる標準本文表示成功。爆サイの全1000レスを実通信取得したという意味ではない。実通信のあにまん報告URL7596018は、最終候補で初期ページ/1ページ目をHTTP200取得し、gatewayからnativeDatRows=329で成功（final-live.log）。初期のレス重複・欠落による503は解消を確認。採取時刻でレス数は増加している。
+
+通常の本文/画像/模擬投稿dialog/HTTPS ONも成功。公開POST0。readability-test-start以降のcrash buffer0行（final-crash.log）。実機変更/アンインストール/データ消去なし。ユーザーが『終わったらプレリリースして』と明示したため、確認範囲を記載してdev Semantic Releaseで公開する。
+
+
+
+1.25.0-dev.9検証用公開完了: Semantic Release CI https://github.com/areteruhiro/Haiagaru-Morphe/actions/runs/42388373374 success / https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.25.0-dev.9 / 2026-11-08 00:56:19 JST。APIでprerelease=true/draft=false、MPP/bundle JSON2個/任意ZIP3個を確認。配布MPPを実ダウンロードし7007273bytes / SHA256 ec737c477b5bcd27d1367277310be7896468c021bd767642d22e8d5c8401d04d。pre JSONのversion/download_url一致。ソースbea511d3、CI生成9335c79eをff-only取得、生成ファイル手編集なし。配布MPP自体の再パッチ/導入は未実施、同一製品ソースの最終候補で191の585項目と実通信329行確認済み。226/242の今回の最終候補未検証と、爆サイ1000返信は合成継続ページによる試験である点をRelease本文に記載。
+

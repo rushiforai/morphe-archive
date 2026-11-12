@@ -8,7 +8,6 @@
 package app.morphe.extension.youtube.patches.voiceovertranslation;
 
 import static app.morphe.extension.shared.StringRef.str;
-import static app.morphe.extension.shared.settings.BaseSettings.DEBUG;
 import static app.morphe.extension.youtube.patches.voiceovertranslation.TranscriptTranslator.TRANSLATION_SERVICE_MY_MEMORY;
 import static app.morphe.extension.youtube.patches.voiceovertranslation.TranscriptTranslator.TRANSLATION_SERVICE_OPENROUTER;
 
@@ -188,7 +187,6 @@ public class VoiceOverTranslationPatch {
                     TTSPrefetcher.clear();
                 }
             }
-            return kotlin.Unit.INSTANCE;
         });
 
         VideoState.getOnChange().addObserver(state -> {
@@ -211,7 +209,6 @@ public class VoiceOverTranslationPatch {
                 PlayerVolumePatch.clearDuckMultiplier();
                 TTSPrefetcher.clear();
             }
-            return kotlin.Unit.INSTANCE;
         });
     }
 
@@ -373,12 +370,6 @@ public class VoiceOverTranslationPatch {
         } else {
             PlayerVolumePatch.clearDuckMultiplier();
         }
-    }
-
-    /** @return true when VoT is enabled, the session is on, and a transcript is loaded. */
-    public static boolean isTranslationActive() {
-        Utils.verifyOnMainThread();
-        return Settings.VOT_ENABLED.get() && sessionEnabled && !segments.isEmpty();
     }
 
     /** @return Per-session enabled flag (toggleable via the player button) - not the global setting. */
@@ -926,7 +917,7 @@ public class VoiceOverTranslationPatch {
                 showOpenRouterCreditsDialog(activity);
             });
         } else {
-            Utils.showToastLong(str("morphe_vot_openrouter_error", httpCode));
+            Utils.showSnackbarLong(str("morphe_vot_openrouter_error", httpCode));
         }
     }
 
@@ -971,7 +962,7 @@ public class VoiceOverTranslationPatch {
                 showMyMemoryQuotaDialog(activity, nextAvailableAt);
             });
         } else {
-            Utils.showToastLong(str("morphe_vot_mymemory_error", responseStatus));
+            Utils.showSnackbarLong(str("morphe_vot_mymemory_error", responseStatus));
         }
     }
 
@@ -1067,7 +1058,7 @@ public class VoiceOverTranslationPatch {
     }
 
     static void logError(Logger.LogMessage message, @Nullable Exception ex) {
-        if (DEBUG.get()) Logger.printException(message, ex);
+        if (Logger.isDebugEnabled()) Logger.printException(message, ex);
         else Logger.printInfo(message, ex);
     }
 }

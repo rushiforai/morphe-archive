@@ -83,3 +83,9 @@ Google 17.72.17.ve.arm64 (301831138)を端末の元アプリから抽出。Gemin
 - MainActivityは23レジスタになった。完了フラグo:Zはcode unit 811、Activity別名v0、scratch v6/v7/v8、後続cleanupのv3/v19は前版同様。新定義と元命令を照合した。
 - Issue #7の画像の判定は、Gemini cma.b→ahx.u(getPackageInfo)→byf.a(versionCode)→BardEntryPointActivityの0判定→ErrorActivity(error-type=1)。パッチ済みDEXはクローンを検出するが、Manifest queriesに元Googleしか宣言されていなかった。連携先変更パッチの依存リソースパッチでクローン宣言を追加し、VerifyGeminiManifestで1件だけ存在することを検証する。修正前のAPKでは検証が失敗し、修正後は成功することを確認。
 - 投稿者の環境や適用パッチは不明なので、Issue #7の原因をqueries不足だとは断定しない。元Googleを消した実機条件は別途検証が必要。
+
+## Android ManagerとDesktopの生成差（v0.3.3）
+
+`VerifyError: register index out of range` はフック名の変更だけでなく、パッチエンジン側の差も調べる。Patcher2.3.0はMutableMethodImplementationを内部サブクラスで包むため、旧private field reflectionは動作しなかった。レジスタ数の書換失敗を握りつぶすと、適用成功でも起動できないDEXになる。
+
+プロセス名の正規化は元providerの割当を維持し、明示的な3レジスタのhelperへ移した。次版解析では実providerのreturnレジスタと全分岐先、helperパラメータ配置を検証する。特にキャッシュ分岐が補正を飛ばさないこと。`VerifyProcessName.kt` と `ProcessNameProbe` を両方実行し、Managerで原本から生成したAPKでも同じ検査を行う。詳細は [Manager再現記録](testing/issue-8-manager-registers.md)。

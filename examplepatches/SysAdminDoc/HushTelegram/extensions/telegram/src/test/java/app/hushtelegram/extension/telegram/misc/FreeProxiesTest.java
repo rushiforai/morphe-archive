@@ -6,6 +6,7 @@ package app.hushtelegram.extension.telegram.misc;
 
 import static org.junit.Assert.*;
 
+import app.hushtelegram.extension.shared.L10nTablesForTests;
 import app.hushtelegram.extension.shared.SettingsContextRule;
 import app.hushtelegram.extension.shared.Utils;
 import app.hushtelegram.extension.shared.diagnostics.HookStatus;
@@ -71,6 +72,7 @@ public class FreeProxiesTest {
         FreeProxies.Stored.TRIED_AT.resetToDefault();
         FreeProxies.Stored.RESULT.resetToDefault();
         FreeProxies.Stored.ADDED.resetToDefault();
+        FreeProxies.Stored.LISTS.resetToDefault();
         PatchFamilyForTests.reset();
         HookStatus.clear();
     }
@@ -160,6 +162,74 @@ public class FreeProxiesTest {
         assertEquals(1, FreeProxies.fetch(net).size());
         assertEquals(FreeProxies.FEEDS, net.asked);
         assertTrue(FreeProxies.fetch(new FakeNet()).isEmpty());
+    }
+
+    @Test public void theirOwnListsAreReadInsteadOfThePublicOnesAllTogether() {
+        String mine = "https://lists.example.net/mine.txt?key=abc";
+        String down = "https://down.example.com/list";
+        String friends = "https://friend.example.org/proxies";
+        net.lists.put(FreeProxies.FEEDS.get(0), "tg://proxy?server=public.example.com&port=443&secret=" + secret());
+        net.lists.put(mine, "tg://proxy?server=a.example.com&port=443&secret=" + secret()
+                + "\nhttps://t.me/proxy?server=b.example.com&port=8443&secret=" + secret());
+        net.lists.put(friends, "tg://proxy?server=a.example.com&port=443&secret=" + secret()
+                + "\ntg://proxy?server=c.example.com&port=443&secret=" + secret());
+        assertTrue(FreeProxies.saveLists(Arrays.asList(mine, down, friends)));
+        // One that can't be read leaves the others, and a proxy on two lists is timed once.
+        assertEquals(Arrays.asList("a.example.com", "b.example.com", "c.example.com"), servers(FreeProxies.fetch(net)));
+        assertEquals(Arrays.asList(mine, down, friends), net.asked);
+        net.asked.clear();
+        assertTrue(FreeProxies.saveLists(Arrays.asList(down)));
+        assertTrue("a public list stands in for none of theirs", FreeProxies.fetch(net).isEmpty());
+        assertEquals(Arrays.asList(down), net.asked);
+        // None left reads the public lists again.
+        net.asked.clear();
+        assertTrue(FreeProxies.saveLists(Collections.emptyList()));
+        assertEquals(Arrays.asList("public.example.com"), servers(FreeProxies.fetch(net)));
+        assertEquals(Arrays.asList(FreeProxies.FEEDS.get(0)), net.asked);
+    }
+
+    @Test public void theirOwnListsAreHttpsAddressesFiveAtMost() {
+        assertEquals(Arrays.asList("https://a.example.com/x", "https://b.example.com"),
+                FreeProxies.lines("  https://a.example.com/x \n\n https://b.example.com\r\nhttps://a.example.com/x\n"));
+        assertTrue(FreeProxies.lines(null).isEmpty());
+        assertTrue(FreeProxies.listAddress("https://a.example.com/list.txt?key=1"));
+        assertTrue(FreeProxies.listAddress("HTTPS://A.example.com"));
+        StringBuilder huge = new StringBuilder("https://a.example.com/");
+        while (huge.length() <= 2048) huge.append('x');
+        for (String refused : new String[]{"", "http://a.example.com/list", "ftp://a.example.com/list",
+                "a.example.com/list", "https://", "https:///list", "https://a b.example.com/list",
+                "tg://proxy?server=a.example.com&port=443&secret=" + secret(), huge.toString()}) {
+            assertFalse(refused, FreeProxies.listAddress(refused));
+        }
+        // What's kept is read the same way, so a line that isn't an address, and a sixth, are never asked for.
+        StringBuilder kept = new StringBuilder("not an address\n");
+        for (int i = 1; i <= 7; i++) kept.append("https://l").append(i).append(".example.com\n");
+        FreeProxies.Stored.LISTS.save(kept.toString());
+        List<String> lists = FreeProxies.ownLists();
+        assertEquals(FreeProxies.MAX_OWN_LISTS, lists.size());
+        assertEquals("https://l1.example.com", lists.get(0));
+        assertEquals("https://l5.example.com", lists.get(4));
+    }
+
+    @Test public void theirListsStayOutOfSettingsFilesButKeepWhilePaused() {
+        assertTrue(FreeProxies.saveLists(Arrays.asList("https://l1.example.com")));
+        PauseForTests.pause(HushTelegramPause.Reason.SWITCH);
+        assertEquals(Arrays.asList("https://l1.example.com"), FreeProxies.ownLists());
+        PauseForTests.resume();
+        assertFalse(FreeProxies.Stored.LISTS.includeWithImportExport);
+    }
+
+    @Test public void theListToastsFitTwoLinesInEveryLanguage() {
+        String[] toasts = {"Each line needs an https address", "Up to %1$s lists",
+                "Couldn't save the lists. Try again in a moment."};
+        for (String toast : toasts) {
+            assertFitsATwoLineToast("en", String.format(toast, FreeProxies.MAX_OWN_LISTS));
+            for (String language : new String[]{"bg", "de", "es", "in", "pt-rbr", "tr"}) {
+                String row = L10nTablesForTests.of(language).get(toast);
+                assertNotNull(language + ": " + toast, row);
+                assertFitsATwoLineToast(language, String.format(row, FreeProxies.MAX_OWN_LISTS));
+            }
+        }
     }
 
     // ---- Telegram's list ------------------------------------------------------------------------
@@ -392,6 +462,10 @@ public class FreeProxiesTest {
         assertEquals("Proxies added last time: 7. They're in Telegram's proxy list.", FreeProxies.summary());
         FreeProxies.Stored.RESULT.save("SOMETHING_NEWER 3");
         assertTrue("a result it doesn't know reads as no try", FreeProxies.summary().startsWith("Downloads"));
+        FreeProxies.Stored.TRIED_AT.resetToDefault();
+        assertTrue(FreeProxies.saveLists(Arrays.asList("https://l1.example.com")));
+        assertEquals("Downloads your proxy lists now, times them and adds the fastest to Telegram's "
+                + "proxy list, even with the switch above off.", FreeProxies.summary());
     }
 
     // ---- The phone number screen -----------------------------------------------------------------
@@ -436,6 +510,23 @@ public class FreeProxiesTest {
         StringBuilder hex = new StringBuilder("ee");
         for (int i = 0; i < 16; i++) hex.append(Integer.toHexString(0xa0 + i));
         return hex.toString();
+    }
+
+    /** A toast line holds about 34 characters on a small phone; 28 leaves room for wider letters. */
+    private static void assertFitsATwoLineToast(String language, String text) {
+        List<String> lines = new ArrayList<>();
+        StringBuilder line = new StringBuilder();
+        for (String word : text.split(" ")) {
+            if (line.length() > 0 && line.length() + 1 + word.length() > 28) {
+                lines.add(line.toString());
+                line.setLength(0);
+            }
+            if (line.length() > 0) line.append(' ');
+            line.append(word);
+        }
+        if (line.length() > 0) lines.add(line.toString());
+        assertTrue(language + ": " + text, lines.size() <= 2);
+        for (String each : lines) assertTrue(language + ": " + each, each.length() <= 28);
     }
 
     private static List<FreeProxies.Proxy> proxies(int count) {

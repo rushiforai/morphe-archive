@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-11-12T06:10:20",
-  "description": "Removes the startup logo and removes FMKorea ads and leftover ad spaces without AdGuard.",
-  "download_url": "https://github.com/dongmin8350/fmkorea-splash-patches/releases/download/v1.2.0/patches-1.2.0.mpp",
+  "created_at": "2026-11-12T09:12:00",
+  "description": "Removes FMKorea ads by collapsing the fmad wrapper/spacer from the initial layout, hiding the native AdView parent container, blocking ad requests, and using a Smali-safe early CSS injection.",
+  "download_url": "https://github.com/dongmin8350/fmkorea-splash-patches/releases/download/v1.3.5/patches-1.3.5.mpp",
   "signature_download_url": "",
-  "version": "1.2.0"
+  "version": "1.3.5"
 }

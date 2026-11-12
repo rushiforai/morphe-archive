@@ -153,7 +153,6 @@ val extractApkCertificatePatch = rawResourcePatch(
         "or enter the certificate manually.",
     default = false,
 ) {
-    category("Signature")
     val originalApkPath by stringOption(
         key = "originalApkPath",
         default = null,

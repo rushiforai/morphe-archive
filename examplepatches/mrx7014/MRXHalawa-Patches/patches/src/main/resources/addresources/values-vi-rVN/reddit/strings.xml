@@ -18,6 +18,13 @@ Second \"item\" text"</string>
 <resources>
   <string name="reddit_privacy_policy">Chính sách quyền riêng tư của Reddit</string>
   <string name="morphe_google_signin_not_available_toast">Không thể đăng nhập bằng Google. Hãy dùng email để đăng nhập</string>
+  <string name="morphe_app_downgrade_dialog_title">Không hỗ trợ hạ cấp</string>
+  <string name="morphe_app_downgrade_dialog_message">"Bản cài đặt Reddit này đã được hạ cấp từ &lt;b&gt;%1$s&lt;/b&gt; xuống &lt;b&gt;%2$s&lt;/b&gt;
+&lt;br/&gt;&lt;br/&gt;
+Dữ liệu ứng dụng từ phiên bản mới hơn không hoạt động với các phiên bản cũ hơn và ứng dụng có thể không hoạt động chính xác.
+&lt;br/&gt;&lt;br/&gt;
+Để sử dụng phiên bản cũ hơn, bạn phải &lt;b&gt;gỡ cài đặt&lt;/b&gt; Reddit và sau đó cài đặt phiên bản cũ hơn."</string>
+  <string name="morphe_app_downgrade_dialog_open_app_info">Mở thông tin ứng dụng</string>
   <string name="morphe_screen_ads_title">Quảng cáo</string>
   <string name="morphe_hide_post_ads_title">Ẩn quảng cáo trong bảng tin</string>
   <string name="morphe_hide_comment_ads_title">Ẩn quảng cáo bình luận</string>
@@ -58,6 +65,8 @@ Second \"item\" text"</string>
   <string name="morphe_hide_trending_shelves_summary">Ẩn các kệ Xu hướng khỏi bảng tin và gợi ý tìm kiếm</string>
   <string name="morphe_remove_notification_dialog_title">Xóa hộp thoại gợi ý thông báo</string>
   <string name="morphe_remove_notification_dialog_summary">Tự động tắt hộp thoại gợi ý thông báo khi vào subreddit</string>
+  <string name="morphe_high_quality_avatars_title">Ảnh đại diện chất lượng cao</string>
+  <string name="morphe_high_quality_avatars_summary">Hiển thị ảnh đại diện của người dùng ở độ phân giải đầy đủ</string>
   <string name="morphe_show_flairs_in_home_feed_title">Hiển thị biểu tượng trong nguồn tại trang chủ</string>
   <string name="morphe_show_flairs_in_home_feed_summary">Hiển thị huy hiệu dán nhãn trong nguồn tại trang chủ</string>
   <string name="morphe_show_flairs_in_home_feed_user_dialog_message">Một số mục trong nguồn có thể không hiển thị dán nhãn</string>
@@ -84,10 +93,6 @@ Second \"item\" text"</string>
   <string name="morphe_keep_feed_position_summary">Giữ bảng tin ở cùng vị trí sau khi đóng bài đăng, hình ảnh hoặc video, thay vì di chuyển bài đăng đã mở lên đầu trang</string>
   <string name="morphe_feed_media_max_height_title">Chiều cao tối đa của media trên bảng tin</string>
   <string name="morphe_feed_media_max_height_summary">Chiều cao tối đa của hình ảnh, video và thư viện ảnh trong bảng tin, tính theo bội số của chiều rộng. Media cao hơn sẽ bị cắt. 1.33 là mặc định của Reddit</string>
-  <string name="morphe_redgifs_audio_title">Phát Redgifs có âm thanh</string>
-  <string name="morphe_redgifs_audio_summary">Phát video Redgifs gốc thay vì bản sao từ Reddit, vốn thường không có âm thanh</string>
-  <string name="morphe_redgifs_hd_title">Chất lượng HD Redgifs</string>
-  <string name="morphe_redgifs_hd_summary">Phát video HD Redgifs. Video HD có dung lượng lớn hơn và có thể tạm dừng để tải</string>
   <string name="morphe_download_location_title">Vị trí tải xuống</string>
   <string name="morphe_download_location_all_title">Tất cả tài khoản</string>
   <string name="morphe_download_location_default_summary">Mặc định của Reddit: hình ảnh trong Pictures/Reddit, video trong Download</string>

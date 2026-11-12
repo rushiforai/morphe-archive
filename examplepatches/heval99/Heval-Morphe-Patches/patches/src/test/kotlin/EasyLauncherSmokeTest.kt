@@ -33,9 +33,8 @@ private val KEPT_ANALYTICS_METHODS = setOf("getAppInstanceId", "generateUserId",
 private val PROMO_CONFIGS = listOf(
     "Lcom/eet/promos/getjar/config/GetJarRemoteConfig\$BannerConfig;",
     "Lcom/eet/promos/getjar/config/GetJarRemoteConfig\$SearchConfig;",
-    "Lcom/eet/promos/sportspass/config/SportsPassRemoteConfig\$BannerConfig;",
-    "Lcom/eet/promos/sportspass/config/SportsPassRemoteConfig\$IconConfig;",
-    "Lcom/eet/promos/sportspass/config/SportsPassRemoteConfig\$TileConfig;",
+    // 1.10.31 merged the SportsPass banner, icon, tile (and new folder) configs into one entry config.
+    "Lcom/eet/promos/sportspass/config/SportsPassRemoteConfig\$SportsPassEntryConfig;",
     "Lcom/eet/promos/sportspass/config/SportsPassRemoteConfig\$SearchConfig;",
 )
 
@@ -87,7 +86,7 @@ class EasyLauncherSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "1.10.29",
+            version = "1.10.31",
             patchNames = EASYLAUNCHER_PATCHES,
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
@@ -200,13 +199,19 @@ class EasyLauncherSmokeTest {
         singularInits.forEach { assertForcedBoolean(it, expected = false, label = label(it), diagnostics) }
 
         // Braze: initialize returns Unit.INSTANCE without enqueuing its init worker.
-        val brazeInit = klass("Lcom/eet/service/braze/push/BrazePushService;")
-            .method("initialize", listOf("Landroid/content/Context;", "Lkotlin/coroutines/Continuation;"))
+        // The Continuation parameter is R8-renamed since 1.10.31, so match the method by name and arity.
+        val brazeInit = klass("Lcom/eet/service/braze/push/BrazePushService;").methods.single {
+            it.name == "initialize" && it.parameterTypes.size == 2 && it.parameterTypes[0] == "Landroid/content/Context;"
+        }
+        // kotlin.Unit is R8-renamed since 1.10.31: it is the class whose toString returns "kotlin.Unit".
+        val unitType = classes.single { cls ->
+            cls.methods.any { it.name == "toString" && it.parameterTypes.isEmpty() && "kotlin.Unit" in it.strings() }
+        }.type
         val unitField = (brazeInit.instructions().firstOrNull() as? ReferenceInstruction)?.reference as? FieldReference
         assertTrue(
             brazeInit.instructions().firstOrNull()?.opcode == Opcode.SGET_OBJECT &&
-                unitField?.definingClass == "Lkotlin/Unit;" && unitField.type == "Lkotlin/Unit;",
-            "BrazePushService.initialize does not load kotlin.Unit first; got $unitField\n$diagnostics"
+                unitField?.definingClass == unitType && unitField.type == unitType,
+            "BrazePushService.initialize does not load kotlin.Unit ($unitType) first; got $unitField\n$diagnostics"
         )
         assertTrue(
             brazeInit.instructions().getOrNull(1)?.opcode == Opcode.RETURN_OBJECT,
@@ -285,10 +290,9 @@ class EasyLauncherSmokeTest {
             klass("${model}SponsoredLinksResponse;").method("getData", emptyList()) to "SponsoredLinksResponse.getData",
             klass("${model}SponsoredSites;").method("getSponsoredSites", emptyList()) to "SponsoredSites.getSponsoredSites",
             klass("${model}SponsoredPostsResponse;").method("getArticles", emptyList()) to "SponsoredPostsResponse.getArticles",
-            klass("Lcom/eet/feature/search2/suggest/SponsoredLinkSuggestionProvider;").method(
-                "getSuggestions",
-                listOf("Ljava/lang/String;", "Ljava/util/List;", "I", "Lkotlin/coroutines/Continuation;"),
-            ) to "SponsoredLinkSuggestionProvider.getSuggestions",
+            klass("Lcom/eet/feature/search2/suggest/SponsoredLinkSuggestionProvider;").methods.single {
+                it.name == "getSuggestions" && it.parameterTypes.size == 4 && it.implementation != null
+            } to "SponsoredLinkSuggestionProvider.getSuggestions",
         )) {
             assertReturnsMethodCall(method, EMPTY_LIST_OWNER, "emptyList", label = name, diagnostics)
         }

@@ -68,6 +68,9 @@ class WeMuslimSmokeTest {
                 "Disable telemetry",
                 "Hide premium banners",
                 "Hide feed clutter",
+                "Hide activity banners",
+                "Hide Ummah tab",
+                "Hide shortcut promotions",
             ),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
@@ -265,6 +268,16 @@ class WeMuslimSmokeTest {
             label = "InfoStreamUnit.hasMembershipInfo()",
         )
 
+        // Step 0: the membership discount pop-up list is always empty.
+        val popupInfos = cls("Lcom/fyxtech/muslim/protobuf/LocationResourceProto\$GetMembershipDiscountPopupRes;")
+            .method("getInfosList", listOf()).instructions()
+        val emptyList = (popupInfos[0] as? ReferenceInstruction)?.reference as? MethodReference
+        assertTrue(
+            emptyList?.definingClass == "Ljava/util/Collections;" && emptyList.name == "emptyList" &&
+                popupInfos[1].opcode == Opcode.MOVE_RESULT_OBJECT && popupInfos[2].opcode == Opcode.RETURN_OBJECT,
+            "GetMembershipDiscountPopupRes.getInfosList() does not return an empty list",
+        )
+
         // Step 2: VipCardView forces GONE in setVisibility and hides itself in every constructor.
         val vipCard = cls(VIP_CARD_VIEW)
         val setVisibility = vipCard.method("setVisibility", listOf("I"))
@@ -295,11 +308,74 @@ class WeMuslimSmokeTest {
             "hasStore",
             "hasFirstRecharge",
             "hasWatchAdWinRewards",
+            "hasAdTower",
+            "hasActivityBanner",
         )) {
             val accessor = unit.methods.singleOrNull {
                 it.name == name && it.returnType == "Z" && it.params().isEmpty()
             } ?: error("$INFO_STREAM_UNIT->$name()Z not found")
             assertForcedBoolean(accessor, expected = false, label = "${unit.type}->$name()")
         }
+
+        // Hide activity banners (#135, 2026-11-11): no server resource is selected for the home
+        // pop-up (e.g. "SMASH & WIN") or the floating sticky icon (Smash / GIFTS).
+        val conf = cls("Lcom/fyxtech/muslim/protobuf/LocationResourceProto\$LocationConf;")
+        for (name in listOf("hasHomePopupConf", "hasNewHomePopupConf", "hasHomeStickyConf", "hasNewHomeStickyConf")) {
+            val accessor = conf.methods.singleOrNull {
+                it.name == name && it.returnType == "Z" && it.params().isEmpty()
+            } ?: error("${conf.type}->$name()Z not found")
+            assertForcedBoolean(accessor, expected = false, label = "${conf.type}->$name()")
+        }
+
+        // Hide Ummah tab: the AvailableModule constructor (found by its toString text) starts with
+        // const/4 p1, 0x0, so hasUmmah is always stored false.
+        val module = classes.singleOrNull { c ->
+            c.methods.any { it.name == "toString" && it.referencesString("AvailableModule(hasUmmah=") }
+        } ?: error("AvailableModule class not found by its toString text")
+        val ctor = module.methods.singleOrNull { it.name == "<init>" && it.params() == listOf("Z", "Z") }
+            ?: error("${module.type}-><init>(ZZ)V not found")
+        val first = ctor.instructions().first()
+        val pRegister = ctor.implementation!!.registerCount - 2 // p1: (ZZ) has 3 ins incl. this, p0 = registers - 3
+        assertTrue(
+            first.opcode == Opcode.CONST_4 &&
+                (first as com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction).registerA == pRegister &&
+                (first as NarrowLiteralInstruction).narrowLiteral == 0,
+            "${ctor.label()} does not start with const/4 p1, 0x0; first is ${first.opcode}",
+        )
+
+        // Hide shortcut promotions (#135): setDiscoverData first passes its list (p1) through the
+        // extension's filter and stores the result back into p1; the extension is merged.
+        val filter = "Lapp/template/extension/wemuslim/ShortcutFilter;"
+        assertTrue(classes.any { it.type == filter }, "$filter was not merged into the dex")
+        assertTrue(
+            classes.any { it.type == "Lapp/template/extension/wemuslim/ShortcutLinks;" },
+            "ShortcutLinks was not merged into the dex",
+        )
+        val setDiscoverData = cls("Lcom/fyxtech/muslim/worship/home/view/HomeStreamListView;")
+            .method("setDiscoverData", listOf("Ljava/util/List;"))
+        val discoverInsns = setDiscoverData.instructions()
+        val p1 = setDiscoverData.implementation!!.registerCount - 1 // (List) has 2 ins incl. this
+        val filterCall = discoverInsns[0]
+        val filterRef = (filterCall as? ReferenceInstruction)?.reference as? MethodReference
+        val filterArgs = when (filterCall) {
+            is com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction ->
+                (filterCall.startRegister until filterCall.startRegister + filterCall.registerCount).toList()
+            is com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction ->
+                listOf(filterCall.registerC).take(filterCall.registerCount)
+            else -> emptyList()
+        }
+        assertTrue(
+            filterCall.opcode in setOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE) &&
+                filterRef?.definingClass == filter && filterRef.name == "filterDiscover" &&
+                filterRef.parameterTypes.map(CharSequence::toString) == listOf("Ljava/util/List;") &&
+                filterRef.returnType == "Ljava/util/List;" && filterArgs == listOf(p1),
+            "setDiscoverData does not start with $filter->filterDiscover(p1); first is ${filterCall.opcode} $filterRef $filterArgs",
+        )
+        val moveResult = discoverInsns[1]
+        assertTrue(
+            moveResult.opcode == Opcode.MOVE_RESULT_OBJECT &&
+                (moveResult as com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction).registerA == p1,
+            "setDiscoverData does not move the filtered list back into p1; second is ${moveResult.opcode}",
+        )
     }
 }

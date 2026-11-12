@@ -14,24 +14,28 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.util.findFreeRegister
 import app.morphe.patches.shared.misc.settings.preference.PreferenceScreenPreference
 import app.morphe.patches.shared.misc.settings.preference.PreferenceScreenPreference.Sorting
 import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
 import app.morphe.patches.youtube.misc.extension.sharedExtensionPatch
 import app.morphe.patches.youtube.misc.playservice.is_20_40_or_greater
+import app.morphe.patches.youtube.misc.playservice.is_20_51_or_greater
+import app.morphe.patches.youtube.misc.playservice.is_21_28_or_greater
+import app.morphe.patches.youtube.misc.playservice.is_21_30_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_21_36_or_greater
 import app.morphe.patches.youtube.misc.playservice.versionCheckPatch
 import app.morphe.patches.youtube.misc.settings.PreferenceScreen
 import app.morphe.patches.youtube.misc.settings.settingsPatch
 import app.morphe.patches.youtube.shared.Constants.COMPATIBILITY_YOUTUBE
 import app.morphe.util.addInstructionsAtControlFlowLabel
-import app.morphe.util.findFreeRegister
+import app.morphe.util.insertLiteralOverride
 import app.morphe.util.toPublicAccessFlags
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 
 @Suppress("unused")
-val disableFullscreenGesturesPatch = bytecodePatch(
+val disableFullscreenGesturesPatch = patch(
     name = "Disable fullscreen gestures",
     description = "Adds options to selectively disable gestures for entering and exiting fullscreen mode, and to disable pinch-to-zoom.",
 ) {
@@ -104,7 +108,7 @@ val disableFullscreenGesturesPatch = bytecodePatch(
         VideoZoomScaleBeginFingerprint.method.addInstructionsWithLabels(
             0,
             """
-                invoke-static { }, $EXTENSION_CLASS->disableZoomGesture()Z
+                invoke-static { p1 }, $EXTENSION_CLASS->disableZoomGestureBegin(Landroid/view/ScaleGestureDetector;)Z
                 move-result v0
                 if-eqz v0, :allow_zoom
                 const/4 v0, 0x0
@@ -113,6 +117,32 @@ val disableFullscreenGesturesPatch = bytecodePatch(
                 nop
             """
         )
+
+        // The zoom begins only after the touch can no longer be a tap with two fingers.
+        VideoZoomTouchFingerprint.match(VideoZoomScaleBeginFingerprint.classDef).method.addInstruction(
+            0,
+            "invoke-static { p1, p2 }, $EXTENSION_CLASS->" +
+                "onZoomTouchEvent(Landroid/view/View;Landroid/view/MotionEvent;)V"
+        )
+
+        // Shorts pinch-to-zoom is an A/B test that is off by default. Turn it on
+        // unless pinch-to-zoom is disabled. 21.28 and 21.29 read both flags.
+        if (is_20_51_or_greater && !is_21_30_or_greater) {
+            ShortsPinchToZoomLegacyFeatureFlagFingerprint.let {
+                it.method.insertLiteralOverride(
+                    it.instructionMatches.first().index,
+                    "$EXTENSION_CLASS->enableShortsZoomGesture(Z)Z"
+                )
+            }
+        }
+        if (is_21_28_or_greater) {
+            ShortsPinchToZoomFeatureFlagFingerprint.let {
+                it.method.insertLiteralOverride(
+                    it.instructionMatches.first().index,
+                    "$EXTENSION_CLASS->enableShortsZoomGesture(Z)Z"
+                )
+            }
+        }
 
         if (is_21_36_or_greater) {
             // Native pinch scales inside the 16:9 PlayerView (Nx HUD, side bars

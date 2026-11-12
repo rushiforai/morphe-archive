@@ -50,7 +50,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import app.hushgram.extension.instagram.download.SavedProfiles;
 import app.hushgram.extension.instagram.download.SavedProfilesRows;
@@ -405,12 +407,16 @@ public class SavedProfilesSettingsTest {
 
     private static final String PICTURE = "https://scontent.cdninstagram.com/v/t51.2885-19/amy_n.jpg?oe=6800";
 
-    /** The settings file carries the list, and an import puts back the accounts missing, newest first. */
+    /**
+     * The settings file carries the list, and an import puts back the accounts missing, newest first,
+     * each in the folder it was in (#629).
+     */
     @Test public void theExportCarriesTheListAndAnImportPutsItBack() throws Exception {
         Context context = RuntimeEnvironment.getApplication();
         PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.PROFILE_PICTURE);
         SavedProfilesRows.save(context, "11", "amy", "Amy Pond", PICTURE, 1_000L);
         SavedProfilesRows.save(context, "", "zed", "", "", 2_000L);
+        assertEquals("Close friends", SavedProfiles.move(context, "11", "amy", "Close friends").folder);
         Settings.SAVED_PROFILES.save(true);
         byte[] exported = ConfigurationBackup.export();
         JSONObject root = new JSONObject(new String(exported, StandardCharsets.UTF_8));
@@ -425,6 +431,8 @@ public class SavedProfilesSettingsTest {
         assertEquals("Amy Pond", amy.getString("name"));
         assertEquals(PICTURE, amy.getString("url"));
         assertEquals(1_000L, amy.getLong("time"));
+        assertEquals("Close friends", amy.getString("folder"));
+        assertFalse("no folder, no field", listed.getJSONObject(0).has("folder"));
 
         // Another phone, with an account of its own saved since.
         Utils.awaitBackgroundTasksForTests();
@@ -439,6 +447,9 @@ public class SavedProfilesSettingsTest {
         assertEquals(PICTURE, all.get(2).url);
         assertEquals("Amy Pond", all.get(2).name);
         assertEquals(1_000L, all.get(2).time);
+        assertEquals("back in its folder", "Close friends", all.get(2).folder);
+        assertEquals("", all.get(1).folder);
+        assertEquals(Collections.singletonList("Close friends"), SavedProfiles.folders(all));
 
         assertTrue("an import of accounts alone still offers Undo", ConfigurationBackup.canUndo());
         assertEquals(2, ConfigurationBackup.undo().profiles);
@@ -449,6 +460,44 @@ public class SavedProfilesSettingsTest {
         Utils.awaitBackgroundTasksForTests();
         SavedProfilesRows.forget();
         assertEquals("and the list's file has them", Arrays.asList("kim", "zed", "amy"), usernames(SavedProfiles.all(context)));
+    }
+
+    /**
+     * An account saved here in no folder goes into the file's folder on an import, and Undo puts it
+     * back in none unless it was moved since (#629).
+     */
+    @Test public void anImportFilesAnAccountInNoFolderAndUndoTakesItOut() throws Exception {
+        Context context = RuntimeEnvironment.getApplication();
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.PROFILE_PICTURE);
+        SavedProfilesRows.save(context, "11", "amy", "", "", 1_000L);
+        SavedProfilesRows.save(context, "22", "zed", "", "", 2_000L);
+        assertEquals("Work", SavedProfiles.move(context, "22", "zed", "Work").folder);
+        byte[] exported = file(new JSONArray()
+                .put(account("11", "amy", "").put("folder", "work").put("time", 1_000L))
+                .put(account("22", "zed", "").put("folder", "Brands").put("time", 2_000L)));
+
+        assertEquals("nobody new", 0, ConfigurationBackup.restore(exported).profiles);
+        Map<String, String> filed = folders(SavedProfiles.all(context));
+        assertEquals("spelled as the folder here is", "Work", filed.get("amy"));
+        assertEquals("one already in a folder stays there", "Work", filed.get("zed"));
+
+        assertTrue("filing alone still offers Undo", ConfigurationBackup.canUndo());
+        ConfigurationBackup.undo();
+        assertEquals("", folders(SavedProfiles.all(context)).get("amy"));
+
+        ConfigurationBackup.restore(exported);
+        SavedProfiles.move(context, "11", "amy", "Later");
+        ConfigurationBackup.undo();
+        assertEquals("moved since, so Undo leaves it", "Later", folders(SavedProfiles.all(context)).get("amy"));
+        Utils.awaitBackgroundTasksForTests();
+        SavedProfilesRows.forget();
+        assertEquals("and the list's file has it", "Later", folders(SavedProfiles.all(context)).get("amy"));
+    }
+
+    private static Map<String, String> folders(List<SavedProfiles.Profile> profiles) {
+        Map<String, String> folders = new LinkedHashMap<>();
+        for (SavedProfiles.Profile profile : profiles) folders.put(profile.username, profile.folder);
+        return folders;
     }
 
     /** An import picked on the settings page, and its Undo, show on the list's row without reopening it. */
@@ -542,7 +591,7 @@ public class SavedProfilesSettingsTest {
             many.add(SavedProfiles.fromBackup(account(String.valueOf(1_000_000_000L + at), "user_" + at,
                     "Someone Called " + at).put("url", longPicture)));
         }
-        assertEquals(SavedProfiles.MAX_PROFILES, SavedProfiles.merge(context, many).size());
+        assertEquals(SavedProfiles.MAX_PROFILES, SavedProfiles.merge(context, many).added.size());
         assertTrue("a full list takes no more", SavedProfiles.merge(context,
                 Collections.singletonList(SavedProfiles.fromBackup(account("1", "one.more", "")))).isEmpty());
         byte[] exported = ConfigurationBackup.export();

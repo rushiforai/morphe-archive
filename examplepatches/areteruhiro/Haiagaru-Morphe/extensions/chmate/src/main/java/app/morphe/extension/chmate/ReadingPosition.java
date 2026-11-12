@@ -45,6 +45,7 @@ public final class ReadingPosition {
             View root = (View) fragment.getClass().getMethod("getView").invoke(fragment);
             View list = FilterPosition.findListForBinding(root);
             XPostPreviewPosition.opening(list);
+            ThreadWatchNavigation.register(fragment, list);
             if (!FeatureSwitches.enabled(ENABLED, true)) return;
             Activity activity = (Activity) fragment.getClass().getMethod("getActivity").invoke(fragment);
             if (list == null || activity == null) return;

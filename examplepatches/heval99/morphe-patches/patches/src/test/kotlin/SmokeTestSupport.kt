@@ -260,6 +260,50 @@ fun assertReturnsTrueFlow(method: Method, label: String, diagnostics: String = "
     )
 }
 
+/** Drops a trailing parenthetical note ("1.1.15 (versionCode 75)" -> "1.1.15") and surrounding space. */
+private fun normaliseVersionName(name: String): String = name.replace(Regex("""\s*\(.*\)\s*$"""), "").trim()
+
+/**
+ * Fails when the fixture [apk] is not the app/version the test claims. The manifest comes from the
+ * patcher's own decoded [metadata]; [version] (and [versionCode] when given) is what the test
+ * passes, and the patches' Compatibility targets for [pkg] must list that same version
+ * (a target with version = null accepts any).
+ */
+private fun assertFixtureMatches(
+    apk: File,
+    metadata: app.morphe.patcher.PackageMetadata,
+    pkg: String,
+    version: String,
+    versionCode: Int?,
+    patches: List<Patch<*>>,
+) {
+    val where = "fixture ${apk.absolutePath}"
+    val actual = metadata.versionName.orEmpty()
+    assertTrue(
+        metadata.packageName == pkg,
+        "$where has package ${metadata.packageName}, but the test expects $pkg"
+    )
+    assertTrue(
+        normaliseVersionName(actual) == normaliseVersionName(version),
+        "$where has versionName '$actual' (versionCode ${metadata.versionCode}), but the test expects '$version'"
+    )
+    if (versionCode != null) {
+        assertTrue(
+            metadata.versionCode == versionCode.toString(),
+            "$where has versionCode ${metadata.versionCode}, but the test expects $versionCode"
+        )
+    }
+    for (patch in patches) {
+        val targets = patch.compatibility.orEmpty().filter { it.packageName == pkg }.flatMap { it.targets }
+        val declared = targets.mapNotNull { it.version }.map(::normaliseVersionName)
+        if (targets.isEmpty() || targets.any { it.version == null }) continue
+        assertTrue(
+            normaliseVersionName(actual) in declared,
+            "$where has versionName '$actual', but patch '${patch.name}' declares compatibility targets $declared for $pkg"
+        )
+    }
+}
+
 /**
  * Applies [patchNames] (filtered to patches compatible with [pkg]) to [apk] and returns every
  * class of the patched APK, one ClassDef per type, in ART load order. Pass [filterByCompatibility] = false for universal patches
@@ -273,6 +317,7 @@ fun applyPatches(
     patchNames: Set<String>,
     allPatches: Set<Patch<*>>,
     filterByCompatibility: Boolean = true,
+    versionCode: Int? = null,
 ): List<ClassDef> {
     val target = allPatches.filter { patch ->
         patch.name in patchNames &&
@@ -302,6 +347,9 @@ fun applyPatches(
     // Build the patched APK the way Manager does (Session.kt: resourcesApk, else a copy of the
     // input, then applyTo) and read its classes*.dex instead.
     val patchedApk = Patcher(config).use { patcher ->
+        // The fixture store is shared (apks/<slug>/base.apk), so verify the APK really is the app and
+        // version this test and the patches declare before anything is patched.
+        assertFixtureMatches(apk, patcher.context.packageMetadata, pkg, version, versionCode, target)
         patcher += target.toSet()
         val results = runBlocking { patcher.invoke().toList() }
         val ours = results.filter { it.patch.name in patchNames }
@@ -405,3 +453,4 @@ fun assertOptionIconsWired(byType: Map<String, ClassDef>, init: Method, provider
             "ListPicker does not hand the image URL to OptionImageLoader.bind")
     }
 }
+

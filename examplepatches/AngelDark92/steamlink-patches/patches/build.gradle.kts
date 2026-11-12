@@ -227,7 +227,10 @@ tasks {
         classpath = sourceSets["main"].runtimeClasspath
         mainClass.set("util.DecodedSteamLinkPatchAudit")
         val auditArgs = mutableListOf(
-            retainedBuildDirectory.resolve("decoded-fixture-apks").absolutePath,
+            // -PdecodedAuditFixtureDirectory points the audit at an alternate fixture root, such as
+            // a pristine APK directory for a real exclusive-selection proof.
+            project.findProperty("decodedAuditFixtureDirectory")?.toString()
+                ?: retainedBuildDirectory.resolve("decoded-fixture-apks").absolutePath,
             auditOutputDirectory.resolve("decoded-patch-audit").absolutePath,
         )
         project.findProperty("decodedAuditKind")?.toString()?.let { kind ->

@@ -1815,10 +1815,10 @@ public class SettingsNavigationTest {
             while (page.navigation.back()) { }
 
             // Every chooser: sticker size, both filter lists, the title emoji, the translation service and language,
-            // and the push app.
+            // the push app, Open a chat by ID and the proxy lists.
             for (String key : Arrays.asList(HushTelegramPreferenceFragment.STICKER_SIZE_ROW, FilterEditor.GROUPS,
                     FilterEditor.CHANNELS, TitleEmojiEditor.KEY, StorageFolderEditor.KEY, TranslateServiceEditor.KEY, TranslateTargetPicker.KEY,
-                    UnifiedPushPicker.KEY)) {
+                    UnifiedPushPicker.KEY, OpenByIdEditor.KEY, ProxyListsEditor.KEY)) {
                 Preference row = page.findPreference(key);
                 assertNotNull(key, row);
                 shown = org.robolectric.shadows.ShadowDialog.getLatestDialog();

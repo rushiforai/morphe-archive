@@ -66,3 +66,11 @@ Repatching an APK replaces this patch's previous script block, avoiding duplicat
 observers. The app may need its page reloaded after installing the patched update.
 
 Run DOM tests with `NODE_PATH=<jsdom install>/node_modules node tests/ad-spaces.test.cjs`.
+
+
+## v1.3.1 — splash resource discovery fix
+
+The splash-logo patch now uses Morphe Patcher 2.x's APK-aware resource listing instead of
+walking the partially decoded `res/` working directory. FMKorea v17.4 currently contains
+`res/drawable-night-xxhdpi-v8/splash.png` and `res/drawable-xxhdpi-v4/splash.png`; both are
+replaced with the transparent 1×1 PNG.

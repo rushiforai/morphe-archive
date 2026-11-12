@@ -30,7 +30,6 @@ val nikeDisableTrackersPatch = bytecodePatch(
         "Platform extension registration, so no tracking payload is built or sent.",
     default = true,
 ) {
-    category("Privacy")
     compatibleWith(NIKE_RUN_CLUB_COMPATIBILITY)
 
     execute {

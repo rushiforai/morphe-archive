@@ -31,7 +31,6 @@ val teamsDisableAppCenterPatch = bytecodePatch(
         "startServices) so the bundled telemetry/crash SDK never initialises.",
     default = true,
 ) {
-    category("Privacy")
     compatibleWith(TEAMS_COMPATIBILITY)
 
     execute {

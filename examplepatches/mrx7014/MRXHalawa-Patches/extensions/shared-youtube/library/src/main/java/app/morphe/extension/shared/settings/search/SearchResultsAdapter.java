@@ -40,17 +40,18 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
-import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.ResourceType;
 import app.morphe.extension.shared.ResourceUtils;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.preference.ColorPickerPreference;
 import app.morphe.extension.shared.settings.preference.CustomDialogListPreference;
+import app.morphe.extension.shared.settings.preference.NewIndicatorSpan;
+import app.morphe.extension.shared.settings.preference.NewSettingsIndicator;
+import app.morphe.extension.shared.settings.preference.ToolbarPreferenceFragment;
 import app.morphe.extension.shared.settings.preference.URLLinkPreference;
 import app.morphe.extension.shared.sponsorblock.objects.SegmentCategoryPreference;
 import app.morphe.extension.shared.theme.ThemeUtils;
@@ -281,6 +282,8 @@ public class SearchResultsAdapter extends ArrayAdapter<BaseSearchResultItem> {
                     if (switchPref.getOnPreferenceChangeListener() != null) {
                         switchPref.getOnPreferenceChangeListener().onPreferenceChange(switchPref, newState);
                     }
+                    // Toggled without a click on the preference.
+                    NewSettingsIndicator.markSeen(switchPref);
                     notifyDataSetChanged();
                 },
                 () -> navigateAndScrollToPreference(item));
@@ -452,7 +455,7 @@ public class SearchResultsAdapter extends ArrayAdapter<BaseSearchResultItem> {
     protected Preference findPreferenceByTitle(PreferenceGroup group, String title) {
         for (int i = 0; i < group.getPreferenceCount(); i++) {
             Preference pref = group.getPreference(i);
-            CharSequence prefTitle = pref.getTitle();
+            CharSequence prefTitle = NewIndicatorSpan.removeFrom(pref.getTitle());
             if (prefTitle != null && (prefTitle.toString().trim().equalsIgnoreCase(title)
                     || normalizeString(prefTitle.toString()).equals(normalizeString(title)))) {
                 return pref;
@@ -627,20 +630,12 @@ public class SearchResultsAdapter extends ArrayAdapter<BaseSearchResultItem> {
         }
 
         handlePreferenceClick(item.preference);
+        // The click can remove the new setting dot of the title.
+        notifyDataSetChanged();
     }
 
-    /**
-     * Handles preference click actions by invoking the preference's performClick method via reflection.
-     */
-    @SuppressWarnings("all")
     private void handlePreferenceClick(Preference preference) {
-        try {
-            Method m = Preference.class.getDeclaredMethod("performClick", PreferenceScreen.class);
-            m.setAccessible(true);
-            m.invoke(preference, fragment.getPreferenceScreenForSearch());
-        } catch (Exception e) {
-            Logger.printException(() -> "Failed to invoke performClick()", e);
-        }
+        ToolbarPreferenceFragment.performClick(preference, fragment.getPreferenceScreenForSearch());
     }
 
     /**

@@ -46,7 +46,6 @@ val shimaRemoveAdsPatch = resourcePatch(
         "install-referrer permissions so no advertising ID is exposed.",
     default = true,
 ) {
-    category("Ads")
     compatibleWith(SHIMA_COMPATIBILITY)
 
     execute {

@@ -21,6 +21,8 @@ jobs:
         run: python3 scripts/download-ci-inputs.py
       - run: scripts/check-inputs.sh
       - run: scripts/setup-tools.sh
+      - name: Ensure Android API library
+        run: '"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36"'
       - name: Build and verify all APKs
         run: scripts/build-all.sh
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

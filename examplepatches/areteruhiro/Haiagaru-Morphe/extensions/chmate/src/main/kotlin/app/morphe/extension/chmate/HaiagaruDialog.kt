@@ -206,19 +206,21 @@ class HaiagaruDialog private constructor(private val spec: Builder) :
         @Suppress("UNUSED_VARIABLE") val modelVersion = version
         Surface(shape = MaterialTheme.shapes.extraLarge, color = MaterialTheme.colorScheme.surfaceContainerHigh,
             border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline)) {
-            Column(Modifier.fillMaxWidth().padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Column(Modifier.fillMaxWidth()
+                .heightIn(max = (context.resources.configuration.screenHeightDp * .85f).dp)
+                .padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 spec.icon?.let { drawable ->
                     val model = remember(drawable) { ImageView(context).apply { setImageDrawable(drawable) } }
                     ModelContent(model, version)
                 }
                 if (heading.isNotBlank()) Text(heading, style = MaterialTheme.typography.headlineSmall)
-                spec.customTitle?.let { ModelContent(it, version) { refresh() } }
                 val browser = spec.view?.takeIf { weightedSurface(it) != null } as? android.widget.LinearLayout
                 if (browser != null) {
                     BrowserModel(browser, version, Modifier.fillMaxWidth()
                         .height((context.resources.configuration.screenHeightDp * .55f).dp)) { refresh() }
-                } else Column(Modifier.fillMaxWidth().heightIn(max = (context.resources.configuration.screenHeightDp * .60f).dp)
+                } else Column(Modifier.fillMaxWidth().weight(1f, fill = false)
                     .verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    spec.customTitle?.let { ModelContent(it, version) { refresh() } }
                     if (spec.progress) Row(verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         CircularProgressIndicator(Modifier.size(32.dp))

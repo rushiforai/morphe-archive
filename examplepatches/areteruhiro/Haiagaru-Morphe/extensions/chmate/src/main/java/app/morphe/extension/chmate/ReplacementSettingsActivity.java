@@ -37,6 +37,13 @@ public final class ReplacementSettingsActivity extends HaiagaruComposeActivity {
         });
         TextView title = new TextView(this);
         title.setText("本文の文字列置換"); title.setTextSize(22); layout.addView(title);
+        Switch selectors=new Switch(this);selectors.setText("投稿・表示時に絵文字の異体字セレクタを除く");
+        selectors.setChecked(StringReplacement.prefs(this).getBoolean("removeEmojiSelectors",true));
+        selectors.setOnCheckedChangeListener((button,checked)->{StringReplacement.prefs(this).edit().putBoolean("removeEmojiSelectors",checked).apply();StringReplacement.cleanupOptions(this);});layout.addView(selectors);
+        Switch replacement=new Switch(this);replacement.setText("表示時に文字化け記号（�）を非表示にする");
+        replacement.setChecked(StringReplacement.prefs(this).getBoolean("hideReplacementCharacter",true));
+        replacement.setOnCheckedChangeListener((button,checked)->{StringReplacement.prefs(this).edit().putBoolean("hideReplacementCharacter",checked).apply();StringReplacement.cleanupOptions(this);});layout.addView(replacement);
+        TextView cleanupHelp=new TextView(this);cleanupHelp.setText("初期ON。異体字セレクタはFE0E・FE0Fが対象です。文字化け記号の非表示は <ex2>�［タブ］［タブ］msg と同じ置換です。TXTの選択は不要です。保存済みDAT・入力中の下書きは変更しません。変更後はスレを開き直してください。");layout.addView(cleanupHelp);
         Switch enabled = new Switch(this);
         enabled.setText("表示する本文を置換する");
         enabled.setChecked(StringReplacement.prefs(this).getBoolean("enabled", false));
@@ -46,8 +53,9 @@ public final class ReplacementSettingsActivity extends HaiagaruComposeActivity {
         description.setText("Download/Haiagaru/ReplaceStr.txt をUTF-8・タブ区切りで編集してください。"
                 + "\n例: https://example■.com/ → https://example.com/"
                 + "\nリンク認識前に本文を置換します。投稿本文・保存DAT・NG判定は変更しません。"
-                + "\n通常置換のみ対応。<ex>は大小区別なし、<ex2>は区別あり。"
-                + "正規表現・名前やタイトルの置換・URL条件にはまだ対応していません。"
+                + "\n<ex>は通常置換（大小区別なし）、<ex2>は区別あり。"
+                + "<rx>は正規表現（大小区別なし）、<rx2>は区別あり。$1や${name}でグループ参照できます。"
+                + "正規表現は処理時間・結果の文字数に上限があります。名前・タイトル置換とURL条件には未対応です。"
                 + "\nファイルを編集後、「再読み込み」→スレを開き直してください。"
                 + "\nファイルを置き換えた場合や、別のパッケージ名でインストールした場合は再選択してください。");
         layout.addView(description);

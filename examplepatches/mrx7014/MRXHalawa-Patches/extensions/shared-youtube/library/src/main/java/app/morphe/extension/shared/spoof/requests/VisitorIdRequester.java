@@ -15,6 +15,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -201,7 +202,7 @@ public final class VisitorIdRequester {
                     }
                 }
             } else if (clientType.supportsOAuth2) {
-                String oauth2Authorization = OAuth2Requester.getAndUpdateAccessTokenIfNeeded();
+                String oauth2Authorization = OAuth2Requester.getAndUpdateAccessTokenIfNeeded(true);
                 if (!AuthUtils.isNotLoggedIn() && Utils.isNotEmpty(oauth2Authorization)) {
                     connection.setRequestProperty("Authorization", oauth2Authorization);
                 }
@@ -223,7 +224,7 @@ public final class VisitorIdRequester {
                 return response.getJSONObject("responseContext").getString("visitorData");
             }
 
-            if (BaseSettings.DEBUG.get()) {
+            if (Logger.isDebugEnabled()) {
                 String responseMessage = connection.getResponseMessage();
                 Logger.LogMessage logMessage = () -> "Debug: Unexpected visitorId response code: "
                         + responseCode + " message: " + responseMessage + " client: " + clientType;
@@ -235,8 +236,21 @@ public final class VisitorIdRequester {
             }
 
             connection.disconnect();
+        } catch (SocketTimeoutException ex) {
+            Logger.LogMessage message = () -> "Debug: Fetch visitor data timeout";
+            if (Logger.isDebugEnabled()) {
+                Logger.printException(message, ex);
+            } else {
+                Logger.printInfo(message, ex);
+            }
         } catch (IOException ex) {
-            Logger.printException(() -> "Failed to fetch visitor data", ex);
+            // A slow or broken connection, which is not an error of the patch.
+            Logger.LogMessage message = () -> "Failed to fetch visitor data";
+            if (Logger.isDebugEnabled()) {
+                Logger.printException(message, ex);
+            } else {
+                Logger.printInfo(message, ex);
+            }
         } catch (JSONException ex) {
             Logger.printException(() -> "Failed to parse visitor data", ex);
         } catch (Exception ex) {

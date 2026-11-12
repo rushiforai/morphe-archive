@@ -10,14 +10,16 @@ import org.w3c.dom.Element
 
 private const val ANDROID = "http://schemas.android.com/apk/res/android"
 
+// Legacy Google Analytics provider. 8.3.0.1 moved it into an obfuscated class that
+// builds the GAv4 tracker through the Google Play services gtm classes, so match that
+// reviewed allocation instead of the old class name and GoogleAnalytics facade.
 private object LegacyAnalyticsConstructorFingerprint : Fingerprint(
-    definingClass = "Lb7/a;", // Legacy Google Analytics provider in supported build 8240.
     name = "<init>",
     returnType = "V",
     parameters = emptyList(),
     filters = listOf(
-        methodCall(definingClass = "Lcom/google/android/gms/analytics/GoogleAnalytics;", name = "getInstance"),
-        methodCall(definingClass = "Lcom/google/android/gms/analytics/GoogleAnalytics;", name = "newTracker"),
+        methodCall(definingClass = "Lcom/google/android/gms/internal/gtm/zzbv;", name = "zzg"),
+        methodCall(definingClass = "Lcom/google/android/gms/internal/gtm/zzbv;", name = "zzc"),
     ),
 )
 

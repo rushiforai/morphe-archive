@@ -125,6 +125,37 @@ public class GmsCoreSupportPatch {
     }
 
     /**
+     * Account capabilities of child, supervised and teen accounts, as Base32 of "303-cap", "1242-cap",
+     * "1786-cap" and "322-cap". GmsCore allows the capabilities it can not look up, so every account got
+     * the defaults of a supervised or teen account, such as the bedtime, break and Shorts feed limit
+     * reminders turned on, which are set again for each account that is used for the first time,
+     * such as after switching account or clearing the app data.
+     * Google Play services denies them for other accounts.
+     */
+    private static final List<String> SUPERVISED_ACCOUNT_CAPABILITIES = List.of(
+            "gmydglldmfya",
+            "gezdimrnmnqxa",
+            "ge3tqnrnmnqxa",
+            "gmzdelldmfya"
+    );
+
+    /**
+     * Injection point.
+     *
+     * @return If the account capability check is denied without asking GmsCore.
+     */
+    public static boolean denySupervisedAccountCapability(@Nullable String[] capabilities) {
+        if (capabilities != null) {
+            for (String capability : capabilities) {
+                if (SUPERVISED_ACCOUNT_CAPABILITIES.contains(capability)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
      * @return If the current package name is the same as the original unpatched app.
      *         If `GmsCore support` was not included during patching, this returns true;
      */
@@ -278,7 +309,7 @@ public class GmsCoreSupportPatch {
             }
 
             // Check if GmsCore is whitelisted from battery optimizations.
-            if (isAndroidAutomotive(context)) {
+            if (context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_AUTOMOTIVE)) {
                 // Ignore Android Automotive devices (Google built-in),
                 // as there is no way to disable battery optimizations.
                 Logger.printDebug(() -> "Device is Android Automotive");
@@ -374,7 +405,8 @@ public class GmsCoreSupportPatch {
             if (info == null) continue;
 
             final boolean officialMicroG = packageName.equals(GMS_CORE_PACKAGE_NAME)
-                    && isOfficialMicroG(info);
+                    // Signed by the official MicroG-RE signing key.
+                    && matchesSigningCert(info);
 
             variants.add(new VariantPackage(packageName, userId, info.versionName, officialMicroG));
         }
@@ -502,13 +534,6 @@ public class GmsCoreSupportPatch {
             return PackageManager.GET_SIGNING_CERTIFICATES;
         }
         return PackageManager.GET_SIGNATURES;
-    }
-
-    /**
-     * @return If the package is signed by the official MicroG-RE signing key.
-     */
-    private static boolean isOfficialMicroG(PackageInfo packageInfo) {
-        return matchesSigningCert(packageInfo);
     }
 
     /**
@@ -854,10 +879,6 @@ public class GmsCoreSupportPatch {
         }
         var powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         return !powerManager.isIgnoringBatteryOptimizations(GMS_CORE_PACKAGE_NAME);
-    }
-
-    private static boolean isAndroidAutomotive(Context context) {
-        return context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_AUTOMOTIVE);
     }
 
     private static String getGmsCoreDownload() {

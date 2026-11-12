@@ -1,3 +1,4 @@
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
@@ -27,8 +28,10 @@ class OneFootballSmokeTest {
     private fun adComponentParse(classes: List<ClassDef>, properties: String): Method {
         val matches = classes.flatMap { it.methods }.filter { method ->
             method.returnType == COMPONENT_MODEL &&
-                method.parameterTypes.map(CharSequence::toString) ==
-                listOf("Ljava/lang/String;", "I", COMPONENT_MODEL, "Lcom/google/protobuf/Any;") &&
+                method.parameterTypes.size == 4 &&
+                method.parameterTypes.take(3).map(CharSequence::toString) ==
+                listOf("Ljava/lang/String;", "I", COMPONENT_MODEL) &&
+                method.parameterTypes[3].startsWith("L") &&
                 method.instructions().any {
                     it.methodRef()?.let { ref -> ref.definingClass == ADS_PROTO + properties && ref.name == "parseFrom" } == true
                 }
@@ -53,7 +56,7 @@ class OneFootballSmokeTest {
     lateinit var workDir: File
 
     @Test
-    fun `Disable ads patch neuters GMA init, loads, the app-open preloader and feed ad components`() {
+    fun `Disable ads patch neuters GMA init, loads, the Flutter plugin loads and feed ad components`() {
         val root = repoRoot()
         val apk = File(root, "apks/onefootball/base.apk")
 
@@ -65,7 +68,7 @@ class OneFootballSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "15.148.0",
+            version = "15.150.0",
             patchNames = setOf("Disable ads"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
@@ -73,37 +76,54 @@ class OneFootballSmokeTest {
         fun klass(type: String) = classes.firstOrNull { it.type == type }
             ?: error("$type not found in emitted dexes")
 
-        // SDK initialization is a no-op.
-        val initialize = klass(GMA + "MobileAds;").methods.single {
-            it.name == "initialize" && it.parameterTypes.size == 1
+        // Every MobileAds static void (initialize among them, renamed by R8 from 15.150.0) is a
+        // no-op, so nothing can throw for lack of init (rule 9: openDebugMenu is reachable from
+        // the internal feature-flag screen). The init entry point is the static void taking a
+        // Context first.
+        val mobileAds = klass(GMA + "MobileAds;")
+        assertMobileAdsStaticsNeutralised(mobileAds, required = emptyList())
+        val initLike = mobileAds.methods.filter {
+            AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == "V" && it.implementation != null &&
+                it.parameterTypes.firstOrNull()?.toString() == "Landroid/content/Context;"
         }
-        assertReturnsEarlyVoid(initialize, label = "MobileAds.initialize(Context)")
-        // Rule 9: no MobileAds static can throw for lack of init (openDebugMenu is reachable
-        // from the internal feature-flag screen).
-        assertMobileAdsStaticsNeutralised(klass(GMA + "MobileAds;"))
+        assertTrue(initLike.isNotEmpty(), "MobileAds has no static void taking a Context")
 
-        // Every format's load entry point is a no-op.
-        for (type in listOf(
-            GMA + "BaseAdView;",
-            GMA + "AdLoader;",
-            GMA + "interstitial/InterstitialAd;",
-            GMA + "rewarded/RewardedAd;",
-            GMA + "appopen/AppOpenAd;",
-        )) {
-            val loads = klass(type).methods.filter { it.name in setOf("load", "loadAd", "loadAds") && it.returnType == "V" }
-            assertTrue(loads.isNotEmpty(), "$type has no load entry point")
-            loads.forEach { assertReturnsEarlyVoid(it, label = "$type.${it.name}") }
+        // Every Flutter google_mobile_ads plugin load reports NO_FILL (shared helper).
+        assertTrue(assertFlutterGmaPluginLoadsFail(classes).isNotEmpty(), "no plugin load methods found")
+
+        // Native load entry points found by signature: both banner loads (BaseAdView, which AdView
+        // extends, and AdManagerAdView) and every other void taking one request in the SDK package
+        // or static (Context, String, request, ...) load are no-ops.
+        val requests = setOf(GMA + "AdRequest;", GMA + "admanager/AdManagerAdRequest;")
+        val bannerBase = klass(GMA + "AdView;").superclass!!
+        for (owner in listOf(bannerBase, GMA + "admanager/AdManagerAdView;")) {
+            val loadAd = klass(owner).methods.filter { it.name == "loadAd" && it.returnType == "V" && it.implementation != null }
+            assertTrue(loadAd.isNotEmpty(), "$owner has no loadAd")
+            loadAd.forEach { assertReturnsEarlyVoid(it, label = "$owner.loadAd") }
         }
-
-        // AdLoader's batch load (loadAds(AdRequest, int)) is a no-op too, not only loadAd.
-        val loadAds = klass(GMA + "AdLoader;").methods.single { it.name == "loadAds" }
-        assertReturnsEarlyVoid(loadAds, label = "AdLoader.loadAds(AdRequest, int)")
-
-        // App-open preloading reports failure.
-        val preloader = klass(GMA + "appopen/AppOpenAdPreloader;")
-        val start = preloader.methods.first { it.name == "start" && it.returnType == "Z" }
-        assertForcedBoolean(start, expected = false, label = "AppOpenAdPreloader.start(...)")
-
+        var otherLoads = 0
+        var instanceLoadsOutsideBanners = 0 // the AdLoader request loads: the app's own native ad path
+        var staticLoads = 0 // the full-screen loads (Interstitial, Rewarded, AppOpen, ...)
+        for (classDef in classes) for (method in classDef.methods) {
+            if (method.implementation == null || method.returnType != "V" || method.name == "<init>" || method.name == "<clinit>") continue
+            val p = method.parameterTypes.map(CharSequence::toString)
+            val isStatic = AccessFlags.STATIC.isSet(method.accessFlags)
+            val single = !isStatic && classDef.type.startsWith(GMA) && p.size == 1 && p[0] in requests
+            val staticLoad = isStatic && p.size >= 3 && p[0] == "Landroid/content/Context;" &&
+                p[1] == "Ljava/lang/String;" && p[2] in requests
+            if (single || staticLoad) {
+                otherLoads++
+                if (staticLoad) staticLoads++
+                if (single && classDef.type != bannerBase && classDef.type != GMA + "admanager/AdManagerAdView;") {
+                    instanceLoadsOutsideBanners++
+                }
+                assertReturnsEarlyVoid(method, label = "${classDef.type}->${method.name}(${p.joinToString("")})")
+            }
+        }
+        // 15.150.0 has 11 sites: 2 banner loads, 3 AdLoader-style instance loads, 6 static loads.
+        assertTrue(otherLoads >= 3, "expected at least 3 load entry points by signature, found $otherLoads")
+        assertTrue(instanceLoadsOutsideBanners >= 1, "no AdLoader-style instance load found outside the banner classes")
+        assertTrue(staticLoads >= 5, "expected at least 5 static full-screen loads, found $staticLoads")
         // Both native feed ad component parsers return null, so those ad slots are dropped.
         for (properties in listOf("AdComponentProperties;", "PlaceholderAdComponentProperties;")) {
             val parse = adComponentParse(classes, properties)

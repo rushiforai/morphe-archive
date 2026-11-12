@@ -53,11 +53,14 @@ internal object NimbusBottomBannerFingerprint : Fingerprint(
     filters = listOf(string("GAM -> Nimbus -> Bottom loadBottomBanner", StringComparisonType.STARTS_WITH)),
 )
 
-// NimbusController in-feed 300x250 banner (fallback when the GAM in-feed banner fails).
+// NimbusController in-feed 300x250 banner request (fallback when the GAM in-feed banner fails).
+// 27.13 dropped the (ViewGroup, String) loadInFeedBanner wrapper and its log line; the in-feed
+// manager now calls this (view, callback) -> boolean request, which returns false when Nimbus is
+// not available and then reports "Nimbus not initialized" to its caller. The Nimbus placement
+// name is the stable anchor.
 internal object NimbusInFeedBannerFingerprint : Fingerprint(
-    returnType = "V",
-    parameters = listOf("Landroid/view/ViewGroup;", "Ljava/lang/String;"),
-    filters = listOf(string("GAM -> Nimbus -> In-Feed loadInFeedBanner", StringComparisonType.STARTS_WITH)),
+    returnType = "Z",
+    filters = listOf(string("in_feed_300_250_banner")),
 )
 
 // BuilderFragment's Anzu init: `if (isPremium()) { layoutAds.setVisibility(GONE); return; }`, else

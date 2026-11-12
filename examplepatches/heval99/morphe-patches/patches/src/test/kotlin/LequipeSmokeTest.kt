@@ -49,7 +49,7 @@ class LequipeSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "10.70.0",
+            version = "10.71.1",
             patchNames = setOf("Disable ads"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
@@ -99,7 +99,7 @@ class LequipeSmokeTest {
         hooked += loads
 
         // Step 3: every GMA load call in the APK resolves (class, then superclasses) to a patched
-        // load. The app's banner coroutines call AdManagerAdView.loadAd and its bidding
+        // load. The app's banner coroutine(s) call AdManagerAdView.loadAd (two in 10.70.0, one in 10.71.1) and its bidding
         // interstitial calls AdManagerInterstitialAd.load (v21$h$a, mh3$f$a, w21$f$a in 10.70.0);
         // they are found by what they call, the same way the patch checks them.
         val patchedKeys = loads.map { it.key() }.toSet()
@@ -123,8 +123,8 @@ class LequipeSmokeTest {
         val bannerCallers = appCallers[required[0].key()].orEmpty()
         val interstitialCallers = appCallers[required[1].key()].orEmpty()
         assertTrue(
-            bannerCallers.size >= 2,
-            "expected the two banner coroutines to call AdManagerAdView.loadAd, found $bannerCallers",
+            bannerCallers.isNotEmpty(),
+            "expected the banner coroutine to call AdManagerAdView.loadAd, found $bannerCallers",
         )
         assertTrue(
             interstitialCallers.isNotEmpty(),

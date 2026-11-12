@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
 public final class ImgurAlbumAttachments {
     private static final Pattern ALBUM = Pattern.compile(
             "(?<![A-Za-z0-9_./:@-])(?:(?:https?|ttps?)://|//)?"
-                    + "(?:(?:www|i)\\.)?imgur\\.com/a/([A-Za-z0-9]+)(?=[/?#\\s<>\"'()（）]|$)"
+                    + "(?:(?:www|i)\\.)?imgur\\.com/a/([A-Za-z0-9]+)(?:\\.(?:jpe?g|png|gif|gifv|webp|mp4|webm))?(?=[/?#\\s<>\"'()（）]|$)"
                     + "(?:[/?#][^\\s<>\\\"]*)?", Pattern.CASE_INSENSITIVE);
     private static final Pattern META = Pattern.compile("<meta\\b[^>]*>", Pattern.CASE_INSENSITIVE);
     private static final Pattern PROPERTY = Pattern.compile(
@@ -129,6 +129,8 @@ public final class ImgurAlbumAttachments {
 
     /** Called after native extraction, so a fast metadata response cannot replace its results. */
     public static String[] complete(Object model, String[] original) {
+        String[] nativeUrls = original;
+        original = SiteNativeBoards.nativeImageAttachments(nativeUrls);
         if (model == null || original == null) return original;
         String body;
         switch (model.getClass().getName()) {
@@ -139,24 +141,14 @@ public final class ImgurAlbumAttachments {
             default: return original;
         }
         try {
-            Field onlyCache = null;
-            int cacheCount = 0;
-            for (Field field : model.getClass().getDeclaredFields()) {
-                if (field.getType() != String[].class
-                        || java.lang.reflect.Modifier.isStatic(field.getModifiers())) continue;
-                field.setAccessible(true);
-                onlyCache = field;
-                cacheCount++;
-                if (field.get(model) != original) continue;
-                prepare(model, body, field.getName());
-                Object updated = field.get(model);
+            // URL proxying clones the native getter result. Reconnect that clone to
+            // the model's cached field BEFORE Imgur/GIF handlers append attachments.
+            // A model can contain more than one String[] field.
+            Field cache = AttachmentCacheFields.reconnect(model, nativeUrls, original);
+            if (cache != null) {
+                prepare(model, body, cache.getName());
+                Object updated = cache.get(model);
                 return projectImageVpn(model, body, updated instanceof String[] ? (String[]) updated : original);
-            }
-            // BE filtering can return a new array rather than the native cached instance.
-            if (cacheCount == 1 && onlyCache != null) {
-                onlyCache.set(model, original);
-                prepare(model, body, onlyCache.getName());
-                return projectImageVpn(model, body, (String[]) onlyCache.get(model));
             }
         } catch (ReflectiveOperationException | RuntimeException error) {
             Log.w("HaiagaruImgur", "Attachment cache unavailable", error);

@@ -127,7 +127,7 @@ class EurosportSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "8.34.1",
+            version = "8.35.0",
             patchNames = setOf("Disable ads", "Disable telemetry", "Hide partner promotions"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
@@ -299,11 +299,14 @@ class EurosportSmokeTest {
         assertTrue(notifies.any { it.name == "notifyHiddenEvent" }, "Comscore notifyHiddenEvent not found")
         notifies.forEach { assertReturnsEarlyVoid(it, "Comscore Analytics.${it.name}(${it.params().joinToString()})") }
 
-        // Disable telemetry 4: the New Relic agent never starts.
-        assertReturnsEarlyVoid(
-            kept(NEW_RELIC).methods.single { it.name == "start" && it.params() == listOf(CONTEXT) && !it.isStatic() },
-            "NewRelic.start(Context)",
-        )
+        // Disable telemetry 4: the New Relic agent never starts (8.35.0 dropped New Relic; assert
+        // only while the class is still in the APK).
+        if (NEW_RELIC in byType) {
+            assertReturnsEarlyVoid(
+                kept(NEW_RELIC).methods.single { it.name == "start" && it.params() == listOf(CONTEXT) && !it.isStatic() },
+                "NewRelic.start(Context)",
+            )
+        }
 
         // Disable telemetry 5: every concrete AppsFlyer entry point returns at once.
         val appsFlyer = classes.filter { it.superclass == APPSFLYER_LIB }.flatMap { classDef ->
@@ -325,7 +328,9 @@ class EurosportSmokeTest {
         // Disable telemetry 7: Storyteller's own tracking switches are stored as false; the
         // personalization and remote viewing store switches are left alone.
         val trackingOptions = kept(EVENT_TRACKING_OPTIONS).methods.single {
-            it.name == "<init>" && it.params().joinToString("") == "ZZZZZZLjava/util/List;"
+            it.name == "<init>" && it.params().joinToString("").let { params ->
+                params.startsWith("ZZZZZZLjava/util/List;") && "DefaultConstructorMarker" !in params
+            }
         }
         val trackingInsns = trackingOptions.instructions()
         listOf("enableStorytellerTracking", "enableUserActivityTracking", "enableAdTracking", "enableFullVideoAnalytics")

@@ -4,6 +4,9 @@ Add-on YouTube patches for use with [Morphe](https://morphe.software):
 
 - **Keyboard speed shortcuts**: the `-` and `=` keys of a hardware keyboard decrease and increase
   the playback speed, like `<` and `>` on the YouTube website.
+- **Keyboard comments shortcut**: the `M` key shows and hides the comments of the video.
+- **Keyboard fullscreen shortcut**: the `F` key enters and exits fullscreen.
+- **Keyboard minimize shortcut**: the `Esc` key minimizes the video to the miniplayer.
 - **DeArrow original titles**: videos with a DeArrow title show both the DeArrow title and the
   original title, such as `Clear, descriptive title | YOU WON'T BELIEVE WHAT HAPPENED`.
 
@@ -26,6 +29,19 @@ apply it **together with** the official "Morphe Patches" source, never on its ow
   are left alone.
 - The step is the **Speed step** patch option: 0.05x, 0.10x, 0.25x or 0.50x.
 
+### Keyboard comments, fullscreen and minimize shortcuts
+
+- `M` shows the comments panel of the open video, and closes it when it is open.
+  `F` enters fullscreen, and exits it in fullscreen.
+  `Esc` minimizes the video to the miniplayer, also from fullscreen or with the comments open.
+- The key of each is its **Key** patch option: a single letter or digit, `Esc`, `Backspace` or `Tab`.
+- Like the speed keys, they only work while a video is open, and not while typing or with Ctrl/Alt/Meta.
+  Without an open video, `Esc` keeps its usual action of going back.
+- The comments shortcut uses the command router of Morphe Patches 2.2 or newer.
+  The fullscreen shortcut uses Morphe's fullscreen controller when **Exit fullscreen mode**,
+  **Open videos fullscreen** or **Open Shorts in regular player** is applied, and otherwise
+  taps the fullscreen button of the player.
+
 ### DeArrow original titles
 
 - Needs the **DeArrow** patch of the Morphe Patches source, and DeArrow titles turned on in
@@ -46,14 +62,17 @@ apply it **together with** the official "Morphe Patches" source, never on its ow
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.2.0](https://github.com/Prisoner-24601/custom-morphe-patches/releases/tag/v1.2.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
+> **[v1.4.0](https://github.com/Prisoner-24601/custom-morphe-patches/releases/tag/v1.4.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;5 patches total
 <details open>
-<summary>📦 YouTube&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<summary>📦 YouTube&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [DeArrow original titles](#dearrow-original-titles) | Shows both the DeArrow title and the original title, instead of only the DeArrow title. Apply together with the Morphe YouTube patches, and turn on DeArrow titles in the Morphe settings. | • Separator<br>• Title order |
+| [Keyboard comments shortcut](#keyboard-comments-shortcut) | Makes a key of a hardware keyboard (M by default) show and hide the comments of the video. Apply together with the Morphe YouTube patches 2.2 or newer, which this patch uses to show the comments. | • Key |
+| [Keyboard fullscreen shortcut](#keyboard-fullscreen-shortcut) | Makes a key of a hardware keyboard (F by default) enter and exit fullscreen while a video is open. | • Key |
+| [Keyboard minimize shortcut](#keyboard-minimize-shortcut) | Makes a key of a hardware keyboard (Esc by default) minimize the open video to the miniplayer, also from fullscreen or with the comments open. | • Key |
 | [Keyboard speed shortcuts](#keyboard-speed-shortcuts) | Makes the - and = keys of a hardware keyboard decrease and increase the playback speed. Apply together with the Morphe YouTube patches, which this patch uses to change the speed. | • Speed step |
 
 </details>
@@ -62,8 +81,7 @@ apply it **together with** the official "Morphe Patches" source, never on its ow
 
 ## 🧑‍💻 Development
 
-- Make changes on the `dev` branch and merge `dev` into `main` for a stable release
-  (merge, do not squash).
+- Commit to `main`: each push with a release-worthy commit publishes a stable release.
 - Use semantic commit messages: `feat:` and `fix:` create releases, `chore:` does not.
 - Do not edit the generated `patches-list.json`, `patches-bundle.json` or `CHANGELOG.md` by hand.
 

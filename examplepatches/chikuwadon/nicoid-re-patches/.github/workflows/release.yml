@@ -187,7 +187,11 @@ jobs:
         run: |
           set -euo pipefail
           ./gradlew :patches:buildAndroid --no-daemon
-          python3 porting/revisions/v1.11.1/verify-mpp.py 1.11.1
+          if grep -Fq "version = 2.0.0" gradle.properties; then
+            NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.0.0-mpp.sh
+          else
+            python3 porting/revisions/v1.11.1/verify-mpp.py 1.11.1
+          fi
           python3 porting/tests/regression136.py
           python3 porting/tests/regression141.py
           python3 porting/tests/regression155.py

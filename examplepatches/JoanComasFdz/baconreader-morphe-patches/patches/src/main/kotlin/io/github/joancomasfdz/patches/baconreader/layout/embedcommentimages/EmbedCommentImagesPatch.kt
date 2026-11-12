@@ -44,6 +44,7 @@ private val commentImageIdsResourcePatch = resourcePatch {
                 "baconreader_patches_comment_gif",
                 "baconreader_patches_comment_video",
                 "baconreader_patches_image_viewer",
+                "baconreader_patches_video_full_screen",
                 "baconreader_patches_comment_album",
                 "baconreader_patches_album_counter",
                 "baconreader_patches_text_after_media",

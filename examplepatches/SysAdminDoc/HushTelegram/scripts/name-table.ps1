@@ -37,7 +37,7 @@
     The matcher's Java heap cap. 6g is comfortable for 13.2; lower it on a machine with less memory.
 
 .EXAMPLE
-    scripts/name-table.ps1 -Apk fixtures/telegram-web-13.2.1-72919.apk -Named C:\apks\telegram-web-13.1.1-72379.apk -DesktopJar C:\tools\morphe-desktop-all.jar
+    scripts/name-table.ps1 -Apk fixtures/telegram-web-13.2.2-73039.apk -Named C:\apks\telegram-web-13.1.1-72379.apk -DesktopJar C:\tools\morphe-desktop-all.jar
 #>
 [CmdletBinding()]
 param(

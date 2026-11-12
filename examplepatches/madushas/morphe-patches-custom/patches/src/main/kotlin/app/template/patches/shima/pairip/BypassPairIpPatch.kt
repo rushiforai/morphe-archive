@@ -23,7 +23,6 @@ val shimaBypassPairIpPatch = bytecodePatch(
         "real Application class and removes the licence activity.",
     default = true,
 ) {
-    category("PairIP")
     compatibleWith(SHIMA_COMPATIBILITY)
 
     dependsOn(

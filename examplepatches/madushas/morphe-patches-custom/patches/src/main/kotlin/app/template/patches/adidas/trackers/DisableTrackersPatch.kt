@@ -21,7 +21,6 @@ val adidasDisableTrackersPatch = bytecodePatch(
         "or analytics payload is buffered or sent.",
     default = true,
 ) {
-    category("Privacy")
     compatibleWith(ADIDAS_RUNNING_COMPATIBILITY)
 
     execute {

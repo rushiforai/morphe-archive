@@ -70,7 +70,7 @@ public final class VideoViewerSettings {
         Switch autoplay = toggle(body, activity, "動画を開いたら自動再生する", prefs.getBoolean("videoAutoplay", true));
         Switch nativeGif=toggle(body,activity,"GIFをHaiagaru専用ビューアで開かない",nativeGif(activity));
         Switch nativeVideo=toggle(body,activity,"動画をHaiagaru専用ビューアで開かない",nativeVideo(activity));
-        Switch threadMedia=toggle(body,activity,"サムネイルからスレ全体の画像・GIF・動画へ左右移動",prefs.getBoolean(THREAD_MEDIA,false));
+        Switch threadMedia=toggle(body,activity,"サムネイルから全レスの画像・GIF・動画へ移動",prefs.getBoolean(THREAD_MEDIA,false));
         Switch xGifAutoplay=toggle(body,activity,"X MP4 GIFを自動再生する（開いた後）",prefs.getBoolean(X_GIF_AUTOPLAY,true));
         Switch inlineWifi=toggle(body,activity,"スレ内GIFの自動再生はWi-Fi接続時のみ",prefs.getBoolean(INLINE_WIFI,false));
         Switch inlineGif=toggle(body,activity,"GIFを開かずにスレ内で自動再生する（X MP4 GIFも対象）",prefs.getBoolean(INLINE_GIF,false));
@@ -93,7 +93,7 @@ public final class VideoViewerSettings {
         body.addView(seconds);
         Switch youtube = toggle(body, activity, "YouTubeをアプリ内の公式プレーヤーで開く", youtubeEnabled(activity));
         TextView note = new TextView(activity);
-        note.setText("専用ビューアで開かない設定は、GIF・動画をそれぞれChMate標準の動作に戻します。YouTubeも動画側の設定に従います。スレ全体への左右移動は読み込み済みレスのメディアが対象で、同じレス内への左右移動より優先します。変更は次に開くメディアから反映します。長押し2倍速や再生バーなどは専用ビューアに適用します。上下操作をオンにした側ではChMateの縦ジェスチャーより優先します。"
+        note.setText("専用ビューアで開かない設定は、GIF・動画をそれぞれChMate標準の動作に戻します。YouTubeも動画側の設定に従います。全レスへの移動は読み込み済みレスのメディアが対象で、同じレス内への移動より優先します。ChMateの「画像→タップ時の動作」で連続表示ビューアを選ぶと、全レスのメディアを連続表示します。「常に1枚目から表示」も反映します。変更は次に開くメディアから反映します。長押し2倍速や再生バーなどは専用ビューアに適用します。上下操作をオンにした側ではChMateの縦ジェスチャーより優先します。"
                 + "明るさはこの画面内だけ、音量は端末のメディア音量を変更します。"
                 + "YouTubeは公式Webプレーヤーの操作を使います。広告・地域制限・埋め込み制限などは回避しません。");
         body.addView(note);

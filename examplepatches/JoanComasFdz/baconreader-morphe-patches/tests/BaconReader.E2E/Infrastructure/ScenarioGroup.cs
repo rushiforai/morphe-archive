@@ -7,12 +7,15 @@ namespace BaconReader.E2E.Infrastructure;
 /// The two groups of scenarios, by the first folder under Scenarios/ (E2E-TEST-CODE-RULES.md, rule g):
 /// - <see cref="Startup"/>: patches that change how the app starts, before the main screen (the login, the first-start
 ///   dialogs); each scenario is patched with only the patches its Given names;
-/// - <see cref="LoggedIn"/>: everything else; every scenario is patched with every patch, one APK for all of them.
+/// - <see cref="LoggedIn"/>: everything else; every scenario is patched with every patch, one APK for all of them;
+/// - <see cref="Manager"/>: how a user patches and updates BaconReader with the patcher's manager; BaseE2E patches
+///   nothing, the scenario patches through the manager's screens.
 /// </summary>
 public enum ScenarioGroup
 {
     Startup,
     LoggedIn,
+    Manager,
 }
 
 /// <summary>Which group a scenario class is in.</summary>
@@ -24,6 +27,7 @@ public static class ScenarioGroups
         {
             nameof(ScenarioGroup.Startup) => ScenarioGroup.Startup,
             nameof(ScenarioGroup.LoggedIn) => ScenarioGroup.LoggedIn,
+            nameof(ScenarioGroup.Manager) => ScenarioGroup.Manager,
             _ => null,
         };
 }

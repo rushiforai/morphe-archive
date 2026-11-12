@@ -146,6 +146,15 @@ echo "==> Building bundle"
 ./gradlew :patches:generatePatchesList --no-daemon -q
 ./gradlew :patches:buildAndroid --no-daemon -q
 
+# Gradle can consider buildAndroid UP-TO-DATE from an earlier run while the list
+# generator's `jar` task has since replaced the .mpp with a dex-less class jar —
+# producing a bundle the Manager refuses ("missing dex entries"). Force one more
+# buildAndroid pass if the file has no dex, and only then give up.
+if ! unzip -l "$ASSET" | grep -q "\.dex"; then
+  echo "  no dex after the normal build — forcing :patches:buildAndroid once"
+  ./gradlew :patches:buildAndroid --no-daemon -q --rerun-tasks
+fi
+
 echo "==> Verifying the bundle contains dex (after the LAST gradle task)"
 if ! unzip -l "$ASSET" | grep -q "\.dex"; then
   echo "  FAIL: no .dex entries in $ASSET — the Manager would show 0 patches" >&2

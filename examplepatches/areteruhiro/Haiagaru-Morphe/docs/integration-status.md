@@ -1,5 +1,14 @@
 # 主開発先と統合状況
 
+2026-11-13 更新履歴の読みやすさ・設定カテゴリ切替・外部板追加（公式Release候補）: 更新履歴内のMarkdownを版／節／箇条書き／リンクとして表示し、機能設定をアプリ・表示・画像／動画・NG・履歴／投稿に分類。同じ設定値を各Haiagaruカテゴリへ置き、設定履歴側の保存先も機能本来のSharedPreferencesへ統一。未設定のエッヂ・けんも板・爆サイ・ふたば・あにまんを初期ON、既存のサイト別OFFは保持。エッヂ板一覧は公開ページを直接BBSMENUとして読み、けんも板はkenmo.org/00c.orgのBBSMENUを標準providerへ追加。動作確認・実機導入は利用者指示により省略。公開は既存Semantic Release CIを使用。
+
+2026-11-13 外部板のスレ情報ポップアップ日時・無効サイトの一覧除外（公式Release候補）: スレ一覧の板スコープ外で呼ばれるChMate標準日時formatterにも作成日時を渡すフックを追加。キャッシュ上に同一スレIDの板が複数あり作成日時が異なる場合は、誤った値を割り当てず元の値を維持。標準掲示板providerから「使用する」がOFFのサイトを除外。Edgeは現行 `SiteBoardMenuProtocol.KINDS` と標準メニュー経路に含まれる。通常Lint/R8を含む `:patches:buildAndroid` 成功（2分40秒）、作成日時21項目、191/226/242のパッチ適用とnative hook/register保持検査成功。Mi Note 10/Android 11 (`d5497008`) の `reporter242` へ既存署名一致で `install -r` 成功。端末からpullしたAPKのSHA256は候補と一致、`firstInstallTime`保持、HomeActivity表示、新規crash bufferに該当fatalなし。詳細は `docs/android-installations.md`。
+
+2026-11-11 プレ候補追加検証: ローカル dev 差分で :patches:buildAndroid の Lint/R8/MPP ビルドが成功。ホストは画像抽出30、あにまん234、外部板51項目PASS。実サイトのあにまん category32/category9・ふたば img/may レスおよびエッヂ1レス目画像を検証。Mi Note 10 実機の隔離191 APKで Frida read-only 計測を実施し、img/may の画像取得・実描画、エッヂの画像URL取得21件の試行とサムネイル装飾10件を確認。画像のないスレは通常表示。あにまん例示レス、監視通知DAT／遷移、サイズバー実操作、226/242の最終差分は未検証。エミュレータ未使用。ログ・画面はローカルの build/thumbnail-diagnostics/ に保存。
+
+2026-11-11 検証用プレ候補: あにまんのYouTube／XカードURL・arc画像・URL／履歴経由板判定、ふたば／爆サイ件数・「ねこ」板、記者ID／スレ名の期間検索とNG、監視通知DAT／対象レス・2／3時間／任意期限、191書込後更新、板別のスレ一覧画像表示（実験）と24〜96dpバーを統合。Lint／R8 buildAndroid、191／226／242パッチ・命令保持検査、検索32／画像ルール15件の試験成功。候補MPP SHA256 f8709515e3d5e5e978fe4978e1d165f2f9330485a65f1dab68552117a356f0a3。Mi Note 10実機（d5497008）で3隔離APK導入Success、191設定画面／切替、226／242 launcher起動、crashログ空。実レス画像、サイズバー実操作、通知DATと対象レス遷移、全経路の通し操作は未確認。即時プレ公開要望に従い未確認範囲を公開文へ明記。既存アプリ／データは維持。配布は既存Semantic Release CIで行う。詳細 docs/android-installations.md と非公開 build/local-development-records/thumbnail-20261111-installations.json。
+
+
 2026-11-04 共有NG再利用/SAF候補を実機191更新: 利用者の導入指定、730eae72/XIG05の既存jp.co.airfrt.android.chMate.haiagartuへ同一署名install-r Success（22:02:24 JST）。台帳と端末旧APK署名一致、native NG hook検査PASS、導入後APK hash一致、HomeActivity cold起動ok、新規対象fatalなし。APK SHA256 11a058d42ef655e4f21a1977db8b45c8de7b8b70478867562172538f08fefe2b、MPP d4428ce794f1b1ef457038ba9f52b13417ce4cbd070cec26de2e636b38729000。firstInstallTime保持/アンインストール・データ消去なし。SAF実選択/共有NG表示・速度未確認、公開なし。台帳とdocs/incremental-shared-ng-saf-20261104.md。
 
 2026-11-04 再表示共有NGの入力/判定再利用・SAF保存先再選択（未公開）: 利用者の新着だけ判定と任意フォルダ変更要望。shared-only経路で191/226/242 raw入力をimmutable index専用のcontent cacheへ、同条件/同内容のHTML/Input作成を省略。最大4096件/キー400万文字、条件/除外更新でindex置換、本文変更/追加分は再評価、regex非一致はtimeout可能性のため再評価。標準/プログラムNG連鎖は維持し必要時preview準備。host追加3017/index10306/regex17/除外263成功、通常Lint最終build3m4s、MPP CRC/cache/SAF extra同梱成功。自動backupは固定先なし、前回URIを渡さない再選択ボタン・無効grantのhint除外・primary直下ラベル・tree確認を追加。候補build/haiagaru-incremental-ng-saf.mpp。Android判定/SAF保存取消/速度未確認、APK生成/導入/公開なし。docs/incremental-shared-ng-saf-20261104.md。
@@ -1092,3 +1101,577 @@ URL https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.24.0 。
 ThreadWatchの確認間隔ボタンを非終了操作へ変更し親Dialogを維持。Cancel/Backで元画面へ戻り未保存チェック/期限を保持、間隔保存後は個別監視の間隔説明を更新。OpenTabsRefreshは作成済み/attach済みFragmentへ各版固定の標準action5を直接dispatchしUI更新、成功分をWorkManager対象から除外。直接dispatch中のRefreshTargets.refreshを抑制して追加巡回を防止。未作成/未接続/未受付ページは従来のscope取得へfallback、背景スレのみsubject統合。native method自体は変更せず新bridgeのreceiver/action/sourceとregister4を検査、全クラス走査なし。
 最終Lint/R8 build/interval-live-tabs-final-build.log成功2m43s・91tasks。3版適用成功、VerifyLiveTabsHooks/VerifyOpenTabsHooks各全版成功。API36/emulator-5580でcore各33計99成功（interval-live-tabs{191,226,242}-runtime.log）。242実UIは自動監視/個別通知→確認間隔→Cancelの親復帰・未保存チェック維持・保存値不変の6項目成功（interval-navigation242-runtime-retry.log）。初回UI試験はエミュレータSystem UI ANRダイアログが遮り失敗、Wait後の再試験成功で区別。final-crash.log空。実通信一括取得と実機連続操作は未確認として公開説明に記載。AVDデータ保持正常停止、実機導入なし。
 MPP ba7d5e58004cb6f225d3bd674e2734dceb6665c320ee2ccb65d5ccd55055d55e、CRC正常。既存Semantic Releaseから公式公開する。
+
+
+2026-11-05 1.24.1公式公開・配布検証完了
+実装c051d156、master統合5990f810、生成/tagcb9de0fd/1.24.1。CI42019751152は全体status cancelledだがRelease/Attest/Post各step success、公開実体でdraft=false/prerelease=falseを確認。全体successとは表現しない。MPP SHA256 1d264114e626c419f1de5a6e8c06d37b8953daa4ef7d92a630f03efe8ec7476d、GitHub digest一致・CRC正常・nativeRefresh/keepParentForInterval同梱。master/dev/main×両feed6件が1.24.1と同assetを参照。build/official1241-public/{release.json,verification.json,feeds.json}。既存CI生成履歴をff取込しdevへ復帰。fetch設定がdevのみのためmaster/mainも明示refspecで更新。URL https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.24.1 。
+
+
+2026-11-06 外部板・設定リンク・動画サムネイル修正版プレリリース候補
+191のBBSMENUへのscript混入を入力限定sanitize/単一板補正で修正。3版の外部板サイト別表示は初期OFF、表示モデルだけを補正し板ID/履歴/ログを保持。226の板名メニューに標準検索項目を追加しnative prepare-menu/dispatchを保持。日本語の設定リンクはタップ後に確認し実control経由で適用、候補一覧のPopularReplies移行書込みを起動側へ移し、ヘッダーの>>を含む名前にも対応。日本語一覧はdocs/settings-links-list.md/CSV。
+動画サムネイルは容量超過X MP4の範囲取得、失敗理由PNG、再取得/再生の独立ボタンを追加。解析専用プロセスのメモリkillをexit-infoで識別、一時停止の1分待機/明示再試行、BIND_IMPORTANTを使用。原動画のnative再生経路を維持。3版の全レス連続表示は元Viewを保持（191実機NPEの原因を除去）、元Viewなしでは拡張しない。191は単純Viewのため操作をrootへ重ね、detach中の親children変更をHandlerへ延期。毎フレームのbringToFrontを除去し複数失敗画像の再描画ループを防止。0byte error PNGを再生成しatomicに保存。
+最終通常Lint/R8 retry-detach-final-build.log成功3m44s/91tasks。3版適用/VerifyBbsMenuHooks/VerifyMediaSelectionHooks全成功。エミュレータ245項目成功、crash空、詳細は導入台帳。合成48MiB超MP4は266158bytes/2rangesでAndroidフレーム/JPEG生成、停止フラグの待機後復帰も確認。ホストBBS30、設定リンク64、範囲取得8206、失敗分類49、同時再取得抑制1142。途中失敗は上記修正後に再成功。
+実スレ本文の追加スモーク起動は自動承認レビューに拒否されたため未実施。実機LOW_MEMORY/NPEはログで特定、報告実動画の表示改善は未確認。Mi Note 10は3版install-r成功・RUNNING_LOCKEDでUI未確認。ユーザーは睡眠中の追加確認なしのプレ公開を明示。最終確認範囲/未確認を既存.releasercに記載し、既存Semantic Releaseのdevからプレ公開する。手動tag/Release/assets/feed変更なし。
+
+2026-11-06 1.25.0-dev.1プレリリース公開・配布検証完了
+実装a2bcc531、生成8ee8f22c/tag1.25.0-dev.1。初回CI42061425404はGitHubのcommit_refs_rulesエラーでtag push失敗、同run再実行はremoteより古いSHAのため公開をスキップ。最新devで既存release.ymlをworkflow_dispatchしたCI42062417480がRelease/Attest含めsuccess。手動tag/Release/assets/feed編集なし。draft=false/prerelease=true、6assets公開確認。
+公開MPP SHA256 69472f25fea804847dc58c3902dc858ab3ae36bef2d101bfcf5a71e73a2a7bde、GitHub digest一致・ZIP CRC正常。VideoThumbnailRetry/VideoThumbnailFailure/BoundedVideoDataSource/SettingLinkActivity/ExternalBoardGroups同梱を検査。dev両feedと添付両feedが1.25.0-dev.1/同MPP URLを参照し、master両feedは正式1.24.1を維持。build/prerelease1250dev1-public/{release.json,verification.json,feeds.json}。照合時のPython証明書ストアエラーはTLS検証を無効にせずghの取得へ変更し、全検査を再実行して成功。生成履歴はff取込済み。
+端末検証245項目と未確認範囲は前記の通り。Mi Note 10へ最終候補3版導入済み、XIG05切断後の最終候補導入は未実施。報告実動画での改善・実機連続操作・実スレ追加スモーク未確認は公開説明に記載済み。
+URL https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.25.0-dev.1
+
+2026-11-06 旧版共有NGの送信受付停止（本番未反映）
+Code.gsのPOST入口にdeviceKey必須gate追加。v1/v2の未対応送信は更新エラー、ACK/lock/シート操作なし。現行送信とGET受信は維持、REQUIRE_DEVICE_KEY=falseのみ管理用rollback。詳細shared-ng-review-implementation.md。lifecycle116/personal148/service41/moderation53=358項目成功。ブラウザー操作が無効とのtool応答によりGAS保存/再配備は未実施、アプリ変更・公開なし。個別レポーター除外も本番未保存。サーバー変更はローカル参照領域のため新アプリReleaseへ混ぜない。
+
+2026-11-06 利用者によるGAS v16デプロイ後の公開応答検証
+先の本番未反映状態は解消。既存URLへ空reportsの旧v1/v2(deviceKeyなし)を送信し、両方client_update_required/ok=false/ACKなしを確認。GET受信ok/full/revision255/3090条件、NG_IDヘッダーエラー再現なし。現行有効報告の本番書込み試験は行わず、ローカル358項目と区別。詳細shared-ng-review-implementation.mdとbuild/shared-ng-v16-live-verification.json。個別レポーターBANは別件で未保存。
+
+2026-11-06 動画失敗多数時のクラッシュ・226検索追加候補
+共通VideoThumbnailRetry.closeのroot.removeView即時実行を全経路でMAIN延期し、closed/tag検査・poll取消・後片付け一回化。API36の実FrameLayoutで旧コードの同じnull-child例外を再現3項目、新コード128件×8回等34項目成功。詳細video-error-layout-crash-20261106.md。226の板/HOME/ResListの固定3classにSearch追加、標準のprepare-menu（下部toolbar項目の可視性反映）/dispatchを保持。全クラス走査なし。通常Lint/R8 build4m29s/91tasks成功。VerifyTitleSearchHooksで元inflater/register保持、既存候補から他メソッド・native prepare/dispatch変更なし確認。MPP af48610699b3a9e8bfab374f29c33210ed0789b5ac909835455bc2ef000fdec2、公開なし。226端末メニュー検証準備中。
+爆サイ/ふたば/あにまん標準画面の閲覧+書込要望はnative-sites-investigation.mdへ仕様調査を記録。参考repoのREADME/ファイル一覧だけ確認しソース未読・未複製。あにまんトップ/指定7591383ともHTTP403、ブラウザーtool無効で本文/投稿form未確認。3サイトの実装・製品対応は未完了、対応済みと報告しない。今回公開投稿なし。
+
+2026-11-06 226最終実行検証完了・候補未公開
+上記候補をemulator-5580の既存reporter226へ署名一致でinstall-r成功、データ消去なし。初回のAPK読出しが59%で切断しhelperが安全停止、再接続後に全APK読出し/証明書照合/更新成功。署名0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed。
+実際の3画面menu inflater/検索native label/icon/重複防止13項目と、native prepare-menuに隔離したtoolbarモデルを渡して下部Search OFF→ON→OFFで上部visible→hidden→visibleの3項目、合計16成功（layout-search226-native-final-runtime.log）。追加試験は最初resumed Activity待ち不足で失敗したため試験側待機を追加し再成功、製品変更なし。実native thumbnailの失敗PNG/再取得/原URL再生/通常画像への回復/detach12項目成功（layout-search226-video-runtime.log）。共通layout34項目と合わせ62成功、final-crash.log空。実機/利用者の実スレでの最終目視と新外部サイト対応は未実施。
+ビルドMPPとAPKのCRC/新code markers同梱確認。build/layout-search226-verification.json。AVDは一時size/densityをreset後データ保持正常停止。今回ユーザー向けRelease/CI pushはしていない。
+
+2026-11-06 あにまんの利用者提供HTMLを解析
+保存スレcanonical7589284の79レス/34画像、トップ一覧360スレを解析。サイト公開JSから返信のpreCheck→comment.phpとupload別段階の仕様を確認し転載/実行/投稿なし。独自AnimanchProtocol（HTML→中間データ/一覧/返信データ生成/成功応答照合）追加、jsoup1.21.2 MIT依存・全文license/NOTICE追加。host224項目成功。まだnative board/DAT/画像/投稿transportへの接続はなく、あにまんを含む3サイト対応は未完成。既存クラッシュ/226検証済み候補af486...にはこの新クラス/依存は未収録。新しいMPP/端末導入/公開なし。詳細native-sites-investigation.md。
+
+## 2026-11-07 標準の掲示板設定への統合候補（未公開）
+
+利用者指定のChMate標準「設定→掲示板設定」の既存updateBbsMenuを含むXMLへ追加掲示板の入口を追加。SiteBoardSettingsActivityに初期OFFの「使用する」、URL登録、標準画面を開く、サイト別認証、ふたば削除キーを実装。認証Cookieの利用は本人の選択後のみ。参照repoの実装ソースは未読・未利用。
+
+SiteBoardProtocol/SiteNativeData/SitePostProtocol/SiteBoardGatewayを追加。独自のHTML解析からsubject/DATへ変換し、opt-inのアプリ内loopback接続で標準reader/postへ渡す設計。サイト元番号とスレ内番号の変換、投稿前確認、重複送信抑止、結果不明時の再送禁止、OFF時停止を含む。ホスト試験はあにまん224、3サイト解析25、DAT/投稿データ/成功判定136成功。公開掲示板への投稿は0。
+
+最終通常Lint/R8 build/site-boards-standard-latest-build.log成功42秒/91tasks、191/226/242すべてのパッチ適用成功。MPP build/site-boards-standard.mpp SHA256 7899cbc41a7cd41219614d23c672fe751f7a6e12853dc58abd35b49150d88dcb。実行試験SiteBoardGatewayInstrumentationはコンパイル成功のみ。エミュレータ起動と試験APK作成の複合操作が自動承認レビューでblocked by policy（詳細理由なし）となり、試験実行・native URL parser/標準画面/トグルの動作確認は未完了。ビルド成功を利用可能の確認と扱わない。
+
+制限: 現時点は既存スレへのテキスト返信のみを実装対象とし、新規スレ・添付画像・爆サイのページ分割は未対応。提供された15地域のBBSMENU取込みとふたばトップからの板選択は未実装。あにまんライブ403、実投稿成功テンプレート、差分/キャッシュ/画像形式/標準投稿の結合も要確認。対応完了・配布済みとはしない。push/Releaseなし。
+
+## 2026-11-07 追加掲示板設定候補の実機導入
+利用者が実機インストールを明示。XIG05 / serial 730eae72 / ChMate191 / 表示名 Haiagaru NG確認 191 / package jp.co.airfront.android.a2chMate.haiagaru.reporter191 を既存APKの証明書pull照合後install-r成功。普段使用する別packageの変更・アンインストール・データ消去なし。
+APK C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/site-boards-standard191.apk / SHA256 26144079c03fcabbb08d8c45ccf5302b31839620dc49a8f52e369108b028677c。
+MPP C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/site-boards-standard.mpp / SHA256 7899cbc41a7cd41219614d23c672fe751f7a6e12853dc58abd35b49150d88dcb。
+署名鍵 C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore / alias Morphe / 証明書SHA256 0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed。
+導入ログ build/site-boards-standard191-device-install.log。HomeActivityへam start受付成功。crash bufferには11/05の旧ログあり、新規クラッシュと混同しない。今回の標準設定スイッチ/サイト本文/投稿の結合動作は未確認。226/242候補APKは生成済みだが今回実機へ未導入。公開なし。
+
+## 2026-11-07 掲示板設定カテゴリ内への移動・実機191更新
+利用者指定「設定→掲示板→掲示板設定」の欄内へ追加掲示板を移動。updateBbsMenuを含む標準XMLのルート末尾から、key=bbsのPreferenceCategory直下へ移す。カテゴリが一意でない場合はパッチを失敗させる。初回は非namespace-aware DOMの既存属性取得差で191適用guard失敗し、android:key/namespace両方に対応して修正。既存検証アプリへ失敗APKの導入はなし。
+最終通常Lint/R8 build/site-boards-category-final-build.log成功1m18s/91tasks。191完成APKのaapt2 xmltreeでカテゴリ内配置とrename後intentを確認。動作試験scriptにもカテゴリ内配置のassertを追加したがInstrumentation実行は未確認。
+実機XIG05 / serial730eae72 / 表示名Haiagaru NG確認191 / ChMate0.8.10.191dev / package jp.co.airfront.android.a2chMate.haiagaru.reporter191 を既存証明書照合後install-r成功、HomeActivity start受付成功。アンインストール/データ消去なし。
+APK C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/site-boards-category191.apk / SHA256 c643ba4f03379c12d2788df664af90ad7abf580b99cf9d0f43816aa39fc32891。
+MPP C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/site-boards-category.mpp / SHA256 4fbb43afc69a1d2daa6bf5644f68e378d12da530d9274a3838be22b080ce9ae8。
+署名key C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore / alias Morphe / cert SHA256 0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed。ログbuild/site-boards-category191-install.log。今回配置変更のみで追加サイトの標準画面/投稿の結合未確認・未公開は維持。
+
+226/242も最終APKのパッチ適用とaapt2検査成功。3版でkey=bbsカテゴリ内配置・改名後intentの一致を確認（build/site-boards-category{191,226,242}-board-xml.txt）。226/242実機未導入、191プロセス起動確認。crash bufferは11/05の旧記録で今回新規と扱わない。
+
+## 2026-11-07 掲示板設定カテゴリ内配置の実機クラッシュ（修正中）
+利用者報告により前記「カテゴリ内配置」候補に重大な回帰が判明。XIG05/730eae72で11/07 01:03:50および01:05:17、reporter191のClassCastException: androidx.preference.Preference cannot be cast to ...bbs.BbsPreference、Lo/pja.c→Wj_→onCreateを確認。build/site-boards-castfix-before-crash.log。起動のみ・静的XML検査では設定画面の安全性を確認できていなかった。
+原本native Lo/pja.c(Preference)を調査すると、key=bbsカテゴリの子を位置で再利用して全件BbsPreferenceへcastし、余剰項目も削除する。したがってgeneric Preferenceをその子に置けない。固定native処理の改変はせず、追加行をbbsカテゴリ直後/BBSMENUカテゴリ直前のroot siblingに移す。視覚上の掲示板設定の並びを維持し、型付き子リストには混ぜない。Instrumentation側の構造検査も誤ったカテゴリ内assertから、安全なsibling配置へ修正。
+通常Lint/R8 build/site-boards-castfix-build.log成功1m22s/91tasks。3版候補再生成・実機設定画面検証を続行。既存候補は公開禁止、push/Releaseなし。
+
+## 2026-11-07 設定クラッシュ修正版の実機反映
+3版castfix APK生成とaapt2で安全なroot sibling配置/intentを確認。実機XIG05/730eae72のreporter191を同署名install-r成功。SettingActivity起動後に設定UI階層を取得し、追加設定画面（使用する/登録ボタン）と、標準bbspink.comのURL/板の数/使用するダイアログを観測。設定画面操作に伴う新規ClassCastExceptionなし（crash bufferには修正前01:03/01:05が残存）。追加画面の使用するは利用者設定でONだったため変更していない。操作中に画面変化があり、以降の座標操作はせずread-only確認。build/site-boards-castfix-{settings,board-ui,board-final-ui}.xml、before/after-crash.log。
+APK C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/site-boards-castfix191.apk / SHA256 7ba7c5cf132b37e08ea22f101064cdf7db2a43f4ffb52372d0b602940af71499。
+MPP C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/site-boards-castfix.mpp / SHA256 2c8ecc76573f1ea6b4d27a7007e29df3e74c288f35b6a9b1365e1e2a537128c7。
+表示名Haiagaru NG確認191 / ChMate0.8.10.191dev / package jp.co.airfront.android.a2chMate.haiagaru.reporter191 / key C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore / alias Morphe / cert 0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed。導入時刻はbuild/site-boards-castfix191-install.logのmtime。データ消去/アンインストールなし。226/242は未導入。
+
+## 2026-11-07 板ごとの設定・指定BBSMENU・ページ分割・投稿拡張候補
+利用者はサイト単位ではなく登録した個々の板のURL/板の数/使用するを指定。SiteBoardSettingsActivityの各登録行から個別Dialogを開き、URL/板の数1/使用する/開く/認証を表示。新規登録はOFF、既存登録の使用状態保持。個別ON/OFFはGatewayのsubject/DAT/画像/投稿すべてで検査し、最後の板OFFでlistener停止。OFF時は待機画像/確認も破棄。host16項目成功。
+利用者指定の爆サイ15地域JSONは全てHTTP200、対応する個別板延べ7946件。ふたば https://www.2chan.net/bbsmenu.html はHTTP200/Shift_JIS、98板。あにまん指定 https://bbs-menu.pages.dev/animanch_bbsmenu/bbsmenu.json はHTTP200/31カテゴリ。SiteBoardMenuProtocolと「板一覧から追加」の検索/選択UIを実装。あにまんカテゴリ別URLとスレURLを分離。HTMLトップ取得403でもメニューJSONを利用できる。
+BakusaiPaginationは同じ板・スレのページリンクのみ収集し、最新50レスから過去ページを結合。レス番号連続・重複内容一致・全体件数を検証後にDAT出力。破損/途中欠落では保存用DATを返さない。実取得の13548303は4ページ/181レス+OP=182件の統合成功。メニュー/分割host1290項目成功（site-menu-pagination-tests.log）。保存データはbuild配下のみ、投稿全文をGitへ含めない。
+投稿拡張: 標準スレ作成のsubjectと本文を各サイトの現行フォームへ変換。ふたばはtextonly/form上限サイズ、あにまんはカテゴリと必須画像/preCheck→本文→upload、爆サイはthr_tc1の後の確認フォームを内容一致時だけ一回限りtokenへ保持し標準確認応答で利用者確認を要求。確認/成功テンプレートの実投稿検証は未実施。画像は標準composerの固定既存ThreadCommands bindingで追加ボタンを挿入し、SAFでJPEG/PNG/GIF(最大8MiB・板の上限優先)を選択、元の板・スレ/新規へ10分間だけメモリ保持。選択だけでは送信せずnative送信時に添付する。実装元の表現・構造の流用なし。
+新規スレ/画像/確認33、既存DAT/投稿136、あにまん224、既存3サイト解析25のhost試験成功。実機191(個別設定候補)でnative URL parser/subject/DAT/隔離投稿/重複抑止等144項目成功、公開POST0（site-gateway191-runtime.log）。個別Dialog試験は初回startActivitySync待ちで停止し試験packageのみforce-stop、次はbackground起動制限で時間切れ。前面Homeからの有界起動へ試験を修正し、実機14項目成功（site-boards-individual191-ui-foreground-runtime.log）。初回失敗を製品クラッシュや成功項目に含めない。実サイトへの公開投稿は行っていない。
+
+## 2026-11-07 指定メニュー・投稿拡張の最終候補を実機191へ導入
+利用者の再度の実機インストール指示で、XIG05/730eae72の既存「Haiagaru NG確認191」(ChMate0.8.10.191dev / jp.co.airfront.android.a2chMate.haiagaru.reporter191)を同署名install-r成功。データ消去/アンインストールなし。
+APK C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/site-boards-menu-post191.apk / SHA256 1c2226af2377fb55b94471a0dd1f4c40a7e6938c9b71ea7926636b67f444b199。
+MPP C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/site-boards-menu-post.mpp / SHA256 eff9e9de1d990808556795dd5b98e8aaab29c11171417da1077399882a163886。
+鍵 C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore / alias Morphe / cert 0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed。導入日時はbuild/site-boards-menu-post191-install.logのmtime。
+通常Lint/R8最終 build/site-boards-menu-post-save-state-build.log成功4m12s/91tasks。画像選択Activityの回転時状態保持を含む。更新後実機で隔離Gateway/標準URL parser/subject/DAT/返信/重複抑止144項目と個別Dialog14項目成功。公開投稿0、実掲示板への送信は未検証。background activity start制限に対し、試験の起動のみ前面Home経由へ変更（OS設定の変更なし）。試験後Homeを通常起動。
+試験APK build/site-boards-inst/tests191.apk(app.haiagaru.tests.sitegateway191) / build/site-dialog-inst/tests.apk(app.haiagaru.tests.sitedialog191) は同Morphe署名、隔離prefs使用。前段個別設定候補はAPK build/site-boards-individual191.apk SHA256 a484cd2df3b810dd66ef42c3d2f7976a8d183814a183c9b1ea67134884d164e8 / MPP build/site-boards-individual.mpp SHA256 261648c6ae6d9ff3d7dd29f885a5c7ed430ddb57cee89affbcc9063478d2d551、同端末/packageで今回更新済み。
+実際の新規スレ/画像/爆サイ確認画面のサイト成功応答、3版の標準スレ画面での連続操作は未確認。試験対応として未公開、push/Releaseなし。
+
+## 2026-11-07 標準サイト3項目・BBSMENUカテゴリ取込み候補
+
+最新の利用者指定に従い、個別板ごとのnative descriptor方式を、爆サイ・ふたば・あにまんの3つのnative descriptorへ変更。標準BbsPreference/標準ダイアログ/標準BBSMENU取込み/標準板グループを利用する。generic Preferenceはkey=bbsの型付き子リストへ入れず、その直後の認証・手動登録補助入口のみを維持する。3サイトとも初期OFF。
+
+BBSMENUはアプリ内loopbackで標準HTMLへ変換。爆サイは15地域を最大4並列で取得し地域／カテゴリ、ふたばとあにまんはカテゴリのB見出しを保持。通常reader/postへはsubject/DAT/bbs.cgiを渡し、WebViewによるスレ閲覧にはしない。サイトの認証が必要なときのみ別の認証入口を利用する。
+
+新版aliasはサイト種別付きhb/hf/ha+32hex、旧h+32hexも受理。ネイティブ「使用する」とsite単位のgateway停止を連動。他サイトON中もOFFのサイトは読取・投稿不可。既存手動登録名/aliasを保持し、一部地域取得失敗で保存済み一覧を上書きしない。板取込みは索引を一度作り一括保存し、8千件の個別設定行や設定キーを増殖させない。
+
+最新ソースのhost再検証: SiteBoardCatalogTest 24,345項目（8,075板）、SiteBoardEnableTest 18項目、SiteMenuPaginationTest 1,290項目、SiteNativePostTest 136項目、SiteNewThreadImageTest 33項目成功。試験へのファイル引数を誤った初回実行は失敗し、正しいcanonical380363のふたば保存レスとあにまんのトップ保存フォームへ指定し直して成功。製品パーサーの変更による通過ではない。公開掲示板への投稿は0。最新ビルドと3版native結合検証は続行中。
+
+### エミュレータで判明した結合不具合（修正・再検証中）
+
+利用者がエミュレータを明示指定。Haiagaru_Root_API36 / emulator-5580 をデータ保持で起動。ネイティブ結合検証で、Android SharedPreferencesの背景commit通知がmainへ遅延配信され、register内の旧板flag更新をUI操作と誤認して他サイトをONにする問題を検出。visibleな3つのsite flagだけをactivation eventとして扱うよう変更。旧個別flagは保存データとしてのみ保持する。遅延通知を再現するhost検証を追加し、使用状態21項目、全カタログ24,345項目成功。
+
+native HTML parserは1行ずつlinkを先に判定するため、一行HTMLではB見出しを受け取らない。出力を見出し・各リンクごとの改行へ変更。最初の修正buildは局所変数kind重複によるコンパイル失敗後に訂正し、site-native-roots-final-build.logで通常Lint/R8成功5m11s。
+
+実reader試験は、HomeActivityへACTION_VIEWを渡すだけではスレが開かず、ResListActivityへ直送してもURLがスレ扱いされないことを検出。標準BBSUrlInfoはgetHostでportを落とし、通常スレIDを9〜10桁に限定する。追加サイトの正しい短いID（爆サイ8桁、ふたば6桁、あにまん7桁）をboard扱いしていた。既存URL parserを完全保持するfallback wrapperを固定BBSUrlInfoの版別1メソッドだけへ追加し、当アプリで登録したloopback/保存port/aliasに限定してnative infoを生成する修正を進行中。手動openも標準ThreadListActivity/ResListActivityを使う。3サイトの標準画面が動作済みとはまだ報告しない。
+
+試験失敗はtest assertionであり新規製品crashとして扱わない。エミュレータにはSystem UI ANRと起動時Bluetooth native crashがあり、アプリのcrashとは区別する。公開POST0、push/Releaseなし。
+
+## 2026-11-07 標準reader/editor結合の版差分
+
+191はsite-native-padding191候補で、3サイトの実標準readerの17/4/79レス、標準ResEditActivityと各投稿先に結び付いた画像添付ボタン、padded DAT/返信、重複送信抑止を含む166項目成功（site-native-padding191-ui-runtime.log）。実公開POST0、保存した公開応答/isolated transportを使用。
+
+226はstatic BBSUrlInfo.cだけでは実tablet routingが直接呼ぶKotlin companionに届かない。Uri overloadだけを補正した最初のtablet候補でも、R8がString overloadに複製したgetHost/ID解析が残存し失敗。固定companionのString entryも、元本体を保持した限定wrapperで補正。site-native-final226候補でnative core19、tablet Context+String parser/port保持と実reader/editor/画像添付ボタン/isolated返信の172項目成功。検査のbaselineは原本に加え既存Haiagaru castfix候補を使用し、先行する外部板修正の意図した差分と区別した。
+
+242もcore19/固定フック命令保持は通過したが、native URL producerがunknown-compatible-boardをHTTPSへ昇格し、HTTP loopbackにTLS接続して本文0件となる差分を検出。SiteNativeBoards.rewriteInfoUrlを追加し、ExternalBoardEditor既存URL wrapper経由で、infoのhost/pathとgatewayに登録済みalias/portが一致したloopback HTTPSだけをHTTPへ戻す修正を実装・ビルド中。通常サイト/未登録localhostは変更しない。242を含む全対応完了とはまだしない。
+
+検証プログラムも修正: 226/242のenabledはnativeでinline化されno-arg accessorがないため実key generator/保存prefs/default fieldで検証。BoardID.toStringのportは%3A encodingを復号して比較。ResEdit画面中の標準BBSMENU更新が未登録だったfake transportのAssertionErrorで一度試験processを終了させたため、最小の隔離menu応答を追加し再成功（実HTTP実装の製品例外ではない）。foreground検出はInstrumentation lifecycleで捕捉する方式に改善。失敗を成功項目へ数えない。
+
+## 2026-11-07 標準追加掲示板の実装・最終検証完了（未公開）
+
+上記の242未完了状態は解消。登録済みloopback infoのhost/path/portだけを照合してHTTPS URLをHTTPへ戻す補正を既存ExternalBoardEditor URL wrapperへ統合。native String/URI/context entryの各本体とレジスターを保持する検査を191/226/242すべてで通過。最新通常Lint/R8はsite-native-durable-media-build.logでBUILD SUCCESSFUL 4m48s、91tasks。
+
+あにまん画像は一時hash→メモリmap依存から、登録aliasと元のthread/image座標を含むloopback URLへ変更。gatewayを停止・新規構築しても保存DATの画像URLを解決できる。許可先は固定の元サイトだけ、OFFの板の画像要求は403。画像取得と再構築後の取得をPNG fixtureで検証。
+
+最終MPP build/site-native-verified.mpp / SHA256 0ae3492a530a9095d979abb6388d4c0b3b932f5a5829f5eafb6738562a87083e。各版の既存reporter検証用アプリをemulator-5580へ証明書照合後更新、実機変更なし。導入APK/署名/ハッシュ/日時はandroid-installations.md、機械可読結果はbuild/site-native-verified-summary.json。
+
+最終結果: 各版native registry/parser/folder/site-root/BbsPreference 19項目。標準readerで3サイト17/4/79レスの実表示、標準ResEdit画面と投稿先に結び付いた画像添付ボタン、短いID/10桁ゼロ埋め/port/HTTP保持、DAT/画像GET、画像URLのgateway再構築後の取得とOFF拒否、返信の模擬成功・重複抑止を191=191項目、226=200項目、242=197項目成功。native dialogの実表示/URL/板数/使用するON→OFF→ONは191で29項目成功済み。hostは全カタログ24,345、遅延通知を含む使用状態21、メニュー/分割1290、DAT/投稿136、新規スレ/画像33、あにまん224、3サイト解析25を成功記録。
+
+242最終試験の一度目は旧試験で残した一時aliasのタブが新しいisolated registryに存在せず、標準reslist復元でID=nullとなるクラッシュを検出。tabletHome2の退避XMLで対象が過去の3fixtureであることを特定。試験用に作成した未登録loopback alias＋既知3fixture IDのタブだけを整理し、実登録/他タブを保持する前後処理をInstrumentationへ追加。試験Activityを終了・idle待ちしてからsingleton/prefsを戻す。3版すべてこの後処理込みで再成功、コードや全データ消去で隠していない。UI試験はnative cacheにfixtureを作成するため、core試験のDB writes=0と区別する。
+
+通常のcold Home起動も3版Complete（起動ログsite-native-verified<版>-startup.log）。新規crashログの最終確認は別ファイルへ記録。公開掲示板へのPOSTは0。実サイトの認証を含む送信成功、新規スレ/画像のサイト側実受理は未確認。実装元repoのソース未利用は維持。今回commit/push/Releaseは行っていない。
+
+最終3版の通常cold Home後の新規reporterクラッシュなしを、UTC cutoff 2026-11-07 01:19:08.594以降のcrash buffer取得成功（exit0）で確認。build/site-native-verified-new-crash.log。時刻引数の初回取得失敗は再取得で解消し、検証JSONへ確認結果を記録した。
+
+## 2026-11-07 「板の数0」の実取得確認
+
+利用者指摘でemulator-5580 / reporter242の標準設定を確認し、使用するONでも追加3サイトの板数0・private registry未取得を観測。標準ダイアログから更新したWorkManagerの失敗出力は「ネットワークに接続していないか、ネットワークの対象外です」。dumpsys connectivityはActive default network:none、cmd wifi statusはWifi is disabled。元から5ch.ioなど他サイトの板数も0であった。
+
+エミュレータのみWi-Fiを有効化しAndroidWifi接続後、各サイトの標準「板一覧を取得/更新」を実行。実ネットワークの元BBSMENU→gateway→標準WorkerのDB保存→標準dialog表示で、爆サイ7946・ふたば98・あにまん31を確認。設定画面を開き直すと各標準BbsPreferenceの件数にも同じ数が反映。取得前0の状態を製品の件数バグとはしない。コード/MPP/APK変更・実機操作・Releaseなし。公開POST0。
+
+証跡 build/site-count-final.xml / site-count-final.png、各site-count-<site>-after.xml、site-count-connectivity.txt、site-count-androidx.work.workdb（読取コピー）。エミュレータはオンラインのままとし、実取得した8075板は検証アプリへ保持。初回のUI dump空rootや時刻の異なる旧crashログを新規クラッシュと扱わず、画面再取得で確認した。
+
+## 2026-11-07 実取得のモバイルHTMLと標準書き込み画面（再検証中）
+
+板数の実取得後もスレ一覧が空との報告を受け、Android UAの実応答を採取。爆サイは保存済みdesktop fixtureとは異なるモバイルカード形式（.thr_list/.imgbody .title）を返しており、従来の#threadListField限定解析が原因だった。閲覧数とレス数を区別し、.thrimg_comment_spaceに対応する値からnative件数を生成する。モバイル本文は#res0_whole/#res0_bodyと#res_list直下のres_blockを対象とし、一覧外の隠しポップアップを除外する。
+
+投稿は標準ResEditActivityを維持。モバイル返信form#ajax_directForm、新規スレform[name=thrAdd]に対応し、送信直前のフォームから投稿先・板・スレ番号・hidden値を照合する。記事出典など標準画面に入力欄がない必須項目は送らず、制限をnativeエラー画面へ表示する。フォーム内の時刻トークンに依存せず入力内容で重複送信を抑止する。
+
+host再検証はモバイル実一覧8、実モバイル本文/返信/画像/新規スレ28、既存native DAT/投稿136、新規スレ/画像33、メニュー/ページ分割1290項目成功。公開投稿0。実標準画面の「書き込む」から送信する試験を追加して検証中。初回は送信先に本文が届かず失敗したため、従前の「画面が開く」確認を投稿成功とは扱わない。最新APKのビルド/導入/実取得およびnative送信結合はこの段階では未確認。push/Releaseなし。
+
+追補: 通常Lint/R8最終ビルド site-mobile-post-final-build.log は7m21s/91tasksで成功。242の最新APKはnative reader/本文入力/標準「書き込む」/3サイトの模擬送信/再送抑止を含む216項目成功。爆サイ実通信の読取probeはHTTP200、一覧10件・本文8レコードを成功。実URL付きam startによる画面遷移は自動承認審査がblocked by policyで拒否したため実施せず、許可された読取probe結果とnative fixture UI試験を区別する。
+初期のnative送信試験の不達は、試験がmultiline属性だけで名前欄を本文と誤選択したことが原因。本文欄選択の修正後に242成功。191も3サイトのnative送信まで通過した後、Host拒否試験の「全GET総数が増えない」というassertにnative背景更新が混入して失敗。Host拒否403は通過しており、拒否対象専用の未使用スレURLがtransportへ渡らないことを検査するよう試験を修正し再実行する。これらを製品修正/公開投稿成功とは扱わない。
+
+### 最終確認
+
+最新候補build/site-mobile-post-final.mpp（SHA256 57120f067d838f528786093712f9f9633de62b469b90418ee40dfa5af1565cfd）を3版の既存reporter検証アプリへemulator-5580で同署名更新。最終native reader/本文入力/標準「書き込む」/模擬transportへ本文受渡し/再送抑止/画像GET/OFF制御は191=210、226=219、242=216項目成功。フォームのloaded_atをGETごとに変える試験で再送抑止も通過。失敗した旧試験ログは残し、最終成功と区別する。固定フックのレジスター/元命令/native settings保持検査も3版成功。
+
+3版の通常cold Home起動はComplete。UTC 2026-11-07 04:40以降のcrash buffer行は0（site-mobile-post-new-crash.log、crash buffer取得成功）。インストール台帳に各APK/MPP/署名/日時を追記。機械可読結果 build/site-mobile-post-summary.json。公開掲示板へのPOSTは0、実認証と実サイトの書き込み受理は未検証。専用項目が必要な板の新規スレ作成には制限を表示。実URLの画面遷移は前述の審査拒否で未実施、実通信の取得解析とnative mock UI表示を区別する。commit/push/Releaseなし。
+
+## 2026-11-07 本文空白の追加再現・モバイル分割ページの修正中
+
+利用者が「スレ内容が表示されません」と訂正。emulator-5580 / reporter242の実登録「新型コロナニュース」から最近閉じた実スレ13539922をUIで開き、本文空白とAdditional board request failed / 爆サイのスレ本文を取得できませんを再現。従来の単一ページprobe（レス数が少ないニュース8件）とnative fixture成功だけでは、この経路の安全性を確認できていなかった。
+
+実モバイル応答を採取すると、71返信が11ページに分かれ、初期ページはOPと65〜71、次は58〜64を返す。継続ページはOPの#res0_bodyとレス総数カウンターを省略する。従来は各ページにOPと総数を必須にしていたため途中で中断した。初期ページだけでOPと総数を必須確認し、継続ページは同じスレ番号/タイトルを確認して返信を集約する。全件連番の検証は維持。実モバイル全11ページから72 native DAT行を確認する新規SiteMobilePaginationTest 81項目と既存desktop分割1290項目成功。少数レスのモバイル返信/新規スレ28項目も成功。修正版のビルド/実UI確認は続行中。旧候補を実表示完了とは扱わない。公開POST0、Releaseなし。
+
+追補: SiteMobilePaginationTestへページをまたぐ引用番号変換を加え82項目成功。通常Lint/R8はsite-mobile-pagination-final-build.logで5m26s/91tasks成功。3版APKを生成したが、242を同署名で更新して同じ実タブをUIから開くと、まだ本文空白が再現したため成功扱いしない。loopback読取probeのtransportを一時的に読取専用proxyへ差し替えて各実応答を採取すると、1〜9ページはスレHTML、10ページ目はHTTP200のエラーHTML（ERROR_CODE:thr_res:778）。hostで採取したpage10/11は本文が存在する。取得間隔による差を切り分け中。診断proxyはfinallyで元へ戻す。公開POST0、Releaseなし。
+
+### 元サイトの部分エラーで全本文を失わない修正
+
+400msずつ取得を空けても、端末の10ページ目は同じthr_res:778のエラーHTML。単純な高速連続取得とは断定しない。途中ページがこの既知のエラーHTML（titleとerror_code_textを厳密照合）を返した場合、取得できたページとOPを保持し、未取得のレス番号には「未取得」/元サイトのエラーコードを明示する。OPにも一部未取得と表示。空白を成功扱いしたりレス番号を詰めたりしない。最初のページの失敗、別スレ、任意HTML、通信例外は従来どおり失敗。公式フォームのpage selectorを同じthreadとtp=1のactionに限定して追跡し、エラーページの先も読めるようにする。実deviceのエラーページを使う部分取得テストを追加し、93項目成功。既存desktop分割1290も成功。最終ビルド/実UI確認中。
+
+ビルド経過: 最初のpartial-buildはTaskProvenanceUtil/cache記録失敗、cacheを分けた再試行はhs_err_pid22516.logでnative malloc不足（仮想メモリ残約1.3GiB）。製品ソースのコンパイルエラーと扱わない。emulator-5580のスナップショットhaiagaru-before-partial-buildを保存成功後、emu killで一時停止。データ消去なし。仮想メモリ約10GiBを確保し、低メモリ/単一worker/SerialGC/Tier1で通常Lint/R8ビルドを再実行中。検証終了前にエミュレータを再開する。
+
+### 実表示の確認と投稿エラーの切り分け
+
+site-mobile-partial242候補を証明書照合後emulator-5580へinstall-rし、同じ実タブ13539922のnative更新ボタンから72レスが表示された。site-partial-refreshed.xml / site-partial-displayed.png。単にHTML解析成功とは区別して、実native本文表示を確認。その後画面が書き込みエラーへ変化したためこちらのタップを停止。利用者は「書き込み出来るようにして」と追加指示。
+
+採取した実HTMLの.over1000 .caution_bodyに「スレが立ってから30日を過ぎるとレス投稿が出来なくなります。」とあり、当該スレに投稿フォームなし。サイトの受付終了が原因であり、アプリから受付を復活させられるものではない。SitePostProtocol.replyでこの既知文言を識別し、投稿受付終了と新しいスレを選ぶ案内を標準エラーへ表示。Gatewayはまず投稿フォームを検査し、引用番号変換がある場合だけ全ページを取得する。通常の本文は不要な過去ページ取得をせず投稿Planへ進める。catch時の例外もHaiagaru logへ記録。公開POSTをこちらから送信・再送していない。
+
+追加でOPのDOMが壊れたニュース記事ではfallback #res0_bodyが後続レス/操作画像も含むことを実UIで発見。記事本体#div_boxを優先する修正と、OPには記事画像2件のみ/レス本文の混入なしの検証を追加。実モバイル分割/未取得表示/投稿終了/引用番号のhost検証96項目、投稿可能な実モバイルフォーム28項目成功。通常Lint/R8のOP限定候補site-mobile-body-final-build.logは成功5m20s。投稿終了理由/不要ページ取得削減を含む最終ビルドはsite-body-post-final-build.logで進行中。未公開。
+
+### 最終候補の再検証と追加エラーコード
+
+site-body-post-final-build.log成功3m55s、MPP build/site-body-post-final.mpp / SHA256 662ad6b4e635789815203cf27cd68472f5c49ab6b9c974cb6759d741a1fed89e。各reporter検証アプリをemulator-5580へ同署名更新し、標準reader/本文入力/標準送信ボタン/隔離POST/期限切れの送信前拒否/再送抑止/OFFの191=212、226=221、242=218項目成功。固定フックの元命令保持も3版成功。実POSTはこちらから0。
+
+ただし最終live probeで元サイト11ページ目がHTTP200の別エラーthr_res:759を返し、778限定の部分取得処理では503になることが判明。そこでエラーページtitle＋error_code_textの形式と3桁コードを厳密照合して、元サイトの各コードを表示しながら取得済み本文を保持する修正へ拡張。初期ページの失敗/任意HTML/別スレ/通信例外は成功扱いしない。実端末の778と759を併用するhost検証98項目と旧desktop分割1290成功。最新版はsite-body-post-errors-final-build.logでビルド中。前記live probeの503を取得成功と扱わない。
+
+### 最終の実通信読取成功
+
+site-body-post-errors-final-build.log は通常Lint/R8成功3m36s。拡張したエラー形式を含む実モバイル分割テスト98項目、desktop分割1290項目成功。build/site-body-errors242.apkを同署名更新し、同じ実スレ13539922の元サイト全11ページを読取proxyでGET（POSTは拒否）して、実GatewayからnativeDatRows=72を取得成功。ログbuild/site-body-errors-live-dat.log。前段503とは異なり、今回はHTTP200のnative DATを確認。サイトエラーページの内容をレス本文として扱わず、未取得の番号に実コードを明示する。最初のページが取れない場合は失敗のままとする。
+
+実native画面の本文72レス表示は前段site-partial-refreshed.xmlで確認済み。記事本体限定（本文にレスや操作画像を重複させない）と投稿受付終了案内を加えた直前候補のnative UI/模擬送信は191=212/226=221/242=218成功。最後の差分は既知サイトエラーの番号判定と表示だけの共通Java処理で、hostの実レス/実エラーHTMLの組合せで98項目を検証し、3版の固定フックは再検査、最新版242は実Gateway経路でも確認。公開POST0、サイト側の書き込み受理は未検証。実掲示板の投稿受付終了をアプリで解除したとは報告しない。Release/pushなし。
+
+最終3版のsite-body-errors候補は全て証明書照合後install-r Success、通常Home起動Complete。固定native hook/register/元命令保持の検査3版PASS。UTC 2026-11-07 06:32以降のcrash buffer行0（site-body-errors-new-crash.log）。最新の実Gateway DAT取得は72行成功。反映APK/MPP/署名/日時はandroid-installations.md、機械可読結果site-body-errors-summary.json。
+最終UIの読取では利用者側で別の実スレ（新型コロナニュース13558784）と本文testを含む標準composerが開かれていることを観測。こちらから公開投稿ボタンを操作していない。13539922の投稿期限終了の事実を別スレへ一般化しない。最新候補の実サイトへの投稿受理は未検証のまま。画面の同時操作があるため以降のタップをしない。公開/pushなし。
+
+## 2026-11-07 あにまんの実エラー・日付表示の追加調査
+
+利用者が「書き込みできません」→「あにまんでエラー」と指定。エミュレータ191の実画面で「ERROR投稿前の確認で拒否されました。認証・内容を確認してください」を観測（site-user-current.xml）。同アプリの現在スレはあにまん7527272、Cookie利用flagは未設定。ホストから公開クライアントと同じOrigin/Referer/X-Requested-Withを付け、preCheckだけPOST（最終POSTはしない）した結果HTTP403のCloudflare Just a moment...を受信（animanch-precheck-only-response.html）。ヘッダー追加だけで認証なしに送れると判断しない。通常の認証が必要。
+
+あにまんのX-Requested-With:XMLHttpRequestを公開JSの通常API仕様に合わせ、preCheck/最終応答のHTTP状態と明示error本文を表示する修正を追加。書き込み画面に「あにまんの認証」ボタンを追加し、既存の追加掲示板認証WebViewを開く。認証を利用者が完了し「認証情報を利用」で当該host Cookie/同じWebView UAを保存する既存経路を使う。Cloudflare challengeのトークンを生成・回避しない。送信画面はChMate標準のまま。元サイトの認証完了/実投稿受理は未確認。
+
+利用者が実投稿の検証を明示許可したが、投稿先と本文の取り違えを防ぐため3サイトの投稿可URL/本文を照会し回答待ち。こちらから公開投稿の最終POSTは0。現在のdraft/他者のレス内容をテスト本文へ流用しない。
+
+さらに「スレ一覧の日付/日時がおかしい」と報告。subject.txtのサイト連番をChMateがUNIX秒として解釈するのが原因。242のThreadListRecyclerAdapterは非日時ID（9240000000以上）では作成日時を表示しない。原本の標準判定は191 BBSThread.c(J)Z、226 BBSThread.d(J)Z、242 TopLayoutDislike2.b(J)Zで同じ定数と確認。追加板のスレIDだけを標準の非日時namespaceへ写し、DAT/投稿/添付/リンクで元番号へ戻すSiteThreadIdsを追加。元一覧に日時がない場合は架空の日時を出さず標準の非日時表示とする。通常5chへの変更なし。既存の短い/ゼロ埋めURLも受理。対応source範囲は正数かつ9240000000未満。新native IDでもソース側の投稿先番号は変更しない。
+
+host: ID互換31、あにまん解析/本文/エラー文228、既存DAT/投稿136、モバイル分割98、desktop分割1290成功。日付候補site-dates-post-build.logは通常Lint/R8成功5m42s、認証入口を含む最新版site-dates-auth-final-build.logで再ビルド中。native testは非日時判定・native DATキーの復号とreader/composer/POST先保持を追加して検証予定。公開/Releaseなし。
+
+追加: あにまんの実Cloudflare HTMLを含むhost試験は230項目成功。標準composerに認証入口が存在し、HTTP403の実challengeを模擬transportで返した場合に案内を表示し最終送信しない検証を追加した。日時markerの先行242候補はnative reader/旧URL/非日時判定/新DAT ID/標準送信/元スレ番号保持で227項目成功（site-dates-first242-runtime.log）。
+端末からpreCheckだけを再確認するInstrumentationの実行は自動承認審査にblocked by policyで拒否された。詳細理由は提示なし。これを別の方法で実行し直さず、既に採取したHTTP403のCloudflare応答と利用者の実画面、模擬応答検証を用いる。対象スレ7527272の実送信受理や認証完了を成功とはしない。
+
+### 日付/認証の結合結果と最終調整
+
+認証入口と非日時IDを含む先行候補site-dates-auth-final.mppは通常Lint/R8成功5m28s。emulator-5580で191=223、226=232、242=229のnative reader/composer/元投稿先ID/非日時判定/旧短縮URLとゼロ埋め/新DATキー/Cloudflare拒否理由表示/最終送信阻止が成功。各版3サイトを対象に上記を確認し、模擬transport以外の最終POSTは送信していない。
+
+認証WebViewの既存ナビゲーション制限がCloudflare子フレームを妨げる可能性を解消するため、利用者が操作する認証ダイアログに限り、HTTPSの同サイトとchallenges.cloudflare.comの子フレームだけを許可するSiteAuthenticationPolicyを追加。main frameでの外部ホスト、userinfo/非標準port/HTTP/任意schemeは許可しない。11項目成功。challengeを自動解答/トークン生成しない。
+
+また元サイトからの番号と内部native番号を厳密に区別し、元サイト側が対応範囲外の値を返した場合に別スレへ解釈しないよう、SiteThreadIds.nativeId（source専用）とnativeInput（旧/内部URL受理）を分けた。32項目成功。source範囲は1〜9239999999、内部範囲はBASE+source。この最終調整を含むsite-final-auth-date-build.logでビルド中。前段frameビルドは重複作業を避けるため自分のビルドdaemonのみ停止し、成功とは扱っていない。
+
+### 最終候補の反映・認証画面確認（未公開）
+
+site-final-auth-date-build.log 通常Lint/R8 BUILD SUCCESSFUL in 4m / 91tasks。build/site-final-auth-date.mppから191/226/242の既存reporter packageをemulator-5580へ同署名更新。native reader/composer/非日時判定/新DAT ID/旧短縮ID/元投稿先ID/認証ボタン/Cloudflare拒否案内/送信停止は191=223、226=232、242=229項目成功。3版の元hook/register保持PASS、cold Home起動Complete。UTC07:17以降の新規crash buffer行0（site-final-auth-new-crash.log）。Source-ID32/認証navigation11/あにまん230/モバイル分割98/desktop分割1290等も成功。
+
+191の標準composerの「あにまんの認証」ボタンを実UIで押して、bbs.animanch.comの認証ダイアログと実ページ表示を観測（site-auth-web-ui.xml / site-auth-web.png）。その「認証情報を利用」を押し、cookies:bbs.animanch.com=trueを確認（site-auth-enabled191.xml）。Cookie値をログ/文書へ出さない。初回ADBによる非exported Activity直起動はSecurityExceptionで拒否されたため、Activityをexportせず通常のcomposerボタンで開いた。認証トークンを自動生成/抽出/回避していない。これを投稿APIのCloudflare認証成功とは扱わない。該当APIへの再checkOnlyは自動承認審査でblocked by policyのため未実施、実公開投稿の受理は未確認。
+
+利用者は実投稿検証を許可しているが、投稿してよい3サイトのURL/本文を照会後未回答。現在のdraftをこちらから送らず、agentが行ったネットワークはpreCheckのみ/通常GETのみ、公開最終POST0。実投稿成功を対応完了とは報告しない。Release/pushなし。
+
+## 2026-11-07 投稿成功時のダイアログ終了・検証用公開準備
+
+利用者が公開投稿の本文test/任意スレを許可した後、成功時の投稿ダイアログ非表示と検証用プレリリースを追加依頼。従来の「未回答」はその時点の記録で、現在は本文/宛先の許可を得ている。ただし最終公開POSTはこちらから0のまま。実投稿受理は未確認で公開説明にも明記する。
+
+標準ResEditFragmentの成功分岐は本文消去/標準保存処理/setResult(RESULT_OK)/finishを実行する。Gatewayが元サイトの明示成功を確認した場合だけ返す2ch_X:trueで、その標準分岐へ到達することを確認。成功前のActivity強制終了や追加の汎用finishフックは不要で、製品Java/MPPは直前最終候補から変更なし。
+
+SiteBoardGatewayInstrumentationを実際のResEditActivity$Dialogへ変更。各サイトで403拒否時にダイアログと入力本文が残ることを確認し、別本文の成功後は試験側のcleanup前にActivityが終了することを確認。emulator-5580で191=255、226=264、242=261項目成功（build/site-close-final191.log / 226.log / 242.log）。外向きPOSTを隔離した試験であり、公開投稿成功とは扱わない。通常のResEditActivityでも先行242=232項目で終了確認成功。3版の新規crash buffer行0（UTC07:50以降、build/site-close-crash.log）。共有NGの変更済みserver試験3ファイルも全て成功。
+
+検証に用いたMPPはbuild/site-final-auth-date.mpp、SHA256 06dbd33bd88e46d01b2b3d74f9ad9898f376de19b549d76b731a91d1b935660a。製品ビルド/3版フック/起動/本文/画像/導入記録は前節の最終候補と同じ。最新差分は試験・文書・公開ノートのみ。.releasercの検証用説明を今回の追加掲示板対応・226検索・動画エラー修正と実サイト投稿未確認の範囲に更新。既存Semantic Releaseのdev経路で公開する。
+
+### 検証用プレリリース公開済み
+
+既存Release CI https://github.com/areteruhiro/Haiagaru-Morphe/actions/runs/42353763218 がsuccess。Semantic Releaseで1.25.0-dev.2を2026-11-07 08:07:57 UTCに公開。https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.25.0-dev.2 。draft=false、prerelease=trueをAPIで確認。配布MPP/標準とpreのbundle JSON/任意ZIP3個を確認。MPPを実ダウンロードし6990165bytes、SHA256 416e2546e68f11db3b0a62c724f1d83d4be0b91299c6731beeed991c105f053d。pre JSONのversion/download_url一致を確認。生成されたversion/CHANGELOG/bundle JSONはCIコミットfadfc39aをff-onlyで取得し、手動編集なし。
+
+ソースコミット4e2bc633。公開前の端末試験は前記ローカル最終候補の同一製品ソースに対して実施し、CIでバージョン更新/再ビルドされた配布MPP自体の再パッチ/再導入はしていない。実サイトへの最終POST0、投稿受理未確認の制限をRelease本文にも掲載。関係しない未追跡scripts/frida-thread-open-timing191.jsとscripts/shared-ng-reporter-blocks-runtime.jsは保護しコミットしなかった。
+
+## 2026-11-07 HTTPS強制ONでの追加掲示板TLSエラー修正中
+
+利用者報告: Unable to parse TLS packet header (http://127.0.0.1:41093/haiagaru-menu-bakusai/)。HttpsTransportのHTTP→HTTPS変更は、既存thumbnail/VPN/hissiだけを例外にしており、新規SiteBoardGatewayのHTTP待受portを登録していなかった。forceHttps=trueで標準クライアントのOkHttp URL builder/java.net接続がloopbackへTLSを開始し、HTTP応答をTLSヘッダとして解釈する。
+
+修正: Gatewayのbind/prefs保存/worker作成が成功した後で、実際に待受しているportをHttpsTransportへ登録。stopでsocketの実portを解除。厳密な127.0.0.1と登録portの組だけを既存HTTP例外/ローカル直接接続へ追加し、外部host/他port/起動前/停止後のloopbackは例外にしない。複数の独立gateway試験を妨げないようport集合を使う。ネイティブフックやTLS検証には変更なし。
+
+ホストのVerifyHttpsTransportを拡張。forceHttps=trueで3サイトmenuのHTTP取得、明示的な外部proxyを使わずlocal取得、外部host/類似host/停止後の例外なし、既存動画thumbnail/hissi等を含む62項目成功。通信はloopbackだけ。
+
+初回Gradle/R8とD8試験準備がPC仮想メモリ不足で失敗。製品コンパイル不良とはしない。emulator-5580が応答しなくなりsnapshot保存/emu killも応答しないため、正確なAVD名/port/PIDを照合したqemuだけ停止。データ消去/アンインストールなし。cold boot時のRAMを2048MiBに抑えて再開。通常Lint/R8再ビルドとHTTPS ONのnative再現/修正検証中。
+
+利用者が『先にプレリリースして』と指示。通常Lint/R8ビルド4m17s成功、3版APK生成成功、host62項目成功、191/226の既存固定フック保持成功。修正後の3版native画面再検証の完了前に先行配布する旨を公開説明に明記し、dev Semantic Releaseを進める。公開処理中にもnative検証を継続する。旧候補での起動直後試験はbg ANRで終了しており、成功に含めない。
+
+
+追補: 利用者の先行公開指示により05dee0d3をdevへpushしRelease CI 42355963730を開始。そのCI待機中に、修正候補の全3版固定hook検査/署名照合/同署名更新を完了。HTTPS ONで191=269、226=278、242=275項目成功（build/site-https-final<版>.log）。3サイトのmenuを製品HttpsTransport経由で実HTTP取得し、同設定で標準本文/画像/投稿dialogの成功終了と拒否時本文保持、停止時のHTTP例外解除/再起動時の再登録を検査。外向きPOSTは隔離、公開POST0。UTC08:30以降のcrash buffer0行（site-https-final-crash.log）。ユーザー設定forceHttpsの元値を各試験finallyで復元。RAM2048MiBでcold boot直後の旧候補試験はbg ANRだったが、4096MiBで最終3版は全て成功した。今回の修正候補を既存アプリへ更新した日時/絶対path/SHA/署名はandroid-installations.mdへ記録。
+
+
+公開完了: Semantic Release CI https://github.com/areteruhiro/Haiagaru-Morphe/actions/runs/42355963730 success。1.25.0-dev.3 https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.25.0-dev.3 を2026-11-07 17:38:41 JSTに検証用公開。APIでprerelease=true/draft=false、MPP+bundle JSON2個+任意ZIP3個を確認。MPPを実ダウンロードし6990788bytes / SHA256 996c222845292876cefbe12a906e49d34472e881611f1cc31d6a909961599afd。pre JSONのversion/download_url一致も確認。CI生成コミット677b9472をff-onlyで取得、生成ファイル手編集なし。公開MPP自身の再パッチ/端末再導入は未実施。同じ製品ソースから生成したローカル候補で前記native 3版の確認が完了した。公開ノートは先行配布開始時点の未完了範囲を保守的に記載したまま。
+
+## 2026-11-07 履歴OOM・アップロード済み画像プレビュー・初見過去ログUnicode
+
+実装と経過はdocs/history-memory-preview-archive-20261107.md。EdgeReporterHistoryの行読込ごとのSharedPreferences.applyを除き、ReporterMetadataWritesへ重複排除/4096保留上限/単一commitワーカー/低ヒープ時退避/補助保存OOM時の停止を追加。既存のNG・履歴やユーザー指定キャッシュ設定は消去/変更しない。242の通常画像プレビューをnative pagerへ委ね、191/226の旧方式とGIF/動画/全レス移動は維持。過去ログはNCR出力、UTF-8 HTML判別、現行div形式fallback、旧sectionがないHTMLでの旧正規表現試行抑止を追加。
+
+ホストはメタデータ14、履歴27、低ヒープ32MiBで5、メディア47、文字コード11、実コンバーター21（旧/現行・UTF-8・報告元実レス・1000レス）成功、既存Talk文字コード試験も成功。元URLをGETしてHTTP200/Shift_JIS/&#120143;を確認。公開投稿は行わない。
+
+191/226/242の前段最終候補で各34項目成功。12,000並列履歴読込/alias保存/NG解決/旧板の隔離、AndroidのHTML/NCR・itest・報告実レス変換、同サイズの生成PNG2枚をnative previewで3往復。242は同じActivityを保ち、191/226は旧方式を維持する。191の既存Back優先と混ざる試験はBackを一時0へ変更し、最後に元値へ復元して再検証した。hook/register/元dispatchの保持も3版成功。途中の失敗は経過文書に残し成功へ含めない。
+
+最後の旧形式解析スキップだけを加えたhistory-release-build.logも通常Lint/R8成功3m49s。その出力build/history-release.mppから最終APKを生成/検査中。共通の最終制御分岐はhost21で出力不変と1000レスを確認済み。機能の前段3版native確認と区別し、Semantic Release CIの実行中にも最終MPPからの追加native確認を継続する。Sony SOG02/Android12実機の再現確認は未実施。既存の文字欠落DATを自動修復する変更ではない。
+
+
+最終バンドル検証: build/history-release.mpp SHA256 58c154e128026a9113bc7a0c780b4f53cc6d1957ff18234d36f71b329507b98b（history-release-build.log成功3m49s）。最終APK history-release191/226/242.apkを署名照合後emulator-5580へ更新し、各34項目PASS/3版cold Home Completeを再確認。hook/register/元dispatch保持も全3版PASS。各APK/MPPの絶対path/hash/署名はandroid-installations.md。Commit e93a25ffから既存Release CI 42361272985を開始し、同時に最終native検査を完了、通常のnative本文/画像/標準投稿ダイアログ回帰を確認中。前段候補の成功で代用せず最終バンドルでも34項目を再実行済み。
+
+
+1.25.0-dev.4検証用公開完了。CI42361272985 success / https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.25.0-dev.4 / prerelease=true,draft=false確認。MPPダウンロードSHA256 03048ffbf65b2248921d52768a2b1680ae274a5e7e06fca041cd602bfe842c59。最終MPPで191/226/242の各34項目とcold Home Completeに加え、通常native本文/画像/投稿dialogの既存回帰269/278/275項目成功。開始時刻以降crash buffer0行。CI配布MPP自体の再導入は未実施。CI生成commit2417d12fをff-only取得、生成ファイル手編集なし。新たな3サイト取得不具合の報告は次の修正として調査する。
+
+## 2026-11-07 報告板の追加取得不具合（調査・修正中）
+
+利用者の具体例から実URLを登録済み8075板のregistryで特定。爆サイ「栃木災害」は /thr_tl/acode=15/ctgid=148/bid=1532/、事件・事故は /thr_tl/acode=2/ctgid=137/bid=1098/。通常の文字一覧は.ttTitle .title/.thrlis_comment_space、画像付き一覧は.imgbody .title/.thrimg_comment_spaceという違いがあり、前者を追加。本文mobile判定が#threadBodyの存在だけでもdesktop扱いになり、#title_thrがない通常mobileを誤認していた。titleがなければmobileを選ぶよう修正。
+
+実通信のGET/解析で事件・事故13611011は133行/15GET、栃木災害9332038は13行/2GETに成功。通常のDalvik/Android UAで検証。Chrome Mobile UAでは本文先頭/総数が省略された別HTMLになることも観測し、取得成功とは扱わない。認証回避やUA偽装で認証制限を突破する実装は追加していない。
+
+ふたば「ねこ」https://may.2chan.net/27/ のカタログには本文なし、「昭和」https://dec.2chan.net/76/ のカタログは4文字省略ラベルであることを実HTML確認。FutabaCatalogueで通常indexのOPタイトル/本文を取得してカタログの順序/件数を保ったまま置換。読み取りは同一boardの数値.htm/futaba.htmのみ、GET formのページ移動も受理、POST/他hostへ進まない。最大10ページ、タイトルは120文字まで、LRU2048件で次回の追加取得を避ける。未取得タイトルは元カタログ表記を維持する。実通信の各50スレ/6GETを確認。昭和先頭は「ロマンポルノやピンク映画の裏話」、ねこ先頭は実際のOP「本文無し」。HTTP403を認証エラーとして表示し、内部解析エラーも短い既知の診断だけを503本文へ出す。upstream HTMLやCookieは表示しない。
+
+ホスト回帰: 報告形式16、既存の板/list/thread25、15地域menu/desktop分割1290、mobile分割98、あにまん保存HTML228項目成功。最初のbuildはserve内の既存catalogue matcherと新ローカル変数の名前重複で失敗、listingへ修正して再build中。製品ビルド成功とはまだ扱わない。
+
+あにまんの実況カテゴリ /category21/ は調査ホストから403。スレタイトル検索も該当URLは特定できず、ユーザーへ「今更Switch版ダブルクロス買った5」の実URLを照会中。削除/欠番/認証等を推測で修正せず、未解決として区別する。公開済み1.25.0-dev.4にはこの追加修正は含まれていない。
+
+
+追補: 通常Lint/R8の再試行site-reported-layouts-build-retry.logは4m30s成功。修正MPP build/site-reported-layouts.mppから全3版APKを生成し固定hook/register/元命令保持成功。242は276項目、191は274項目/cold Home Complete、226初回は試験のupstreamが投げたAssertionError（本文照合）でプロセス終了。製品由来の自然なクラッシュとは区別し、公開を止めて試験を調整。expectedEditorBodyを複数回volatileで読み直さずローカルsnapshotで照合し、fixture不一致をサーバーworkerからthrowせず試験結果へ保持、本文到達と全POST不一致なしを両方assertするよう修正した。226の先行再試行は279項目PASS。最終試験を3版へ再適用して実行中。
+
+
+最終確認: 最終試験は191=276（site-reported191-final-retry-runtime.log）、226=285、242=282（各site-reported<版>-final-runtime.log）成功。191の一度目は終盤のgateway停止/即再開でEADDRINUSE、直前の191先行274項目は成功済み。新プロセスで同じ最終試験を再実行すると276項目成功した。機能失敗や未取得を成功へ数えず、全試験を再実行した結果を記録。全3版のcold Home Complete、UTC10:39以降新規crash buffer0行。あにまん実実況URL未回答/未解決を公開ノートへ明記して今回の2サイト修正を検証用配布する。MPP 044e173bbd15600aad2f8628666c058e993322e48c20073d95e9b0ff97bcd5a6 と各APK/hash/署名/導入先は導入台帳参照。
+
+
+1.25.0-dev.5検証用公開済み: CI42365241233 success / https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.25.0-dev.5 / 2026-11-07 19:50:08 JST。APIでprerelease=true/draft=false、配布MPP/bundle JSON2個/任意ZIP3個を確認。MPPを実ダウンロードしSHA256 dbed441369e5f27d5f4787a955aeb8150e46d2ee21f68a89900b5d3a6572c839、pre JSONのversionとdownload_urlも一致。CI生成ファイルはff-onlyで取得し手編集なし。あにまんの一部実況/安価スレの本文失敗は該当URL未回答で未解決、公開ノートに明記。配布MPP自体の再導入は未実施、同一製品ソースのローカル候補で全3版確認した。
+
+## 2026-11-07 標準バックアップXML共通化・共有NGの散在文字反復による誤検知
+
+詳細 docs/backup-canonical-shared-ng-20261107.md。元の jp.co.airfront.android.a2chMate_preferences.xml をnativeバックアップの共通名とし、実ストア名はパッケージ固有のまま固定I/Oフックで橋渡し。共通名優先/同一パッケージ旧XML名fallback。ユーザー提示の 左のネ|([チョンパヨ].*){5} が「パッケージ名」反復を隠すことを再現し、この種の広すぎるオンラインkeywordルールを自動適用から除外、確認画面へ理由表示。配信側変更なし。
+
+通常Lint/R8成功4m33s、ホスト25/19/96/10306、全3版固定hook命令/レジスター/分岐保持PASS。emulator-5580で署名照合後install-r、専用試験191=10/226=13/242=13成功（226/242は隔離した実native XML復元、191は全restore worker実行なし）。native回帰を再確認し、ユーザーのプレリリース公開指示によりdev Semantic Releaseで配布する。MPP/各APKの絶対path/hash/署名/導入先はandroid-installations.md。
+
+
+最終native回帰: 191=276（canonical-backup191-reader-retry.log）、226=285、242=282項目成功（canonical-backup<版>-reader.log）。標準本文/画像/模擬投稿dialogを確認、公開POST0、試験finallyで設定復元。3版Home Complete。開始UTC11:17以降crash buffer0行。初回191は試験起動順のforeground待ち失敗だったため開始後Home起動で全項目を再実行し成功。最終MPPの専用復元/NG試験と区別して両方確認済み。
+
+
+
+1.25.0-dev.6 検証用公開完了。Semantic Release CI https://github.com/areteruhiro/Haiagaru-Morphe/actions/runs/42367834199 success / https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.25.0-dev.6 / 2026-11-07 20:25:01 JST。APIでprerelease=true/draft=false、MPP/bundle JSON2個/任意ZIP3個を確認。配布MPPを実ダウンロードし7001425bytes / SHA256 858ab81a6042227f84c09a592f9603f9f36328c1c570b2bd819eb185a613af5c。pre JSONのversion/download_url一致。ソースa7c22449、CI生成eef240a9はff-only取得、生成ファイル手編集なし。配布MPP自体の再パッチ/導入は未実施、同一製品ソースのローカル最終候補で全3版試験済み。
+
+
+
+## 2026-11-07 共有NG固定ラベル誤検知・端末内編集（作業中）
+
+詳細 docs/shared-ng-local-edits-20261107.md。配信済み条件の実式に独立したﾜｯﾁｮｲ等の短いOR分岐を確認、受信側に対策。共有NGの条件文/正規表現指定を端末内だけ編集、同期保持、配信条件へ戻すUIを追加。配信停止/票数/報告者除外維持、サーバー変更なし。ホスト57/96/10306/17/263成功。Lint/R8製品ビルド2回成功、UI最終調整の再build/Android試験中。公開や実機導入は行わない。
+
+
+
+最終ビルドshared-ng-local-edits-ui-build.log成功4m32s。全3版APK生成/固定hook保持PASS。242は最終試験51項目PASS（shared-ng-local-edits-ui242-final-runtime.log）。ユーザーが『一つのバージョンで確認できたらプレリリースしていい』と明示したため確認範囲を公開ノートに記載して先行配布する。226/191の最終画面検証は継続し、未完了を成功として数えない。エミュレータRAM4096で226導入中に応答不能、当該AVD/portのプロセスのみ停止して3072でcold boot、データ消去なし。
+
+
+
+追加確認完了: 最終MPPから生成した242=51項目（shared-ng-local-edits-ui242-final-runtime.log）、226=51/191=48項目（shared-ng-local-edits-ui<版>-final-runtime-retry.log）成功。3072MiBでの再起動後は226/191も署名照合install-r Success。同期/再読込/元へ戻す/不正regex拒否/編集dialogの実ボタン/キャンセルとチェック保持を検査。試験用SharedPreferencesの専用namespaceで正常save/resetを確認し、実ユーザー設定の編集保存は行わない。UIのvalid saveの状態遷移はストア/overlay/indexの試験と、実dialogのinvalid/cancel試験に分けて確認。画像取得のscreenshotは0bytesで視覚確認に利用できず、スクショ目視成功とは扱わない。
+
+
+
+最終MPPの通常native回帰も全3版成功: 191=276、226=285、242=282項目（shared-ng-local-edits-ui<版>-reader.log）。標準本文/画像/模擬投稿dialogの成功終了/拒否時入力保持、HTTPS ONを確認。公開POST0。RAM3072で開始時刻以降のcrash buffer0行（shared-ng-local-edits-final-crash.log）。今回もCI配布物自身の再導入ではなく同一製品ソースのローカル最終MPPで確認。
+
+
+
+1.25.0-dev.7検証用公開完了: CI https://github.com/areteruhiro/Haiagaru-Morphe/actions/runs/42372305439 success / https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.25.0-dev.7 / 2026-11-07 21:29:21 JST。APIでprerelease=true/draft=false、配布MPP/bundle JSON2個/任意ZIP3個を確認。MPPを実ダウンロードし7003901bytes / SHA256 b07953c30763e9024d9a1a303c5e53b43cda50c50933e689cdea964174c73870。pre JSONのversion/download_url一致。ソース6ea80066、CI生成860c596aをff-only取得、生成ファイル手編集なし。公開開始時点の1版先行配布の説明は保守的なまま維持したが、公開待ち中に全3版の専用試験/通常native回帰を完了。配布MPP自体の再パッチ/導入は未実施。
+
+
+
+## 2026-11-07 外部板の報告URLと元URL連携（ローカル候補・未公開）
+
+詳細 docs/site-url-bugs-20261107.md。爆サイ佐賀/長崎/大分のacode10→20転送に対応し、ctgid/bidの板identityを保持して一覧/ページ分割リンクを解析。ふたばニュース表の括弧付きfontと数字fontに対応、配布は非掲示板のため新menu対象外/既存には理由表示。あにまんの星+VS文字化けはAndroid charset.canEncodeのfalse-positiveが原因で再現、roundtrip検査+NCR保持に修正。登録済みでONの板の元URLを標準URLルートで開き、コピー時は元URLへ戻す。サーバー変更/公開POSTなし。通常Lint/R8成功4m23s、ホスト20/16/98/1288項目成功。
+
+
+最終Android検証: emulator-5580の3072MiBで191=307、226=316、242=313項目PASS（site-url-bugs<版>-runtime.log）。実配信された2件のHTMLをfixtureとして読み、元URLからOpenUrlActivity経由で標準本文画面を起動し308/82レス表示を確認。Java/Androidの文字参照を含むtitle roundtrip、元URL→既存登録identityの変換、元URLのコピー用文字列（タイトル＋URL形式含む）、manifestハンドラー、OFF時の有効化なし、既存画像/模擬投稿dialog/HTTPS ON/停止時解除も成功。公開POST0、実サイトの投稿受理は未確認。試験終了時刻まで新規crash buffer0行（site-url-bugs-crash.log）。
+
+固定hook verifierの最初の実行は既存4番目引数の不足で失敗し、dev.7の既存wrapper/fallbackと比較するよう検査を調整。242の検査のみホストXmx192mではDEX3組保持でOOMになったため384mで再実行してPASS。製品APK生成/実行のOOMではない。全3版でnative parser fallbackとregistry/settingsのレジスター・元命令保持を確認。APK/MPP/署名はandroid-installations.md。製品ソースの最終ビルド後に変更したのは試験/文書だけ。
+
+公開は行っていない。あにまんの過去の取得失敗は未再現、爆サイの全失敗を網羅したとは扱わず、具体的な失敗URL/エラー詳細を照会中。今回修正した地域転送・ニュース表・Unicode・元URL連携の検証完了とは区別する。
+
+
+
+公開指示追補: ユーザーが『プレリリースして』と指示。前記の最終3版検証結果を確認し、未再現/未解決の範囲を公開ノートへ明記したうえで、b040af13の製品変更を既存dev Semantic Release経路で検証用公開する。生成ファイルの手編集なし。
+
+
+
+1.25.0-dev.8検証用公開完了: Semantic Release CI https://github.com/areteruhiro/Haiagaru-Morphe/actions/runs/42375411673 success / https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.25.0-dev.8 / 2026-11-07 22:11:26 JST。APIでprerelease=true/draft=false、MPP/bundle JSON2個/任意ZIP3個を確認。配布MPPを実ダウンロードし7005493bytes / SHA256 0378c0d146ef9c5c96d2ef741c0956bac320108c6ca6536680b4a10049c4806b。pre JSONのversion/download_url一致。製品ソースb040af13、公開ノートd23e32ec、CI生成ab2cc9f0をff-only取得、生成ファイル手編集なし。配布MPP自体の再パッチ/導入は未実施、同一製品ソースの最終ローカルMPPで前記3版を検証。あにまん未再現の取得失敗/爆サイ全失敗未特定/実サイト投稿未確認をRelease本文に記載。
+
+
+
+## 2026-11-07 あにまん7596018の503（修正・検証中）
+
+詳細 docs/animanch-mobile-pagination-20261107.md。Android実通信でOP+最新200だけ返るモバイル分割を確認し、同一スレのpaginationリンクをたどって連番を復元する処理を追加。ホストは新規295/既存228/報告20項目成功。191での最終本文表示/実通信確認中。公開なし。
+
+
+
+## 最終確認と公開指示（2026-11-08）
+
+最終製品ビルドreadability-build.logは通常Lint/R8を含め4m38s成功。build/animanch-7596018/readability.mpp SHA256 7369b41dc79a2ba492d906509c2cb2ecd7b851037cb4039da122100e3aef75ea。191の既存固定hook/native fallbackのレジスター・元命令保持PASS。同署名更新した最終APKでfinal-reader191.logの585項目PASS。ソースの最終ビルド後に変更したのは試験/文書だけ。226/242の最終APK生成/端末試験は未実施、共通extensionの修正を含めて配布するが確認済みとは記載しない。
+
+実copyhelper→ClipboardHistory→ClipboardManager経路で元URLの格納を確認。ポートなし/HTML/URI/複数item/無関係なportの維持も成功。まどドラ82レスは標準rendererのnative本文と元DATを全行照合し、全内容/改行/引用/画像URL/番号/Unicode保持を確認。表示上の横方向スペース連続・行頭末スペースだけを揃えて比較し、改行は比較対象のまま維持した。NG用sharedReportInputsはHtml.fromHtmlでネイティブplain本文の改行を再正規化するため、これを表示本文として比較していた初期試験は不適切であった。native rowの本文そのものへ修正し、空白整形の差を除いて全件一致を検査。先行の失敗は成功へ数えない。
+
+分割あにまん275レス/爆サイ1001行は隔離した実HTML+合成継続ページによる標準本文表示成功。爆サイの全1000レスを実通信取得したという意味ではない。実通信のあにまん報告URL7596018は、最終候補で初期ページ/1ページ目をHTTP200取得し、gatewayからnativeDatRows=329で成功（final-live.log）。初期のレス重複・欠落による503は解消を確認。採取時刻でレス数は増加している。
+
+通常の本文/画像/模擬投稿dialog/HTTPS ONも成功。公開POST0。readability-test-start以降のcrash buffer0行（final-crash.log）。実機変更/アンインストール/データ消去なし。ユーザーが『終わったらプレリリースして』と明示したため、確認範囲を記載してdev Semantic Releaseで公開する。
+
+
+
+1.25.0-dev.9検証用公開完了: Semantic Release CI https://github.com/areteruhiro/Haiagaru-Morphe/actions/runs/42388373374 success / https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.25.0-dev.9 / 2026-11-08 00:56:19 JST。APIでprerelease=true/draft=false、MPP/bundle JSON2個/任意ZIP3個を確認。配布MPPを実ダウンロードし7007273bytes / SHA256 ec737c477b5bcd27d1367277310be7896468c021bd767642d22e8d5c8401d04d。pre JSONのversion/download_url一致。ソースbea511d3、CI生成9335c79eをff-only取得、生成ファイル手編集なし。配布MPP自体の再パッチ/導入は未実施、同一製品ソースの最終候補で191の585項目と実通信329行確認済み。226/242の今回の最終候補未検証と、爆サイ1000返信は合成継続ページによる試験である点をRelease本文に記載。
+
+
+
+## 2026-11-08 外部板の投稿結果/爆サイ空画面（ローカル修正中・未公開）
+
+詳細 docs/site-post-bugs-20261108.md。ふたばoe934731は実フォームのjs=offのままで投稿成功することを確認。初回Cookie拒否とタイトルなしmeta refresh成功に対応し、HTTPセッションCookieをメモリ内で保持、厳密な非投稿拒否時だけ手動再送を許可。公開test投稿1件（以前のユーザー許可範囲）、他の拒否応答は送信成功扱いしない。あにまんはthread/number受領証で成功を判断し、未使用のjumpに依存しない。実送信はpreCheck403により未確認。
+
+爆サイ13585881はモバイル初回OPなし/selectedなしで再現、p=1だけでは実通信503が残ることを確認。空モバイル画面に限り同一URLのPC表示を1回試す。PC版は記事を返すがレス数2に対し一覧は空。明示的な空一覧を確認した場合は記事と番号維持した未取得枠を返し、理由を表示する。取得できない内容を復元済みと扱わない。先行候補191は594項目PASS、最終PCfallback/未取得表示を追加した版は再ビルド/検証中。ユーザーの新しい公開指示はまだなく、push/Releaseは行わない。
+
+
+最終確認完了: build-final.log通常Lint/R8を含め4m13s成功。191固定hook保持PASS、同署名更新、native191-final.logの595項目PASS。live-bakusai191-final.logで報告URLのHTTP200/166657bytes、nativeDatRows=3成功。実応答は記事1/実レス0/空一覧notice1で、DAT3行は記事1+理由付き未取得枠2。レス2件まで取得済みと扱わない。crash191-final.log0行。MPP/署名/APKハッシュはandroid-installations.md。あにまん実送信と226/242最終画面は未確認。未公開、ローカル修正のみ。
+
+
+公開指示追補: ユーザーが「プレリリースして」と明示。上記の最終検証結果と未確認範囲を公開ノートに記載し、既存dev Semantic Release経路で検証用公開を進める。生成ファイルの手編集なし。
+
+
+1.25.0-dev.10検証用公開完了: Semantic Release CI https://github.com/areteruhiro/Haiagaru-Morphe/actions/runs/42392811838 success / https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.25.0-dev.10 / 2026-11-08 01:49:36 JST。APIでprerelease=true/draft=false、MPP/bundle JSON2個/任意ZIP3個を確認。配布MPPを実ダウンロードし7008320bytes / SHA256 5cadd6acd57aec061ca6ca2c0f3b7853d3c71baec466b3238c115e9a78ff23d9。pre JSONのversion/download_url一致、公開ノートの内容と未確認範囲を確認。最初の公開JSON対ローカルのbyte比較はLF/CRLF差で失敗したため、実際の改行数を確認し、JSONの全内容一致で成功を確認。製品ソースddb95e01、公開ノート96bfaf4e、CI生成fd2f4eeeをff-only取得。生成ファイル手編集なし。配布MPP自体の再パッチ/導入は未実施、同一製品ソースの最終ローカル候補で191の595項目と実爆サイ記事1+未取得枠2を確認済み。あにまん実投稿と226/242最終画面未確認、爆サイの元サイトが返さない2レスは未取得であることをRelease本文に記載。
+
+
+## 2026-11-08 爆サイ3099994の503（修正・検証中）
+
+詳細 docs/bakusai-reader-identity-20261108.md。実191/host WebView UAで全件取得失敗を再現、p=1/p=3でもselected2/レス2〜8だけ返り本文/レス1/9〜15が欠落。クライアント名Haiagaruの応答は本文+15レス全16件。通常爆サイへの他サイトbrowserUaの流用を止め、当該サイトの認証利用ON時のみブラウザUAを維持。ホスト39/16項目PASS、製品ビルドと191最終検証中。新規公開なし。
+
+
+最終確認完了: build.log通常Lint/R8を含め4m1s成功。191固定hook保持PASS/同署名更新/native191-final.log598項目PASS。after-live.logで実HTTP200/184505bytes、16 DAT行/標準スレ画面16件表示成功。gateway-source.rawにOP+res1〜res15の実在を確認、未取得枠ではない。既報ニュースURLもHTTP200/3行、crash191.log0行。最初のnative試験は追加fixture板の期待数未更新による試験側の失敗で、期待を5件へ更新後、同じ製品APKで全件成功。226/242/実機最終画面/実投稿/認証利用ON実通信は未確認。ユーザーが完了後プレリリースを明示したため既存CIで公開する。
+
+
+1.25.0-dev.11検証用公開完了: Semantic Release CI https://github.com/areteruhiro/Haiagaru-Morphe/actions/runs/42431357383 success / https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.25.0-dev.11 / 2026-11-08 09:52:55 JST。APIでprerelease=true/draft=false、MPP/bundle JSON2個/任意ZIP3個を確認。配布MPPを実ダウンロードし7008656bytes / SHA256 627e169012156f08195051055003982e81da0fe04da34944216e18dfde98fdd5、GitHub asset digestも一致。pre JSONのversion/download_urlとローカルJSON内容一致。ソース5db4526a、CI生成ea455787をff-only取得、生成ファイル手編集なし。配布MPP自体の再パッチ/導入は未実施、同一製品ソースの最終ローカル候補で191の598項目と報告URLの実HTTP200/本文+15レス/標準画面16件を確認済み。226/242/実機/認証Cookie利用ON実通信/実投稿の今回の未確認範囲をRelease本文に記載。
+
+## 2026-11-08 外部板のスレ日時・勢い／地域別本文取得
+
+詳細 docs/site-thread-dates-20261108.md、docs/bakusai-menu-thread-audit-20261108.md。固定191/226/242の表示・計算読み出しへ真のOP日時を接続し、仮想ID/URL/履歴は保持。最大同時2、待機200、RAM2000、SQLite20000のメタデータキャッシュ。日時不明をIDから推測しない。勢いによるソート順序は今回未変更・未検証。
+
+既報の15メニュー全てから実板・実スレを確認。47都道府県雑談+15地域運輸+災害4+サッカー1の計67板各1スレで、66スレ全件取得。山梨の1スレは元HTMLに#6がなく、取得できたOP+7レスと理由付き未取得枠を表示する修正を追加。全板/全スレの網羅とは区別。初回は元サイト200エラーが多く、Cookie保持と2秒以上の間隔で再検証。BBS新形式#thrListInnerも対応。
+
+製品最終build-release.logは通常Lint/R8込み3m28s成功。MPP build/external-board-dates/release.mpp SHA256 70f692c5331f16379ba2b77bfae30e699f0f8bb389758f797a551169c8e4c1f3。以後の製品ソース変更なし。3版とも固定hooksとwideレジスター/元命令保持PASS。同署名更新、最終191615/226621/242618項目PASS、3サイトの日時表示と標準本文/画像/模擬投稿/元URL/HTTPS ON成功。191最初の不合格はタブレット別ペインを検査していた試験側の不備で、板キー/ホスト/ポート一致へ修正後、同じ製品APKで全件再成功。
+
+191実通信の栃木運輸・交通12167020はHTTP200/199481bytes、31 DAT行/標準画面31件。サッカー国内13031645はHTTP200/183618bytes、20 DAT行/標準画面20件。公開投稿0、crash-final.log0行、実機変更/アンインストール/データ消去なし。実機・長時間利用・今回の実投稿・認証Cookie利用ONの実通信は未確認。APK/署名/MPPはandroid-installations.md。
+
+共有NGの保存・同期・管理者復元処理も更新。GASは既存URLのversion17へ反映済み。サーバーの隔離モック65項目と既存スイート全件、Androidの永続状態17項目、3版での隔離Senderによる送信待ち/再試行/ACK/取消を確認。試験票は本番へ送信していない。運用基準はユーザー指示によりRelease説明へ記載しない。管理者向け手順・デプロイ画像・書換前バックアップはbuild/shared-ng-feedback-live内に保存。
+
+ユーザーの完了後プレリリース指示に従い、確認範囲を既存.releasercのheaderPartialへ記載してdev Semantic Releaseで公開する。生成ファイルは手編集しない。
+
+1.25.0-dev.12検証用公開完了: Semantic Release CI https://github.com/areteruhiro/Haiagaru-Morphe/actions/runs/42437817930 success / https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.25.0-dev.12 / 公開2026-11-08 11:21:17 JST。APIでprerelease=true/draft=false、MPP/JSON2個/任意ZIP3個を確認。配布MPPを実ダウンロードし7023433bytes / SHA256 ecbbe4a14469c63e1aede7eabb7f05ca02ee12c69f5b58eb29face64d415164a、GitHub asset digestと一致。pre JSONのversion/download_url、両公開JSONとローカル全内容、公開devメタデータのversion/download_url一致。公開説明に非公開の運用条件・内部管理仕様が含まれていないことも確認。
+
+製品ソース9872beef/b624f64d、CI生成0822ab33をff-only取得。生成ファイル手編集なし。配布MPP自体の再パッチ/導入は未実施。同じ製品ソースの最終ローカルMPPで前記3版の615/621/618項目と実通信2件を確認した。代表スレ検証であり、全スレ網羅・長時間使用・今回の実掲示板投稿・勢いソートは確認済み扱いにしない。
+
+## 2026-11-08 爆サイ求人一覧（ローカル修正済み・未公開）
+
+詳細 docs/bakusai-recruitment-20261108.md。福岡829の#thr_list3直下リンク+日時+(n件)形式を共通パーサーへ追加。タイトル/他行/広告/他板の数字を拾わず、0返信もOPを含む。通常スレのない求人一覧では注意喚起リンク/外部求人掲載情報であることを表示。新規のクラス走査/ネイティブhookなし。47都道府県×求人3カテゴリ=141板の1ページ目を実通信検査し、通常スレがあった54板（お水46、風俗8）は各1スレの本文・返信全件取得成功。残87板は通常スレなし。2ページ目以降の全件確認ではない。
+
+ホスト13/既存25/既報16項目成功。通常Lint/R8込み3m55sビルド成功、191固定hook保持PASS、最終候補のエミュレータ615項目成功。実福岡一覧25行、代表5262240は2DAT行/標準画面2件、新規crash0行。MPP SHA256 40ea375157908c8a37f25585cda387410995fbec14cfbdc6b4220b5cfccb6b10、APK/署名はandroid-installations.md。226/242の今回の最終画面は未確認。公開投稿0、実機変更/アンインストール/データ消去なし。今回の追加修正は未公開、dev.12配布物には含まれない。
+
+公開指示追補: ユーザーが『プレリリースして、テストしたURLを教えて』と明示。前記の検証済み候補を既存dev Semantic Release経路で公開する。既存.releasercの公開説明を求人板対応と確認範囲へ更新し、全141板/54スレの検証記録へのURLを掲載。生成ファイル手編集なし。
+
+1.25.0-dev.13検証用公開完了: Semantic Release CI https://github.com/areteruhiro/Haiagaru-Morphe/actions/runs/42441644813 success / https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.25.0-dev.13 / 2026-11-08 12:15:41 JST。APIでprerelease=true/draft=false、MPP/JSON2個/任意ZIP3個を確認。配布MPP実ダウンロード7023639bytes / SHA256 2044fe17e9eac79357958c897770ef673090b7719af4022ab3ad1891cf7f7a53、GitHub asset digest一致。pre JSONのversion/download_url、公開JSON2個とローカル内容一致。検証URL一覧と226/242の今回未確認範囲がRelease本文に掲載されていることも確認。製品ソースb24e2de5、CI生成ff2f47b4をff-only取得。生成ファイル手編集なし。配布MPP自体の再パッチ/導入は未実施、同一製品ソースの最終ローカルMPPで前記191615項目・実一覧25/本文2件を確認済み。
+
+## 2026-11-08 闇バイト関連ニュース（検証済み・公開準備）
+
+詳細 docs/bakusai-yamibaito-news-20261108.md。静的HTMLにない関連ニュースAPI（newsFlg=true,key=YamiNewsTidList）の実59スレを標準一覧へ接続。北海道一般求人等の注意喚起リンクしかない一覧も同じ実ニュースへ接続し、自動ブラウザ起動案は撤回。元スレの正式URLをスレID/板ID一致で検証し、本文/コピー/返信先に使用。APIに件数がないので明示した経路に限り未確認0件、本文取得後は実件数へ。通常板の件数チェックは維持。対応情報上限256、一覧時まとめて保存。
+
+ホスト71/求人18/旧URL等25/既報レイアウト16項目成功。初回の製品subject変換が0を拒否した503を修正して再ビルド。最終count-build.log5m7s成功、以後の製品ソース変更なし。reader.mpp SHA2569b7339bcdc50e3c4cf41b3ddced83e17cb130e7a37b094506144ebf591178940。全3版固定hook保持PASS、641/647/644項目成功。ニュース一覧59件/代表本文3件、元URL/設定無効/元板なしの新規作成拒否、通常本文/画像/模擬投稿/HTTPS ONを検査。試験の画面外日時・古いActivity参照・操作順の不備は試験側を直して同じ製品APKで再検査、初回不合格は成功へ数えない。191実通信でニュースAPI200/subject59行と代表13607621実HTTP200/163435bytes/DAT3行/標準画面3件。公開投稿0、crash0、実機変更/データ消去なし。全59スレ本文網羅/実機/長時間/実投稿は未確認。ユーザーのプレリリース指示に従い既存CIで公開する。
+
+1.25.0-dev.14検証用公開完了: Semantic Release CI https://github.com/areteruhiro/Haiagaru-Morphe/actions/runs/42451791021 success / https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.25.0-dev.14 / 公開2026-11-08 14:45:53 JST。APIでprerelease=true/draft=false、MPP/JSON2個/任意ZIP3個を確認。配布MPP実ダウンロード7026001bytes / SHA256 2c401a4c3506408a91065a064fb07c333670bdac76ad5eee75d1a2800e0ba5bc、GitHub asset digest一致。pre JSONのversion/download_url、公開JSON2個とローカル内容一致。公開説明の静的HTML見落とし訂正・59スレの一覧・代表本文/3版検証・未確認範囲も確認。製品ソース1917d920、CI生成7c06ad88をff-only取得。生成ファイル手編集なし。配布MPP自体の再パッチ/導入は未実施、同一製品ソースの最終ローカルMPPで前記3版641/647/644項目・191実一覧59/本文3件を確認済み。
+
+## 2026-11-08 板一覧更新通知のクラッシュ修正（未公開）
+利用者の11/08 17:49:27と追加11/07 22:39:05は191の同じadapter/ListView件数不一致。原本notifyDataSetChangedがsuper通知の後にdirtyフラグを立て、UI同期observerへ古い件数が渡ることを191/226でexpected120/observed0として再現。固定2classのconst/iputを通知より前へ移動、元命令とレジスター保持。全クラス走査・例外抑制なし、242の新規hookなし。
+通常Lint/R8 build5m9s/91tasks成功。原本通知＋直前候補比較で191全10/226全11メソッド保持成功。emulator-5580の既存reporter191/226を同署名install-r、各141項目のnative observer/直接ListView件数/実measure-layout-scroll試験成功。gateway/native reader・画像・composer等641/647項目成功、公開投稿0、新規crash buffer空。初回gateway191はSystemUI ANRダイアログにfocusを奪われclipboard確認失敗。実UI dump/dumpsysで原因確認しダイアログを閉じて再実行、製品の失敗とは混同しない。
+追加ログ01:03/01:05のBbsPreference castは現行のroot sibling配置対策済み（回帰試験でも確認）。03:22/03:23のFrameLayout null childは既存VideoThumbnailRetry延期対策を再確認し、製品ソースを使った128件×8回等34項目成功。ただしログのみで別経路/報告元の適用MPPは断定しない。
+MPP build/board-adapter-test/fixed.mpp SHA256 7f7c7775db895dc2834192b52bb4693e6ad479896b5db462535f9b4a1c9f205a。APK/署名/導入時刻はandroid-installations.md、詳細board-list-notification-crash-20261108.md。実機変更・データ消去・リリースなし。
+
+## 2026-11-08 共有NG容量削除・爆サイの汎用ページ取得・HOME位置保持（未公開）
+受信済み共有NGキャッシュ削除を設定へ追加。確認と容量表示、専用AtomicFile/gzip/.bak/.newだけ削除して受信OFF、ルール/MatchPlan解放、世代更新で古い同期/読込の再公開防止。削除中オン/同期抑止、個人NG・除外・端末内編集・報告キュー保持。実ファイル/容量/設定/再取得停止＋全文エラーdialog22項目成功。
+爆サイ8520877はunpaged HTTP200/thr_res:759→明示的p1取得、途中の#threadBody内#thr_pagerだけの枠をOP誤認していたのを共通parserで分離。初回が旧ページの場合も最新番号不足からp1取得。実native HttpTransportでGET12/552行/うち51未取得（元サイト759/778）、本文+500レスを確認。残51件を成功/削除扱いにしない。新規568/1000レス1435/mobile99/旧反復39/個別欠落13/parser25成功。BKS-759の短い先頭メッセージ＋再アクセス案内、元番号を全文dialogにも表示。詳細shared-ng-cache-bakusai-pages-20261108.md。
+HOME191の更新完了e(me)はevent.d=true/e=b=0の時n_で先頭へ移動。実native fixtureで130行目→0行目を再現4項目。固定38命令/register7の1命令だけNOP、元43メソッド比較成功。最終候補で4回更新の可視行/offset保持・手動先頭移動12項目成功。build1m37s。最終191 gateway/本文/画像/composer/設定641、板一覧141、共有NG容量/エラー全文22成功、crash buffer空。226は共通修正候補647成功。詳細home-refresh-scroll-20261108.md。
+最終MPP build/home-refresh-scroll/final.mpp SHA256 29992532c912383f529804538e7e02740065f942b518f1a38371177c58d2666d、191APK final191.apk SHA256 e065e8da5659025283131c799ed6fa906bde23d5d55117f14338ac34c9f3a901。emulator-5580/reporter191署名一致更新、台帳記載。試験fixture/アクセス権/反射修正での失敗はdocsに記録し成功と区別。ADB VIEW起動を含むコマンド1件automatic approval review拒否（blocked by policy）後は許可される隔離native試験を使用。実機変更・データ消去・push/Releaseなし。
+
+公開前242追加検証: 同じ最終MPPを242へ適用し署名一致install-r、gateway/native本文/画像/composer/設定644項目成功、公開POST0、crash buffer空。191=641/226=647/242=644、共通削除/エラー全文22・HOME191位置12・板一覧191/226各141は前記通過。利用者のプレ公開指示で既存Semantic Release CIへ進む。
+
+## 2026-11-08 1.25.0-dev.15プレリリース公開完了
+利用者のプレ公開指示でd883b393をpush。初回CI42473158784/再実行はGradle9.8.1配布zipの10秒timeoutで失敗、未公開。既存release.ymlだけでCI作業コピーのwrapper download待機120秒/retries2へ調整（21ab7b48）、Semantic Release CI42477370058 success。公開 https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.25.0-dev.15 / 2026-11-08 20:54:40 JST / draft=false/prerelease=true。CI生成2f48147eをff-only取得。配布6assetの実download/size/SHA256/GitHub digest/ZIP CRC、JSON2個のversion/download_url/生成ファイルとの意味一致、公開説明のHOME/容量削除/爆サイ未取得51件を確認。Windowsの改行差で初回JSON byte比較だけ不一致、parsed JSON一致で確認。MPP7031545bytes SHA256 a51f9c812d812a500f0602cfd7cbc2b0fc1ebc735960bd498d20fb1ce9f30d8b。build/release-1.25.0-dev.15-verify/verification.json参照。masterの正式版1.24.1は変更なし。配布MPP再適用/実機更新なし。
+その後のサムネイル重なり/音声focus/異体字selector初期ONは未公開の作業中差分であり、このdev.15には含まれない。
+
+## 2026-11-08 サムネイル重なり・音声focus・異体字セレクタ（修正・検証済み、未公開）
+
+詳細 docs/thumbnail-focus-emoji-20261108.md。失敗サムネイルの操作がnative返信popupへ重ならないよう祖先経路の後続描画を検査、透明toolbarコンテナは子の描画位置で判断。実Androidレイアウト41項目成功。Haiagaru専用プレイヤーはAPI26以降でprepare時のfocus要求を停止し、実再生時だけ要求。投稿コピー/表示のFE0E/FE0F除去と表示U+FFFD除去を初期ONの独立設定に追加、TXT選択不要。ZWJ/漢字IVS/保存DAT/下書き保持。242の実constructorコピー検証で既存の投稿bodyフィールド対応誤りも検出し修正。
+
+ホスト文字処理12、先行191実文字処理/focus12・画面回帰641、226実nativeコピー/focus15成功。最終buildはPCメモリ不足からエミュレータを停止して再試行し通常Lint/R8込み3m46s成功。最終MPP a586f64df94ee690dbccfd8ecf54e96857b174b95e05677b2c072a2b90f97e45で242を同署名更新しnativeコピー/focus15・画面回帰644成功。公開投稿0、crash-final.log空。最終MPPの191/226再導入、YouTubeアプリそのもの、標準プレイヤー、API25以前、実機、長時間利用は未確認。実機変更・新規リリースなし。公開dev.15にこの3点は含まれない。
+
+## 2026-11-08 1.25.0-dev.16プレリリース公開完了
+
+利用者の公開指示で19b984ddをdevへpush、既存Semantic Release CI42483021247 success。https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.25.0-dev.16 / 2026-11-08 22:07:48 JST / prerelease=true,draft=false。CI生成143a7704をff-only取得。6asset実download/size/SHA256/GitHub digest、ZIP/MPP CRCとJSON2個のversion/download_url/ローカル生成ファイルとの意味一致を確認。MPP7034834bytes SHA2567b2bc4e33b168247dd198ce8aedb996e616e5d20ba09365e3bef5e18b4bd5e9d、build/release-1.25.0-dev.16-verify/verification.json参照。公開説明に3点修正/242投稿コピー/確認範囲/未確認範囲あり。配布MPPの再導入/実機変更なし。次のIP表示スレ回線別警告は本リリースに未包含。
+
+## 2026-11-09 Morphe ManagerのCHANGELOG見出し日付（公開反映済み）
+利用者がCHANGELOGの直接修正を明示したため、日付なし見出しを公開日付きへ修正。dev104/master87/main87箇所、本文/既存日付は保持。GitHub公開日を優先し、公開記録がない19箇所は既存リリースタグのcommit日付（UTC）で補完。今後の.releaserc headerPartialは「# Haiagaru {{version}} ({{date}})」。JSON/MPP/バージョン/Releaseは変更せず、docs [skip ci]でdev e32dd51b/master614a350d/main11052a7eへ反映。master/mainは別indexで最新remote親から2ファイルだけのcommitを作り、他作業のソース差分を含めない。初回atomic pushは古いremote追跡refにより拒否され、3branchとも未更新。明示fetchで最新README等を保持して再作成後、atomic push成功。公開raw3branchのCHANGELOG/.releasercが準備ファイルと完全一致、見出し・本文保持・将来テンプレートを確認。証跡build/changelog-manager-20261109。実機はADB接続0件のためManager内再表示は未確認。
+
+継続差分: IP投稿警告/参考IP確認/設定リンク対応はローカルのみ。build/ip-post-warning/build-verified.logは通常Lint/R8込み5m10s成功。まだ候補APK適用・エミュレータ試験・設定リンク一覧の再取得は未完了で、実装済みと端末確認済みを区別。利用者の次の優先依頼はkenmo.orgのスレ一覧「記者だけをNG」と爆サイ8520877再取得後のDAT/本文更新。実機接続待ちでもコード/隔離試験は進める。
+
+## 2026-11-09 kenmo記者ID・エッヂ板名・IP警告（検証完了、プレ公開指示あり）
+
+詳細kenmo-edge-bakusai-20261109.mdとip-post-warning-20261108.md。kenmoの記者IDをsubjectから保存しDAT読了後に復元、板ごとに分離して「記者だけをNG」を利用可能にする。エッヂ現行トップページのスレリンクを板名へ誤解析する経路を単一正規板メニューへ変換。実ページを含むホスト履歴44/表示42/板一覧40/IP判定34項目成功。
+
+最終通常Lint/R8 build5m2s成功。MPP7eb16e33d30ebbf4adb539f5f1ccb52881fb72ecef2a7a37dd5325205af3f09a。全3版で固定submit元命令/register/try保持と表示hooks確認、各版IP68/板一覧21/reporter-preview38成功、native gateway191583/226647/242644成功。191最初のIP画面試験3回はLauncher ANR/Bluetoothエラーダイアログに遮られ失敗、保存UIを確認してシステムダイアログを閉じ、製品を変えず再成功。公開投稿0/実IPサービス問合せ0、最終crash buffer空。設定リンク実取得を統合し190設定400操作、曖昧名なし/全command clickable。
+
+爆サイ実機8520877は保存DATとgateway新規DATが一致、552行うち51は元サイト759/778。隔離same-count本文A→B試験は実スレID確認後の通常更新でnative表示変更成功。旧試験のcomposer画面取り違えを修正し、無根拠な製品DAT削除・更新hookは追加しない。51件取得成功とはしない。
+
+実機730eae72の既存reporter191へ署名一致install-r成功、ResListActivity focus/起動と導入後crash空を確認。日常用アプリ変更/データ消去なし。実機の各機能通し操作/長時間/実回線切替/実投稿は未確認。導入詳細はandroid-installations.md。利用者がプレ公開を指示したため既存Semantic Release CIへ進む。無関係な未追跡frida-thread-open-timing191.js/shared-ng-reporter-blocks-runtime.jsは保持し公開commitへ含めない。
+
+## 2026-11-09 1.25.0-dev.17プレリリース公開完了
+
+ソースd73afd86をdevへpush、既存Semantic Release CI42502027935 success。公開 https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.25.0-dev.17 / prerelease=true,draft=false。CI生成7774bdaaをff-only取得。生成ファイル手編集なし。配布6assetを実downloadしsize/SHA256/GitHub digest/ZIP・MPP CRC、JSON2個のversion/download_url/ローカル生成内容と公開devフィードの意味一致を確認。日付付き見出しと今回の修正内容・確認範囲・未取得51件が公開本文へ含まれることも検査。配布MPP7040706bytes / SHA2568fb8e0ed01f62d60aea38c8287142969b551647fb075c2fab45e0da20d6655ce。証跡build/release-1.25.0-dev.17-verify/verification.json。
+
+配布MPP自体の再パッチ/再導入は未実施。同じ製品ソースのローカル候補を前記3版で検証し、実機191へ導入済み。正式master版1.24.1は変更なし。
+
+## 2026-11-09 閲覧済みレスの再通知・ミュート中フォーカス（修正・検証済み、未公開）
+
+詳細thread-watch-read-mute-20261109.md。未修正242で監視count12/native read_count20/subject20の再通知を再現。標準既読数を監視前と本文取得後に読み取り、確認済みより前の本文候補を除外。巡回取得数は既読判定へ使わず、初回無通知・真の未読通知・返信限定・重複排除を維持。標準DBへ製品処理で書き込まず、新規native hookなし。
+
+専用VideoViewのPlaybackAudioFocusへミュート状態を接続。ミュート中の要求停止/保持済みの解放、再生中の解除時だけ再取得、停止中解除は要求なし、遅延喪失で無音再生を止めない。VideoView側の自動要求が無効なAndroid8以降が対象。Android7以前/標準プレーヤー/YouTubeアプリそのものは未確認・対象保証外。
+
+最終通常Lint/R8 build4m1s、MPP06c27e804edcc04e5dee39d54090c44e387a4d0635fa6e67744b0ef787f3082b。3版で通知各40・音声等19120/22623/24223、基本画面gateway191641/226647/242644成功、公開POST0・最終crash空。191初回通知試験失敗後、診断追加のみで同じ製品が成功し、試験の非同期反映待ちを追加後3版再確認。226gatewayは一度port EADDRINUSE、同じ製品の再試行で成功。失敗の詳細と未断定の点も詳細docへ記録。
+
+emulator-5580の既存reporter3版へ署名一致install-r。試験用通知権限を元の3版OFFへ復元、fixture行・登録・通知を削除。実機は未接続で今回変更なし。コード・検証記録はローカルのみ、commit/push/Releaseなし、公開dev.17に含まれない。無関係な未追跡2スクリプトは保持。
+
+## 2026-11-09 1.25.0-dev.18プレリリース公開完了
+
+利用者のプレ公開指示でソース128de6afをdevへpush、既存Semantic Release CI42609141906 success。公開 https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.25.0-dev.18 / prerelease=true,draft=false。CI生成86754f73をff-only取得、生成ファイル手編集なし。配布6assetを実downloadしsize/SHA256/GitHub digest/ZIP・MPP CRCを確認。JSON2個のversion/download_url/ローカル生成内容と公開devフィードの意味一致、日付付き見出し・既読再通知とミュートの説明・Android8以降の対象範囲・実機等の未確認範囲も確認。配布MPP7041382bytes / SHA256fe5a3b7666bf9ed9f49a6f6a7a15edd651b8ac06795b0c17e263b67942572271。証跡build/release-1.25.0-dev.18-verify/verification.json。
+
+配布MPP自体の再パッチ/再導入は未実施。同じ製品ソースのローカル候補で前記3版の通知/音声/基本画面回帰を確認済み。今回の実機導入・正式master版の変更なし。無関係な未追跡2スクリプトは公開commitへ含めない。
+
+## 2026-11-09 カスタムアイコンの拡大・投稿前U+FFFD除去（検証済み、プレ公開指示あり）
+
+詳細toolbar-icons-post-cleanup-20261109.md。アプリ内画像設定の191でBitmapDrawable subclassの24dp上書きがConstantState複製に引き継がれず、63px→256pxとなることを再現。表示用bitmapの実サイズ/密度を24dpへ固定して別cacheとし、保存画像256PNG・色・透明・配置・キーは保持。推奨256×256透過PNG/最大16MiBを案内。Morpheパッチ時画像オプションは未変更。
+
+送信用本文だけからU+FFFDとdecimal/hex NCRを除去。空白・改行・名前・タイトル・入力中の下書き・保存DATは保持。既存の191body bridge/226/242送信copy経路へ接続、表示設定とは独立・追加設定なし・native hook変更なし。純粋文字処理12項目成功。
+
+先行アイコンのみ19142/641成功。最終通常Lint/R8 build3m50s、MPP4fece41a4b0a1cad5f50d1bc84567fcb7cea823b32aaa2dc5ab757075ad2b1b0、3版でnative画像各42/投稿前等19127・226/242各30/native基本画面191641・226647・242644成功、crash空、公開投稿0。
+
+191の最終基本画面試験2回はローカル80/443接続エラーで停止。左ペイン77タブに古い未登録loopback板タブが残ることを確認し、コールド起動とFixtureTabSandboxによる一時分離（原本5キー退避・finally復元）後、製品を変えず成功。226/242も同じsandboxで成功。失敗を成功扱いにしない。実機・報告画像そのもの・長時間は未確認。導入詳細はandroid-installations.md。利用者がプレ公開を指示したため既存CIへ進む。無関係な未追跡2スクリプトは保持し公開対象外。
+
+## 2026-11-09 1.25.0-dev.19プレリリース公開完了
+
+ソース45ba85f3をdevへpush、既存Semantic Release CI42625301021 success。公開 https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.25.0-dev.19 / prerelease=true,draft=false。CI生成79098f90をff-only取得、生成ファイル手編集なし。配布6assetを実downloadしsize/SHA256/GitHub digest/ZIP・MPP CRCを確認。JSON2個のversion/download_url/ローカル生成内容と公開devフィードの意味一致、日付付き見出し・画像とU+FFFDの説明・推奨サイズ・実機等の未確認範囲も確認。配布MPP7041439bytes / SHA2568448c29e32df3070a5aa0f6ac231200132e4554bdb59bf176e87cd8c6aac221c。証跡build/release-1.25.0-dev.19-verify/verification.json。
+
+配布MPP自体の再パッチ/再導入は未実施。同じ製品ソースの最終ローカル候補で前記3版のアイコン/投稿前処理/基本画面回帰を確認済み。実機導入・正式master版の変更なし。無関係な未追跡2スクリプトは公開commitへ含めない。
+
+## 2026-11-10 設定文字列・投稿本文・検索・あにまん表示・保存操作（検証完了、プレ公開指示あり）
+
+詳細settings-links-191-post-cleanup-20261109.md / thread-search-animanch-save-20261110.md。191の本文bindingへ設定リンクを接続、3版の固定送信用getterでU+FFFD/NCRを除去。元命令・レジスター・分岐を保持。導入時edgeArchiveToolbarIconPathを削除し内蔵24dpを使用、アプリ内画像設定は維持。ﾜｯﾁｮｲの閉じ括弧検索、あにまんのリンクカード/元画像URL/段落/被返信ナビゲーションを修正。元画像の表示ラベルと標準添付経路を両立。専用動画/GIF保存で通信容量確認を省略、権限・保存処理は継続。
+
+11月7日191のmetadataTitle OOMは既存e93a25ffの対象。現行60項目（低heap5含む）再確認、最終3APKで履歴3入口に同期applyが残らないことを検査。新たな無条件履歴削除なし。
+
+最終通常Lint/R8 build3m37s、3APK適用成功、MPP b25c84455b84da61f49f3d55cd4f806a03650f350ac553d7f7bda771e4e7c161。emulator-5580で標準画面/本文/画像/隔離送信191678・226684・242681、設定リンク各30、投稿前/再生等28/31/31成功。CSV対応文字列392/383/383が実出力と集合一致し全件リンク化。cleanup/tabRestoreエラーなし・公開投稿0・最終crash空。検索host266、あにまん新整形14/保存実ページ228成功。報告7585502は調査環境HTTP403、実機/公開POST/公開動画の保存完了/長時間は未確認。失敗候補と検証環境の不具合は詳細docへ記録、成功と混同しない。
+
+既存reporter191/226/242へ署名一致install-r、実機変更/アンインストール/データ消去なし。導入台帳更新済み。利用者の指示で既存Semantic Release CIからプレ公開へ進む。無関係な未追跡frida-thread-open-timing191.js/shared-ng-reporter-blocks-runtime.jsは保持し公開対象外。
+
+## 2026-11-10 1.25.0-dev.20プレリリース公開完了
+
+ソース7d4e866fをdevへpush、既存Semantic Release CI42791081698 success（5m40s）。公開 https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.25.0-dev.20 / prerelease=true,draft=false。CI生成8f99b2d3をff-only取得、生成ファイル手編集なし。配布6assetを実downloadしsize/SHA256/GitHub digest/ZIP・MPP CRCを確認。JSON2個のversion/download_url/ローカル生成内容と公開devフィードの意味一致、CHANGELOGと公開本文の日付付き見出し・今回修正・確認範囲・HTTP403制限も確認。配布MPP 7042831 bytes / SHA256 c0441c570384f52357a75eda541676f62bfc8b1f710b3cf8a9c5069df6a1f1a1。証跡build/release-1.25.0-dev.20-verify/verification.json。
+
+配布MPP自体の再パッチ/再導入は未実施。同じ製品ソースのローカル候補を前記3版で検証済み。今回の実機導入・正式master版の変更なし。検証エミュレータは終了。無関係な未追跡2スクリプトは保持し公開commitへ含めない。
+
+## 2026-11-10 共有NGタイムアウト対策（検証済み、プレ公開指示あり）
+
+詳細shared-ng-timeout-20261110.md。旧接続10秒/応答15秒に対しGASのロック待機自体が最大15秒、応答は約1.7MB。SharedNgHttpへ共通通信を分離し接続15秒/応答60秒、90秒の共通予算を確認、SocketTimeoutのGETのみ1回再試行。POSTは転送後を含め再送せず、既存queue/operationId維持。許可ホスト/HTTPS/転送制限/4MiB上限維持、タイムアウト案内を日本語化。審査・条件適用・GASソース/デプロイは変更なし。ネイティブフック変更なし。
+
+実際の16秒遅延応答で旧設定失敗/修正後成功、host39項目成功。通常Lint/R8 build4m18s、3APK適用成功、MPP a15d940aa3c55ae6facc2cbad537dec9da9103c0ee84603996f306fb745ada74。emulator-5580の3版で実GAS3,853条件を1915962ms/2264805ms/2426219msで受信・解析、同期/保存/タイムアウトと不正JSON時の保持/POST再送禁止が各15項目成功。基本画面/本文/画像/URL648/653/651成功、公開POST0・最終crash空、復元エラーなし。実機/長時間/報告端末での同一症状は未確認。途中のDNS/ok-full判定失敗・試験診断追加の経緯は詳細docへ記録し、成功扱いしない。
+
+既存reporter3版へ署名一致更新、導入台帳更新済み。実機変更/アンインストール/データ消去なし。利用者から明示的なプレ公開指示あり。無関係な未追跡frida-thread-open-timing191.js/shared-ng-reporter-blocks-runtime.jsは保護し公開対象外。
+
+## 2026-11-10 1.25.0-dev.21プレリリース公開完了
+
+ソース5f133c4bをdevへpush、既存Semantic Release CI42805025284 success（4m36s）。公開 https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.25.0-dev.21 / prerelease=true,draft=false。CI生成e13f8b53をff-only取得、生成ファイル手編集なし。配布6assetのsize/SHA256/GitHub digest/ZIP・MPP CRC、JSON2個のversion/download_urlと公開devフィードの意味一致、CHANGELOG/公開本文の日付付き見出し・共有NGの待機/GET再試行/POST再送禁止・検証と未再現範囲を確認。配布MPP 7043887 bytes / SHA256 e65dd1506b42b727fec607c7df2641da4eedef7e0e00468efa06aaa0f0ac0ccd。証跡build/release-1.25.0-dev.21-verify/verification.json。
+
+配布MPP自体の再パッチ/再導入は未実施。同じ製品ソースのローカル候補を前記3版で検証済み。実機・GASデプロイ・正式master版の変更なし。検証エミュレータは終了済み。無関係な未追跡2スクリプトは公開commitへ含めない。
+
+## 2026-11-10 GASのロック競合対策（サーバー反映済み）
+
+詳細shared-ng-lock-20261110.md。HTTP待機延長では直らないロックタイムアウトを受け、配信キャッシュ生成をdouble-check付き単一ロック化、分割キャッシュRPCを集約。毎分の審査が数十秒〜数分ロックを占有する実行履歴を確認し、重複起動を短時間でスキップし、審査完了後に同じ行から配信キャッシュを更新。キャッシュのハッシュ・完全性・審査/票数/除外の回帰を含むNode516項目成功。
+
+修正前のサーバーソースとの一致を確認後にPublish.gs/PersonalInbox.gsだけを保存、既存URL/権限を維持しGAS v19（2026-11-10 22:21 JST）へ更新。最初のv18とv19直後のGETは更新中エラー、既存実行の終了後の確認でHTTP200/ok=true/revision422/3,873条件/7.515秒を確認。失敗を成功扱いせず証跡と経緯を詳細docへ記録。GASだけの修正でMPPリリース不要。利用者の指示でエミュレータは実施しない。
+
+引き続き191の投稿後自動リロードと、記者ID直接NG/上下4桁NG/期間限定の記者ID・スレ名検索を実装する。未追跡2スクリプトは保護。
+
+## 2026-11-12 登録画像NGのSAF専用フォルダ対応（ローカル実装・未公開）
+
+透明あぼーん用の登録画像をSAFで複数選択し、ユーザーが選んだ親フォルダに `Haiagaru-画像NG` を作成してコピーする方式を実装。親フォルダの読み書き権限を永続保持し、作成済みの専用フォルダ内の画像一覧を読む。ファイル管理アプリから後で追加した画像も手動「再スキャン」またはスレ表示時の周期チェックで対象にする。既存のアプリ内登録画像を新しいフォルダへコピーし、コピーに失敗した場合は保存先を切り替えず元画像を残す。画像プレビュー・個別削除・URLからの登録も同じ保存先を使用。画像あたり8MiB、判定対象は最大80枚、閾値1〜10枚・判定レベル4段階・初期OFFは維持。
+
+ローカルGradle `:patches:buildAndroid` は最終ビルド成功。`RegisteredImageHashTest` 成功。実機でのSAFプロバイダー選択・再起動後の権限保持・画像NGの実描画は未検証。ORB/AKAZE・RANSACの照合は現行実装には未搭載。別パッケージへのAPK導入・コミット・push・Releaseなし。他チャットの既存未コミット変更は維持。
+
+## 2026-11-12 履歴ポップアップ・追加機能一覧・登録画像NG画面の修正（ローカル）
+
+履歴ポップアップはネイティブの選択状態を描画前に読み、ジェスチャー切替時の文字色・インジケーターを同期。対象一覧にはmax(res_count, server_res_count)-read_count（下限0）の新着件数を表示。登録画像NG画面はsystem window insetsを余白へ反映し、URL登録はSAF未設定でもアプリ内保存を使用。共通Composeダイアログは全体の最大高と本文のweightを設定し、多数の候補や長い説明があっても操作ボタン用の高さを確保。
+
+基本設定に「1.24.1以降の追加機能（オン・オフ）」を追加。既存の各機能の設定値を共有し、設定リンク・記者ID検索・動画横画面表示にも切替入口を追加。Catbox画像のUA変更ではブラウザ形式のUAを使用し、ネイティブ識別子の付加を画像ホストに適用しない。
+
+最終 :patches:buildAndroid 成功（build/followups-20261112/final-build.log）。UAルール45件・ネイティブidentity19件、setter/prepare/prepareRequestの3経路回帰、対象一覧のSQL新着件数を確認。指定Catbox画像はブラウザUAでHTTP200/image/jpeg/322263 bytes。実機は未接続、画面・タップ・ジェスチャーの実操作は未検証。公開・APK導入なし。先行ビルドのpackageRelease失敗後、最終ビルド成功を確認。

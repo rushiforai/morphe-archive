@@ -21,6 +21,9 @@ public static class Locate
     /// <summary>A view of Android's Settings app (its "Open by default" screen's <c>entity_header_title</c>) by its resource id.</summary>
     public static By SettingsId(string id) => By.Id($"com.android.settings:id/{id}");
 
+    /// <summary>A view of Chrome's by its resource id: <c>url_bar</c>, its address bar.</summary>
+    public static By ChromeId(string id) => By.Id($"com.android.chrome:id/{id}");
+
     /// <summary>A view by its content description, which views a patch creates in code get from the patch.</summary>
     public static By Description(string description) => MobileBy.AccessibilityId(description);
 

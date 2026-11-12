@@ -13,7 +13,7 @@ import app.template.patches.shared.misc.telemetry.forceAnalyticsDeactivated
  * The CSE playback and ad beacons (player.cse), the OneTrust consent flow and continue watching
  * are not touched.
  *
- * Verified 2026-10-29 against 26.42.1 (versionCode 2642010): see COMPATIBILITY_VIAPLAY.
+ * Verified 2026-10-29 against 26.42.1 and re-checked 2026-11-11 against 26.44.0 (versionCode 2644000): see COMPATIBILITY_VIAPLAY.
  */
 @Suppress("unused")
 val disableTelemetryPatch = bytecodePatch(

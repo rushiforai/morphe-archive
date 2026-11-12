@@ -1,3 +1,87 @@
+## [1.11.0](https://github.com/RashKash103/sync-up/compare/v1.10.0...v1.11.0) (2026-11-12)
+
+### 🐛 Bug Fixes
+
+* Disable the Imgur route rows while Imgur unblocking is off ([779ffaa](https://github.com/RashKash103/sync-up/commit/779ffaab7f241c6e7138a8c714497e8027b1d448))
+* Follow the floating button steadily in both directions, not just down ([bd50db5](https://github.com/RashKash103/sync-up/commit/bd50db5beff7eac301a8f93cbb8d764c2b672eae))
+* Forget kept pictures when a route changes, so thumbnails are asked again ([b9d353e](https://github.com/RashKash103/sync-up/commit/b9d353e32a6980454620ab5d01c050a440271baf))
+* Hold the floating button's actions steady while Sync moves it about ([cff1d49](https://github.com/RashKash103/sync-up/commit/cff1d49a8038da89dc1cfb8c0e9bb71b258018b9))
+* Keep the author pictures on comments behind a "view more" ([8d48262](https://github.com/RashKash103/sync-up/commit/8d48262f8b604919374df544e4472ea358b1bcec))
+* Keep the floating button's actions off the bottom bar, and show it ([369e3ce](https://github.com/RashKash103/sync-up/commit/369e3ce0658d7a45225b68044b27dd218a6b6c0c))
+* Open every kind of Imgur link through the routes ([ed7d6e3](https://github.com/RashKash103/sync-up/commit/ed7d6e311f7736499d2e58a39b1dfa7ae17444ce))
+
+### ✨ New Features
+
+* Choose a client certificate from a file ([a6df124](https://github.com/RashKash103/sync-up/commit/a6df1242efe59a6b76d61ea5a303ae92501eaedf)), closes [PKCS#12](https://github.com/RashKash103/PKCS/issues/12)
+* Credit and link what the Imgur routes were built from ([d19a021](https://github.com/RashKash103/sync-up/commit/d19a0215c1193ad2412ea0cfdf4f49104685d432))
+* Hand out the route's address when sharing or copying ([85065f2](https://github.com/RashKash103/sync-up/commit/85065f26b24d522c4f9b70be810b55fa6c407764))
+* Keep your place in a feed when cached posts are swept away ([3108307](https://github.com/RashKash103/sync-up/commit/310830749e789daffb1fda6ed3ac2d45e6e9ba92))
+* Offer a client certificate to a Rimgo instance that asks ([e14c635](https://github.com/RashKash103/sync-up/commit/e14c635acacf2cb73c1300565d71499bf819a4d5)), closes [PKCS#12](https://github.com/RashKash103/PKCS/issues/12)
+* Say at the top of the settings what needs attention ([c6147ff](https://github.com/RashKash103/sync-up/commit/c6147ff0929fbe58b59facb70260621b4ae8e9b8))
+* Unblock Imgur where it refuses the region ([57b9865](https://github.com/RashKash103/sync-up/commit/57b9865130f1049dc2957fee2cb223fd8972c689))
+
+## [1.11.0-dev.9](https://github.com/RashKash103/sync-up/compare/v1.11.0-dev.8...v1.11.0-dev.9) (2026-11-12)
+
+### 🐛 Bug Fixes
+
+* Keep the floating button's actions off the bottom bar, and show it ([369e3ce](https://github.com/RashKash103/sync-up/commit/369e3ce0658d7a45225b68044b27dd218a6b6c0c))
+
+## [1.11.0-dev.8](https://github.com/RashKash103/sync-up/compare/v1.11.0-dev.7...v1.11.0-dev.8) (2026-11-12)
+
+### 🐛 Bug Fixes
+
+* Follow the floating button steadily in both directions, not just down ([bd50db5](https://github.com/RashKash103/sync-up/commit/bd50db5beff7eac301a8f93cbb8d764c2b672eae))
+
+## [1.11.0-dev.7](https://github.com/RashKash103/sync-up/compare/v1.11.0-dev.6...v1.11.0-dev.7) (2026-11-11)
+
+### 🐛 Bug Fixes
+
+* Forget kept pictures when a route changes, so thumbnails are asked again ([b9d353e](https://github.com/RashKash103/sync-up/commit/b9d353e32a6980454620ab5d01c050a440271baf))
+
+## [1.11.0-dev.6](https://github.com/RashKash103/sync-up/compare/v1.11.0-dev.5...v1.11.0-dev.6) (2026-11-11)
+
+### 🐛 Bug Fixes
+
+* Hold the floating button's actions steady while Sync moves it about ([cff1d49](https://github.com/RashKash103/sync-up/commit/cff1d49a8038da89dc1cfb8c0e9bb71b258018b9))
+
+## [1.11.0-dev.5](https://github.com/RashKash103/sync-up/compare/v1.11.0-dev.4...v1.11.0-dev.5) (2026-11-11)
+
+### ✨ New Features
+
+* Keep your place in a feed when cached posts are swept away ([3108307](https://github.com/RashKash103/sync-up/commit/310830749e789daffb1fda6ed3ac2d45e6e9ba92))
+
+## [1.11.0-dev.4](https://github.com/RashKash103/sync-up/compare/v1.11.0-dev.3...v1.11.0-dev.4) (2026-11-11)
+
+### ✨ New Features
+
+* Credit and link what the Imgur routes were built from ([d19a021](https://github.com/RashKash103/sync-up/commit/d19a0215c1193ad2412ea0cfdf4f49104685d432))
+
+## [1.11.0-dev.3](https://github.com/RashKash103/sync-up/compare/v1.11.0-dev.2...v1.11.0-dev.3) (2026-11-11)
+
+### 🐛 Bug Fixes
+
+* Disable the Imgur route rows while Imgur unblocking is off ([779ffaa](https://github.com/RashKash103/sync-up/commit/779ffaab7f241c6e7138a8c714497e8027b1d448))
+* Keep the author pictures on comments behind a "view more" ([8d48262](https://github.com/RashKash103/sync-up/commit/8d48262f8b604919374df544e4472ea358b1bcec))
+* Open every kind of Imgur link through the routes ([ed7d6e3](https://github.com/RashKash103/sync-up/commit/ed7d6e311f7736499d2e58a39b1dfa7ae17444ce))
+
+### ✨ New Features
+
+* Choose a client certificate from a file ([a6df124](https://github.com/RashKash103/sync-up/commit/a6df1242efe59a6b76d61ea5a303ae92501eaedf)), closes [PKCS#12](https://github.com/RashKash103/PKCS/issues/12)
+* Hand out the route's address when sharing or copying ([85065f2](https://github.com/RashKash103/sync-up/commit/85065f26b24d522c4f9b70be810b55fa6c407764))
+* Say at the top of the settings what needs attention ([c6147ff](https://github.com/RashKash103/sync-up/commit/c6147ff0929fbe58b59facb70260621b4ae8e9b8))
+
+## [1.11.0-dev.2](https://github.com/RashKash103/sync-up/compare/v1.11.0-dev.1...v1.11.0-dev.2) (2026-11-10)
+
+### ✨ New Features
+
+* Offer a client certificate to a Rimgo instance that asks ([e14c635](https://github.com/RashKash103/sync-up/commit/e14c635acacf2cb73c1300565d71499bf819a4d5)), closes [PKCS#12](https://github.com/RashKash103/PKCS/issues/12)
+
+## [1.11.0-dev.1](https://github.com/RashKash103/sync-up/compare/v1.10.0...v1.11.0-dev.1) (2026-11-10)
+
+### ✨ New Features
+
+* Unblock Imgur where it refuses the region ([57b9865](https://github.com/RashKash103/sync-up/commit/57b9865130f1049dc2957fee2cb223fd8972c689))
+
 ## [1.10.0](https://github.com/RashKash103/sync-up/compare/v1.9.4...v1.10.0) (2026-11-09)
 
 ### 🐛 Bug Fixes

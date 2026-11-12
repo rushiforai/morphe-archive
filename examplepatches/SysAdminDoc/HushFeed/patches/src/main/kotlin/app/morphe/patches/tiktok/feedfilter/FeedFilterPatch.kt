@@ -4,13 +4,16 @@
  */
 package app.morphe.patches.tiktok.feedfilter
 
+import app.morphe.patcher.patch.classDefBy
+import app.morphe.patcher.patch.classDefByOrNull
+import app.morphe.patcher.patch.mutableClassDefBy
+import app.morphe.patcher.patch.packageMetadata
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.fieldAccess
 import app.morphe.util.addInstruction
 import app.morphe.util.addInstructions
 import app.morphe.util.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.tiktok.misc.settings.configurableBytecodePatch as bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -699,6 +702,27 @@ val feedFilterPatch = bytecodePatch(
             }
         }
 
+        // The view model swaps the served list in only when it holds as many tabs as TikTok's own
+        // default list, and otherwise keeps the default with every tab on it (47.7.3), so the
+        // same tabs go from the default at each of its fills. The source list is filtered before
+        // the clear-and-add-all, so the fallback the setup hands on is the filtered one too.
+        SearchDefaultTabsFillFingerprint.method.apply {
+            val fills = implementationOrPatchException("Feed filter").instructions.withIndex()
+                .filter { it.value.isTabListFill() }
+                .toList()
+            if (fills.isEmpty()) throw PatchException("Feed filter: no fill of the default search tab list in $name")
+            fills.asReversed().forEach { (index, fill) ->
+                val source = (fill as FiveRegisterInstruction).registerD
+                addInstructionsAtControlFlowLabel(
+                    index,
+                    """
+                        invoke-static/range {v$source .. v$source}, $TAKO_AI_FILTER_CLASS_DESCRIPTOR->filterDefaultSearchTabs(Ljava/util/List;)Ljava/util/List;
+                        move-result-object v$source
+                    """,
+                )
+            }
+        }
+
         // The Ask Tako pill at the head of every search results page, the one Tako surface the
         // switch left standing (issue #21's screenshots). It is not a served tab but a view the
         // fragment inflates with the strip and styles before it returns, so the extension is
@@ -1284,7 +1308,7 @@ internal fun selectRecUserCardInsertion(
  * hook goes after the read, on the fall-through, and a branch into the next instruction keeps
  * its target: the register holds the list only on the path that read it.
  */
-internal fun BytecodePatchContext.filterProfileAdResponseReads() {
+internal fun filterProfileAdResponseReads() {
     val matches = ProfileAdResponseReadFingerprint.matchAllOrNull()
         ?.filterNot { it.originalClassDef.type.startsWith("Lapp/morphe/extension/") }
         .orEmpty()
@@ -1722,7 +1746,7 @@ private fun MutableMethod.filterProfileDetailAdEvent() {
 }
 
 /** The cold start's orchestrator, a method of its own, found by what it calls. */
-private fun BytecodePatchContext.findColdStartOrchestrators(golden: Method, offline: Method): List<MutableMethod> {
+private fun findColdStartOrchestrators(golden: Method, offline: Method): List<MutableMethod> {
     val sites = invokeSitesOf(setOf(golden.coldStartCall(), offline.coldStartCall()), static = true)
     val calls = sites.groupBy { it.method.coldStartCall() }.values.associate { group ->
         mutableClassDefBy(group.first().owner).findMutableMethodOf(group.first().method) to

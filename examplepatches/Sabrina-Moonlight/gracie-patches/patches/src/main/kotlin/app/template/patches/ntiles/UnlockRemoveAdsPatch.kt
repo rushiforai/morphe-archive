@@ -8,6 +8,10 @@ import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.returnEarly
 import com.android.tools.smali.dexlib2.AccessFlags
+import app.template.patches.shared.cert.extractApkCertificatePatch
+import app.template.patches.shared.firebase.spoofFirebaseCertHashPatch
+import app.template.patches.shared.installer.spoofInstallSourcePatch
+import app.template.patches.shared.signature.spoofSignatureVerificationPatch
 
 private val QUICK_SETTINGS = Compatibility(
     name = "Quick Settings",
@@ -49,12 +53,19 @@ private object MainActivityOnCreateFingerprint : Fingerprint(
 
 @Suppress("unused")
 val unlockRemoveAdsPatch = bytecodePatch(
-    name = "Hide Ads Preference",
-    description = "Uses a local preference so interstitial and banner ads stay off.",
+    name = "Hide ads",
+    description = "Hides ads.",
     default = true,
 ) {
     compatibleWith(QUICK_SETTINGS)
 
+    dependsOn(
+        disablePairipPatch,
+        extractApkCertificatePatch,
+        spoofFirebaseCertHashPatch,
+        spoofInstallSourcePatch,
+        spoofSignatureVerificationPatch,
+    )
     execute {
         // No carga el intersticial.
         LoadInterstitialFingerprint.method.returnEarly()

@@ -296,6 +296,41 @@ public final class HevalSettings {
         return setHidden(listId, Collections.<String>emptySet());
     }
 
+    /**
+     * Saves many choices in one write (profiles and import). {@code switches} maps a runtime
+     * switch's id to its choice; {@code lists} maps a list's id to its picked keys, where an empty
+     * set removes the choice (stock). Unknown ids, build-time-only features, a switch id in
+     * {@code lists} or the other way round, invalid keys and lists over {@value #MAX_HIDDEN} keys are
+     * skipped. False when nothing valid was given or the write failed.
+     */
+    public static boolean applyChoices(Map<String, Boolean> switches, Map<String, Set<String>> lists) {
+        Registry registry = Registry.get();
+        Map<String, Object> puts = new HashMap<>();
+        List<String> removes = new ArrayList<>();
+        if (switches != null) {
+            for (Map.Entry<String, Boolean> entry : switches.entrySet()) {
+                Feature feature = registry.feature(entry.getKey());
+                if (feature == null || feature.buildTimeOnly || feature.isList() || entry.getValue() == null) continue;
+                puts.put(FEATURE_PREFIX + feature.id, entry.getValue());
+            }
+        }
+        if (lists != null) {
+            for (Map.Entry<String, Set<String>> entry : lists.entrySet()) {
+                Feature feature = registry.feature(entry.getKey());
+                if (feature == null || !feature.isList()) continue;
+                Set<String> clean = new HashSet<>();
+                if (entry.getValue() != null) {
+                    for (String key : entry.getValue()) if (isValidKey(key)) clean.add(key);
+                }
+                if (clean.size() > MAX_HIDDEN) continue;
+                if (clean.isEmpty()) removes.add(LIST_PREFIX + feature.id);
+                else puts.put(LIST_PREFIX + feature.id, clean);
+            }
+        }
+        if (puts.isEmpty() && removes.isEmpty()) return false;
+        return write(puts, removes);
+    }
+
     /** Every feature back to its default and the pause off. Safe mode and theme are kept. */
     public static boolean resetAll() {
         synchronized (LOCK) {
@@ -737,6 +772,16 @@ public final class HevalSettings {
         if (current == null) return Registry.get().defaultFor(featureId);
         Boolean chosen = current.chosen.get(featureId);
         return chosen != null && chosen;
+    }
+
+    /**
+     * Whether the Patch settings screen marks a feature as on (its row marker and its section's "N on"
+     * count): a chosen switch, a list with at least one pick, or a patch-time change. Like
+     * {@link #isChosen}, it ignores pause, safe mode, dependencies and pending restarts.
+     */
+    public static boolean showsOn(Feature feature) {
+        if (feature == null) return false;
+        return feature.buildTimeOnly || isChosen(feature.id);
     }
 
     /** The picked keys of a list feature, ignoring pause, safe mode and dependencies. Never null. */

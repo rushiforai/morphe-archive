@@ -26,4 +26,16 @@ object Constants {
             AppTarget(version = "6.70.0.5693432.0411be1ed"),
         )
     )
+
+    val COMPATIBILITY_BERGFEX = Compatibility(
+        name = "Bergfex Tours",
+        packageName = "com.bergfex.tour",
+        apkFileType = ApkFileType.XAPK,
+        appIconColor = 0x7ED321,
+        targets = listOf(
+            AppTarget(
+                version = "4.56.1"
+            )
+        )
+    )
 }

@@ -7,4 +7,8 @@ public class Preferences {
     public static boolean getNotifyOnMessage() {
         return false;
     }
+
+    public static boolean getInternalBrowser() {
+        return false;
+    }
 }

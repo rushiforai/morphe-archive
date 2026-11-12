@@ -160,7 +160,7 @@ public final class GifViewerActivity extends HaiagaruComposeActivity {
                 case 3:
                     android.content.ClipboardManager clipboard = (android.content.ClipboardManager)getSystemService(CLIPBOARD_SERVICE);
                     if (clipboard != null) clipboard.setPrimaryClip(android.content.ClipData.newPlainText("GIF URL", url)); return true;
-                case 4: VideoDownloads.confirm(this, url, this::save); return true;
+                case 4: VideoDownloads.request(this, url, this::save); return true;
                 case 5: setRequestedOrientation(getResources().getConfiguration().orientation == 2
                         ? android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
                         : android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE); return true;

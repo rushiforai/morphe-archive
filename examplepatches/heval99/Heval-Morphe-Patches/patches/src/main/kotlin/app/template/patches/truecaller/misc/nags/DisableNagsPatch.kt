@@ -14,7 +14,7 @@ val disableNagsPatch = truecallerControls.featurePatch(
     HevalFeature(
         id = FEATURE,
         name = "Disable nags",
-        description = "Disables default dialer, permission and survey prompts.",
+        description = "Disables default dialer, permission, survey and profile reminder prompts.",
         category = TruecallerControlsCategory.PROMOTIONS,
     ),
 ) {
@@ -27,7 +27,10 @@ val disableNagsPatch = truecallerControls.featurePatch(
     // - "featurePeriodicallyCheckPermissions": the periodic permission re-check prompts.
     // - "featureRatingsAndReviewsSurveys", "featureBlockSurveyFlow" and "featureFeedbackSurvey"
     //   (Family Protection): the surveys.
-    // "featureReduceValueForNonDd" is left alone.
+    // - "featureInvalidProfileNotification": the invalid-profile reminder worker finishes
+    //   without posting its notification.
+    // "featureReduceValueForNonDd" is left alone, and so are "featureUnreadRemindersEmail" and
+    // "featurePremiumReward": reading those as off turns a nag on instead.
     overrideReadFeatureToggles(
         listOf(
             "featureDefaultDialerInterstitial",
@@ -39,6 +42,7 @@ val disableNagsPatch = truecallerControls.featurePatch(
             "featureRatingsAndReviewsSurveys",
             "featureBlockSurveyFlow",
             "featureFeedbackSurvey",
+            "featureInvalidProfileNotification",
         ),
         false,
         FEATURE,

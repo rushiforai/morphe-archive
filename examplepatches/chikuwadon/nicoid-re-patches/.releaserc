@@ -13,6 +13,11 @@
         "releaseRules": [
           {
             "type": "feat",
+            "scope": "nicolive-v2",
+            "release": "major"
+          },
+          {
+            "type": "feat",
             "subject": "prepare v1.10.4-dev.1 controls and incremental comment updates",
             "release": "patch"
           },
@@ -89,7 +94,7 @@
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "./gradlew generatePatchesList           && jq '.version=\"${nextRelease.version}\"' patches-list.json > patches-list.json.tmp && mv patches-list.json.tmp patches-list.json",
+        "prepareCmd": "./gradlew generatePatchesList           && jq '.version=\"${nextRelease.version}\"' patches-list.json > patches-list.json.tmp && mv patches-list.json.tmp patches-list.json && if [ \"${nextRelease.version}\" = \"2.0.0\" ]; then NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.0.0-mpp.sh; fi",
         "successCmd": "git restore -- gradlew.bat"
       }
     ],
@@ -102,7 +107,8 @@
           "patches-bundle.json",
           "patches-list.json",
           "patches/src/main/resources/nicoid/helpers.mpe",
-          "patches/src/main/resources/nicoid/method-delta.dex"
+          "patches/src/main/resources/nicoid/method-delta.dex",
+          "patches/src/main/resources/nicoid/resources.zip"
         ],
         "message": "chore: Release v${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
       }

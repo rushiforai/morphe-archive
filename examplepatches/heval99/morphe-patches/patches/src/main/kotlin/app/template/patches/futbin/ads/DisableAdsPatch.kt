@@ -66,7 +66,7 @@ val disableAdsPatch = bytecodePatch(
         // the "interstitial" request.
         NimbusInitFingerprint.method.returnEarly()
         NimbusBottomBannerFingerprint.method.returnEarly()
-        NimbusInFeedBannerFingerprint.method.returnEarly()
+        NimbusInFeedBannerFingerprint.method.returnEarly(false)
 
         val nimbusInterstitial = NimbusInitFingerprint.classDef.methods.filter { method ->
             method.returnType == "V" &&

@@ -23,7 +23,7 @@ final class SharedNgIndex {
                 case "wacchoi":slips.add(r.value);break;
                 case "prefix":prefixes.add(r.value);break;
                 case "suffix":suffixes.add(r.value);break;
-                case "name":case "trip":names.add(r.value);break;
+                case "name":case "trip":if(r.locallyEdited||NgRegexSafety.identityContent(r.value))names.add(r.value);break;
                 case "keyword":words.add(r.value);break;
             }
         }

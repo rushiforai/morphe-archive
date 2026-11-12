@@ -18,6 +18,13 @@ Second \"item\" text"</string>
 <resources>
   <string name="reddit_privacy_policy">Redditin tietosuojakäytäntö</string>
   <string name="morphe_google_signin_not_available_toast">Google-kirjautuminen ei ole käytettävissä. Kirjaudu sähköpostilla</string>
+  <string name="morphe_app_downgrade_dialog_title">Versionin alentamista ei tueta</string>
+  <string name="morphe_app_downgrade_dialog_message">"Tämä Reddit-asennus on alennettu versiosta &lt;b&gt;%1$s&lt;/b&gt; versioon &lt;b&gt;%2$s&lt;/b&gt;
+&lt;br/&gt;&lt;br/&gt;
+Uudemman version sovellustiedot eivät toimi vanhempien versioiden kanssa, ja sovellus ei välttämättä toimi oikein.
+&lt;br/&gt;&lt;br/&gt;
+Käyttääksesi vanhempaa versiota, sinun on &lt;b&gt;poistettava&lt;/b&gt; Reddit ja asennettava sen jälkeen vanhempi versio."</string>
+  <string name="morphe_app_downgrade_dialog_open_app_info">Avaa sovellustiedot</string>
   <string name="morphe_screen_ads_title">Mainokset</string>
   <string name="morphe_hide_post_ads_title">Piilota syötteen mainokset</string>
   <string name="morphe_hide_comment_ads_title">Piilota kommenttimainokset</string>
@@ -38,7 +45,7 @@ Second \"item\" text"</string>
   <string name="morphe_copy_text_summary">Mahdollistaa tekstin valitsemisen ja kopioimisen julkaisuissa ja kommenteissa. Poistaa kommenttien tiivistämisen käytöstä</string>
   <string name="morphe_copy_text_user_dialog_message">Kun kopiointitoiminto on käytössä, kommenttien piilottaminen ei toimii</string>
   <string name="morphe_custom_font_title">Mukautettu fontti</string>
-  <string name="morphe_custom_font_summary">Lataa mukautettu TTF- tai OTF-fonttitiedosto alla olevasta polusta. Tämän ottaminen käyttöön poistaa myös järjestelmäfontin käytön pakottamiseen käytön.</string>
+  <string name="morphe_custom_font_summary">Lataa mukautettu TTF- tai OTF-fonttitiedosto alla olevasta polusta. Tämän ottaminen käyttöön poistaa myös järjestelmäfontin pakottamisen</string>
   <string name="morphe_custom_font_file_path_title">Mukautetun fontin tiedosto</string>
   <string name="morphe_custom_font_file_path_summary">Napauta valitaksesi TTF- tai OTF-fonttitiedosto</string>
   <string name="morphe_custom_font_selected_font">Valittu fontti – %s</string>
@@ -58,9 +65,11 @@ Second \"item\" text"</string>
   <string name="morphe_hide_trending_shelves_summary">Piilottaa suositut hyllyt syötteestä ja ehdotuksista</string>
   <string name="morphe_remove_notification_dialog_title">Poista ilmoituspyyntödialogi</string>
   <string name="morphe_remove_notification_dialog_summary">Poistaa ilmoitusehdotusikkunan automaattisesti vieraillessa aliryhmässä</string>
-  <string name="morphe_show_flairs_in_home_feed_title">Näytä tunnisteet kotisisösyötteessä</string>
-  <string name="morphe_show_flairs_in_home_feed_summary">Näyttää julkaisujen tunniste-merkit kotisisösyötteessä</string>
-  <string name="morphe_show_flairs_in_home_feed_user_dialog_message">Jotkin sisösyötteen kohteet eivät välttämättä näytä tunnisteita</string>
+  <string name="morphe_high_quality_avatars_title">Korkealaatuiset avatarit</string>
+  <string name="morphe_high_quality_avatars_summary">Näyttää käyttäjien avatarit täydellä resoluutiolla</string>
+  <string name="morphe_show_flairs_in_home_feed_title">Näytä tunnisteet kotisyötteessä</string>
+  <string name="morphe_show_flairs_in_home_feed_summary">Näyttää julkaisujen tunniste-merkit kotisyötteessä</string>
+  <string name="morphe_show_flairs_in_home_feed_user_dialog_message">Jotkin kotisyötteen kohteet eivät välttämättä näytä tunnisteita</string>
   <string name="morphe_show_view_count_title">Näytä katselukerrat julkaisuissa</string>
   <string name="morphe_show_view_count_summary">Rajoitus: Käytettävissä vain, jos API-vastaus sisältää katselukertojen määrän.</string>
   <string name="morphe_flip_post_action_bar_title">Käännä postauksen toimintopalkki</string>
@@ -84,17 +93,13 @@ Second \"item\" text"</string>
   <string name="morphe_keep_feed_position_summary">Säilyttää syötteen samassa kohdassa, kun suljet julkaisun, kuvan tai videon, sen sijaan, että siirtäisi avatun julkaisun ylös</string>
   <string name="morphe_feed_media_max_height_title">Syötteen median enimmäiskorkeus</string>
   <string name="morphe_feed_media_max_height_summary">Kuvien, videoiden ja gallerioiden enimmäiskorkeus syötteessä on niiden leveyden kerrannainen. Tätä korkeampi media rajataan. 1.33 on Redditin oletusarvo</string>
-  <string name="morphe_redgifs_audio_title">Toista Redgifs-videot äänen kanssa</string>
-  <string name="morphe_redgifs_audio_summary">Toistaa Redgifs-alkuperäisen videon sen sijaan, että toistaisi Redditin versiota, jossa ei usein ole ääntä</string>
-  <string name="morphe_redgifs_hd_title">Redgifs HD-laatu</string>
-  <string name="morphe_redgifs_hd_summary">Toistaa Redgifs-HD-videon. HD-videot ovat suurempia ja voivat pysähtyä ladatakseen</string>
   <string name="morphe_download_location_title">Latauspaikka</string>
-  <string name="morphe_download_location_all_title">Kaikki tilejä</string>
+  <string name="morphe_download_location_all_title">Kaikki tilit</string>
   <string name="morphe_download_location_default_summary">Redditin oletus: kuvat Pictures/Reddit-kansiossa, videot Download-kansiossa</string>
   <string name="morphe_download_location_summary_folder">Kansio: %s</string>
   <string name="morphe_download_location_summary_pattern">Tiedostonimi: %s</string>
   <string name="morphe_download_location_pattern_default">Redditin tiedostonimet</string>
-  <string name="morphe_download_location_uses_all_summary">Käyttää \"Kaikki tilejä\"</string>
+  <string name="morphe_download_location_uses_all_summary">Käyttää asetusta \"Kaikki tilit\"</string>
   <string name="morphe_download_location_own_title">Oman paikan käyttö</string>
   <string name="morphe_download_location_folder_title">Tallenna kohteeseen</string>
   <string name="morphe_download_location_folder_default">Redditin oletuskansiot</string>

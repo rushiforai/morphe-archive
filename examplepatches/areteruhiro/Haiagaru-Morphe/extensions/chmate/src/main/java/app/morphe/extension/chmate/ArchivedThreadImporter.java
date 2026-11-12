@@ -66,6 +66,8 @@ final class ArchivedThreadImporter {
                     + "(.*?)</section>\\s*</div>",
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL
     );
+    private static final Pattern LEGACY_POST_CONTENT = Pattern.compile(
+            "<section\\b[^>]*\\bclass=[\"']post-content[\"']", Pattern.CASE_INSENSITIVE);
     private static final Pattern TAG = Pattern.compile("<[^>]+>", Pattern.DOTALL);
     private static final Pattern BREAK = Pattern.compile("(?i)<br\\b[^>]*>");
     private static final Pattern BLOCK_BREAK = Pattern.compile(
@@ -534,7 +536,7 @@ final class ArchivedThreadImporter {
             case DAT:
                 return validateDat(response);
             case KAKO:
-                return convertKakoHtml(info, new String(response, MS932));
+                return convertKakoHtml(info, ArchiveHtmlEncoding.decode(response));
             case ITEST:
                 return convertItestJson(new String(response, StandardCharsets.UTF_8));
             case AUTO:
@@ -543,10 +545,10 @@ final class ArchivedThreadImporter {
                 if (utf8.startsWith("{") && utf8.contains("\"comments\"")) {
                     return convertItestJson(utf8);
                 }
-                String ms932 = new String(response, MS932);
-                if (ms932.toLowerCase(Locale.ROOT).contains("threadtitle")
-                        && ms932.toLowerCase(Locale.ROOT).contains("post-content")) {
-                    return convertKakoHtml(info, ms932);
+                String html = ArchiveHtmlEncoding.decode(response);
+                if (html.toLowerCase(Locale.ROOT).contains("threadtitle")
+                        && html.toLowerCase(Locale.ROOT).contains("post-content")) {
+                    return convertKakoHtml(info, html);
                 }
                 return validateDat(response);
         }
@@ -579,7 +581,10 @@ final class ArchivedThreadImporter {
         StringBuilder dat = new StringBuilder(Math.max(16 * 1024, html.length() / 2));
         Matcher posts = POST.matcher(html);
         int count = 0;
-        while (posts.find()) {
+        // Do not retry the old details/section matcher across every response
+        // of a modern div-based page, where it cannot produce a match.
+        boolean legacyContent = LEGACY_POST_CONTENT.matcher(html).find();
+        while (legacyContent && posts.find()) {
             String name = plainText(posts.group(2));
             String date = plainText(posts.group(3));
             String uid = plainText(posts.group(4));
@@ -593,10 +598,32 @@ final class ArchivedThreadImporter {
             dat.append('\n');
             count++;
         }
+        if (count == 0) {
+            // Current 5ch uses div.post-header/div.post-content, unlike the older
+            // details/section archive layout above. Parse structural children so
+            // nested links/images do not truncate a response or include site chrome.
+            org.jsoup.nodes.Document document = org.jsoup.Jsoup.parse(html);
+            for (org.jsoup.nodes.Element post : document.select("div.post[id]")) {
+                if (!post.id().matches("[1-9][0-9]*")) continue;
+                org.jsoup.nodes.Element name = post.selectFirst(".postusername"),
+                        date = post.selectFirst(".date"), body = post.selectFirst(".post-content"),
+                        uid = post.selectFirst(".uid");
+                if (name == null || date == null || body == null) continue;
+                dat.append(sanitizeField(plainText(name.html()))).append("<><>")
+                        .append(sanitizeField(plainText(date.html())));
+                if (uid != null) {
+                    String id = sanitizeField(plainText(uid.html()));
+                    if (!id.isEmpty()) dat.append(' ').append(id);
+                }
+                dat.append("<>").append(datMessage(body.html())).append("<>");
+                if (count == 0) dat.append(sanitizeField(title));
+                dat.append('\n'); count++;
+            }
+        }
         if (count == 0) throw new IOException("Archive posts were not found");
         Log.i(LOG_TAG, "Converted " + count + " posts from kako for "
                 + info.board + ":" + info.thread);
-        return dat.toString().getBytes(MS932);
+        return TalkDatEncoding.encode(dat.toString());
     }
 
     private static byte[] convertItestJson(String body) throws Exception {
@@ -622,7 +649,7 @@ final class ArchivedThreadImporter {
             dat.append('\n');
         }
         if (comments.length() == 0) throw new IOException("itest returned no posts");
-        return dat.toString().getBytes(MS932);
+        return TalkDatEncoding.encode(dat.toString());
     }
 
     private static byte[] convertTalkJson(ThreadInfo info, String body) throws Exception {

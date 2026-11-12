@@ -10,8 +10,3 @@ object PromotionModalFingerprint : Fingerprint(
     definingClass = "Lcom/sofascore/results/event/details/view/promotion/PromotionModal;",
     name = "onViewCreated",
 )
-
-object TennisPromoSheetFingerprint : Fingerprint(
-    definingClass = "Lcom/sofascore/results/event/aiInsights/SofascoreAnalystTennisPromoBottomSheet;",
-    name = "onViewCreated",
-)

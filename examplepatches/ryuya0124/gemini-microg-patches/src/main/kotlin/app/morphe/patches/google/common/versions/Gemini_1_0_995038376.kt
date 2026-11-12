@@ -19,6 +19,11 @@ val gemini10995038376 = AppVersionProfile(
             expectedMatches = 4,
             description = "Replace four exact-package string references with the cloned Google package."
         ),
+        HookId.GEMINI_ERROR_LOGO_FALLBACK to TargetSpec(
+            expectedMatches = 1,
+            values = mapOf("style" to "BardErrorLogo", "attribute" to "android:src", "fallback" to "@android:drawable/ic_dialog_info"),
+            description = "Use a framework drawable on the native error screen, whose original logo is supplied only by density splits. Keep the original error checks and actions."
+        ),
         HookId.SPLIT_RESTRICTION_REMOVAL to TargetSpec(description = "Remove requiredSplitTypes, splitTypes and vending.splits metadata."),
         HookId.APP_LABEL_UPDATE to TargetSpec(description = "Gemini (Morphe)")
     )

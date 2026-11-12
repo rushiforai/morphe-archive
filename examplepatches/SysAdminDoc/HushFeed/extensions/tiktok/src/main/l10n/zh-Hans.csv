@@ -7,6 +7,10 @@ source,target
 %1$d filtered out,%1$d 已过滤掉
 %1$d gates selected,已选择 %1$d 门
 %1$d minutes left,还剩 %1$d 分钟
+Hashtags,话题
+Photos,照片
+Places,地点
+Sounds,声音
 Turned off %1$d overrides. Check them for TikTok %2$s.,已关闭 %1$d 个覆盖，请针对 TikTok %2$s 重新检查.
 %1$d rejected,%1$d 被拒绝
 %1$d results,%1$d 结果
@@ -243,7 +247,7 @@ AppGallery,华为应用市场
 Appearance,外观
 "Applies to Save the sound as well and to Save the original sound on a long press. Opus makes a smaller file. Opus and MP3 are encoded again from TikTok's copy, unless it's an MP3 already.",也适用于保存声音以及长按时保存原始声音。Opus 制作较小的文件。Opus 和 MP3 都会从 TikTok 的副本重新编码，除非副本已经是 MP3.
 Applies to both video and photo downloads.,适用于视频和照片下载.
-Apply,申请
+Apply,应用
 Apply enables these overrides. Undo last Lab change puts your previous rules back until you change anything else in the Lab.,应用启用这些覆盖。撤消上次实验室更改会恢复之前的规则，直到你更改实验室中的其他任何内容.
 Apply overrides,应用覆盖
 "Apply saves these overrides. Turn on overrides in the Lab to use them. Turning them on is a Lab change too, so after that Undo turns them off rather than putting your previous rules back.",应用保存这些覆盖。在实验室中打开覆盖即可使用它们。打开它们也是实验室更改，因此在撤消之后将它们关闭，而不是恢复之前的规则.
@@ -1032,6 +1036,8 @@ Marked as not interested,标记为不感兴趣
 Match locale and timezone to country,将区域设置和时区与国家/地区相匹配
 Match region fields in requests,匹配请求中的地区字段
 Keep the For You feed on your real SIM,让“为你”使用真实 SIM 卡
+Users,用户
+Videos,视频
 "With the SIM changed, TikTok can keep showing videos you've already watched. Turn this on to stop that. Sticker search and the rest of TikTok still see the SIM above, while For You asks for videos with your phone's own SIM country and carrier. Your IP address and account history still count.",更改 SIM 卡后，TikTok 可能会反复显示你已经看过的视频。打开此项即可避免。贴纸搜索和 TikTok 的其他部分仍会看到上面的 SIM 卡，而“为你”会按你手机自己的 SIM 卡国家和运营商请求视频。你的 IP 地址和账号历史仍会起作用.
 Match text stickers too,也匹配文字贴纸
 Matches the rule: %1$s,匹配规则：%1$s
@@ -2032,6 +2038,10 @@ TikTok refused the follow: %1$s,TikTok 拒绝了关注：%1$s
 Follow refused (%1$s). Maybe a hidden CAPTCHA.,关注被拒绝（%1$s）。可能是隐藏的 CAPTCHA.
 TikTok refused this request (%1$s).,TikTok 拒绝了此请求 (%1$s).
 "TikTok removes videos saved for offline viewing after a set time, sometimes only two days, watched or not. With this on they stay until you delete them in TikTok's Offline videos settings. TikTok can still clear watched ones when your phone is low on space.",TikTok 在设定的时间（有时仅两天）后删除保存用于离线观看的视频，无论观看与否。启用此功能后，它们会一直保留，直到你在 TikTok 的离线视频设置中删除它们为止。当你的手机空间不足时，TikTok 仍然可以清除观看的内容.
+Delete watched offline videos,删除已看过的离线视频
+"Each time TikTok starts, deletes the offline videos you've already watched, so the next download fills their places with new ones. A video counts as watched once it's been on screen.",每次 TikTok 启动时，删除你已看过的离线视频，让下一次下载用新视频填补它们的位置。视频只要在屏幕上出现过，就算已看过.
+1 unwatched offline video left,还剩 1 个未看的离线视频
+%1$d unwatched offline videos left,还剩 %1$d 个未看的离线视频
 TikTok reports additional filtered accounts. This list is incomplete.,TikTok 报告其他已过滤的账号。此列表不完整.
 TikTok reports no more items in this list.,TikTok 报告此列表中不再有任何项目.
 TikTok sees an empty contact list instead of yours. Find Friends and People you may know can no longer use your contacts.,TikTok 看到的是一个空的联系人列表，而不是你的。查找你可能认识的朋友和人无法再使用你的联系人.
@@ -2600,3 +2610,12 @@ How many lines of a long comment show before more.,长评论在“更多”之�
 %1$s line,%1$s 行
 %1$s lines,%1$s 行
 … more,…更多
+Pause before the feed,信息流前暂停
+"Zero switches this off. The first time the feed opens after TikTok starts or comes back from the background, a countdown covers it for that many seconds before you can continue, or leave. Messages, profiles and search open without it.",零将其关闭。TikTok 启动或从后台返回后第一次打开信息流时，倒计时会遮住它这么多秒，然后你才能继续或离开。消息、个人资料和搜索照常打开，不受影响.
+Continue,继续
+Leave TikTok,离开 TikTok
+You can continue now.,现在可以继续了.
+Hide search result tabs,隐藏搜索结果标签
+"Pick the tabs to remove from the top of the search results, such as Shop, LIVE or Places. The list holds the tabs TikTok has shown you, and Top always stays.",选择要从搜索结果顶部移除的标签，例如商店、LIVE 或地点。列表中是 TikTok 向你显示过的标签，“综合”始终保留.
+No search tabs have been seen yet,尚未看到搜索标签
+"Search for something once, then return here to choose its tabs.",先搜索一次，然后回到这里选择标签.

@@ -13,11 +13,13 @@ private const val ADS_PROTO = "Lcom/onefootball/experience/component/ads/generat
 // the item model; ComponentParserRegistry drops the component when the parser returns null. The
 // two ad parsers are pinned by shape plus the generated protobuf class they decode (its
 // parseFrom parameter type belongs to the obfuscated protobuf runtime, so it is not pinned).
+// The fourth parameter is the protobuf Any; R8 renamed it from 15.150.0 on (Lkq0;), so only "any
+// object type" is required ("L" is a prefix match).
 private val PARSE_PARAMETERS = listOf(
     "Ljava/lang/String;",
     "I",
     COMPONENT_MODEL,
-    "Lcom/google/protobuf/Any;",
+    "L",
 )
 
 // The "ad" component: drawn as the "Ad Break" skeleton card until a GMA load fills it.

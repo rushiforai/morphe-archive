@@ -31,6 +31,10 @@
 All notable changes to the Pdb & MyDialog Morphe patch bundle. The Manager reads
 this file to show per-app update hints and the in-app changelog.
 
+## [0.7.0](https://github.com/madushas/morphe-patches-custom/compare/v0.6.0...v0.7.0) (2026-11-13)
+
+* Bundle maintenance release.
+
 ## [0.6.0](https://github.com/madushas/morphe-patches-custom/compare/v0.5.9...v0.6.0) (2026-11-12)
 
 ### ✨ New Features

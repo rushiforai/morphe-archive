@@ -38,7 +38,7 @@ class FutbinSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "27.10",
+            version = "27.13",
             patchNames = setOf("Disable ads"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
@@ -73,7 +73,7 @@ class FutbinSmokeTest {
         val nimbusInit = byString("GAM -> Nimbus -> initAds")
         assertReturnsEarlyVoid(nimbusInit, label = "Nimbus init")
         assertReturnsEarlyVoid(byString("GAM -> Nimbus -> Bottom loadBottomBanner"), label = "Nimbus bottom banner")
-        assertReturnsEarlyVoid(byString("GAM -> Nimbus -> In-Feed loadInFeedBanner"), label = "Nimbus in-feed banner")
+        assertForcedBoolean(byString("in_feed_300_250_banner"), expected = false, label = "Nimbus in-feed banner request")
         val nimbusInterstitial = klass(nimbusInit.definingClass).methods.single {
             it.parameterTypes.firstOrNull()?.toString() == "Landroid/app/Activity;" && "interstitial" in it.strings()
         }

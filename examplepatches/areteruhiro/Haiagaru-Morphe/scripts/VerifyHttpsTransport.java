@@ -93,6 +93,38 @@ public class VerifyHttpsTransport {
             register.invoke(null, -1);
             local.stop(0);
         }
+        var boards = com.sun.net.httpserver.HttpServer.create(new java.net.InetSocketAddress("127.0.0.1", 0), 0);
+        var listening = HttpsTransport.class.getDeclaredMethod("siteBoardServerListening", int.class, boolean.class);
+        listening.setAccessible(true);
+        int boardPort = boards.getAddress().getPort();
+        try {
+            boards.createContext("/", exchange -> {
+                byte[] menu = "native menu".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+                exchange.sendResponseHeaders(200, menu.length);
+                try (var output = exchange.getResponseBody()) { output.write(menu); }
+            });
+            boards.start();
+            URL menu = new URL("http://127.0.0.1:" + boardPort + "/haiagaru-menu-bakusai/");
+            check("https".equals(HttpsTransport.upgrade(menu).getProtocol()), "Unowned loopback is not exempt");
+            listening.invoke(null, boardPort, true);
+            for (String kind : new String[]{"bakusai", "futaba", "animanch"}) {
+                URL endpoint = new URL("http://127.0.0.1:" + boardPort + "/haiagaru-menu-" + kind + "/");
+                check(HttpsTransport.upgrade(endpoint) == endpoint, "Active site menu stays HTTP: " + kind);
+                var connection = HttpsTransport.openConnection(endpoint, new Proxy(Proxy.Type.HTTP, new java.net.InetSocketAddress("127.0.0.1", 9)));
+                connection.setConnectTimeout(2000); connection.setReadTimeout(2000);
+                try (var input = connection.getInputStream()) {
+                    check(new String(input.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8).equals("native menu"), "Menu loads with HTTPS ON and external proxy: " + kind);
+                }
+            }
+            check(HttpsTransport.isHttpUpgradeExempt("127.0.0.1", boardPort), "OkHttp shares site exemption");
+            check(!HttpsTransport.isHttpUpgradeExempt("localhost", boardPort), "Site exception does not extend to other hostnames");
+            check(!HttpsTransport.isHttpUpgradeExempt("127.0.0.1.evil", boardPort), "Lookalike site host still upgrades");
+            check(!HttpsTransport.isHttpUpgradeExempt("bakusai.com", boardPort), "Public site keeps HTTPS");
+            listening.invoke(null, boardPort, false);
+            check("https".equals(HttpsTransport.upgrade(menu).getProtocol()), "Stopped site gateway loses exception");
+        } finally {
+            listening.invoke(null, boardPort, false); boards.stop(0);
+        }
         HttpsTransport.setEnabled(false);
         check(!(HttpsTransport.openConnection(original) instanceof HttpsURLConnection),
                 "OFF must restore HTTP");

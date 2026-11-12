@@ -239,6 +239,9 @@ final class FeedCategory {
         if (watchAgain) {
             feed.addPreference(toggle(context, Settings.WATCH_AGAIN_IN_FEED, L10n.t("Watch again in the feed"),
                     L10n.t("When a reel in your feed ends, Watch again plays it over right there instead of opening Reels.")));
+            feed.addPreference(toggle(context, Settings.HIDE_WATCH_MORE_REELS, L10n.t("Hide Watch more reels"),
+                    L10n.t("Takes the Watch more reels button off the card a reel in your feed shows when it ends. "
+                            + "Watch again stays.")));
         }
         if (feedHoldFast) {
             feed.addPreference(toggle(context, Settings.HOLD_FEED_VIDEO_FAST, L10n.t("Hold for 2x on feed videos"),
@@ -299,7 +302,8 @@ final class FeedCategory {
                             + "page without swiping.")), CarouselArrows::switchChanged));
             feed.addPreference(onFlip(toggle(context, Settings.CAROUSEL_DOTS_PILL, L10n.t("Page dots on a pill"),
                     L10n.t("Moves a carousel post's page dots onto a round pill at the bottom of its photo or video, "
-                            + "with the page you're on in blue.")), CarouselArrows::switchChanged));
+                            + "with the page you're on in blue. Hold the pill and slide left or right to move through the pages.")),
+                    CarouselArrows::switchChanged));
             feed.addPreference(carouselPillLookRow(context));
             feed.addPreference(onFlip(toggle(context, Settings.CAROUSEL_HIDE_NUMBER, L10n.t("Hide page number"),
                     L10n.t("Takes the number like 3/5 off the corner of a carousel post's photo or video.")),

@@ -9,6 +9,10 @@ import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.returnEarly
 import com.android.tools.smali.dexlib2.AccessFlags
+import app.template.patches.shared.cert.extractApkCertificatePatch
+import app.template.patches.shared.firebase.spoofFirebaseCertHashPatch
+import app.template.patches.shared.installer.spoofInstallSourcePatch
+import app.template.patches.shared.signature.spoofSignatureVerificationPatch
 
 private val ORIENTATION_CONTROL = Compatibility(
     name = "Orientation Control",
@@ -59,12 +63,18 @@ private object DetailAdPlaceholderFingerprint : Fingerprint(
 
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
-    name = "Disable Ads",
-    description = "Removes ads from Orientation Control.",
+    name = "Hide ads",
+    description = "Hides ads.",
     default = true,
 ) {
     compatibleWith(ORIENTATION_CONTROL)
 
+    dependsOn(
+        extractApkCertificatePatch,
+        spoofFirebaseCertHashPatch,
+        spoofInstallSourcePatch,
+        spoofSignatureVerificationPatch,
+    )
     execute {
         CanRequestAdsFingerprint.method.addInstructions(
             0,

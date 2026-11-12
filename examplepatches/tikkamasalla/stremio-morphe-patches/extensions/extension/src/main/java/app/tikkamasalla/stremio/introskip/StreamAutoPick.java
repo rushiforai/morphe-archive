@@ -44,6 +44,11 @@ public final class StreamAutoPick {
     private static volatile long lastPlayerStartAt;
     // Episode the user long-pressed: its stream list stays on screen even with auto-pick on.
     private static volatile String forceListVideoId = "";
+    // Uptime of the last remote key or touch on the window (fed by PortWatch with the event's
+    // own time). Classic picks compare it with FIRST_UPTIME; timers keep using wall time.
+    private static volatile long lastKeyAtUptime;
+    private static final Map<Object, Long> FIRST_UPTIME = Collections.synchronizedMap(
+            new WeakHashMap<Object, Long>());
 
     private StreamAutoPick() {
     }
@@ -81,6 +86,13 @@ public final class StreamAutoPick {
             if (listComplete && elapsedMs >= MIN_DWELL_MS) return true;
             return shouldAutoPick(returned, alreadyPicked, forceList, elapsedMs, anyCached);
         }
+
+        /** As above; a key pressed on the list since it opened blocks the pick at any elapsed time. */
+        static boolean shouldAutoPick(boolean returned, boolean alreadyPicked, boolean forceList,
+                                      long elapsedMs, boolean anyCached, boolean listComplete,
+                                      boolean userKeyed) {
+            return !userKeyed && shouldAutoPick(returned, alreadyPicked, forceList, elapsedMs, anyCached, listComplete);
+        }
     }
 
     /** Called when any player starts a stream (ExternalProgress.maybeBinge): its stream screen is now behind it. */
@@ -116,6 +128,37 @@ public final class StreamAutoPick {
     }
 
     /**
+     * PortWatch: any key-down or touch-down on the window, with the event's uptime.
+     * The 0 reduces interactionCancels to its key filter (volume, power and home do not count).
+     */
+    static void noteWindowKey(int keyCode, long eventTime) {
+        if (PortGate.interactionCancels(keyCode, eventTime, 0L)) lastKeyAtUptime = eventTime;
+    }
+
+    /** True when the viewer pressed a key after this stream screen first showed its list. */
+    private static boolean userKeyed(Object fragment) {
+        Long firstAt = FIRST_UPTIME.get(fragment);
+        return firstAt != null && lastKeyAtUptime > firstAt;
+    }
+
+    /** Classic screens have no other window hook: watch the fragment activity's keys from here. */
+    private static void watchKeys(Object fragment) {
+        try {
+            Object activity = call(fragment, "getActivity");
+            if (!(activity instanceof android.app.Activity)) return;
+            final android.app.Activity watched = (android.app.Activity) activity;
+            MAIN.post(new Runnable() {
+                @Override
+                public void run() {
+                    PortWatch.install(watched);
+                }
+            });
+        } catch (Throwable ignored) {
+            // No watcher; picks behave as before.
+        }
+    }
+
+    /**
      * Hook at the start of StreamsListFragment list observer. Takes the observer
      * lambda (p0) so no new registers are needed; fragment and state come from
      * its this$0 and L$0 fields.
@@ -141,6 +184,7 @@ public final class StreamAutoPick {
                 FIRST_VIEW.remove(fragment);
             }
             observe(fragment);
+            watchKeys(fragment);
             if (videoId.equals(forceListVideoId)) {
                 FIRST_SEEN.put(fragment, videoId + "#picked");
                 return;
@@ -171,6 +215,7 @@ public final class StreamAutoPick {
             if (seen == null || !seen.equals(videoId)) {
                 FIRST_SEEN.put(fragment, videoId);
                 FIRST_AT.put(fragment, now);
+                FIRST_UPTIME.put(fragment, android.os.SystemClock.uptimeMillis());
                 TIMER_4.put(fragment, false);
                 TIMER_8.put(fragment, false);
                 prefetchAliases(metaNameOf(state));
@@ -194,7 +239,14 @@ public final class StreamAutoPick {
                     break;
                 }
             }
-            if (!Gate.shouldAutoPick(false, false, false, elapsed, anyCached, listComplete(state))) return;
+            boolean keyed = userKeyed(fragment);
+            if (!Gate.shouldAutoPick(false, false, false, elapsed, anyCached, listComplete(state), keyed)) {
+                if (keyed) {
+                    FIRST_SEEN.put(fragment, videoId + "#picked");
+                    Log.i(TAG, "cancel " + videoId + " (key pressed)");
+                }
+                return;
+            }
             Object best = streamFor(streams, ranked.get(0).stream);
             if (best == null) return;
             FIRST_SEEN.put(fragment, videoId + "#picked");
@@ -259,6 +311,11 @@ public final class StreamAutoPick {
                         if (videoId.equals(forceListVideoId)) return;
                         String seen = FIRST_SEEN.get(fragment);
                         if (seen == null || !seen.equals(videoId)) return;
+                        if (userKeyed(fragment)) {
+                            FIRST_SEEN.put(fragment, videoId + "#picked");
+                            Log.i(TAG, "cancel(timer" + timer + ") " + videoId + " (key pressed)");
+                            return;
+                        }
                         if (returnedFromPlayer(fragment, videoId)) {
                             FIRST_SEEN.put(fragment, videoId + "#picked");
                             Log.i(TAG, "skip(timer" + timer + ") " + videoId + " (returned from player)");
@@ -825,6 +882,10 @@ public final class StreamAutoPick {
     // portId: streams page video id; portDoneId: ended (picked/cancelled) until the page is left;
     // portPickedId: a player started for it.
     private static volatile String portId = "", portDoneId = "", portPickedId = "";
+    // Last streams page the viewer cancelled with a key, and when (uptime). Survives
+    // portLeftDetails: a page that closes and reopens at once is still being browsed.
+    private static volatile String portCancelId = "";
+    private static volatile long portCancelAt;
     private static volatile long portArmedAt, portEvalAt, portLongOkAt, portNextAt, portPlayerEndAt;
     private static volatile String portNextId = "", portPlayerId = "", portAliasFor = "";
     private static volatile boolean portPlayerLoaded;
@@ -943,12 +1004,17 @@ public final class StreamAutoPick {
         if (portArmed && PortGate.interactionCancels(keyCode, eventTime, portArmedAt)) {
             portCancel(keyCode == android.view.KeyEvent.KEYCODE_BACK || keyCode == android.view.KeyEvent.KEYCODE_ESCAPE
                     ? "back" : "key " + keyCode);
+        } else if (!portArmed && portId.equals(portCancelId)
+                && PortGate.interactionCancels(keyCode, eventTime, portCancelAt)) {
+            portCancelAt = eventTime; // still browsing the cancelled page: keep it unarmed
         }
     }
 
     /** A finger went down on the window. */
     static void portTouch(long eventTime) {
         if (portArmed && PortGate.interactionCancels(0, eventTime, portArmedAt)) portCancel("touch");
+        else if (!portArmed && portId.equals(portCancelId)
+                && PortGate.interactionCancels(0, eventTime, portCancelAt)) portCancelAt = eventTime;
     }
 
     /** Forgets all Compose-path state (tests). */
@@ -956,8 +1022,8 @@ public final class StreamAutoPick {
         synchronized (PORT_LOCK) {
             portArmed = false;
             portGen++;
-            portId = portDoneId = portPickedId = portNextId = portPlayerId = portAliasFor = "";
-            portArmedAt = portEvalAt = portLongOkAt = portNextAt = portPlayerEndAt = 0L;
+            portId = portDoneId = portPickedId = portNextId = portPlayerId = portAliasFor = portCancelId = "";
+            portArmedAt = portEvalAt = portLongOkAt = portNextAt = portPlayerEndAt = portCancelAt = 0L;
             portPlayerLoaded = false;
             portLast = null;
         }
@@ -973,6 +1039,10 @@ public final class StreamAutoPick {
             portArmed = false;
             portGen++;
             portDoneId = portId;
+            if ("back".equals(why) || "touch".equals(why) || why.startsWith("key")) {
+                portCancelId = portId;
+                portCancelAt = portEnv.now();
+            }
             Log.i(TAG, "cancel " + portId + " (" + why + ")");
         }
     }
@@ -1016,12 +1086,13 @@ public final class StreamAutoPick {
                     portPlayerEndAt == 0L ? -1L : now - portPlayerEndAt, portEnv.externalReturned(id), next)
                     || (!next && id.equals(portPickedId));
             boolean forced = PortGate.isForcedList(now, portLongOkAt);
+            boolean keyCancelled = id.equals(portCancelId) && now - portCancelAt < WAIT_NOCACHE_MS;
             boolean on = portEnv.autoPickOn();
             boolean show = portEnv.showListOn();
             if (forced) portLongOkAt = 0L;
             // No `next` requirement here: takeLink itself only fires for the episode a Next
             // expected (pill, end of file, external binge), exactly as on Classic.
-            if (PortGate.shouldArm(on, show, forced, returned)) {
+            if (PortGate.shouldArm(on, show, forced, returned, keyCancelled)) {
                 // Next episode prepared while the last one played: start it now, before any addon answers.
                 final String link = NextPrep.takeLink(appContext(), id);
                 if (link.length() > 0) {
@@ -1065,8 +1136,9 @@ public final class StreamAutoPick {
                     return;
                 }
             }
-            if (!PortGate.shouldArm(on, show, forced, returned)) {
-                if (on && !show) Log.i(TAG, "skip " + id + (returned ? " (returned from player)" : " (long-press: stream list)"));
+            if (!PortGate.shouldArm(on, show, forced, returned, keyCancelled)) {
+                if (on && !show) Log.i(TAG, "skip " + id + (keyCancelled ? " (key pressed)" : returned ? " (returned from player)" : " (long-press: stream list)"));
+                if (keyCancelled) portDoneId = id;
                 return;
             }
             portArmed = true;
@@ -1277,8 +1349,9 @@ public final class StreamAutoPick {
             return playerLoaded || (sinceLastPlayerEndMs >= 0 && sinceLastPlayerEndMs < RETURN_WINDOW_MS);
         }
 
-        static boolean shouldArm(boolean autoPickOn, boolean showListOn, boolean forced, boolean returned) {
-            return autoPickOn && !showListOn && !forced && !returned;
+        static boolean shouldArm(boolean autoPickOn, boolean showListOn, boolean forced, boolean returned,
+                                 boolean keyCancelled) {
+            return autoPickOn && !showListOn && !forced && !returned && !keyCancelled;
         }
 
         static boolean shouldPickNow(boolean armed, boolean cancelled, boolean playerStartedSinceArm,
@@ -1428,10 +1501,12 @@ public final class StreamAutoPick {
                 if (arg instanceof android.view.KeyEvent && "dispatchKeyEvent".equals(method.getName())) {
                     android.view.KeyEvent e = (android.view.KeyEvent) arg;
                     if (e.getAction() == android.view.KeyEvent.ACTION_DOWN) {
+                        noteWindowKey(e.getKeyCode(), e.getEventTime());
                         portKey(e.getKeyCode(), e.getRepeatCount(), e.isLongPress(), e.getEventTime());
                     }
                 } else if (arg instanceof android.view.MotionEvent && "dispatchTouchEvent".equals(method.getName())
                         && ((android.view.MotionEvent) arg).getActionMasked() == android.view.MotionEvent.ACTION_DOWN) {
+                    noteWindowKey(0, ((android.view.MotionEvent) arg).getEventTime());
                     portTouch(((android.view.MotionEvent) arg).getEventTime());
                 }
             } catch (Throwable ignored) {

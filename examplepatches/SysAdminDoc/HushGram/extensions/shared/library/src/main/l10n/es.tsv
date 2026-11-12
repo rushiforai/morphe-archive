@@ -253,7 +253,8 @@ Turn on Tap to play to use this choice.	Activa «Toca para reproducir» para usa
 Resume long videos	Reanudar videos largos
 Videos and reels over two minutes pick up where you left off. Seek to start elsewhere. Live videos and ads start as usual.	Los videos y reels de más de dos minutos siguen donde los dejaste. Usa la barra para cambiar el inicio. Los directos y los anuncios empiezan como siempre.
 Default playback quality	Calidad de reproducción predeterminada
-Videos, reels and stories play at the quality below, starting with the next one you open.	Los videos, reels e historias se reproducen en la calidad de abajo, a partir del próximo que abras.
+# context: description of the Default playback quality switch on the Playback page, with the list of qualities below it. A video that keeps stalling because the connection is too slow for its quality switches to the next lower quality that video offers (#599)
+Videos, reels and stories play at the quality below, starting with the next one you open. When your connection can't keep up, a video drops to the next lower quality.	Los videos, reels e historias se reproducen en la calidad de abajo, a partir del próximo que abras. Cuando tu conexión no da abasto, el video baja a la calidad inmediatamente inferior.
 Playback quality	Calidad de reproducción
 Auto	Automática
 Data saver	Ahorro de datos
@@ -1374,6 +1375,9 @@ Takes the arrow off the end of a profile's row of buttons, along with the menu i
 # context: Layout: Glass tab bar's switch that stops the liquid pill shrinking as you scroll (#256)
 Keep the pill full size	Mantener la píldora a tamaño completo
 Scrolling a list down leaves the liquid pill as it is, every tab in place. Restart Instagram after changing it.	Al desplazarte hacia abajo en una lista, la píldora de cristal líquido se queda como está, con cada pestaña en su sitio. Reinicia Instagram tras cambiarlo.
+# context: a switch under Glass tab bar that makes the standard pill (the one without the liquid look) smaller while a list scrolls down, and its description. Liquid glass look and Hide the tab bar as you scroll are the names of two other switches on the same page (#638)
+Shrink the pill as you scroll	Encoger la píldora al desplazarte
+With Liquid glass look off, scrolling a list down makes the pill smaller, and scrolling up or changing tab brings it back to full size. Hide the tab bar as you scroll takes over when it's on. Restart Instagram after changing it.	Con Aspecto de cristal líquido desactivado, al desplazarte hacia abajo en una lista la píldora se hace más pequeña, y al subir o cambiar de pestaña vuelve a su tamaño completo. Si Ocultar la barra de pestañas al desplazarte está activado, manda ese. Reinicia Instagram tras cambiarlo.
 # context: Layout: Glass tab bar's switch that makes the liquid pill's rim bend and mirror what's behind it like glass (#369)
 Bend light at the edges	Curvar la luz en los bordes
 The pill's rim bends what's behind it like real glass, so what passes under the edge shows upside down. Android 13 and newer. Restart Instagram after changing it.	El borde de la píldora curva lo que hay detrás como un cristal de verdad, así que lo que pasa bajo el borde se ve al revés. Android 13 o posterior. Reinicia Instagram tras cambiarlo.
@@ -1522,7 +1526,7 @@ Couldn't use that folder. Saves go where they did.	No se pudo usar la carpeta. S
 Saves go to Movies and Pictures again.	Lo que guardas vuelve a ir a Movies y Pictures.
 %1$s didn't take this save, so it went to Movies and Pictures.	%1$s no aceptó este guardado, así que fue a Movies y Pictures.
 Start reels with sound	Iniciar los reels con sonido
-A reel you open from the Reels tab or a post on Home plays with sound, and Home is muted again when you go back. Your phone's ringer and volume still count.	Un reel que abres desde la pestaña Reels o desde una publicación en Inicio se reproduce con sonido, e Inicio vuelve a estar silenciado cuando regresas. El modo de timbre y el volumen del teléfono siguen contando.
+A reel you open from the Reels tab, a profile or a post on Home plays with sound, and Home is muted again when you go back. Your phone's ringer and volume still count.	Un reel que abres desde la pestaña Reels, un perfil o una publicación en Inicio se reproduce con sonido, e Inicio vuelve a estar silenciado cuando regresas. El modo de timbre y el volumen del teléfono siguen contando.
 Keep your place in Home	Mantener tu lugar en Inicio
 Coming back to Instagram leaves Home on the post you were on, however long you were away. Pull down to refresh still reloads it.	Al volver a Instagram, Inicio se queda en la publicación en la que estabas, sin importar cuánto tiempo estuviste fuera. Deslizar hacia abajo para actualizar la sigue recargando.
 Filter the Stories tray by verified accounts	Filtrar la fila de historias por cuentas verificadas
@@ -1590,7 +1594,7 @@ Previous page	Página anterior
 Next page	Página siguiente
 # context: Feed settings: the Page dots on a pill switch, right under Carousel arrows (#419). A pill is a small bar with round ends that holds the dots.
 Page dots on a pill	Puntos de página en una cápsula
-Moves a carousel post's page dots onto a round pill at the bottom of its photo or video, with the page you're on in blue.	Mueve los puntos de página de una publicación en carrusel a una cápsula redonda en la parte inferior de su foto o video, con la página en la que estás en azul.
+Moves a carousel post's page dots onto a round pill at the bottom of its photo or video, with the page you're on in blue. Hold the pill and slide left or right to move through the pages.	Mueve los puntos de página de una publicación en carrusel a una cápsula redonda en la parte inferior de su foto o video, con la página en la que estás en azul. Mantén presionada la cápsula y desliza a la izquierda o a la derecha para pasar las páginas.
 # context: Feed settings: the Hide page number switch, under Carousel arrows (#581). The number is the 3/5 in the corner of a carousel post.
 Hide page number	Ocultar número de página
 Takes the number like 3/5 off the corner of a carousel post's photo or video.	Quita el número como 3/5 de la esquina de la foto o el video de una publicación en carrusel.
@@ -1668,6 +1672,12 @@ Stop videos looping	No repetir los videos
 Feed videos and reels stop at their last frame instead of playing again. Reels still loop while auto scroll is on, so it can move on.	Los videos del feed y los reels se detienen en su último fotograma en vez de volver a reproducirse. Los reels se siguen repitiendo mientras el desplazamiento automático está activado, para que pueda pasar al siguiente.
 Not used while you've picked a folder. Saves go there.	No se usa mientras tengas una carpeta elegida. Todo se guarda ahí.
 All	Todo
+# context: names of the groups the settings categories fall into, shown over each group on the list of categories and on the chips above it next to All (#642): privacy, what the app shows, media and storage, how the app looks, and App for HushGram's own updates, backup, pause and about
+Privacy	Privacidad
+Content	Contenido
+Media and storage	Multimedia y almacenamiento
+Look	Apariencia
+App	Aplicación
 Posts	Publicaciones
 Nothing matches.	No hay coincidencias.
 Couldn't open that one.	No se pudo abrir.
@@ -1759,7 +1769,7 @@ Open a chat, tap the clock button next to the call buttons at the top, or long p
 Open a chat, tap the clock button next to the call buttons at the top, or long press the chat's name, and pick Export chat. The whole chat is saved as a text file in Downloads, HushGram folder, one line per message.	Abre un chat, toca el botón del reloj junto a los botones de llamada arriba, o mantén pulsado el nombre del chat, y elige Exportar chat. El chat entero se guarda como archivo de texto en Descargas, carpeta HushGram, con una línea por mensaje.
 Instagram stopped loading older messages.	Instagram dejó de cargar mensajes anteriores.
 Black settings page	Página de ajustes negra
-Black rows and dialogs, HushGram's name at the top, and each category on one line.	Filas y diálogos negros, el nombre de HushGram arriba y cada categoría en una línea.
+Black rows and dialogs, with HushGram's name at the top.	Filas y diálogos negros, con el nombre de HushGram arriba.
 Mark as read	Marcar como leído
 Nothing to mark as read	Nada que marcar como leído
 Mark as read button in chats	Botón Marcar como leído en los chats
@@ -1976,6 +1986,9 @@ Leaves out the live broadcasts Instagram puts between reels in the Reels tab and
 # context: a switch on the Feed page; Watch again is the button on the card Instagram shows when a reel in the feed ends, next to Watch more reels
 Watch again in the feed	Volver a ver en el feed
 When a reel in your feed ends, Watch again plays it over right there instead of opening Reels.	Cuando termina un reel en tu feed, Volver a ver lo reproduce otra vez ahí mismo en lugar de abrir Reels.
+# context: a switch on the Feed page under Watch again in the feed; Watch more reels is the big button on the card Instagram shows when a reel in the feed ends, it opens Reels
+Hide Watch more reels	Ocultar Ver más reels
+Takes the Watch more reels button off the card a reel in your feed shows when it ends. Watch again stays.	Quita el botón Ver más reels de la tarjeta que aparece cuando termina un reel en tu feed. Volver a ver se queda.
 # context: a switch on the Playback page under Keep playing in the background; Android's own name for picture in picture
 Picture in picture for reels	Imagen en imagen para reels
 Leaving Instagram while a reel plays shrinks it into a small window over your other apps. Works in Reels and on reels opened from the feed, on Android 15 or newer.	Si sales de Instagram mientras se reproduce un reel, se reduce a una ventana pequeña sobre tus otras apps. Funciona en Reels y en los reels que abres desde el feed, en Android 15 o posterior.
@@ -2033,6 +2046,9 @@ Posts from your hidden accounts still show in Favorites. For you and Following l
 # context: switch next to Lock your messages; Saved is Instagram's page of your saved posts and collections (#597)
 Lock Saved	Bloquear Guardado
 Saved and everything in it stay covered until your fingerprint, face or screen lock says it's you.	Guardado y todo lo que contiene quedan cubiertos hasta que tu huella, tu cara o el bloqueo de pantalla confirmen que eres tú.
+# context: switch under Lock your messages; on, an unlock opens only the chat it was asked in, so the next chat, or going back to the inbox, asks for the fingerprint, face, screen lock or PIN again (#649)
+Ask for each chat	Pedir en cada chat
+Every chat you open asks again, and so does your inbox when you go back to it. Off, one unlock opens everything until you leave Instagram.	Cada chat que abras vuelve a pedirlo, y también tu bandeja de entrada cuando vuelvas a ella. Desactivado, un solo desbloqueo abre todo hasta que salgas de Instagram.
 Saved is locked	Guardado está bloqueado
 Unlock Saved	Desbloquear Guardado
 # context: three-dot menu row on a reel or feed video with Stop videos looping on; makes only the video on screen play again and again (#610)

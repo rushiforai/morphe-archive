@@ -27,7 +27,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val randomDeviceIdentityPatch = bytecodePatch(
     name = "Randomize device identity",
-    description = "Generates random Android ID, Wi-Fi MAC, Bluetooth MAC and serial " +
+    description = "Gives each clone a random device identity." +
         "each time the patch is applied. Useful so every clone has a different identity.",
     default = false,
 ) {

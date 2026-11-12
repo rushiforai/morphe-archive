@@ -188,6 +188,20 @@ object Constants {
             )
         }
 
+    // Owner decision 2026-11-12: the far-plane experiment is 2.0.20 only. Every other Steam Link
+    // base stays frozen for existing patches and gets no new experiment.
+    private val FAR_PLANE_STEAM_LINK_BUILDS = listOf(
+        SteamLinkBuild("2.0.20", 5001712),
+    )
+
+    fun isNativeQuadFarPlaneSteamLinkBuild(version: String, versionCode: String): Boolean =
+        FAR_PLANE_STEAM_LINK_BUILDS.any {
+            it.version == version && it.versionCode.toString() == versionCode
+        }
+
+    val COMPATIBILITIES_STEAM_LINK_FAR_PLANE =
+        experimentalCompatibilities(FAR_PLANE_STEAM_LINK_BUILDS)
+
     private fun experimentalCompatibilities(builds: List<SteamLinkBuild>) =
         builds.map { build ->
             steamLinkBuildCompatibility(

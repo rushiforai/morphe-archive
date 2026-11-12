@@ -4,8 +4,10 @@
     <queries>
         <package android:name="com.google.android.googlequicksearchbox.morphe" />
         <package android:name="com.google.android.googlequicksearchbox" />
+        <package android:name="com.google.android.apps.bard.morphe" />
     </queries>
     <application android:label="GeminiPatch contract probe" android:debuggable="true" android:process="app.geminipatch.contractprobe.morphe" />
     <instrumentation android:name="app.geminipatch.contractprobe.ContractProbe" android:targetPackage="app.geminipatch.contractprobe" />
     <instrumentation android:name="app.geminipatch.contractprobe.ProcessNameProbe" android:targetPackage="app.geminipatch.contractprobe" />
+    <instrumentation android:name="app.geminipatch.contractprobe.UniversalVersionProbe" android:targetPackage="app.geminipatch.contractprobe" />
 </manifest>

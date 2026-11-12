@@ -48,7 +48,7 @@ class YahooSportsSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "12.27.0",
+            version = "12.28.1",
             patchNames = setOf("Disable ads", "Hide betting promotions"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

@@ -17,25 +17,233 @@ Second \"item\" text"</string>
 -->
 <resources>
   <!-- misc.settings.settingsResourcePatch -->
+  <string name="morphe_settings_submenu_title">Iestatījumi</string>
+  <string name="morphe_settings_confirm_user_dialog_title">Vai esat pārliecināti, ka vēlaties turpināt?</string>
+  <string name="morphe_settings_save">Saglabāt</string>
+  <string name="morphe_settings_reset">Atiestatīt</string>
+  <string name="morphe_settings_reset_color">Atiestatīt krāsu</string>
+  <string name="morphe_settings_color_invalid">Negaidīta krāsa</string>
+  <string name="morphe_settings_restart_title">Nepieciešams restartēt</string>
+  <string name="morphe_settings_restart_dialog_message">Restartējiet lietotni, lai šī izmaiņa stātos spēkā</string>
+  <string name="morphe_settings_restart">Restartēt</string>
   <!-- String is also duplicated in Reddit import / export preference -->
+  <string name="morphe_settings_import">Importēt</string>
+  <string name="morphe_settings_import_copy">Kopēt</string>
+  <string name="morphe_settings_import_reset">Morphe iestatījumi atiestatīti uz noklusējuma vērtībām</string>
+  <string name="morphe_settings_import_success">Importēti %s iestatījumi</string>
+  <string name="morphe_settings_import_failure_parse">Importēšana neizdevās: %s</string>
+  <string name="morphe_settings_navigate_up">Navigēt uz augšu</string>
+  <string name="morphe_settings_search_hint">Meklēt iestatījumos</string>
   <string name="morphe_settings_screen_info_title">Par</string>
+  <string name="morphe_settings_search_no_results_title">Rezultāti \'%s\' netika atrasti</string>
+  <string name="morphe_settings_search_no_results_summary">Pamēģiniet citu atslēgvārdu</string>
+  <string name="morphe_settings_search_recent_searches">Nesenie meklējumi</string>
+  <string name="morphe_settings_search_remove_message">Izdzēst no meklēšanas vēstures?</string>
+  <string name="morphe_settings_search_remove">Izdzēst no meklēšanas vēstures</string>
+  <string name="morphe_settings_search_clear_history">Notīrīt meklēšanas vēsturi</string>
+  <string name="morphe_settings_search_clear_history_message">Vai tiešām vēlaties notīrīt visu meklēšanas vēsturi?</string>
+  <string name="morphe_settings_search_tips_title">Meklēšanas padomi</string>
+  <string name="morphe_settings_search_tips_summary">"• Pieskarieties ceļam, lai pārietu uz to
+• Ilgi nospiediet iestatījumu, lai pārietu uz to
+• Nospiediet Enter, lai saglabātu meklēšanas vaicājumu vēsturē
+• Meklēšanā ignorē burtu reģistru un pieturzīmes
+• Vecāku iestatījumi parādās virs atspējotajiem apakšiestatījumiem"</string>
+  <string name="morphe_settings_search_empty_history_title">Meklēšanas vēsture ir tukša</string>
+  <string name="morphe_settings_search_empty_history_summary">Lai saglabātu meklēšanas vēsturi, ierakstiet meklēšanas vaicājumu un nospiediet Enter</string>
+  <string name="morphe_settings_search_history_title">Rādīt iestatījumu meklēšanas vēsturi</string>
+  <string name="morphe_settings_name_title">Morphe iestatījumu nosaukums</string>
+  <string name="morphe_settings_name_default_item">Noklusējums</string>
+  <string name="morphe_settings_name_entry_2">Papildinājumi</string>
+  <string name="morphe_settings_name_entry_3">Pielāgojumi</string>
+  <string name="morphe_settings_name_entry_4">Morfēšanas laiks</string>
+  <string name="morphe_settings_name_custom_item">Pielāgots</string>
+  <string name="morphe_settings_name_custom_item_hint">Ievadiet nosaukumu</string>
+  <string name="morphe_settings_name_empty_warning">Nosaukums nedrīkst būt tukšs</string>
+  <string name="morphe_show_menu_icons_title">Rādīt Morphe iestatījumu ikonas</string>
+  <string name="morphe_settings_menu_copy_path">Kopēts: %s</string>
+  <string name="morphe_language_title">Morphe valoda</string>
+  <string name="morphe_language_user_dialog_message">"Dažu valodu tulkojumi var būt nepilnīgi vai trūkst.
+
+Lai tulkotu jaunas valodas vai uzlabotu esošos tulkojumus, apmeklējiet morphe.software/translate"</string>
+  <string name="morphe_language_DEFAULT">Lietotnes valoda</string>
+  <string name="morphe_pref_import_export_title">Importēt / eksportēt</string>
+  <string name="morphe_pref_import_export_summary">Importēt / eksportēt Morphe iestatījumus</string>
+  <string name="morphe_settings_import_file">Importēt no faila</string>
+  <string name="morphe_settings_import_file_success">Iestatījumi veiksmīgi importēti, nospiediet \"Saglabāt\", lai tos piemērotu</string>
+  <string name="morphe_settings_import_file_failed">Iestatījumu importēšana neizdevās</string>
+  <string name="morphe_settings_export_file">Eksportēt failā</string>
+  <string name="morphe_settings_export_file_success">Iestatījumi veiksmīgi eksportēti</string>
+  <string name="morphe_settings_export_file_failed">Iestatījumu eksportēšana neizdevās</string>
   <!-- String is also duplicated in Reddit about preference -->
+  <string name="morphe_settings_about_links_body_version_current">Jūs izmantojat jaunāko Morphe Patches versiju &lt;i&gt;%s&lt;/i&gt;</string>
+  <string name="morphe_settings_about_links_body_version_outdated">Jūs izmantojat Morphe Patches versiju &lt;i&gt;%1$s&lt;/i&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;Pieejams atjauninājums: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Lai atjauninātu patchus, izmantojiet Morphe, lai pārlabotu šo lietotni</string>
+  <string name="morphe_settings_about_links_dev_header">Piezīme</string>
+  <string name="morphe_settings_about_links_dev_body">Šī versija ir pirmizlaide, un iespējams, ka tiks novērotas negaidītas kļūdas</string>
+  <string name="morphe_settings_about_links_header">Oficiālās saites</string>
+  <string name="morphe_settings_about_links_website">Tīmekļa vietne</string>
+  <string name="morphe_settings_about_links_donate">Ziedot</string>
+  <string name="morphe_settings_about_links_translations">Tulkojumi</string>
+  <string name="morphe_settings_about_links_credits">Krediti</string>
+  <string name="morphe_settings_about_links_dev_header_up_to_date">Aktuāli</string>
+  <string name="morphe_settings_about_links_dev_header_update_available">Pieejams atjauninājums</string>
+  <string name="morphe_settings_about_contributors_current">Pašreizējā izstrāde</string>
+  <string name="morphe_settings_about_contributors_prior">Iepriekšējā izstrāde</string>
+  <string name="morphe_settings_about_links_morphe">Aktīva izstrāde</string>
+  <string name="morphe_settings_about_links_rvx">2022 &#8209; 2025</string>
+  <string name="morphe_settings_about_links_rv">2022 &#8209; 2025</string>
+  <string name="morphe_settings_about_links_vanced">2019 &#8209; 2022</string>
+  <string name="morphe_settings_about_links_licenses">Licences paziņojumi</string>
+  <string name="morphe_settings_about_licenses_loading">Ielādē…</string>
   <!-- misc.debugging.enableDebuggingPatch -->
+  <string name="morphe_debug_screen_title">Atkļūdošana</string>
+  <string name="morphe_debug_screen_summary">Konfigurēt papildu izstrādātāja iespējas un diagnostikas žurnālus</string>
+  <string name="morphe_debug_level_title">Atklādes žurnāls</string>
+  <string name="morphe_debug_level_entry_disabled">Atspējots</string>
+  <string name="morphe_debug_level_entry_debug">Atklāde</string>
+  <string name="morphe_debug_level_entry_verbose">Detalizēts</string>
+  <string name="morphe_debug_toast_on_error_title">Rādīt paziņojumu par Morphe kļūdu</string>
+  <string name="morphe_debug_toast_on_error_user_dialog_message">"Izslēdzot kļūdu paziņojumus, tiek slēpti visi Morphe kļūdu paziņojumi.
+
+Jūs nesaņemsiet paziņojumus par nevēlamiem notikumiem"</string>
+  <string name="morphe_debug_export_logs_title">Eksportēt atkļūdošanas žurnālus</string>
+  <string name="morphe_debug_export_logs_summary">Eksportēt Morphe atkļūdošanas žurnālus</string>
+  <string name="morphe_debug_export_logs_success">Atkļūdošanas žurnāli veiksmīgi eksportēti</string>
+  <string name="morphe_debug_export_logs_failed">Neizdevās eksportēt atkļūdošanas žurnālus</string>
+  <string name="morphe_debug_logs_search_hint">Meklēt atkļūdošanas žurnālos…</string>
+  <string name="morphe_debug_export_logs_clear">Notīrīt</string>
+  <string name="morphe_debug_logs_disabled">Atkļūdošanas žurnālu rakstīšana ir izslēgta</string>
+  <string name="morphe_debug_logs_none_found">Atkļūdošanas žurnāli nav atrasti</string>
+  <string name="morphe_debug_logs_copied_to_clipboard">Atkļūdošanas žurnāli kopēti</string>
+  <string name="morphe_debug_logs_failed_to_export">Neizdevās eksportēt atkļūdošanas žurnālus: %s</string>
+  <string name="morphe_debug_logs_clear_toast">Atkļūdošanas žurnāli notīrīti</string>
+  <string name="morphe_debug_feature_flags_manager_title">Funkciju karogu pārvaldnieks</string>
+  <string name="morphe_debug_feature_flags_manager_summary">Pārvaldīt Būla funkciju karogus</string>
+  <string name="morphe_debug_feature_flags_manager_search_hint">Meklēt funkciju karogus…</string>
   <!-- Keep short, four of these are shown in one row. -->
+  <string name="morphe_debug_feature_flags_manager_filter_inactive">Neaktīvs (%s)</string>
   <!-- Keep short, four of these are shown in one row. -->
+  <string name="morphe_debug_feature_flags_manager_filter_active">Aktīvi (%s)</string>
   <!-- Keep short, four of these are shown in one row. -->
+  <string name="morphe_debug_feature_flags_manager_filter_blocked">Bloķēti (%s)</string>
   <!-- Keep short, four of these are shown in one row. -->
+  <string name="morphe_debug_feature_flags_manager_filter_forced">Piespiesti (%s)</string>
   <!-- Keep short, shown as a badge and as a button. -->
+  <string name="morphe_debug_feature_flags_manager_state_auto">Auto</string>
   <!-- Keep short, shown as a badge and as a button. -->
   <string name="morphe_debug_feature_flags_manager_state_blocked">Izslēgts</string>
   <!-- Keep short, shown as a badge and as a button. -->
   <string name="morphe_debug_feature_flags_manager_state_forced">Ieslēgts</string>
+  <string name="morphe_debug_feature_flags_manager_action_force_on">Piespiest ieslēgšanu</string>
+  <string name="morphe_debug_feature_flags_manager_action_force_off">Bloķēt</string>
   <string name="morphe_debug_feature_flags_manager_action_remove">Noņemt</string>
+  <string name="morphe_debug_feature_flags_manager_toast_saved">Funkciju karogi saglabāti</string>
+  <string name="morphe_debug_feature_flags_manager_toast_reset">Funkciju karogi atiestatīti</string>
+  <string name="morphe_debug_feature_flags_manager_toast_copied">Funkciju karogi kopēti starpliktuvē</string>
+  <string name="morphe_debug_feature_flags_manager_toast_no_flags">Restartējiet lietotni, lai izmantotu šo iestatījumu</string>
+  <string name="morphe_debug_feature_flags_manager_import_export_title">Eksportēt un importēt</string>
+  <string name="morphe_debug_feature_flags_manager_import_success">Importēti %s funkciju karodzi</string>
+  <string name="morphe_debug_feature_flags_manager_import_failed">Nav atrastu funkciju karogu</string>
+  <string name="morphe_debug_feature_flags_manager_export_file_success">Funkciju karogi eksportēti veiksmīgi</string>
+  <string name="morphe_debug_feature_flags_manager_export_file_failed">Funkciju karogu eksportēšana neizdevās</string>
+  <string name="morphe_debug_feature_flags_manager_import_file_success">Funkciju karogi ielādēti, nospiediet Saglabāt, lai tos pielāgotu</string>
+  <string name="morphe_debug_feature_flags_manager_import_file_failed">Faila nolasīšana neizdevās</string>
+  <string name="morphe_debug_feature_flags_manager_bisect_title">Binārā meklēšana</string>
+  <string name="morphe_debug_feature_flags_manager_bisect_start_message">"Atrod, kurš funkciju karogs izraisa lietotnes uzvedību.
+
+Puse no %s karogiem ir bloķēti, un pēc katras restartēšanas jūs norādāt, vai uzvedība joprojām ir novērojama.
+
+Pirms sākšanas vienreiz reproducējiet uzvedību, pretējā gadījumā meklēšanā netiks iekļauti karogi, kurus lietotne vēl nav pieprasījusi"</string>
+  <string name="morphe_debug_feature_flags_manager_bisect_start_button">Sākt</string>
+  <string name="morphe_debug_feature_flags_manager_bisect_no_candidates">"Nav funkciju karogu, ko meklēt.
+
+Binārajā meklēšanā var izmantot tikai tos karogus, kurus lietotne ir sasniegusi un kuri pašlaik nav piespiesti ieslēgti"</string>
+  <string name="morphe_debug_feature_flags_manager_bisect_status">"Solis %1$s
+
+Atlikuši %2$s karogi, no tiem %3$s šim solim bloķēti.
+
+Restartējiet lietotni, pārbaudiet, vai rīcība joprojām ir klāt, tad atbildiet zemāk"</string>
+  <string name="morphe_debug_feature_flags_manager_bisect_in_progress">Notiek funkciju karogu meklēšana</string>
+  <string name="morphe_debug_feature_flags_manager_bisect_present">Rīcība ir klāt</string>
+  <string name="morphe_debug_feature_flags_manager_bisect_absent">Rīcība nav klāt</string>
+  <string name="morphe_debug_feature_flags_manager_bisect_cancel">Atcelt bināro meklēšanu</string>
+  <string name="morphe_debug_feature_flags_manager_bisect_canceled">Binārā meklēšana atcelta</string>
+  <string name="morphe_debug_feature_flags_manager_bisect_found">"Funkciju karogs %s izraisa šo rīcību.
+
+Tas tagad ir bloķēts"</string>
+  <string name="morphe_debug_feature_flags_manager_bisect_exhausted">"Neizdevās atrast funkciju karogu.
+
+Šķiet, ka lietotnes uzvedību nekontrolē neviens funkciju karogs"</string>
+  <string name="morphe_debug_feature_flags_manager_bisect_exhausted_multiple">"Neizdevās atrast vienu funkciju karogu.
+
+Uzvedība pazuda agrāk meklēšanas gaitā, tāpēc iespējams, ka iesaistīti vairāki karogi vai viena no atbildēm bija nepareiza"</string>
   <!-- Could be its own resource file, but for simplicity it's shared among all apps. -->
   <!-- misc.gms.gmsCoreSupportResourcePatch -->
+  <string name="microg_settings_summary">Atvērt MicroG iestatījumus</string>
   <!-- Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
+  <string name="gms_core_toast_not_installed_message">MicroG nav instalēts. Instalējiet to</string>
+  <string name="gms_core_dialog_title">Nepieciešama rīcība</string>
+  <string name="gms_core_dialog_outdated_message">"Jūsu MicroG v%1$s versija ir novecojusi un var izraisīt problēmas.
+
+Lūdzu, atjauniniet MicroG līdz jaunākajai v%2$s versijai"</string>
+  <string name="gms_core_dialog_update_text">Atjaunināt</string>
+  <string name="gms_core_dialog_ignore_text">Ignorēt</string>
+  <string name="gms_core_dialog_conflict_message">"Morphe neiesaka instalēto MicroG:
+
+%s
+
+Pieskarieties, lai to atinstalētu, pēc tam atkal atveriet šo lietotni un instalējiet MicroG RE"</string>
+  <string name="gms_core_dialog_uninstall_text">Atinstalēt</string>
   <!-- "Don't kill my app" should be kept in English and not translated -->
+  <string name="gms_core_dialog_not_whitelisted_not_allowed_in_background_message">"MicroG nav atļauts darboties fonā.
+
+Sekojiet rokasgrāmatai \"Don't kill my app\" savam tālrunim un piemērojiet norādījumus savai MicroG instalācijai.
+
+Tas ir nepieciešams, lai lietotne darbotos"</string>
+  <string name="gms_core_dialog_open_website_text">Atvērt tīmekļa vietni</string>
+  <string name="gms_core_dialog_not_whitelisted_using_battery_optimizations_message">"Lai izvairītos no problēmām, MicroG akumulatora optimizācijai jābūt izslēgtai.
+
+Akumulatora optimizācijas izslēgšana MicroG neietekmēs negatīvi akumulatora izmantošanu.
+
+Nospiediet pogu Turpināt un atļaujiet optimizācijas izmaiņas"</string>
+  <string name="gms_core_dialog_continue_text">Turpināt</string>
+  <string name="morphe_gms_core_battery_optimization_dialog_title">Rādīt MicroG akumulatora optimizācijas dialogu</string>
+  <string name="morphe_gms_core_battery_optimization_dialog_user_dialog_message">"Izslēdzot šo iespēju, tiks paslēpts MicroG akumulatora optimizācijas brīdinājums.
+
+Ja akumulatora optimizācijas netiek mainītas, iespējams, varat novērot:
+• Lietotne var nejauši aizvērties
+• Paziņojumi var nedarboties
+• Fona atskaņošana var nedarboties"</string>
   <!-- misc.gms.linkHandlingPatch -->
+  <string name="morphe_link_handling_title">Lietotnes saites apstrāde</string>
+  <string name="morphe_link_handling_summary">Konfigurēt saites, lai tās atvērtu šajā lietotnē</string>
+  <string name="morphe_link_handling_step1_title">1. solis: Atspējojiet oriģinālās lietotnes saites</string>
+  <string name="morphe_link_handling_step1_message">Atveriet oriģinālās lietotnes iestatījumus un atspējojiet visas domēnu saites</string>
+  <string name="morphe_link_handling_step2_title">2. solis: Aktivizējiet labotas lietotnes saites</string>
+  <string name="morphe_link_handling_step2_message">Atveriet labotas lietotnes iestatījumus un aktivizējiet visas domēnu saites</string>
+  <string name="morphe_link_handling_open">Atvērt iestatījumus</string>
   <!-- misc.checks.experimentalAppNoticePatch -->
+  <string name="morphe_experimental_app_version_dialog_title">🚨 Eksperimentāls brīdinājums 🚨</string>
+  <string name="morphe_experimental_app_version_dialog_message">"Jūs izmantojat eksperimentālu lietotnes versiju ⚠️ &lt;b&gt;%1$s&lt;/b&gt;
+&lt;br/&gt;&lt;br/&gt;
+🔧 Sagaidiet dīvainu lietotnes darbību vai neidentificētas kļūdas, kamēr mēs precizējam šai lietotnes versijai paredzētos labojumus.
+&lt;br/&gt;&lt;br/&gt;
+Ja vēlaties vismazāk problēmu, tad &lt;b&gt;atinstalējiet&lt;/b&gt; šo un labojiet ieteicamo lietotnes versiju ✅ &lt;b&gt;%2$s&lt;/b&gt;"</string>
+  <string name="morphe_experimental_app_version_dialog_confirm">⚠️ Es vēlos eksperimentālo versiju</string>
+  <string name="morphe_experimental_app_version_dialog_open_homepage">✅ Es vēlos stabilo versiju</string>
+  <!-- misc.announcements.patchesUpdateNoticePatch -->
+  <string name="morphe_patches_update_notice_title">Rādīt lietotnes paziņojumu par patcha atjauninājumiem</string>
+  <string name="morphe_patches_update_notice_entry_off">Izslēgts</string>
+  <string name="morphe_patches_update_notice_entry_stable">Stabili izlaidumi</string>
+  <string name="morphe_patches_update_notice_entry_dev">Stabili un izstrādes izlaidumi</string>
+  <string name="morphe_patches_update_notice_dialog_title">Pieejami jauni labojumi</string>
+  <string name="morphe_patches_update_notice_dialog_message">Morphe labojumi &lt;b&gt;%1$s&lt;/b&gt; (pašlaik: %2$s)</string>
+  <string name="morphe_patches_update_notice_dialog_features">✨ Jaunas funkcijas</string>
+  <string name="morphe_patches_update_notice_dialog_fixes">🐛 Kļūdu labojumi</string>
+  <string name="morphe_patches_update_notice_dialog_other">🚀 Citi mainījumi</string>
+  <string name="morphe_patches_update_notice_dialog_more">…un vēl %s</string>
+  <string name="morphe_patches_update_notice_dialog_update">Atjaunināt</string>
+  <string name="morphe_patches_update_notice_dialog_dismiss">Aizvērt</string>
   <!-- misc.crashlog.crashLogPatch -->
+  <string name="morphe_crash_log_saved_documents">Avārijas žurnāls saglabāts lietotāja dokumentos: %s</string>
+  <string name="morphe_crash_log_saved">Avārijas žurnāls saglabāts: %s</string>
 </resources>

@@ -7,7 +7,7 @@ Patches for some apps I use myself.
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.5.0](https://github.com/jzl1/morphe-patches/releases/tag/v1.5.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;15 patches total
+> **[v1.6.0](https://github.com/jzl1/morphe-patches/releases/tag/v1.6.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;15 patches total
 <details open>
 <summary>📦 Network Signal Guru&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
@@ -31,8 +31,8 @@ Patches for some apps I use myself.
 
 **🎯 Supported versions:**
 
-| 7.6.33 | 7.6.34 |
-| :---: | :---: |
+| 7.6.33 | 7.6.34 | 7.6.35 | 7.6.36 |
+| :---: | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|

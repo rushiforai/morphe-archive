@@ -51,7 +51,26 @@ opts in by adding a clip and dropping its PNG.
 ## Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.3.0](https://github.com/sahilwasgood/patches/releases/tag/v1.3.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;6 patches total
+> **[v1.5.0](https://github.com/sahilwasgood/patches/releases/tag/v1.5.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;11 patches total
+<details open>
+<summary>📦 TradingView&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 1.20.86.0.1002565 | 1.20.85.0.1002535 | 1.20.84.0.1002505 | 1.20.83.0.1002475 | 1.20.82.0.1002445 | 1.20.81.1.1002420 | 1.20.81.0.1002415 | 1.20.80.0.1002385 | 1.20.75.0.1002235 | 1.20.74.0.1002205 | 1.20.70.0.1002085 |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Disable analytics](#disable-analytics) | Disables telemetry, screen tracking, and analytics reporting to Firebase and SnowPlow. |  |
+| [Hide ads and upgrade promotions](#hide-ads-and-upgrade-promotions) | Hides AdMob ads, GoPro ads in feed, promotional banners in profile and watchlists, and paywall sheets. |  |
+| [Ultimate user badge](#ultimate-user-badge) | Forces the Ultimate badge on the current user profile. Visual only. |  |
+| [Unlock multi-chart layouts](#unlock-multi-chart-layouts) | Unlocks chart layouts with up to 8 charts on one screen. |  |
+| [Watchlist Cloud Sync & Manager](#watchlist-cloud-sync-manager) | Replaces TradingView's watchlist backend with our Cloudflare synced storage directly in the native TradingView watchlist UI. |  |
+
+</details>
+
 <details open>
 <summary>📦 YouTube Music&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>

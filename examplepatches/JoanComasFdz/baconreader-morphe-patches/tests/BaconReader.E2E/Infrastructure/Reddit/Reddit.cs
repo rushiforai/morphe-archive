@@ -294,6 +294,20 @@ public sealed partial class Reddit(RedditWorld world)
         return Checked<RedditImageSnapshot>(new RedditImageSnapshot(image.Path[(image.Path.LastIndexOf('/') + 1)..], file.Bytes.Length), text);
     }
 
+    /// <summary>The web page the link post "<paramref name="title"/>" links to.</summary>
+    public WebPage ThePageOf(string title) =>
+        new(PostTitled(title).Url ?? throw new InvalidOperationException($"The post \"{title}\" links to no page."));
+
+    /// <summary>The web page the comment "<paramref name="text"/>" links to: its text is the link.</summary>
+    public WebPage ThePageTheCommentLinksTo(string text)
+    {
+        var start = $"[{text}](";
+        var comments = world.Posts.SelectMany(post => post.Comments).Where(comment => comment.Body.StartsWith(start, StringComparison.Ordinal)).ToList();
+        return comments.Count == 1
+            ? new(comments[0].Body[start.Length..^1])
+            : throw new InvalidOperationException($"The scenario's Reddit has {comments.Count} comments \"{text}\" that are links, but one was expected.");
+    }
+
     /// <summary>What Reddit's login saw of the app: each step's client ID, redirect URI and User-Agent.</summary>
     public RedditLoginSnapshot ReadLogin() => Checked<RedditLoginSnapshot>(new([.. world.Logins]));
 
@@ -562,6 +576,9 @@ public sealed class RedditPost(RedditWorld world, Post post)
     /// <summary>"… has a comment "&lt;text&gt;" with a link to an image": <paramref name="text"/>, then a bare link to a JPEG.</summary>
     public void HasACommentWithALinkToAnImage(string text) => world.AddComment(post, text, comment => comment.LinkingToAnImage());
 
+    /// <summary>"… has a comment "&lt;text&gt;" linking to a web page": <paramref name="text"/> is a link to a web page.</summary>
+    public void HasACommentLinkingToAWebPage(string text) => world.AddComment(post, text, comment => comment.AsALinkToAWebPage());
+
     /// <summary>"… has a comment "&lt;text&gt;" with a video": <paramref name="text"/>, then a video uploaded in it, ten seconds long.</summary>
     public void HasACommentWithAVideo(string text) => world.AddComment(post, text, comment => comment.WithVideo());
 
@@ -661,6 +678,13 @@ public sealed record RedditLoadMoreCommentsRequestsSnapshot(ImmutableArray<int> 
 
 /// <summary>An image uploaded to Reddit, as Reddit serves it: the file name its URL ends with, and its size in bytes.</summary>
 public sealed record RedditImageSnapshot(string FileName, long Size);
+
+/// <summary>A web page a post or a comment links to: its <paramref name="Address"/>, as Reddit sends it.</summary>
+public sealed record WebPage(string Address)
+{
+    /// <summary>The page's host, as BaconReader's browser names it in its toolbar: "127.0.0.1".</summary>
+    public string Host => new Uri(Address).Host;
+}
 
 /// <summary>What Reddit's login saw of the app, step by step (the login page, logging in, Accept, the token).</summary>
 public sealed record RedditLoginSnapshot(ImmutableArray<LoginSeen> Steps);

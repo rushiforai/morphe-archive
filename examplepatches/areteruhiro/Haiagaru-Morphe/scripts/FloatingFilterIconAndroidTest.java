@@ -54,8 +54,8 @@ public final class FloatingFilterIconAndroidTest {
     call(importer,"importImage",new Class[]{Context.class,int.class,InputStream.class},activity,index,new ByteArrayInputStream(png.toByteArray()));
     main.postDelayed(()->{try{
      Drawable icon=button.getCompoundDrawablesRelative()[0];check(icon instanceof BitmapDrawable,"import updates mounted button without restart");
-     Bitmap actual=((BitmapDrawable)icon).getBitmap();check(actual.getWidth()==256&&actual.getPixel(128,128)==Color.RED,"normalized image preserves custom color");
-     check(actual.getPixel(128,0)==Color.TRANSPARENT,"rectangular image keeps aspect ratio");
+     Bitmap actual=((BitmapDrawable)icon).getBitmap();int displaySize=Math.round(24*activity.getResources().getDisplayMetrics().density);check(actual.getWidth()==displaySize&&actual.getPixel(displaySize/2,displaySize/2)==Color.RED,"display-sized image preserves custom color");
+     check(actual.getPixel(displaySize/2,0)==Color.TRANSPARENT,"rectangular image keeps aspect ratio");
      check(button.getCompoundDrawablePadding()>0&&button.getText().toString().equals("フィルター"),"label and icon spacing retained");
      check(toolbar.exists()==(previousToolbar!=null)&&(!toolbar.exists()||Arrays.equals(previousToolbar,Files.readAllBytes(toolbar.toPath()))),"ordinary toolbar filter image unchanged");
      check(image.delete(),"remove synthetic custom image for reset");call(icons,"invalidate",new Class[]{int.class},index);

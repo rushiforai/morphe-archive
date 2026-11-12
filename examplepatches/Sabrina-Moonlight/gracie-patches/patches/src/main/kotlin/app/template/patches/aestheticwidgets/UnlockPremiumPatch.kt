@@ -7,6 +7,10 @@ import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.returnEarly
 import com.android.tools.smali.dexlib2.AccessFlags
+import app.template.patches.shared.cert.extractApkCertificatePatch
+import app.template.patches.shared.firebase.spoofFirebaseCertHashPatch
+import app.template.patches.shared.installer.spoofInstallSourcePatch
+import app.template.patches.shared.signature.spoofSignatureVerificationPatch
 
 private val AESTHETIC_WIDGETS = Compatibility(
     name = "Aesthetic Widgets",
@@ -29,12 +33,18 @@ private object HasActivePurchaseFingerprint : Fingerprint(
 
 @Suppress("unused")
 val unlockPremiumPatch = bytecodePatch(
-    name = "Local Features",
-    description = "Uses a local preference so optional widget features stay available offline.",
+    name = "Unlock premium",
+    description = "Unlocks premium features.",
     default = true,
 ) {
     compatibleWith(AESTHETIC_WIDGETS)
 
+    dependsOn(
+        extractApkCertificatePatch,
+        spoofFirebaseCertHashPatch,
+        spoofInstallSourcePatch,
+        spoofSignatureVerificationPatch,
+    )
     execute {
         HasActivePurchaseFingerprint.method.returnEarly(true)
     }

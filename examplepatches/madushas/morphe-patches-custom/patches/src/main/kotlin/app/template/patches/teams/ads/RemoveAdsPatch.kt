@@ -44,7 +44,6 @@ val teamsRemoveAdsPatch = resourcePatch(
         "ad-services and install-referrer permissions and disables any ad-SDK init provider.",
     default = true,
 ) {
-    category("Ads")
     compatibleWith(TEAMS_COMPATIBILITY)
 
     execute {

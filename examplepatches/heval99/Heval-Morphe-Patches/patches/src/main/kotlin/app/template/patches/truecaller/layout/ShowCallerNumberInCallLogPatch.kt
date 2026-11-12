@@ -5,6 +5,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.template.patches.shared.addInstructionsAtControlFlowLabelChecked
 import app.template.patches.shared.addInstructionsWithLabelsChecked
+import app.template.patches.shared.hevalcontrols.HEVAL_SETTINGS_CLASS
 import app.template.patches.shared.hevalcontrols.HevalFeature
 import app.template.patches.shared.hevalcontrols.addHevalStockPath
 import app.template.patches.shared.hevalcontrols.featurePatch
@@ -33,6 +34,19 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 internal const val CALL_LOG_SUBTITLE_HELPER = "morpheCallLogSubtitle"
 
 private const val FEATURE = "truecaller.show_caller_number"
+
+/**
+ * The second switch (#134, 2026-11-07): also show the number for callers who are in the phonebook
+ * (useful when a contact has several numbers). Off by default; it only matters with the main switch
+ * on. The helper reads it before the phonebook test.
+ */
+internal val SHOW_CALLER_NUMBER_CONTACTS = HevalFeature(
+    id = "truecaller.show_caller_number_contacts",
+    name = "Also for contacts",
+    description = "Also shows the number for callers who are in your contacts.",
+    category = TruecallerControlsCategory.CALL_LOG,
+    default = false,
+)
 
 private const val STRING = "Ljava/lang/String;"
 
@@ -213,10 +227,15 @@ val showCallerNumberInCallLogPatch = truecallerControls.featurePatch(
         addInstructionsWithLabelsChecked(
             0,
             """
+                const-string v0, "${SHOW_CALLER_NUMBER_CONTACTS.id}"
+                invoke-static {v0}, $HEVAL_SETTINGS_CLASS->isEnabled(Ljava/lang/String;)Z
+                move-result v0
+                if-nez v0, :any_caller
                 iget-wide v0, p0, ${phonebookId.smali()}
                 const-wide/16 v2, 0x0
                 cmp-long v0, v0, v2
                 if-nez v0, :keep
+                :any_caller
                 iget-boolean v0, p0, ${isBlocked.smali()}
                 if-nez v0, :keep
                 iget-object v0, p0, ${callerName.smali()}
@@ -312,6 +331,8 @@ val showCallerNumberInCallLogPatch = truecallerControls.featurePatch(
             move-object/from16 v$labelRegister, v$scratchLabel
         """,
     )
+
+    truecallerControls.register(SHOW_CALLER_NUMBER_CONTACTS)
 }
 
 internal const val CALL_LOG_NUMBER_SEPARATOR = " · "

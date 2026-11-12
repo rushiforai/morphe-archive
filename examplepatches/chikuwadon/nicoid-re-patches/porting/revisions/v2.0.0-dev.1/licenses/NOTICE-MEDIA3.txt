@@ -1,0 +1,21 @@
+nicoid Re 2.0.0-dev.2 - additional third-party components
+
+AndroidX Media3 1.11.1 (common, exoplayer, exoplayer-hls, datasource,
+extractor, decoder, container, database)
+Copyright The Android Open Source Project.
+https://github.com/androidx/media
+
+Guava 33.3.1-android and failureaccess 1.0.2
+Copyright The Guava Authors.
+https://github.com/google/guava
+
+AndroidX concurrent-futures 1.2.0, exifinterface 1.3.6,
+annotation 1.6.0 and annotation-experimental 1.3.1
+Copyright The Android Open Source Project.
+https://android.googlesource.com/platform/frameworks/support/
+
+These components are licensed under the Apache License, Version 2.0.
+See LICENSE-APACHE-2.0.txt. Existing application and patch components
+retain their respective licenses. network-api.jar is a compile-time
+reference extracted from the original application and is not bundled
+as an additional runtime dependency.

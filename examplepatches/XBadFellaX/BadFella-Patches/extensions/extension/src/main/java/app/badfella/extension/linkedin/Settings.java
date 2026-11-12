@@ -41,6 +41,7 @@ public final class Settings {
     static final String HIDE_TAB_NETWORK = "hide_tab_network";
     static final String HIDE_TAB_JOBS = "hide_tab_jobs";
     static final String SWIPE_TABS = "swipe_tabs";
+    static final String ALWAYS_SHOW_NAVIGATION_BAR = "always_show_navigation_bar";
     static final String GLASS_NAVIGATION_BAR = "glass_navigation_bar";
     static final String HIDE_TAB_LABELS = "hide_tab_labels";
     static final String HIDE_TAB_BADGES = "hide_tab_badges";
@@ -63,8 +64,11 @@ public final class Settings {
     static final String DISABLE_DOUBLE_TAP_LIKE = "disable_double_tap_like";
     static final String COPY_TEXT = "copy_text";
     static final String COPY_TEXT_LONG_SHEET = "copy_text_long_sheet";
+    static final String COPY_POST_TEXT = "copy_post_text";
+    static final String ICON_ONLY_ACTIONS = "icon_only_actions";
     static final String REMOVE_GAPS_AND_DIVIDERS = "remove_gaps_and_dividers";
     static final String MATERIAL_YOU = "material_you";
+    static final String ACCENT_COLOR = "accent_color";
     static final String PITCH_BLACK = "pitch_black";
     /** Key of the old "AMOLED black" switch, read once to keep an explicit choice. */
     @Deprecated
@@ -167,6 +171,19 @@ public final class Settings {
         return isMaterialYouIncluded() && get(MATERIAL_YOU, true);
     }
 
+    private static String accentRaw = "";
+    private static int accentParsed = -1;
+
+    static int accentColor() {
+        if (!isMaterialYouIncluded()) return -1;
+        String raw = getString(ACCENT_COLOR, "");
+        if (!raw.equals(accentRaw)) {
+            accentRaw = raw;
+            accentParsed = AccentPalette.parse(raw);
+        }
+        return accentParsed;
+    }
+
     public static boolean isGmsCoreSupportIncluded() {
         return false;
     }
@@ -201,6 +218,24 @@ public final class Settings {
     /** Long posts open in a scrollable sheet instead of being selected in place. */
     static boolean copyTextLongInSheet() {
         return get(COPY_TEXT_LONG_SHEET, true);
+    }
+
+    public static boolean isCopyPostTextIncluded() {
+        return false;
+    }
+
+    /** Long pressing a post's text copies all of it, also the part behind "...more". */
+    static boolean copyPostText() {
+        return isCopyPostTextIncluded() && get(COPY_POST_TEXT, true);
+    }
+
+    public static boolean isIconOnlyActionsIncluded() {
+        return false;
+    }
+
+    /** The Like, Comment, Repost and Send buttons under posts without their labels. Off: the labels stay. */
+    static boolean iconOnlyActions() {
+        return isIconOnlyActionsIncluded() && get(ICON_ONLY_ACTIONS, false);
     }
 
     // region Backup
@@ -398,6 +433,15 @@ public final class Settings {
 
     static boolean swipeTabs() {
         return isSwipeTabsIncluded() && get(SWIPE_TABS, true);
+    }
+
+    public static boolean isAlwaysShowNavigationBarIncluded() {
+        return false;
+    }
+
+    /** Whether the navigation bar stays put while a screen scrolls, instead of sliding away. Called from the app. */
+    public static boolean alwaysShowNavigationBar() {
+        return isAlwaysShowNavigationBarIncluded() && get(ALWAYS_SHOW_NAVIGATION_BAR, false);
     }
 
     public static boolean isMoreMenuIncluded() {

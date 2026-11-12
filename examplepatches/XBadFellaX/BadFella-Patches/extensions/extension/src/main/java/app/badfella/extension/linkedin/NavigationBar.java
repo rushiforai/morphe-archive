@@ -28,9 +28,14 @@ public final class NavigationBar {
             "slim_notification_badge_determinate_frame_layout_next",
             "slim_notification_badge_determinate_frame_layout_current",
             "slim_notification_badge_indeterminate_image"};
+    private static final String ICON = "slim_notification_badge_icon";
+    private static final String LABEL = "slim_notification_badge_label";
 
     /** The rows of tabs that already have their listener. Only touched on the main thread. */
     private static final WeakHashMap<ViewGroup, Boolean> prepared = new WeakHashMap<>();
+
+    /** The icon's own top and bottom margins, taken before this changed them, by icon. */
+    private static final WeakHashMap<View, int[]> iconMargins = new WeakHashMap<>();
 
     /** The bottom bar that is sizing its tabs. */
     private static WeakReference<View> sizing = new WeakReference<>(null);
@@ -99,7 +104,9 @@ public final class NavigationBar {
             if (prepared.put(tabs, true) == null) {
                 if (Settings.glassNavigationBar()) GlassNavigationBar.install(bar, tabs);
                 if (Settings.isSwipeTabsIncluded()) SwipeTabs.install(bar, tabs);
-                tabs.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> arrange(bar, tabs));
+                // A tab is laid out again on its own when a label is hidden or shown, so the bar is shaped after
+                // every layout pass instead of only when the tabs' own bounds change.
+                tabs.getViewTreeObserver().addOnGlobalLayoutListener(() -> arrange(bar, tabs));
             }
             arrange(bar, tabs);
         } catch (Throwable t) {
@@ -124,14 +131,68 @@ public final class NavigationBar {
         }
     }
 
-    /** Hides the label of a tab and moves the rest of the tab down, so the icon sits in the middle of the tab. */
+    /**
+     * Shows or hides the label of a tab, and puts what is left in the middle of the tab. A hidden label takes no room
+     * at all, so the icon's own top and bottom constraints center it; the margins it had are kept for the next time
+     * the label shows, when the icon and the label are moved together until the pair is centered.
+     */
     private static void showLabel(ViewGroup tab, boolean show) {
-        View label = child(tab, "slim_notification_badge_label");
-        View icon = child(tab, "slim_notification_badge_icon");
+        View label = child(tab, LABEL);
+        View icon = child(tab, ICON);
         if (label == null || icon == null) return;
-        label.setVisibility(show ? View.VISIBLE : View.INVISIBLE);
-        float offset = show ? 0 : (tab.getHeight() - icon.getHeight()) / 2f - icon.getTop();
+        label.setVisibility(show ? View.VISIBLE : View.GONE);
+        int[] own = ownMargins(icon);
+        setMargins(icon, show ? own[0] : 0, show ? own[1] : 0);
+        float offset = 0;
+        // The pair as the layout placed it, from the top of the icon to the bottom of the label.
+        if (show && tab.getHeight() > 0 && label.getHeight() > 0) {
+            int above = icon.getTop();
+            int below = Math.max(icon.getBottom(), label.getBottom());
+            if (below > above) offset = (tab.getHeight() - (below - above)) / 2f - above;
+        }
         for (int i = 0; i < tab.getChildCount(); i++) tab.getChildAt(i).setTranslationY(offset);
+    }
+
+    /**
+     * How far the bar is slid down to hide it. The stock offset is the height of the tab row, but the glass bar pads
+     * itself to float above the system navigation bar, so it is taller than its tabs and that offset leaves the rest
+     * of the capsule on screen. Its full height, plus any room under it in the parent, takes it completely off.
+     * Injected at the start of SlimBottomNavigationBehavior.animateOffset(bar, offset).
+     */
+    public static int slideOffset(View bar, int offset) {
+        if (bar == null || offset <= 0 || !Settings.glassNavigationBar()) return offset;
+        int height = bar.getHeight();
+        if (height <= 0) return offset;
+        int below = 0;
+        if (bar.getParent() instanceof View) {
+            View parent = (View) bar.getParent();
+            below = Math.max(0, parent.getHeight() - bar.getBottom());
+        }
+        return Math.max(offset, height + below);
+    }
+
+    /** The icon's own top and bottom margins, taken the first time they are changed. */
+    private static int[] ownMargins(View icon) {
+        int[] own = iconMargins.get(icon);
+        if (own != null) return own;
+        ViewGroup.LayoutParams params = icon.getLayoutParams();
+        own = params instanceof ViewGroup.MarginLayoutParams
+                ? new int[]{((ViewGroup.MarginLayoutParams) params).topMargin,
+                            ((ViewGroup.MarginLayoutParams) params).bottomMargin}
+                : new int[]{0, 0};
+        iconMargins.put(icon, own);
+        return own;
+    }
+
+    /** Sets the icon's top and bottom margins, and asks for no layout pass when they already are what is asked. */
+    private static void setMargins(View icon, int top, int bottom) {
+        ViewGroup.LayoutParams params = icon.getLayoutParams();
+        if (!(params instanceof ViewGroup.MarginLayoutParams)) return;
+        ViewGroup.MarginLayoutParams margins = (ViewGroup.MarginLayoutParams) params;
+        if (margins.topMargin == top && margins.bottomMargin == bottom) return;
+        margins.topMargin = top;
+        margins.bottomMargin = bottom;
+        icon.setLayoutParams(margins);
     }
 
     static View child(View parent, String name) {

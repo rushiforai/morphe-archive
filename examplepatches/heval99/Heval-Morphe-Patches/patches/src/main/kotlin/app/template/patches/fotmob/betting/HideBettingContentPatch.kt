@@ -9,6 +9,7 @@ import app.template.patches.shared.hevalcontrols.featurePatch
 
 internal val HIDE_BETTING_CONTENT = HevalFeature(
     id = "fotmob.hide_betting_content",
+    calm = true,
     name = "Hide betting content",
     description = "Hides odds and betting content.",
     category = FotMobControlsCategory.BETTING,

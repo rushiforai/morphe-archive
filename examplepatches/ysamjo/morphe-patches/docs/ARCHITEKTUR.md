@@ -223,10 +223,13 @@ Umsetzung: `InjectBackToExitPatch` injiziert `BackToExitInjector.schedule()` am 
 `CobaltActivity.onCreate`. `BackToExitInjector.schedule()` pollt auf WebContents (wie der
 Adblock-Injektor) und injiziert dann das Back-Exit-Skript mit dem Callback-Proxy.
 
-**Kanalgeschwindigkeits-Regeln (ergänzend zu Seam 2):** `ChannelSpeedPayload` definiert
+**Kanalgeschwindigkeits-Regeln (ergänzend zu Seam 2):** `ChannelSpeedPayload` wird beim
+Build aus `extensions/extension/src/main/js/channel-speed.js` erzeugt und definiert
 JavaScript, das die Kanal-URL ausliest ({@code /channel/<id>}) und bei einem Match
-{@code setClientSettingEndpoint('videoSpeed', 1.0)} aufruft. Geregelt sind Sky Sport,
-DAZN, RTL Sport, NBA und NFL. Platzhalter-IDs müssen nach dem ersten Lauf ersetzt werden:
+{@code setClientSettingEndpoint('videoSpeed', 1.0)} aufruft. Geregelt sind die Sportkanäle
+sportstudio, Sportschau, Sky Sport (DE, Austria), DAZN (DE), RTL Sport, Prime Video
+Sport, Eurosport Deutschland, SPORT1, ran, kicker, Magenta Sport, NFL, NBA, MotoGP, Formula 1,
+Bundesliga, DFB und UEFA — jeweils 1,0×:
 
 ```
 adb logcat -s ysamjo-tv-adblock | grep channel

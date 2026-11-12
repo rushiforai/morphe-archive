@@ -1,20 +1,21 @@
 package app.morphe.extension.pixiv.ui
 
 import android.app.Activity
-import android.app.Dialog
 import android.content.Context
-import android.content.ContextWrapper
 import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Typeface
-import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
+import android.text.InputFilter
+import android.text.InputType
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
-import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
+import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ScrollView
@@ -22,6 +23,7 @@ import android.widget.TextView
 import android.widget.Toast
 import app.morphe.extension.pixiv.aiflag.AiFilterSettingsView
 import app.morphe.extension.pixiv.history.HistoryStore
+import app.morphe.extension.pixiv.search.BookmarkThreshold
 import app.morphe.extension.pixiv.search.SearchRankingConfig
 import java.net.HttpURLConnection
 import java.net.URL
@@ -37,6 +39,12 @@ import java.util.concurrent.Executors
 object PatchedSettings {
 
     private const val DETAIL_ACTIVITY = "jp.pxv.android.feature.routing.intentfilter.IntentFilterActivity"
+
+    private const val ILLUST_DETAIL_ACTIVITY =
+        "jp.pxv.android.feature.illustviewer.detail.IllustDetailSingleActivity"
+
+    private const val NOVEL_DETAIL_ACTIVITY =
+        "jp.pxv.android.feature.novelviewer.noveltext.NovelTextActivity"
 
     private val timeFormat = SimpleDateFormat("MM-dd HH:mm", Locale.getDefault())
     private val imagePool = Executors.newFixedThreadPool(3)
@@ -57,54 +65,44 @@ object PatchedSettings {
 
     @JvmStatic
     fun show(host: View?) {
-        val activity = findActivity(host?.context) ?: return
-        try {
+        PageHost.open(host) { activity ->
             SearchRankingConfig.ensureLoaded()
-            val palette = Palette(activity)
-            val dialog = Dialog(activity, dialogTheme(palette))
-            val root = LinearLayout(activity).apply {
-                orientation = LinearLayout.VERTICAL
-                setBackgroundColor(palette.background)
-            }
-            root.addView(buildToolbar(activity, palette) { dialog.dismiss() })
-            val contentHolder = LinearLayout(activity).apply {
-                orientation = LinearLayout.VERTICAL
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    0,
-                    1f
-                )
-            }
-            fun render() {
-                contentHolder.removeAllViews()
-                contentHolder.addView(buildContent(activity, palette) { render() })
-            }
-            render()
-            root.addView(contentHolder)
-            dialog.setContentView(root)
-            dialog.show()
-            dialog.window?.setLayout(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
+            BookmarkThreshold.ensureLoaded()
+            buildRootPage(activity, Palette(activity))
+        }
+    }
+
+    /**
+     * The first page of the stack: the toolbar and the settings, status and history sections. The
+     * sections are rebuilt in place after a change, so the page itself never has to be replaced.
+     */
+    private fun buildRootPage(context: Context, palette: Palette): View {
+        val root = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            setBackgroundColor(palette.background)
+            layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
             )
-            dialog.window?.setBackgroundDrawable(ColorDrawable(palette.background))
-        } catch (t: Throwable) {
-            Toast.makeText(activity, "${Strings.pageTitle}: ${t.message}", Toast.LENGTH_SHORT).show()
         }
-    }
+        root.addView(buildToolbar(context, palette) { PageHost.close() })
 
-    private fun findActivity(context: Context?): Activity? {
-        var current = context
-        while (current is ContextWrapper) {
-            if (current is Activity) return current
-            current = current.baseContext
+        val contentHolder = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                0,
+                1f
+            )
         }
-        return current as? Activity
+        fun render() {
+            contentHolder.removeAllViews()
+            contentHolder.addView(buildContent(context, palette) { render() })
+        }
+        render()
+        root.addView(contentHolder)
+        return root
     }
-
-    private fun dialogTheme(palette: Palette): Int =
-        if (palette.dark) android.R.style.Theme_Material_NoActionBar
-        else android.R.style.Theme_Material_Light_NoActionBar
 
     private fun buildToolbar(
         context: Context,
@@ -153,6 +151,8 @@ object PatchedSettings {
                 addView(entryRow(context, palette, Strings.aiSettingsEntry, Strings.aiSettingsHint))
                 addView(divider(context, palette))
                 addView(searchRankingRow(context, palette, onClear))
+                addView(divider(context, palette))
+                addView(bookmarkThresholdRow(context, palette, onClear))
             }
         )
 
@@ -366,10 +366,17 @@ object PatchedSettings {
             setPadding(dp(context, 4f), dp(context, 16f), dp(context, 4f), dp(context, 8f))
         }
 
+    /** One group of rows, drawn as the same rounded card the AI filter page uses. */
     private fun card(context: Context, palette: Palette): LinearLayout =
         LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
-            setBackgroundColor(palette.card)
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.RECTANGLE
+                setColor(palette.card)
+                cornerRadius = dp(context, 10f).toFloat()
+            }
+            // The rows and the dividers between them are square, so they are clipped to the radius.
+            clipToOutline = true
             setPadding(0, dp(context, 4f), 0, dp(context, 4f))
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -492,17 +499,189 @@ object PatchedSettings {
             )
         }
 
+    private fun thresholdLabel(floor: Int): String =
+        if (floor > 0) Strings.bookmarkThresholdValue(floor) else Strings.bookmarkThresholdOff
+
+    private fun bookmarkThresholdRow(
+        context: Context,
+        palette: Palette,
+        onChanged: () -> Unit
+    ): View {
+        val value = TextView(context).apply {
+            textSize = 14f
+            setTextColor(palette.accent)
+            setPadding(dp(context, 8f), 0, 0, 0)
+        }
+
+        fun refresh() {
+            value.text = thresholdLabel(BookmarkThreshold.current)
+        }
+        refresh()
+
+        return LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(context, 16f), dp(context, 14f), dp(context, 16f), dp(context, 14f))
+            setOnClickListener {
+                showBookmarkThresholdPicker(context, palette) { floor ->
+                    BookmarkThreshold.setFloor(context, floor)
+                    refresh()
+                    onChanged()
+                }
+            }
+            addView(
+                LinearLayout(context).apply {
+                    orientation = LinearLayout.VERTICAL
+                    layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                    addView(
+                        TextView(context).apply {
+                            text = Strings.bookmarkThreshold
+                            textSize = 15f
+                            setTextColor(palette.primary)
+                        }
+                    )
+                    addView(
+                        TextView(context).apply {
+                            text = Strings.bookmarkThresholdHint
+                            textSize = 11f
+                            setTextColor(palette.secondary)
+                            setPadding(0, dp(context, 2f), 0, 0)
+                        }
+                    )
+                }
+            )
+            addView(value)
+        }
+    }
+
+    /**
+     * The picker used to be a window of its own, which is why tapping around it did nothing: with a
+     * `WRAP_CONTENT` window the touches outside never reach it, and there is nothing behind it to
+     * dim. It is now a scrim and a card inside the page's own window, so the scrim takes every tap
+     * that misses the card, and the card's elevation draws a real shadow over it.
+     *
+     * The card changes its own contents in place: the presets first, then - behind the last row - a
+     * number field, because the count somebody wants is rarely one of the round ones.
+     */
+    private fun showBookmarkThresholdPicker(
+        context: Context,
+        palette: Palette,
+        onPicked: (Int) -> Unit
+    ) {
+        try {
+            val column = LinearLayout(context).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding(0, dp(context, 12f), 0, dp(context, 10f))
+            }
+
+            fun title(text: String) = TextView(context).apply {
+                this.text = text
+                textSize = 16f
+                typeface = Typeface.DEFAULT_BOLD
+                setTextColor(palette.primary)
+                setPadding(dp(context, 20f), dp(context, 4f), dp(context, 20f), dp(context, 10f))
+            }
+
+            fun actionRow(label: String, color: Int, onTap: () -> Unit) = TextView(context).apply {
+                text = label
+                textSize = 15f
+                setTextColor(color)
+                setPadding(dp(context, 20f), dp(context, 12f), dp(context, 20f), dp(context, 12f))
+                setOnClickListener { onTap() }
+            }
+
+            fun showInput() {
+                column.removeAllViews()
+                column.addView(title(Strings.bookmarkThresholdCustomTitle))
+                val input = EditText(context).apply {
+                    inputType = InputType.TYPE_CLASS_NUMBER
+                    filters = arrayOf(InputFilter.LengthFilter(6))
+                    textSize = 16f
+                    setTextColor(palette.primary)
+                    setHintTextColor(palette.secondary)
+                    setPadding(dp(context, 20f), dp(context, 6f), dp(context, 20f), dp(context, 6f))
+                    val shown = BookmarkThreshold.current
+                    setText(if (shown > 0) shown.toString() else "")
+                    setSelection(text.length)
+                }
+                column.addView(input)
+                column.addView(
+                    TextView(context).apply {
+                        text = Strings.bookmarkThresholdScale
+                        textSize = 11f
+                        setTextColor(palette.secondary)
+                        setPadding(dp(context, 20f), 0, dp(context, 20f), dp(context, 10f))
+                    }
+                )
+                column.addView(
+                    actionRow(Strings.bookmarkThresholdSave, palette.accent) {
+                        val floor = input.text.toString().toIntOrNull()
+                        if (floor == null || floor < 0 || floor > BookmarkThreshold.MAX_FLOOR) {
+                            Toast.makeText(context, Strings.bookmarkThresholdInvalid, Toast.LENGTH_SHORT).show()
+                            return@actionRow
+                        }
+                        onPicked(floor)
+                        PageHost.dismissOverlay()
+                    }
+                )
+                input.post {
+                    input.requestFocus()
+                    // The current floor is in the field already; typing should replace it, not append.
+                    input.selectAll()
+                    runCatching {
+                        val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                        imm.showSoftInput(input, InputMethodManager.SHOW_IMPLICIT)
+                    }
+                }
+            }
+
+            fun showPresets() {
+                column.removeAllViews()
+                column.addView(title(Strings.bookmarkThresholdTitle))
+                BookmarkThreshold.PRESETS.forEach { floor ->
+                    val current = floor == BookmarkThreshold.current
+                    column.addView(
+                        actionRow(
+                            thresholdLabel(floor),
+                            if (current) palette.accent else palette.primary
+                        ) {
+                            onPicked(floor)
+                            PageHost.dismissOverlay()
+                        }
+                    )
+                }
+                column.addView(actionRow(Strings.bookmarkThresholdCustom, palette.accent) { showInput() })
+            }
+
+            showPresets()
+
+            val card = ScrollView(context).apply {
+                background = GradientDrawable().apply {
+                    setColor(palette.card)
+                    cornerRadius = dp(context, 16f).toFloat()
+                }
+                // Keeps the rows from painting into the rounded corners while the list scrolls, and
+                // gives the shadow the same outline as the card.
+                clipToOutline = true
+                elevation = dp(context, 24f).toFloat()
+                // Taps that land on the card have to stay on the card, or the scrim behind it closes
+                // the picker on a tap that was meant for a row's padding.
+                isClickable = true
+                layoutParams = FrameLayout.LayoutParams(
+                    (context.resources.displayMetrics.widthPixels * 0.86f).toInt(),
+                    FrameLayout.LayoutParams.WRAP_CONTENT
+                )
+                addView(column)
+            }
+            PageHost.showOverlay(card)
+        } catch (_: Throwable) {
+        }
+    }
+
     private fun openAiSettings(activity: Activity) {
         try {
-            val palette = Palette(activity)
-            val dialog = Dialog(activity, dialogTheme(palette))
-            val view = AiFilterSettingsView.build(activity) { dialog.dismiss() } ?: return
-            dialog.setContentView(view)
-            dialog.show()
-            dialog.window?.setLayout(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-            )
+            val page = AiFilterSettingsView.build(activity) { PageHost.pop() } ?: return
+            PageHost.push(page)
         } catch (_: Throwable) {
         }
     }
@@ -593,9 +772,31 @@ object PatchedSettings {
         }
     }
 
+    /**
+     * The detail screens take a work id of their own, so a history entry can open the work straight
+     * away. Sending the `https://www.pixiv.net/...` link through the router instead makes the router
+     * resolve it, and that resolution is drawn on the app's launch screen - a full-screen flash of
+     * the splash artwork on the way to every work. The router stays as the fallback for when a build
+     * renames or removes one of the two activities.
+     */
     private fun openDetail(context: Context, entry: HistoryStore.Entry) {
-        try {
-            val url = if (entry.kind == HistoryStore.KIND_NOVEL) {
+        val isNovel = entry.kind == HistoryStore.KIND_NOVEL
+        val direct = runCatching {
+            context.startActivity(
+                Intent().apply {
+                    setClassName(
+                        context.packageName,
+                        if (isNovel) NOVEL_DETAIL_ACTIVITY else ILLUST_DETAIL_ACTIVITY
+                    )
+                    if (isNovel) putExtra("NOVEL_ID", entry.id) else putExtra("ILLUST_ID", entry.id)
+                    if (context !is Activity) addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+            )
+        }.isSuccess
+        if (direct) return
+
+        runCatching {
+            val url = if (isNovel) {
                 "https://www.pixiv.net/novel/show.php?id=${entry.id}"
             } else {
                 "https://www.pixiv.net/artworks/${entry.id}"
@@ -606,7 +807,6 @@ object PatchedSettings {
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
             )
-        } catch (_: Throwable) {
         }
     }
 

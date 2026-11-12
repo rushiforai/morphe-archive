@@ -33,15 +33,16 @@ final class SharedNg {
     private static long sourceGeneration;
     static SharedPreferences prefs(){return context.getSharedPreferences(PREFS,0);}
     static Set<String> ignoredReporters(){return new HashSet<>(context.getSharedPreferences(SharedNgReporterBlocks.PREFS,0).getStringSet("ignored",Collections.emptySet()));}
-    static void initialize(Context c){if(context!=null)return;context=c.getApplicationContext();if(prefs().contains("githubFeed")||prefs().contains("feedEndpoint"))prefs().edit().remove("githubFeed").remove("feedEndpoint").putLong("cursor",0).apply();prefs().edit().remove("filterLevel").apply();reload();PersonalNgSubmissions.initialize(context);IO.execute(()->{
+    static void initialize(Context c){if(context!=null)return;context=c.getApplicationContext();if(prefs().contains("githubFeed")||prefs().contains("feedEndpoint"))prefs().edit().remove("githubFeed").remove("feedEndpoint").putLong("cursor",0).apply();prefs().edit().remove("filterLevel").apply();reload();PersonalNgSubmissions.initialize(context);SharedNgReporterFeedback.initialize(context);IO.execute(()->{
         try{loadCache();}catch(FileNotFoundException absent){/* First launch has no cache. */}catch(Exception e){status="キャッシュを読み込めません";}
         if(rules.isEmpty())prefs().edit().putLong("cursor",0).apply();flushReports();sync(false);
     });}
-    static void reload(){if(context==null)return;SharedPreferences p=prefs();enabled=p.getBoolean("enabled",false);threshold=p.getInt("threshold",1);if(threshold<1)threshold=1;exceptions=new HashSet<>(p.getStringSet("exceptions",Collections.emptySet()));new android.os.Handler(android.os.Looper.getMainLooper()).post(ProgrammableNgController::sharedNgChanged);}
+    static void reload(){if(context==null)return;SharedPreferences p=prefs();SharedNgLocalEdits.reload(p);enabled=p.getBoolean("enabled",false);threshold=p.getInt("threshold",1);if(threshold<1)threshold=1;exceptions=new HashSet<>(p.getStringSet("exceptions",Collections.emptySet()));new android.os.Handler(android.os.Looper.getMainLooper()).post(ProgrammableNgController::sharedNgChanged);}
+    static SharedNgRules.Rule originalRule(SharedNgRules.Rule fallback){for(SharedNgRules.Rule rule:rules)if(rule.id.equals(fallback.id))return rule;return fallback;}
     static boolean enabled(){return enabled;}
     static void showResponseExclusions(Activity activity, ProgrammableNgScript.Input input) {
         if (!enabled) return;
-        List<SharedNgRules.Rule> source = SharedNgReporterPolicy.apply(rules,ignoredReporters());
+        List<SharedNgRules.Rule> source = SharedNgLocalEdits.apply(SharedNgReporterPolicy.apply(rules,ignoredReporters()),SharedNgLocalEdits.snapshot());
         Set<String> ignored = new HashSet<>(exceptions);
         Set<String> excluded = new HashSet<>(prefs().getStringSet("excludedBoards", Collections.emptySet()));
         int votes = threshold, kinds = 0;
@@ -77,10 +78,12 @@ final class SharedNg {
     }
     private static final class MatchPlan {
         final List<SharedNgRules.Rule> source;final Set<String> ignored,excluded,reporters;final int votes,kinds;final SharedNgIndex index;
+        final Map<String,SharedNgLocalEdits.Edit> edits;
         MatchPlan(List<SharedNgRules.Rule> source,Set<String> ignored,Set<String> excluded,int votes,int kinds,Set<String> reporters){
             this.source=source;this.ignored=ignored;this.excluded=new HashSet<>(excluded);this.votes=votes;this.kinds=kinds;
             this.reporters=new HashSet<>(reporters);
-            index=new SharedNgIndex(SharedNgReporterPolicy.apply(source,reporters),votes,ignored,this.excluded,kinds);
+            this.edits=SharedNgLocalEdits.snapshot();
+            index=new SharedNgIndex(SharedNgLocalEdits.apply(SharedNgReporterPolicy.apply(source,reporters),edits),votes,ignored,this.excluded,kinds);
         }
     }
     private static SharedNgIndex index(){
@@ -89,7 +92,7 @@ final class SharedNg {
         Set<String> excluded=p.getStringSet("excludedBoards",Collections.emptySet());
         Set<String> reporters=ignoredReporters();
         List<SharedNgRules.Rule> source=rules;Set<String> ignored=exceptions;int votes=threshold;MatchPlan plan=matchPlan;
-        if(plan==null||plan.source!=source||plan.ignored!=ignored||plan.votes!=votes||plan.kinds!=kinds||!plan.excluded.equals(excluded)||!plan.reporters.equals(reporters)){
+        if(plan==null||plan.source!=source||plan.ignored!=ignored||plan.edits!=SharedNgLocalEdits.snapshot()||plan.votes!=votes||plan.kinds!=kinds||!plan.excluded.equals(excluded)||!plan.reporters.equals(reporters)){
             plan=new MatchPlan(source,ignored,excluded,votes,kinds,reporters);matchPlan=plan;
         }
         return plan.index;
@@ -173,7 +176,7 @@ final class SharedNg {
             prefs().edit().putLong("cursor",revision).putLong("lastSync",System.currentTimeMillis()).putInt("failures",0).apply();
             nextSync=System.currentTimeMillis()+15*60*1000;status="同期済み："+rules.size()+"条件";
             }
-        }catch(Exception e){synchronized(SOURCE_LOCK){if(generation>=0&&generation!=sourceGeneration){nextSync=0;status="接続先を変更しました。再同期します";}else{int n=Math.min(6,prefs().getInt("failures",0)+1);prefs().edit().putInt("failures",n).apply();nextSync=System.currentTimeMillis()+Math.min(6*60*60*1000L,(15*60*1000L)<<n);status="同期失敗（保存済みの条件を使用）："+e.getMessage();}}}
+        }catch(Exception e){synchronized(SOURCE_LOCK){if(generation>=0&&generation!=sourceGeneration){nextSync=0;if(enabled)status="接続先を変更しました。再同期します";}else{int n=Math.min(6,prefs().getInt("failures",0)+1);prefs().edit().putInt("failures",n).apply();nextSync=System.currentTimeMillis()+Math.min(6*60*60*1000L,(15*60*1000L)<<n);status="同期失敗（保存済みの条件を使用）："+e.getMessage();}}}
         finally{busy=false;}
     }
     static List<SharedNgRules.Rule> decode(JSONArray rows)throws JSONException{if(rows.length()>10000)throw new JSONException("条件が多すぎます");List<SharedNgRules.Rule> out=new ArrayList<>();Set<String> seen=new HashSet<>();
@@ -185,8 +188,29 @@ final class SharedNg {
         }return Collections.unmodifiableList(out);}
     static JSONObject encode(SharedNgRules.Rule r)throws JSONException{return new JSONObject().put("id",r.id).put("board",r.board).put("kind",r.kind).put("value",r.value).put("period",r.period).put("votes",r.votes).put("revoked",r.revoked).put("regex",r.regex).put("minLevel",r.minLevel).put("minVotes",r.minVotes).put("contributors",new JSONArray(r.contributors));}
     static android.util.AtomicFile cacheFile(){return new android.util.AtomicFile(new File(context.getFilesDir(),"shared-ng-cache-v2.json.gz"));}
+    static long downloadedBytes(){
+        File base=cacheFile().getBaseFile();long bytes=0;
+        for(String suffix:new String[]{"",".bak",".new"})bytes+=new File(base.getPath()+suffix).length();
+        return bytes;
+    }
+    /** Run on IO. Invalidate in-flight reads/syncs before deleting only our downloaded cache. */
+    static long deleteDownloadedData()throws IOException{
+        synchronized(SOURCE_LOCK){
+            boolean saved=prefs().edit().putBoolean("enabled",false).putLong("cursor",0).remove("lastSync").putInt("failures",0).commit();
+            enabled=false;
+            if(!saved)throw new IOException("共有NGをオフにできませんでした");
+            sourceGeneration++;long bytes=downloadedBytes();cacheFile().delete();
+            File base=cacheFile().getBaseFile();for(String suffix:new String[]{"",".bak",".new"})
+                if(new File(base.getPath()+suffix).exists())throw new IOException("ダウンロード済みデータを削除できませんでした");
+            rules=Collections.emptyList();matchPlan=null;nextSync=0;
+            status="ダウンロード済みデータを削除しました（共有NGはオフ）";
+            new android.os.Handler(android.os.Looper.getMainLooper()).post(ProgrammableNgController::sharedNgChanged);
+            return bytes;
+        }
+    }
     /** Stream cached conditions so a large rule set is never duplicated as one JSON string. */
     static void loadCache()throws Exception{
+        final long generation;synchronized(SOURCE_LOCK){generation=sourceGeneration;}
         String source="";int format=0;List<SharedNgRules.Rule> loaded=new ArrayList<>();Set<String> ids=new HashSet<>();
         try(InputStream file=cacheFile().openRead();java.util.zip.GZIPInputStream zipped=new java.util.zip.GZIPInputStream(file);android.util.JsonReader reader=new android.util.JsonReader(new InputStreamReader(zipped,StandardCharsets.UTF_8))){
             reader.beginObject();while(reader.hasNext()){String key=reader.nextName();
@@ -205,7 +229,7 @@ final class SharedNg {
             }reader.endObject();
         }
         if(format!=2)throw new IOException("共有NGキャッシュの形式が不正です");
-        synchronized(SOURCE_LOCK){if(source.equals(feedEndpoint())||source.equals(feedEndpoint().replace("&contributors=1",""))||source.equals(endpoint()+"?action=reviewed&reporter=1&globalIdentity=1"))rules=Collections.unmodifiableList(loaded);}
+        synchronized(SOURCE_LOCK){if(generation==sourceGeneration&&(source.equals(feedEndpoint())||source.equals(feedEndpoint().replace("&contributors=1",""))||source.equals(endpoint()+"?action=reviewed&reporter=1&globalIdentity=1")))rules=Collections.unmodifiableList(loaded);}
     }
     static void saveCache(List<SharedNgRules.Rule> data,String endpoint)throws Exception{
         android.util.AtomicFile file=cacheFile();FileOutputStream stream=file.startWrite();
@@ -262,14 +286,7 @@ final class SharedNg {
         JSONArray remaining=new JSONArray();for(int i=0;i<current.length();i++)if(!acknowledged.contains(current.getJSONObject(i).toString()))remaining.put(current.get(i));return remaining;
     }
     static JSONObject request(String verb,String url,JSONObject body)throws Exception{
-        for(int redirects=0;redirects<3;redirects++){
-            URL target=new URL(url);String host=target.getHost();if(!target.getProtocol().equals("https")||!(host.equals("script.google.com")||host.equals("script.googleusercontent.com")||host.equals("raw.githubusercontent.com")))throw new IOException("不正な転送先");
-            HttpURLConnection c=(HttpURLConnection)target.openConnection();c.setInstanceFollowRedirects(false);c.setConnectTimeout(10000);c.setReadTimeout(15000);c.setRequestMethod(verb);
-            try{if(body!=null){byte[] bytes=body.toString().getBytes(StandardCharsets.UTF_8);c.setDoOutput(true);c.setRequestProperty("Content-Type","application/json; charset=utf-8");c.setFixedLengthStreamingMode(bytes.length);try(OutputStream out=c.getOutputStream()){out.write(bytes);}}
-                int code=c.getResponseCode();if(code==302||code==303){url=new URL(target,c.getHeaderField("Location")).toString();verb="GET";body=null;continue;}
-                if(code!=200)throw new IOException("HTTP "+code);try(InputStream in=c.getInputStream()){return new JSONObject(read(in,4*1024*1024));}
-            }finally{c.disconnect();}
-        }throw new IOException("転送回数が多すぎます");
+        return new JSONObject(SharedNgHttp.request(verb,url,body==null?null:body.toString()));
     }
     static String read(InputStream in,int max)throws IOException{ByteArrayOutputStream out=new ByteArrayOutputStream();byte[] buf=new byte[8192];int n;while((n=in.read(buf))!=-1){if(out.size()+n>max)throw new IOException("応答が大きすぎます");out.write(buf,0,n);}return out.toString("UTF-8");}
     static void settings(Activity a){LinearLayout box=new LinearLayout(a);box.setOrientation(1);int pad=(int)(16*a.getResources().getDisplayMetrics().density);box.setPadding(pad,0,pad,0);
@@ -289,9 +306,18 @@ final class SharedNg {
         TextView state=new TextView(a);state.setText(status);box.addView(state);
         NgPlainTextCacheSettings.add(box,a);
         Button reporters=new Button(a);reporters.setText("除外するレポーター（今後の報告にも適用）");box.addView(reporters);reporters.setOnClickListener(v->SharedNgReporterBlocks.show(a,rules));
-        Button update=new Button(a);update.setText("共有NGを同期");box.addView(update);update.setOnClickListener(v->{update.setEnabled(false);state.setText("同期中…");IO.execute(()->{sync(true);a.runOnUiThread(()->{state.setText(status);update.setEnabled(true);});});});
+        final boolean[] clearing={false};
+        Button update=new Button(a);update.setText("共有NGを同期");box.addView(update);update.setOnClickListener(v->{update.setEnabled(false);state.setText("同期中…");IO.execute(()->{sync(true);a.runOnUiThread(()->{if(!clearing[0]){state.setText(status);update.setEnabled(true);}});});});
+        Button clear=new Button(a);clear.setText("共有NGのダウンロード済みデータを削除");box.addView(clear);
+        clear.setOnClickListener(v->new HaiagaruDialog.Builder(a).setTitle("ダウンロード済みデータを削除")
+                .setMessage("受信済みの共有NG条件を端末から削除し、オンライン共有NGをオフにします。再びオンにすると再取得します。\n\n個人NG・レポーター除外・個別解除・端末内編集の設定は残ります。\n\n保存容量："+android.text.format.Formatter.formatFileSize(a,downloadedBytes()))
+                .setNegativeButton("キャンセル",null).setPositiveButton("削除してオフにする",(d,w)->{
+                    clearing[0]=true;on.setChecked(false);on.setEnabled(false);clear.setEnabled(false);update.setEnabled(false);state.setText("削除中…");
+                    IO.execute(()->{String result;try{long bytes=deleteDownloadedData();result=android.text.format.Formatter.formatFileSize(a,bytes)+"の受信データを削除しました";}catch(IOException error){result=error.getMessage();}final String message=result;
+                        a.runOnUiThread(()->{if(a.isFinishing()||a.isDestroyed())return;clearing[0]=false;on.setChecked(false);on.setEnabled(true);state.setText(status);clear.setEnabled(true);update.setEnabled(true);Toast.makeText(a,message,Toast.LENGTH_LONG).show();});});
+                }).show());
         Button report=new Button(a);report.setText("選んだ投稿から共有NGを報告");box.addView(report);report.setOnClickListener(v->report(a));
-        Button list=new Button(a);list.setText("受信した条件・個別解除");box.addView(list);list.setOnClickListener(v->SharedNgExceptions.show(a,rules));
+        Button list=new Button(a);list.setText("受信した条件・端末内編集・個別解除");box.addView(list);list.setOnClickListener(v->SharedNgExceptions.show(a,rules));
         ScrollView scroll=new ScrollView(a);scroll.addView(box);new HaiagaruDialog.Builder(a).setTitle("オンライン共有NG（開発中）").setView(scroll).setPositiveButton("閉じる",null).show();
     }
     static void report(Activity a){

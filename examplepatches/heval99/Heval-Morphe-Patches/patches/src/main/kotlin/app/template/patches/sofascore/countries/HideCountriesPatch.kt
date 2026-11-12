@@ -22,8 +22,8 @@ import com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringRefere
 
 internal val HIDDEN_COUNTRIES = HevalListFeature(
     id = "sofascore.hidden_countries",
-    name = "Hidden countries",
-    description = "Leagues and matches from the countries you pick are hidden, favourites too.",
+    name = "Hide countries",
+    description = "Hides leagues and matches from the countries you pick, even favourites.",
     category = SofascoreControlsCategory.LEAGUES,
     restartRequired = true,
 )

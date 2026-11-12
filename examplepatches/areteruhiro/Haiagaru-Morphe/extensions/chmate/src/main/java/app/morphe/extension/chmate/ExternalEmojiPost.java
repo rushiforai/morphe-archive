@@ -24,11 +24,13 @@ final class ExternalEmojiPost {
                     ? new String[]{"n", "f", "b", "a", "h", "e", "l", "g", "c", "j", "i"}
                     : new String[]{"c", "d", "e", "a", "b", "i", "f", "j", "g", "h", "n"};
             // 243 shuffles the obfuscated fields while keeping the same
-            // constructor layout. Select the layout from the URL field.
-            if (!preIo && !isExternalUrl(stringField(type, postData, "c"))) return postData;
-            if (preIo && !isExternalUrl(stringField(type, postData, "n"))) return postData;
+            // constructor layout. Select the layout from its exact field types.
             if (!preIo && hasField(type, "m")) {
                 fields = new String[]{"c", "e", "a", "d", "b", "j", "g", "i", "h", "f", "m"};
+            } else if(!preIo && type.getDeclaredField("n").getType()==String.class
+                    && type.getDeclaredField("i").getType()==long.class && type.getDeclaredField("j").getType()==long.class){
+                // 242: preserve constructor order, including both timestamp longs.
+                fields=new String[]{"n","f","a","c","g","d","i","j","b","e","h"};
             }
             Object[] values = new Object[11];
             for (int index = 0; index < fields.length; index++) {
@@ -38,7 +40,7 @@ final class ExternalEmojiPost {
             }
             String body = (String) values[4];
             String converted = prepareBody((String) values[0], body);
-            if (converted.equals(body)) return postData;
+            if (java.util.Objects.equals(converted,body)) return postData;
             values[4] = converted;
             Constructor<?> constructor = type.getDeclaredConstructor(
                     String.class, String.class, String.class, String.class,
@@ -58,6 +60,7 @@ final class ExternalEmojiPost {
     }
 
     static String prepareBody(String url, String body) {
+        body=EmojiTextCleanup.apply(OutgoingPostCleanup.apply(body));
         return isExternalUrl(url) ? encodeMarkers(body) : body;
     }
 

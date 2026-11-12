@@ -25,6 +25,15 @@ public final class EdgeReporterHistory {
      */
     private static final String TITLE_KEY_PREFIX = "title:";
     private static volatile SharedPreferences cache;
+    private static volatile ReporterMetadataWrites writes;
+    private static ReporterMetadataWrites metadata(SharedPreferences prefs) {
+        ReporterMetadataWrites current = writes;
+        if (current != null && current.prefs == prefs) return current;
+        synchronized (EdgeReporterHistory.class) {
+            if (writes == null || writes.prefs != prefs) writes = new ReporterMetadataWrites(prefs);
+            return writes;
+        }
+    }
     private static final ThreadLocal<Object> SUBJECT = new ThreadLocal<>();
     public static void pending(Object list) { SUBJECT.set(list); }
     public static void capturePending(Object url) {
@@ -37,58 +46,65 @@ public final class EdgeReporterHistory {
     private EdgeReporterHistory() {}
     public static void initialize(Context context) {
         cache = context.getSharedPreferences("haiagaru.edge-reporters", Context.MODE_PRIVATE);
+        metadata(cache);
     }
     public static String historyTitle(long thread, Object board, String title) {
         return title(board, thread, title);
     }
     /** Called only after the display bridge has verified the current board and thread. */
     public static String displayTitle(long thread, String title) {
+        return displayTitle("edge:liveedge",thread,title);
+    }
+    public static String displayTitle(String scope,long thread,String title){
+        if (!ReporterMetadataWrites.headroom()) return title;
         SharedPreferences prefs = cache;
         if (prefs == null || thread <= 0 || EdgeReporterId.suffix(title) != null) return title;
-        return EdgeReporterId.restore(title, prefs.getString(Long.toString(thread), null));
+        return EdgeReporterId.restore(title, metadata(prefs).get(threadKey(scope,thread)));
     }
     public static String title(Object board, long thread, String title) {
+        if (!ReporterMetadataWrites.headroom()) return title;
         String resolved=metadataTitle(board,thread,title);
         return EdgeReporterId.isBoard(board)&&!EdgeReporterOptions.menu()?EdgeReporterId.titleForNextThreadMatch(resolved):resolved;
     }
     private static String metadataTitle(Object board,long thread,String title){
         SharedPreferences prefs = cache;
         if (prefs == null || thread <= 0 || !EdgeReporterId.isBoard(board)) return title;
-        String key = Long.toString(thread);
+        String key = threadKey(EdgeReporterId.scope(board),thread);
+        ReporterMetadataWrites metadata = metadata(prefs);
         String suffix = EdgeReporterId.suffix(title);
         if (suffix != null) {
-            SharedPreferences.Editor edit = prefs.edit();
-            edit.putString(key, suffix);
-            edit.putString(titleKey(title), suffix);
-            edit.apply();
+            metadata.put(key, suffix);
+            metadata.put(aliasKey(board,title), suffix);
             return title;
         }
-        String stored = prefs.getString(key, null);
+        String stored = metadata.get(key);
         if (stored != null && title != null) {
             // This is the important path for rows restored from the local
             // history database: the row has no suffix, but its thread key does.
-            prefs.edit().putString(titleKey(title), stored).apply();
+            metadata.put(aliasKey(board,title), stored);
         }
         return EdgeReporterId.restore(title, stored);
     }
 
     /** Restores reporter metadata for a menu title when the thread is already read. */
     public static String resolveTitle(Object board, String title) {
+        if (!ReporterMetadataWrites.headroom()) return title;
         if(EdgeReporterId.isBoard(board)&&!EdgeReporterOptions.menu())return EdgeReporterId.titleForNextThreadMatch(title);
         if (title == null || EdgeReporterId.suffix(title) != null || !EdgeReporterId.isBoard(board)) {
             return title;
         }
         SharedPreferences prefs = cache;
         if (prefs == null) return title;
-        return EdgeReporterId.restore(title, prefs.getString(titleKey(title), null));
+        return EdgeReporterId.restore(title, metadata(prefs).get(aliasKey(board,title)));
     }
 
     /** Keep reporter metadata on screen, but copy the original thread title. */
     public static String copyTitle(String text) {
+        if (!ReporterMetadataWrites.headroom()) return text;
         String suffix = EdgeReporterId.suffix(text);
         if (suffix == null || text.indexOf('\n') >= 0 || text.indexOf('\r') >= 0) return text;
         SharedPreferences prefs = cache;
-        String stored = prefs == null ? null : prefs.getString(titleKey(text), null);
+        String stored = prefs == null ? null : metadata(prefs).get(titleKey(text));
         // A title copied from a freshly fetched subject may not have reached the
         // history cache yet.  Its single-line reporter suffix is still display
         // metadata, so remove it at the clipboard boundary too.
@@ -105,13 +121,15 @@ public final class EdgeReporterHistory {
         // reduces accidental collisions without storing a full subject in XML.
         return TITLE_KEY_PREFIX + Integer.toHexString(base.hashCode()) + ":" + base.length();
     }
+    private static String threadKey(String scope,long thread){return "edge:liveedge".equals(scope)?Long.toString(thread):scope+":"+thread;}
+    private static String aliasKey(Object board,String title){String scope=EdgeReporterId.scope(board);return "edge:liveedge".equals(scope)?titleKey(title):scope+":"+titleKey(title);}
     public static void capture(Object url, Object result) {
+        if (!ReporterMetadataWrites.headroom()) return;
         if (url == null || !(result instanceof List) || cache == null) return;
         // BBSUrlInfo exposes server/name in its diagnostic representation on all supported versions.
-        String value = url.toString();
-        if (!value.startsWith("{server:bbs.eddibb.cc, name:liveedge, created:")) return;
-        SharedPreferences.Editor edit = cache.edit();
-        boolean changed = false;
+        String scope=EdgeReporterId.scope(url);
+        if(scope==null)return;
+        ReporterMetadataWrites metadata = metadata(cache);
         try {
             for (Object item : (List<?>) result) {
                 long thread = 0;
@@ -123,24 +141,17 @@ public final class EdgeReporterHistory {
                     if (field.getType() == String.class) title = (String) field.get(item);
                 }
                 String suffix = EdgeReporterId.suffix(title);
-                if (thread > 0 && suffix != null && !suffix.equals(cache.getString(Long.toString(thread), null))) {
-                    edit.putString(Long.toString(thread), suffix);
-                    changed = true;
-                }
+                if (thread > 0 && suffix != null) metadata.put(threadKey(scope,thread), suffix);
                 if (suffix != null && title != null) {
-                    String alias = titleKey(title);
-                    if (!suffix.equals(cache.getString(alias, null))) {
-                        edit.putString(alias, suffix);
-                        changed = true;
-                    }
+                    String alias = aliasKey(url,title);
+                    metadata.put(alias, suffix);
                 }
             }
-            if (changed) edit.apply();
         } catch (ReflectiveOperationException error) {
             Log.w("HaiagaruReporter", "Unable to cache subject metadata", error);
         }
     }
-    /** Intercepts the stock NGThread entry point; both choices continue into the stock editor. */
+    /** Reporter shortcuts register directly; title editing retains the stock editor. */
     public static boolean choose(Activity activity, String title, Object type, Object board) {
         if (!EdgeReporterOptions.menu()||Boolean.TRUE.equals(OPENING.get()) || !(type instanceof Enum)
                 || !"THREAD".equals(((Enum<?>) type).name()) || !EdgeReporterId.isBoard(board)) return false;
@@ -157,17 +168,22 @@ public final class EdgeReporterHistory {
             Log.w("HaiagaruReporter", "NG editor unavailable", error);
             return false;
         }
+        boolean partial = "edge:liveedge".equals(EdgeReporterId.scope(board)) && suffix.matches("\\[[A-Za-z0-9+/.]{8}★\\]");
+        String[] choices = partial ? new String[]{reporterButton(board)+"  "+suffix,"前半4桁NG","後半4桁NG","記者ID・スレ名で過去スレ検索","スレタイでNG"}
+                : new String[]{reporterButton(board)+"  "+suffix,"スレタイでNG"};
         new HaiagaruDialog.Builder(activity).setTitle("NGThreadに追加")
-                .setItems(new String[]{"記者IDだけをNG  " + suffix, "スレタイでNG"}, (dialog, which) -> {
+                .setItems(choices, (dialog, which) -> {
+                    if (which == 0 || partial && (which == 1 || which == 2)) {
+                        register(activity, suffix, board.toString(), which); return;
+                    }
+                    if (partial && which == 3) { ReporterSearchUi.show(activity,suffix.substring(1,suffix.length()-2)); return; }
                     try {
                         OPENING.set(true);
-                        entry.invoke(null, activity, which == 0 ? suffix : resolvedTitle, type, board);
+                        entry.invoke(null, activity, resolvedTitle, type, board);
                     } catch (ReflectiveOperationException error) {
                         Log.e("HaiagaruReporter", "Unable to open NG editor", error);
                         Toast.makeText(activity, "NG追加画面を開けませんでした", Toast.LENGTH_LONG).show();
-                    } finally {
-                        OPENING.remove();
-                    }
+                    } finally { OPENING.remove(); }
                 }).setNegativeButton(android.R.string.cancel, null).show();
         return true;
     }
@@ -187,23 +203,45 @@ public final class EdgeReporterHistory {
             if (!(type instanceof Enum) || !"THREAD".equals(((Enum<?>) type).name())) return;
             Object board = fragment.getClass().getField("a").get(fragment);
             if (!EdgeReporterId.isBoard(board)) return;
-            Object holder = fragment.getClass().getField("d").get(fragment);
-            Object binding = holder.getClass().getField("b").get(holder);
-            RadioButton literal = (RadioButton) binding.getClass().getField("l").get(binding);
             EditText input = findInput(root);
             if (input == null || EdgeReporterId.suffix(resolveTitle(board, input.getText().toString())) == null
                     || !(input.getParent() instanceof ViewGroup)) return;
             ViewGroup parent = (ViewGroup) input.getParent();
-            Button button = new Button(root.getContext());
-            button.setText("記者IDだけをNG");
-            button.setOnClickListener(view -> {
-                String suffix = EdgeReporterId.suffix(resolveTitle(board, input.getText().toString()));
-                if (suffix != null) { literal.setChecked(true); input.setText(suffix); input.setSelection(suffix.length()); }
-            });
-            parent.addView(button, parent.indexOfChild(input) + 1);
+            String suffix = EdgeReporterId.suffix(resolveTitle(board,input.getText().toString()));
+            Activity activity = (Activity) fragment.getClass().getMethod("getActivity").invoke(fragment);
+            boolean partial = "edge:liveedge".equals(EdgeReporterId.scope(board)) && suffix.matches("\\[[A-Za-z0-9+/.]{8}★\\]");
+            String[] labels = partial ? new String[]{reporterButton(board),"前半4桁NG","後半4桁NG","記者ID・スレ名で過去スレ検索"} : new String[]{reporterButton(board)};
+            for(int i=0;i<labels.length;i++) {
+                final int action=i;
+                Button button=new Button(root.getContext());button.setText(labels[i]);
+                button.setOnClickListener(view -> {
+                    if(action==3){ReporterSearchUi.show(activity,suffix.substring(1,suffix.length()-2));return;}
+                    if(register(activity,suffix,(String)board,action)) {
+                        try{fragment.getClass().getMethod("dismiss").invoke(fragment);}catch(ReflectiveOperationException ignored){}
+                    }
+                });
+                parent.addView(button,parent.indexOfChild(input)+1+i);
+            }
         } catch (ReflectiveOperationException error) {
             Log.w("HaiagaruReporter", "Unable to add reporter shortcut", error);
         }
+    }
+    private static boolean register(Activity activity,String suffix,String board,int mode){
+        try {
+            String pattern = mode==0 ? suffix : ReporterSearch.pattern(suffix,mode);
+            short flags=(short)(mode==0?0x10:0x20);
+            NativeNgStore store=new NativeNgStore(activity,"THREAD");
+            List<NativeNgStore.Entry> entries=store.entries();
+            NativeNgStore.Entry existing=ExistingNgActions.find(entries,pattern,board,flags);
+            if(existing!=null){
+                if((existing.flags&4)!=0)ExistingNgActions.change(store,existing,1);
+                Toast.makeText(activity,"登録済みの記者NGを有効にしました",Toast.LENGTH_SHORT).show();return true;
+            }
+            if(entries.size()>=Haiagaru.getNgRegistrationLimit())throw new IllegalStateException("NG登録上限を超えます");
+            store.update(null,store.item(pattern,flags,System.currentTimeMillis(),board));
+            PersonalNgSubmissions.changed();
+            Toast.makeText(activity,"記者NGを登録しました",Toast.LENGTH_SHORT).show();return true;
+        } catch(Exception error){Log.w("HaiagaruReporter","Unable to register reporter NG",error);Toast.makeText(activity,"NGを登録できませんでした",Toast.LENGTH_LONG).show();return false;}
     }
     private static EditText findInput(View view) {
         if (view instanceof EditText) return (EditText) view;
@@ -216,4 +254,5 @@ public final class EdgeReporterHistory {
         }
         return null;
     }
+    private static String reporterButton(Object board){String scope=EdgeReporterId.scope(board);return scope!=null&&scope.startsWith("kenmo:")?"記者だけをNG":"記者IDだけをNG";}
 }

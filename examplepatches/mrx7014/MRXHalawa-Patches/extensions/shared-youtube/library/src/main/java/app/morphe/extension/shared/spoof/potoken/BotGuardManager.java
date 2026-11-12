@@ -38,7 +38,6 @@ import java.util.regex.Pattern;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.requests.Requester;
-import app.morphe.extension.shared.settings.SharedYouTubeSettings;
 
 public final class BotGuardManager {
 
@@ -100,7 +99,8 @@ public final class BotGuardManager {
      */
     @Nullable
     public static synchronized String getChallengeData() {
-        if (isChallengeDataNotExpired()) {
+        if (Utils.isNotEmpty(challengeData)
+                && SystemClock.elapsedRealtime() - challengeFetchedTime < CHALLENGE_DATA_EXPIRATION_MS) {
             return challengeData;
         }
         // Previously fetched data is expired and must not be used,
@@ -282,11 +282,6 @@ public final class BotGuardManager {
         return null;
     }
 
-    private static boolean isChallengeDataNotExpired() {
-        return Utils.isNotEmpty(challengeData) && SystemClock.elapsedRealtime()
-                - challengeFetchedTime < CHALLENGE_DATA_EXPIRATION_MS;
-    }
-
     /**
      * Always downloads a new challenge. A failed or timed out download
      * does not prevent a later call from trying again.
@@ -313,7 +308,7 @@ public final class BotGuardManager {
     }
 
     private static void handleConnectionError(String toastMessage, @Nullable Exception ex) {
-        if (SharedYouTubeSettings.DEBUG.get()) {
+        if (Logger.isDebugEnabled()) {
             Utils.showToastShort(toastMessage);
         }
         Logger.printInfo(() -> toastMessage, ex);
@@ -352,7 +347,7 @@ public final class BotGuardManager {
                 handleConnectionError("Network error", ex);
             }
         } else {
-            handleConnectionError("No internet connection: " + url, null);
+            Logger.printInfo(() -> "No internet connection: " + url);
         }
 
         return null;
@@ -365,7 +360,7 @@ public final class BotGuardManager {
             return null;
         }
         if (!Utils.isNetworkConnected()) {
-            handleConnectionError("No internet connection", null);
+            Logger.printInfo(() -> "No internet connection");
             return null;
         }
         try {

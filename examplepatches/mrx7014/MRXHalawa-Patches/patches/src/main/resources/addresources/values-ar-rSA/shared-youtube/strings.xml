@@ -18,10 +18,16 @@ Second \"item\" text"</string>
 -->
 <resources>
   <!-- layout.theme.splashAnimationPatch -->
-  <string name="morphe_splash_screen_animation_style_title">تأثير حركة بدء التشغيل</string>
-  <string name="morphe_splash_screen_animation_style_entry_1">معطّل</string>
-  <string name="morphe_splash_screen_animation_style_entry_2">اللون</string>
-  <string name="morphe_splash_screen_animation_style_entry_3">أحادية اللون</string>
+  <string name="morphe_splash_screen_style_title">تأثير حركة بدء التشغيل</string>
+  <string name="morphe_splash_screen_style_entry_1">معطّل</string>
+  <string name="morphe_splash_screen_style_entry_2">اللون</string>
+  <string name="morphe_splash_screen_style_entry_3">لون Morphe</string>
+  <string name="morphe_splash_screen_style_entry_4">أحادي اللون</string>
+  <string name="morphe_splash_screen_style_entry_5">Morphe أحادي اللون</string>
+  <!-- misc.settings.settingsPatch -->
+  <string name="morphe_settings_new_indicator_days_title">تمييز الإعدادات الجديدة</string>
+  <string name="morphe_settings_new_indicator_days_summary">عدد الأيام التي تظهر فيها النقطة بجانب الإعدادات والخيارات التي أُضيفت بواسطة التحديث</string>
+  <string name="morphe_settings_new_indicator_days_off">متوقف</string>
   <!-- misc.initialization.initializationPatch -->
   <string name="morphe_restart_first_run">إعادة التشغيل لإنهاء الإعداد</string>
   <!-- layout.branding.baseCustomBrandingPatch -->
@@ -30,7 +36,7 @@ Second \"item\" text"</string>
   <string name="morphe_theme_color_dark_title">خلفية المظهر الداكن</string>
   <string name="morphe_theme_color_dark_entry_2">أسود خالص</string>
   <string name="morphe_theme_color_dark_entry_3">Material You (أسود خالص)</string>
-  <string name="morphe_theme_color_dark_entry_9">يوتيوب الكلاسيكي</string>
+  <string name="morphe_theme_color_dark_entry_9">YouTube الكلاسيكي</string>
   <string name="morphe_theme_color_dark_entry_10">وردي داكن</string>
   <string name="morphe_theme_color_dark_entry_11">أزرق داكن</string>
   <string name="morphe_theme_color_dark_entry_12">أخضر داكن</string>
@@ -110,7 +116,7 @@ Second \"item\" text"</string>
   <string name="morphe_spoof_video_streams_client_type_title">العميل الافتراضي</string>
   <!-- Ensure this translation matches the translation of morphe_spoof_video_streams_no_clients_suggest_vr_toast -->
   <string name="morphe_spoof_video_streams_sign_in_android_vr_about_title">تسجيل الدخول إلى Android VR</string>
-  <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary">لم يتم تسجيل الدخول إلى Android VR. انقر هنا لتسجيل الدخول</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary">يتطلب Android VR تسجيل دخول منفصل. انقر هنا للمتابعة</string>
   <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary_signed_in">مسجل حاليًا في Android VR</string>
   <!-- "Default client" must be the same translated text as morphe_spoof_video_streams_client_type_title -->
   <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary_disabled">للحصول على هذه الميزة، غيّر \'العميل الافتراضي\' إلى Android VR</string>
@@ -142,7 +148,7 @@ Second \"item\" text"</string>
   <string name="morphe_oauth2_connection_failure_generic">OAuth2 غير متاح مؤقتًا</string>
   <string name="morphe_oauth2_connection_failure_auth_not_approved">لا يمكن تسجيل الدخول إلى VR، لم تتم الموافقة على مصادقة الموقع الإلكتروني</string>
   <string name="morphe_oauth2_connection_failure_auth_error">فشل تسجيل الدخول إلى VR: %s</string>
-  <string name="morphe_oauth2_toast_reset">تم تسجيل خروج Android VR</string>
+  <string name="morphe_oauth2_toast_reset">تم تسجيل الخروج من Android VR</string>
   <string name="morphe_oauth2_toast_invalid">رمز تسجيل الدخول إلى VR غير صالح، حاول تسجيل الدخول مرة أخرى إلى VR</string>
   <!-- misc.medianotification.mediaNotificationControlsPatch -->
   <string name="morphe_notification_media_screen_title">عناصر التحكم في وسائط الإشعارات</string>
@@ -151,6 +157,13 @@ Second \"item\" text"</string>
   <string name="morphe_hide_notification_media_prev_next_summary">يخفي أزرار \'السابق\' و \'التالي\' في إشعار الوسائط، شاشة القفل، وعناصر تحكم سماعة الرأس</string>
   <string name="morphe_disable_notification_media_seekbar_title">تعطيل شريط التمرير</string>
   <string name="morphe_disable_notification_media_seekbar_summary">يمنع سحب شريط التقدم على شاشة القفل ولوحة الإشعارات</string>
+  <string name="morphe_seek_notification_media_prev_next_title">التمرير باستخدام أزرار السابق &amp; التالي</string>
+  <string name="morphe_seek_notification_media_prev_next_summary">يغير عناصر التحكم لإشعار الوسائط، قفل الشاشة، وسماعات الرأس للتمرير بدلًا من تغيير الفيديوهات</string>
+  <string name="morphe_seek_notification_media_rewind_length_title">مدة الترجيع</string>
+  <string name="morphe_seek_notification_media_rewind_length_summary">عدد الثواني للترجيع باستخدام زر السابق</string>
+  <string name="morphe_seek_notification_media_fast_forward_length_title">مدة التقديم السريع</string>
+  <string name="morphe_seek_notification_media_fast_forward_length_summary">عدد الثواني للتقديم السريع باستخدام زر التالي</string>
+  <string name="morphe_seek_notification_media_length_invalid">يجب أن تكون مدة التمرير بين 1 و %s ثانية. سيتم استخدام الإعداد الافتراضي</string>
   <!-- misc.quic.disableQUICProtocolPatch -->
   <string name="morphe_disable_quic_protocol_title">تعطيل بروتوكول QUIC</string>
   <!-- misc.audio.drc.disableDRCAudioPatch  -->
@@ -195,13 +208,15 @@ Second \"item\" text"</string>
   <string name="morphe_replace_links_with_shortener_title">تغيير روابط المشاركة إلى youtu.be</string>
   <string name="morphe_replace_links_with_shortener_summary">يُلزم استخدام تنسيق رابط youtu.be المختصر للفيديوهات</string>
   <!-- misc.debugging.enableDebuggingPatch -->
-  <string name="morphe_debug_protobuffer_title">سجل تصحيح الأخطاء لـ Protocol Buffer</string>
-  <string name="morphe_debug_protobuffer_summary">يضيف معلومات تسجيل إضافية للمطورين لتحديد مكونات التطبيق</string>
-  <string name="morphe_debug_protobuffer_user_dialog_message">"يؤدي تمكين هذا الإعداد إلى تسجيل بيانات تخطيط إضافية، بما في ذلك النص الظاهر على الشاشة لبعض مكونات الواجهة.
+  <string name="morphe_debug_litho_title">تسجيل Litho</string>
+  <string name="morphe_debug_litho_entry_disabled">معطّل</string>
+  <string name="morphe_debug_litho_entry_path">المسار</string>
+  <string name="morphe_debug_litho_entry_path_and_buffer">المسار والمخزن المؤقت</string>
+  <string name="morphe_debug_litho_user_dialog_message">"يقوم تسجيل Litho بتسجيل مكونات تخطيط التطبيق، بما في ذلك النص الظاهر على الشاشة لبعض مكونات واجهة المستخدم.
 
 يمكن أن يساعد ذلك في تحديد المكونات عند إنشاء عوامل تصفية مخصصة.
 
-ومع ذلك، سيؤدي تمكين هذا الخيار أيضًا إلى تسجيل بعض بيانات المستخدم مثل عنوان IP الخاص بك"</string>
+ومع ذلك، سيؤدي هذا أيضًا إلى تسجيل بعض بيانات المستخدم مثل عنوان IP الخاص بك"</string>
   <!-- Custom filter -->
   <string name="morphe_custom_filter_screen_title">فلتر مخصص</string>
   <string name="morphe_custom_filter_screen_summary">تكوين فلاتر مخصصة لإخفاء أي مكون</string>
@@ -277,7 +292,7 @@ Second \"item\" text"</string>
   <string name="morphe_ryd_accessibility_dislike_count">ضع علامة لم يعجبني على هذا الفيديو، إلى جانب %s من الأشخاص الآخرين</string>
   <string name="morphe_ryd_accessibility_dislike_percentage">ضع علامة لم يعجني على هذا الفيديو، نسبة الأصوات غير المعجبة هي %s</string>
   <string name="morphe_ryd_enabled_title">تمكين استعادة عدد مرات لم يعجبني</string>
-  <string name="morphe_ryd_dislike_percentage_title">عرض لم يعجبني كــ نسبة مئوية</string>
+  <string name="morphe_ryd_dislike_percentage_title">عرض لم يعجبني كنسبة مئوية</string>
   <string name="morphe_ryd_dislike_percentage_summary">يعرض إحصائية لم يعجبني كنسبة مئوية من الإعجابات بدلًا من رقم</string>
   <string name="morphe_ryd_estimated_like_title">عرض الإعجابات المقدرة</string>
   <string name="morphe_ryd_estimated_like_summary">يعرض عددًا تقديريًا للإعجابات في الفيديوهات التي قام المنشئ بتعطيل الإعجابات فيها</string>
@@ -295,10 +310,10 @@ Second \"item\" text"</string>
   <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_rate_limit_summary">لم يعجبني غير متاح مؤقتًا - حد معدل عميل API ساري المفعول</string>
   <string name="morphe_ryd_statistics_getFetchCallCount_title">API جلب الأصوات وعدد الاتصالات</string>
   <string name="morphe_ryd_statistics_getFetchCallCount_zero_summary">لم يتم إجراء اتصالات الشبكة</string>
-  <string name="morphe_ryd_statistics_getFetchCallCount_non_zero_summary">%s اتصالات شبكية أجريت</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_non_zero_summary">تم إجراء %s من اتصالات الشبكة</string>
   <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_title">API جلب الأصوات، عدد مرات انتهاء المهلة</string>
   <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_zero_summary">لم يتم تجاوز المهلة في أي من طلبات الشبكة</string>
-  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_non_zero_summary">%s اتصالات شبكية انتهت مهلتها</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_non_zero_summary">انتهت مهلة %s من اتصالات الشبكة</string>
   <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_title">حدود معدل عميل API</string>
   <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_zero_summary">لم يتم مواجهة أي حدود لمعدل العميل</string>
   <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_non_zero_summary">تم تجاوز حد معدل العميل %s مرة</string>

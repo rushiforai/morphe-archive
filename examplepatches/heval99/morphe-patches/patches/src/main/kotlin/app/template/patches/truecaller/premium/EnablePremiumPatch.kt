@@ -1,6 +1,5 @@
 package app.template.patches.truecaller.premium
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.util.returnEarly
@@ -14,6 +13,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+import app.template.patches.shared.addInstructionsChecked
 
 private const val GOLD = "$PREMIUM_TIER_TYPE->GOLD:$PREMIUM_TIER_TYPE"
 
@@ -29,7 +29,7 @@ val enablePremiumPatch = bytecodePatch(
 
     execute {
         // 1. Stored tier: GOLD instead of the "premiumLevel" pref.
-        PremiumTierFingerprint.method.addInstructions(
+        PremiumTierFingerprint.method.addInstructionsChecked(
             0,
             """
                 sget-object v0, $GOLD
@@ -79,7 +79,7 @@ val enablePremiumPatch = bytecodePatch(
         // 5. PremiumState(isPremium, tier, ...): whatever the store or a sync hands in, the state
         // the premium UI observes is premium GOLD. The constructor has no locals, so p1/p2 are
         // low registers; const/16 and sget-object take any register below 256 anyway.
-        PremiumStateConstructorFingerprint.method.addInstructions(
+        PremiumStateConstructorFingerprint.method.addInstructionsChecked(
             0,
             """
                 const/16 p1, 0x1
@@ -112,7 +112,7 @@ val enablePremiumPatch = bytecodePatch(
                 }
             }
             if (!producesResult) throw PatchException("$definingClass.doWork no longer returns ${result.type}")
-            addInstructions(
+            addInstructionsChecked(
                 0,
                 """
                     new-instance v0, ${result.type}
@@ -131,7 +131,7 @@ val enablePremiumPatch = bytecodePatch(
         // to the built-in list for the (forced) GOLD tier.
         val unit = classDefBy("Lkotlin/Unit;").staticFields.firstOrNull { it.type == "Lkotlin/Unit;" }
             ?: throw PatchException("kotlin.Unit has no singleton field")
-        PremiumStatusWriterFingerprint.method.addInstructions(
+        PremiumStatusWriterFingerprint.method.addInstructionsChecked(
             0,
             """
                 sget-object p0, Lkotlin/Unit;->${unit.name}:Lkotlin/Unit;

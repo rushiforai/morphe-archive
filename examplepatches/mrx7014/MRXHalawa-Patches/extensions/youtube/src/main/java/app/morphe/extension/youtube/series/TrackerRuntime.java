@@ -26,6 +26,11 @@ final class TrackerRuntime {
                     service.checkpoint(
                             snapshot, privacyGeneration, () -> reducerAck(snapshot));
             },
+            (previous, video) -> {
+                TrackerService service = service();
+                if (service != null)
+                    service.markWatchedOnAdvance(previous, video, privacyGeneration);
+            },
             Settings.SERIES_TRACKER_COMPLETION_PERCENT::get,
             Settings.SERIES_TRACKER_COMPLETION_SECONDS::get);
     private static final Handler main = new Handler(Looper.getMainLooper());
@@ -124,7 +129,7 @@ final class TrackerRuntime {
                         if (!waiting) return;
                         if (SystemClock.elapsedRealtime() - requestedAt >= 15000) {
                             cancelLaunch();
-                            Utils.showToastLong(UiText.get("morphe_series_tracker_error_resume"));
+                            Utils.showSnackbarLong(UiText.get("morphe_series_tracker_error_resume"));
                         } else main.postDelayed(this, 250);
                     }
                 },

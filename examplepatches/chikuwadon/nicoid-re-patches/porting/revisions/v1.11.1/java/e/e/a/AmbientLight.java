@@ -1104,6 +1104,22 @@ public final class AmbientLight {
         int[] edgeLimits;
         private final int[] edgeColors = new int[SEGMENTS];
         private static final float[] STOPS = {.125f, .375f, .625f, .875f};
+        private static final float[] FADE_STOPS = {0f, .24f, .48f, .72f, .90f, 1f};
+        private static final float[] FADE_STRENGTH = {1f, .87f, .55f, .20f, .035f, 0f};
+        private final int[] fadeColors = new int[FADE_STOPS.length];
+        private int fadeAlpha = -1, fadeSoftness = -1;
+
+        private int[] alphaStops(int strength, int soft) {
+            if (fadeAlpha == strength && fadeSoftness == soft) return fadeColors;
+            for (int i = 0; i < fadeColors.length; i++) {
+                float value = FADE_STRENGTH[i];
+                if (soft < 100) value *= 1f - FADE_STOPS[i] * (100 - soft) / 160f;
+                fadeColors[i] = Math.min(255, Math.round(strength * value)) << 24;
+            }
+            fadeAlpha = strength;
+            fadeSoftness = soft;
+            return fadeColors;
+        }
 
         @Override public void draw(Canvas c) {
             if (spread <= 0 || video.isEmpty() || alpha == 0) return;
@@ -1159,11 +1175,11 @@ public final class AmbientLight {
                 int rgb = Color.rgb(r, g, b) & 0xffffff;
                 int startAlpha = Math.min(255,
                         Math.round(alpha * (normalFade ? .82f : .5f)));
-                int middleAlpha = Math.round(startAlpha * (normalFade ? .64f : .33f));
-                paint.setShader(new RadialGradient(0, 0, 1f,
-                        new int[]{(startAlpha << 24) | rgb,
-                                (middleAlpha << 24) | rgb, rgb},
-                        new float[]{0f, .4f, 1f}, Shader.TileMode.CLAMP));
+                Shader color = new LinearGradient(0, 0, 1, 0, rgb | 0xff000000, rgb | 0xff000000,
+                        Shader.TileMode.CLAMP);
+                Shader fade = new RadialGradient(0, 0, 1f, alphaStops(startAlpha, softness),
+                        FADE_STOPS, Shader.TileMode.CLAMP);
+                paint.setShader(new ComposeShader(color, fade, PorterDuff.Mode.DST_IN));
                 int save = c.save();
                 c.translate(positions[i][0], positions[i][1]);
                 c.scale(xRadius, yRadius);
@@ -1181,14 +1197,14 @@ public final class AmbientLight {
             float left = Math.max(video.left, right - seamWidth);
             int rgb = seamColor & 0xffffff;
             Shader across = new LinearGradient(left, 0, right, 0,
-                    new int[]{rgb, rgb | 0xff000000}, null, Shader.TileMode.CLAMP);
+                    new int[]{rgb, rgb | 0x13000000, rgb | 0x80000000, rgb | 0xed000000, rgb | 0xff000000},
+                    new float[]{0f, .2f, .5f, .8f, 1f}, Shader.TileMode.CLAMP);
             for (int edge = 0; edge < 2; edge++) {
                 if ((sides & (1 << edge)) == 0) continue;
                 float from = edge == 0 ? video.top : video.bottom;
                 float to = from + (edge == 0 ? -spread : spread);
                 Shader depth = new LinearGradient(0, from, 0, to,
-                        new int[]{0xff000000, 0xff000000, 0},
-                        new float[]{0f, .72f, 1f}, Shader.TileMode.CLAMP);
+                        alphaStops(255, 100), FADE_STOPS, Shader.TileMode.CLAMP);
                 paint.setShader(new ComposeShader(across, depth, PorterDuff.Mode.DST_IN));
                 c.drawRect(left, Math.min(from, to), right, Math.max(from, to), paint);
             }
@@ -1209,8 +1225,8 @@ public final class AmbientLight {
                         ? sideRgb : verticalRgb | 0xff000000;
                 Shader angle = new SweepGradient(0, 0, new int[]{xColor, yColor, xColor},
                         new float[]{0f, .25f, 1f});
-                Shader fade = new RadialGradient(0, 0, 1f, normalAlphaStops(),
-                        new float[]{0f, .72f, 1f}, Shader.TileMode.CLAMP);
+                Shader fade = new RadialGradient(0, 0, 1f, alphaStops(alpha, 100),
+                        FADE_STOPS, Shader.TileMode.CLAMP);
                 paint.setShader(new ComposeShader(angle, fade, PorterDuff.Mode.DST_IN));
                 int save = c.save();
                 c.translate(right ? video.right : video.left, bottom ? video.bottom : video.top);
@@ -1218,10 +1234,6 @@ public final class AmbientLight {
                 c.drawRect(0f, 0f, 1f, 1f, paint);
                 c.restoreToCount(save);
             }
-        }
-
-        private int[] normalAlphaStops() {
-            return new int[]{alpha << 24, Math.min(255, Math.round(alpha * .76f)) << 24, 0};
         }
 
         private int videoDepth(int edge) {
@@ -1261,13 +1273,8 @@ public final class AmbientLight {
             float length = horizontal ? video.width() : video.height();
             float depth = Math.abs(to - from);
             Shader along = new LinearGradient(0, 0, length, 0, edgeColors, STOPS, Shader.TileMode.CLAMP);
-            // Normal mode uses more of the selected preset's spread. The
-            // original falloff remains for FULL and POPUP for compatibility.
-            float middleAt = normalFade ? .72f
-                    : .25f + .45f * softness / 100;
             Shader fade = new LinearGradient(0, 0, 0, depth,
-                    normalFade ? normalAlphaStops() : new int[]{alpha << 24, (alpha / 3) << 24, 0},
-                    new float[]{0, middleAt, 1}, Shader.TileMode.CLAMP);
+                    alphaStops(alpha, normalFade ? 100 : softness), FADE_STOPS, Shader.TileMode.CLAMP);
             paint.setShader(new ComposeShader(along, fade, PorterDuff.Mode.DST_IN));
             int save = c.save();
             if (horizontal) {

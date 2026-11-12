@@ -27,6 +27,7 @@ import app.morphe.extension.shared.ResourceType;
 import app.morphe.extension.shared.ResourceUtils;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.patches.SettingsNamePatch;
+import app.morphe.extension.shared.settings.preference.AbstractPreferenceFragment;
 import app.morphe.extension.shared.settings.preference.ToolbarPreferenceFragment;
 import app.morphe.extension.shared.theme.ThemeUtils;
 import app.morphe.extension.shared.ui.Dim;
@@ -40,7 +41,7 @@ public abstract class BaseActivityHook extends Activity {
 
     public static final String MORPHE_SETTINGS_INTENT = "morphe_settings_intent";
     public static final String MORPHE_DOWNLOADS_INTENT = "morphe_downloads_intent";
-    private static final int ID_MORPHE_SETTINGS_FRAGMENTS =
+    protected static final int ID_MORPHE_SETTINGS_FRAGMENTS =
             ResourceUtils.getIdentifierOrThrow(ResourceType.ID, "morphe_settings_fragments");
     private static final int ID_MORPHE_TOOLBAR_PARENT =
             ResourceUtils.getIdentifierOrThrow(ResourceType.ID, "morphe_toolbar_parent");
@@ -87,7 +88,7 @@ public abstract class BaseActivityHook extends Activity {
                     && !ENABLE_PREDICTIVE_BACK_ANIMATION) {
                 activity.getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
                         android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT,
-                        activity::finish
+                        () -> closeSettings(activity)
                 );
             }
 
@@ -100,6 +101,15 @@ public abstract class BaseActivityHook extends Activity {
                     .commit();
         } catch (Exception ex) {
             Logger.printException(() -> "initialize failure", ex);
+        }
+    }
+
+    /**
+     * Closes the settings, after first showing the restart dialog if a changed setting requires it.
+     */
+    public static void closeSettings(Activity activity) {
+        if (!AbstractPreferenceFragment.showRestartDialogIfNeeded(activity)) {
+            activity.finish();
         }
     }
 

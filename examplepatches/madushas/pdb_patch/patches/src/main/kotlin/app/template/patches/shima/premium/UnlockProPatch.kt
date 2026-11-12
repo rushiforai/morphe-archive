@@ -46,7 +46,6 @@ val shimaUnlockProPatch = bytecodePatch(
         "client-side Pro features without touching the signed purchase store.",
     default = true,
 ) {
-    category("Premium")
     compatibleWith(SHIMA_COMPATIBILITY)
 
     val unlockPro by booleanOption(

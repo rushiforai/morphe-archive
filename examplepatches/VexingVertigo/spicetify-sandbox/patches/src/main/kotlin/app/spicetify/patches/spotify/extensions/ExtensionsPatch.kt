@@ -132,7 +132,7 @@ internal val playerBridgePatch = bytecodePatch {
 @Suppress("unused")
 val extensionsPatch = bytecodePatch(
     name = "Spicetify extensions",
-    description = "Adds Android versions of Spicetify extensions to the Spicetify Marketplace's Extensions tab, " +
+    description = "NOT SUPPORTED ON 9.2.0.26 - only works on 9.1.80.2221. " + "Adds Android versions of Spicetify extensions to the Spicetify Marketplace's Extensions tab, " +
         "in Spicetify settings, each off until you turn it on. Trash Bin skips the songs and artists you throw " +
         "away from their menus. Play a random song plays one from all of Spotify or your library, from a " +
         "Random pill on Home. Shuffle+ plays a playlist, album or Liked Songs in a truly random order when you " +

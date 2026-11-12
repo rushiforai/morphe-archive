@@ -18,10 +18,17 @@ Second \"item\" text"</string>
 <resources>
   <string name="reddit_privacy_policy">Reddit məxfilik siyasəti</string>
   <string name="morphe_google_signin_not_available_toast">Google girişi mövcud deyil. Daxil olmaq üçün e-poçt istifadə et</string>
+  <string name="morphe_app_downgrade_dialog_title">Aşağı salınma dəstəklənmir</string>
+  <string name="morphe_app_downgrade_dialog_message">"Bu Reddit quraşdırılması &lt;b&gt;%1$s&lt;/b&gt; versiyasın &lt;b&gt;%2$s&lt;/b&gt; versiyasına endirib
+&lt;br/&gt;&lt;br/&gt;
+Yeni versiyanın tətbiq məlumatları daha köhnə versiyalarla işləmir və tətbiq düzgün işləməyə bilər.
+&lt;br/&gt;&lt;br/&gt;
+Köhnə versiyanı istifadə etmək üçün Reddit-i &lt;b&gt;silməlisiz&lt;/b&gt; və sonra daha köhnə versiyanı quraşdırmalısınız."</string>
+  <string name="morphe_app_downgrade_dialog_open_app_info">Tətbiq məlumatını aç</string>
   <string name="morphe_screen_ads_title">Reklamlar</string>
   <string name="morphe_hide_post_ads_title">Axın reklamların gizlət</string>
   <string name="morphe_hide_comment_ads_title">Şərh reklamlarını gizlət</string>
-  <string name="morphe_screen_navigation_bar_title">Fəaliyyət cizgisi</string>
+  <string name="morphe_screen_navigation_bar_title">Fəaliyyət zolağı</string>
   <string name="morphe_hide_answers_button_title">Cavablar düyməsin gizlət</string>
   <string name="morphe_hide_chat_button_title">Söhbət düyməsin gizlət</string>
   <string name="morphe_hide_create_button_title">Yarat düyməsini gizlət</string>
@@ -58,6 +65,8 @@ Second \"item\" text"</string>
   <string name="morphe_hide_trending_shelves_summary">Trend bölmələri axın və axtarış təkliflərindən gizlədir</string>
   <string name="morphe_remove_notification_dialog_title">Bildiriş təklifi dialoqunu sil</string>
   <string name="morphe_remove_notification_dialog_summary">Subreddit-i ziyarət etdikdə bildiriş təklifi dialoqun birbaşa ləğv edir</string>
+  <string name="morphe_high_quality_avatars_title">Yüksək keyfiyyətli avatarlar</string>
+  <string name="morphe_high_quality_avatars_summary">İstifadəçi avatarlarını tam ayırdetmədə göstərir</string>
   <string name="morphe_show_flairs_in_home_feed_title">Əsas lentdə fleyrləri göstər</string>
   <string name="morphe_show_flairs_in_home_feed_summary">Əsas lentdə post fleyr nişanlarını göstərir</string>
   <string name="morphe_show_flairs_in_home_feed_user_dialog_message">Bəzi lent elementləri fleyr göstərməyə bilər</string>
@@ -84,10 +93,6 @@ Second \"item\" text"</string>
   <string name="morphe_keep_feed_position_summary">Paylaşım, şəkil və ya videonu bağladıqdan sonra açılmış paylaşımı yuxarıya çəkmək əvəzinə, lenti eyni mövqedə saxlayır</string>
   <string name="morphe_feed_media_max_height_title">Lent mediasının maksimum hündürlüyü</string>
   <string name="morphe_feed_media_max_height_summary">Lentdəki şəkil, video və qalereyaların maksimum hündürlüyünü onların eninin misilləri ilə təyin edir. Daha hündür media kəsilir. 1.33 Reddit-in ilkin seçimidir</string>
-  <string name="morphe_redgifs_audio_title">Redgifs-ləri səsli oynat</string>
-  <string name="morphe_redgifs_audio_summary">Reddit-in adətən səssiz olan nüsxəsi əvəzinə orijinal Redgifs videosunu oynadır</string>
-  <string name="morphe_redgifs_hd_title">Redgifs HD keyfiyyəti</string>
-  <string name="morphe_redgifs_hd_summary">Redgifs-in HD videosunu oynadır. HD videolar daha böyükdür və yüklənmək üçün fasilə verə bilər</string>
   <string name="morphe_download_location_title">Yükləmə yeri</string>
   <string name="morphe_download_location_all_title">Bütün hesablar</string>
   <string name="morphe_download_location_default_summary">Reddit-in standartı: şəkillər Şəkillər/Reddit-də, videolar Yükləmədə</string>

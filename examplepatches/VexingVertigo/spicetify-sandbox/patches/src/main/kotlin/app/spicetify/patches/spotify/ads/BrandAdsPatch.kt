@@ -17,7 +17,7 @@ private data class AdsHook(val owner: String, val methodName: String, val getter
 @Suppress("unused")
 val brandAdsPatch = bytecodePatch(
     name = "Hide Home and Browse ads",
-    description = "Hides image and video brand-ad sections on Home and Browse. " +
+    description = "NOT SUPPORTED ON 9.2.0.26 - only works on 9.1.80.2221. " + "Hides image and video brand-ad sections on Home and Browse. " +
         "Does not suppress audio ads, player ads, or upgrade prompts. Experimental.",
     default = false,
 ) {

@@ -85,7 +85,7 @@ public final class ConfigurationBackup {
     private static Map<Setting<?>, Object> undoValues;
     private static Map<Setting<?>, Object> importedValues;
     private static Map<Setting<?>, Long> importedRevisions;
-    private static List<SavedProfiles.Profile> undoProfiles;
+    private static SavedProfiles.Merged undoProfiles;
     private static long undoUntil;
     private static long undoId;
 
@@ -483,15 +483,15 @@ public final class ConfigurationBackup {
                 try {
                     Setting.saveAll(updates);
                 } catch (Setting.BatchFailed failure) {
-                    if (!failure.restored) offerUndo(before, Collections.emptyList());
+                    if (!failure.restored) offerUndo(before, new SavedProfiles.Merged());
                     throw failure;
                 }
             }
             // The accounts go on the list once the settings are saved, so a save that fails adds none.
-            List<SavedProfiles.Profile> added = profiles.isEmpty() || context == null
-                    ? Collections.emptyList() : SavedProfiles.merge(context, profiles);
-            if (!before.isEmpty() || !added.isEmpty()) offerUndo(before, added);
-            return new Result(updates.size(), skipped, held, restart, before, added.size());
+            SavedProfiles.Merged merged = profiles.isEmpty() || context == null
+                    ? new SavedProfiles.Merged() : SavedProfiles.merge(context, profiles);
+            if (!before.isEmpty() || !merged.isEmpty()) offerUndo(before, merged);
+            return new Result(updates.size(), skipped, held, restart, before, merged.added.size());
         }
     }
 
@@ -608,12 +608,13 @@ public final class ConfigurationBackup {
 
     /**
      * With a HushGram PIN behind the locks, a file (or an Undo) can't switch Lock your messages,
-     * Lock all of Instagram or Lock Saved, so a backup can't be a way round the PIN. With the phone's
-     * lock behind them, it can't while they're locked either: settings left open from before the
-     * lock came back ask for a new unlock first, and this holds at the write itself.
+     * Lock all of Instagram, Lock Saved or Ask for each chat, so a backup can't be a way round the
+     * PIN. With the phone's lock behind them, it can't while they're locked either: settings left
+     * open from before the lock came back ask for a new unlock first, and this holds at the write itself.
      */
     private static boolean heldByLock(Setting<?> setting) {
-        return (setting == Settings.LOCK_MESSAGES || setting == Settings.LOCK_APP || setting == Settings.LOCK_SAVED)
+        return (setting == Settings.LOCK_MESSAGES || setting == Settings.LOCK_APP || setting == Settings.LOCK_SAVED
+                || setting == Settings.LOCK_EACH_CHAT)
                 && (app.hushgram.extension.instagram.direct.PinLock.protects()
                         || app.hushgram.extension.instagram.direct.MessagesLock.locked());
     }
@@ -656,7 +657,7 @@ public final class ConfigurationBackup {
             Map<Setting<?>, Object> values;
             Map<Setting<?>, Object> expected;
             Map<Setting<?>, Long> revisions;
-            List<SavedProfiles.Profile> profiles;
+            SavedProfiles.Merged profiles;
             synchronized (UNDO) {
                 // The deadline can pass while the page's permission is checked.
                 if (undoDeadline(token) == 0) return null;
@@ -693,7 +694,7 @@ public final class ConfigurationBackup {
         }
     }
 
-    private static void offerUndo(Map<Setting<?>, Object> values, List<SavedProfiles.Profile> profiles) {
+    private static void offerUndo(Map<Setting<?>, Object> values, SavedProfiles.Merged profiles) {
         Map<Setting<?>, Object> imported = new LinkedHashMap<>();
         Map<Setting<?>, Long> revisions = new LinkedHashMap<>();
         for (Setting<?> setting : values.keySet()) {

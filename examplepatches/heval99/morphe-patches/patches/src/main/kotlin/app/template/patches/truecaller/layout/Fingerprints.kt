@@ -32,12 +32,31 @@ internal object ScamFeedFeatureFingerprint : Fingerprint(
     filters = listOf(string("featureScamFeed")),
 )
 
-// The bottom bar builder (xm6.g(SparseIntArray) in 26.39.6, cp6.g in 26.40.5): reads the CALLS /
-// MESSAGES / SCAM_FEED badge counts, fills an array with one tab item per slot (null when a slot
-// has no tab), then filterNotNull(array).take(n) and hands the list to BottomBarView (inlined in
-// 26.40.5), which ignores lists with fewer than two tabs. The tab items share an obfuscated base
-// class whose only no-argument getter returning BottomBarButtonType (kept enum) gives each tab's
-// type.
+// The per-context referral gate (xrz.n(String)Z in 26.43.5): every referral entry point (drawer,
+// bottom bar, promo popup, search screen promo, deep link, Premium tab) asks it with its context
+// key. "featureReferralNavigationDrawer" goes to the toggle resolver as "featureReferralNavDrawer",
+// "featureGoPro" answers false, two keys answer true, and the rest are read from SharedPreferences
+// that a server map writes, so toggle overrides cannot reach them.
+internal object ReferralContextGateFingerprint : Fingerprint(
+    returnType = "Z",
+    parameters = listOf("Ljava/lang/String;"),
+    filters = listOf(
+        string("featureReferralNavigationDrawer"),
+        string("featureGoPro"),
+        methodCall(definingClass = "Landroid/content/SharedPreferences;", name = "getBoolean"),
+    ),
+)
+
+internal const val FAMILY_MEMBER_ROLE = "Lcom/truecaller/familyprotect/api/model/Family\$MemberRole;"
+
+// The bottom bar builder (xm6.g(SparseIntArray) in 26.39.6, cp6.g in 26.40.5, mr6.i in 26.44.6):
+// reads the CALLS / MESSAGES / SCAM_FEED badge counts, asks the tab assembler for the tab list and
+// hands it to BottomBarView (inlined since 26.40.5), which ignores lists with fewer than two tabs.
+// Up to 26.43.5 the builder filled an array itself (null for a slot without a tab) and called
+// filterNotNull(array).take(n); since 26.44.6 a separate assembler class (ir6) returns the finished
+// List from (isFamilyAdmin, MemberRole, three badge counts, flag). The tab items share an
+// obfuscated base class whose only no-argument getter returning BottomBarButtonType (kept enum)
+// gives each tab's type.
 internal object BottomBarTabsFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf("Landroid/util/SparseIntArray;"),
@@ -45,13 +64,7 @@ internal object BottomBarTabsFingerprint : Fingerprint(
         fieldAccess(opcode = Opcode.SGET_OBJECT, definingClass = BOTTOM_BAR_BUTTON_TYPE, name = "CALLS"),
         fieldAccess(opcode = Opcode.SGET_OBJECT, definingClass = BOTTOM_BAR_BUTTON_TYPE, name = "MESSAGES"),
         methodCall(
-            opcode = Opcode.INVOKE_STATIC,
-            parameters = listOf("[Ljava/lang/Object;"),
-            returnType = "Ljava/util/List;",
-        ),
-        methodCall(
-            definingClass = "Lkotlin/collections/CollectionsKt;",
-            parameters = listOf("Ljava/lang/Iterable;", "I"),
+            parameters = listOf("Z", FAMILY_MEMBER_ROLE, "I", "I", "I", "Z"),
             returnType = "Ljava/util/List;",
         ),
     ),

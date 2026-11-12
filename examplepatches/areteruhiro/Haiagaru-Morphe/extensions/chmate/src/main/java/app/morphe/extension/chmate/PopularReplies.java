@@ -32,13 +32,13 @@ public final class PopularReplies {
         return openModel(model);
     }
     static boolean enabledFor(Context c){return prefs(c).getBoolean("popularReplyPopup",false);}
+    static void initialize(Context c){
+        SharedPreferences p=prefs(c);
+        if(!p.contains("popularReplyDirect"))p.edit().putBoolean("popularReplyDirect",p.getBoolean("popularReplyPopup",false)).apply();
+    }
     static boolean directFor(Context c){
         SharedPreferences p=prefs(c);
-        if(!p.contains("popularReplyDirect")){
-            boolean legacy=p.getBoolean("popularReplyPopup",false);
-            p.edit().putBoolean("popularReplyDirect",legacy).apply();return legacy;
-        }
-        return p.getBoolean("popularReplyDirect",false);
+        return p.getBoolean("popularReplyDirect",p.getBoolean("popularReplyPopup",false));
     }
     static int thresholdValue(Context c,int nativeDefault){
         return Math.max(1,Math.min(9999,prefs(c).getInt(directFor(c)?"popularReplyThreshold":"popularReplyStandardThreshold",directFor(c)?3:nativeDefault)));

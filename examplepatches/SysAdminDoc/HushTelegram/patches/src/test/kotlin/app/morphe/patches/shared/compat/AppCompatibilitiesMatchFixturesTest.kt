@@ -79,7 +79,7 @@ class AppCompatibilitiesMatchFixturesTest {
         val compatibilities = AppCompatibilities.telegram()
         assertEquals(
             "only independently verified distributions and versions",
-            mapOf("org.telegram.messenger" to listOf("13.2.1"), "org.telegram.messenger.web" to listOf("13.2.1")),
+            mapOf("org.telegram.messenger" to listOf("13.2.2"), "org.telegram.messenger.web" to listOf("13.2.2")),
             compatibilities.associate { it.packageName to it.targets.map { target -> target.version } },
         )
         var checked = 0

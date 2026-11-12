@@ -30,7 +30,6 @@ val glassdoorDisableAppsFlyerPatch = bytecodePatch(
         "attribution or analytics events are sent.",
     default = true,
 ) {
-    category("Privacy")
     compatibleWith(GLASSDOOR_COMPATIBILITY)
 
     execute {

@@ -11,7 +11,7 @@ private const val LICENSE_CLIENT = "Lcom/pairip/licensecheck/LicenseClient;"
  * PairIP license check only (no libpairipcore / VMRunner). The manifest Application is
  * com.pairip.application.Application, whose attachBaseContext calls
  * LicenseClient.checkLicense(Context); a re-signed build fails it before any app code runs, so the
- * check is skipped. Same approach as BeSoccer, LuckyClick and RareCam.
+ * check is skipped. Same approach as BeSoccer.
  */
 @Suppress("unused")
 val disableLicenseCheckPatch = bytecodePatch(

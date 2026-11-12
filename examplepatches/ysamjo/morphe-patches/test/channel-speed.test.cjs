@@ -69,8 +69,8 @@ function fixture({ channel = SPORT, speed = 2.5, saved, kids = false, readyState
 function items(command) { return command.openPopupAction.popup.overlaySectionRenderer.overlay.overlayTwoPanelRenderer.actionPanel.overlayPanelRenderer.content.overlayPanelItemListRenderer.items; }
 function settingsMenu(id = 'tt-settings') { return api.modal('Einstellungen', '', [api.button('Vorhanden', '', 'UNCHANGED')], id); }
 
-test('Fünf Browser-Kanäle starten mit ihren Vorgaben', () => {
-    for (const [channel, speed] of [[SPORT, 1], ['UCRFsyeKu07-LnHDG44O6uCA', 1], [NFL, 1.1], ['UCK2izXoHvraUFaPMU5B7vMQ', 1], [RTL, 1]]) assert.equal(fixture({ channel }).video.playbackRate, speed);
+test('Alle 21 Sport-Kanäle starten mit 1,0×', () => {
+    for (const channel of [SPORT, 'UCRFsyeKu07-LnHDG44O6uCA', 'UCAvNr5DMVncoJnJAotXOjOQ', 'UCuOwl-VgqBHOzR8hWnonBcA', 'UC5dCegXiWjE57wKrhWnCo0g', 'UCdi3n18zcIZeTk_x9qvSgZw', 'UC-XArLCeEw91r9gmaDi-Ajw', RTL, 'UCK2izXoHvraUFaPMU5B7vMQ', 'UCk452F_ypT9Q8b1S38-Ok8A', 'UCPj_Vtw0hKnhJapQuATBUrA', 'UCiMAc_TN1kSO3ErMtxUXfMA', 'UCQEHrmmI8kKJ6kAiQdQUjgg', 'UChr7ZXDFiPOEl543HM4Aj8g', NFL, 'UCWJ2lWNubArHWmf3FIHbfcQ', 'UC8pYaQzbBBXg9GIOHRvTmDQ', 'UCB_qr75-ydFVKSF9Dmo6izg', 'UC6UL29enLNe4mqwTfAyeNuw', 'UCfMo0xj-sbdzHuzxvKdu1hw', 'UCyGa1YEx9ST66rYrJTGIKOw']) assert.equal(fixture({ channel }).video.playbackRate, 1);
 });
 test('D/S/R überschreiben sportstudio temporär, neue Video-ID setzt zurück', () => {
     const env = fixture(); env.key('d'); assert.equal(env.video.playbackRate, 1.1); env.key('s'); assert.equal(env.video.playbackRate, 1);
@@ -93,7 +93,7 @@ test('Pause, Spulen und späte automatische Resets behalten manuelles Tempo', ()
     env.flush(8000); env.video.playbackRate = 1; env.flush(); assert.equal(env.video.playbackRate, 1.5);
 });
 test('Veraltete verzögerte Callbacks können nächstes Video nicht überschreiben', () => {
-    const env = fixture(); env.nativeSpeed(1.75); env.media('loadeddata'); env.next('second', NFL); env.flush(1200); assert.equal(env.video.playbackRate, 1.1);
+    const env = fixture(); env.nativeSpeed(1.75); env.media('loadeddata'); env.next('second', NFL); env.flush(1200); assert.equal(env.video.playbackRate, 1);
 });
 test('Gespeicherte individuelle Regeln und Dritt-Konfiguration bleiben erhalten', () => {
     const saved = { version: 2, globalSpeed: 1.8, kidsNormalSpeed: false, channels: [{ id: NFL, name: 'Eigene NFL-Regel', speed: 1.6 }] };
@@ -102,7 +102,8 @@ test('Gespeicherte individuelle Regeln und Dritt-Konfiguration bleiben erhalten'
     assert.equal(JSON.parse(env.storage.getItem('ytaf-configuration')).unrelated, 'erhalten');
 });
 test('YouTube Kids pro neuem Video 1,0× und manuell überschreibbar', () => {
-    const env = fixture({ kids: true, channel: NFL }); assert.equal(env.video.playbackRate, 1); env.key('d'); assert.equal(env.video.playbackRate, 1.1);
+    const saved = { version: 2, globalSpeed: 1.8, kidsNormalSpeed: true, channels: [{ id: NFL, name: 'NFL', speed: 1.1 }] };
+    const env = fixture({ kids: true, channel: NFL, saved }); assert.equal(env.video.playbackRate, 1); env.key('d'); assert.equal(env.video.playbackRate, 1.1);
     env.next(); assert.equal(env.video.playbackRate, 1); env.action('YSAMJO_SPEED_KIDS'); assert.equal(env.video.playbackRate, 1.1);
 });
 test('Kinderfreundliche normale Videos werden nicht mit Kids-Modus verwechselt', () => {
@@ -176,7 +177,8 @@ test('Fernbedienung öffnet das Kanalmenü über den nativen Command Executor', 
 });
 
 test('Ein automatischer Reset bei offenem Tempomenü überschreibt keine Auswahl', () => {
-    const env = fixture({ channel: NFL });
+    const saved = { version: 2, globalSpeed: 1, kidsNormalSpeed: true, channels: [{ id: NFL, name: 'NFL', speed: 1.1 }] };
+    const env = fixture({ channel: NFL, saved });
     env.doc.body.textContent = 'Wiedergabegeschwindigkeit';
     env.video.playbackRate = 1;
     env.flush();
@@ -202,7 +204,7 @@ test('Standardtempo bleibt nach RTL, sportstudio, NFL und einem Neustart gespeic
     env.nativeSpeed(1.75);
     for (const channel of [RTL, SPORT, NFL]) {
         env.next('special-' + channel, channel);
-        assert.equal(env.video.playbackRate, channel === NFL ? 1.1 : 1);
+        assert.equal(env.video.playbackRate, 1);
         env.nativeSpeed(1.25);
         assert.equal(env.video.playbackRate, 1.25);
         env.next('normal-' + channel, NORMAL);
@@ -234,7 +236,7 @@ test('Alte Installation übernimmt zuletzt gewähltes natives Tempo und RTL gena
     const env = fixture({ channel: NORMAL, speed: 1.75, saved });
     assert.equal(env.video.playbackRate, 1.75);
     const migrated = JSON.parse(env.storage.getItem(api.key));
-    assert.equal(migrated.version, 2);
+    assert.equal(migrated.version, 4);
     assert.equal(migrated.channels.filter(r => r.id === RTL).length, 1);
     env.action('YSAMJO_SPEED_REMOVE', { channelId: RTL });
     const restart = fixture({ channel: NORMAL, speed: 1.25, saved: JSON.parse(env.storage.getItem(api.key)) });
@@ -248,6 +250,37 @@ test('Migration bewahrt ein bewusst gesetztes Standardtempo und individuelle RTL
     env.next('rtl', RTL);
     assert.equal(env.video.playbackRate, 1.1);
     assert.equal(env.control.getSettings().channels.length, 1);
+});
+
+test('Unveränderte Altinstallation erhält den neuen Sport-Kanalsatz', () => {
+    const saved = { version: 2, globalSpeed: 1.75, kidsNormalSpeed: true, channels: [
+        { id: SPORT, name: 'sportstudio', speed: 1 },
+        { id: 'UCRFsyeKu07-LnHDG44O6uCA', name: 'Sportschau', speed: 1 },
+        { id: NFL, name: 'NFL', speed: 1.1 },
+        { id: 'UCK2izXoHvraUFaPMU5B7vMQ', name: 'Prime Video Sport', speed: 1 },
+        { id: RTL, name: 'RTL Sport', speed: 1 }
+    ] };
+    const env = fixture({ channel: 'UCWJ2lWNubArHWmf3FIHbfcQ', saved });
+    assert.equal(env.video.playbackRate, 1);
+    const migrated = JSON.parse(env.storage.getItem(api.key));
+    assert.equal(migrated.version, 4);
+    assert.deepEqual(migrated.channels.map(r => r.id), [SPORT, 'UCRFsyeKu07-LnHDG44O6uCA', 'UCAvNr5DMVncoJnJAotXOjOQ', 'UCuOwl-VgqBHOzR8hWnonBcA', 'UC5dCegXiWjE57wKrhWnCo0g', 'UCdi3n18zcIZeTk_x9qvSgZw', 'UC-XArLCeEw91r9gmaDi-Ajw', RTL, 'UCK2izXoHvraUFaPMU5B7vMQ', 'UCk452F_ypT9Q8b1S38-Ok8A', 'UCPj_Vtw0hKnhJapQuATBUrA', 'UCiMAc_TN1kSO3ErMtxUXfMA', 'UCQEHrmmI8kKJ6kAiQdQUjgg', 'UChr7ZXDFiPOEl543HM4Aj8g', NFL, 'UCWJ2lWNubArHWmf3FIHbfcQ', 'UC8pYaQzbBBXg9GIOHRvTmDQ', 'UCB_qr75-ydFVKSF9Dmo6izg', 'UC6UL29enLNe4mqwTfAyeNuw', 'UCfMo0xj-sbdzHuzxvKdu1hw', 'UCyGa1YEx9ST66rYrJTGIKOw']);
+});
+
+test('Version-3-Installation übernimmt die zusätzlichen Sport-Kanäle', () => {
+    const saved = { version: 3, globalSpeed: 1.75, kidsNormalSpeed: true, channels: [
+        { id: SPORT, name: 'sportstudio', speed: 1 },
+        { id: 'UCAvNr5DMVncoJnJAotXOjOQ', name: 'Sky Sport', speed: 1 },
+        { id: 'UCuOwl-VgqBHOzR8hWnonBcA', name: 'Sky Sport DE', speed: 1 },
+        { id: 'UCdi3n18zcIZeTk_x9qvSgZw', name: 'DAZN', speed: 1 },
+        { id: 'UC-XArLCeEw91r9gmaDi-Ajw', name: 'DAZN DE', speed: 1 },
+        { id: RTL, name: 'RTL Sport', speed: 1 },
+        { id: NFL, name: 'NFL', speed: 1 },
+        { id: 'UCWJ2lWNubArHWmf3FIHbfcQ', name: 'NBA', speed: 1 }
+    ] };
+    const env = fixture({ channel: 'UCk452F_ypT9Q8b1S38-Ok8A', saved });
+    assert.equal(env.video.playbackRate, 1);
+    assert.equal(env.control.getSettings().channels.length, 21);
 });
 
 test('Fehlende Kanalidentität speichert keine irrtümliche Standardänderung', () => {

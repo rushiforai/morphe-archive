@@ -47,7 +47,7 @@ class NiagaraSmokeTest {
     }
 
     @Test
-    fun `Niagara patches stop telemetry and report Pro`() {
+    fun `Niagara patches stop telemetry, report Pro and hide the diagnostic tile`() {
         val root = repoRoot()
         val apk = File(root, "apks/niagara/base.apk")
 
@@ -59,8 +59,8 @@ class NiagaraSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "1.16.35",
-            patchNames = setOf("Disable telemetry", "Enable Premium"),
+            version = "1.16.36",
+            patchNames = setOf("Disable telemetry", "Enable Premium", "Fix home screen numbers tile"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
         val diagnostics = "emitted classes=${classes.size}"
@@ -203,5 +203,73 @@ class NiagaraSmokeTest {
             proInsns.drop(2).map { it.opcode },
             "$flagsType.<init>(Z,Z,Z) changed beyond the two forced flags"
         )
+
+        // 6. The Channels diagnostic tip: the manager class (the one holding both the hashCode
+        // fingerprint builder and its constant-true Tip handler) now has a handler whose body is
+        // const/4 0; return, so the giant numbers tile is never accepted.
+        val tipManagers = classes.filter { cls ->
+            cls.methods.any { builder ->
+                builder.buildsHashCodeFingerprint() &&
+                    cls.methods.any { handler ->
+                        handler.returnType == "Z" &&
+                            handler.parameterTypes.singleOrNull() == builder.parameterTypes.firstOrNull()
+                    }
+            }
+        }
+        assertEquals(1, tipManagers.size, "Channels tip managers: ${tipManagers.map { it.type }}")
+        val tipManager = tipManagers.single()
+        val tipBuilders = tipManager.methods.filter { it.buildsHashCodeFingerprint() }
+        assertEquals(1, tipBuilders.size, "${tipManager.type} fingerprint builders: ${tipBuilders.map { it.name }}")
+        val tipHandlers = tipManager.methods.filter {
+            it.returnType == "Z" &&
+                it.parameterTypes.singleOrNull() == tipBuilders.single().parameterTypes.firstOrNull()
+        }
+        assertEquals(1, tipHandlers.size, "${tipManager.type} Tip handlers: ${tipHandlers.map { it.name }}")
+        val stockHandler = patchedApkClasses(apk).first { it.type == tipManager.type }.methods.single {
+            it.name == tipHandlers.single().name &&
+                it.parameterTypes.map(CharSequence::toString) == tipHandlers.single().parameterTypes.map(CharSequence::toString)
+        }
+        assertTrue(
+            stockHandler.isConstantTrueReturn(),
+            "the stock ${tipManager.type}->${stockHandler.name} is not a constant-true handler; " +
+                "the patch may have hit an unrelated method\n$diagnostics"
+        )
+        assertForcedBoolean(
+            tipHandlers.single(),
+            false,
+            "Channels diagnostic tip handler ${tipManager.type}->${tipHandlers.single().name}",
+            diagnostics,
+        )
     }
+}
+
+/** The diagnostic message builder: empty StringBuilder, >=2 append(int), >=2 Math.abs(int). */
+private fun Method.buildsHashCodeFingerprint(): Boolean {
+    if (implementation == null) return false
+    var emptyBuilders = 0
+    var intAppends = 0
+    var absCalls = 0
+    for (instruction in implementation!!.instructions) {
+        val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference ?: continue
+        when {
+            reference.definingClass == "Ljava/lang/StringBuilder;" && reference.name == "<init>" &&
+                reference.parameterTypes.isEmpty() -> emptyBuilders++
+
+            reference.definingClass == "Ljava/lang/StringBuilder;" && reference.name == "append" &&
+                reference.parameterTypes.singleOrNull() == "I" -> intAppends++
+
+            reference.definingClass == "Ljava/lang/Math;" && reference.name == "abs" &&
+                reference.parameterTypes.singleOrNull() == "I" -> absCalls++
+        }
+    }
+    return emptyBuilders >= 1 && intAppends >= 2 && absCalls >= 2
+}
+
+/** A Boolean method whose whole body is `const/4 v0, 1; return v0`. */
+private fun Method.isConstantTrueReturn(): Boolean {
+    if (returnType != "Z") return false
+    val instructions = implementation?.instructions?.toList() ?: return false
+    if (instructions.size != 2) return false
+    if (instructions[0].opcode != Opcode.CONST_4 || instructions[1].opcode != Opcode.RETURN) return false
+    return (instructions[0] as NarrowLiteralInstruction).narrowLiteral == 1
 }

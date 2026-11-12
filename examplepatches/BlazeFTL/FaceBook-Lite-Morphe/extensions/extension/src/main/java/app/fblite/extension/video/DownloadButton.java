@@ -117,7 +117,9 @@ final class DownloadButton {
         if (photoUrl != null || isReel(video)) {
             float unit = width / REFERENCE_WIDTH;
             size = Math.max(dp(context, 30), Math.round(REEL_BUTTON_SIZE * unit));
-            left = LOCATION[0] + width - Math.round(COLUMN_CENTER_FROM_RIGHT * unit) - size / 2;
+            int fromEdge = Math.round(COLUMN_CENTER_FROM_RIGHT * unit);
+            // Right to left apps mirror the action column to the left edge.
+            left = rtl(context) ? LOCATION[0] + fromEdge - size / 2 : LOCATION[0] + width - fromEdge - size / 2;
             top = LOCATION[1] + height - Math.round(BUTTON_CENTER_FROM_BOTTOM * unit) - size / 2;
         } else {
             size = dp(context, 40);
@@ -273,7 +275,7 @@ final class DownloadButton {
         Icon view = Overlay.mark(new Icon(activity));
         view.setContentDescription(vi() ? "Tải video" : "Download video");
         view.setOnClickListener(v -> download(activity));
-        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(size, size, Gravity.TOP | Gravity.START);
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(size, size, Gravity.TOP | Gravity.LEFT);
         params.setMargins(0, 0, 0, 0);
         ((ViewGroup) activity.getWindow().getDecorView()).addView(view, params);
         view.setVisibility(View.GONE);
@@ -473,6 +475,10 @@ final class DownloadButton {
 
     private static void toast(Context context, String text) {
         Toast.makeText(context, text, Toast.LENGTH_SHORT).show();
+    }
+
+    private static boolean rtl(Context context) {
+        return context.getResources().getConfiguration().getLayoutDirection() == View.LAYOUT_DIRECTION_RTL;
     }
 
     private static int dp(Context context, int value) {

@@ -24,11 +24,20 @@ public class VerifyImgurAlbum {
                     for (String host : new String[]{"imgur.com", "www.imgur.com", "i.imgur.com"}) {
                         var match = album.matcher(prefix + host + "/a/K2De8");
                         if (!match.matches() || !"K2De8".equals(match.group(1))) throw new AssertionError("Album URL: " + prefix + host);
+                        for (String suffix : new String[]{".jpeg", ".jpg", ".png", ".gif", ".gifv", ".webp", ".mp4", ".webm"}) {
+                            match = album.matcher(prefix + host + "/a/K2De8" + suffix);
+                            if (!match.matches() || !"K2De8".equals(match.group(1)))
+                                throw new AssertionError("Album URL with suffix: " + prefix + host + suffix);
+                        }
                     }
                 }
+                var query = album.matcher("https://imgur.com/a/qLQYKm9.jpeg?foo=1");
+                if (!query.matches() || !"qLQYKm9".equals(query.group(1)))
+                    throw new AssertionError("Album URL with suffix and query");
                 for (String bad : new String[]{"https://evil.imgur.com/a/K2De8", "ftp://imgur.com/a/K2De8",
                         "https://imgur.com.evil/a/K2De8", "user@imgur.com/a/K2De8",
-                        "https://evil.i.imgur.com/a/K2De8", "https://i.imgur.com/LWkGnaI.png"}) {
+                        "https://evil.i.imgur.com/a/K2De8", "https://i.imgur.com/LWkGnaI.png",
+                        "https://imgur.com/a/K2De8.exe", "https://imgur.com/a/K2De8.jpeg.exe"}) {
                     if (album.matcher(bad).find()) throw new AssertionError("Invalid album URL: " + bad);
                 }
                 String[][] cases = {

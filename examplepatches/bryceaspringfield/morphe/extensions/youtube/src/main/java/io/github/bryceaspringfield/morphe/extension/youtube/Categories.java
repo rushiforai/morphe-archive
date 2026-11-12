@@ -18,7 +18,8 @@ import java.util.concurrent.TimeUnit;
 /**
  * Each video's YouTube category (e.g., "Music", "News &amp; Politics", "Gaming"), read from the player API's
  * microformat, since feed buffers state none. A lookup runs once a video; a feed item waits for its answer for at
- * most {@link #WAIT_MS} the first time, and is shown when the answer comes later.
+ * most {@link #WAIT_MS} the first time, and is shown when the answer comes later; a caller can then ask to hear the
+ * late answer ({@link #onLate}), e.g., to send Not interested for a video of a hidden category shown in the meantime.
  */
 final class Categories {
 
@@ -39,6 +40,9 @@ final class Categories {
                     return size() > MAX_CACHED;
                 }
             });
+
+    /** Callbacks waiting for a lookup still running, by video ID. */
+    private static final Map<String, java.util.function.Consumer<String>> LATE = new ConcurrentHashMap<>();
 
     private static volatile String parsedSetting;
     private static volatile Set<String> hidden = Collections.emptySet();
@@ -71,6 +75,22 @@ final class Categories {
         }
     }
 
+    /** Whether a lookup for the video is still running. */
+    static boolean pending(String videoId) {
+        return PENDING.containsKey(videoId) && !CACHE.containsKey(videoId);
+    }
+
+    /** Runs the callback with the video's category once its running lookup answers (one callback a video). */
+    static void onLate(String videoId, java.util.function.Consumer<String> callback) {
+        LATE.put(videoId, callback);
+        // The lookup may have ended between pending() and put().
+        String c = CACHE.get(videoId);
+        if (c != null) {
+            java.util.function.Consumer<String> cb = LATE.remove(videoId);
+            if (cb != null) cb.accept(c);
+        }
+    }
+
     private static String fetch(String videoId) {
         try {
             JSONObject body = new JSONObject().put("videoId", videoId)
@@ -86,6 +106,14 @@ final class Categories {
             return "";
         } finally {
             PENDING.remove(videoId);
+            java.util.function.Consumer<String> cb = LATE.remove(videoId);
+            String c = CACHE.get(videoId);
+            if (cb != null && c != null && !c.isEmpty()) {
+                try {
+                    cb.accept(c);
+                } catch (Throwable ignored) {
+                }
+            }
         }
     }
 }

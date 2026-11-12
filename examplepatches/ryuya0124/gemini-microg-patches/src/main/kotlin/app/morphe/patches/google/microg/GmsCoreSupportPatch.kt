@@ -293,21 +293,6 @@ val gmsSignatureBypassPatch = bytecodePatch(
         val verName = packageMetadata.versionName
         println("[GmsSignatureBypassPatch] Applying signature and availability bypass to $pkgName ($verName)")
 
-        fun ensureRegisters(impl: Any?, minRegs: Int) {
-            if (impl == null) return
-            try {
-                val field = impl.javaClass.getDeclaredField("registerCount")
-                field.isAccessible = true
-                val cur = field.getInt(impl)
-                if (cur < minRegs) {
-                    field.setInt(impl, minRegs)
-                    println("[GmsSignatureBypassPatch] Expanded registerCount from $cur to $minRegs")
-                }
-            } catch (e: Exception) {
-                println("[GmsSignatureBypassPatch] Note expanding registerCount: ${e.message}")
-            }
-        }
-
         // 1. GooglePlayServicesUtil のバイパス (isGooglePlayServicesAvailable -> 0)
         val availabilitySpec = VersionHookRegistry.target(HookId.GMS_SIGNATURE_BYPASS, packageMetadata)
         val certificateSpec = VersionHookRegistry.target(HookId.GMS_CERTIFICATE_VERIFIER, packageMetadata)
@@ -329,7 +314,7 @@ val gmsSignatureBypassPatch = bytecodePatch(
                     params[1] == "I" &&
                     method.returnType == "I") {
 
-                    ensureRegisters(method.implementation, 2)
+                    check(method.implementation!!.registerCount >= 1) { "Availability bypass requires v0" }
                     method.addInstructions(
                         0,
                         """
@@ -355,7 +340,7 @@ val gmsSignatureBypassPatch = bytecodePatch(
                 if (method.returnType == "Z") {
                     check(certificateSpec.matches(method))
                     check("${method.name}(${method.parameterTypes.joinToString("")})${method.returnType}" in certificateSpec.methodSignatures)
-                    ensureRegisters(method.implementation, 2)
+                    check(method.implementation!!.registerCount >= 1) { "Certificate bypass requires v0" }
                     method.addInstructions(
                         0,
                         """

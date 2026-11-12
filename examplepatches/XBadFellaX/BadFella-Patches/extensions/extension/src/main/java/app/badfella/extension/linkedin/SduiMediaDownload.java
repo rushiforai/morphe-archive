@@ -86,6 +86,7 @@ public final class SduiMediaDownload {
 
             Activity activity = activity(fragment);
             if (activity == null) return;
+            PremiumTakeover.onScreenResumed(activity, fragment, screen);
             WhatsNew.maybeShow(activity);
             GmsCoreCheck.check(activity);
             removeView(activity, DOWNLOAD_TAG);

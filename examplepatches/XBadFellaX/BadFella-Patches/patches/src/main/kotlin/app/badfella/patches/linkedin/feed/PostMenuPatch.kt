@@ -8,7 +8,7 @@ import app.morphe.patcher.patch.bytecodePatch
 @Suppress("unused")
 val postMenuPatch = bytecodePatch(
     name = "Post menu items",
-    description = "Adds Copy text, Download photos and videos, and Save document as PDF to the ⋯ menu of posts.",
+    description = "Adds Copy text, Download photos and videos, and Save document as PDF to the ⋯ menu of posts, each with its own icon.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)

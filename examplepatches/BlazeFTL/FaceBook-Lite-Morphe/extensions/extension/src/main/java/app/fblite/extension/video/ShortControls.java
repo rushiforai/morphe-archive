@@ -66,6 +66,7 @@ final class ShortControls {
     private static final Overlay.Probe PROBE_MID = new Overlay.Probe();
     private static final Overlay.Probe PROBE_BAR = new Overlay.Probe();
     private static final Rect RECT = new Rect();
+    private static final Rect SHOWING_RECT = new Rect();
     private static final int[] LOCATION = new int[2];
 
     private ShortControls() {
@@ -194,6 +195,7 @@ final class ShortControls {
 
     private static String lastLogged = "";
     private static WeakReference<View> cornerPausedFor = new WeakReference<>(null);
+    private static WeakReference<View> lastSeekLogFor = new WeakReference<>(null);
 
     private static MediaController.MediaPlayerControl playerOf(View video) {
         Object player = VideoFeatures.playerOf(video);
@@ -343,8 +345,10 @@ final class ShortControls {
     }
 
     /** Shown on screen and not faded out. */
-    private static boolean showing(View view) {
+    static boolean showing(View view) {
         if (view == null || !view.isShown() || view.getWidth() <= 0 || view.getHeight() <= 0) return false;
+        // Laid out below the window (a reel that is still sliding in) or clipped away: not on screen.
+        if (!view.getGlobalVisibleRect(SHOWING_RECT) || SHOWING_RECT.width() <= 0 || SHOWING_RECT.height() <= 0) return false;
         float alpha = 1f;
         View v = view;
         while (v != null) {
@@ -412,6 +416,13 @@ final class ShortControls {
         bar.setTranslationY(barTop);
         if (!bar.dragging) bar.set(position, duration);
         bar.invalidate();
+        if (appSeek && MorpheLog.enabled() && lastSeekLogFor.get() != video) {
+            lastSeekLogFor = new WeakReference<>(video);
+            app.seek.getLocationInWindow(LOCATION);
+            MorpheLog.log("controls", "Own bar hidden: the app's seek bar is showing at " + LOCATION[0] + "," + LOCATION[1]
+                    + " " + app.seek.getWidth() + "x" + app.seek.getHeight() + " alpha " + app.seek.getAlpha()
+                    + ", video " + (duration / 1000) + " s");
+        }
         int barVisibility = (!appSeek || bar.dragging) ? View.VISIBLE : View.GONE;
         if (bar.getVisibility() != barVisibility) {
             bar.setVisibility(barVisibility);
@@ -566,7 +577,7 @@ final class ShortControls {
         View[] all = {bar, back, toggle, forward, timerPill};
         for (View view : all) {
             FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(dp(activity, 40), dp(activity, 40),
-                    Gravity.TOP | Gravity.START);
+                    Gravity.TOP | Gravity.LEFT);
             view.setVisibility(View.GONE);
             decor.addView(view, params);
         }

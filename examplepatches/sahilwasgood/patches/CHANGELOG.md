@@ -1,3 +1,37 @@
+## [1.5.0](https://github.com/sahilwasgood/patches/compare/v1.4.3...v1.5.0) (2026-11-12)
+
+### ✨ New Features
+
+* **tradingview:** route native watchlist UI to Cloudflare sync backend and remove custom button ([4ac04bc](https://github.com/sahilwasgood/patches/commit/4ac04bc4b6ab62db1b6052938a3f035dfa996f39))
+
+## [1.4.3](https://github.com/sahilwasgood/patches/compare/v1.4.2...v1.4.3) (2026-11-12)
+
+### 🐛 Bug Fixes
+
+* **tradingview:** remove ForceLocalProPlan patch and fingerprints ([83fc3bc](https://github.com/sahilwasgood/patches/commit/83fc3bcffc7de247c8a66f6bf6456bceedea7696))
+
+## [1.4.2](https://github.com/sahilwasgood/patches/compare/v1.4.1...v1.4.2) (2026-11-12)
+
+### 🐛 Bug Fixes
+
+* **tradingview:** use exact official build version targets ([08710b1](https://github.com/sahilwasgood/patches/commit/08710b1f89c7c84c654a4ef5cfbf7f3244772f92))
+
+## [1.4.1](https://github.com/sahilwasgood/patches/compare/v1.4.0...v1.4.1) (2026-11-12)
+
+### 🐛 Bug Fixes
+
+* **tradingview:** set APK_REQUIRED and stable targets for Morphe Manager visibility ([d938c1b](https://github.com/sahilwasgood/patches/commit/d938c1b60955fe4609eec61df36919359ed02be7))
+
+## [1.4.0](https://github.com/sahilwasgood/patches/compare/v1.3.0...v1.4.0) (2026-11-12)
+
+### 🐛 Bug Fixes
+
+* **tradingview:** use dedicated tradingview.patches namespace and Morphe 1.x patcher API ([e96578f](https://github.com/sahilwasgood/patches/commit/e96578fc0b06341febb9325b47333f9c8a5eed3f))
+
+### ✨ New Features
+
+* **tradingview:** add Watchlist Cloud Sync and features suite ([f9ac5a6](https://github.com/sahilwasgood/patches/commit/f9ac5a62eb2d39b296e942f3ccb39af91189221c))
+
 ## [1.3.0](https://github.com/sahilwasgood/patches/compare/v1.2.2...v1.3.0) (2026-10-18)
 
 ### ✨ New Features

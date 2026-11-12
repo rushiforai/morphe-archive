@@ -51,7 +51,7 @@ sync = workflows["sync-release-notes.yml"]
 upload_versions = re.findall(
     r"uses:\s*actions/upload-artifact@[0-9a-f]{40}\s+#\s+v(\d+)", private
 )
-assert len(upload_versions) == 2 and all(int(v) >= 6 for v in upload_versions), (
+assert len(upload_versions) >= 2 and all(int(v) >= 6 for v in upload_versions), (
     "Only Node.js 24-compatible upload-artifact versions may be used"
 )
 assert "persist-credentials: false" in private

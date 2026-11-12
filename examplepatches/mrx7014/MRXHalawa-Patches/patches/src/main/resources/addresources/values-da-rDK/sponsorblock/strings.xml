@@ -58,6 +58,8 @@ Second \"item\" text"</string>
   <string name="morphe_sb_guidelines_popup_already_read">Allerede læst</string>
   <string name="morphe_sb_guidelines_popup_open">Vis mig</string>
   <string name="morphe_sb_general_title">Generelt</string>
+  <string name="morphe_sb_offline_segments_title">Gem segmenter af downloadede videoer</string>
+  <string name="morphe_sb_offline_segments_summary">Gør det muligt at springe segmenter over i downloadede videoer, når man er offline</string>
   <string name="morphe_sb_toast_on_connection_error_title">Vis forbindelsesfejlalarmer</string>
   <string name="morphe_sb_toast_on_connection_error_summary">Viser en notifikation, når SponsorBlock-serveren er utilgængelig</string>
   <string name="morphe_sb_track_skip_count_title">Aktiver sporing af overspringstæller </string>
@@ -193,7 +195,7 @@ Klar til at indsende?"</string>
   <string name="morphe_sb_new_segment_confirm_submit">Indsend</string>
   <string name="morphe_sb_new_segment_start_is_before_end">Start skal være før slutningen</string>
   <string name="morphe_sb_new_segment_mark_locations_first">Markér først et sted på tidslinjen</string>
-  <string name="morphe_sb_new_segment_preview_segment_first">Gennemse segmentet, og sikre en glat overgang</string>
+  <string name="morphe_sb_new_segment_preview_segment_first">Forhåndsvis segmentet, og sørg for, at det springes glat over</string>
   <string name="morphe_sb_new_segment_edit_by_hand_title">Rediger timing af segment manuelt</string>
   <string name="morphe_sb_new_segment_edit_by_hand_content">Vil du redigere timingen for start eller afslutning af segmentet?</string>
   <string name="morphe_sb_new_segment_edit_by_hand_parse_error">Ugyldig tid givet</string>
@@ -222,7 +224,7 @@ Hvis du ikke sender en fremhævning, skal du trykke på Annuller og markere den 
   <string name="morphe_sb_stats_saved_summary">Det er &lt;b&gt;%s&lt;/b&gt; af deres liv.&lt;br&gt;Tryk her for at se leaderboardet</string>
   <string name="morphe_sb_stats_self_saved">Du har oversprunget &lt;b&gt;%s&lt;/b&gt; segmenter</string>
   <string name="morphe_sb_stats_self_saved_summary">Det er &lt;b&gt;%s&lt;/b&gt;</string>
-  <string name="morphe_sb_stats_self_saved_reset_title">Nulstil oversprungne segmenter tæller?</string>
+  <string name="morphe_sb_stats_self_saved_reset_title">Nulstil tælleren for oversprungne segmenter?</string>
   <string name="morphe_sb_stats_saved_hour_format">%1$s timer %2$s minutter</string>
   <string name="morphe_sb_stats_saved_minute_format">%1$s minutter %2$s sekunder</string>
   <string name="morphe_sb_stats_saved_second_format">%s sekunder</string>

@@ -160,6 +160,10 @@ public sealed class PatchesSettings(AndroidDriver driver)
                 .FirstOrDefault();
     }
 
+    /// <summary>Whether <paramref name="setting"/>'s title shows under <paramref name="section"/>'s, on the screen.</summary>
+    public Task<PatchSettingPlaceSnapshot> ReadPlaceAsync(PatchSetting setting, PatchesSection section) =>
+        OnScreen.ReadAsync(driver, () => new PatchSettingPlaceSnapshot(setting, section, SettingIn(setting, section) is not null));
+
     /// <summary>What the screen shows: the settings it lists, top to bottom.</summary>
     public Task<PatchesSettingsSnapshot> ReadAsync() =>
         OnScreen.ReadAsync(driver, () => new PatchesSettingsSnapshot(
@@ -177,6 +181,9 @@ public sealed record PatchesSettingsSnapshot(ImmutableArray<PatchSetting> Settin
 
 /// <summary>Whether the patches' settings screen shows.</summary>
 public sealed record PatchesSettingsScreenSnapshot(bool Shown);
+
+/// <summary>Whether a setting shows under a section's title.</summary>
+public sealed record PatchSettingPlaceSnapshot(PatchSetting Setting, PatchesSection Section, bool Under);
 
 /// <summary>Whether a setting's switch is on.</summary>
 public sealed record PatchSettingSwitchSnapshot(PatchSetting Setting, bool On);

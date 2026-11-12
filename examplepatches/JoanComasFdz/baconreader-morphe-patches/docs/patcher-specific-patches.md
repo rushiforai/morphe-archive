@@ -65,6 +65,14 @@ In the Links section:
 | Open Reddit links in BaconReader: how many Reddit links open in BaconReader; tap to open Android's "Open by default" screen | None | |
 | Whether the prompt was answered, not shown | `revanced_baconreader_open_links_prompt_shown` | Off |
 
+### Open web pages in the browser settings
+
+In the Links section, first:
+
+| Setting | Key | Default |
+|---|---|---|
+| Open web pages in the browser | `revanced_baconreader_open_web_pages_in_browser` | Off |
+
 ### Load more comments settings
 
 In the Comments section:

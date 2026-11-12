@@ -73,7 +73,7 @@ class BraveSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "1.98.63",
+            version = "1.99.56",
             patchNames = setOf(
                 "Brave Origin",
                 "Disable telemetry",
@@ -401,7 +401,7 @@ class BraveSmokeTest {
         // Default options: secure mode with the default resolver; then automatic (fallback)
         // mode with another resolver.
         assertDohPoliciesInjected(classes, "secure", DEFAULT_DOH_URL)
-        assertDohPoliciesInjected(applyDnsFilterFallback(apk, workDir, PKG, "1.98.63"), "automatic", OTHER_DOH_URL)
+        assertDohPoliciesInjected(applyDnsFilterFallback(apk, workDir, PKG, "1.99.56"), "automatic", OTHER_DOH_URL)
     }
 
     /**

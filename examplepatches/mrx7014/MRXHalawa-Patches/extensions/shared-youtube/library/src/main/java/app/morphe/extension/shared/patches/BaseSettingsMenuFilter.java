@@ -76,8 +76,7 @@ public abstract class BaseSettingsMenuFilter {
     private static BaseSettingsMenuFilter instance() {
         if (INSTANCE == null) {
             String[] candidates = {
-                    "app.morphe.extension.youtube.patches.SettingsMenuFilterPatch",
-                    "app.morphe.extension.music.patches.SettingsMenuFilterPatch"
+                    "app.morphe.extension.youtube.patches.SettingsMenuFilterPatch"
             };
             for (String fqn : candidates) {
                 try {

@@ -1,25 +1,75 @@
 package app.dongmin8350.patches.fmkorea
 
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.resourceFile
+import app.morphe.patcher.patch.resourceXml
+import app.morphe.patcher.util.addFreeRegisters
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
+
+private object MainWebViewStartedFingerprint : Fingerprint(
+    name = "onPageStarted",
+    returnType = "V",
+    parameters = listOf(
+        "Landroid/webkit/WebView;",
+        "Ljava/lang/String;",
+        "Landroid/graphics/Bitmap;"
+    ),
+    strings = listOf("onPageStarted-external")
+)
+
+private const val EARLY_AD_HIDE_SCRIPT = "(function(){var d=document,s=d.getElementById('dongmin-prehide');if(!s){s=d.createElement('style');s.id='dongmin-prehide';s.textContent=`.fmad_wrapper,div[id^=fmad_]+div[style^=height][class],div[id^=fm_read_vote_sq_],.adpost{display:none!important;height:0!important;min-height:0!important;max-height:0!important;margin:0!important;padding:0!important;border:0!important;overflow:hidden!important}`;(d.head||d.documentElement).appendChild(s)}})()"
+
+private val BLOCKED_AD_URL_PARTS = listOf(
+    "doubleclick.net",
+    "googlesyndication.com",
+    "googleadservices.com",
+    "adservice.google.com",
+    "adnmore.co.kr",
+    "adison.co",
+    "m.fmkorea.com/_adpage/",
+    "loader.fmkorea.com/",
+    "loader2.fmkorea.com/_myphp/adpost/content_new.php",
+    "static.fmkorea.com/modules/fmad/tpl/",
+    "naver_power_link",
+    "image.fmkorea.com/images/ad/",
+    "module=fmad",
+    "act=procFmad"
+)
+
+private fun buildUrlChecks(urlRegister: String, tempRegister: String, resultRegister: String): String =
+    BLOCKED_AD_URL_PARTS.joinToString("\n") { part ->
+        """
+        const-string $tempRegister, "$part"
+        invoke-virtual { $urlRegister, $tempRegister }, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+        move-result $resultRegister
+        if-nez $resultRegister, :block
+        """.trimIndent()
+    }
 
 /**
- * Uses FMKorea's existing WebView custom CSS/JS hooks.
+ * Removes FMKorea web advertising without requiring AdGuard.
  *
- * This patch is intentionally DOM-scoped to fmkorea.com and does not require
- * AdGuard, a VPN, DNS filtering, or HTTPS interception.
+ * v1.3.5 keeps the initial fmad slot at zero with a Smali-safe minimal early CSS script, while the full List-KR-style cleanup remains in custom.css/custom.js.
  */
 @Suppress("unused")
-val collapseFmkoreaAdSpacesPatch = resourcePatch(
+val collapseFmkoreaAdSpacesPatch = patch(
     name = "Remove FMKorea ads and spaces",
-    description = "Removes FMKorea web ads, suppresses mobile power-link generation, and collapses the remaining ad containers without AdGuard.",
+    description = "Makes FMKorea ad slots zero-height from initial page/layout setup, blocks ad requests, and removes fallback containers without AdGuard.",
     default = false
 ) {
     compatibleWith(FMKOREA_COMPATIBILITY)
 
     execute {
-        val scriptFile = get("assets/custom.js", false)
-        val cssFile = get("assets/custom.css", false)
+        val scriptFile = resourceFile("assets/custom.js")
+        val cssFile = resourceFile("assets/custom.css")
 
         if (!scriptFile.isFile || !cssFile.isFile) {
             throw PatchException(
@@ -34,7 +84,6 @@ val collapseFmkoreaAdSpacesPatch = resourcePatch(
             )
         }
 
-        // Repatching replaces our previous block instead of stacking observers/styles.
         val previousJsBlock = Regex(
             "// FMKOREA_AD_SPACES_BEGIN[^\\n]*[\\s\\S]*?// FMKOREA_AD_SPACES_END"
         )
@@ -47,12 +96,138 @@ val collapseFmkoreaAdSpacesPatch = resourcePatch(
 
         scriptFile.writeText(cleanScript + "\n\n" + FMKOREA_AD_SPACE_SCRIPT + "\n")
         cssFile.writeText(cleanCss + "\n\n" + FMKOREA_AD_CSS + "\n")
+
+        val clientClass = MainWebViewStartedFingerprint.classDef
+        val onPageStarted = MainWebViewStartedFingerprint.method.addFreeRegisters(2).first
+        onPageStarted.addInstructions(
+            0,
+            """
+                const-string v0, "$EARLY_AD_HIDE_SCRIPT"
+                const/4 v1, 0x0
+                invoke-virtual { p1, v0, v1 }, Landroid/webkit/WebView;->evaluateJavascript(Ljava/lang/String;Landroid/webkit/ValueCallback;)V
+            """
+        )
+
+        resourceXml("res/layout/admob_empty_layout.xml").use { layout ->
+            layout.root.setAttribute("android:layout_width", "0dp")
+            layout.root.setAttribute("android:layout_height", "0dp")
+            layout.root.setAttribute("android:visibility", "gone")
+        }
+
+        resourceXml("res/layout/activity_main.xml").use { layout ->
+            layout.elements().forEach { element ->
+                val id = element.attribute("android:id").orEmpty().lowercase()
+                val tag = element.tag.lowercase()
+                val nativeAdSlot =
+                    tag.endsWith(".adview") ||
+                    id.contains("admob") ||
+                    id.contains("ad_view") ||
+                    id.contains("adview") ||
+                    id.contains("ad_container") ||
+                    id.contains("banner_ad")
+
+                if (nativeAdSlot) {
+                    element.setAttribute("android:layout_width", "0dp")
+                    element.setAttribute("android:layout_height", "0dp")
+                    element.setAttribute("android:minHeight", "0dp")
+                    element.setAttribute("android:visibility", "gone")
+
+                    element.parent?.let { parent ->
+                        parent.setAttribute("android:layout_width", "0dp")
+                        parent.setAttribute("android:layout_height", "0dp")
+                        parent.setAttribute("android:minHeight", "0dp")
+                        parent.setAttribute("android:visibility", "gone")
+                    }
+                }
+            }
+        }
+
+
+        fun addRequestInterceptor(parameterType: String, urlSetup: String, superCall: String) {
+            if (clientClass.methods.any { method ->
+                    method.name == "shouldInterceptRequest" &&
+                        method.parameterTypes.map { it.toString() } == listOf(
+                            "Landroid/webkit/WebView;",
+                            parameterType
+                        )
+                }
+            ) {
+                throw PatchException(
+                    "FMKorea now implements shouldInterceptRequest itself; inspect the new version before patching."
+                )
+            }
+
+            clientClass.methods.add(
+                ImmutableMethod(
+                    clientClass.type,
+                    "shouldInterceptRequest",
+                    listOf(
+                        ImmutableMethodParameter("Landroid/webkit/WebView;", null, null),
+                        ImmutableMethodParameter(parameterType, null, null)
+                    ),
+                    "Landroid/webkit/WebResourceResponse;",
+                    AccessFlags.PUBLIC.value,
+                    null,
+                    null,
+                    MutableMethodImplementation(8)
+                ).toMutable().apply {
+                    addInstructionsWithLabels(
+                        0,
+                        """
+                            $urlSetup
+                            if-eqz v1, :allow
+                            ${buildUrlChecks("v1", "v2", "v3")}
+
+                            :allow
+                            $superCall
+                            move-result-object v0
+                            return-object v0
+
+                            :block
+                            new-instance v0, Landroid/webkit/WebResourceResponse;
+                            const-string v1, "text/plain"
+                            const-string v2, "UTF-8"
+                            const/4 v3, 0x0
+                            new-array v3, v3, [B
+                            new-instance v4, Ljava/io/ByteArrayInputStream;
+                            invoke-direct { v4, v3 }, Ljava/io/ByteArrayInputStream;-><init>([B)V
+                            invoke-direct { v0, v1, v2, v4 }, Landroid/webkit/WebResourceResponse;-><init>(Ljava/lang/String;Ljava/lang/String;Ljava/io/InputStream;)V
+                            return-object v0
+                        """
+                    )
+                }
+            )
+        }
+
+        addRequestInterceptor(
+            "Landroid/webkit/WebResourceRequest;",
+            """
+                invoke-interface { p2 }, Landroid/webkit/WebResourceRequest;->getUrl()Landroid/net/Uri;
+                move-result-object v0
+                if-eqz v0, :allow
+                invoke-virtual { v0 }, Landroid/net/Uri;->toString()Ljava/lang/String;
+                move-result-object v1
+            """.trimIndent(),
+            "invoke-super { p0, p1, p2 }, Landroid/webkit/WebViewClient;->shouldInterceptRequest(Landroid/webkit/WebView;Landroid/webkit/WebResourceRequest;)Landroid/webkit/WebResourceResponse;"
+        )
+
+        addRequestInterceptor(
+            "Ljava/lang/String;",
+            "move-object v1, p2",
+            "invoke-super { p0, p1, p2 }, Landroid/webkit/WebViewClient;->shouldInterceptRequest(Landroid/webkit/WebView;Ljava/lang/String;)Landroid/webkit/WebResourceResponse;"
+        )
     }
 }
 
 internal val FMKOREA_AD_CSS = """
-/* FMKOREA_AD_CSS_BEGIN v1.2.0 */
+/* FMKOREA_AD_CSS_BEGIN v1.3.4 */
 [class$="_ad"],
+div[class^="ad"],
+div[id^="ad"],
+.fmad_wrapper,
+div[id^="fmad_"] + div[style^="height:"][class],
+div[id^="fm_read_vote_sq_"],
+.adpost,
 ins.adsbygoogle,
 [id^="google_ads_"],
 iframe[src*="doubleclick.net"],
@@ -60,6 +235,11 @@ iframe[src*="googlesyndication.com"],
 iframe[src*="googleadservices.com"],
 iframe[src*="adnmore.co.kr"],
 iframe[src*="adison.co"],
+iframe[src*="m.fmkorea.com/_adpage/"],
+iframe[src*="loader.fmkorea.com/"][src*="_loader/"],
+iframe[src*="loader2.fmkorea.com/_myphp/adpost/content_new.php"],
+.fm_vote ~ div[style*="max-width:"],
+.rd_ft > div[style^="margin:"][style*="max-width:"],
 [data-dongmin-fmkorea-ad-space] {
     display: none !important;
     height: 0 !important;
@@ -89,16 +269,16 @@ iframe[src*="adison.co"],
 """.trimIndent()
 
 internal val FMKOREA_AD_SPACE_SCRIPT = """
-// FMKOREA_AD_SPACES_BEGIN v1.2.0
+// FMKOREA_AD_SPACES_BEGIN v1.3.4
 (function () {
     'use strict';
 
     if (!/(^|\.)fmkorea\.com$/.test(location.hostname)) return;
-    if (window.__dongminFmkoreaAdsV12) return;
-    window.__dongminFmkoreaAdsV12 = true;
+    if (window.__dongminFmkoreaAdsV134) return;
+    window.__dongminFmkoreaAdsV134 = true;
 
     var marker = 'data-dongmin-fmkorea-ad-space';
-    var styleId = 'dongmin-fmkorea-ad-spaces-style-v12';
+    var styleId = 'dongmin-fmkorea-ad-spaces-style-v134';
     var queued = false;
 
     var collapsedStyle = {
@@ -114,13 +294,24 @@ internal val FMKOREA_AD_SPACE_SCRIPT = """
 
     var hardAdSelector = [
         '[class$="_ad"]',
+        'div[class^="ad"]',
+        'div[id^="ad"]',
+        '.fmad_wrapper',
+        'div[id^="fmad_"] + div[style^="height:"][class]',
+        'div[id^="fm_read_vote_sq_"]',
+        '.adpost',
         'ins.adsbygoogle',
         '[id^="google_ads_"]',
         'iframe[src*="doubleclick.net"]',
         'iframe[src*="googlesyndication.com"]',
         'iframe[src*="googleadservices.com"]',
         'iframe[src*="adnmore.co.kr"]',
-        'iframe[src*="adison.co"]'
+        'iframe[src*="adison.co"]',
+        'iframe[src*="m.fmkorea.com/_adpage/"]',
+        'iframe[src*="loader.fmkorea.com/"][src*="_loader/"]',
+        'iframe[src*="loader2.fmkorea.com/_myphp/adpost/content_new.php"]',
+        '.fm_vote ~ div[style*="max-width:"]',
+        '.rd_ft > div[style^="margin:"][style*="max-width:"]'
     ].join(',');
 
     var protectedSelector = [
@@ -164,19 +355,35 @@ internal val FMKOREA_AD_SPACE_SCRIPT = """
         return !!node.querySelector(protectedSelector);
     }
 
+    function isAdOnlyWrapper(node) {
+        if (!node || containsProtectedContent(node)) return false;
+
+        var meaningful = Array.prototype.filter.call(node.children || [], function (child) {
+            return child.tagName !== 'SCRIPT' && child.tagName !== 'STYLE' && child.tagName !== 'LINK';
+        });
+
+        if (!meaningful.length) return true;
+
+        return meaningful.every(function (child) {
+            return child.hasAttribute(marker) ||
+                (child.matches && child.matches(hardAdSelector));
+        });
+    }
+
     function collapseAdAndWrapper(node) {
         collapse(node);
 
         var parent = node.parentElement;
         var depth = 0;
-        while (parent && parent !== document.body && depth++ < 3) {
+        while (parent && parent !== document.body && depth++ < 4) {
             if (containsProtectedContent(parent)) break;
 
             var className = typeof parent.className === 'string' ? parent.className : '';
             var knownWrapper =
                 /(^|\s)bd_mobile(\s|$)/.test(className) ||
                 /(^|[_-])(ad|ads)([_-]|$)/i.test(className) ||
-                /(^|[_-])(ad|ads)([_-]|$)/i.test(parent.id || '');
+                /(^|[_-])(ad|ads)([_-]|$)/i.test(parent.id || '') ||
+                isAdOnlyWrapper(parent);
 
             if (!knownWrapper) break;
             collapse(parent);
@@ -216,6 +423,31 @@ internal val FMKOREA_AD_SPACE_SCRIPT = """
         });
     }
 
+    function hasListKrSpacerPadding(node) {
+        var c = window.getComputedStyle(node);
+        var h = parseFloat(c.height);
+        return c.paddingTop === '5px' &&
+            c.paddingRight === '10px' &&
+            c.paddingBottom === '20px' &&
+            c.paddingLeft === '10px' &&
+            Number.isFinite(h) && h >= 10 && h < 1000;
+    }
+
+    function collapseListKrFmkoreaSpacers() {
+        document.querySelectorAll(
+            'body[class*="mac_os"] div.hd ~ *[id][class*=" "], ' +
+            'header.hd ~ .fmad_wrapper ~ *[class], ' +
+            'body div.bd div[style] > *[class*=" "], ' +
+            'body div.hd div[style] > *[class*=" "]'
+        ).forEach(function (node) {
+            if (!containsProtectedContent(node) && hasListKrSpacerPadding(node)) collapse(node);
+        });
+
+        document.querySelectorAll('.bd.bd_mobile').forEach(function (node) {
+            if (!node.children.length && !node.textContent.trim()) collapse(node);
+        });
+    }
+
     function sweep() {
         queued = false;
         if (!document.documentElement) return;
@@ -247,6 +479,7 @@ internal val FMKOREA_AD_SPACE_SCRIPT = """
         });
 
         collapseKnownMobileContainers();
+        collapseListKrFmkoreaSpacers();
         collapseLegacyFooterGaps();
     }
 

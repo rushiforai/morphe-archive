@@ -236,6 +236,9 @@ public sealed class Comments(AndroidDriver driver)
     internal const string Comment = "commentBodyContainer";
 
     private const string List = "listView";
+
+    // The time bar of a video's player, ExoPlayer's own id.
+    private const string TimeBar = "exo_progress";
     private const string Header = "commentSubText";
     private const string Text = "commentBody";
     private const string Position = "exo_position";
@@ -254,6 +257,7 @@ public sealed class Comments(AndroidDriver driver)
 
     // Where the image of each comment was before a tap, to see it change.
     private readonly Dictionary<string, Rectangle> imageBefore = [];
+    private readonly Dictionary<string, Rectangle> videoBefore = [];
     private double? density;
 
     /// <summary>
@@ -294,8 +298,30 @@ public sealed class Comments(AndroidDriver driver)
                 throw new InvalidOperationException($"{what} didn't show whole after scrolling 15 times.");
             }
 
-            await OnScreen.DoAsync(driver, () => OnScreen.ScrollGesture(driver, driver.FindElement(Locate.AppId(List)), direction, 0.3));
+            await OnScreen.DoAsync(driver, () => Scroll(direction, 0.3));
         }
+    }
+
+    // Scrolls the comments with UiAutomator's scroll gesture, unless the finger would land on a video's time bar, which
+    // keeps a touch that starts on it and moves the video instead of the list: then a slow swipe as long, from just
+    // past the bar.
+    // The list is found through Appium, which waits for it: after a check on the setup page, the app comes back in front
+    // as the step starts.
+    private void Scroll(string direction, double percent)
+    {
+        var listView = driver.FindElement(Locate.AppId(List));
+        var list = new Rectangle(listView.Location, listView.Size);
+        var (from, to) = OnScreen.ScrollGesturePath(list, direction, percent);
+        var bar = Screen().WithAppId(TimeBar).Where(found => found.Displayed).Select(found => found.Bounds)
+            .FirstOrDefault(bounds => bounds.Top <= from.Y && from.Y <= bounds.Bottom);
+        if (bar.IsEmpty)
+        {
+            OnScreen.ScrollGesture(driver, listView, direction, percent);
+            return;
+        }
+
+        var start = new Point(from.X, direction == "up" ? bar.Bottom + 1 : bar.Top - 1);
+        Swipe(start, new Point(start.X, start.Y + (to.Y - from.Y)), [.. Enumerable.Repeat(TimeSpan.FromMilliseconds(60), 10)]);
     }
 
     /// <summary>
@@ -582,6 +608,72 @@ public sealed class Comments(AndroidDriver driver)
             return new VideoSnapshot(
                 comment.WithAppId(Position).FirstOrDefault()?.Text.Trim() ?? "",
                 comment.WithAppId(Duration).FirstOrDefault()?.Text.Trim() ?? "");
+        });
+
+    /// <summary>
+    /// Taps <paramref name="button"/> over the video of the comment "<paramref name="text"/>": one of the buttons the
+    /// patch shows with the player's controls, found by what it says to a screen reader.
+    /// </summary>
+    public Task ClickVideoButtonAsync(string text, VideoButton button) =>
+        OnScreen.PressAtAsync(driver, () =>
+        {
+            var video = VideoOf(Screen(), text);
+            videoBefore[text] = video.Bounds;
+            return (video.Descendants().FirstOrDefault(found => found.Displayed && found.Description == button.ToShownText())
+                ?? throw new InvalidOperationException($"The video of the comment \"{text}\" shows no \"{button.ToShownText()}\".")).Center;
+        });
+
+    /// <summary>
+    /// Waits until the video of the comment "<paramref name="text"/>" has changed its size since the last tap on one of
+    /// its buttons, and stopped changing.
+    /// </summary>
+    public Task WaitUntilVideoResizedAsync(string text)
+    {
+        var before = videoBefore.GetValueOrDefault(text);
+        Rectangle? last = null;
+        return Waiting.UntilAsync(
+            () =>
+            {
+                var now = FindComment(Screen(), text) is { } comment ? Media.Videos(comment).FirstOrDefault()?.Bounds : null;
+                var settled = now is not null && now != before && now == last;
+                last = now;
+                return settled;
+            },
+            TimeSpan.FromSeconds(10),
+            $"The video of the comment \"{text}\" changing its size");
+    }
+
+    /// <summary>
+    /// Waits until the video of the comment "<paramref name="text"/>" shows, with its buttons, and has stopped moving:
+    /// after its full screen, the screen turns back first.
+    /// </summary>
+    public Task WaitUntilVideoSettledAsync(string text)
+    {
+        Rectangle? last = null;
+        return Waiting.UntilAsync(
+            () =>
+            {
+                var video = FindComment(Screen(), text) is { } comment ? Media.Videos(comment).FirstOrDefault() : null;
+                var now = video is not null && video.Descendants().Any(found => found.Displayed && found.Description.Length > 0)
+                    ? video.Bounds
+                    : (Rectangle?)null;
+                var settled = now is not null && now == last;
+                last = now;
+                return settled;
+            },
+            TimeSpan.FromSeconds(10),
+            $"The video of the comment \"{text}\" showing again in the comment");
+    }
+
+    /// <summary>
+    /// Where the comment "<paramref name="text"/>" and its video are on the screen, in pixels, and the screen's pixels
+    /// per dp.
+    /// </summary>
+    public Task<CommentVideoLayoutSnapshot> ReadVideoLayoutAsync(string text) =>
+        OnScreen.ReadAsync(driver, () =>
+        {
+            var comment = FindCommentOrFail(Screen(), text);
+            return new CommentVideoLayoutSnapshot(comment.Bounds, Media.Videos(comment).FirstOrDefault()?.Bounds, Density());
         });
 
     /// <summary>
@@ -885,6 +977,10 @@ public sealed class Comments(AndroidDriver driver)
     // The text a comment shows before its media, or "" when it shows only media.
     private static string TextIn(ScreenNode comment) => comment.WithAppId(Text).FirstOrDefault()?.Text ?? "";
 
+    private static ScreenNode VideoOf(ScreenSnapshot screen, string text) =>
+        Media.Videos(FindCommentOrFail(screen, text)).FirstOrDefault()
+        ?? throw new InvalidOperationException($"The comment \"{text}\" shows no video.");
+
     private static ScreenNode ImageOf(ScreenSnapshot screen, string text) =>
         Media.Images(FindCommentOrFail(screen, text)).FirstOrDefault()
         ?? throw new InvalidOperationException($"The comment \"{text}\" shows no image.");
@@ -964,6 +1060,9 @@ public sealed record DetailPostSnapshot(string Title, int Awards);
 /// sizes views in dp.
 /// </summary>
 public sealed record CommentLayoutSnapshot(Rectangle Comment, Rectangle? Image, double PixelsPerDp);
+
+/// <summary>Where a comment and its video are on the screen, in pixels, and the screen's pixels per dp.</summary>
+public sealed record CommentVideoLayoutSnapshot(Rectangle Comment, Rectangle? Video, double PixelsPerDp);
 
 /// <summary>What a video's player shows: its position and its length, as "00:10".</summary>
 public sealed record VideoSnapshot(string Position, string Duration);

@@ -21,11 +21,12 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 internal val SLOWER_WIDGET_REFRESH = HevalFeature(
     id = "sofascore.slower_widget_refresh",
-    name = "Slower widget refresh",
-    description = "Refreshes home screen widgets every hour instead of every 30 minutes.",
+    name = "Update widgets less often",
+    description = "Updates home screen widgets every hour instead of every 30 minutes.",
     category = SofascoreControlsCategory.PERFORMANCE,
     default = false,
     restartRequired = true,
+    icon = "refresh",
 )
 
 private const val WIDGET_REFRESH_WORKER = "Lcom/sofascore/results/service/WidgetPeriodicRefreshWorker;"
@@ -59,6 +60,9 @@ internal object WidgetPeriodicRefreshFingerprint : Fingerprint(
 @Suppress("unused")
 val slowerWidgetRefreshPatch = sofascoreControls.featurePatch(
     SLOWER_WIDGET_REFRESH,
+    // The Manager patch keeps its name and description; only the Patch settings row was reworded (2026-11-11).
+    name = "Slower widget refresh",
+    description = "Refreshes home screen widgets every hour instead of every 30 minutes.",
     default = false,
 ) {
     val method = WidgetPeriodicRefreshFingerprint.method

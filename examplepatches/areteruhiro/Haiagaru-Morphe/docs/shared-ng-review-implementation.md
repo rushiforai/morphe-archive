@@ -122,3 +122,14 @@ GAS実配備: reviewPersonalNg/exportReviewedSharedNgの実行完了、毎時rev
 
 
 2026-11-04〜05 レポーター単位のローカル除外: 配信に公開用のcontributorsを追加し、旧クライアントへはcapability指定がなければ除去する。元の管理用reporter/operationId等は配信しない。受信端末で除外した人の票だけを引き、他の人の票と閾値を維持する。解除・将来の別条件・設定バックアップに対応。GAS Code/PersonalInbox/Publishの既存sourceとHEADの一致を先に照合して保存・再取得一致確認、同じURLをv15（23:20 JST）へ更新。公開GET最初の試行は失敗、再取得でnew/oldともok/full/revision193・2568条件、contributorsの重複なし・票数一致・private metadataなし、旧形式にはcontributorsなしを確認。ローカルserver全473項目成功。226の隔離実機で署名一致Instrumentationの実タップ・票数差引・未来条件除外・解除・native raw field/cache更新・設定バックアップ復元12項目成功。Frida接続時のnative crashは成功扱いせず停止後に通常起動、以降は標準Instrumentationで確認。生のトレースやprivateデータは公開しない。
+
+### 2026-11-06 旧版の送信受付停止（ローカル実装済み・本番未反映）
+
+現行Code.gsはPOST受付で端末紐づけ情報を必須とする。version 1、version 2でdeviceKey欠落/不正の場合は、ロック取得・シート参照・書込より前にok=false/code=client_update_requiredと更新案内を返す。ACKを返して旧版の送信成功と誤認させない。GETによる共有NG受信、既存履歴、現行の紐づけ・送信・再送重複防止は保持する。古いALLOW_LEGACY_REPORTS=trueでも通常設定では停止する。
+管理者用REQUIRE_DEVICE_KEYは未設定/trueで必須。falseは旧配備の緊急rollback/過去protocolテスト専用。自己申告のkeyのため、改造クライアントや端末識別子偽装を防ぐ認証ではない。送信済みの旧版履歴を取り消す変更ではない。
+ローカルlifecycle116（旧版/不正key拒否、無ACK、lock/シート非アクセス、受信維持、現行受付/重複防止）、personal148、service41、moderation53の計358項目成功。既存履歴protocol試験はREQUIRE_DEVICE_KEY=falseを明示し過去処理の検証を維持。git diff --check成功。Androidコード変更/アプリ公開なし。
+本番GASへ接続したが、操作ツールがLocal browser use is disabled in Work settingsを返し、保存・既存デプロイ更新は未実施。本番での送信停止はまだ有効化されていない。再開時はGASの現ソースを照合し、Code.gs差分を保存・既存URLのデプロイを新バージョンへ更新してから、拒否応答と受信を確認する。対象レポーターの個別除外も本番未保存のまま。
+
+2026-11-06 GAS v16の本番応答確認（利用者が6:16 JSTに既存デプロイ更新）
+既存/exec URLへ保存対象にならない空reportsのv1/v2（deviceKeyなし）をPOST。両方ok=false/code=client_update_required/更新案内、ACKなしを確認。旧版の通常送信形式が本番で拒否されることを確認できた。現行deviceKey付きの有効報告は実データを書き込まないため本番送信試験を省略し、ローカル358項目を根拠とする。
+同URLのreviewed GETはok=true/full=true/revision255/rules3090で成功。先のUnexpected NG_ID headersは今回GETで再現しない。証跡build/shared-ng-v16-live-verification.jsonには応答codeと件数のみ、実条件/送信元なし。デプロイ番号/更新時刻は利用者報告、公開応答は直接確認。個別レポーターのIGNORED_REPORTERS追加は別件で未保存のまま。

@@ -24,7 +24,7 @@ private const val CREDITS = "Credits"
  * screen of their own: there are four of them and they are set once, if ever.
  */
 internal val clientSettingsPatch = resourcePatch(
-    description = "Adds the rows for the client id, redirect URI and user agent to the settings.",
+    description = "Adds the rows for the client id, redirect URI, and user agent to the settings.",
 ) {
     execute {
         document("res/xml/cat_other.xml").use { document ->

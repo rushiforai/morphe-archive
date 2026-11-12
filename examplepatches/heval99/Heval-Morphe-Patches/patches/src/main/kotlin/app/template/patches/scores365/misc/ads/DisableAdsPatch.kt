@@ -22,7 +22,9 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
 // uej.c ("showAds=") and uej.d. Forcing both true makes the app behave as if ads were removed,
 // which also blocks the betting promos (BPMB).
 private const val ADS_REMOVED = "isUserAdsRemoved="
-private const val FORCE_SHOW_ADS = "forceShowAds"
+// The debug override key: "forceShowAds" up to 15.0.0, "force_show_ads" (read through a remote-config
+// helper) since 15.0.1.
+private val FORCE_SHOW_ADS = setOf("forceShowAds", "force_show_ads")
 private const val PURCHASE_FLAG = "IsUserRemovedAdsPackageBuying"
 
 // The app's own ad gates. Declared on an R8-renamed interface and implemented by readable base
@@ -54,8 +56,8 @@ val disableAdsPatch = bytecodePatch(
         val siblingGate = gates.singleOrNull { method ->
             method !== removedGate &&
                 !method.strings().contains(ADS_REMOVED) &&
-                method.strings().containsAll(listOf(FORCE_SHOW_ADS, PURCHASE_FLAG))
-        } ?: throw PatchException("Disable ads: no single $ownerType ()Z reading $FORCE_SHOW_ADS + $PURCHASE_FLAG")
+                method.strings().let { strings -> PURCHASE_FLAG in strings && strings.any { it in FORCE_SHOW_ADS } }
+        } ?: throw PatchException("Disable ads: no single $ownerType ()Z reading a force-show-ads key + $PURCHASE_FLAG")
         removedGate.returnEarly(true)
         siblingGate.returnEarly(true)
 

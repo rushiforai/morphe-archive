@@ -7,14 +7,17 @@ import app.badfella.patches.linkedin.shared.settingsPatch
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 
 private const val EXTENSION_CLASS = "$EXTENSION_PACKAGE/NavigationBar;"
+private const val SETTINGS_CLASS = "$EXTENSION_PACKAGE/Settings;"
 
 /** HomeNavTabsManager.getHomeNavTabs(): the tabs of the bottom bar. */
 private object HomeNavTabsFingerprint : Fingerprint(
@@ -91,6 +94,49 @@ internal val navigationHooksPatch = bytecodePatch {
     }
 }
 
+/** SlimBottomNavigationBehavior.handleDirection(bar, direction): slides the bottom bar away or back as a screen scrolls. */
+private object ScrollDirectionFingerprint : Fingerprint(
+    definingClass = "Lcom/linkedin/android/home/bottomnav/SlimBottomNavigationBehavior;",
+    name = "handleDirection",
+    returnType = "V",
+    parameters = listOf("Lcom/linkedin/android/home/bottomnav/SlimBottomBar;", "I"),
+)
+
+/** SlimBottomNavigationBehavior.animateOffset(bar, offset): translates the bottom bar by the offset it is given. */
+private object AnimateOffsetFingerprint : Fingerprint(
+    definingClass = "Lcom/linkedin/android/home/bottomnav/SlimBottomNavigationBehavior;",
+    name = "animateOffset",
+    returnType = "V",
+    parameters = listOf("Lcom/linkedin/android/home/bottomnav/SlimBottomBar;", "I"),
+)
+
+@Suppress("unused")
+val alwaysShowNavigationBarPatch = bytecodePatch(
+    name = "Always show navigation bar",
+    description = "Adds an option in BadFella Patches to keep the navigation bar on screen while you scroll.",
+    default = true
+) {
+    compatibleWith(COMPATIBILITY_LINKEDIN)
+    category("Navigation")
+    dependsOn(settingsPatch)
+    execute {
+        markIncluded("isAlwaysShowNavigationBarIncluded")
+        // The bar is only ever slid away from here, so skipping it keeps the bar where it is.
+        ScrollDirectionFingerprint.method.apply {
+            addInstructionsWithLabels(
+                0,
+                """
+                    invoke-static { }, $SETTINGS_CLASS->alwaysShowNavigationBar()Z
+                    move-result v0
+                    if-eqz v0, :scroll
+                    return-void
+                """,
+                ExternalLabel("scroll", getInstruction(0))
+            )
+        }
+    }
+}
+
 @Suppress("unused")
 val navigationBarPatch = bytecodePatch(
     name = "Navigation bar",
@@ -119,13 +165,24 @@ val swipeTabsPatch = bytecodePatch(
 @Suppress("unused")
 val glassNavigationBarPatch = bytecodePatch(
     name = "Glass navigation bar",
-    description = "Draws the navigation bar as a floating, translucent capsule.",
+    description = "Draws the navigation bar as a floating, translucent capsule with a spring selection pill and no press ripple.",
     default = false
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
     category("Theme")
     dependsOn(navigationHooksPatch)
-    execute { markIncluded("isGlassNavigationBarIncluded") }
+    execute {
+        markIncluded("isGlassNavigationBarIncluded")
+        // The padding that floats the capsule makes the bar taller than its tab row, so the stock
+        // offset would leave the lower half of the bar on screen when a scroll hides it.
+        AnimateOffsetFingerprint.method.addInstructions(
+            0,
+            """
+                invoke-static { p1, p2 }, $EXTENSION_CLASS->slideOffset(Landroid/view/View;I)I
+                move-result p2
+            """
+        )
+    }
 }
 
 /** Indices of all instructions with the opcode, last first so edits keep earlier indices valid. */

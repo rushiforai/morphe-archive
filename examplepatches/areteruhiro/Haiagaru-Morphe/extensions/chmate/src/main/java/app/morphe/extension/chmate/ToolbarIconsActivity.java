@@ -27,7 +27,7 @@ public final class ToolbarIconsActivity extends HaiagaruComposeActivity {
     private void render() {
         rows.removeAllViews();
         TextView help = new TextView(this);
-        help.setText("アイコンの画像だけを変更します。表示・非表示と配置順は、ChMateのHOME・板・スレの各ツールバー設定で変更してください。画像の色はそのまま使います。\nフローティングのフィルターは独立して画像を変更できます。表示の切替はフィルター設定、位置変更はボタンの長押しで行います。画像の変更は再起動せず反映されます。\n画像は端末内にコピーするため、元画像を移動しても利用できます。"); rows.addView(help);
+        help.setText("アイコンの画像だけを変更します。表示・非表示と配置順は、ChMateのHOME・板・スレの各ツールバー設定で変更してください。画像の色はそのまま使います。\n推奨：256×256pxの正方形・背景透過PNG。別のサイズでも、縦横比を保って調整します（最大16MiB）。\nフローティングのフィルターは独立して画像を変更できます。表示の切替はフィルター設定、位置変更はボタンの長押しで行います。画像の変更は再起動せず反映されます。\n画像は端末内にコピーするため、元画像を移動しても利用できます。"); rows.addView(help);
         Button filters=new Button(this);filters.setText("フィルターの設定（下部パネル・追加項目）");filters.setOnClickListener(v->QuickFilterOptions.showToolbarSettings(this));rows.addView(filters);
         for (int i=0;i<ToolbarIcons.NAMES.length;i++) {
             final int n=i;

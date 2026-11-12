@@ -957,6 +957,18 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting RECORD_CALL_BUTTON =
             new BooleanSetting("hushtelegram_record_call_button", FALSE);
 
+    /**
+     * Which calls Record calls saves (#72): empty for every call, or one of
+     * {@link app.hushtelegram.extension.telegram.misc.RecordChats#SCOPES}. The record button works
+     * on any call whatever this says.
+     */
+    public static final StringSetting RECORD_CALLS_WHICH =
+            new StringSetting("hushtelegram_record_calls_which", "");
+
+    /** Days a call recording is kept before the next saved one deletes it, 0 to keep them all (#72). */
+    public static final IntegerSetting RECORD_CALLS_KEEP_DAYS =
+            new IntegerSetting("hushtelegram_record_calls_keep_days", 0).withRange(0, 365);
+
     /** Link previews for unsent messages only; sent messages and received previews stay stock. */
     public static final BooleanSetting DISABLE_DRAFT_PREVIEWS =
             new BooleanSetting("hushtelegram_disable_draft_previews", FALSE);

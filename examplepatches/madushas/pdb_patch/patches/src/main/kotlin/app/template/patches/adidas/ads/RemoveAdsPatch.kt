@@ -34,7 +34,6 @@ val adidasRemoveAdsPatch = resourcePatch(
         "and the Privacy-Sandbox ad services and removes the install-referrer permission.",
     default = true,
 ) {
-    category("Ads")
     compatibleWith(ADIDAS_RUNNING_COMPATIBILITY)
 
     execute {

@@ -15,9 +15,9 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.patch.BytecodePatchBuilder
-import app.morphe.patcher.patch.BytecodePatchContext
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.PatchDefinition
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.util.getReference
 import app.morphe.patcher.util.proxy.mutableTypes.MutableField.Companion.toMutable
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patches.shared.FormatStreamModelToStringFingerprint
@@ -26,7 +26,6 @@ import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.cloneMutable
 import app.morphe.util.findMethodFromToString
-import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstructionReversedOrThrow
 import app.morphe.util.insertLiteralOverride
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -35,7 +34,6 @@ import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableField
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
@@ -49,14 +47,14 @@ private const val EXTENSION_AUDIO_TRACK_INTERFACE =
  * Patch shared with YouTube and YT Music.
  */
 internal fun forceOriginalAudioPatch(
-    block: BytecodePatchBuilder.() -> Unit = {},
-    executeBlock: BytecodePatchContext.() -> Unit = {},
-    fixUseLocalizedAudioTrackFlag: BytecodePatchContext.() -> Boolean,
-    forcedServerAdaptiveStreaming: BytecodePatchContext.() -> Boolean,
+    block: PatchDefinition.() -> Unit = {},
+    executeBlock: () -> Unit = {},
+    fixUseLocalizedAudioTrackFlag: () -> Boolean,
+    forcedServerAdaptiveStreaming: () -> Boolean,
     mainActivityOnCreateFingerprint: Fingerprint,
     subclassExtensionClassDescriptor: String,
     preferenceScreen: BasePreferenceScreen.Screen
-) = bytecodePatch(
+) = patch(
     name = "Force original audio",
     description = "Adds an option to always use the original audio track.",
 ) {
@@ -209,13 +207,13 @@ internal fun forceOriginalAudioPatch(
 
             val setAudioTrackMethod =
                 getAudioTrackItemOnClickFingerprint(audioTrackRecordClass)
-                    .instructionMatches.last().instruction.getReference<MethodReference>()!!
+                    .instructionMatches.last().methodReference
 
             val playerControllerClass = setAudioTrackMethod.definingClass
 
             val audioTrackRecordArrayField =
                 getCurrentAudioFormatConstructorFingerprint(audioTrackRecordClass)
-                    .instructionMatches.last().instruction.getReference<FieldReference>()!!
+                    .instructionMatches.last().fieldReference
 
             getSetVideoQualityListFingerprint(
                 audioVideoFormatClass = audioTrackRecordArrayField.definingClass,

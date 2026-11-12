@@ -1,30 +1,49 @@
 package app.template.patches.viaplay.ads
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.methodCall
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
-internal const val AD_PLAYBACK_STATE = "Landroidx/media3/common/AdPlaybackState;"
-internal const val AD_PLAYBACK_STATE_UPDATER =
-    "Landroidx/media3/exoplayer/source/ads/ServerSideAdInsertionMediaSource\$AdPlaybackStateUpdater;"
+// Viaplay's VOD ads are server-side inserted DASH periods. The ad-period check (the "ad-id-signaling"
+// DASH event stream) lives in Viaplay's own exo/tools package, whose package name is kept. Up to
+// 26.42.1 the app's AdPlaybackStateUpdater was a separate class implementing Media3's interface,
+// found by that interface and the AdPlaybackState builder calls. From 26.43 R8 renames Media3's
+// common classes (AdPlaybackState, Timeline, the updater interface) and inlines the only updater
+// into ServerSideAdInsertionMediaSource's onChildSourceInfoRefreshed(MediaSource, Timeline)V,
+// where withSkippedAd is inlined too. What remains stable is the method's shape: it calls the
+// exo/tools period check (X, Timeline, int) -> boolean, and, for every period it builds, tests
+//     invoke-interface {set, key}, Set.contains(Object)Z ; move-result ; if-eqz
+// before marking the state's single ad skipped.
+internal const val VIAPLAY_EXO_TOOLS = "Lcom/viaplay/android/player/players/exo/tools/"
 
-// Viaplay's VOD ads are server-side inserted DASH periods. The player's only implementation of
-// Media3's ServerSideAdInsertionMediaSource.AdPlaybackStateUpdater builds, for every ad period
-// (the "ad-id-signaling" check), an AdPlaybackState with one server-side ad group holding one ad
-// of the period's duration, and at the end marks that ad skipped (withSkippedAd) only when the
-// period is in the set of ad breaks before the resume position. The Media3 interface and the
-// AdPlaybackState builder calls are kept library names; the filters follow their order in the
-// method.
+internal fun Instruction.methodRef(): MethodReference? = (this as? ReferenceInstruction)?.reference as? MethodReference
+
+/** Indexes of `Set.contains` calls directly followed by `move-result` and `if-eqz` on its result. */
+internal fun List<Instruction>.setContainsGuards(): List<Int> = indices.filter { i ->
+    val ref = this[i].methodRef()
+    ref != null && ref.definingClass == "Ljava/util/Set;" && ref.name == "contains" &&
+        getOrNull(i + 1)?.opcode == Opcode.MOVE_RESULT && getOrNull(i + 2)?.opcode == Opcode.IF_EQZ
+}
+
 internal object AdPlaybackStateUpdaterFingerprint : Fingerprint(
-    name = "onAdPlaybackStateUpdateRequested",
-    returnType = "Z",
-    parameters = listOf("Landroidx/media3/common/Timeline;"),
-    filters = listOf(
-        methodCall(definingClass = AD_PLAYBACK_STATE, name = "withIsServerSideInserted"),
-        methodCall(definingClass = AD_PLAYBACK_STATE, name = "withAdDurationsUs"),
-        methodCall(definingClass = "Ljava/util/Set;", name = "contains"),
-        methodCall(definingClass = AD_PLAYBACK_STATE, name = "withSkippedAd"),
-    ),
-    custom = { method, classDef ->
-        method.implementation != null && AD_PLAYBACK_STATE_UPDATER in classDef.interfaces
+    returnType = "V",
+    custom = { method: Method, _ ->
+        val implementation = method.implementation
+        if (implementation == null || method.parameterTypes.size != 2) {
+            false
+        } else {
+            val timeline = method.parameterTypes[1].toString()
+            val insns = implementation.instructions.toList()
+            // The exo/tools period check: a static (Timeline, int) -> boolean.
+            insns.any {
+                it.methodRef()?.let { ref ->
+                    ref.definingClass.startsWith(VIAPLAY_EXO_TOOLS) && ref.returnType == "Z" &&
+                        ref.parameterTypes.map(CharSequence::toString) == listOf(timeline, "I")
+                } == true
+            } && insns.setContainsGuards().isNotEmpty()
+        }
     },
 )

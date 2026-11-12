@@ -17,11 +17,17 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLa
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.instructionsOrNull
 import app.morphe.patcher.methodCall
-import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
-import app.morphe.patcher.util.Document
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.readXml
+import app.morphe.patcher.patch.resourceXml
+import app.morphe.patcher.xml.ResourceXml
+import app.morphe.patcher.xml.XmlElement
+import app.morphe.patcher.util.findFreeRegister
+import app.morphe.patcher.util.getMutableMethod
+import app.morphe.patcher.util.getReference
+import app.morphe.patcher.util.matchAllMethodIndicesForEach
+import app.morphe.patcher.util.p0Register
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.shared.layout.theme.lithoColorHookPatch
 import app.morphe.patches.shared.layout.theme.lithoDrawableColorHook
@@ -40,6 +46,7 @@ import app.morphe.patches.youtube.misc.playservice.is_20_40_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_21_04_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_21_05_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_21_08_or_greater
+import app.morphe.patches.youtube.misc.playservice.is_21_11_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_21_15_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_21_29_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_21_30_or_greater
@@ -49,24 +56,15 @@ import app.morphe.patches.youtube.misc.playservice.is_21_41_or_greater
 import app.morphe.patches.youtube.misc.playservice.versionCheckPatch
 import app.morphe.patches.youtube.misc.settings.PreferenceScreen
 import app.morphe.patches.youtube.misc.settings.settingsPatch
-import app.morphe.util.copyXmlNode
-import app.morphe.util.findElementByAttributeValue
-import app.morphe.util.findElementByAttributeValueOrThrow
-import app.morphe.util.findFreeRegister
 import app.morphe.util.findInstructionIndicesReversed
-import app.morphe.util.getMutableMethod
-import app.morphe.util.getReference
 import app.morphe.util.inputStreamFromBundledResource
 import app.morphe.util.insertLiteralOverride
-import app.morphe.util.matchAllMethodIndicesForEach
-import app.morphe.util.p0Register
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-import org.w3c.dom.Node
 import java.lang.ref.WeakReference
 
 /**
@@ -85,7 +83,7 @@ private var insertElementId = "@id/player_video_heading"
 lateinit var addLegacyBottomControl: (String) -> Unit
     private set
 
-internal val legacyPlayerControlsResourcePatch = resourcePatch {
+internal val legacyPlayerControlsResourcePatch = patch {
     /**
      * The element to the left of the element being added.
      */
@@ -94,20 +92,12 @@ internal val legacyPlayerControlsResourcePatch = resourcePatch {
      */
     var bottomLastLeftOf = "@id/fullscreen_button"
 
-    lateinit var bottomTargetDocument: Document
+    lateinit var bottomTargetDocument: ResourceXml
 
     execute {
-        bottomTargetDocument = document("res/layout/youtube_controls_bottom_ui_container.xml")
+        bottomTargetDocument = resourceXml("res/layout/youtube_controls_bottom_ui_container.xml")
 
-        val bottomTargetElementList = bottomTargetDocument
-            .getElementsByTagName("android.support.constraint.ConstraintLayout")
-            .takeIf { it.length > 0 }
-            ?: bottomTargetDocument.getElementsByTagName("androidx.constraintlayout.widget.ConstraintLayout")
-        val bottomTargetElement = bottomTargetElementList.item(0)
-
-
-        val bottomTargetDocumentChildNodes = bottomTargetDocument.childNodes
-        var bottomInsertBeforeNode: Node = bottomTargetDocumentChildNodes.findElementByAttributeValueOrThrow(
+        var bottomInsertBeforeNode: XmlElement = bottomTargetDocument.elementByAttribute(
             "android:inflatedId",
             bottomLastLeftOf,
         )
@@ -116,7 +106,7 @@ internal val legacyPlayerControlsResourcePatch = resourcePatch {
         // The fullscreen button is lower than the Morphe buttons (unpatched app bug).
         // Issue is only present in later app targets, but this change seems to
         // do no harm to earlier releases.
-        bottomTargetDocumentChildNodes.findElementByAttributeValueOrThrow(
+        bottomTargetDocument.elementByAttribute(
             "android:id",
             "@id/youtube_controls_fullscreen_button_stub"
         ).apply {
@@ -131,29 +121,21 @@ internal val legacyPlayerControlsResourcePatch = resourcePatch {
                 resourceFileName,
             ) ?: throw PatchException("Could not find $resourceFileName")
 
-            val document = document("res/layout/youtube_controls_layout.xml")
             val androidId = "android:id"
             val androidLayoutToStartOf = "android:layout_toStartOf"
 
-            "RelativeLayout".copyXmlNode(
-                document(hostingResourceStream),
-                document,
-            ).use {
-                val insertElement = document.childNodes.findElementByAttributeValueOrThrow(
-                    androidId,
-                    insertElementId,
-                )
-                val endElement = document.childNodes.findElementByAttributeValueOrThrow(
-                    androidId,
-                    endElementId,
-                )
-                val insertElementLayoutToStartOf =
-                    insertElement.attributes.getNamedItem(androidLayoutToStartOf).nodeValue!!
+            resourceXml("res/layout/youtube_controls_layout.xml").use { layout ->
+                readXml(hostingResourceStream).use { source ->
+                    val target = layout.elements("RelativeLayout").first()
+                    source.elements("RelativeLayout").first().children.forEach { target.appendCopy(it) }
+                }
 
-                insertElement.attributes.getNamedItem(androidLayoutToStartOf).nodeValue =
-                    startElementId
-                endElement.attributes.getNamedItem(androidLayoutToStartOf).nodeValue =
-                    insertElementLayoutToStartOf
+                val insertElement = layout.elementByAttribute(androidId, insertElementId)
+                val endElement = layout.elementByAttribute(androidId, endElementId)
+                val insertElementLayoutToStartOf = insertElement.attribute(androidLayoutToStartOf)!!
+
+                insertElement.setAttribute(androidLayoutToStartOf, startElementId)
+                endElement.setAttribute(androidLayoutToStartOf, insertElementLayoutToStartOf)
 
                 insertElementId = endElementId
             }
@@ -161,33 +143,25 @@ internal val legacyPlayerControlsResourcePatch = resourcePatch {
 
         addLegacyBottomControl = { resourceDirectoryName ->
             val resourceFileName = "host/layout/youtube_controls_bottom_ui_container.xml"
-            val sourceDocument = document(
+            readXml(
                 inputStreamFromBundledResource(resourceDirectoryName, resourceFileName)
                     ?: throw PatchException("Could not find $resourceFileName"),
-            )
+            ).use { source ->
+                val sourceElements = source.elements("android.support.constraint.ConstraintLayout").first().children
 
-            val sourceElements = sourceDocument.getElementsByTagName(
-                "android.support.constraint.ConstraintLayout",
-            ).item(0).childNodes
+                // Copy the patch layout XML into the target layout file.
+                sourceElements.asReversed().forEach { element ->
+                    // If the element has no attributes there's no point adding it to the destination.
+                    if (element.attributeNames.isEmpty()) return@forEach
 
-            // Copy the patch layout XML into the target layout file.
-            for (index in sourceElements.length - 1 downTo 1) {
-                val element = sourceElements.item(index).cloneNode(true)
-
-                // If the element has no attributes there's no point adding it to the destination.
-                if (!element.hasAttributes()) continue
-
-                element.attributes.getNamedItem("yt:layout_constraintRight_toLeftOf").nodeValue = bottomLastLeftOf
-                bottomLastLeftOf = element.attributes.getNamedItem("android:id").nodeValue
-
-                bottomTargetDocument.adoptNode(element)
-                // Elements do not need to be added in the layout order since a layout constraint is used,
-                // but in order is easier to make sense of while debugging.
-                bottomTargetElement.insertBefore(element, bottomInsertBeforeNode)
-                bottomInsertBeforeNode = element
+                    // Elements do not need to be added in the layout order since a layout constraint is used,
+                    // but in order is easier to make sense of while debugging.
+                    val copy = bottomInsertBeforeNode.parent!!.insertCopy(bottomInsertBeforeNode.index, element)
+                    copy.setAttribute("yt:layout_constraintRight_toLeftOf", bottomLastLeftOf)
+                    bottomLastLeftOf = copy.attribute("android:id")!!
+                    bottomInsertBeforeNode = copy
+                }
             }
-
-            sourceDocument.close()
         }
 
         // Button slots of add-on patch bundles, which cannot add a button of their own.
@@ -195,16 +169,12 @@ internal val legacyPlayerControlsResourcePatch = resourcePatch {
     }
 
     finalize {
-        val childNodes = bottomTargetDocument.childNodes
-
         arrayOf(
             "@id/bottom_end_container",
             "@id/multiview_button",
         ).forEach {
-            childNodes.findElementByAttributeValue(
-                "android:id",
-                it,
-            )?.setAttribute("yt:layout_constraintRight_toLeftOf", bottomLastLeftOf)
+            bottomTargetDocument.elementByAttributeOrNull("android:id", it)
+                ?.setAttribute("yt:layout_constraintRight_toLeftOf", bottomLastLeftOf)
         }
 
         bottomTargetDocument.close()
@@ -213,7 +183,6 @@ internal val legacyPlayerControlsResourcePatch = resourcePatch {
 
 private var newPlayerControlsOverride = false
 
-context(patchContext: BytecodePatchContext)
 internal fun disableNewPlayerControlsFeatureFlag() {
     if (newPlayerControlsOverride) return
     newPlayerControlsOverride = true
@@ -297,7 +266,7 @@ private lateinit var inflateBottomControlMethodRef : WeakReference<MutableMethod
 private var inflateBottomControlInsertIndex = -1
 private var inflateBottomControlRegister = -1
 
-val legacyPlayerControlsPatch = bytecodePatch(
+val legacyPlayerControlsPatch = patch(
     description = "Manages the code for the player controls of the YouTube player.",
 ) {
     dependsOn(
@@ -422,19 +391,21 @@ val legacyPlayerControlsPatch = bytecodePatch(
             }
         }
 
-        // Override flags that interfere with old player icons override.
-        arrayOf(
-            PlayerCommentTeaserFeatureFlagFingerprint to is_21_15_or_greater,
-            RecycleViewScrollingFlagFingerprint to is_21_15_or_greater
-        ).forEach { (fingerprint, applyChanges) ->
-            if (applyChanges) {
-                fingerprint.matchAll().forEach {
-                    it.method.insertLiteralOverride(
-                        it.instructionMatches.first().index,
-                        "$EXTENSION_CLASS->" +
-                                "allowModernPlayerLayoutFlags(Z)Z"
-                    )
-                }
+        // Comments teaser A/B test: shows a small comments card below the player time bar,
+        // which can be too narrow to read in portrait.
+        // It also crashes the app on startup with the old player icons, so always turn it off.
+        if (is_21_15_or_greater) {
+            PlayerCommentTeaserFeatureFlagFingerprint.matchAllMethodIndicesForEach { index ->
+                insertLiteralOverride(index, false)
+            }
+        }
+
+        // Watch feed resize A/B test: every scroll event of the watch next feed
+        // resizes the player and relayouts the watch page, and scrolling lags.
+        // It also interferes with the old player icons, so always turn it off.
+        if (is_21_11_or_greater) {
+            WatchFeedResizeFeatureFlagFingerprint.matchAllMethodIndicesForEach { index ->
+                insertLiteralOverride(index, false)
             }
         }
 

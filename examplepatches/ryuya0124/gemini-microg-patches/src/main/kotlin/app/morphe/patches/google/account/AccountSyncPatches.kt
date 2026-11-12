@@ -167,21 +167,6 @@ val accountConvertFallbackPatch = bytecodePatch(
     execute {
         VersionHookRegistry.requireProfile(packageMetadata)
         VersionHookRegistry.target(HookId.ACCOUNT_CONVERT_FALLBACK, packageMetadata)
-        fun ensureRegisters(impl: Any?, minRegs: Int) {
-            if (impl == null) return
-            try {
-                val field = impl.javaClass.getDeclaredField("registerCount")
-                field.isAccessible = true
-                val cur = field.getInt(impl)
-                if (cur < minRegs) {
-                    field.setInt(impl, minRegs)
-                    println("[AccountConvertFallback] Expanded registerCount from $cur to $minRegs")
-                }
-            } catch (e: Exception) {
-                println("[AccountConvertFallback] Note expanding registerCount: ${e.message}")
-            }
-        }
-
         // 1. ImmediateSuccessfulFuture クラス (Lfyca;) の検証
         val fallbackSpec = VersionHookRegistry.target(HookId.ACCOUNT_CONVERT_FALLBACK, packageMetadata)
         val immediateFutureClass = requireNotNull(fallbackSpec.className)
@@ -228,7 +213,7 @@ val accountConvertFallbackPatch = bytecodePatch(
                     method.implementation != null
                 ) {
                     println("[AccountConvertFallback] Patching account resolver: ${classDef.type}->${method.name}")
-                    ensureRegisters(method.implementation, 4)
+                    check(method.implementation!!.registerCount >= 2) { "Historical fallback requires v0/v1; do not enable this unsupported patch" }
                     method.addInstructions(
                         0,
                         """

@@ -14,7 +14,6 @@ import static app.morphe.extension.youtube.series.TrackerModels.Series;
 import androidx.annotation.Nullable;
 
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
@@ -130,16 +129,17 @@ public final class ResumePlanner {
         return null;
     }
 
-    public static String time(long ms) {
-        final long seconds = Math.max(0, ms) / 1000;
-        return seconds >= 3600
-                ? String.format(
-                        Locale.ROOT,
-                        "%d:%02d:%02d",
-                        seconds / 3600,
-                        seconds / 60 % 60,
-                        seconds % 60)
-                : String.format(Locale.ROOT, "%d:%02d", seconds / 60, seconds % 60);
+    /**
+     * @return If the video is the next available episode after the previous video, in series order.
+     */
+    static boolean isNext(Series series, String previous, String video) {
+        String last = "";
+        for (Episode e : series.episodes()) {
+            if (!e.available) continue;
+            if (last.equals(previous) && e.videoId.equals(video)) return true;
+            last = e.videoId;
+        }
+        return false;
     }
 
     private ResumePlanner() {}

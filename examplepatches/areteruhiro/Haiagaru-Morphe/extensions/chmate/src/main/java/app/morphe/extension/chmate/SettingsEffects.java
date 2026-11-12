@@ -7,7 +7,7 @@ import android.content.Context;
 final class SettingsEffects {
     static boolean needsRestart(String key){
         // Existing native views/catalogs and process-start hooks retain these values.
-        return EmojiFontFallback.ENABLED.equals(key)||ReadingPosition.ENABLED.equals(key)||"hideAd".equals(key)||"removeMonaKey".equals(key)
+        return ExternalBoardGroups.KEY.equals(key)||EmojiFontFallback.ENABLED.equals(key)||ReadingPosition.ENABLED.equals(key)||"hideAd".equals(key)||"removeMonaKey".equals(key)
                 ||"chtoio".equals(key)||"topAlignShortThreads".equals(key)
                 ||"compactQuickFilters".equals(key)||"threadCommandsEnabled".equals(key)
                 ||"imageViewerRotationButton".equals(key)

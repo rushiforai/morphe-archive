@@ -1,5 +1,5 @@
 {
-  "version": "v0.0.24",
+  "version": "v0.0.25",
   "appNames": {
     "org.telegram.messenger": "Telegram",
     "org.telegram.messenger.web": "Telegram (telegram.org)"

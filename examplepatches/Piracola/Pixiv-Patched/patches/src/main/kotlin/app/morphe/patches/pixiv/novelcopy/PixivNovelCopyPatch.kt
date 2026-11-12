@@ -1,6 +1,7 @@
 package app.morphe.patches.pixiv.novelcopy
 
 import app.morphe.patches.pixiv.shared.PixivConstants
+import app.morphe.patches.pixiv.shared.novelReaderPageFinishedFingerprint
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatch
@@ -49,8 +50,9 @@ val pixivNovelCopyPatch: BytecodePatch = bytecodePatch(
         }
 
         // --- Novel body: a WebView running pixiv's own page, the only place selection is a web concern ---
-        mutableClassDefBy("Lyl6;")
-            .methods.first { it.name == "onPageFinished" && it.returnType == "V" }
+        // Pixiv's in-app web views share one compiled client whose name changes with every release,
+        // so the fingerprint picks the page-finished handler that knows the novel reader screen.
+        novelReaderPageFinishedFingerprint.method
             .addInstructions(0, "invoke-static {p1}, $HELPER->onPageFinished(Landroid/webkit/WebView;)V")
 
         // --- Series detail: its own 22 registers also need the wider invoke ---

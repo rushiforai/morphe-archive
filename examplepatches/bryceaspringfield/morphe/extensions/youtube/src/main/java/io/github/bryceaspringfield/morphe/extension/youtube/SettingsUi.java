@@ -17,6 +17,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.BooleanSetting;
 import app.morphe.extension.shared.settings.StringSetting;
 
@@ -58,14 +59,22 @@ public final class SettingsUi {
             root.addPreference(screen);
 
             PreferenceCategory filters = category(ctx, screen, "cat_filters");
-            text(ctx, filters, XSettings.CHANNEL_RULES, "channel_rules", "channel_rules_summary", true);
+            Preference channels = new Preference(ctx);
+            channels.setKey("yx_channel_filters");
+            channels.setTitle(Strings.get("channel_rules"));
+            channels.setSummary(channelSummary());
+            channels.setOnPreferenceClickListener(pref -> {
+                ChannelFilterUi.showList(ctx, () -> pref.setSummary(channelSummary()));
+                return true;
+            });
+            filters.addPreference(channels);
             text(ctx, filters, XSettings.MIN_LENGTH, "min_length", "length_summary", false);
             text(ctx, filters, XSettings.MAX_LENGTH, "max_length", "length_summary", false);
             toggle(ctx, filters, XSettings.HIDE_HOME_PLAYLISTS, "home_playlists", "home_playlists_summary");
+            toggle(ctx, filters, XSettings.HIDE_PAST_STREAMS, "past_streams", "past_streams_summary");
             String[] topicLabels = new String[Topics.KEYS.length];
             for (int i = 0; i < topicLabels.length; i++) topicLabels[i] = Topics.label(i);
             multi(ctx, filters, XSettings.TOPICS, "yx_topics_list", "topics", "topics_summary", topicLabels, Topics.KEYS);
-            text(ctx, filters, XSettings.HIDDEN_CHANNELS, "hidden_channels", "hidden_channels_summary", true);
             multi(ctx, filters, XSettings.HIDDEN_CATEGORIES, "yx_categories_list", "categories", "categories_summary",
                     Categories.ALL, Categories.ALL);
 
@@ -87,12 +96,35 @@ public final class SettingsUi {
             watched.setValue(XSettings.AUTO_WATCHED.get());
             watched.setSummary(Strings.get("auto_watched_summary"));
             auto.addPreference(watched);
+            // A typed number, as Morphe's custom playback speeds are typed.
+            EditTextPreference resuggested = new EditTextPreference(ctx);
+            resuggested.setKey(XSettings.RESUGGESTED_LIMIT.key);
+            resuggested.setTitle(Strings.get("resuggested"));
+            resuggested.setDialogTitle(Strings.get("resuggested"));
+            resuggested.setDialogMessage(Strings.get("resuggested_dialog"));
+            resuggested.setText(XSettings.RESUGGESTED_LIMIT.get());
+            resuggested.getEditText().setInputType(InputType.TYPE_CLASS_NUMBER);
+            resuggested.setSummary(resuggestedSummary(XSettings.RESUGGESTED_LIMIT.get()));
+            resuggested.setOnPreferenceChangeListener((pref, value) -> {
+                String v = String.valueOf(value).trim();
+                if (!v.matches("\\d{1,4}")) {
+                    Utils.showToastShort(Strings.get("resuggested_invalid"));
+                    return false;
+                }
+                v = String.valueOf(Integer.parseInt(v));
+                XSettings.RESUGGESTED_LIMIT.save(v);
+                pref.setSummary(resuggestedSummary(v));
+                ((EditTextPreference) pref).setText(v);
+                return false;
+            });
+            auto.addPreference(resuggested);
             toggle(ctx, auto, XSettings.AUTO_LIKE, "auto_like", "auto_like_summary");
             toggle(ctx, auto, XSettings.LIVE_CATCH_UP, "live_catch_up", "live_catch_up_summary");
             text(ctx, auto, XSettings.LIVE_CATCH_UP_SPEED, "live_catch_up_speed", "live_catch_up_speed_summary", false);
 
             PreferenceCategory playback = category(ctx, screen, "cat_playback");
             toggle(ctx, playback, XSettings.KEEP_PLAYING_SCREEN_OFF, "keep_playing", "keep_playing_summary");
+            toggle(ctx, playback, XSettings.AUDIO_ONLY, "audio_only", "audio_only_summary");
             toggle(ctx, playback, XSettings.AUDIO_ONLY_SCREEN_OFF, "audio_only_off", "audio_only_off_summary");
 
             PreferenceCategory layout = category(ctx, screen, "cat_layout");
@@ -102,6 +134,7 @@ public final class SettingsUi {
             toggle(ctx, layout, XSettings.LIVE_CHAT_ALL_MESSAGES, "live_chat_all", "live_chat_all_summary");
             toggle(ctx, layout, XSettings.DEARROW_TAP, "dearrow_tap", "dearrow_tap_summary");
             toggle(ctx, layout, XSettings.DEARROW_SUGGEST, "dearrow_suggest", "dearrow_suggest_summary");
+            toggle(ctx, layout, XSettings.COMMENT_TITLE, "comment_title", "comment_title_summary");
             toggle(ctx, layout, XSettings.CHAT_AVATAR_CHANNEL, "chat_avatar", "chat_avatar_summary");
             ListPreference votes = new ListPreference(ctx);
             votes.setKey(XSettings.VOTE_FORMAT.key);
@@ -118,9 +151,49 @@ public final class SettingsUi {
             toggle(ctx, fixes, XSettings.FIX_NAVIGATION_TAPS, "fix_nav", null);
             toggle(ctx, fixes, XSettings.FIX_NETWORK_RECOVERY, "fix_network", "fix_network_summary");
             toggle(ctx, fixes, XSettings.DEBUG, "debug", "debug_summary");
+            applyToolbar(fragment, ctx, root, screen);
         } catch (Exception e) {
             Logger.printException(() -> "YouTube Extras: settings screen failed", e);
         }
+    }
+
+    /**
+     * Gives the screen Morphe's toolbar (its title and back arrow). Morphe sets each nested screen's click listener in
+     * setPreferenceScreenToolbar(parent), which ran before this screen existed; running it on the root again would
+     * remove its screens' info a second time, so the screen passes through a parent of its own.
+     */
+    private static void applyToolbar(PreferenceFragment fragment, Context ctx, PreferenceScreen root, PreferenceScreen screen) {
+        try {
+            java.lang.reflect.Method m = null;
+            for (Class<?> c = fragment.getClass(); c != null && m == null; c = c.getSuperclass()) {
+                try {
+                    m = c.getDeclaredMethod("setPreferenceScreenToolbar", PreferenceScreen.class);
+                } catch (NoSuchMethodException ignored) {
+                }
+            }
+            if (m == null) return;
+            m.setAccessible(true);
+            PreferenceScreen holder = fragment.getPreferenceManager().createPreferenceScreen(ctx);
+            root.removePreference(screen);
+            holder.addPreference(screen);
+            try {
+                m.invoke(fragment, holder);
+            } finally {
+                holder.removePreference(screen);
+                root.addPreference(screen);
+            }
+        } catch (Throwable t) {
+            Logger.printDebug(() -> "YouTube Extras: settings toolbar not set: " + t);
+        }
+    }
+
+    /** "3 channels: Name, @handle, ..." or the editor's description when there are none. */
+    private static String channelSummary() {
+        java.util.List<ChannelFilterUi.Entry> entries = ChannelFilterUi.read(XSettings.CHANNEL_RULES.get(), new java.util.ArrayList<>());
+        if (entries.isEmpty()) return Strings.get("cf_summary_none");
+        java.util.List<String> names = new java.util.ArrayList<>();
+        for (ChannelFilterUi.Entry e : entries) names.add(e.channel);
+        return String.format(Strings.get("cf_summary"), entries.size()) + ": " + String.join(", ", names);
     }
 
     private static PreferenceCategory category(Context ctx, PreferenceGroup parent, String titleKey) {
@@ -138,6 +211,16 @@ public final class SettingsUi {
         p.setDefaultValue(s.defaultValue);
         p.setChecked(s.get());
         parent.addPreference(p);
+    }
+
+    private static String resuggestedSummary(String value) {
+        int n;
+        try {
+            n = Integer.parseInt(value.trim());
+        } catch (NumberFormatException e) {
+            n = Resuggested.DEFAULT_LIMIT;
+        }
+        return n <= 0 ? Strings.get("resuggested_off") : String.format(Strings.get("resuggested_summary"), n);
     }
 
     private static void text(Context ctx, PreferenceGroup parent, StringSetting s, String titleKey, String summaryKey,

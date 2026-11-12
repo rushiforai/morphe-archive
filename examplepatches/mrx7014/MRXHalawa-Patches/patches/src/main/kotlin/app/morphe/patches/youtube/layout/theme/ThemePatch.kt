@@ -2,6 +2,7 @@
  * Copyright 2026 Morphe.
  * https://github.com/MorpheApp/morphe-patches/pull/2524
  * https://github.com/MorpheApp/morphe-patches/pull/3684
+ * https://github.com/MorpheApp/morphe-patches/pull/4109
  *
  * Original hard forked code:
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
@@ -17,9 +18,15 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.listDecodableFiles
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.resourceXml
+import app.morphe.patcher.patch.resourceXmlOrNull
 import app.morphe.patcher.resource.ResourceType
 import app.morphe.patcher.resourceLiteral
+import app.morphe.patcher.util.matchAllMethodIndicesForEach
+import app.morphe.patcher.util.registersUsed
+import app.morphe.patcher.xml.ResourceXml
 import app.morphe.patches.shared.layout.theme.STYLE_DEFAULT_COLOR_NAMES_DARK
 import app.morphe.patches.shared.layout.theme.STYLE_DEFAULT_COLOR_NAMES_LIGHT
 import app.morphe.patches.shared.layout.theme.THEME_COLOR_EXTENSION_CLASS
@@ -36,10 +43,6 @@ import app.morphe.patches.shared.misc.settings.preference.ListPreference
 import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
 import app.morphe.patches.shared.misc.settings.preference.TextPreference
 import app.morphe.patches.shared.misc.settings.preference.noTitleUnsortedPreferenceCategory
-import app.morphe.patches.util.resource.appendResourceElements
-import app.morphe.patches.util.resource.editText
-import app.morphe.patches.util.resource.forEachRawResourceElement
-import app.morphe.patches.util.resource.transformRawResourceElements
 import app.morphe.patches.youtube.layout.seekbar.seekbarColorPatch
 import app.morphe.patches.youtube.misc.extension.sharedExtensionPatch
 import app.morphe.patches.youtube.misc.playservice.is_20_31_or_greater
@@ -47,18 +50,15 @@ import app.morphe.patches.youtube.misc.playservice.is_21_06_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_21_08_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_21_30_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_21_35_or_greater
+import app.morphe.patches.youtube.misc.playservice.is_21_45_or_greater
 import app.morphe.patches.youtube.misc.playservice.versionCheckPatch
 import app.morphe.patches.youtube.misc.settings.PreferenceScreen
 import app.morphe.patches.youtube.misc.settings.settingsPatch
 import app.morphe.patches.youtube.shared.Constants.COMPATIBILITY_YOUTUBE
 import app.morphe.patches.youtube.shared.LayoutConstructorFingerprint
 import app.morphe.util.findInstructionIndicesReversedOrThrow
-import app.morphe.util.forEachChildElement
 import app.morphe.util.insertLiteralOverride
-import app.morphe.util.matchAllMethodIndicesForEach
-import app.morphe.util.registersUsed
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 
 private const val EXTENSION_CLASS = "Lapp/morphe/extension/youtube/patches/theme/ThemePatch;"
 
@@ -78,7 +78,6 @@ private val youTubeColorNamesDark = {
     THEME_DEFAULT_COLOR_NAMES_DARK + if (is_21_06_or_greater)
         setOf(
 //            "yt_ref_color_constants_default_baseline_black_black0",
-            "yt_ref_color_constants_default_baseline_black_black1",
 //            "yt_ref_color_constants_default_baseline_black_black2",
             "yt_ref_color_constants_default_baseline_black_black3",
 //            "yt_ref_color_constants_default_baseline_black_black4",
@@ -88,7 +87,14 @@ private val youTubeColorNamesDark = {
             "yt_sys_color_baseline_dark_raised_background",
             "yt_sys_color_baseline_dark_base_background",
             "yt_sys_color_baseline_light_inverted_background",
-            "yt_sys_color_baseline_light_static_black"
+            "yt_sys_color_baseline_light_static_black",
+            // 21.43+ names of 'black3', 'black1' and the menu background.
+            "yt_ref_color_constants_default_grey5",
+            "yt_sys_color_baseline_dark_default_menu_background",
+            // The mainstage color theme of 21.43+, which the app applies over the default one.
+            "yt_ref_color_constants_colors_mainstage_grey5",
+            "yt_ref_color_constants_colors_mainstage_grey20",
+            "yt_ref_color_constants_colors_mainstage_grey25"
         ) else emptySet()
 }
 
@@ -106,9 +112,13 @@ private val youTubeColorNamesLight = {
 //            "yt_ref_color_constants_default_baseline_white_white2",
 //            "yt_ref_color_constants_default_baseline_white_white4",
             "yt_ref_color_constants_default_baseline_white_white3",
+            // 21.43+ name of 'white3'.
+            "yt_ref_color_constants_default_grey95",
             "yt_ref_color_constants_cooler_baseline_white_white3",
 
             "yt_sys_color_baseline_light_menu_background",
+            // 21.43+ name of the menu background.
+            "yt_sys_color_baseline_light_default_menu_background",
 //            "yt_sys_color_baseline_light_static_white",
 //            "yt_sys_color_baseline_light_static_white_background",
 //            "yt_sys_color_baseline_dark_inverted_background",
@@ -225,41 +235,26 @@ private const val LAUNCHER_THEME_NAME = "Theme.YouTube.Home"
 private const val LAUNCHER_THEME_PARENT = "@style/Base.V27.Theme.YouTube.Home"
 private const val LIGHT_STATUS_BAR_ITEM_NAME = "android:windowLightStatusBar"
 
+/** A values directory of the default configuration or of an Android version. */
+private val VALUES_DIRECTORY_REGEX = Regex("""values(-v\d+)?""")
+
+/**
+ * Parent of the launcher theme declared in a styles file, or null if the file does not declare it.
+ */
+private fun ResourceXml.findLauncherThemeParent(): String? = resourceOrNull(LAUNCHER_THEME_NAME)?.attribute("parent")
+
 /**
  * Sets a light status bar in the launcher theme, and declares the theme if missing.
  */
-private fun String.setLauncherThemeLightStatusBar(): String {
-    var launcherThemeStart = -1
-    forEachRawResourceElement(this) {
-        if (it.tag == "style" && it.name == LAUNCHER_THEME_NAME) launcherThemeStart = it.start
+private fun ResourceXml.setLauncherThemeLightStatusBar() {
+    val theme = resourceOrNull(LAUNCHER_THEME_NAME) ?: root.appendChild("style") {
+        setAttribute("name", LAUNCHER_THEME_NAME)
+        setAttribute("parent", LAUNCHER_THEME_PARENT)
     }
 
-    val lightStatusBarItem = "<item name=\"$LIGHT_STATUS_BAR_ITEM_NAME\">true</item>"
-
-    if (launcherThemeStart < 0) {
-        return appendResourceElements(
-            "    <style name=\"$LAUNCHER_THEME_NAME\" parent=\"$LAUNCHER_THEME_PARENT\">\n" +
-                    "        $lightStatusBarItem\n" +
-                    "    </style>\n"
-        )
-    }
-
-    return transformRawResourceElements { style ->
-        if (style.start != launcherThemeStart) return@transformRawResourceElements null
-
-        val inner = style.inner!!
-        var hasLightStatusBar = false
-        val updated = inner.transformRawResourceElements { item ->
-            if (item.tag == "item" && item.name == LIGHT_STATUS_BAR_ITEM_NAME) {
-                hasLightStatusBar = true
-                "true"
-            } else {
-                null
-            }
-        }
-
-        if (hasLightStatusBar) updated else "${inner.trimEnd()}\n        $lightStatusBarItem\n    "
-    }
+    val item = theme.children("item").firstOrNull { it.attribute("name") == LIGHT_STATUS_BAR_ITEM_NAME }
+        ?: theme.appendChild("item") { setAttribute("name", LIGHT_STATUS_BAR_ITEM_NAME) }
+    item.text = "true"
 }
 
 val themePatch = baseThemePatch(
@@ -269,39 +264,37 @@ val themePatch = baseThemePatch(
         is_21_30_or_greater
     },
     block = {
-        val themeResourcePatch = resourcePatch {
+        val themeResourcePatch = patch {
         
             execute {
                 fun addColorResource(
-                    resourceFile: String,
+                    resourcePath: String,
                     colorName: String,
                     colorValue: String,
                 ) {
-                    this[resourceFile].editText {
-                        it.appendResourceElements(
-                            "    <color name=\"$colorName\" category=\"color\">$colorValue</color>\n"
-                        )
+                    resourceXml(resourcePath, copy = false).use { colors ->
+                        colors.root.appendChild("color") {
+                            setAttribute("name", colorName)
+                            setAttribute("category", "color")
+                            text = colorValue
+                        }
                     }
                 }
 
                 // Replacing the resource repaints both of its uses, because the resource system
                 // cannot tell them apart, so these attributes keep the value the app gives them.
                 // The launcher theme also needs a light status bar.
-                this["res/values/styles.xml"].editText { text ->
-                    text.transformRawResourceElements { style ->
-                        if (style.tag != "style") return@transformRawResourceElements null
-
-                        style.inner!!.transformRawResourceElements { item ->
-                            if (item.tag == "item"
-                                && item.inner == "@color/$STATIC_WHITE_COLOR_NAME"
-                                && item.name in STATIC_WHITE_ATTRIBUTE_NAMES
+                resourceXml("res/values/styles.xml").use { styles ->
+                    styles.root.children("style").forEach { style ->
+                        style.children("item").forEach { item ->
+                            if (item.text == "@color/$STATIC_WHITE_COLOR_NAME"
+                                && item.attribute("name") in STATIC_WHITE_ATTRIBUTE_NAMES
                             ) {
-                                "@android:color/white"
-                            } else {
-                                null
+                                item.text = "@android:color/white"
                             }
                         }
-                    }.setLauncherThemeLightStatusBar()
+                    }
+                    styles.setLauncherThemeLightStatusBar()
                 }
 
                 // Add a dynamic background color to the colors.xml file. Without a patch option
@@ -320,17 +313,19 @@ val themePatch = baseThemePatch(
                 )
 
                 // Edit splash screen files and change the background color.
+                val launchScreenName = if (is_21_45_or_greater) {
+                    "quantum_launchscreen_youtube_2024_q4"
+                } else {
+                    "quantum_launchscreen_youtube"
+                }
                 arrayOf(
-                    "res/drawable/quantum_launchscreen_youtube.xml",
-                    "res/drawable-sw600dp/quantum_launchscreen_youtube.xml",
+                    "res/drawable/$launchScreenName.xml",
+                    "res/drawable-sw600dp/$launchScreenName.xml",
                 ).forEach editSplashScreen@{ resourceFileName ->
-                    document(resourceFileName).use { document ->
-                        document.getElementsByTagName("layer-list").item(0).forEachChildElement { node ->
+                    resourceXml(resourceFileName).use { drawable ->
+                        drawable.elements("layer-list").first().children.forEach { node ->
                             if (node.hasAttribute("android:drawable")) {
-                                node.setAttribute(
-                                    "android:drawable",
-                                    "@color/$splashBackgroundColorKey"
-                                )
+                                node.setAttribute("android:drawable", "@color/$splashBackgroundColorKey")
                                 return@editSplashScreen
                             }
                         }
@@ -345,33 +340,44 @@ val themePatch = baseThemePatch(
                 // Fix status and navigation bar showing white on some Android devices,
                 // such as SDK 28 Android 10 medium tablet.
                 val colorSplashBackgroundColor = "@color/$splashBackgroundColorKey"
-                val nightStyle = StringBuilder()
-                nightStyle.appendLine(
-                    "    <style name=\"$LAUNCHER_THEME_NAME\" parent=\"$LAUNCHER_THEME_PARENT\">"
-                )
-                arrayOf(
+                val nightItems = listOf(
                     "android:navigationBarColor" to colorSplashBackgroundColor,
                     "android:windowBackground" to colorSplashBackgroundColor,
                     "android:colorBackground" to colorSplashBackgroundColor,
                     "colorPrimaryDark" to colorSplashBackgroundColor,
                     "android:windowLightStatusBar" to "false",
-                ).forEach { (name, value) ->
-                    nightStyle.appendLine("        <item name=\"$name\">$value</item>")
-                }
-                nightStyle.appendLine("    </style>")
+                )
 
-                this["res/values-night/styles.xml"].editText {
-                    it.appendResourceElements(nightStyle.toString())
+                // The night theme of each Android version has the parent the app declares for it.
+                // Older app versions declare the parent for Android 8.1 and newer in values-v27
+                // only, so with that parent the night theme has no parent on Android 8.0, and
+                // the app crashes as the activity then has no AppCompat theme.
+                listDecodableFiles("res/values*/styles.xml").forEach { stylesPath ->
+                    val directory = stylesPath.removePrefix("res/").substringBefore('/')
+                    if (!directory.matches(VALUES_DIRECTORY_REGEX)) return@forEach
+
+                    val parent = resourceXml(stylesPath).use { it.findLauncherThemeParent() } ?: return@forEach
+
+                    val nightStylesPath = "res/${directory.replace("values", "values-night")}/styles.xml"
+                    resourceXml(nightStylesPath, copy = false).use { nightStyles ->
+                        nightStyles.root.appendChild("style") {
+                            setAttribute("name", LAUNCHER_THEME_NAME)
+                            setAttribute("parent", parent)
+                            nightItems.forEach { (name, value) ->
+                                appendChild("item") {
+                                    setAttribute("name", name)
+                                    text = value
+                                }
+                            }
+                        }
+                    }
                 }
 
                 arrayOf(
                     "res/values-v27/styles.xml",
                     "res/values-v31/styles.xml"
                 ).forEach { stylesPath ->
-                    val stylesFile = this[stylesPath]
-                    if (stylesFile.exists()) {
-                        stylesFile.editText { it.setLauncherThemeLightStatusBar() }
-                    }
+                    resourceXmlOrNull(stylesPath)?.use { it.setLauncherThemeLightStatusBar() }
                 }
             }
         }
@@ -379,7 +385,7 @@ val themePatch = baseThemePatch(
         dependsOn(
             sharedExtensionPatch,
             settingsPatch,
-                seekbarColorPatch,
+            seekbarColorPatch,
             versionCheckPatch,
             baseThemeResourcePatch(
                 includeLightColor = true,
@@ -449,10 +455,6 @@ val themePatch = baseThemePatch(
             noTitleUnsortedPreferenceCategory(preferences)
         )
 
-        PreferenceScreen.GENERAL.addPreferences(
-            ListPreference("morphe_splash_screen_animation_style")
-        )
-
         // Splash screen is drawn by the system with the theme of the launcher activity, so
         // the activity is handed over as soon as it exists. A patched theme color is
         // already a part of that theme, and no theme is generated to hand over.
@@ -468,10 +470,12 @@ val themePatch = baseThemePatch(
 
         // Color of the new content indicator of the pivot bar, which is red in the app and does
         // not go with a Material You color.
-        PivotBarNewContentDotFingerprint.let {
+        // The notification button of the top bar has an indicator of its own, which is created
+        // by a different class than the one of the pivot bar.
+        listOf(PivotBarNewContentDotFingerprint, TopBarNewContentCountFingerprint).forEach {
             it.method.apply {
-                // Both the dot of a tab and the count next to it, and the count is hooked
-                // first so the index of the dot is still valid.
+                // Both the dot and the count of the indicator. The last match is hooked first,
+                // so the index of the other one is still valid.
 
                 arrayOf(
                     it.instructionMatches.last().index,
@@ -488,25 +492,14 @@ val themePatch = baseThemePatch(
             }
         }
 
-        // The notification button of the top bar has an indicator of its own, which is created
-        // by a different class than the one of the pivot bar.
-        TopBarNewContentCountFingerprint.let {
+        // The light theme colors other than white are below that luminance, so the status bar showed
+        // white icons on them (https://github.com/MorpheApp/morphe-patches/issues/1023).
+        // The newer app code that colors the status bar like the top bar uses 0.5, as is done here.
+        StatusBarDarkIconsFingerprint.let {
             it.method.apply {
-                // Both the count of the button and the dot shown without one, and the dot is
-                // hooked first so the index of the count is still valid.
-
-                arrayOf(
-                    it.instructionMatches.last().index,
-                    it.instructionMatches[2].index
-                ).forEach { checkCastIndex ->
-                    val stubRegister = getInstruction<OneRegisterInstruction>(checkCastIndex).registerA
-
-                    addInstruction(
-                        checkCastIndex + 1,
-                        "invoke-static { v$stubRegister }, $THEME_COLOR_EXTENSION_CLASS" +
-                                "->onNewContentIndicator(Landroid/view/ViewStub;)V"
-                    )
-                }
+                val index = it.instructionMatches[2].index
+                val register = getInstruction<OneRegisterInstruction>(index).registerA
+                replaceInstruction(index, "const-wide v$register, 0x3fe0000000000000L")
             }
         }
 
@@ -598,44 +591,6 @@ val themePatch = baseThemePatch(
                 it.method.insertLiteralOverride(
                     it.instructionMatches.first().index,
                     false
-                )
-            }
-        }
-
-        // Lottie splash screen exists in earlier versions, but it may not be always on.
-        SplashScreenStyleFingerprint.let {
-            it.method.insertLiteralOverride(
-                it.instructionMatches.first().index,
-                "$EXTENSION_CLASS->getLoadingScreenType(I)I"
-            )
-        }
-
-        ShowSplashScreenFingerprint.let {
-            it.method.apply {
-                val lastIndex = it.instructionMatches.last().index
-                val lastInstruction = getInstruction<TwoRegisterInstruction>(lastIndex)
-                val lastRegisterA = lastInstruction.registerA
-                val lastRegisterB = lastInstruction.registerB
-
-                addInstructions(
-                    lastIndex,
-                    """
-                        invoke-static { v$lastRegisterA, v$lastRegisterB }, $EXTENSION_CLASS->showSplashScreen(II)I
-                        move-result v$lastRegisterA
-                    """
-                )
-
-                val firstIndex = it.instructionMatches[1].index
-                val firstRegister = getInstruction<OneRegisterInstruction>(
-                    firstIndex
-                ).registerA
-
-                addInstructions(
-                    firstIndex + 1,
-                    """
-                        invoke-static { v$firstRegister }, $EXTENSION_CLASS->showSplashScreen(Z)Z
-                        move-result v$firstRegister
-                    """
                 )
             }
         }

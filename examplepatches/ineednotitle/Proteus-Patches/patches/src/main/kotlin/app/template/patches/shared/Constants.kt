@@ -655,7 +655,8 @@ val GBOARD_COMPATIBILITY = Compatibility(
         apkFileType = ApkFileType.XAPK,
         appIconColor = 0x4285F4,
         targets = listOf(
-            AppTarget(version = "18.5.4.993608717-release-arm64-v8a", versionCode = 176049702)
+            AppTarget(version = "18.5.4.993608717-release-arm64-v8a", versionCode = 176049702),
+            AppTarget(version = "18.5.4.993608717-release-armeabi-v7a", versionCode = 176049701)
         )
     )
 
@@ -1286,6 +1287,14 @@ val PROTON_PASS_COMPATIBILITY = Compatibility(
         apkFileType = ApkFileType.XAPK,
         appIconColor = 0x6D4AFF,
         targets = listOf(AppTarget(version = "1.41.3", versionCode = 14103401))
+    )
+
+val PROTON_PASS_FDROID_COMPATIBILITY = Compatibility(
+        name = "Proton Pass (F-Droid)",
+        packageName = "proton.android.pass.fdroid",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x6D4AFF,
+        targets = listOf(AppTarget(version = "1.41.3", versionCode = 14103000))
     )
 
 val PROTONVPN_COMPATIBILITY = Compatibility(

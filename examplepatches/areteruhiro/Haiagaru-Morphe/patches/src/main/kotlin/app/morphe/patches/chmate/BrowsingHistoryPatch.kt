@@ -2,6 +2,7 @@ package app.morphe.patches.chmate
 
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
@@ -83,4 +84,20 @@ internal fun BytecodePatchContext.patchGroupedBrowsingHistory(version: String) {
         }
     }
     println("Board-grouped normal browsing history: $version (refresh target popup entry added)")
+    if(version=="0.8.10.191 dev"){
+        // Patrol completion is not a request to jump to the start of HOME.
+        // Keep native sorting, button state, refresh dispatch and explicit n_ actions.
+        val owner="Lo/r8lambdaTb_p0z6z2AqSZIga1YhmAVmiTPk;"
+        val completion=mutableClassDefBy(owner).methods.single{it.name=="e"&&it.parameterTypes==listOf("Lo/me;")&&it.returnType=="V"}
+        val code=completion.implementation!!.instructions.toList()
+        check(completion.implementation!!.registerCount==7&&code.size==38)
+        val top=code.withIndex().single{(_,instruction)->
+            val ref=(instruction as? com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction)?.reference as? com.android.tools.smali.dexlib2.iface.reference.MethodReference
+            ref?.definingClass==owner&&ref.name=="n_"&&ref.parameterTypes.isEmpty()&&ref.returnType=="V"
+        }
+        check(top.index==36&&top.value.opcode==com.android.tools.smali.dexlib2.Opcode.INVOKE_VIRTUAL)
+        val call=top.value as com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+        check(call.registerCount==1&&call.registerC==5)
+        completion.replaceInstruction(top.index,"nop")
+    }
 }

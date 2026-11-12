@@ -18,6 +18,13 @@ Second \"item\" text"</string>
 <resources>
   <string name="reddit_privacy_policy">Reddit 隱私權政策</string>
   <string name="morphe_google_signin_not_available_toast">Google 登入不可用。請使用電子郵件登入</string>
+  <string name="morphe_app_downgrade_dialog_title">不支援降級</string>
+  <string name="morphe_app_downgrade_dialog_message">"此 Reddit 安裝已從 &lt;b&gt;%1$s&lt;/b&gt; 降級到 &lt;b&gt;%2$s&lt;/b&gt;；
+&lt;br/&gt;&lt;br/&gt;
+新版本 App 的資料無法與舊版本共用，而且 App 可能無法正常運作。
+&lt;br/&gt;&lt;br/&gt;
+若要使用舊版本，你必須 &lt;b&gt;解除安裝&lt;/b&gt; Reddit，然後再安裝舊版本。"</string>
+  <string name="morphe_app_downgrade_dialog_open_app_info">開啟應用程式資訊</string>
   <string name="morphe_screen_ads_title">廣告</string>
   <string name="morphe_hide_post_ads_title">隱藏動態廣告</string>
   <string name="morphe_hide_comment_ads_title">隱藏留言廣告</string>
@@ -58,6 +65,8 @@ Second \"item\" text"</string>
   <string name="morphe_hide_trending_shelves_summary">從動態消息和搜尋建議中隱藏熱門專區</string>
   <string name="morphe_remove_notification_dialog_title">移除通知建議對話框</string>
   <string name="morphe_remove_notification_dialog_summary">前往 subreddit 時自動解除通知建議對話方塊</string>
+  <string name="morphe_high_quality_avatars_title">高品質頭像</string>
+  <string name="morphe_high_quality_avatars_summary">以全解析度顯示使用者頭像</string>
   <string name="morphe_show_flairs_in_home_feed_title">在主資訊流中顯示標籤</string>
   <string name="morphe_show_flairs_in_home_feed_summary">在主資訊流中顯示文章標籤徽章</string>
   <string name="morphe_show_flairs_in_home_feed_user_dialog_message">部份資訊流項目可能不會顯示標籤</string>
@@ -84,10 +93,6 @@ Second \"item\" text"</string>
   <string name="morphe_keep_feed_position_summary">關閉貼文、圖片或影片後，會將動態消息保持在相同位置，而不是將已開啟的貼文移到頂端</string>
   <string name="morphe_feed_media_max_height_title">動態消息媒體最大高度</string>
   <string name="morphe_feed_media_max_height_summary">動態消息中圖片、影片和圖庫的最大高度，以寬度的倍數表示。超過此高度的媒體會被裁切。1.33 是 Reddit 的預設值</string>
-  <string name="morphe_redgifs_audio_title">以音效播放 Redgifs</string>
-  <string name="morphe_redgifs_audio_summary">播放原始 Redgifs 影片，而非 Reddit 的副本（通常沒有音效）</string>
-  <string name="morphe_redgifs_hd_title">Redgifs HD 畫質</string>
-  <string name="morphe_redgifs_hd_summary">播放 HD Redgifs 影片。HD 影片體積較大，可能會暫停以載入</string>
   <string name="morphe_download_location_title">下載位置</string>
   <string name="morphe_download_location_all_title">所有帳戶</string>
   <string name="morphe_download_location_default_summary">Reddit 預設值：圖片在 Pictures/Reddit，影片在 Download</string>
@@ -105,7 +110,7 @@ Second \"item\" text"</string>
   <string name="morphe_download_location_no_picker">此裝置上沒有可用的資料夾選擇器</string>
   <string name="morphe_download_location_pattern_title">檔案名稱</string>
   <string name="morphe_download_location_pattern_hint">Reddit 的檔案名稱</string>
-  <string name="morphe_download_location_pattern_help">輕觸語彙基元以插入。/ 會建立子資料夾。不明值變更為「unknown」</string>
+  <string name="morphe_download_location_pattern_help">輕觸項目即可插入。/ 會建立子資料夾。未知值會變為「unknown」</string>
   <string name="morphe_download_location_example_images">圖片：%s</string>
   <string name="morphe_download_location_example_videos">影片：%s</string>
   <string name="morphe_download_location_save">儲存</string>

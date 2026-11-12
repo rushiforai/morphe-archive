@@ -22,17 +22,11 @@ public final class VideoDownloads {
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
     private VideoDownloads() { }
 
-    static void confirm(Activity activity, String url, Runnable approved) {
-        boolean gif = GifViewerActivity.supported(url);
-        if (!gif && !XMediaAttachments.isVideo(url)) {
+    static void request(Activity activity, String url, Runnable save) {
+        if (!GifViewerActivity.supported(url) && !XMediaAttachments.isVideo(url)) {
             message(activity, "この動画URLは保存できません"); return;
         }
-        new HaiagaruDialog.Builder(activity).setTitle(gif ? "GIFを保存" : "動画を保存")
-                .setMessage("Download/Haiagaru に" + (gif ? "GIF" : "MP4") + "を保存します。再生とは別にファイル全体を取得するため、"
-                        + "通信量と空き容量にご注意ください。画面を閉じても保存は続きます。"
-                        + "進捗・完了・失敗はAndroidのダウンロード通知で確認できます。")
-                .setNegativeButton("キャンセル", null)
-                .setPositiveButton("保存", (dialog, which) -> approved.run()).show();
+        save.run();
     }
 
     static boolean needsStoragePermission(Activity activity) {
@@ -40,7 +34,7 @@ public final class VideoDownloads {
                 && activity.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED;
     }
 
-    /** Called only after the user confirms saving (and grants legacy storage access, if needed). */
+    /** Called after an explicit Save action (and legacy storage access, if needed). */
     public static void enqueue(Context context, String url) {
         Context app = context.getApplicationContext();
         boolean gif = GifViewerActivity.supported(url);

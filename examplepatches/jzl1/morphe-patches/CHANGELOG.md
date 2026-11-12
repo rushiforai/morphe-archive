@@ -1,3 +1,9 @@
+## [1.6.0](https://github.com/jzl1/morphe-patches/compare/v1.5.0...v1.6.0) (2026-11-12)
+
+### ✨ New Features
+
+* **ltediscovery:** add 7.6.35 and 7.6.36 support ([080bb58](https://github.com/jzl1/morphe-patches/commit/080bb580b3e023f783e60d056b36c1b47da71c67))
+
 ## [1.5.0](https://github.com/jzl1/morphe-patches/compare/v1.4.0...v1.5.0) (2026-11-11)
 
 ### ✨ New Features

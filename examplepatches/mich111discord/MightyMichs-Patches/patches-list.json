@@ -1,10 +1,10 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.14.1",
+  "version": "1.15.0",
   "patches": [
     {
       "name": "App icon",
-      "description": "Choose a classic or premium-style launcher icon.",
+      "description": "Choose a classic / premium launcher icon, or pick a PNG from your phone.",
       "default": false,
       "category": null,
       "dependencies": [],
@@ -45,15 +45,25 @@
         {
           "key": "iconStyle",
           "title": "Style",
-          "description": "Icon shown on your home screen.",
+          "description": "Preset icon, or Custom file to use the PNG option below.",
           "required": false,
           "type": "kotlin.String",
           "default": "blue",
           "values": {
             "Blue": "blue",
             "Red": "red",
-            "Gold premium": "gold"
+            "Gold premium": "gold",
+            "Custom file": "custom"
           }
+        },
+        {
+          "key": "customIconFile",
+          "title": "Custom icon PNG",
+          "description": "Pick a square PNG from your phone (transparent background recommended). Used when Style is Custom file, or whenever a path is set. Ideal size ~432×432 px (xxxhdpi); the same file is copied to all densities.",
+          "required": false,
+          "type": "kotlin.String",
+          "default": null,
+          "values": null
         }
       ]
     },
@@ -81,6 +91,68 @@
             },
             {
               "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Bypass Play install gate",
+      "description": "Skips PairIP / Play installer checks that block sideloaded Screen Translate builds with the \"Get this app from Play\" dialog.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.spaceship.screen.textcopy",
+          "name": "Screen Translate",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FF5722",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "7.5.00112",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "v7.5.00112",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "7.3.10123",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "v7.3.10123",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "7.3.00961",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "v7.3.00961",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -185,6 +257,15 @@
           "values": null
         }
       ]
+    },
+    {
+      "name": "Disable PairIP license check",
+      "description": "Bypasses PairIP LicenseClient installer/license checks that block sideloaded or re-signed apps with a Play Store paywall dialog.",
+      "default": false,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": null,
+      "options": []
     },
     {
       "name": "Disable ads (basic)",
@@ -779,6 +860,57 @@
         }
       ],
       "options": []
+    },
+    {
+      "name": "Remove Meta AI",
+      "description": "Hides Meta AI on the chats home screen (FAB / pill), related hub entry points, and common feature gates. Does not delete existing Meta AI chats.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.whatsapp",
+          "name": "WhatsApp",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#25D366",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "2.26.43.75",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "2.26.43.74",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "2.26.43.72",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "aggressive",
+          "title": "Aggressive hide",
+          "description": "Also force extra ()Z methods in Meta-AI-anchored classes. May hide unrelated AI experiments; leave off unless the FAB still shows.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        }
+      ]
     },
     {
       "name": "Remove ads",

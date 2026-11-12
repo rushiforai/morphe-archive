@@ -35,9 +35,9 @@ Add this patch source to Morphe Manager: https://morphe.software/add-source?gith
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.10.0](https://github.com/RashKash103/sync-up/releases/tag/v1.10.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;34 patches total
+> **[v1.11.0](https://github.com/RashKash103/sync-up/releases/tag/v1.11.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;36 patches total
 <details open>
-<summary>📦 Sync for Reddit&nbsp;&nbsp;•&nbsp;&nbsp;33 patches</summary>
+<summary>📦 Sync for Reddit&nbsp;&nbsp;•&nbsp;&nbsp;35 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -63,6 +63,7 @@ Add this patch source to Morphe Manager: https://morphe.software/add-source?gith
 | [Gestures for the video player](#gestures-for-the-video-player) | Double tap a video or GIF to play or pause it rather than zoom, drag sideways to seek, and drag up or down after a double tap for volume. |  |
 | [Keep the links in the text of a post](#keep-the-links-in-the-text-of-a-post) | Keeps the formatting and links in the body shown under a post, which Sync otherwise discards. |  |
 | [Keep transparency in a picture](#keep-transparency-in-a-picture) | Draws the transparent parts of a picture opened in the viewer as the background behind it rather than as white. |  |
+| [Keep your place in a feed](#keep-your-place-in-a-feed) | Returns a feed to the post you were on rather than to the top, where posts have been cleared out of the cache while you were reading. |  |
 | [Load threads whose text contains a dollar sign](#load-threads-whose-text-contains-a-dollar-sign) | Stops a thread failing to load when the text in it contains a dollar sign. |  |
 | [Lock an account with a PIN](#lock-an-account-with-a-pin) | Adds a PIN to the Security settings that is asked for when an account is opened and, if you like, when the app is opened, beside or instead of Sync's fingerprint lock. |  |
 | [Make an address in a post tappable](#make-an-address-in-a-post-tappable) | Draws a bare address in a post's body as a link. |  |
@@ -77,7 +78,8 @@ Add this patch source to Morphe Manager: https://morphe.software/add-source?gith
 | [Show videos posted in comments](#show-videos-posted-in-comments) | Draws a video posted in a comment in the comment, and plays it when tapped. |  |
 | [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent<br>• Imgur client ID |
 | [Stop the toolbar menus closing the app](#stop-the-toolbar-menus-closing-the-app) | Keeps Sync open when the sort or overflow button in the toolbar is tapped, which closes it on some devices. |  |
-| [Translate posts and comments](#translate-posts-and-comments) | Translates a post or comment where it sits, on this device or through DeepL or Google Cloud. |  |
+| [Translate posts and comments](#translate-posts-and-comments) | Translates a post or comment where it sits, on this device, through DeepL, or Google Cloud. |  |
+| [Unblock Imgur](#unblock-imgur) | Loads Imgur pictures, videos, and albums another way where Imgur refuses the region, through DuckDuckGo's image proxy, a Rimgo instance, or a proxy of your own. Off until it is turned on under Settings > Redirects. |  |
 | [Unlock Sync Ultra](#unlock-sync-ultra) | Turns on the Sync Ultra features that work on the device alone, and removes the offers to buy it. |  |
 | [Use /user/ endpoint](#use-user-endpoint) | Replaces the deprecated /u profile endpoint with /user. |  |
 
@@ -108,7 +110,7 @@ service being asked.
 #### Getting the app working again
 
 - <a name="spoof-client"></a>**Spoof client** — Replaces Sync's revoked OAuth credentials with your own client ID,
-  redirect URI and user agent. Nothing else works without this. See
+  redirect URI, and user agent. Nothing else works without this. See
   [Getting started](#-getting-started). Its `Imgur client ID` option is separate and optional;
   see [Uploading pictures to Imgur](#uploading-pictures-to-imgur). All four are optional and can
   also be set in the app, under Settings > Everything else > Sync Up client, which means a copy can
@@ -141,7 +143,10 @@ service being asked.
   "view more" only ever raised an error. The comments behind it are read from the thread, where
   Reddit still serves any comment and everything hanging from it, and the reply is flattened the
   way the old endpoint answered. The comments already on screen are left out, so nothing is
-  drawn twice.
+  drawn twice. What is asked for is asked for the way Sync asks for it, author pictures
+  included — Reddit only puts those in the answer when they are asked for, and Sync's parser
+  takes a comment's picture from there and from nowhere else, so comments behind a "view more"
+  were drawn with no picture beside the name until this asked as well.
 - <a name="modify-login-webview"></a>**Modify login WebView** — Routes the login page through the extension so that signing in
   completes.
 - <a name="stop-the-toolbar-menus-closing-the-app"></a>**Stop the toolbar menus closing the app** — On some devices the app closed the moment the
@@ -202,8 +207,107 @@ service being asked.
   any other media and plays in Sync's own player. Whether it is drawn is governed by Sync's
   own *Inline image previews* setting.
 
-#### Text that is missing or inert
+#### Redirects
 
+Imgur refuses whole regions — the United Kingdom among them — and answers a picture with a
+notice saying so. Nothing in Sync can be told to do anything about it, and it affects every
+picture in every feed, so there is nothing to work around by hand either. This reaches the same
+content another way, for Imgur only. Everything else in the app goes out exactly as it did.
+
+It is all under *Settings > Redirects*, and the switch for Imgur is **off** until it is asked
+for: this is of no use where Imgur is answering, and sending pictures through a third party is a
+decision rather than a default.
+
+- <a name="unblock-imgur"></a>**Unblock Imgur** — Three routes, tried in order, each able to
+  answer a different amount. Whichever answers first is used, and where none of them does the
+  request is made to Imgur anyway, so a failure here leaves the app no worse off than without
+  it — and leaves *Automatically undelete Imgur media* still able to find a picture that is
+  genuinely gone rather than merely refused. *What answered last* on the Imgur screen says which
+  route is actually carrying the pictures, which three routes and a fallback otherwise make
+  unknowable.
+
+  - **The DuckDuckGo proxy** is on by default and needs nothing set up: it fetches one picture
+    through the proxy DuckDuckGo already runs for its own image search, so there is no third
+    party to choose and nothing to trust beyond DuckDuckGo. Pictures and animated GIFs come
+    back exactly as Imgur serves them. It serves a picture and nothing else, though: asked for
+    a video or for an album page it answers 400 with a small SVG apology, which an image
+    decoder would draw as a broken picture — so it is only ever offered a picture, and
+    **videos and albums need Rimgo or a proxy**. That is a limit of the proxy rather than of
+    this patch, and the *DuckDuckGo proxy* screen says so.
+  - **Rimgo** is a front end for Imgur that other people run, and serves pictures, videos, and
+    albums alike. It is opt-in, and so is each instance: the published list is the one
+    LibRedirect's own extension uses, fetched when the screen is first opened, and an instance
+    is asked nothing until it has been ticked. One of your own can be typed in and sits
+    alongside them. *Instances* ticks them and shows what each was last found to be, in green
+    or red — being on the list says very little about working, and of the twenty-three published
+    instances only nine actually served a picture when this was written. The instance that last
+    worked is used again without being asked twice; one that fails is rested for five minutes so
+    an outage costs one wait rather than one per picture, and a request that one instance
+    refuses is tried against the next. With Rimgo on, **albums, galleries, videos, and GIFs**
+    open in a refusing region too, which no other route manages: an album's contents are read
+    from the instance's own page for it, and a video is asked for as the video rather than as
+    the page Imgur wraps it in. Serving pictures and serving albums are two different
+    abilities — some instances answer every album with a 403 while serving every picture
+    perfectly — so an album is asked of each chosen instance in turn, and an instance that
+    cannot do albums is left out of the asking for five minutes rather than being dropped.
+    An instance put behind mTLS is supported as well: long-press one to attach a client
+    certificate, either chosen from a file or pasted in. **A certificate belongs to the
+    one instance it is attached to** and is never offered to any other — a server decides when
+    to ask for a client certificate and the certificate names whoever holds it, so one kept for
+    Rimgo in general would be handed over by whichever instance asked, including one asking in
+    order to find out who is reading.
+  - **A proxy** of your own carries the request itself, so it can answer anything Imgur serves,
+    its API included — and with one set, the requests made to find out what an album holds go
+    through it too, not only the pictures themselves. HTTP or SOCKS, with a username and
+    password if it wants them, and a client certificate where it asks for one. *Try the proxy*
+    asks Imgur for a picture through it and says what happened.
+
+  A certificate — for the proxy or for an instance — is either **chosen from a file** or pasted
+  in, as a PKCS#12 in base64 or as PEM blocks. Choosing one uses the system's own document
+  picker, which needs no storage permission: it hands back the one file that was chosen and
+  nothing else, which is as much as Sync can read, since it asks for no storage permission at
+  all.
+
+  **Sharing and copying can hand out the route's address instead of Imgur's**, so that what
+  you send works for whoever you send it to. Each route that has an address of its own has a
+  switch for it, both off until asked for, and each only speaks for what it can really serve:
+  with the DuckDuckGo proxy alone a picture goes out as the proxy's address while an album
+  goes out as Imgur's, since handing somebody a proxy address for an album would hand them a
+  broken picture. The proxy route has no switch here and cannot have one — it carries the
+  request rather than changing the address. Only a piece of text that is *nothing but* an
+  Imgur address is ever changed: a comment, a title, or a sentence that mentions a link is
+  passed on exactly as it was.
+
+  **Nothing that identifies you is written into a backup.** The certificates, the proxy's
+  address, and what it is logged into with live in a file of their own that Sync's Backup has
+  never heard of. That is deliberate — a backup is handed to whoever is helping and copied
+  between devices — and it means a restored copy comes back set up to use a certificate it does
+  not have. So a mark that there *was* one travels, and nothing else: the front page of the
+  settings then says which instance is missing its certificate, and tapping that takes you
+  straight to the dialog that attaches it. An alert can be dismissed just once or for good, and
+  anything dismissed for good is listed under *Dismissed alerts* on the same screen and can be
+  brought back.
+
+  **Where an album still cannot be opened.** Imgur's album page, the embed of it, and Imgur's
+  own API are refused together in a refused region, and an album's contents cannot be worked
+  out from its id — so with the DuckDuckGo proxy alone there is nothing to read them from, and
+  Sync falls back to opening the link in a browser. In order, this tries Imgur's page, the
+  embed, Imgur's API (which is worth one request, since not every region's block covers it),
+  each chosen Rimgo instance, and finally the Wayback Machine, which only holds the albums
+  somebody happened to capture.
+
+  The proxy's address, what it is logged into with, and the certificate are kept in a file of
+  their own rather than in Sync's settings, so that Sync's Backup cannot write them out — the
+  same as the client credentials and the account PIN. The instance list and the switches are
+  ordinary settings and travel in a backup as everything else does.
+
+  Only Imgur is affected, and only the hosts that are actually refused: Stack Overflow's images
+  live on a name ending in Imgur's and are left alone.
+
+#### Text that is missing or inert Pictures already fetched are thrown away when a route is
+  turned on or off, since the app looks in its own store before it asks for anything and
+  would otherwise go on showing the refusal it kept the first time — which is why a feed
+  could show blocked thumbnails while opening the same post worked.
 - <a name="automatically-undelete-reddit-content"></a>**Automatically undelete Reddit content** — Restores the text of removed posts and
   comments from Project Arctic Shift, and the name of an author whose account has since
   been deleted. A note under the author says why the content was taken down. Only text is
@@ -211,10 +315,10 @@ service being asked.
 - <a name="show-a-hidden-profile-from-the-archive"></a>**Show a hidden profile from the archive** — An account can hide its own posts and
   comments from its profile, which Sync shows as a user with nothing to their name. Project
   Arctic Shift still serves what it recorded while those posts were public. Only a profile
-  that comes back empty is filled in, and only its posts, comments and overview tabs.
+  that comes back empty is filled in, and only its posts, comments, and overview tabs.
 - <a name="keep-the-links-in-the-text-of-a-post"></a>**Keep the links in the text of a post** — Sync renders the body shown under a post in
   full and then discards the result, drawing bare characters. Keeping it means quotes,
-  emphasis and links appear. Images are still discarded, so a feed loads no more than it
+  emphasis, and links appear. Images are still discarded, so a feed loads no more than it
   did. A link in a post body in a feed becomes tappable, so tapping directly on one opens
   the link rather than the post.
 - <a name="make-an-address-in-a-post-tappable"></a>**Make an address in a post tappable** — Sync turns a bare address into a link only where
@@ -235,7 +339,7 @@ service being asked.
   runs for one kind of post and reads a body the markers have already been taken out of, so a
   tap said "Missing post information" instead. A spoiler is hidden by being painted in the
   colour it sits on, so the one tapped is remembered and that painting is skipped. Nothing is
-  fetched, stored or rewritten, and a spoiler closes again if the text is built afresh.
+  fetched, stored, or rewritten, and a spoiler closes again if the text is built afresh.
 
 #### The feed and the viewer
 
@@ -247,6 +351,21 @@ service being asked.
   credentials off a request of Sync's own. A subreddit with no banner gets no strip, and neither
   does a front page or a multireddit, which have none of their own. A banner that cannot be
   fetched or drawn leaves the feed exactly as it was. On, under *Posts > View tweaks*.
+- <a name="keep-your-place-in-a-feed"></a>**Keep your place in a feed** — Sync writes down where a feed was as a row number and
+  nothing else, which stops meaning the same post the moment the list it counts into changes.
+  It does change: the app throws a cached post away two days after it was written, from inside
+  the very insert that loads the next page, so somebody who has been working down one feed for
+  a couple of days has rows quietly removed from above their place. The saved number then
+  counts to a different post, or past the end of the list — where the layout manager finds the
+  row is no longer there, gives up on it, and lays out from the top. The *Restore position*
+  offer does not come with it, because that offer is only ever built by the deliberate jump to
+  the top and nothing deliberate has happened. This remembers the posts themselves instead:
+  the handful at the top of the screen are noted by the identifier the feed's own list already
+  answers with, and when a new list arrives the same post is found in it and the feed moved
+  back to it, at the pixel offset it had. Where that post has itself been swept away nothing is
+  done and the app behaves exactly as it did before. The note travels in the same saved state
+  the app already keeps, so it survives the screen being rebuilt behind a post — which is when
+  this goes wrong — and being rebuilt from scratch after the app is dropped from memory. On.
 - <a name="more-actions-on-the-floating-button"></a>**More actions on the floating button** — Sync's floating button carries one of three things,
   and everything else it can do is behind the *More actions* sheet. This puts up to three more of
   Sync's own actions beside it, chosen from the two dozen that sheet already offers, with the
@@ -256,7 +375,12 @@ service being asked.
   fading away with the feed, and where any of it fails the button is given back what it draws
   with rather than the feed coming down. *Orientation* stands the extras vertically or
   horizontally and *Separate the extra actions* draws a line between them; all of it sits under
-  *General > Floating Action Button*.
+  *General > Floating Action Button*. Sync moves its own button down to where it sits
+  with the bottom navigation away while that bar is still on the screen — for a frame or two on a
+  refresh or a jump to the top, and for as long as a finger keeps moving on a pull to refresh —
+  so the actions are never drawn across a bar that is up, and follow the button down only once
+  the bar has actually gone. Where *Autohide FAB* is turned off and Sync then never shows its
+  button at all, it is shown.
 - <a name="keep-transparency-in-a-picture"></a>**Keep transparency in a picture** — The zooming view Sync opens a picture in decodes in a
   format with no alpha channel unless something says otherwise, so everything transparent
   arrived opaque, showing whatever the file was saved over — white, for most. The format to
@@ -356,7 +480,7 @@ service being asked.
   - Those questions were three: whether the copy is paid for, whether a flag was turned on from
     afar, and — for several of them — whether the account reading it is one of the developer's
     own. The last two mean some of these were finished and then never given to anyone.
-  - **What is left alone**: paints, tags and settings kept on Sync's own servers, its cloud
+  - **What is left alone**: paints, tags, and settings kept on Sync's own servers, its cloud
     backup, and its own restoring of removed comments. Those need services that no longer
     answer, and a button that can only fail is worse than no button. Sync's own translating is
     replaced rather than unlocked — see *Translation* above.
@@ -577,6 +701,6 @@ Sync Up adds no further conditions of its own under Section 7.
 
 - [wchill](https://github.com/wchill) and the Patcheddit contributors, whose Sync for Reddit
   patches this project is built from.
-- The [Morphe](https://github.com/MorpheApp) project, for the patcher, the patch library and
+- The [Morphe](https://github.com/MorpheApp) project, for the patcher, the patch library, and
   the tooling.
 - [ReVanced](https://github.com/ReVanced), whose prior work both of the above build on.

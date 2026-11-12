@@ -15,13 +15,13 @@ function setupSharedNg(){
   const props=PropertiesService.getScriptProperties();if(!props.getProperty('REPORTER_PEPPER'))props.setProperty('REPORTER_PEPPER',Utilities.getUuid()+Utilities.getUuid());
   if(!props.getProperty('REVISION'))props.setProperty('REVISION','0');
 }
-function onOpen(){SpreadsheetApp.getUi().createMenu('共有NG').addItem('共有NGシートを準備','setupSharedNg').addItem('選択した条件を配信停止','revokeSelectedSharedNg').addItem('個人NGを自動審査','reviewPersonalNg').addItem('選択した個人NGの審査結果を変更','reviewSelectedPersonalNg').addItem('種類別シートの条件を配信停止','revokeSelectedReviewedSharedNg').addItem('種類別シートの配信停止を解除','resumeSelectedReviewedSharedNg').addItem('毎時の自動審査を設定','installSharedNgReviewTrigger').addItem('毎時のGitHub配信を設定','installSharedNgPublishTrigger').addItem('承認済みNGをGitHubへ配信','publishReviewedSharedNg').addToUi();}
+function onOpen(){SpreadsheetApp.getUi().createMenu('共有NG').addItem('共有NGシートを準備','setupSharedNg').addItem('選択した条件を配信停止','revokeSelectedSharedNg').addItem('個人NGを自動審査','reviewPersonalNg').addItem('選択した個人NGの審査結果を変更','reviewSelectedPersonalNg').addItem('種類別シートの条件を配信停止','revokeSelectedReviewedSharedNg').addItem('種類別シートの配信停止を解除','resumeSelectedReviewedSharedNg').addItem('毎時の自動審査を設定','installSharedNgReviewTrigger').addItem('毎時のGitHub配信を設定','installSharedNgPublishTrigger').addItem('承認済みNGをGitHubへ配信','publishReviewedSharedNg').addItem('選択した除外済みレポーターを復元','restoreSelectedExcludedReporter').addToUi();}
 function revokeSelectedSharedNg(){const book=SpreadsheetApp.getActiveSpreadsheet();if(!book||book.getId()!==NG_CONFIG.spreadsheetId)throw Error('共有NGのスプレッドシートから実行してください');const sheet=book.getActiveSheet(),range=sheet.getActiveRange();if(sheet.getName()!=='Rules'||!range||range.getRow()<2)throw Error('Rulesシートで停止する条件の行を選択してください');revokeSharedNg(String(sheet.getRange(range.getRow(),1,1,1).getValues()[0][0]));}
 function ngJson_(value){return ContentService.createTextOutput(JSON.stringify(value)).setMimeType(ContentService.MimeType.JSON);}
 function ngHash_(text){return Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,text,Utilities.Charset.UTF_8).map(b=>('0'+((b+256)%256).toString(16)).slice(-2)).join('');}
 function ngText_(value){return String(value).normalize('NFKC').replace(/\s+/g,' ').trim();}
 /** Private server configuration; acknowledge ignored reports without persisting them. */
-function ngIgnoredReporters_(){return String(PropertiesService.getScriptProperties().getProperty('IGNORED_REPORTERS')||'').split(/[\s,]+/).filter(value=>/^[a-f0-9]{64}$/.test(value));}
+function ngIgnoredReporters_(){const props=PropertiesService.getScriptProperties(),manual=String(props.getProperty('IGNORED_REPORTERS')||'').split(/[\s,]+/),automatic=props.getKeys().filter(key=>/^AUTO_IGNORED_REPORTER_[a-f0-9]{64}$/.test(key)).map(key=>key.slice('AUTO_IGNORED_REPORTER_'.length));return Array.from(new Set(manual.concat(automatic).filter(value=>/^[a-f0-9]{64}$/.test(value))));}
 function ngReporterIgnored_(reporter){return ngIgnoredReporters_().includes(reporter);}
 function ngReviewedCacheKey_(){const ignored=Array.from(new Set(ngIgnoredReporters_())).sort();return 'reviewed-feed-v10'+(ignored.length?':'+ngHash_(JSON.stringify(ignored)):'');}
 /** Public pseudonym is separate from the private administrative reporter key. */
@@ -108,8 +108,15 @@ function doGet(e){try{
   }finally{lock.releaseLock();}
   const json=JSON.stringify(response);if(json.length<20000)cache.put('feed2:'+response.revision+':'+since+':'+offset,json,900);return ContentService.createTextOutput(json).setMimeType(ContentService.MimeType.JSON);
 }catch(err){return ngJson_({ok:false,error:String(err.message||err)});}}
+/** Reject old senders before locking or touching sheets; GET reception remains available.
+ * A device key is a compatibility requirement, not proof of an unmodified client.
+ * Explicit false is an administrator-only rollback for older deployments/tests. */
+function ngSubmissionUpgradeRequired_(body){
+  if(PropertiesService.getScriptProperties().getProperty('REQUIRE_DEVICE_KEY')==='false')return false;
+  return !body||body.version!==2||typeof body.deviceKey!=='string'||!/^[a-f0-9]{64}$/.test(body.deviceKey);
+}
 function doPost(e){
-  try{const raw=e&&e.postData?e.postData.contents:'';if(raw.length<=65536&&Utilities.newBlob(raw).getBytes().length<=65536){const personal=JSON.parse(raw);if(personal.version===2)return personal.action==='identity'?ngBindReporterDevice_(personal):ngReceivePersonal_(personal);}}catch(error){return ngJson_({ok:false,error:String(error.message||error)});}
+  try{const raw=e&&e.postData?e.postData.contents:'';if(raw.length<=65536&&Utilities.newBlob(raw).getBytes().length<=65536){const personal=JSON.parse(raw);if(ngSubmissionUpgradeRequired_(personal))return ngJson_({ok:false,code:'client_update_required',error:'共有NGを送信するにはHaiagaruを更新してください'});if(personal.version===2)return personal.action==='identity'?ngBindReporterDevice_(personal):personal.action==='exclusions'?ngReceiveReporterExclusions_(personal):ngReceivePersonal_(personal);}}catch(error){return ngJson_({ok:false,error:String(error.message||error)});}
   const lock=LockService.getScriptLock();try{
   const raw=e&&e.postData?e.postData.contents:'';if(raw.length>65536||Utilities.newBlob(raw).getBytes().length>65536)throw Error('Request too large');const body=JSON.parse(raw);
   if(body.version!==1||typeof body.device!=='string'||!/^[a-f0-9]{64}$/.test(body.device)||!Array.isArray(body.reports)||body.reports.length===0||body.reports.length>NG_CONFIG.maxBatch)throw Error('Invalid batch');

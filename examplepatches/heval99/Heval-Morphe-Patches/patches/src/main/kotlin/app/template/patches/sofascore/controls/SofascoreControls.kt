@@ -14,15 +14,25 @@ internal const val SOFASCORE_CONTROLS = "Lapp/template/extension/sofascore/Sofas
 /** The "Animation speed" hooks (getFloat redirect, ValueAnimator scale, transitions) in extensions/sofascore. */
 internal const val SOFASCORE_ANIMATION_SPEED = "Lapp/template/extension/sofascore/AnimationSpeed;"
 
-/** Categories of the Sofascore features, in the order a full patch set usually registers them. */
+/**
+ * Sections of the Sofascore features on the Patch settings screen (titles only: the saved choices are
+ * keyed by feature id, so regrouping never resets them). Listed in registration order, except that
+ * the spoiler section always comes first. Regrouped 2026-11-11 (owner: plain sections a football fan
+ * expects): betting joins the promo sections, and the theme, animation and widget rows share
+ * "Look and feel". Row names and descriptions are plain, one short sentence each; the Manager patch
+ * names stay as they were.
+ */
 internal object SofascoreControlsCategory {
-    const val POPUPS = "Pop-ups & promotions"
-    const val MATCH_PAGE = "Match page"
+    const val SPOILER_FREE = "Scores and spoilers"
+    const val LEAGUES = "Leagues and countries"
     const val SPORTS = "Sports"
-    const val LEAGUES = "Leagues"
-    const val BETTING = "Betting"
-    const val PROMO_SECTIONS = "Promo sections"
-    const val PERFORMANCE = "Speed & battery"
+    const val MATCH_PAGE = "Match page"
+    const val MAIN_TABS = "Bottom tabs"
+    const val POPUPS = "Pop-ups and banners"
+    const val BETTING = "Betting and promotions"
+    const val PROMO_SECTIONS = BETTING
+    const val DISPLAY = "Look and feel"
+    const val PERFORMANCE = DISPLAY
 }
 
 /**

@@ -18,6 +18,13 @@ Second \"item\" text"</string>
 <resources>
   <string name="reddit_privacy_policy">Polityka prywatności Reddita</string>
   <string name="morphe_google_signin_not_available_toast">Logowanie przez Google niedostępne. Użyj e-maila, aby się zalogować</string>
+  <string name="morphe_app_downgrade_dialog_title">Instalacja starszej wersji nie jest obsługiwana</string>
+  <string name="morphe_app_downgrade_dialog_message">"Ta instalacja aplikacji Reddit została cofnięta z wersji &lt;b&gt;%1$s&lt;/b&gt; do &lt;b&gt;%2$s&lt;/b&gt;
+&lt;br/&gt;&lt;br/&gt;
+Dane z nowszej wersji nie są zgodne ze starszymi wersjami, przez co aplikacja może nie działać prawidłowo.
+&lt;br/&gt;&lt;br/&gt;
+Aby korzystać ze starszej wersji, musisz &lt;b&gt;odinstalować&lt;/b&gt; aplikację Reddit, a następnie zainstalować starszą wersję."</string>
+  <string name="morphe_app_downgrade_dialog_open_app_info">Otwórz informacje o aplikacji</string>
   <string name="morphe_screen_ads_title">Reklamy</string>
   <string name="morphe_hide_post_ads_title">Ukryj reklamy na stronie głównej</string>
   <string name="morphe_hide_comment_ads_title">Ukryj reklamy w komentarzach</string>
@@ -58,6 +65,8 @@ Second \"item\" text"</string>
   <string name="morphe_hide_trending_shelves_summary">Ukrywa sekcje \"Zyskujące popularność\" ze strony głównej i sugestii wyszukiwania</string>
   <string name="morphe_remove_notification_dialog_title">Usuń okno z sugestią powiadomień</string>
   <string name="morphe_remove_notification_dialog_summary">Automatycznie zamyka okno sugerujące włączenie powiadomień podczas odwiedzania subreddita</string>
+  <string name="morphe_high_quality_avatars_title">Awatary w wysokiej jakości</string>
+  <string name="morphe_high_quality_avatars_summary">Wyświetla awatary użytkowników w pełnej rozdzielczości</string>
   <string name="morphe_show_flairs_in_home_feed_title">Pokaż wyróżniki na stronie głównej</string>
   <string name="morphe_show_flairs_in_home_feed_summary">Wyświetla odznaki wyróżników postów na stronie głównej</string>
   <string name="morphe_show_flairs_in_home_feed_user_dialog_message">Niektóre elementy na stronie głównej mogą nie wyświetlać wyróżnika</string>
@@ -84,10 +93,6 @@ Second \"item\" text"</string>
   <string name="morphe_keep_feed_position_summary">Zatrzymuje kanał w tym samym miejscu po zamknięciu posta, obrazu lub filmu, zamiast przewijać otwarty post na samą górę</string>
   <string name="morphe_feed_media_max_height_title">Maksymalna wysokość multimediów w kanale</string>
   <string name="morphe_feed_media_max_height_summary">Maksymalna wysokość obrazów, filmów i galerii w kanale, wyrażona jako wielokrotność ich szerokości. Wyższe multimedia są przycinane. 1.33 to domyślna wartość Reddita</string>
-  <string name="morphe_redgifs_audio_title">Odtwarzaj Redgifs z dźwiękiem</string>
-  <string name="morphe_redgifs_audio_summary">Odtwarza oryginalny film z Redgifs zamiast kopii z Reddita, która często nie ma dźwięku</string>
-  <string name="morphe_redgifs_hd_title">Jakość HD w Redgifs</string>
-  <string name="morphe_redgifs_hd_summary">Odtwarza filmy z Redgifs w jakości HD. Filmy w jakości HD zajmują więcej miejsca i mogą zatrzymywać się na czas buforowania</string>
   <string name="morphe_download_location_title">Lokalizacja pobierania</string>
   <string name="morphe_download_location_all_title">Wszystkie konta</string>
   <string name="morphe_download_location_default_summary">Domyślna dla Reddita: obrazy w Pictures/Reddit, filmy w Download</string>

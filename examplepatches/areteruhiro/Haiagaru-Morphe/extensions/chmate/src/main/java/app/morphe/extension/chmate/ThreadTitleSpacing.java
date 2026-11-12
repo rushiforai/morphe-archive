@@ -12,6 +12,7 @@ public final class ThreadTitleSpacing {
 
     public static void apply(TextView title) {
         if (title == null) return;
+        ThreadListThumbnail.title(title);
         int percent = Haiagaru.threadTitleSpacingPercent();
         CharSequence text = title.getText();
         if (text == null || text.length() == 0) return;

@@ -24,7 +24,6 @@ val adidasEnableDarkModePatch = bytecodePatch(
         "(RtBaseTheme.Dark) by setting AppCompatDelegate night mode at app startup.",
     default = true,
 ) {
-    category("Theme")
     compatibleWith(ADIDAS_RUNNING_COMPATIBILITY)
 
     execute {

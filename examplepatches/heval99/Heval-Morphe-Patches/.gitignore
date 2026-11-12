@@ -182,3 +182,7 @@ audit-*-results.xml
 
 # Release checksum file, generated during the semantic-release publish step
 SHA256SUMS.txt
+
+# Local-only notes and agent skill copies (never tracked): any *.local.md, and the .agents/ skill mirror
+*.local.md
+.agents/

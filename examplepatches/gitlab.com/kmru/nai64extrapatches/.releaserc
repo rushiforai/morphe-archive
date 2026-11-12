@@ -1,0 +1,81 @@
+{
+  "branches": [
+    "main",
+    { "name": "dev", "prerelease": true }
+  ],
+  "tagFormat": "${version}",
+  "plugins": [
+    [
+      "@semantic-release/commit-analyzer",
+      {
+        "releaseRules": [
+          { "type": "fix", "release": "patch" },
+          { "type": "feat", "release": "minor" },
+          { "type": "bump", "release": "patch" },
+          { "type": "perf", "release": "patch" },
+          { "type": "build", "scope": "Needs bump", "release": "patch" }
+        ]
+      }
+    ],
+    [
+      "@semantic-release/release-notes-generator",
+      {
+        "preset": "conventionalcommits",
+        "presetConfig": {
+          "types": [
+            { "type": "fix", "section": "Bug Fixes", "hidden": false },
+            { "type": "feat", "section": "New Features", "hidden": false },
+            { "type": "bump", "section": "Updated App Support", "hidden": false },
+            { "type": "perf", "section": "Improvements", "hidden": false },
+            { "type": "build", "hidden": true }
+          ]
+        }
+      }
+    ],
+    [
+      "@MorpheApp/changelog",
+      {
+        "releaseJson": {
+          "enabled": false
+        }
+      }
+    ],
+    "gradle-semantic-release-plugin",
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "rm -f patches/build/libs/patches-*.mpp && ./gradlew generatePatchesList && rm -f patches/build/libs/patches-*-sources.mpp patches/build/libs/patches-*-javadoc.mpp && jq '.version=\"${nextRelease.version}\"' patches-list.json > patches-list.json.tmp && mv patches-list.json.tmp patches-list.json && jq -n --rawfile description CHANGELOG.md --arg version \"${nextRelease.version}\" --arg created \"$(date -u +%Y-%m-%dT%H:%M:%S)\" '{created_at: $created, description: $description, download_url: (\"https://gitlab.com/api/v4/projects/87212174/packages/generic/nai64extrapatches/\" + $version + \"/patches-\" + $version + \".mpp\"), signature_download_url: \"\", version: $version}' > patches-bundle.json.tmp && mv patches-bundle.json.tmp patches-bundle.json"
+      }
+    ],
+    [
+      "@semantic-release/git",
+      {
+        "assets": [
+          "CHANGELOG.md",
+          "gradle.properties",
+          "patches-bundle.json",
+          "patches-list.json"
+        ],
+        "message": "chore: Release v${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+      }
+    ],
+    [
+      "@semantic-release/gitlab",
+      {
+        "useJobToken": false,
+        "successCommentCondition": false,
+        "failCommentCondition": false,
+        "assets": [
+          {
+            "path": "patches/build/libs/patches-*.mpp",
+            "label": "patches-${nextRelease.version}.mpp",
+            "type": "package",
+            "target": "generic_package",
+            "packageName": "nai64extrapatches",
+            "filepath": "patches-${nextRelease.version}.mpp"
+          }
+        ]
+      }
+    ]
+  ]
+}

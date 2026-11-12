@@ -51,4 +51,37 @@ public class Preference {
     public String r() {
         throw new UnsupportedOperationException("Stub");
     }
+
+    /** getTitle. */
+    public CharSequence E() {
+        throw new UnsupportedOperationException("Stub");
+    }
+
+    /** setTitle: the words at the top of the row. */
+    public void G0(CharSequence title) {
+        throw new UnsupportedOperationException("Stub");
+    }
+
+    /**
+     * setVisible: whether the row is on the screen at all, as against drawn and unusable.
+     * Final in the library, and tells the screen to lay itself out again.
+     */
+    public final void H0(boolean visible) {
+        throw new UnsupportedOperationException("Stub");
+    }
+
+    /** isVisible. */
+    public final boolean L() {
+        throw new UnsupportedOperationException("Stub");
+    }
+
+    /** setIcon, by resource id. */
+    public void s0(int icon) {
+        throw new UnsupportedOperationException("Stub");
+    }
+
+    /** setSelectable: whether the row answers a tap at all. */
+    public void C0(boolean selectable) {
+        throw new UnsupportedOperationException("Stub");
+    }
 }

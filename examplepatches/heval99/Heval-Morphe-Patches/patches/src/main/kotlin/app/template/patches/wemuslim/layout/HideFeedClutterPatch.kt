@@ -17,7 +17,9 @@ private const val INFO_STREAM_UNIT = "Lcom/fyxtech/muslim/protobuf/InfoStreamPro
 //   hasPostInfo          the Feeds / Ummah post section
 //   hasStore             Popular Items (theme store)
 //   hasFirstRecharge     the first-recharge reward card
-//   hasWatchAdWinRewards "Claim Rewards by Watching Ads"
+//   hasWatchAdWinRewards "Claim Rewards by Watching Ads" (WatchAdRewardsViewHolder)
+//   hasAdTower           the second watch-ads reward card (WatchAdTowerRewardsViewHolder). Added
+//                        2026-11-07 (#135): it kept showing "Claim Rewards by Watching Ads".
 // The Ad-Free buttons, the Ask AI search bar, the Me screen rows and the bottom navigation tabs
 // are not InfoStream units and are not touched by this patch.
 @Suppress("unused")
@@ -49,4 +51,5 @@ private val HIDDEN_UNITS = listOf(
     "hasStore",
     "hasFirstRecharge",
     "hasWatchAdWinRewards",
+    "hasAdTower",
 )

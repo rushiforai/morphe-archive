@@ -37,7 +37,7 @@ class IntervalTimerSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "2.3.30",
+            version = "2.3.31",
             patchNames = setOf("Disable ads", "Disable telemetry"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
@@ -45,9 +45,13 @@ class IntervalTimerSmokeTest {
 
         // Disable ads: the AppInstallation ("device") and User ("token") ad-state getters
         // answer 3 (ad-free) at once.
-        for ((marker, label) in listOf("device" to "AppInstallation", "token" to "User")) {
-            val model = classes.singleOrNull { it.jsonFieldNames().containsAll(AD_STATE_FIELDS + marker) }
-                ?: error("no single $label model with JSON fields ${AD_STATE_FIELDS + marker}\n$diagnostics")
+        // (2.3.31: User dropped the rewarded-ad window fields, so it is keyed by config_ads + token.)
+        for ((fields, label) in listOf(
+            (AD_STATE_FIELDS + "device") to "AppInstallation",
+            setOf("config_ads", "token") to "User",
+        )) {
+            val model = classes.singleOrNull { it.jsonFieldNames().containsAll(fields) }
+                ?: error("no single $label model with JSON fields $fields\n$diagnostics")
             val getter = model.methods.singleOrNull {
                 it.returnType == "I" && it.parameterTypes.isEmpty() &&
                     !AccessFlags.STATIC.isSet(it.accessFlags) && it.implementation != null

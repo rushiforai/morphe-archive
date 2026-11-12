@@ -7,7 +7,8 @@
 
 package app.morphe.patches.youtube.layout.playlistautoplay
 
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.patch
 import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
 import app.morphe.patches.youtube.misc.extension.sharedExtensionPatch
 import app.morphe.patches.youtube.misc.settings.PreferenceScreen
@@ -18,7 +19,7 @@ private const val EXTENSION_CLASS =
     "Lapp/morphe/extension/youtube/patches/DisablePlaylistAutoplayPatch;"
 
 @Suppress("unused")
-val disablePlaylistAutoplayPatch = bytecodePatch(
+val disablePlaylistAutoplayPatch = patch(
     name = "Disable playlist autoplay",
     description = "Adds an option to stop a playlist from automatically advancing to the next video.",
 ) {
@@ -34,6 +35,11 @@ val disablePlaylistAutoplayPatch = bytecodePatch(
             SwitchPreference("morphe_disable_playlist_autoplay", summary = true)
         )
 
+        // Capture repeat mode for the autoplay check
+        NativeNavigationStateFingerprint.method.addInstructions(
+            0,
+            "invoke-static { p3 }, $EXTENSION_CLASS->setRepeatMode(I)V"
+        )
         navigationIntentHook(EXTENSION_CLASS, "shouldSkipPlaylistAutoplay")
     }
 }

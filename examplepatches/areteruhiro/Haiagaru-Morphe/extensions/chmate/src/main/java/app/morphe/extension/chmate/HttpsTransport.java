@@ -10,6 +10,7 @@ import java.net.URLConnection;
 public final class HttpsTransport {
     private static volatile boolean enabled;
     private static volatile int thumbnailServerPort = -1;
+    private static final java.util.Set<Integer> siteBoardServerPorts = java.util.concurrent.ConcurrentHashMap.newKeySet();
 
     private HttpsTransport() {}
 
@@ -26,8 +27,16 @@ public final class HttpsTransport {
         thumbnailServerPort = port > 0 && port <= 65535 ? port : -1;
     }
 
+    /** Called only while an additional-board gateway owns its listening socket. */
+    static void siteBoardServerListening(int port, boolean listening) {
+        if (port <= 0 || port > 65535) return;
+        if (listening) siteBoardServerPorts.add(port);
+        else siteBoardServerPorts.remove(port);
+    }
+
     public static boolean isLocalThumbnailEndpoint(String host, int port) {
         return (port > 0 && port == thumbnailServerPort && "127.0.0.1".equals(host))
+                || ("127.0.0.1".equals(host) && siteBoardServerPorts.contains(port))
                 || ImageVpnController.isLocalEndpoint(host, port)
                 || (ImageVpnController.enabled() && "127.0.0.1".equals(host) && port == 9);
     }

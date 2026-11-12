@@ -1,7 +1,7 @@
 package app.fakh.patches.dodo
 
 import app.fakh.patches.dodo.shared.Constants.COMPATIBILITY_DODO
-import app.fakh.patches.dodo.shared.disableProviders
+import app.fakh.patches.shared.disableProviders
 import app.fakh.patches.dodo.shared.references
 import app.fakh.patches.shared.pairip.pairipLicenseCheckPatch
 import app.morphe.patcher.Fingerprint

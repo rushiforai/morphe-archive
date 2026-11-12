@@ -60,7 +60,6 @@ val joobleDisableTrackersPatch = resourcePatch(
         "removes the install-referrer permission. Push notifications are kept.",
     default = true,
 ) {
-    category("Privacy")
     compatibleWith(JOOBLE_COMPATIBILITY)
 
     execute {

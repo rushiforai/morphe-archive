@@ -4,7 +4,9 @@ import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.listDecodableFiles
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.resourceFile
 import java.util.Base64
 
 internal val FMKOREA_COMPATIBILITY = Compatibility(
@@ -22,7 +24,7 @@ private const val TRANSPARENT_PNG_BASE64 =
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNgYGBgAAAABQABpfZFQAAAAABJRU5ErkJggg=="
 
 @Suppress("unused")
-val removeFmkoreaSplashLogoPatch = resourcePatch(
+val removeFmkoreaSplashLogoPatch = patch(
     name = "Remove FMKorea splash logo",
     description = "Removes the large FM logo shown while FMKorea is starting.",
     default = false
@@ -30,26 +32,22 @@ val removeFmkoreaSplashLogoPatch = resourcePatch(
     compatibleWith(FMKOREA_COMPATIBILITY)
 
     execute {
-        val drawableDirectories = get("res", false)
-            .listFiles { file ->
-                file.isDirectory && file.name.startsWith("drawable")
-            }
-            .orEmpty()
+        // Morphe Patcher 2.x decodes resources only on demand, so walking res/
+        // no longer discovers APK entries that have not been staged yet.
+        // Query the APK resource table directly instead.
+        val splashPaths = listDecodableFiles("res/**/splash.png")
+            .filter { path -> path.startsWith("res/drawable") }
 
-        val splashFiles = drawableDirectories
-            .map { directory -> directory.resolve("splash.png") }
-            .filter { file -> file.exists() }
-
-        if (splashFiles.isEmpty()) {
+        if (splashPaths.isEmpty()) {
             throw PatchException(
-                "No res/drawable*/splash.png resource was found. " +
+                "No drawable splash.png resource was found. " +
                     "FMKorea may have changed its splash-screen resources."
             )
         }
 
         val transparentPng = Base64.getDecoder().decode(TRANSPARENT_PNG_BASE64)
-        splashFiles.forEach { splashFile ->
-            splashFile.writeBytes(transparentPng)
+        splashPaths.forEach { path ->
+            resourceFile(path).writeBytes(transparentPng)
         }
     }
 }

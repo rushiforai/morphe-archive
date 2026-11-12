@@ -20,6 +20,8 @@ import app.hushtelegram.extension.telegram.settings.Settings;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.ref.WeakReference;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,6 +49,8 @@ import java.util.regex.Pattern;
  * switch is on, Telegram connects through the fastest and switches to another saved one by itself
  * when it stops answering, unless a proxy of the person's own is in use. A refresh runs when
  * Telegram starts and the last try is six hours old, and from the Find free proxies now row.
+ * Someone who adds lists of their own (#71) gets those read instead of the public ones, all of them
+ * together, and their addresses stay out of the log and out of settings files.
  *
  * <p>Only proxies this class put in the list are ever taken out of it again, and never the one in
  * use. A proxy that was already saved stays the person's, and so does one they pin. Telegram's own calls are
@@ -69,6 +73,9 @@ public final class FreeProxies {
     static final int MAX_LIST = 512 * 1024;
     private static final int MAX_LINK = 1024;
     private static final int MAX_SECRET = 512;
+    /** How many lists of their own someone can add. */
+    public static final int MAX_OWN_LISTS = 5;
+    private static final int MAX_ADDRESS = 2048;
 
     /**
      * Where a list comes from, tried in order until one gives proxies. The jsDelivr copy is for
@@ -116,9 +123,15 @@ public final class FreeProxies {
         static final StringSetting RESULT = new StringSetting("hushtelegram_free_proxies_result", "", false, false);
         /** The links of the proxies HushTelegram put in Telegram's list, one a line. */
         static final StringSetting ADDED = new StringSetting("hushtelegram_free_proxies_added", "", false, false);
+        /**
+         * The addresses of the person's own lists, one a line, read instead of {@link #FEEDS}. Kept
+         * here rather than in Settings, so an address with a private token in it never goes in a
+         * settings file someone shares.
+         */
+        static final StringSetting LISTS = new StringSetting("hushtelegram_free_proxies_lists", "", false, false);
 
         static {
-            Setting.keepWhenPaused(TRIED_AT, RESULT, ADDED);
+            Setting.keepWhenPaused(TRIED_AT, RESULT, ADDED, LISTS);
         }
 
         private Stored() {
@@ -345,8 +358,13 @@ public final class FreeProxies {
 
     // ---- Lists ----------------------------------------------------------------------------------
 
-    /** The proxies of the first list that has any, or none when no list could be read. */
+    /**
+     * The proxies of every list of the person's own when there are any, or else of the first public
+     * list that has some. None when no list could be read.
+     */
     static List<Proxy> fetch(Transport through) {
+        List<String> own = ownLists();
+        if (!own.isEmpty()) return fetchAll(through, own);
         for (int i = 0; i < FEEDS.size(); i++) {
             int which = i + 1;
             try {
@@ -360,6 +378,65 @@ public final class FreeProxies {
             }
         }
         return Collections.emptyList();
+    }
+
+    /** The proxies of all of [lists] together, one per server and port, from each list that could be read. */
+    private static List<Proxy> fetchAll(Transport through, List<String> lists) {
+        Map<String, Proxy> found = new LinkedHashMap<>();
+        for (int i = 0; i < lists.size(); i++) {
+            int which = i + 1;
+            try {
+                List<Proxy> read = parse(through.get(lists.get(i), MAX_LIST, GoogleTranslate.deadline(FETCH_MS)));
+                for (Proxy proxy : read) {
+                    if (!found.containsKey(proxy.server + ":" + proxy.port)) found.put(proxy.server + ":" + proxy.port, proxy);
+                }
+                // The list's number only: its address can hold a token of the person's.
+                Logger.diagnosticInfo(DiagnosticCategory.SETTINGS, "FreeProxies",
+                        () -> "Free proxies: your list " + which + " had " + read.size() + " proxies it could read");
+            } catch (IOException | RuntimeException failure) {
+                Logger.diagnosticInfo(DiagnosticCategory.SETTINGS, "FreeProxies",
+                        () -> "Free proxies: your list " + which + " couldn't be read (" + failure.getClass().getSimpleName() + ")");
+            }
+        }
+        return new ArrayList<>(found.values());
+    }
+
+    /** The lines of [typed] that hold anything, trimmed, each once, in the order they come. */
+    public static List<String> lines(@Nullable String typed) {
+        Set<String> kept = new LinkedHashSet<>();
+        if (typed != null) {
+            for (String line : typed.split("\n")) {
+                String trimmed = line.trim();
+                if (!trimmed.isEmpty()) kept.add(trimmed);
+            }
+        }
+        return new ArrayList<>(kept);
+    }
+
+    /** Whether [line] is an https address a list can be read from. */
+    public static boolean listAddress(String line) {
+        if (line.isEmpty() || line.length() > MAX_ADDRESS) return false;
+        try {
+            URI address = new URI(line);
+            String host = address.getHost();
+            return "https".equalsIgnoreCase(address.getScheme()) && host != null && !host.isEmpty();
+        } catch (URISyntaxException notAnAddress) {
+            return false;
+        }
+    }
+
+    /** The person's own lists: what's kept, less any line that isn't an address, at most {@link #MAX_OWN_LISTS}. */
+    public static List<String> ownLists() {
+        List<String> lists = new ArrayList<>();
+        for (String line : lines(Stored.LISTS.get())) {
+            if (lists.size() < MAX_OWN_LISTS && listAddress(line)) lists.add(line);
+        }
+        return lists;
+    }
+
+    /** Keeps [lists] as the person's own in place of any before, none meaning the public lists again. Off the main thread. */
+    public static boolean saveLists(List<String> lists) {
+        return Stored.LISTS.saveCommitted(String.join("\n", lists));
     }
 
     /** Every proxy link in [list] that reads, one per server and port, in the order they come. */
@@ -540,6 +617,10 @@ public final class FreeProxies {
             if (each.name().equals(last[0])) result = each;
         }
         if (Stored.TRIED_AT.get() <= 0 || result == null) {
+            if (!ownLists().isEmpty()) {
+                return L10n.t("Downloads your proxy lists now, times them and adds the fastest to Telegram's "
+                        + "proxy list, even with the switch above off.");
+            }
             return L10n.t("Downloads a public list of proxies now, times them and adds the fastest to Telegram's "
                     + "proxy list, even with the switch above off.");
         }

@@ -1,0 +1,37 @@
+name: Patches source
+
+# Morphe Manager downloads the patches from the file patches-bundle.json names: on main for the stable channel, on dev
+# for pre-releases (patcher-specific-release.md, "The patches source"). This checks that both downloads answer, every
+# day and after each push that changes the file, so a deleted release shows up as a failed run, with GitHub's email,
+# before a user meets it.
+
+on:
+  push:
+    branches: [main, dev]
+    paths: [patches-bundle.json]
+  schedule:
+    - cron: '23 5 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download what main and dev name
+        env:
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          failed=0
+          for branch in main dev; do
+            url=$(curl -fsSL "https://raw.githubusercontent.com/$REPOSITORY/$branch/patches-bundle.json" | jq -r .download_url)
+            status=$(curl -s -o /dev/null -w '%{http_code}' -L "$url")
+            echo "$branch: $status $url"
+            if [ "$status" != 200 ]; then
+              echo "::error::$branch's patches-bundle.json names $url, which answers $status: Morphe Manager can't download the patches (patcher-specific-release.md, \"If the source's download breaks\")."
+              failed=1
+            fi
+          done
+          exit $failed

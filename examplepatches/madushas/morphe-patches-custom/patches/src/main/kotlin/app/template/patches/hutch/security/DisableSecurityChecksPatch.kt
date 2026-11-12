@@ -47,7 +47,6 @@ val hutchDisableSecurityChecksPatch = bytecodePatch(
         "(jail-monkey + react-native-device-info) all answer \"clean\".",
     default = true,
 ) {
-    category("Security")
     compatibleWith(HUTCH_COMPATIBILITY)
 
     execute {

@@ -10,14 +10,14 @@ Wherever this page names a Telegram version, it's describing what was seen on th
 
 ### APK identity
 
-The rows below come from the two 13.2.1 fixtures, read on 2026-11-10. Those APKs stay in the local, gitignored `fixtures/` folder.
+The rows below come from the two 13.2.2 fixtures, read on 2026-11-12. Those APKs stay in the local, gitignored `fixtures/` folder.
 
 | Field | telegram.org APK | Google Play APK |
 |---|---|---|
 | App label | Telegram | Telegram |
 | Package | `org.telegram.messenger.web` | `org.telegram.messenger` |
-| Version | 13.2.1, code 72919 | 13.2.1, code 72911 |
-| APK SHA-256 | `2b73067f429a5cc20cf060e84c9296a18a04b77f1aa02739fa6457c6b5a508d2` | `1d444a7ee2579257b4a86530e5014ee066c5690c4ff505e3a43b3658af2aea22` |
+| Version | 13.2.2, code 73039 | 13.2.2, code 73031 |
+| APK SHA-256 | `e0ddeb85227f2e482f674f8e6e8f062dfd870484ed6c98282dc5a49918160ac0` | `84cf619763e25321ebd945d637f1e20709804fcd3b4db9eee74c68f201bfc28f` |
 | Vendor signer | CN=Nikolay Kudashov, OU=VK, O=VK, L=Saint-Petersburg | the same |
 | Signer SHA-256 | `49c1522548ebacd46ce322b6fd47f6092bb745d0f88082145caf35e14dcc38e1` | the same |
 | Manifest SDK | minimum 23, target 36, compiled with SDK 36 | minimum 23, target 36, compiled with SDK 36 |

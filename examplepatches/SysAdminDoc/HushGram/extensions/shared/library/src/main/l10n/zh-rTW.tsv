@@ -258,7 +258,8 @@ Turn on Tap to play to use this choice.	請啟用「點擊播放」以使用此�
 Resume long videos	繼續播放長影片
 Videos and reels over two minutes pick up where you left off. Seek to start elsewhere. Live videos and ads start as usual.	超過兩分鐘的影片與 Reels 會從上次離開的位置繼續播放。可拖曳進度列改從其他位置開始。直播與廣告仍會照常播放。
 Default playback quality	預設播放畫質
-Videos, reels and stories play at the quality below, starting with the next one you open.	從下一部開啟的影片開始，影片、Reels 和限時動態會以下方畫質播放。
+# context: description of the Default playback quality switch on the Playback page, with the list of qualities below it. A video that keeps stalling because the connection is too slow for its quality switches to the next lower quality that video offers (#599)
+Videos, reels and stories play at the quality below, starting with the next one you open. When your connection can't keep up, a video drops to the next lower quality.	從下一部開啟的影片開始，影片、Reels 和限時動態會以下方畫質播放。連線速度跟不上時，影片會降到低一級的畫質。
 Playback quality	播放畫質
 Auto	自動
 Data saver	節省數據
@@ -1362,6 +1363,9 @@ Takes the arrow off the end of a profile's row of buttons, along with the menu i
 # context: Layout: Glass tab bar's switch that stops the liquid pill shrinking as you scroll (#256)
 Keep the pill full size	保持膠囊完整大小
 Scrolling a list down leaves the liquid pill as it is, every tab in place. Restart Instagram after changing it.	向下捲動清單時，液態膠囊會維持原樣，所有分頁皆保留在原位。變更後請重新啟動 Instagram。
+# context: a switch under Glass tab bar that makes the standard pill (the one without the liquid look) smaller while a list scrolls down, and its description. Liquid glass look and Hide the tab bar as you scroll are the names of two other switches on the same page (#638)
+Shrink the pill as you scroll	捲動時縮小膠囊
+With Liquid glass look off, scrolling a list down makes the pill smaller, and scrolling up or changing tab brings it back to full size. Hide the tab bar as you scroll takes over when it's on. Restart Instagram after changing it.	關閉液態玻璃外觀時，向下捲動清單會讓膠囊變小，向上捲動或切換分頁就會恢復完整大小。開啟捲動時隱藏分頁列時，以該設定為準。變更後請重新啟動 Instagram。
 # context: Layout: Glass tab bar's switch that makes the liquid pill's rim bend and mirror what's behind it like glass (#369)
 Bend light at the edges	在邊緣折射光線
 The pill's rim bends what's behind it like real glass, so what passes under the edge shows upside down. Android 13 and newer. Restart Instagram after changing it.	膠囊的邊緣會像真正的玻璃一樣折射後方的內容，經過邊緣下方的東西會上下顛倒。需要 Android 13 以上版本。變更後請重新啟動 Instagram。
@@ -1525,7 +1529,7 @@ Couldn't use that folder. Saves go where they did.	無法使用該資料夾。�
 Saves go to Movies and Pictures again.	儲存的內容已改回放在 Movies 和 Pictures。
 %1$s didn't take this save, so it went to Movies and Pictures.	%1$s 無法存放這次儲存的內容，因此改放在 Movies 和 Pictures。
 Start reels with sound	Reels 預設開啟聲音
-A reel you open from the Reels tab or a post on Home plays with sound, and Home is muted again when you go back. Your phone's ringer and volume still count.	從 Reels 分頁或首頁貼文開啟的 Reel 會有聲音播放，返回後首頁會再次靜音。手機的鈴聲模式和音量仍然有效。
+A reel you open from the Reels tab, a profile or a post on Home plays with sound, and Home is muted again when you go back. Your phone's ringer and volume still count.	從 Reels 分頁、個人檔案或首頁貼文開啟的 Reel 會有聲音播放，返回後首頁會再次靜音。手機的鈴聲模式和音量仍然有效。
 Keep your place in Home	保留首頁的瀏覽位置
 Coming back to Instagram leaves Home on the post you were on, however long you were away. Pull down to refresh still reloads it.	回到 Instagram 時，不論離開多久，首頁都會停在你剛才看的貼文。下拉重新整理仍會重新載入。
 Filter the Stories tray by verified accounts	依已驗證帳號篩選限時動態橫幅
@@ -1593,7 +1597,7 @@ Previous page	上一頁
 Next page	下一頁
 # context: Feed settings: the Page dots on a pill switch, right under Carousel arrows (#419). A pill is a small bar with round ends that holds the dots.
 Page dots on a pill	膠囊頁面圓點
-Moves a carousel post's page dots onto a round pill at the bottom of its photo or video, with the page you're on in blue.	將輪播貼文的頁面圓點移到相片或影片底部的圓角膠囊上，目前的頁面以藍色顯示。
+Moves a carousel post's page dots onto a round pill at the bottom of its photo or video, with the page you're on in blue. Hold the pill and slide left or right to move through the pages.	將輪播貼文的頁面圓點移到相片或影片底部的圓角膠囊上，目前的頁面以藍色顯示。按住膠囊並左右滑動即可切換頁面。
 # context: Feed settings: the Hide page number switch, under Carousel arrows (#581). The number is the 3/5 in the corner of a carousel post.
 Hide page number	隱藏頁碼
 Takes the number like 3/5 off the corner of a carousel post's photo or video.	拿掉輪播貼文相片或影片角落類似 3/5 的數字。
@@ -1671,6 +1675,12 @@ Stop videos looping	影片不重複播放
 Feed videos and reels stop at their last frame instead of playing again. Reels still loop while auto scroll is on, so it can move on.	動態中的影片和 Reels 會停在最後一格，不再重新播放。開啟自動捲動時，Reels 仍會重複播放，好讓它能切換到下一則。
 Not used while you've picked a folder. Saves go there.	已選擇資料夾時不會使用這個名稱，檔案會存到該資料夾。
 All	全部
+# context: names of the groups the settings categories fall into, shown over each group on the list of categories and on the chips above it next to All (#642): privacy, what the app shows, media and storage, how the app looks, and App for HushGram's own updates, backup, pause and about
+Privacy	隱私
+Content	內容
+Media and storage	媒體與儲存空間
+Look	外觀
+App	應用程式
 Posts	貼文
 Nothing matches.	沒有符合的項目。
 Couldn't open that one.	無法開啟。
@@ -1762,7 +1772,7 @@ Open a chat, tap the clock button next to the call buttons at the top, or long p
 Open a chat, tap the clock button next to the call buttons at the top, or long press the chat's name, and pick Export chat. The whole chat is saved as a text file in Downloads, HushGram folder, one line per message.	開啟聊天，點一下上方通話按鈕旁的時鐘按鈕，或長按聊天名稱，選擇「匯出聊天」。整個聊天會存成文字檔，放在「下載」的 HushGram 資料夾，每則訊息一行。
 Instagram stopped loading older messages.	Instagram 已停止載入較舊的訊息。
 Black settings page	黑色設定頁面
-Black rows and dialogs, HushGram's name at the top, and each category on one line.	黑色的列和對話框，頂端顯示 HushGram 名稱，每個類別只佔一行。
+Black rows and dialogs, with HushGram's name at the top.	黑色的列和對話框，頂端顯示 HushGram 名稱。
 Mark as read	標示為已讀
 Nothing to mark as read	沒有可標示為已讀的內容
 Mark as read button in chats	聊天中的「標示為已讀」按鈕
@@ -1979,6 +1989,9 @@ Leaves out the live broadcasts Instagram puts between reels in the Reels tab and
 # context: a switch on the Feed page; Watch again is the button on the card Instagram shows when a reel in the feed ends, next to Watch more reels
 Watch again in the feed	在動態中再看一次
 When a reel in your feed ends, Watch again plays it over right there instead of opening Reels.	動態中的 Reels 播完時，「再看一次」會直接在原處重播，不會開啟 Reels.
+# context: a switch on the Feed page under Watch again in the feed; Watch more reels is the big button on the card Instagram shows when a reel in the feed ends, it opens Reels
+Hide Watch more reels	隱藏「觀看更多 Reels」
+Takes the Watch more reels button off the card a reel in your feed shows when it ends. Watch again stays.	動態中的 Reels 播完時，結束畫面不會顯示「觀看更多 Reels」按鈕，「再看一次」會保留.
 # context: a switch on the Playback page under Keep playing in the background; Android's own name for picture in picture
 Picture in picture for reels	Reel 子母畫面
 Leaving Instagram while a reel plays shrinks it into a small window over your other apps. Works in Reels and on reels opened from the feed, on Android 15 or newer.	在 Reel 播放時離開 Instagram，影片會縮成浮在其他應用程式上方的小視窗。適用於 Reels 和從動態消息開啟的 Reel，需要 Android 15 以上版本。
@@ -2036,6 +2049,9 @@ Posts from your hidden accounts still show in Favorites. For you and Following l
 # context: switch next to Lock your messages; Saved is Instagram's page of your saved posts and collections (#597)
 Lock Saved	鎖定「已儲存」
 Saved and everything in it stay covered until your fingerprint, face or screen lock says it's you.	「已儲存」及其中的所有內容都會被遮住，直到透過指紋、臉部或螢幕鎖定驗證身分。
+# context: switch under Lock your messages; on, an unlock opens only the chat it was asked in, so the next chat, or going back to the inbox, asks for the fingerprint, face, screen lock or PIN again (#649)
+Ask for each chat	每個聊天室都要驗證
+Every chat you open asks again, and so does your inbox when you go back to it. Off, one unlock opens everything until you leave Instagram.	你開啟的每個聊天室都會再次要求驗證，回到收件匣時也一樣。關閉時，解鎖一次就能開啟所有內容，直到你離開 Instagram。
 Saved is locked	「已儲存」已鎖定
 Unlock Saved	解鎖「已儲存」
 # context: three-dot menu row on a reel or feed video with Stop videos looping on; makes only the video on screen play again and again (#610)

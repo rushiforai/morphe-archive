@@ -55,7 +55,6 @@ val adidasBypassPairIpPatch = bytecodePatch(
         "docs/adidas.md.",
     default = true,
 ) {
-    category("PairIP")
     compatibleWith(ADIDAS_RUNNING_COMPATIBILITY)
 
     dependsOn(

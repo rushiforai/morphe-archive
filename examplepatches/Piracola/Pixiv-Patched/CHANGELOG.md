@@ -1,3 +1,23 @@
+## [1.7.2](https://github.com/Piracola/Pixiv-Patched/compare/v1.7.1...v1.7.2) (2026-11-12)
+
+### 🐛 Bug Fixes
+
+* **ui:** draw the settings groups as rounded cards ([f5ce60c](https://github.com/Piracola/Pixiv-Patched/commit/f5ce60c9266090eb61dde54ae07181ae313ae730))
+
+## [1.7.1](https://github.com/Piracola/Pixiv-Patched/compare/v1.7.0...v1.7.1) (2026-11-12)
+
+### 🐛 Bug Fixes
+
+* **searchranking:** keep page order when a page cannot be requested ([7aa0c5a](https://github.com/Piracola/Pixiv-Patched/commit/7aa0c5a069bc89db26c9e9bef9e5cea7cd750129))
+
+## [1.7.0](https://github.com/Piracola/Pixiv-Patched/compare/v1.6.0...v1.7.0) (2026-11-12)
+
+### ✨ New Features
+
+* **app:** support Pixiv 6.203.0 ([7fef5bd](https://github.com/Piracola/Pixiv-Patched/commit/7fef5bd13ad585b900782403448b3fb59ab8721e))
+* **searchranking:** fill the popular tab from Pixiv's free preview ([6a2909f](https://github.com/Piracola/Pixiv-Patched/commit/6a2909f2e5591ba302fa22625bc84af0ed1ceeda))
+* **ui:** rebuild the patched pages as one window with a page stack ([1c49ad7](https://github.com/Piracola/Pixiv-Patched/commit/1c49ad7bb196ee2417acae7b5b412f0e9a09b8c5))
+
 ## [1.6.0](https://github.com/Piracola/Pixiv-Patched/compare/v1.5.0...v1.6.0) (2026-11-11)
 
 ### ✨ New Features

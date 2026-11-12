@@ -1651,7 +1651,7 @@ Stopped waiting for the file app. Nothing was exported.	หยุดรอแอ
 Stopped waiting for the file app. It hasn't said yet whether the export was saved.	หยุดรอแอปไฟล์แล้ว แอปยังไม่ได้แจ้งว่าบันทึกการส่งออกไว้หรือไม่
 The export wasn't saved. Try again.	ไม่ได้บันทึกการส่งออก โปรดลองอีกครั้ง
 Hide unpersonalized For You videos	ซ่อนวิดีโอ "สำหรับคุณ" ที่ไม่ได้รับการปรับเปลี่ยนในแบบของคุณ
-Hide the fill-in videos TikTok sends to For You without picking them for you. When a whole batch is fill-in, it stays so the feed doesn't run dry.	ซ่อนวิดีโอเสริมที่ TikTok ส่งมายัง "สำหรับคุณ" โดยไม่ได้คัดสรรมาให้คุณโดยเฉพาะ เมื่อทั้งชุดเป็นวิดีโอเสริม วิดีโอเหล่านั้นจะยังคงอยู่เพื่อไม่ให้ฟีดว่างเปล่า
+Hide the fill-in videos TikTok sends to For You without picking them for you. When a whole batch is fill-in, only its first video stays so the feed doesn't run dry.	ซ่อนวิดีโอเสริมที่ TikTok ส่งมายัง "สำหรับคุณ" โดยไม่ได้คัดสรรมาให้คุณโดยเฉพาะ เมื่อทั้งชุดเป็นวิดีโอเสริม จะเหลือไว้เพียงวิดีโอแรกเพื่อไม่ให้ฟีดว่างเปล่า
 Unpersonalized For You videos	วิดีโอ "สำหรับคุณ" ที่ไม่ได้รับการปรับเปลี่ยนในแบบของคุณ
 Reviewed presets for TikTok %1$s	พรีเซ็ตที่ผ่านการตรวจสอบแล้วสำหรับ TikTok %1$s
 No reviewed presets for TikTok %1$s yet	ยังไม่มีพรีเซ็ตที่ผ่านการตรวจสอบสำหรับ TikTok %1$s
@@ -2695,3 +2695,29 @@ Search Liked and Favorites grids	ค้นหาในตารางที่�
 Adds a Search button to the top of the Liked and Favorites grids. Type a word from a caption, a creator or a sound to see only the loaded videos that have it.	เพิ่มปุ่มค้นหาที่ด้านบนของตารางที่ถูกใจและรายการโปรด พิมพ์คำจากคำบรรยาย ครีเอเตอร์ หรือเสียง เพื่อดูเฉพาะวิดีโอที่โหลดแล้วซึ่งมีคำนั้น
 # context: Hint in the search box over a Liked or Favorites grid
 Caption, creator or sound	คำบรรยาย ครีเอเตอร์ หรือเสียง
+# context: Row title of the switch that makes holding the Profile tab open TikTok's account switcher
+Long-press Profile to switch accounts	กดค้างที่โปรไฟล์เพื่อสลับบัญชี
+# context: Summary under that switch; Long-press Profile for Watch history is the row just above it
+Press and hold the Profile tab to pick one of your other accounts, where TikTok left that out. A tap on Profile works as before. While Long-press Profile for Watch history is on, it takes the press. Restart TikTok to apply this.	กดแท็บโปรไฟล์ค้างไว้เพื่อเลือกบัญชีอื่นของคุณ ในกรณีที่ TikTok ตัดส่วนนี้ออกไป การแตะที่โปรไฟล์จะยังคงทำงานตามปกติ ขณะที่เปิดกดค้างที่โปรไฟล์เพื่อเปิดประวัติการดูอยู่ การตั้งค่านั้นจะรับการกดนี้แทน รีสตาร์ท TikTok เพื่อนำสิ่งนี้ไปใช้
+# context: Row title of the Comments switch that cuts long comments short with a tap to read the rest
+Fold long comments	พับความคิดเห็นที่ยาว
+# context: Summary under that switch; more is the word at the end of a cut comment (its own row below)
+A long comment shows its first few lines and more. Tap more to read the rest right where it is.	ความคิดเห็นที่ยาวจะแสดงแค่ไม่กี่บรรทัดแรกตามด้วยเพิ่มเติม แตะเพิ่มเติมเพื่ออ่านส่วนที่เหลือได้ตรงนั้นเลย
+# context: Row title of the number under that switch; the row shows it followed by the count, as in Fold after 4 lines
+Fold after	พับหลังจาก
+# context: Summary under that number
+How many lines of a long comment show before more.	จำนวนบรรทัดของความคิดเห็นที่ยาวที่แสดงก่อนเพิ่มเติม
+# context: The count shown on that row for one line
+%1$s line	%1$s บรรทัด
+# context: The count shown on that row for several lines
+%1$s lines	%1$s บรรทัด
+# context: The tappable word at the end of a cut comment, after an ellipsis, that opens the rest of it
+… more	… เพิ่มเติม
+# context: A setting and the title of the screen it puts over the For You feed
+Pause before the feed	หยุดพักก่อนเข้าฟีด
+Zero switches this off. The first time the feed opens after TikTok starts or comes back from the background, a countdown covers it for that many seconds before you can continue, or leave. Messages, profiles and search open without it.	ศูนย์จะเป็นการปิดใช้งาน ครั้งแรกที่ฟีดเปิดขึ้นหลังจาก TikTok เริ่มทำงานหรือกลับมาจากเบื้องหลัง การนับถอยหลังจะบังฟีดไว้ตามจำนวนวินาทีดังกล่าวก่อนที่คุณจะดำเนินการต่อหรือออกได้ ข้อความ โปรไฟล์ และการค้นหาจะเปิดได้โดยไม่ต้องรอ
+# context: The button on that screen that opens the feed once the countdown ends
+Continue	ดำเนินการต่อ
+# context: The button on that screen that sends TikTok to the background instead
+Leave TikTok	ออกจาก TikTok
+You can continue now.	ตอนนี้คุณดำเนินการต่อได้แล้ว

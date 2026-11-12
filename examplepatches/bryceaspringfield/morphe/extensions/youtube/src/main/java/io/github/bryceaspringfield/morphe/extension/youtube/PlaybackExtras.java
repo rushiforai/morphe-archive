@@ -21,9 +21,8 @@ import app.morphe.extension.youtube.shared.VideoState;
  * <ul>
  *   <li>Keep playing when the screen turns off: a video playing when the screen turns off, which pauses within the next
  *       8 s with no tap of the user (the screen is off), is played again with the media Play key.</li>
- *   <li>Audio only while the screen is off: the lowest video quality while the screen is off, and the quality before
- *       when it turns on again. A video's format list is read when it loads, so the video stream itself cannot be
- *       dropped mid-play without reloading the video.</li>
+ *   <li>Audio only while the screen is off: YouTube's own audio-only mode ({@link AudioOnly}) while the screen is
+ *       off, and video again when it turns on; the lowest video quality where no player was found.</li>
  * </ul>
  */
 public final class PlaybackExtras {
@@ -35,6 +34,7 @@ public final class PlaybackExtras {
     private static boolean playingAtScreenOff;
     private static int resumes;
     private static VideoQualityInterface qualityBefore;
+    private static boolean audioOnlyByScreen;
 
     private PlaybackExtras() {
     }
@@ -71,12 +71,19 @@ public final class PlaybackExtras {
             if (screenOffAt == 0) return;
             playingAtScreenOff = stated || VideoInformation.getVideoTime() != time;
             if (XSettings.DEBUG.get()) Logger.printDebug(() -> "YouTube Extras: screen off, playing " + playingAtScreenOff);
-            if (XSettings.AUDIO_ONLY_SCREEN_OFF.get() && playingAtScreenOff) lowestQuality();
+            if (XSettings.AUDIO_ONLY_SCREEN_OFF.get() && playingAtScreenOff && !XSettings.AUDIO_ONLY.get()) {
+                audioOnlyByScreen = AudioOnly.set(true, "screen off");
+                if (!audioOnlyByScreen) lowestQuality();
+            }
         }, 1000);
     }
 
     private static void onScreenOn() {
         screenOffAt = 0;
+        if (audioOnlyByScreen) {
+            audioOnlyByScreen = false;
+            if (!XSettings.AUDIO_ONLY.get()) AudioOnly.set(false, "screen on");
+        }
         VideoQualityInterface before = qualityBefore;
         qualityBefore = null;
         if (before != null) {

@@ -31,11 +31,56 @@ final class Strings {
         put("length_summary", "m:ss, h:mm:ss, or minutes; blank shows every length",
                 "m:ss, h:mm:ss o minutos; en blanco muestra todas las duraciones");
         put("home_playlists", "Hide playlists on Home", "Ocultar playlists en Inicio");
+        put("resuggested", "Not interested after repeated suggestions", "No me interesa tras sugerencias repetidas");
+        put("resuggested_summary", "Now %d: a video Home suggests this many times (visits 10 minutes or more apart) which you never opened gets Not interested and is hidden",
+                "Ahora %d: un vídeo que Inicio sugiere estas veces (visitas con 10 minutos o más entre ellas) y que nunca abriste recibe No me interesa y se oculta");
+        put("resuggested_off", "Off (0): type a number of suggestions to turn it on", "Desactivado (0): escribe un número de sugerencias para activarlo");
+        put("resuggested_dialog", "Suggestions on Home before Not interested (0 turns it off)", "Sugerencias en Inicio antes de No me interesa (0 lo desactiva)");
+        put("resuggested_invalid", "Type a whole number, such as 3", "Escribe un número entero, como 3");
+        put("past_streams", "Hide past live streams", "Ocultar directos pasados");
+        put("past_streams_summary", "Recordings of live streams which have ended (\"Streamed 2 days ago\"), in every feed; streams live now stay",
+                "Grabaciones de directos ya terminados (\"Emitido hace 2 días\"), en todos los feeds; los directos en curso se quedan");
         put("home_playlists_summary", "Playlists and courses in the home feed (mixes: Morphe's Hide mix playlists)",
                 "Playlists y cursos del feed de Inicio (las mezclas: Ocultar playlists mix de Morphe)");
         put("topics", "Hide by topic", "Ocultar por tema");
         put("topics_summary", "Videos and channels whose titles or names promote the topics chosen",
                 "Videos y canales cuyos títulos o nombres promueven los temas elegidos");
+        put("cf_summary_none", "Hide a channel's videos, live streams, Shorts, playlists, or videos by length or words",
+                "Oculta los videos, directos, Shorts, listas o videos por duración o palabras de un canal");
+        put("cf_summary", "%d channels", "%d canales");
+        put("comment_title", "Titles corrected in the comments", "Títulos corregidos en los comentarios");
+        put("comment_title_summary", "When a top comment with 3 or more likes states the correct title (e.g., \"... correct title\"), that title is shown, marked ❝; tap ❝ for the video's own title. The ✎ suggestion to DeArrow starts from it.",
+                "Cuando un comentario destacado con 3 o más me gusta indica el título correcto (p. ej., \"... correct title\"), se muestra ese título, marcado con ❝; toca ❝ para ver el título del video. La sugerencia ✎ a DeArrow parte de él.");
+        put("cf_add", "Add channel", "Añadir canal");
+        put("cf_edit", "Edit channel filter", "Editar filtro del canal");
+        put("cf_text", "Edit as text", "Editar como texto");
+        put("cf_close", "Close", "Cerrar");
+        put("cf_save", "Save", "Guardar");
+        put("cf_cancel", "Cancel", "Cancelar");
+        put("cf_delete", "Delete", "Eliminar");
+        put("cf_empty", "No channel filters yet. Tap Add channel to hide a channel's videos, live streams, Shorts, playlists, or its videos by length or words.",
+                "Aún no hay filtros por canal. Toca Añadir canal para ocultar los videos, directos, Shorts o listas de un canal, o sus videos por duración o palabras.");
+        put("cf_channel", "Channel", "Canal");
+        put("cf_channel_hint", "Name, @handle, or channel link", "Nombre, @identificador o enlace del canal");
+        put("cf_channel_needed", "Enter or pick a channel", "Escribe o elige un canal");
+        put("cf_pick", "Pick a channel you've seen", "Elegir un canal visto");
+        put("cf_hide", "Hide", "Ocultar");
+        put("cf_all", "Every video", "Todos los videos");
+        put("cf_live", "Live streams", "Directos");
+        put("cf_shorts", "Shorts", "Shorts");
+        put("cf_playlists", "Playlists and mixes", "Listas y mixes");
+        put("cf_shorter", "shorter than", "de menos de");
+        put("cf_longer", "longer than", "de más de");
+        put("cf_shorter_label", "Videos shorter than", "Videos de menos de");
+        put("cf_longer_label", "Videos longer than", "Videos de más de");
+        put("cf_off", "Off", "No");
+        put("cf_words", "Videos whose title has", "Videos cuyo título contiene");
+        put("cf_words_hint", "Words, separated by commas; \"quotes\" for whole words",
+                "Palabras separadas por comas; \"comillas\" para palabras completas");
+        put("cf_words_short", "title:", "título:");
+        put("cf_comments", "Comments under its videos that have", "Comentarios en sus videos que contienen");
+        put("cf_comments_short", "comments:", "comentarios:");
+        put("cf_nothing", "Nothing hidden yet", "Nada oculto aún");
         put("hidden_channels", "Channels to hide", "Canales para ocultar");
         put("hidden_channels_summary", "One channel a line (@handle, channel ID, or name); every video is hidden",
                 "Un canal por línea (@identificador, ID de canal o nombre); se ocultan todos sus videos");
@@ -91,9 +136,12 @@ final class Strings {
         put("keep_playing", "Keep playing when the screen turns off", "Seguir reproduciendo al apagar la pantalla");
         put("keep_playing_summary", "A video playing when the screen turns off, which pauses within 8 s, plays again (in picture in picture too)",
                 "Un video que se pausa en los 8 s después de apagar la pantalla vuelve a reproducirse (también en imagen en imagen)");
-        put("audio_only_off", "Lowest quality while the screen is off", "Calidad mínima con la pantalla apagada");
-        put("audio_only_off_summary", "The video switches to its lowest quality when the screen turns off and back when it turns on",
-                "El video pasa a su calidad mínima al apagar la pantalla y vuelve a la anterior al encenderla");
+        put("audio_only", "Audio only", "Solo audio");
+        put("audio_only_summary", "Videos play their sound without the picture, through YouTube's own audio-only mode",
+                "Los videos reproducen el sonido sin la imagen, con el modo de solo audio de YouTube");
+        put("audio_only_off", "Audio only while the screen is off", "Solo audio con la pantalla apagada");
+        put("audio_only_off_summary", "A video playing when the screen turns off plays its sound alone until the screen turns on",
+                "Un video que se reproduce al apagar la pantalla reproduce solo el sonido hasta que se enciende");
         put("vote_format", "Like and dislike counts", "Recuentos de me gusta y no me gusta");
         put("vote_format_summary", "Return YouTube Dislike's counts as numbers, percentages of all votes, or both",
                 "Los recuentos de Return YouTube Dislike como números, porcentajes del total de votos o ambos");

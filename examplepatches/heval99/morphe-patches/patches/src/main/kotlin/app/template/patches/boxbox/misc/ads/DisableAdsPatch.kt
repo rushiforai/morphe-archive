@@ -91,6 +91,7 @@ val disableAdsPatch = bytecodePatch(
             throw PatchException("Google Mobile Ads is bundled but no full-screen ad load was found")
         }
         fullScreenLoads.forEach { it.method.returnEarly() }
-        BaseAdViewLoadAdFingerprint.methodOrNull?.returnEarly()
+        // Banner loads: mandatory whenever GMA is bundled (matches in 5.4.18); only 5.4.16 has no GMA.
+        if (gmaBundled) BaseAdViewLoadAdFingerprint.method.returnEarly()
     }
 }

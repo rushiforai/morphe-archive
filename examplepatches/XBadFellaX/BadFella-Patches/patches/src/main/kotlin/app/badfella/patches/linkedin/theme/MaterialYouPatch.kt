@@ -4,7 +4,9 @@ import app.badfella.patches.linkedin.shared.Constants.COMPATIBILITY_LINKEDIN
 import app.badfella.patches.linkedin.shared.Constants.EXTENSION_PACKAGE
 import app.badfella.patches.linkedin.shared.markIncluded
 import app.badfella.patches.linkedin.shared.settingsPatch
+import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.ResourcePatchContext
@@ -13,7 +15,6 @@ import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
@@ -562,11 +563,8 @@ private const val STREAK_CARD = "Lcom/linkedin/android/profile/components/games/
 private const val THEME_MANAGER = "Lcom/linkedin/android/infra/ui/theme/ThemeManager;"
 
 /** The class with type [type]. */
-private fun BytecodePatchContext.mutableClass(type: String): MutableClass {
-    var found: MutableClass? = null
-    classDefForEach { if (it.type == type) found = mutableClassDefBy(it) }
-    return found ?: throw PatchException("$type not found")
-}
+private fun BytecodePatchContext.mutableClass(type: String): MutableClass =
+    mutableClassDefByOrNull(type) ?: throw PatchException("$type not found")
 
 /**
  * In the methods of [type] named [method] (every method when null), adds [smali] (for the result register) after
@@ -807,15 +805,13 @@ private val colorHooksPatch = bytecodePatch {
 
         // LinkedIn (and AndroidX's edge-to-edge) turn the navigation bar contrast on, or give the navigation bar a
         // white scrim as its color, which covers the tinted bottom bar behind the gesture bar.
+        // The patcher's call index finds the callers, a scan of every method in the app takes over a second.
         var contrasts = 0
-        val callers = mutableListOf<ClassDef>()
-        classDefForEach { classDef ->
-            if (classDef.methods.any { method ->
-                    method.implementation?.instructions?.any { it.isContrastCall() } == true
-                }) callers += classDef
-        }
-        callers.forEach { classDef ->
-            mutableClassDefBy(classDef).methods.forEach { method ->
+        listOf("setNavigationBarContrastEnforced", "setNavigationBarColor").flatMap { name ->
+            Fingerprint(filters = listOf(methodCall(definingClass = "Landroid/view/Window;", name = name)))
+                .matchAllOrNull().orEmpty()
+        }.map { it.classDef }.distinctBy { it.type }.forEach { classDef ->
+            classDef.methods.forEach { method ->
                 val instructions = method.implementation?.instructions?.toList() ?: return@forEach
                 instructions.withIndex().filter { (_, instruction) -> instruction.isContrastCall() }
                     .reversed()
@@ -840,7 +836,7 @@ private val colorHooksPatch = bytecodePatch {
 @Suppress("unused")
 val materialYouPatch = bytecodePatch(
     name = "Material You",
-    description = "Uses your wallpaper's colors (Android 12+): the accent color instead of LinkedIn blue and the " +
+    description = "Uses wallpaper colors (Android 12+) or a preset/custom accent color (Android 10+) instead of LinkedIn blue and the " +
         "green of selected filters, and Material 3 surface colors for backgrounds, cards, bars and borders. " +
         "Some screens drawn by LinkedIn's servers may keep their own colors.",
     default = false

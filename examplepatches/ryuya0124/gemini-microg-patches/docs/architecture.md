@@ -18,13 +18,19 @@ Patcher1.12は公開パッチ名順で実行し、逆順でfinalizeする。`Aut
 
 GMSメタデータに使用する元Google署名はSHA-1 `38918a453d07199354f8b19af05ec6562ced5788`。ここをSHA-256と取り違えない。
 
-`MicrogRuntimePermissionsPatch.kt` がMainActivity.onCreateに初回権限要求を追加する。必要な権限は `android.permission.GET_ACCOUNTS` と `app.revanced.gms.EXTENDED_ACCESS`。READ_CONTACTSは追加しない。
+`MicrogRuntimePermissionsPatch.kt` がMainActivity.onCreateから初回権限の説明を呼ぶ。必要な権限は `android.permission.GET_ACCOUNTS` と `app.revanced.gms.EXTENDED_ACCESS`。READ_CONTACTSは追加しない。
+
+v0.3.4ではJavaランタイム `extensions/src/main/java/app/geminipatch/extension/MicrogPermissions.java` をD8でコンパイルし、MPP内の `extensions/microg-permissions.bin` からPatcherのextendWithで対象APKへ統合する。Android/Java標準APIだけを使用し、KotlinやPatcherのランタイムをGoogle内で要求しない。標準DialogFragmentで説明し、Continue後に不足している権限だけを要求する。後回し・Back・OS側拒否後の自動再要求を抑え、プロファイルごとのSharedPreferencesへ選択を保存する。microG無効/未導入時は要求せず、有効化後に再試行できる。許可済みの既存環境には説明を出さない。
+
+Androidの「unknown action」はmicroG側のEXTENDED_ACCESSにdescriptionがないための標準表示。Google側からその宣言を上書きしない。事前説明でアカウントアクセス用と明示し、システムの許可/拒否は維持する。`VerifyPermissionSetup.kt` が実APKへの統合・Activity別名・レジスタ・READ_CONTACTSを要求しないことを検証する。
 
 Activityレジスタが生きている最後の `MainActivity.o:Z` への書き込み直後に挿入する。onCreateのreturn直前ではp0が別の値に使い回されている。ラベル付き命令挿入には `addInstructionsWithLabels` を使い、DEX検証で分岐先が命令境界に一致することを確認する。
 
 ## プロセス名とアカウント同期
 
 クローン化でプロセス名に `.morphe` が追加されると、コンパイル済みDaggerのプロセス名switchに一致しない。`ProcessNameSanitizePatch.kt` がプロセス名プロバイダを正規化する。
+
+v0.3.3以降は3レジスタを明示したprivate static補助メソッドで正規化し、元プロバイダのレジスタ数を変えない。各returnの命令そのものを補助メソッド呼び出しに置換し、キャッシュ分岐のラベルも呼び出しへ向ける。Patcher内部のprivate `registerCount`をreflectionで書き換えてはいけない。Android ManagerのPatcher 2.3.0では実装がサブクラスに包まれ、旧方式はフィールドを見つけられず不正DEXを生成した。[検証](testing/issue-8-manager-registers.md)。
 
 ただしアカウントストアのmain-process判定ではContext.packageNameと比較するため、実際のプロセス名が必要。この判定だけ `Application.getProcessName()` を使う。これによりsearchプロセスがローカルアカウントストアを選び、AccountSyncServiceへの自己接続ループを防ぐ。
 

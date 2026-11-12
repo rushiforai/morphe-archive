@@ -613,52 +613,73 @@ public final class GlassTabBar {
      * draws itself whole. A video in a SurfaceView is a layer under the window, never in the views, so its
      * place is cleared, the way the SurfaceView clears its hole in the window, and the pill shows the video
      * through its tint. Before, the backgrounds round the video drew there, black on a feed post (#144).
+     *
+     * <p>A view whose drawing throws, such as a row Instagram is recycling as a list scrolls, is left out
+     * where it stopped and the rest still draws. Returns the first such throw, or null. Before, it cut the
+     * whole recording short, and the glass dropped to its plain tint for that frame and back, a flicker
+     * while swiping (#429).
      */
-    public static void drawLeavingOutSurfaces(Canvas canvas, View view, java.util.Set<View> paths, int depth) {
-        drawLeavingOutSurfaces(canvas, view, paths, java.util.Collections.emptySet(), null, depth);
+    @Nullable
+    public static Throwable drawLeavingOutSurfaces(Canvas canvas, View view, java.util.Set<View> paths, int depth) {
+        return drawLeavingOutSurfaces(canvas, view, paths, java.util.Collections.emptySet(), null, depth);
     }
 
     /** {@link #drawLeavingOutSurfaces}, leaving out the views in [skipped] too ({@link #leaveOut}). */
-    static void drawLeavingOutSurfaces(Canvas canvas, View view, java.util.Set<View> paths, java.util.Set<View> skipped,
-            int depth) {
-        drawLeavingOutSurfaces(canvas, view, paths, skipped, null, depth);
+    @Nullable
+    static Throwable drawLeavingOutSurfaces(Canvas canvas, View view, java.util.Set<View> paths,
+            java.util.Set<View> skipped, int depth) {
+        return drawLeavingOutSurfaces(canvas, view, paths, skipped, null, depth);
     }
 
     /** {@link #drawLeavingOutSurfaces}, drawing the frame [frames] has for a SurfaceView in its place, when it has one ({@link SurfaceFrames}). */
-    static void drawLeavingOutSurfaces(Canvas canvas, View view, java.util.Set<View> paths, java.util.Set<View> skipped,
-            @Nullable java.util.function.Function<View, android.graphics.Bitmap> frames, int depth) {
-        drawLeavingOutSurfaces(canvas, view, paths, skipped, frames, null, depth);
+    @Nullable
+    static Throwable drawLeavingOutSurfaces(Canvas canvas, View view, java.util.Set<View> paths,
+            java.util.Set<View> skipped, @Nullable java.util.function.Function<View, android.graphics.Bitmap> frames,
+            int depth) {
+        return drawLeavingOutSurfaces(canvas, view, paths, skipped, frames, null, depth);
     }
 
     /** {@link #drawLeavingOutSurfaces}, with [reels] painting the place of each view in [skipped] ({@link ReelFrames}, #583). */
-    static void drawLeavingOutSurfaces(Canvas canvas, View view, java.util.Set<View> paths, java.util.Set<View> skipped,
-            @Nullable java.util.function.Function<View, android.graphics.Bitmap> frames, @Nullable ReelFrames reels, int depth) {
-        if (view.getVisibility() != View.VISIBLE || view.getAlpha() <= 0f) return;
+    @Nullable
+    static Throwable drawLeavingOutSurfaces(Canvas canvas, View view, java.util.Set<View> paths,
+            java.util.Set<View> skipped, @Nullable java.util.function.Function<View, android.graphics.Bitmap> frames,
+            @Nullable ReelFrames reels, int depth) {
+        if (view.getVisibility() != View.VISIBLE || view.getAlpha() <= 0f) return null;
         if (skipped.contains(view)) {
             if (reels != null) reels.draw(canvas, view);
-            return;
+            return null;
         }
         if (view instanceof android.view.SurfaceView) {
             drawSurfacePlace(canvas, view, frames == null ? null : frames.apply(view));
-            return;
+            return null;
         }
+        Throwable failed = null;
         int saved = canvas.save();
-        canvas.translate(view.getLeft(), view.getTop());
-        if (!view.getMatrix().isIdentity()) canvas.concat(view.getMatrix());
-        if (!(view instanceof ViewGroup) || !paths.contains(view) || depth > 100) {
-            canvas.translate(-view.getScrollX(), -view.getScrollY());
-            view.draw(canvas);
-        } else {
-            ViewGroup group = (ViewGroup) view;
-            if (group.getClipChildren()) canvas.clipRect(0, 0, view.getWidth(), view.getHeight());
-            Drawable background = view.getBackground();
-            if (background != null) background.draw(canvas);
-            canvas.translate(-view.getScrollX(), -view.getScrollY());
-            for (int i = 0, n = group.getChildCount(); i < n; i++) {
-                drawLeavingOutSurfaces(canvas, group.getChildAt(i), paths, skipped, frames, reels, depth + 1);
+        try {
+            canvas.translate(view.getLeft(), view.getTop());
+            if (!view.getMatrix().isIdentity()) canvas.concat(view.getMatrix());
+            if (!(view instanceof ViewGroup) || !paths.contains(view) || depth > 100) {
+                canvas.translate(-view.getScrollX(), -view.getScrollY());
+                view.draw(canvas);
+            } else {
+                ViewGroup group = (ViewGroup) view;
+                if (group.getClipChildren()) canvas.clipRect(0, 0, view.getWidth(), view.getHeight());
+                Drawable background = view.getBackground();
+                if (background != null) background.draw(canvas);
+                canvas.translate(-view.getScrollX(), -view.getScrollY());
+                for (int i = 0, n = group.getChildCount(); i < n; i++) {
+                    Throwable child = drawLeavingOutSurfaces(canvas, group.getChildAt(i), paths, skipped, frames, reels,
+                            depth + 1);
+                    if (failed == null) failed = child;
+                }
             }
+        } catch (RuntimeException failure) {
+            failed = failure;
+        } finally {
+            // Whatever saves a throw left open go with it.
+            canvas.restoreToCount(saved);
         }
-        canvas.restoreToCount(saved);
+        return failed;
     }
 
     /**
@@ -666,17 +687,22 @@ public final class GlassTabBar {
      * [barIndex] in [parent] that cross the strip from [top], [tall] high. Instagram's screens leave most
      * of their background to the window, so those rows record nothing. Where the blur came out see-through
      * like that, the sharp screen underneath showed through a clear pill (#583). The colour fills what they
-     * leave, and a SurfaceView's place is still cleared over it.
+     * leave, and a SurfaceView's place is still cleared over it. Returns the first view's draw that threw
+     * and was left out ({@link #drawLeavingOutSurfaces}), or null.
      */
-    static void drawUnderBar(Canvas recording, int base, ViewGroup parent, int barIndex, float top, float tall,
+    @Nullable
+    static Throwable drawUnderBar(Canvas recording, int base, ViewGroup parent, int barIndex, float top, float tall,
             java.util.Set<View> paths, java.util.Set<View> skipped,
             @Nullable java.util.function.Function<View, android.graphics.Bitmap> frames, @Nullable ReelFrames reels) {
         recording.drawColor(base);
+        Throwable failed = null;
         for (int i = 0; i < barIndex; i++) {
             View sibling = parent.getChildAt(i);
             if (sibling.getWidth() <= 0 || sibling.getBottom() <= top || sibling.getTop() >= top + tall) continue;
-            drawLeavingOutSurfaces(recording, sibling, paths, skipped, frames, reels, 0);
+            Throwable threw = drawLeavingOutSurfaces(recording, sibling, paths, skipped, frames, reels, 0);
+            if (failed == null) failed = threw;
         }
+        return failed;
     }
 
     private static final Paint SURFACE_CLEAR = new Paint();
@@ -917,6 +943,8 @@ public final class GlassTabBar {
     static final int SEARCH_GAP_DP = 8;
     /** How long the liquid bar takes to shrink to its compact row, and to grow back. */
     static final long COMPACT_MS = 260;
+    /** How small the standard pill gets as a list scrolls down (#638), against its full size. */
+    static final float SHRUNK_SCALE = 0.8f;
 
     /**
      * The activity in front, from its resume to its pause: the window whose screens Instagram pads by
@@ -1642,6 +1670,11 @@ public final class GlassTabBar {
         /** How far the liquid bar has shrunk to its compact row: 0 is the whole bar, 1 the tab you're on and Search. */
         private float compact;
         @Nullable private ValueAnimator compacting;
+        /** Whether the standard pill shrinks as a list scrolls down (#638): the look off and the switch on as the bar was built. */
+        private final boolean scales;
+        /** The standard pill's shrink as a list scrolls down (#638), on its way to {@link #SHRUNK_SCALE} or back. */
+        @Nullable private ValueAnimator scaling;
+        private final RectF scaleArea = new RectF();
         /** The translation and alpha the liquid look gave each tab, and the tabs it put out of a touch's reach, so only what it did is undone. */
         /** The badge backgrounds whose ring this bar has made clear. */
         private final java.util.Set<Drawable> rings = java.util.Collections.newSetFromMap(new WeakHashMap<>());
@@ -1670,8 +1703,10 @@ public final class GlassTabBar {
             this.refract = Settings.GLASS_TAB_BAR_REFRACT.get();
             boolean hideOnScroll = Settings.GLASS_TAB_BAR_HIDE_ON_SCROLL.get();
             // The liquid look shrinks the bar as a list scrolls down, unless a scroll is to take it away altogether
-            // or the pill is to keep its full size (#256).
-            boolean shrinkOnScroll = liquid && !hideOnScroll && !Settings.GLASS_TAB_BAR_KEEP_SIZE.get();
+            // or the pill is to keep its full size (#256). Without the look, the pill only shrinks when asked to (#638).
+            boolean shrinkOnScroll = !hideOnScroll && (liquid
+                    ? !Settings.GLASS_TAB_BAR_KEEP_SIZE.get() : Settings.GLASS_TAB_BAR_SHRINK_ON_SCROLL.get());
+            this.scales = !liquid && shrinkOnScroll;
             GlassReelsHide hideOnReels = Settings.GLASS_TAB_BAR_REELS_HIDE.get();
             long reelsMillis = hideOnReels == null ? 0L : hideOnReels.millis;
             this.scrollHide = hideOnScroll || shrinkOnScroll || reelsMillis > 0
@@ -1745,7 +1780,8 @@ public final class GlassTabBar {
 
         @Override public boolean onPill(float x, float y) {
             // The compact row has no tabs to slide across, and a drag on a reel's seek bar strip is the seek bar's.
-            return compact <= 0f && pill.pillBounds(touchArea) && touchArea.contains(x, y) && stripAt(x, y) == null;
+            // A shrunk standard pill's tabs aren't where the unscaled bounds say until it's full size again.
+            return compact <= 0f && scaling == null && bar.getScaleX() == 1f && pill.pillBounds(touchArea) && touchArea.contains(x, y) && stripAt(x, y) == null;
         }
 
         @Nullable
@@ -1756,10 +1792,12 @@ public final class GlassTabBar {
 
         /**
          * Shrinks the liquid bar to its compact row as a list scrolls down, or grows it back (#65), sliding over
-         * {@link #COMPACT_MS} unless [now] or the phone's animations are off. It won't shrink without the look,
-         * while paused, with no tab marked selected or with Search selected, which has no tab to shrink to.
+         * {@link #COMPACT_MS} unless [now] or the phone's animations are off. It won't shrink while paused, with no
+         * tab marked selected or with Search selected, which has no tab to shrink to. Without the look it scales the
+         * standard pill instead, and only when that was asked for (#638).
          */
         @Override public boolean shrink(boolean on, boolean now) {
+            if (!liquid) return scale(on, now);
             if (on) {
                 if (!liquidNow()) return false;
                 View selected = selectedTab();
@@ -1784,6 +1822,47 @@ public final class GlassTabBar {
             compacting = animator;
             animator.start();
             return true;
+        }
+
+        /**
+         * The standard pill's shrink (#638): the whole bar scales down to {@link #SHRUNK_SCALE} toward the pill's
+         * bottom edge as a list scrolls down, or back to full size, over {@link #COMPACT_MS} unless [now] or the
+         * phone's animations are off. Every tab stays, smaller. It won't shrink with the switch off or while paused.
+         */
+        private boolean scale(boolean on, boolean now) {
+            if (on && (!scales || HushgramPause.isPaused())) return false;
+            float target = on ? SHRUNK_SCALE : 1f;
+            ValueAnimator running = scaling;
+            scaling = null;
+            if (running != null) running.cancel();
+            if (pill.pillBounds(scaleArea)) {
+                bar.setPivotX(scaleArea.centerX());
+                bar.setPivotY(scaleArea.bottom);
+            } else {
+                bar.setPivotX(bar.getWidth() / 2f);
+                bar.setPivotY(bar.getHeight());
+            }
+            if (now || !animationsOn() || bar.getScaleX() == target) {
+                scaleTo(target);
+                return true;
+            }
+            ValueAnimator animator = ValueAnimator.ofFloat(bar.getScaleX(), target);
+            animator.setDuration(COMPACT_MS);
+            animator.setInterpolator(new DecelerateInterpolator());
+            animator.addUpdateListener(step -> scaleTo((float) step.getAnimatedValue()));
+            animator.addListener(new android.animation.AnimatorListenerAdapter() {
+                @Override public void onAnimationEnd(android.animation.Animator done) {
+                    if (scaling == done) scaling = null;
+                }
+            });
+            scaling = animator;
+            animator.start();
+            return true;
+        }
+
+        private void scaleTo(float scale) {
+            bar.setScaleX(scale);
+            bar.setScaleY(scale);
         }
 
         /** Whether the liquid look shows right now: switched on, and HushGram not paused. */
@@ -2579,6 +2658,10 @@ public final class GlassTabBar {
             ValueAnimator running = compacting;
             compacting = null;
             if (running != null) running.cancel();
+            ValueAnimator shrinking = scaling;
+            scaling = null;
+            if (shrinking != null) shrinking.cancel();
+            if (!liquid) scaleTo(1f);
             pill.discard();
         }
 
@@ -3184,6 +3267,7 @@ public final class GlassTabBar {
                     float top = backdropSource(source, floating, scale, x0, bar.getTop(), bar.getY() + area.top, pad, tall);
                     Canvas recording = backdrop.beginRecording(width, height);
                     boolean found;
+                    Throwable leftOutDraw;
                     try {
                         recording.concat(source);
                         recording.clipRect(x0, top, x0 + wide, top + tall);
@@ -3200,12 +3284,14 @@ public final class GlassTabBar {
                         reelFrames.keepOnly(skipped);
                         stripTop = top;
                         stripTall = tall;
-                        drawUnderBar(recording, base, parent, barIndex, top, tall, leftOut, skipped, frames::frameOf, reelFrames);
+                        leftOutDraw = drawUnderBar(recording, base, parent, barIndex, top, tall, leftOut, skipped,
+                                frames::frameOf, reelFrames);
                     } finally {
                         backdrop.endRecording();
                     }
                     recorded = true;
                     tries.worked();
+                    if (leftOutDraw != null) HookStatus.threw(FamilyNames.GLASS_TAB_BAR, "blur view", leftOutDraw);
                     // A landed video copy requests a frame, so only successful recordings may ask for one.
                     if (found) askFrames(parent, top, tall);
                     else videoCopied = false;

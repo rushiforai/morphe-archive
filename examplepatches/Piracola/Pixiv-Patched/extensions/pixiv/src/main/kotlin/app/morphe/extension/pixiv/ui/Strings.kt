@@ -57,16 +57,44 @@ object Strings {
 
     val searchRanking: String get() = pick("热门搜索排序", "人気順検索の並べ替え", "Popular search ranking")
     val searchRankingHint: String get() = pick(
-        "预览＝Pixiv 免费给的热度榜（约 30 张）；重排＝把当前页按收藏数重排。点击切换。",
-        "プレビュー＝Pixivが無料で返す人気上位（約30件）；並べ替え＝現在のページをブックマーク数順に。タップで切替。",
-        "Preview = Pixiv's free popularity list (about 30 works); Re-rank = sort the current page by bookmarks. Tap to switch."
+        "插画与小说都适用：把热门排序换成 Pixiv 免费下发的那份热度榜（约 30 件）。点击切换。",
+        "イラスト・小説共通：人気順をPixivが無料で返す人気上位（約30件）に置き換えます。タップで切替。",
+        "Illusts and novels: swaps the popular sort for Pixiv's free popularity list (about 30 works). Tap to switch."
     )
 
     fun searchRankingMode(mode: Int): String = when (mode) {
         0 -> pick("关闭", "オフ", "Off")
-        1 -> pick("热度预览", "人気プレビュー", "Preview")
-        else -> pick("按收藏重排", "ブックマーク順", "Re-rank")
+        else -> pick("热度预览", "人気プレビュー", "Preview")
     }
+
+    val bookmarkThreshold: String get() = pick("搜索收藏数门槛", "検索のブックマーク数", "Bookmark threshold")
+    val bookmarkThresholdHint: String get() = pick(
+        "只显示收藏数达到设定值的作品，插画与小说都适用，可填任意数值。「最新作品」「由旧到新」补页不够时会并排再抓几页。",
+        "設定したブックマーク数以上の作品だけを表示します（イラスト・小説共通）。自由な数値を入力できます。「新着順」「古い順」では足りないとき次のページから補充します。",
+        "Shows only works with at least the chosen number of bookmarks, illusts and novels alike. Any count can be typed; the newest and oldest orders are topped up from the following pages."
+    )
+    val bookmarkThresholdTitle: String get() = pick("收藏数门槛", "ブックマーク数の基準", "Bookmark threshold")
+    val bookmarkThresholdOff: String get() = pick("关闭", "オフ", "Off")
+    val bookmarkThresholdCustom: String get() = pick("自定义…", "カスタム…", "Custom…")
+    val bookmarkThresholdCustomTitle: String get() = pick("自定义收藏数", "ブックマーク数を入力", "Custom bookmark count")
+    val bookmarkThresholdScale: String get() = pick(
+        "0 表示关闭，范围 0 - 999999",
+        "0 でオフ、範囲 0〜999999",
+        "0 turns it off, range 0 - 999999"
+    )
+    val bookmarkThresholdSave: String get() = pick("保存", "保存", "Save")
+    val bookmarkThresholdInvalid: String get() = pick(
+        "请输入 0 - 999999 之间的整数",
+        "0〜999999 の整数を入力してください",
+        "Enter a whole number from 0 to 999999"
+    )
+    val bookmarkThresholdEmpty: String get() = pick(
+        "本页没有达标的作品，换个排序或调低门槛试试",
+        "このページに基準以上の作品はありません。並び順を変えるか基準を下げてみてください。",
+        "No work here cleared the threshold - try another order or a lower number."
+    )
+
+    fun bookmarkThresholdValue(count: Int): String = "$count+"
 
     val aiTitle: String get() = pick("AI 作品过滤设置", "AI作品フィルター設定", "AI Work Filter Settings")
     val aiDisplaySection: String get() = pick("显示偏好", "表示設定", "DISPLAY PREFERENCES")

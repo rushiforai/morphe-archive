@@ -18,6 +18,13 @@ Second \"item\" text"</string>
 <resources>
   <string name="reddit_privacy_policy">Redditプライバシーポリシー</string>
   <string name="morphe_google_signin_not_available_toast">Google ログインが利用できません。メールアドレスでログインしてください</string>
+  <string name="morphe_app_downgrade_dialog_title">ダウングレードはサポートされていません</string>
+  <string name="morphe_app_downgrade_dialog_message">"この Reddit のインストールは、&lt;b&gt;%1$s&lt;/b&gt; から &lt;b&gt;%2$s&lt;/b&gt; にダウングレードされました
+&lt;br/&gt;&lt;br/&gt;
+新しいバージョンのアプリデータは古いバージョンでは動作せず、アプリが正しく動作しない可能性があります。
+&lt;br/&gt;&lt;br/&gt;
+古いバージョンを使用するには、Reddit を&lt;b&gt;アンインストール&lt;/b&gt;してから、古いバージョンをインストールする必要があります。"</string>
+  <string name="morphe_app_downgrade_dialog_open_app_info">アプリ情報を開く</string>
   <string name="morphe_screen_ads_title">広告</string>
   <string name="morphe_hide_post_ads_title">フィード広告を非表示</string>
   <string name="morphe_hide_comment_ads_title">コメント広告を非表示</string>
@@ -37,7 +44,7 @@ Second \"item\" text"</string>
   <string name="morphe_copy_text_title">テキストをコピー</string>
   <string name="morphe_copy_text_summary">投稿とコメント内のテキストを選択してコピーできるようにします。コメントの折りたたみを無効にします</string>
   <string name="morphe_copy_text_user_dialog_message">コピーテキストが有効な間、折りたたみコメントは機能しなくなります</string>
-  <string name="morphe_custom_font_title">カスタムフォント</string>
+  <string name="morphe_custom_font_title">カスタム フォント</string>
   <string name="morphe_custom_font_summary">設定した TTF フォントファイルまたは OTF フォントファイルを読み込みます。この設定を有効にすると、[システムフォントを使用] が自動的に無効になります</string>
   <string name="morphe_custom_font_file_path_title">カスタム フォント ファイル</string>
   <string name="morphe_custom_font_file_path_summary">タップして TTF フォントファイルまたは OTF フォントファイルを選択します</string>
@@ -58,6 +65,8 @@ Second \"item\" text"</string>
   <string name="morphe_hide_trending_shelves_summary">フィードと検索候補からトレンド欄を非表示にします</string>
   <string name="morphe_remove_notification_dialog_title">通知の提案ダイアログを削除</string>
   <string name="morphe_remove_notification_dialog_summary">subreddit を開いたときに表示される通知案内のポップアップを自動的に閉じます</string>
+  <string name="morphe_high_quality_avatars_title">高品質なアバター</string>
+  <string name="morphe_high_quality_avatars_summary">ユーザーのアバターをフル解像度で表示します</string>
   <string name="morphe_show_flairs_in_home_feed_title">ホームフィードにフレアを表示</string>
   <string name="morphe_show_flairs_in_home_feed_summary">ホームフィードに投稿フレア (タグ) を表示します</string>
   <string name="morphe_show_flairs_in_home_feed_user_dialog_message">一部のフィード項目にはフレアが表示されない場合があります</string>
@@ -84,10 +93,6 @@ Second \"item\" text"</string>
   <string name="morphe_keep_feed_position_summary">投稿、画像、または動画を閉じた後、開いた投稿を上部に移動する代わりに、フィードを同じ位置に維持します</string>
   <string name="morphe_feed_media_max_height_title">フィードメディアの最大高さ</string>
   <string name="morphe_feed_media_max_height_summary">フィード内の画像、動画、ギャラリーの最大の高さを、幅に対する倍数で指定します。これより高いメディアは切り抜かれます。1.33はRedditのデフォルトです</string>
-  <string name="morphe_redgifs_audio_title">RedGIFs を音声付きで再生</string>
-  <string name="morphe_redgifs_audio_summary">Reddit が再エンコードした RedGIFs 動画 (音声が無くなる場合が多い) ではなく、オリジナルの RedGIFs 動画を再生します</string>
-  <string name="morphe_redgifs_hd_title">RedGIFs を HD 画質で再生</string>
-  <string name="morphe_redgifs_hd_summary">RedGIFs 動画を HD 画質で再生します。HD 動画はデータサイズが大きいため、読み込みのために再生が一時停止してしまう場合があります</string>
   <string name="morphe_download_location_title">ダウンロード先</string>
   <string name="morphe_download_location_all_title">すべてのアカウント</string>
   <string name="morphe_download_location_default_summary">Redditのデフォルト：画像はPictures/Reddit、動画はDownloadに保存</string>
@@ -108,7 +113,7 @@ Second \"item\" text"</string>
   <string name="morphe_download_location_pattern_help">トークンをタップして挿入してください。/を入力するとサブフォルダが作成され、不明な値は\"unknown\"になります</string>
   <string name="morphe_download_location_example_images">画像: %s</string>
   <string name="morphe_download_location_example_videos">動画: %s</string>
-  <string name="morphe_download_location_save">適用</string>
+  <string name="morphe_download_location_save">保存</string>
   <string name="morphe_download_location_reset">リセット</string>
   <string name="morphe_download_location_delete">削除</string>
   <string name="morphe_download_location_reset_confirm">すべてのアカウントのダウンロード先をRedditのデフォルトに戻しますか？</string>

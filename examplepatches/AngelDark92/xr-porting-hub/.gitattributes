@@ -7,12 +7,20 @@
 # These are Windows script files and should use crlf
 *.bat           text eol=crlf
 
+# Native quad helpers are byte-pinned binaries: never apply EOL conversion.
+/patches/src/main/resources/steamlink/nativequad/far/*.so -text
+
 # This manifest is validated by a byte-exact SHA-256 pin on every platform.
 /patches/src/main/resources/steamlink/androidxr/XR_APILAYER_local_GalaxyXR_codecs_support.json text eol=lf
 /patches/src/main/resources/steamlink/androidxr/XR_APILAYER_local_GalaxyXR_stock_quad_v1.json text eol=lf
+/patches/src/main/resources/steamlink/androidxr/XR_APILAYER_local_GalaxyXR_android_surface_trigger_passthrough_v1.json text eol=lf
 /patches/src/main/resources/steamlink/androidxr/telemetry/*.json text eol=lf
 /patches/src/main/resources/steamlink/androidxr/telemetry/*.tsv text eol=lf
 /patches/src/main/resources/steamlink/androidxr/telemetry/NOTICE.txt text eol=lf
+
+# Alpha-0 projection helpers are byte-pinned binaries: never apply EOL conversion.
+/patches/src/main/resources/steamlink/androidxr/libgxr_ast.so          -text
+/patches/src/main/resources/steamlink/androidxr/libgxr_ast_5001712.so  -text
 
 # 4XVR text payloads are validated by byte-exact SHA-256 pins on every platform.
 /patches/src/main/resources/fourxvr/icon/ic_launcher.xml      text eol=lf

@@ -28,7 +28,6 @@ val stravaAmoledThemePatch = resourcePatch(
         "ladder. Light mode is untouched.",
     default = true,
 ) {
-    category("Theme")
     compatibleWith(STRAVA_COMPATIBILITY)
 
     execute {
@@ -77,7 +76,6 @@ val stravaBrandingPatch = resourcePatch(
         "the original name.",
     default = false,
 ) {
-    category("Theme")
     compatibleWith(STRAVA_COMPATIBILITY)
 
     val appName by stringOption(

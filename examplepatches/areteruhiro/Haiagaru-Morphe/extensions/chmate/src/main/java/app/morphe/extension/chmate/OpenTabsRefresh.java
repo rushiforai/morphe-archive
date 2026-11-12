@@ -100,6 +100,14 @@ public final class OpenTabsRefresh {
     }
     /** Bound to each version's concrete native board/thread command dispatcher by the patch. */
     private static boolean nativeRefresh(Object fragment){return false;}
+    /** Refresh the matched reader after its background DAT has had time to arrive. */
+    static void refreshWatchedFragment(Object fragment){
+        if(fragment==null||dispatching())return;
+        dispatching.set(true);
+        try{nativeRefresh(fragment);}
+        catch(Exception error){android.util.Log.w("Haiagaru","Watched reader refresh unavailable",error);}
+        finally{dispatching.remove();}
+    }
     static boolean dispatching(){return Boolean.TRUE.equals(dispatching.get());}
     private static void refreshLivePages(Activity activity,List<?> pages,Set<String> threads,Set<String> boards)throws Exception{
         String v=version(activity);String fragmentField=v.contains("191")?"c":v.contains("226")?"b":"d";
@@ -129,6 +137,24 @@ public final class OpenTabsRefresh {
         scheduling.set(scope);
         try{Class.forName(owner,false,context.getClassLoader()).getDeclaredMethod(scope.download?"haiagaruRefreshOpenThreads":"haiagaruRefreshOpenBoards",Context.class,boolean.class).invoke(null,context.getApplicationContext(),false);}
         finally{scheduling.remove();}
+    }
+    /** Commit monitored DAT through ChMate's own WorkManager worker. Never write its cache directly. */
+    static void downloadWatched(Context context,Collection<String> urls){
+        if(urls==null||urls.isEmpty())return;
+        try{
+            String v=version(context);boolean middle=v.contains("226");
+            Set<String> keys=new LinkedHashSet<>();
+            for(String url:urls){
+                Object info=parseInfo(context,url);
+                if(info==null)continue;
+                Object board=RefreshTargets.nativeBoard(info,v);
+                Object id=field(info,middle?"c":"e");
+                if(board!=null&&id instanceof Long&&((Long)id)>0)
+                    keys.add(identity(board.toString(),(Long)id));
+            }
+            if(keys.isEmpty())return;
+            Scope scope=new Scope(keys,true);validate(scope);enqueue(context,scope);
+        }catch(Exception error){android.util.Log.w("Haiagaru","Watched-thread native DAT refresh unavailable",error);}
     }
     public static void writeScope(Map<String,Object> map){
         Scope scope=scheduling.get();if(scope==null)throw new IllegalStateException("No open-tab snapshot");

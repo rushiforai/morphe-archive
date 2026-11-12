@@ -35,6 +35,9 @@ namespace BaconReader.E2E.Infrastructure;
 ///   Android doesn't ask, on any device), and Downloads/BaconReader emptied, so scenarios share nothing (no login, no setting, no cache, no
 ///   saved image); a LoggedIn scenario's app starts logged in with the test account, as the fake hands it the login at
 ///   its start, once its Given says "the test account is logged in" (<see cref="Reddit.Reddit.TheTestAccountIsLoggedIn"/>);
+/// - for a Manager scenario (<see cref="PatchSet.ByTheManager"/>), none of the patching: the phone as a user has it
+///   before patching the first time, the patcher's manager installed, as just installed, no BaconReader, and the clean
+///   APK in Downloads (<see cref="TheManager"/>); after it, BaconReader, which the manager signed, uninstalled;
 /// - an Appium session on the phone (<see cref="Screen.Phone"/>, the scenario's <c>[PlayOnPhone]</c>) that leaves the
 ///   app alone until the scenario opens it: one for the run, which the next scenario plays on too (opening one took
 ///   ~10 s and closing it ~2 s, 6 min of a 59 min run of the LoggedIn scenarios, 2026-11-07); a new one when it is gone
@@ -126,10 +129,19 @@ public abstract class BaseE2E : IAsyncLifetime
         screen = ReadScreen();
         patches = ReadPatches();
         fake.World.MarkScenarioStart();
-        var apk = await PatchedApps.PatchAsync(patches);
-        await PatchedApps.InstallAsync(apk);
-        await FakeRedditLink.EnsureAsync();
-        await PatchedApps.ResetAsync();
+        if (patches is PatchSet.ByTheManager)
+        {
+            // A Manager scenario patches the app itself, through the patcher's manager, as a user does the first time.
+            await TheManager.PrepareAsync();
+        }
+        else
+        {
+            var apk = await PatchedApps.PatchAsync(patches);
+            await PatchedApps.InstallAsync(apk);
+            await FakeRedditLink.EnsureAsync();
+            await PatchedApps.ResetAsync();
+        }
+
         await HomeScreen.ShowAsync();
         await Commands.ShellAsync($"rm -rf {DownloadsFolder}");
         driver = await Task.Run(OpenOrReuseSession);
@@ -139,7 +151,12 @@ public abstract class BaseE2E : IAsyncLifetime
         {
             try
             {
-                await SetupPage.ShowAsync();
+                // A Manager scenario's Given sets up no fake Reddit: its video starts on the home screen.
+                if (patches is not PatchSet.ByTheManager)
+                {
+                    await SetupPage.ShowAsync();
+                }
+
                 recording = await ScreenRecording.StartAsync();
                 sinceRecording.Start();
                 OnScreen.DrawTapsOn(driver, recording);
@@ -208,10 +225,15 @@ public abstract class BaseE2E : IAsyncLifetime
             // Stopped over adb, not with Appium's TerminateApp: after a recording of minutes, the "dumpsys activity
             // processes" it runs first timed out at Appium's 20 s over the slow link, and failed a scenario that passed.
             await Commands.ShellAsync($"am force-stop {E2EDevice.Package}");
-            if (E2EDevice.VideoDirectory is not null)
+            if (patches is PatchSet.ByTheManager)
+            {
+                await TheManager.CleanUpAsync();
+            }
+            else if (E2EDevice.VideoDirectory is not null)
             {
                 await SetupPage.CloseAsync();
             }
+
             OnScreen.ForgetScenarioOn(closing);
             if (!passed)
             {
@@ -359,7 +381,7 @@ public abstract class BaseE2E : IAsyncLifetime
         }
 
         return ScenarioSteps.Read(method, Gherkin.Read(gherkin).Text).Match<GherkinMarking?>(
-            read => new GherkinMarking(read.Steps, started, GetType(), at, new Screens(this)),
+            read => new GherkinMarking(read.Steps, started, GetType(), at, patches is PatchSet.ByTheManager ? null : new Screens(this)),
             failed =>
             {
                 TestContext.Current.SendDiagnosticMessage($"{GetType().Name}.{method.Name}: no Gherkin marks: {failed.Why}");

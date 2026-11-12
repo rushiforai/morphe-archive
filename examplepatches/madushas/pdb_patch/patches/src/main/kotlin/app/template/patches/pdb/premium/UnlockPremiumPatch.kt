@@ -41,7 +41,6 @@ val pdbUnlockPremiumPatch = bytecodePatch(
         "no client patch can lift.",
     default = true,
 ) {
-    category("Premium")
     compatibleWith(PDB_COMPATIBILITY)
 
     execute {

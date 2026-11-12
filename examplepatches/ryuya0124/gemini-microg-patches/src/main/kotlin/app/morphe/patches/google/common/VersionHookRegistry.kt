@@ -18,6 +18,7 @@ enum class HookId(val displayName: String) {
     GMS_SIGNATURE_BYPASS("GMS 可用性検証"),
     GMS_CERTIFICATE_VERIFIER("GMS 証明書検証"),
     GEMINI_TARGET_REDIRECT("Gemini 連携先"),
+    GEMINI_ERROR_LOGO_FALLBACK("Gemini エラー画面の画像フォールバック"),
     SPLIT_RESTRICTION_REMOVAL("Split 制約解除"),
     APP_LABEL_UPDATE("アプリ表示名"),
     PROCESS_NAME_REDIRECT("プロセス名正規化"),

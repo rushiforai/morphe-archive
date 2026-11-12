@@ -59,6 +59,7 @@ import java.util.Locale;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.ResourceUtils;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.misc.MediaTime;
 
 /** Activity-scoped native UI. Catalog pages contain at most 100 views. */
 final class LibraryDialog {
@@ -346,6 +347,7 @@ final class LibraryDialog {
                 service.unlisten(listener);
                 root.removeCallbacks(syncTick);
                 for (Dialog child : new ArrayList<>(children)) child.dismiss();
+                ThumbnailLoader.evictAll();
             }
         });
         label(content, UiText.get("morphe_series_tracker_ui_loading_saved_series"), 16);
@@ -474,9 +476,9 @@ final class LibraryDialog {
                     ? (plan.ordinal() > 0
                        ? UiText.format("morphe_series_tracker_episode_position",
                     s.episodeNumber(plan.ordinal()),
-                    ResumePlanner.time(plan.positionMs()))
+                    MediaTime.format(plan.positionMs()))
                        : UiText.format("morphe_series_tracker_saved_position",
-                    ResumePlanner.time(plan.positionMs())))
+                    MediaTime.format(plan.positionMs())))
                     : UiText.get(plan.messageKey());
             if (s.newEpisodeCount() > 0 && plan.playable() && plan.positionMs() == 0)
                 subtitle = s.newEpisodeCount() == 1
@@ -593,32 +595,39 @@ final class LibraryDialog {
             label(content, "morphe_series_tracker_catalog_unavailable", 14);
             return;
         }
-        Switch hide = new Switch(activity);
-        hide.setText(UiText.get("morphe_series_tracker_hide_watched"));
-        hide.setTextSize(14);
-        hide.setTextColor(HistoryUi.foreground());
-        hide.setMinHeight(HistoryUi.dp(48));
-        hide.setSwitchPadding(HistoryUi.dp(16));
-        hide.setChecked(s.hideWatched());
+        Switch hide = optionSwitch("morphe_series_tracker_hide_watched", s.hideWatched());
+        Switch advance = optionSwitch("morphe_series_tracker_watched_on_advance", s.watchedOnAdvance());
         hide.setOnCheckedChangeListener(
                 (button, checked) -> {
                     episodeReveal.cancel();
                     hide.setEnabled(false);
+                    advance.setEnabled(false);
                     service.seriesOptions(
                             s,
                             s.reverseOrder(),
                             checked,
+                            s.watchedOnAdvance(),
                             () -> {
                                 page = 0;
                                 scroll.scrollTo(0, 0);
                                 reload();
                             },
-                            message -> {
-                                reload();
-                                error(message);
-                            });
+                            this::optionFailed);
                 });
         content.addView(hide, new LinearLayout.LayoutParams(-1, -2));
+        advance.setOnCheckedChangeListener(
+                (button, checked) -> {
+                    hide.setEnabled(false);
+                    advance.setEnabled(false);
+                    service.seriesOptions(
+                            s,
+                            s.reverseOrder(),
+                            s.hideWatched(),
+                            checked,
+                            this::reload,
+                            this::optionFailed);
+                });
+        content.addView(advance, new LinearLayout.LayoutParams(-1, -2));
         List<Episode> available = s.visibleEpisodes();
         int currentIndex = episodeReveal.targetIndex(plan, available);
         if (available.isEmpty()) {
@@ -689,6 +698,23 @@ final class LibraryDialog {
                     });
     }
 
+    private Switch optionSwitch(String key, boolean checked) {
+        Switch option = new Switch(activity);
+        option.setText(UiText.get(key));
+        option.setTextSize(14);
+        option.setTextColor(HistoryUi.foreground());
+        option.setMinHeight(HistoryUi.dp(48));
+        option.setSwitchPadding(HistoryUi.dp(16));
+        option.setChecked(checked);
+        return option;
+    }
+
+    /** Shows the saved options again, as the failed switch was already toggled. */
+    private void optionFailed(String message) {
+        reload();
+        error(message);
+    }
+
     private void recovery(Series series) {
         List<Episode> matches = new ArrayList<>();
         for (Episode e : series.episodes())
@@ -722,7 +748,7 @@ final class LibraryDialog {
             labels.add(p.watched()
                     ? "morphe_series_tracker_ui_play_again_from_0_00"
                     : UiText.format("morphe_series_tracker_resume_at",
-                    ResumePlanner.time(p.positionMs())));
+                    MediaTime.format(p.positionMs())));
             actions.add(() -> play(
                     s,
                     e.videoId,
@@ -892,6 +918,7 @@ final class LibraryDialog {
                     s,
                     reverse,
                     s.hideWatched(),
+                    s.watchedOnAdvance(),
                     () -> {
                         sheet.dialog.dismiss();
                         episodeReveal.cancel();
@@ -984,7 +1011,7 @@ final class LibraryDialog {
     }
 
     private void toast(String message) {
-        Utils.showToastLong(UiText.get(message));
+        Utils.showSnackbarLong(UiText.get(message));
     }
 
     private LinearLayout column() {
@@ -1094,7 +1121,7 @@ final class LibraryDialog {
         thumbnail.addView(picture, new FrameLayout.LayoutParams(-1, -1));
         ThumbnailLoader.load(picture, id);
         if (duration > 0 && !compact) {
-            TextView badge = label(null, ResumePlanner.time(duration), 12);
+            TextView badge = label(null, MediaTime.format(duration), 12);
             badge.setTextColor(0xfff1f1f1);
             badge.setBackground(HistoryUi.rounded(0xbb000000, 4));
             badge.setPadding(HistoryUi.dp(4), 0, HistoryUi.dp(4), 0);

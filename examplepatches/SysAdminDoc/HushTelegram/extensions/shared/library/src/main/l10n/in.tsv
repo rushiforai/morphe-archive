@@ -1801,3 +1801,59 @@ Not in secret chats	Tidak di obrolan rahasia
 This chat doesn't allow saving	Obrolan ini melarang penyimpanan
 # context: Toast once the Screenshot button's picture is saved. Pictures is the phone's pictures folder. Two short lines at most.
 Screenshot saved to Pictures	Tangkapan layar disimpan ke Gambar
+
+# context: Title of a settings row and of its dialog: type a user, group or channel ID and that chat opens
+Open a chat by ID	Buka chat lewat ID
+# context: Summary of the Open a chat by ID row. Telegram only opens people and chats it already has stored on the phone
+Type a user, group or channel ID to open that chat. It works for anyone this app has already seen, such as someone who wrote in a group you opened.	Ketik ID pengguna, grup, atau kanal untuk membuka chat itu. Ini berlaku untuk siapa saja yang sudah pernah dilihat aplikasi ini, misalnya orang yang menulis di grup yang pernah Anda buka.
+# context: Hint and label of the number field in the Open a chat by ID dialog
+User or chat ID	ID pengguna atau chat
+# context: Note in the Open a chat by ID dialog. The ID row is the one Show user and chat IDs adds to a profile; bots write a group ID with a minus sign and a channel ID starting with -100
+The number from a profile's ID row, or a chat ID the way bots write it.	Angka dari baris ID di profil, atau ID chat seperti yang ditulis bot.
+# context: Button in the Open a chat by ID dialog that opens the chat
+Open	Buka
+# context: Toast when what was typed in Open a chat by ID isn't a number. Two short lines at most.
+Type the ID in numbers	Ketik ID dengan angka
+# context: Toast when Telegram on this phone has never stored that user or chat, so it can't open it. Two short lines at most.
+This app hasn't seen that ID yet	Aplikasi ini belum pernah melihat ID itu
+# context: Title of a settings row under Free proxies and of its dialog: the addresses of proxy lists the person adds
+Your proxy lists	Daftar proxy Anda
+# context: Summary of the Your proxy lists row when none are added. Free proxies is the name of the switch above it
+Add the addresses of proxy lists you trust, and Free proxies reads those instead of the public ones.	Tambahkan alamat daftar proxy yang Anda percayai, dan Proxy gratis akan membaca daftar itu, bukan daftar publik.
+# context: Summary of the Your proxy lists row with the number of lists added. Free proxies is the name of the switch above it
+Lists added: %1$s. Free proxies reads these instead of the public ones.	Daftar ditambahkan: %1$s. Proxy gratis membaca daftar ini, bukan daftar publik.
+# context: Hint and label of the box in the Your proxy lists dialog, where each line is one web address
+One https address a line	Satu alamat https per baris
+# context: Note in the Your proxy lists dialog. t.me/proxy and tg://proxy are link forms and stay as they are
+Each list is a page of t.me/proxy or tg://proxy links. Free proxies times them and adds the 10 fastest. Leave it empty to use the public lists again.	Setiap daftar adalah halaman berisi tautan t.me/proxy atau tg://proxy. Proxy gratis mengukur kecepatannya dan menambahkan 10 yang tercepat. Kosongkan untuk memakai daftar publik lagi.
+# context: Toast when a line in Your proxy lists isn't an https web address. Two short lines at most.
+Each line needs an https address	Setiap baris perlu alamat https
+# context: Toast when more lists are typed than Your proxy lists keeps; %1$s is the most it keeps (5). Two short lines at most.
+Up to %1$s lists	Paling banyak %1$s daftar
+# context: Toast when Your proxy lists couldn't be saved. Two short lines at most.
+Couldn't save the lists. Try again in a moment.	Daftar tidak tersimpan. Coba lagi sebentar lagi.
+# context: Summary of the Find free proxies now row before its first try, when the person has added lists of their own
+Downloads your proxy lists now, times them and adds the fastest to Telegram's proxy list, even with the switch above off.	Mengunduh daftar proxy Anda sekarang, mengukur kecepatannya, lalu menambahkan yang tercepat ke daftar proxy Telegram, meski sakelar di atas nonaktif.
+# context: Toast and dialog note when Open a chat by ID couldn't look the ID up or couldn't start the chat. Two short lines at most.
+Couldn't open that. Try again.	Tidak dapat dibuka. Coba lagi.
+# context: Record calls (#72). The chat list long press item and its toasts, the call screen's pause button and toasts, and three settings rows: which calls are recorded, the chats picked for it, and how long recordings are kept.
+Record calls here	Rekam panggilan di sini
+Calls in these chats aren't recorded anymore.	Panggilan di obrolan ini tidak direkam lagi.
+Calls in these chats are recorded.	Panggilan di obrolan ini direkam.
+Recording paused	Perekaman dijeda
+Recording resumed	Perekaman dilanjutkan
+Pause recording	Jeda perekaman
+Resume recording	Lanjutkan perekaman
+Calls to record	Panggilan yang direkam
+Every call	Semua panggilan
+Private calls only	Hanya panggilan pribadi
+Voice chats and live streams only	Hanya obrolan suara dan siaran langsung
+Only calls in the chats you pick below	Hanya panggilan di obrolan yang Anda pilih di bawah
+Chats to record	Obrolan yang direkam
+Keep recordings	Simpan rekaman
+Recordings stay until you delete them.	Rekaman tetap ada sampai Anda menghapusnya.
+Recordings older than %1$d day are deleted when the next one is saved.	Rekaman yang lebih lama dari %1$d hari dihapus saat rekaman berikutnya disimpan.
+Recordings older than %1$d days are deleted when the next one is saved.	Rekaman yang lebih lama dari %1$d hari dihapus saat rekaman berikutnya disimpan.
+Until you delete them	Sampai Anda menghapusnya
+%1$d day	%1$d hari
+%1$d days	%1$d hari

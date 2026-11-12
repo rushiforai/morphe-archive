@@ -1,3 +1,21 @@
+## [1.20.0](https://github.com/amfakh/fakh-patches/compare/v1.19.1...v1.20.0) (2026-11-12)
+
+### New Features
+
+* **CoverScreen OS:** add Disable analytics, which turns off Firebase Analytics, Crashlytics, Performance and Sessions, stops the GIF keyboard from sending your advertising ID, device model, carrier and screen size with its ad requests, and removes the ad ID and ad services permissions ([6b940fb](https://github.com/amfakh/fakh-patches/commit/6b940fb9a5426fe85b2e37df46ed62861ed85bb5))
+
+## [1.19.1](https://github.com/amfakh/fakh-patches/compare/v1.19.0...v1.19.1) (2026-11-12)
+
+### Bug Fixes
+
+* **CoverScreen OS:** the cover screen no longer crashes when it opens, and its first-run setup finishes instead of ending in "Setup took too long" ([a061c6e](https://github.com/amfakh/fakh-patches/commit/a061c6e564d308284eb543efb48f9de6c6359d2e))
+
+## [1.19.0](https://github.com/amfakh/fakh-patches/compare/v1.18.1...v1.19.0) (2026-11-12)
+
+### New Features
+
+* **CoverScreen OS:** add Premium unlock, which turns on Pro with every premium feature, no ads and no payment screen, and keeps the trial from expiring, for `CSOS_9.0.1_BETA` ([e926491](https://github.com/amfakh/fakh-patches/commit/e9264913978d29af0489eafc529d10a4409a39c4))
+
 ## [1.18.1](https://github.com/amfakh/fakh-patches/compare/v1.18.0...v1.18.1) (2026-11-11)
 
 ### Performance Improvements

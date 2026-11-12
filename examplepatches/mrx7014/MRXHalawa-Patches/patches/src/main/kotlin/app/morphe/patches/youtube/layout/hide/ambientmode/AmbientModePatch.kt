@@ -10,30 +10,43 @@
 
 package app.morphe.patches.youtube.layout.hide.ambientmode
 
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.methodCall
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.mutableClassDefBy
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.util.matchAllMethodIndicesForEach
+import app.morphe.patcher.util.matchSingle
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import app.morphe.patches.shared.layout.theme.lithoColorHookPatch
+import app.morphe.patches.shared.layout.theme.lithoDrawableColorHook
 import app.morphe.patches.shared.misc.fix.proto.fixProtoLibraryPatch
 import app.morphe.patches.shared.misc.fix.proto.parseByteArrayMethodRef
 import app.morphe.patches.shared.misc.settings.preference.PreferenceScreenPreference
 import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
+import app.morphe.patches.youtube.layout.sponsorblock.ControlsOverlayFingerprint
 import app.morphe.patches.youtube.misc.extension.sharedExtensionPatch
 import app.morphe.patches.youtube.misc.playservice.is_21_02_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_21_03_or_greater
+import app.morphe.patches.youtube.misc.playservice.is_21_12_or_greater
+import app.morphe.patches.youtube.misc.playservice.is_21_30_or_greater
+import app.morphe.patches.youtube.misc.playservice.is_21_43_or_greater
 import app.morphe.patches.youtube.misc.playservice.versionCheckPatch
+import app.morphe.patches.youtube.misc.playertype.playerTypeHookPatch
 import app.morphe.patches.youtube.misc.settings.PreferenceScreen
 import app.morphe.patches.youtube.misc.settings.settingsPatch
 import app.morphe.patches.youtube.shared.Constants.COMPATIBILITY_YOUTUBE
+import app.morphe.patches.youtube.video.information.videoInformationPatch
+import app.morphe.patches.youtube.video.information.videoTimeHook
 import app.morphe.util.findFieldFromToString
 import app.morphe.util.findInstructionIndicesReversedOrThrow
 import app.morphe.util.indexOfFirstInstructionOrThrow
-import app.morphe.util.matchAllMethodIndicesForEach
-import app.morphe.util.matchSingle
+import app.morphe.util.insertLiteralOverride
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
@@ -48,6 +61,9 @@ import com.android.tools.smali.dexlib2.util.MethodUtil
 
 private const val EXTENSION_CLASS =
     "Lapp/morphe/extension/youtube/patches/AmbientModePatch;"
+
+private const val EXTENSION_ENHANCED_AMBIENT_MODE_CLASS =
+    "Lapp/morphe/extension/youtube/ambientlight/AmbientLightController;"
 
 /**
  * `disableAmbientMode(true)` returns true if ambient mode is not disabled in the Morphe settings.
@@ -72,15 +88,18 @@ private const val DEFAULT_CINEMATIC_CONTAINER_RENDERER =
             "gICYAx0AAIA/CICAgJgDCAIdAAAAPyUAAAA/LQAAgD81AACAPw=="
 
 @Suppress("unused")
-val ambientModePatch = bytecodePatch(
+val ambientModePatch = patch(
     name = "Ambient mode",
-    description = "Forces Ambient mode on and adds options to bypass power saving restrictions for Ambient mode and disable it entirely or in fullscreen.",
+    description = "Adds Enhanced Ambient mode and options to force Ambient mode on, bypass its power saving restrictions, and disable it entirely or in fullscreen.",
 ) {
     dependsOn(
         settingsPatch,
         sharedExtensionPatch,
         versionCheckPatch,
         fixProtoLibraryPatch,
+        playerTypeHookPatch,
+        videoInformationPatch,
+        lithoColorHookPatch { is_21_30_or_greater },
     )
 
     compatibleWith(COMPATIBILITY_YOUTUBE)
@@ -91,12 +110,43 @@ val ambientModePatch = bytecodePatch(
                 key = "morphe_ambient_mode_screen",
                 sorting = PreferenceScreenPreference.Sorting.UNSORTED,
                 preferences = setOf(
+                    SwitchPreference("morphe_enhanced_ambient_mode", summary = true),
+                    SwitchPreference("morphe_enhanced_ambient_mode_readable_text", summary = true),
                     SwitchPreference("morphe_bypass_ambient_mode_restrictions", summary = true),
                     SwitchPreference("morphe_disable_ambient_mode"),
                     SwitchPreference("morphe_disable_fullscreen_ambient_mode"),
                 )
             )
         )
+
+        //
+        // Enhanced Ambient mode.
+        //
+        lithoDrawableColorHook("$EXTENSION_ENHANCED_AMBIENT_MODE_CLASS->getLithoColor(Landroid/graphics/drawable/Drawable;I)I")
+        videoTimeHook(EXTENSION_ENHANCED_AMBIENT_MODE_CLASS, "setVideoTime")
+        AmbientModeToggleFingerprint.let {
+            it.method.apply {
+                val index = it.instructionMatches.last().index
+                val register = getInstruction<FiveRegisterInstruction>(index).registerE
+
+                addInstruction(
+                    index,
+                    "invoke-static { v$register }, $EXTENSION_ENHANCED_AMBIENT_MODE_CLASS->" +
+                            "setAmbientModeToggle(Ljava/lang/Boolean;)V"
+                )
+            }
+        }
+        ControlsOverlayFingerprint.let {
+            it.clearMatch() // Parent fingerprint is shared and may have changed.
+            it.method.apply {
+                val checkCastIndex = it.instructionMatches.last().index
+                val register = getInstruction<OneRegisterInstruction>(checkCastIndex).registerA
+                addInstruction(
+                    checkCastIndex + 1,
+                    "invoke-static { v$register }, $EXTENSION_ENHANCED_AMBIENT_MODE_CLASS->initialize(Landroid/view/ViewGroup;)V"
+                )
+            }
+        }
 
         //
         // Bypass ambient mode restrictions.
@@ -115,10 +165,12 @@ val ambientModePatch = bytecodePatch(
             }
         }
 
-        val intentActionFingerprints = mutableListOf(
-            IntentActionBroadcastReceiverFingerprint,
-            IntentActionSyntheticFingerprint
+        val intentActionFingerprints = mutableListOf<Fingerprint>(
+            IntentActionBroadcastReceiverFingerprint
         )
+        if (!is_21_43_or_greater) {
+            intentActionFingerprints += IntentActionSyntheticFingerprint
+        }
         if (is_21_02_or_greater) {
             intentActionFingerprints += IntentActionBroadcastReceiverAlternativeFingerprint
         }
@@ -136,11 +188,22 @@ val ambientModePatch = bytecodePatch(
                     PowerSaveModeSyntheticFingerprint.matchOrNull(
                                         mutableClassDefBy(reference.definingClass)
                                     )?.method?.hook()
+
+                    // 21.43+ inlines the lambda into the receiver.
+                    if (is_21_43_or_greater) hook()
                 }
             }
         }
-        if (is_21_03_or_greater) {
+
+        if (is_21_43_or_greater) {
             IntentActionSyntheticAlternativeFingerprint.method.hook()
+
+            // 21.43+ inlines the lambdas that read the first value for the Ambient mode receiver.
+            // The receiver is registered on the main thread, or asynchronously if a server flag is on.
+            PowerSaveModeInitialValueFingerprint.method.hook()
+            PowerSaveModeInitialValueAsyncFingerprint.method.hook()
+        } else if (is_21_03_or_greater) {
+            IntentActionSyntheticAlternativeLegacyFingerprint.method.hook()
         }
 
         //
@@ -150,7 +213,7 @@ val ambientModePatch = bytecodePatch(
 
         // Feature flags. 21.30+ inlines the flag lookups and must patch 4 places for each flag.
         // Each flag is on if ambient mode is not disabled.
-        AmbientModeFeatureFlagFingerprint.matchAllMethodIndicesForEach { index ->
+        if (!is_21_43_or_greater) AmbientModeFeatureFlagFingerprint.matchAllMethodIndicesForEach { index ->
             val moveResultIndex = indexOfFirstInstructionOrThrow(index, Opcode.MOVE_RESULT)
             val register = getInstruction<OneRegisterInstruction>(moveResultIndex).registerA
 
@@ -164,6 +227,13 @@ val ambientModePatch = bytecodePatch(
             )
         }
 
+        // Black background experiment: ambient mode is always inactive, whatever the
+        // CinematicContainerRenderer, power save mode or flyout menu toggle say.
+        // Turn it off, so the watch page uses the same ambient mode and layout as outside the experiment.
+        if (is_21_12_or_greater) AmbientModeBlackBackgroundFeatureFlagFingerprint.matchAllMethodIndicesForEach { index ->
+            insertLiteralOverride(index, false)
+        }
+
         // The /next response can have no CinematicContainerRenderer, a static color style
         // (the background does not change with the video, issue #3783)
         // or ambient mode off by default. Override what the server decides.
@@ -171,15 +241,14 @@ val ambientModePatch = bytecodePatch(
         val rendererType = rendererClass.type
 
         val styleMatches = cinematicContainerPresentationStyleFingerprint(rendererType).instructionMatches
-        val hasBitsField = styleMatches[0].getFieldAccessed()
+        val hasBitsField = styleMatches[0].fieldReference
         val styleHasBitMask = styleMatches[1].getInstruction<NarrowLiteralInstruction>().narrowLiteral
-        val styleField = styleMatches[3].getFieldAccessed()
+        val styleField = styleMatches[3].fieldReference
 
-        val configField = cinematicContainerConfigFingerprint(rendererType).matchSingle()
-            .instructionMatches.last().getFieldAccessed()
-        val configType = configField.type
-        val enabledByDefaultField = cinematicContainerEnabledByDefaultFingerprint(configType).matchSingle()
-            .instructionMatches[3].getFieldAccessed()
+        val configField = CinematicContainerConfigFingerprint.matchSingle()
+            .instructionMatches.last().fieldReference
+        val enabledByDefaultField = CinematicContainerEnabledByDefaultFingerprint.matchSingle()
+            .instructionMatches[3].fieldReference
 
         val defaultRendererField = rendererClass.fields.first { field ->
             field.type == rendererType && AccessFlags.STATIC.isSet(field.accessFlags)
@@ -188,8 +257,8 @@ val ambientModePatch = bytecodePatch(
         val stateType = CinematicContainerRendererWithStateFingerprint.method
             .findFieldFromToString("rendererLoadedState=").type
         val stateMatch = cinematicContainerRendererLoadedStateFingerprint(stateType).matchSingle()
-        val waitingStateField = stateMatch.instructionMatches[1].getFieldAccessed()
-        val loadedStateField = stateMatch.instructionMatches[3].getFieldAccessed()
+        val waitingStateField = stateMatch.instructionMatches[1].fieldReference
+        val loadedStateField = stateMatch.instructionMatches[3].fieldReference
 
         CinematicContainerRendererWithStateFingerprint.classDef.apply {
             val constructor = methods.first { method ->
@@ -218,8 +287,15 @@ val ambientModePatch = bytecodePatch(
                         const/4 v0, 0x1
                         invoke-static { v0 }, $EXTENSION_IS_AMBIENT_MODE_ENABLED
                         move-result v0
-                        if-eqz v0, :keep
+                        if-nez v0, :enabled
 
+                        # Ambient mode is disabled, so the renderer of the server is not used either.
+                        # 21.43+ has no feature flags that turn ambient mode off.
+                        invoke-static { }, $optionalType->empty()$optionalType
+                        move-result-object p1
+                        return-object p1
+
+                        :enabled
                         # No /next response yet.
                         sget-object v0, $waitingStateField
                         if-eq p0, v0, :keep

@@ -53,6 +53,7 @@ public final class ClipboardHistory {
         } finally { db.endTransaction(); }
     }
     public static void setPrimaryClip(ClipboardManager manager, ClipData clip) {
+        clip=SiteNativeBoards.exportedClip(clip);
         // Preserve the original copy operation and exceptions; recording failure never breaks copying.
         manager.setPrimaryClip(clip);
         try {

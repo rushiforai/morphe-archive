@@ -26,7 +26,7 @@ import java.util.concurrent.TimeoutException;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.requests.Requester;
-import app.morphe.extension.shared.settings.BaseSettings;
+import app.morphe.extension.youtube.patches.SaveToWatchLaterPatch;
 
 public class SaveToWatchLaterRequest {
     private static final int MAX_MILLISECONDS_TO_WAIT_FOR_FETCH = 20 * 1000;
@@ -47,9 +47,9 @@ public class SaveToWatchLaterRequest {
     @Nullable
     public Boolean getResult() {
         try {
-            if (BaseSettings.DEBUG.get() && !fetchIsDone() && Utils.isCurrentlyOnMainThread()) {
-                Logger.printException(() -> "Debug: Blocking main thread");
-            }
+            Logger.printExceptionIfDebug(() -> !fetchIsDone() && Utils.isCurrentlyOnMainThread()
+                    ? "Debug: Blocking main thread"
+                    : null);
             return future.get(MAX_MILLISECONDS_TO_WAIT_FOR_FETCH, TimeUnit.MILLISECONDS);
         } catch (TimeoutException ex) {
             Logger.printInfo(() -> "getResult timed out", ex);
@@ -85,7 +85,8 @@ public class SaveToWatchLaterRequest {
         Logger.printDebug(() -> "Fetching save to playlist request, videoId: " + videoId);
 
         try {
-            byte[] requestBody = PlaylistRoutes.editPlaylistBody(videoId, "WL", null);
+            byte[] requestBody = PlaylistRoutes.editPlaylistBody(
+                    videoId, SaveToWatchLaterPatch.getWatchLaterPlaylistId(), null);
             HttpURLConnection connection = PlaylistRoutes.getConnection(PlaylistRoutes.EDIT_PLAYLIST, requestHeader);
             connection.setFixedLengthStreamingMode(requestBody.length);
             connection.getOutputStream().write(requestBody);

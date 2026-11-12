@@ -7,7 +7,7 @@ import app.morphe.patches.all.misc.fix.changepackageinstaller.changePackageInsta
 import org.w3c.dom.Element
 
 /**
- * Esperimento per Leghe FC 13.2.1:
+ * Esperimento per Leghe FC 13.2.3:
  * - modifica l'etichetta del launcher;
  * - modifica le risposte ai controlli locali della sorgente di installazione
  *   usando la patch Morphe ufficiale (GPLv3 e relativi NOTICE).
@@ -25,7 +25,7 @@ val legheFcLabLabelPatch = resourcePatch(
         Compatibility(
             name = "Leghe FC",
             packageName = "it.quadronica.leghe",
-            targets = listOf(AppTarget(version = "13.2.1"))
+            targets = listOf(AppTarget(version = "13.2.3"))
         )
     )
 

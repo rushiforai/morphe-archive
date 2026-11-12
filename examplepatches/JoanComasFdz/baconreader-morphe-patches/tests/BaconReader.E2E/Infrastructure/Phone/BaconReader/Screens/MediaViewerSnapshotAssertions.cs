@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 JoanComasFdz
 // SPDX-License-Identifier: GPL-3.0-only
 
+using BaconReader.E2E.Infrastructure.Reddit;
 using JoanComasFdz.AssertingThat;
 
 namespace BaconReader.E2E.Infrastructure.Phone.BaconReader.Screens;
@@ -56,6 +57,21 @@ public static class MediaViewerSnapshotAssertions
         return that;
     }
 
+    /// <summary>
+    /// The gallery shows its image <paramref name="position"/> of <paramref name="count"/>: its image over
+    /// <paramref name="count"/> thumbnails, with an arrow to the image before unless it's the first, and one to the image
+    /// after unless it's the last.
+    /// </summary>
+    public static AssertingThat<MediaViewerSnapshot> ShowsItsImage(this AssertingThat<MediaViewerSnapshot> that, int position, int count)
+    {
+        var viewer = that.InstanceToAssert;
+        Assert.True(
+            viewer.GalleryThumbnails == count && viewer.ShowsGalleryBack == position > 1 && viewer.ShowsGalleryForward == position < count,
+            $"The gallery shows {viewer.GalleryThumbnails} thumbnails, {(viewer.ShowsGalleryBack ? "an" : "no")} arrow to the image before and "
+            + $"{(viewer.ShowsGalleryForward ? "an" : "no")} arrow to the image after, but its image {position} of {count} was expected.");
+        return that;
+    }
+
     /// <summary>The media shows the message "<paramref name="text"/>" in its place.</summary>
     public static AssertingThat<MediaViewerSnapshot> ShowsTheMessage(this AssertingThat<MediaViewerSnapshot> that, string text)
     {
@@ -63,6 +79,24 @@ public static class MediaViewerSnapshotAssertions
         Assert.True(
             shown == text,
             shown is null ? $"The media shows no message, but \"{text}\" was expected." : $"The media shows the message \"{shown}\", but \"{text}\" was expected.");
+        return that;
+    }
+
+    /// <summary>The media shows an image.</summary>
+    public static AssertingThat<MediaViewerSnapshot> ShowsAnImage(this AssertingThat<MediaViewerSnapshot> that)
+    {
+        Assert.True(that.InstanceToAssert.ShowsAnImage, "BaconReader shows no image, but one was expected.");
+        return that;
+    }
+
+    /// <summary>BaconReader's browser shows <paramref name="page"/>: a web page, its host in the toolbar.</summary>
+    public static AssertingThat<MediaViewerSnapshot> ShowsThePage(this AssertingThat<MediaViewerSnapshot> that, WebPage page)
+    {
+        var viewer = that.InstanceToAssert;
+        Assert.True(viewer.ShowsAPage, "BaconReader's browser shows no web page, but one was expected.");
+        Assert.True(
+            viewer.Title == page.Host,
+            $"BaconReader's browser shows a page of \"{viewer.Title}\", but one of \"{page.Host}\" was expected.");
         return that;
     }
 }

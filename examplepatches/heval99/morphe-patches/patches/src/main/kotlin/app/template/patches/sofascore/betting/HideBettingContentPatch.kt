@@ -11,8 +11,9 @@ import app.template.patches.sofascore.controls.sofascoreControls
 
 internal val HIDE_BETTING_CONTENT = HevalFeature(
     id = "sofascore.hide_betting_content",
-    name = "Hide betting content",
-    description = "Hides odds and betting content.",
+    calm = true,
+    name = "Hide betting and odds",
+    description = "Hides odds and betting offers.",
     category = SofascoreControlsCategory.BETTING,
 )
 
@@ -21,6 +22,9 @@ internal val HIDE_BETTING_CONTENT = HevalFeature(
 @Suppress("unused")
 val hideBettingContentPatch = sofascoreControls.featurePatch(
     HIDE_BETTING_CONTENT,
+    // The Manager patch keeps its name and description; only the Patch settings row was reworded (2026-11-11).
+    name = "Hide betting content",
+    description = "Hides odds and betting content.",
     default = false,
 ) {
     // Validate every site before the first edit.

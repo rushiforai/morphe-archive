@@ -35,7 +35,6 @@ val pdbRemoveAdsPatch = resourcePatch(
         "and turns off in-app ad initialisation.",
     default = true,
 ) {
-    category("Ads")
     compatibleWith(PDB_COMPATIBILITY)
 
     execute {

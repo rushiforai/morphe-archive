@@ -18,6 +18,13 @@ Second \"item\" text"</string>
 <resources>
   <string name="reddit_privacy_policy">Zásady ochrany soukromí Redditu</string>
   <string name="morphe_google_signin_not_available_toast">Přihlášení přes Google není dostupné. Přihlaste se e-mailem</string>
+  <string name="morphe_app_downgrade_dialog_title">Downgrade není podporován</string>
+  <string name="morphe_app_downgrade_dialog_message">"Tato instalace Redditu byla downgradeována z &lt;b&gt;%1$s&lt;/b&gt; na &lt;b&gt;%2$s&lt;/b&gt;
+&lt;br/&gt;&lt;br/&gt;
+Data aplikace z novější verze nefungují se staršími verzemi a aplikace nemusí fungovat správně.
+&lt;br/&gt;&lt;br/&gt;
+Chcete-li použít starší verzi, musíte Reddit &lt;b&gt;odinstalovat&lt;/b&gt; a poté nainstalovat starší verzi."</string>
+  <string name="morphe_app_downgrade_dialog_open_app_info">Otevřít informace o aplikaci</string>
   <string name="morphe_screen_ads_title">Reklamy</string>
   <string name="morphe_hide_post_ads_title">Skrýt reklamní obsah</string>
   <string name="morphe_hide_comment_ads_title">Skrýt reklamy v komentářích</string>
@@ -36,7 +43,7 @@ Second \"item\" text"</string>
   <string name="morphe_screen_layout_title">Rozložení</string>
   <string name="morphe_copy_text_title">Kopírovat text</string>
   <string name="morphe_copy_text_summary">Umožňuje vybírat a kopírovat text v příspěvcích a komentářích. Zakazuje sbalování komentářů</string>
-  <string name="morphe_copy_text_user_dialog_message">Sbírané komentáře přestanou fungovat, zatímco Copy text je zapnuto</string>
+  <string name="morphe_copy_text_user_dialog_message">Sbalování komentářů přestane fungovat, zatímco je zapnuto Kopírovat text</string>
   <string name="morphe_custom_font_title">Vlastní písmo</string>
   <string name="morphe_custom_font_summary">Načte vlastní soubor písma TTF nebo OTF z cesty níže. Povolení této možnosti také vypne použití systémového písma.</string>
   <string name="morphe_custom_font_file_path_title">Soubor vlastního písma</string>
@@ -51,16 +58,18 @@ Second \"item\" text"</string>
   <string name="morphe_force_system_font_title">Použít systémové písmo</string>
   <string name="morphe_force_system_font_summary">Použijte systémové písmo zařízení namísto Reddit Sans nebo Roboto. Povolení této možnosti také vypne vlastní písmo.</string>
   <string name="morphe_hide_ask_button_title">Skrýt tlačítko Zeptej se</string>
-  <string name="morphe_hide_ask_button_summary">Skryje tlačítko Zeptej se v vyhledávacím řádku</string>
+  <string name="morphe_hide_ask_button_summary">Skryje tlačítko Zeptej se ve vyhledávacím řádku</string>
   <string name="morphe_hide_communities_shelf_title">Skrýt panel komunit</string>
   <string name="morphe_hide_communities_shelf_summary">Skryje panel souvisejících nebo doporučených komunit v subredditech</string>
-  <string name="morphe_hide_trending_shelves_title">Skrýt oblíbené regály</string>
-  <string name="morphe_hide_trending_shelves_summary">Skryje doporučené regály z kanálu a návrhů vyhledávání</string>
+  <string name="morphe_hide_trending_shelves_title">Skrýt regály Trendy</string>
+  <string name="morphe_hide_trending_shelves_summary">Skryje regály Trendy z kanálu a návrhů vyhledávání</string>
   <string name="morphe_remove_notification_dialog_title">Odstranit dialogové okno s návrhem oznámení</string>
   <string name="morphe_remove_notification_dialog_summary">Automaticky zavře dialog s návrhy oznámení při návštěvě subredditu</string>
+  <string name="morphe_high_quality_avatars_title">Avatary ve vysoké kvalitě</string>
+  <string name="morphe_high_quality_avatars_summary">Zobrazuje avatary uživatelů v plném rozlišení</string>
   <string name="morphe_show_flairs_in_home_feed_title">Zobrazit označení v domovském kanále</string>
-  <string name="morphe_show_flairs_in_home_feed_summary">Zobrazuje odznáčky přezdívek příspěvků v domovském kanále</string>
-  <string name="morphe_show_flairs_in_home_feed_user_dialog_message">Některé položky kanálu nemusí zobrazovat přezdívku</string>
+  <string name="morphe_show_flairs_in_home_feed_summary">Zobrazuje označení příspěvků v domovském kanále</string>
+  <string name="morphe_show_flairs_in_home_feed_user_dialog_message">Některé položky kanálu nemusí zobrazovat označení</string>
   <string name="morphe_show_view_count_title">Zobrazit počet zobrazení u příspěvků</string>
   <string name="morphe_show_view_count_summary">Omezení: Dostupná pouze pokud odpověď API obsahuje počet zobrazení</string>
   <string name="morphe_flip_post_action_bar_title">Přehodit lištu akcí příspěvku</string>
@@ -84,10 +93,6 @@ Second \"item\" text"</string>
   <string name="morphe_keep_feed_position_summary">Ponechá feed na stejné pozici po zavření příspěvku, obrázku nebo videa, místo přesunutí otevřeného příspěvku na začátek</string>
   <string name="morphe_feed_media_max_height_title">Maximální výška médií ve feedu</string>
   <string name="morphe_feed_media_max_height_summary">Maximální výška obrázků, videí a galerií ve feedu jako násobek jejich šířky. Vyšší média se oříznou. Výchozí hodnota Redditu je 1,33</string>
-  <string name="morphe_redgifs_audio_title">Přehrát Redgify s audiem</string>
-  <string name="morphe_redgifs_audio_summary">Přehraje původní video Redgifs místo kopie z Redditu, která často nemá zvuk</string>
-  <string name="morphe_redgifs_hd_title">Kvalita HD Redgifs</string>
-  <string name="morphe_redgifs_hd_summary">Přehrává HD video z Redgifs. HD videa jsou větší a mohou se pozastavit pro načtení</string>
   <string name="morphe_download_location_title">Umístění stahování</string>
   <string name="morphe_download_location_all_title">Všechny účty</string>
   <string name="morphe_download_location_default_summary">Výchozí nastavení Reddit: obrázky v Pictures/Reddit, videa v Download</string>
@@ -105,7 +110,7 @@ Second \"item\" text"</string>
   <string name="morphe_download_location_no_picker">Na tomto zařízení není k dispozici volba výběru složky</string>
   <string name="morphe_download_location_pattern_title">Název souboru</string>
   <string name="morphe_download_location_pattern_hint">Název souboru Redditu</string>
-  <string name="morphe_download_location_pattern_help">Klepnutím na token jej vložíte. Znaky / vytvářejí podsložku. Neznáme hodnoty se změní na \"unknown\"</string>
+  <string name="morphe_download_location_pattern_help">Klepnutím na token jej vložíte. Znaky / vytvářejí podsložku. Neznámé hodnoty se změní na „unknown“</string>
   <string name="morphe_download_location_example_images">Obrázky: %s</string>
   <string name="morphe_download_location_example_videos">Videa: %s</string>
   <string name="morphe_download_location_save">Uložit</string>

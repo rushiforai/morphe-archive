@@ -69,7 +69,11 @@ val disableAdsPatch = bytecodePatch(
         var sectionHooks = 0
         classDefForEach { classDef ->
             if (SECTION_STRATEGY !in classDef.interfaces) return@classDefForEach
-            mutableClassDefBy(classDef).methods.filter { it.isSectionAdSlots() }.forEach { method ->
+            val slotMethods = mutableClassDefBy(classDef).methods.filter { it.isSectionAdSlots() }
+            if (slotMethods.size > 1) {
+                throw PatchException("Disable ads: ${classDef.type} has ${slotMethods.size} section ad slot methods, expected one")
+            }
+            slotMethods.forEach { method ->
                 method.addInstructionsChecked(
                     0,
                     """
@@ -318,8 +322,9 @@ private fun Instruction.writesField(field: FieldReference): Boolean {
     return ref.definingClass == field.definingClass && ref.name == field.name && ref.type == field.type
 }
 
+// 15.13 prepended a String sectionId, so match the (I, Z, model) tail whatever comes before it.
 private fun Method.isSectionAdSlots() = implementation != null &&
-    returnType == "Ljava/util/List;" && params() == listOf("I", "Z", SECTION_PLACEMENT_MODEL)
+    returnType == "Ljava/util/List;" && params().takeLast(3) == listOf("I", "Z", SECTION_PLACEMENT_MODEL)
 
 private fun Method.isAdTagRequest() = returnType == "Lkotlinx/coroutines/Deferred;" &&
     params() == listOf("Lcom/dowjones/query/fragment/VideoData;", "Z", "Z")

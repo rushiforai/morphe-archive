@@ -97,9 +97,10 @@ Chun teangacha nua a aistriú nó chun na haistriúcháin atá ann cheana a fhea
   <!-- misc.debugging.enableDebuggingPatch -->
   <string name="morphe_debug_screen_title">Dífhabhtú</string>
   <string name="morphe_debug_screen_summary">Cumraigh roghanna forbróra ardleibhéil agus logaí diagnóiseacha</string>
-  <string name="morphe_debug_title">Cumasaigh logáil dífhabhtaithe</string>
-  <string name="morphe_debug_stacktrace_title">Rian staice loga dífhabhtaithe</string>
-  <string name="morphe_debug_stacktrace_summary">Áirítear rianta cruachta i logaí dífhabhtaithe chun cabhrú le hearráidí a aithint</string>
+  <string name="morphe_debug_level_title">Logáil dífhabhtaithe</string>
+  <string name="morphe_debug_level_entry_disabled">Díchumasaithe</string>
+  <string name="morphe_debug_level_entry_debug">Dífhabhtaigh</string>
+  <string name="morphe_debug_level_entry_verbose">Foclach</string>
   <string name="morphe_debug_toast_on_error_title">Taispeáin tósta ar earráid Morphe</string>
   <string name="morphe_debug_toast_on_error_user_dialog_message">"Má mhúchann tú fógraí earráide, cuirfear gach fógra earráide ó Morphe i bhfolach.
 
@@ -181,14 +182,14 @@ D’imigh an t-iompar níos luaithe sa chuardach, mar sin d’fhéadfadh níos m
   <!-- Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
   <string name="gms_core_toast_not_installed_message">Níl MicroG suiteáilte. Suiteáil é.</string>
   <string name="gms_core_dialog_title">Gníomh ag teastáil</string>
-  <string name="gms_core_dialog_outdated_message">"Tá do MicroG v%1s as dáta agus d’fhéadfadh fadhbanna a bheith mar thoradh air.
+  <string name="gms_core_dialog_outdated_message">"Tá do MicroG v%1$s as dáta agus d’fhéadfadh fadhbanna a bheith mar thoradh air.
 
-Déan MicroG a nuashonrú go dtí an leagan is déanaí, v%2s, le do thoil."</string>
+Déan MicroG a nuashonrú go dtí an leagan is déanaí, v%2$s, le do thoil."</string>
   <string name="gms_core_dialog_update_text">NuashonrúNuashonrú</string>
   <string name="gms_core_dialog_ignore_text">Déan neamhaird</string>
   <string name="gms_core_dialog_conflict_message">"Ní mholann Morphe an MicroG atá suiteáilte:
 
-%1s
+%s
 
 Tapáil chun é a dhíshuiteáil, ansin athoscail an aip seo agus suiteáil MicroG RE"</string>
   <string name="gms_core_dialog_uninstall_text">Díshuiteáil</string>
@@ -229,7 +230,20 @@ Mura n-athraítear na hoptamuithe ceallraí, d’fhéadfadh na nithe seo a leana
 Más mian leat an taithí is saoire, ansin &lt;b&gt;díshuiteáil&lt;/b&gt; seo agus paisteáil an leagan molta den aip de ✅ &lt;b&gt;%2$s&lt;/b&gt;"</string>
   <string name="morphe_experimental_app_version_dialog_confirm">⚠️ Ba mhaith liom turgnamhach</string>
   <string name="morphe_experimental_app_version_dialog_open_homepage">✅ Ba mhaith liom cobhsaíocht</string>
+  <!-- misc.announcements.patchesUpdateNoticePatch -->
+  <string name="morphe_patches_update_notice_title">Taispeáin fógra laistigh den aip maidir le nuashonruithe paiste</string>
+  <string name="morphe_patches_update_notice_entry_off">As</string>
+  <string name="morphe_patches_update_notice_entry_stable">Eisiúintí cobhsaí</string>
+  <string name="morphe_patches_update_notice_entry_dev">Eisiúintí cobhsaí agus forbartha</string>
+  <string name="morphe_patches_update_notice_dialog_title">Paistí nua ar fáil</string>
+  <string name="morphe_patches_update_notice_dialog_message">Paistí Morphe &lt;b&gt;%1$s&lt;/b&gt; (reatha: %2$s)</string>
+  <string name="morphe_patches_update_notice_dialog_features">✨ Gnéithe nua</string>
+  <string name="morphe_patches_update_notice_dialog_fixes">🐛 Ceartúcháin ar fhabhtanna</string>
+  <string name="morphe_patches_update_notice_dialog_other">🚀 Athruithe eile</string>
+  <string name="morphe_patches_update_notice_dialog_more">…agus %s eile</string>
+  <string name="morphe_patches_update_notice_dialog_update">Nuashonrú</string>
+  <string name="morphe_patches_update_notice_dialog_dismiss">Diúltaigh</string>
   <!-- misc.crashlog.crashLogPatch -->
-  <string name="morphe_crash_log_saved_documents">Log tuairteála sábháilte i ndoiciméid an úsáideora: %s</string>
-  <string name="morphe_crash_log_saved">Log tuairteála sábháilte: %s</string>
+  <string name="morphe_crash_log_saved_documents">Log timpiste sábháilte i ndoiciméid an úsáideora: %s</string>
+  <string name="morphe_crash_log_saved">Log timpiste sábháilte: %s</string>
 </resources>

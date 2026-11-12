@@ -11,4 +11,5 @@ printf '%s\n' 'All unsigned APKs built. Next: scripts/sign-apks.sh'
 
 "$KOTLINC" "$ROOT/scripts/kotlin/VerifyGeminiManifest.kt" -cp "$MORPHE" -d "$BUILD_DIR/VerifyGeminiManifest.jar"
 "$JAVA" -cp "$BUILD_DIR/VerifyGeminiManifest.jar:$MORPHE" VerifyGeminiManifestKt "$BUILD_DIR/gemini-login-unsigned.apk"
+"$JAVA" -cp "$BUILD_DIR/VerifyUpdateCompatibility.jar:$MORPHE" VerifyUpdateCompatibilityKt "$BUILD_DIR/gemini-login-unsigned.apk"
 "$ROOT/scripts/verify-clone-contract.sh" "$ROOT/inputs/gemini-base.apk" "$BUILD_DIR/gemini-login-unsigned.apk"

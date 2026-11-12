@@ -61,7 +61,19 @@ public sealed class PatchedWithAttribute(params Patch[] patches) : Attribute
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
 public sealed class PatchedWithEveryPatchAttribute : Attribute;
 
-/// <summary>What a scenario's app is patched with: <see cref="Every"/> patch, or <see cref="Only"/> the ones it names.</summary>
+/// <summary>
+/// A Manager scenario's app: not patched by BaseE2E, but by the patcher's manager, through the screens, as a user
+/// patches it the first time; BaseE2E installs the manager and puts the clean APK in Downloads (E2E-TEST-CODE-RULES.md,
+/// rule g). Its Given says "Given Morphe Manager is installed" and "And the BaconReader Premium 6.1.4 APK is in
+/// Downloads".
+/// </summary>
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+public sealed class PatchedByTheManagerAttribute : Attribute;
+
+/// <summary>
+/// What a scenario's app is patched with: <see cref="Every"/> patch, <see cref="Only"/> the ones it names, or what the
+/// patcher's manager patches it with, through the screens (<see cref="ByTheManager"/>).
+/// </summary>
 public abstract record PatchSet
 {
     private PatchSet()
@@ -74,25 +86,39 @@ public abstract record PatchSet
     /// <summary>Only <paramref name="Patches"/> (<see cref="PatchedWithAttribute"/>).</summary>
     public sealed record Only(IReadOnlyList<Patch> Patches) : PatchSet;
 
+    /// <summary>What the patcher's manager patches it with: the released bundle (<see cref="PatchedByTheManagerAttribute"/>).</summary>
+    public sealed record ByTheManager : PatchSet;
+
     /// <summary>The text a Gherkin and a recording's "Patched with" give for an app patched with every patch.</summary>
     public const string EveryPatchText = "every patch";
 
+    /// <summary>A recording's "Patched with" for an app the patcher's manager patched.</summary>
+    public const string ByTheManagerText = "the patcher's manager";
+
     /// <summary>Whether the app has <paramref name="patch"/>: what decides the dialogs opening it shows.</summary>
-    public bool Includes(Patch patch) => this is Every || (this is Only only && only.Patches.Contains(patch));
+    public bool Includes(Patch patch) => this is Every or ByTheManager || (this is Only only && only.Patches.Contains(patch));
 
     /// <summary>"every patch", or each patch's name in the bundle, sorted: the same text for the same APK.</summary>
     public IReadOnlyList<string> ToShownText() =>
-        this is Only only ? [.. only.Patches.Select(patch => patch.ToShownText()).Order(StringComparer.Ordinal)] : [EveryPatchText];
+        this switch
+        {
+            Only only => [.. only.Patches.Select(patch => patch.ToShownText()).Order(StringComparer.Ordinal)],
+            ByTheManager => [ByTheManagerText],
+            _ => [EveryPatchText],
+        };
 
     /// <summary>
-    /// What a scenario method is patched with, from its attribute; null when it has neither or both of
-    /// <see cref="PatchedWithAttribute"/> and <see cref="PatchedWithEveryPatchAttribute"/>.
+    /// What a scenario method is patched with, from its attribute; null when it has none, or more than one, of
+    /// <see cref="PatchedWithAttribute"/>, <see cref="PatchedWithEveryPatchAttribute"/> and
+    /// <see cref="PatchedByTheManagerAttribute"/>.
     /// </summary>
     public static PatchSet? Of(MethodInfo method) =>
-        (method.GetCustomAttribute<PatchedWithAttribute>(), method.GetCustomAttribute<PatchedWithEveryPatchAttribute>()) switch
+        (method.GetCustomAttribute<PatchedWithAttribute>(), method.GetCustomAttribute<PatchedWithEveryPatchAttribute>(),
+            method.GetCustomAttribute<PatchedByTheManagerAttribute>()) switch
         {
-            ({ } only, null) => new Only(only.Patches),
-            (null, not null) => new Every(),
+            ({ } only, null, null) => new Only(only.Patches),
+            (null, not null, null) => new Every(),
+            (null, null, not null) => new ByTheManager(),
             _ => null,
         };
 }

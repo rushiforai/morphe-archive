@@ -66,7 +66,6 @@ val hutchDisableSslPinningPatch = bytecodePatch(
         "Normal TLS validation stays intact.",
     default = true,
 ) {
-    category("Security")
     compatibleWith(HUTCH_COMPATIBILITY)
 
     dependsOn(hutchNetworkSecurityConfigPatch)

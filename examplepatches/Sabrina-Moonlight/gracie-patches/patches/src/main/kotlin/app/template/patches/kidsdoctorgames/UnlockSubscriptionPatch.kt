@@ -1,5 +1,6 @@
 package app.template.patches.kidsdoctorgames
 
+import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget
@@ -8,19 +9,13 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.rawResourcePatch
 import app.morphe.patcher.util.returnEarly
+import app.template.patches.shared.cert.extractApkCertificatePatch
+import app.template.patches.shared.firebase.spoofFirebaseCertHashPatch
+import app.template.patches.shared.installer.spoofInstallSourcePatch
+import app.template.patches.shared.signature.spoofSignatureVerificationPatch
 import java.io.RandomAccessFile
 import java.util.logging.Logger
 
-/**
- * Kids doctor games 1.12 (versionCode 466) — full BB Pass unlock.
- *
- * One visible patch. Internally:
- * 1) Hex-patches Unity IL2CPP gates in lib/arm64-v8a/libil2cpp.so
- * 2) Forces SharedSub / Billing Java methods
- * 3) Activates local SharedSub on Activity onCreate + onResume
- *
- * Open the full APKS (not only base.apk) so the arm64 lib is present.
- */
 internal val KIDS_DOCTOR_GAMES = Compatibility(
     name = "Kids doctor games",
     packageName = "com.bimiboo.kids.doctor.games",
@@ -36,101 +31,105 @@ private const val HELPER =
 
 private const val LIB = "lib/arm64-v8a/libil2cpp.so"
 
-/** ARM64: mov w0, #1 ; ret */
 private val RETURN_TRUE = hexBytes("20 00 80 52 c0 03 5f d6")
-
-/** ARM64: mov w0, #3 ; ret (ResolveAccessState full/pass path) */
 private val RETURN_ACCESS_FULL = hexBytes("60 00 80 52 c0 03 5f d6")
 
-private data class NativeGate(
-    val name: String,
+private data class KidsIl2CppGate(
+    val label: String,
     val pattern: ByteArray,
     val replacement: ByteArray = RETURN_TRUE,
 )
 
-/**
- * Unique prologues verified against this APK's libil2cpp.so (metadata v39).
- */
 private val IL2CPP_GATES = listOf(
-    NativeGate(
-        "HasThisAppPurchase",
-        hexBytes("fe 0f 1e f8 f4 4f 01 a9 d4 92 01 d0 53 79 01 b0"),
-    ),
-    NativeGate(
-        "IsOwnedSharedActive",
-        hexBytes("fe 0f 1e f8 f4 4f 01 a9 94 92 01 b0 f3 03 00 aa"),
-    ),
-    NativeGate(
-        "IsActive",
-        hexBytes("ff c3 00 d1 fe 57 01 a9 f4 4f 02 a9 94 92 01 d0"),
-    ),
-    NativeGate(
-        "get_HasNonServerAccessGrant",
-        hexBytes("08 a0 40 39 68 00 00 34 20 00 80 52 c0 03 5f d6"),
-    ),
-    NativeGate(
-        "get_HasNonServerPassGrant",
-        hexBytes("08 a0 40 39 68 00 00 35 08 e0 40 39 68 00 00 34"),
-    ),
-    NativeGate(
-        "get_IsFullAccess",
-        hexBytes("00 20 40 f9 01 00 00 14 fe 57 be a9 f4 4f 01 a9"),
-    ),
-    NativeGate(
+    KidsIl2CppGate("HasThisAppPurchase", hexBytes("fe 0f 1e f8 f4 4f 01 a9 d4 92 01 d0 53 79 01 b0")),
+    KidsIl2CppGate("IsOwnedSharedActive", hexBytes("fe 0f 1e f8 f4 4f 01 a9 94 92 01 b0 f3 03 00 aa")),
+    KidsIl2CppGate("IsActive", hexBytes("ff c3 00 d1 fe 57 01 a9 f4 4f 02 a9 94 92 01 d0")),
+    KidsIl2CppGate("get_HasNonServerAccessGrant", hexBytes("08 a0 40 39 68 00 00 34 20 00 80 52 c0 03 5f d6")),
+    KidsIl2CppGate("get_HasNonServerPassGrant", hexBytes("08 a0 40 39 68 00 00 35 08 e0 40 39 68 00 00 34")),
+    KidsIl2CppGate("get_IsFullAccess", hexBytes("00 20 40 f9 01 00 00 14 fe 57 be a9 f4 4f 01 a9")),
+    KidsIl2CppGate(
         "ResolveAccessState",
         hexBytes("fe 0f 1f f8 78 fb ff 97 c0 00 00 36 0b 00 00 94"),
         RETURN_ACCESS_FULL,
     ),
 )
 
-/**
- * Private resource patch (not listed alone in Morphe).
- * Runs because [unlockSubscriptionPatch] depends on it.
- */
+private object PairipInitializeLicenseFingerprint : Fingerprint(
+    definingClass = "Lcom/pairip/licensecheck/LicenseClient;",
+    name = "initializeLicenseCheck",
+    returnType = "V",
+    parameters = emptyList(),
+)
+
+private object PairipCheckLicenseFingerprint : Fingerprint(
+    definingClass = "Lcom/pairip/licensecheck/LicenseClient;",
+    name = "checkLicense",
+    returnType = "V",
+    parameters = listOf("Landroid/content/Context;"),
+)
+
+private object PairipScheduleShutdownFingerprint : Fingerprint(
+    definingClass = "Lcom/pairip/licensecheck/LicenseClient;",
+    name = "scheduleAppShutdown",
+    returnType = "V",
+    parameters = emptyList(),
+)
+
+private object PairipVerifyIntegrityFingerprint : Fingerprint(
+    definingClass = "Lcom/pairip/SignatureCheck;",
+    name = "verifyIntegrity",
+    returnType = "V",
+    parameters = listOf("Landroid/content/Context;"),
+)
+
 private val unlockIl2CppNativeInternalPatch = rawResourcePatch {
     execute {
         val logger = Logger.getLogger("kidsdoctorgames.il2cpp")
         val target = get(LIB, true)
         if (!target.exists()) {
             throw PatchException(
-                "Native library not found: $LIB. Open the full APKS (with arm64 split), not only base.apk.",
+                "Native library not found: $LIB. Open the full APKS (arm64), not only base.apk.",
             )
         }
-
         RandomAccessFile(target, "rw").use { raf ->
             for (gate in IL2CPP_GATES) {
                 val offset = indexOfPattern(raf, gate.pattern)
                 if (offset < 0L) {
                     throw PatchException(
-                        "IL2CPP pattern not found for ${gate.name}: " +
+                        "IL2CPP pattern not found for ${gate.label}: " +
                             gate.pattern.joinToString(" ") { "%02x".format(it) },
                     )
                 }
                 val pad = (gate.pattern.size - gate.replacement.size).coerceAtLeast(0)
-                val padded = gate.replacement + ByteArray(pad)
                 raf.seek(offset)
-                raf.write(padded)
-                logger.info("IL2CPP ${gate.name} patched @ 0x${offset.toString(16)}")
+                raf.write(gate.replacement + ByteArray(pad))
+                logger.info("IL2CPP ${gate.label} @ 0x${offset.toString(16)}")
             }
         }
-        logger.info("IL2CPP: ${IL2CPP_GATES.size} native gates applied")
     }
 }
 
 @Suppress("unused")
 val unlockSubscriptionPatch = bytecodePatch(
     name = "Unlock subscription",
-    description = "Unlocks BB Pass: forces Unity IL2CPP access gates in libil2cpp.so, " +
-        "SharedSub/Billing Java methods, and activates local pass state on start. " +
-        "Requires the full APKS (arm64).",
+    description = "Unlocks the full subscription.",
     default = true,
 ) {
     compatibleWith(KIDS_DOCTOR_GAMES)
-    dependsOn(unlockIl2CppNativeInternalPatch)
+    dependsOn(
+        unlockIl2CppNativeInternalPatch,
+        extractApkCertificatePatch,
+        spoofFirebaseCertHashPatch,
+        spoofInstallSourcePatch,
+        spoofSignatureVerificationPatch,
+    )
     extendWith("extensions/extension.mpe")
 
     execute {
-        val logger = Logger.getLogger(this::class.java.name)
+        runCatching { PairipInitializeLicenseFingerprint.method.returnEarly() }
+        runCatching { PairipCheckLicenseFingerprint.method.returnEarly() }
+        runCatching { PairipScheduleShutdownFingerprint.method.returnEarly() }
+        runCatching { PairipVerifyIntegrityFingerprint.method.returnEarly() }
 
         HasTrustedActiveSharedSubscriptionFingerprint.method.returnEarly(true)
         QueryPackageFingerprint.method.returnEarly(true)
@@ -165,8 +164,6 @@ val unlockSubscriptionPatch = bytecodePatch(
                 """.trimIndent(),
             )
         }
-
-        logger.info("Kids doctor games: Java SharedSub + Billing + activate applied")
     }
 }
 
@@ -182,7 +179,7 @@ private fun forceFarExpiry(method: app.morphe.patcher.util.proxy.mutableTypes.Mu
 
 private fun hexBytes(pattern: String): ByteArray {
     val stripped = pattern.replace(" ", "")
-    require(stripped.length % 2 == 0) { "hex length must be even: $pattern" }
+    require(stripped.length % 2 == 0) { "hex length must be even" }
     return ByteArray(stripped.length / 2) { i ->
         stripped.substring(i * 2, i * 2 + 2).toInt(16).toByte()
     }
@@ -193,17 +190,14 @@ private fun indexOfPattern(file: RandomAccessFile, needle: ByteArray): Long {
     for ((i, element) in needle.withIndex()) {
         right[element.toInt() and 0xFF] = i
     }
-
     val bufferSize = 65536
     val buffer = ByteArray(bufferSize + needle.size)
     var fileOffset = 0L
     val fileLength = file.length()
-
     while (fileOffset < fileLength) {
         file.seek(fileOffset)
         val bytesRead = file.read(buffer)
         if (bytesRead < needle.size) break
-
         var i = 0
         while (i <= bytesRead - needle.size) {
             var j = needle.size - 1

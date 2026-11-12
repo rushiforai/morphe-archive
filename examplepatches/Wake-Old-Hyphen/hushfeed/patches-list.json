@@ -1091,6 +1091,15 @@
           "values": null
         },
         {
+          "key": "pause_before_feed_seconds",
+          "title": "Default: pause before feed seconds",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Int",
+          "default": 0,
+          "values": null
+        },
+        {
           "key": "keep_paused_on_return",
           "title": "Default: keep paused on return",
           "description": null,
@@ -1897,6 +1906,24 @@
           "required": false,
           "type": "kotlin.Boolean",
           "default": false,
+          "values": null
+        },
+        {
+          "key": "fold_long_comments",
+          "title": "Default: fold long comments",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "fold_long_comments_lines",
+          "title": "Default: fold long comments lines",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Int",
+          "default": 4,
           "values": null
         },
         {
@@ -4086,6 +4113,15 @@
         {
           "key": "profile_tab_opens_watch_history",
           "title": "Default: profile tab opens watch history",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "profile_tab_switches_accounts",
+          "title": "Default: profile tab switches accounts",
           "description": null,
           "required": false,
           "type": "kotlin.Boolean",

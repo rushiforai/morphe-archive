@@ -1,6 +1,5 @@
 package app.template.patches.wemuslim.misc.telemetry
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
@@ -12,6 +11,7 @@ import app.template.patches.wemuslim.misc.encryption.bypassNativeEncryptionPatch
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import org.w3c.dom.Element
+import app.template.patches.shared.addInstructionsChecked
 
 private const val FIREBASE_ANALYTICS = "Lcom/google/firebase/analytics/FirebaseAnalytics;"
 private const val MEASUREMENT_INTERNAL = "Lcom/google/android/gms/internal/measurement/"
@@ -128,7 +128,7 @@ val disableTelemetryPatch = bytecodePatch(
             concrete(impl, "init")
                 .filter { it.returnType == APPSFLYER_LIB }
                 .ifEmpty { throw PatchException("Disable telemetry: ${impl.type}->init does not return $APPSFLYER_LIB") }
-                .forEach { it.addInstructions(0, "return-object p0") }
+                .forEach { it.addInstructionsChecked(0, "return-object p0") }
         }
 
         // 4. Adjust: the SDK is never initialized and events / ad revenue are dropped. getAdid

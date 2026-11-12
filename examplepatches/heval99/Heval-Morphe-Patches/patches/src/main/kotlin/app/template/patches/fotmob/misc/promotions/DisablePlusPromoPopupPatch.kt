@@ -9,6 +9,7 @@ import app.template.patches.shared.hevalcontrols.hevalReturnNull
 
 internal val DISABLE_PLUS_PROMO_POPUP = HevalFeature(
     id = "fotmob.disable_plus_promo_popup",
+    calm = true,
     name = "Disable FotMob+ promo popup",
     description = "Disables the FotMob+ promo popup.",
     category = FotMobControlsCategory.POPUPS,

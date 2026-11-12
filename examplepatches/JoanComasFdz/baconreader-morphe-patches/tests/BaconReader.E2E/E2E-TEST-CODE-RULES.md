@@ -276,6 +276,12 @@ scenario never relies on that order: it only keeps the phone from switching APKs
      popup"). Its app is patched with only the patches its Given names, since it tests exactly those dialogs and steps;
    - `Scenarios/LoggedIn/`: every other patch. Its app is patched with every patch, one APK for every LoggedIn
      scenario, and its Given opens the app and logs in.
+   - `Scenarios/Manager/`: how a user patches (and updates) BaconReader with the patcher's manager. `[PatchedByTheManager]`:
+     BaseE2E patches nothing; it installs the manager, as just installed, uninstalls BaconReader and puts the clean APK
+     in Downloads (`Device/TheManager`), and its Given says so (`Given Morphe Manager is installed`, `And the BaconReader
+     Premium 6.1.4 APK is in Downloads`). The scenario adds the source and patches through the screens, from a page of
+     the user guide on the manager (`docs/manager/<page>.md`, which names it), and BaseE2E uninstalls the app it
+     installed after it. Its recording starts on the home screen, with no setup page.
 3. Find its **domain folder** under the group's: the patch's area, as this bundle groups its patches
    (`account`, `comments`, `media`, `posts`… → `Scenarios/Startup/Account/`, `Scenarios/LoggedIn/Comments/`…).
 4. Its **class** is the patch's, `<Patch>Tests.cs` (`SpoofClientTests.cs`), in a folder of its own named for the class

@@ -7,14 +7,15 @@ import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 
 /**
- * Leghe FC 13.2.1 (build 445): imposta Lkqgs.B = true.
+ * Leghe FC 13.2.3: imposta a true il booleano nel modello della formazione.
  *
- * La patch modifica il campo B nel costruttore, dopo la scrittura
- * originale, e poi stampa il risultato nel Logcat (LegheFC-B).
- * Non e' una diagnostica di sola lettura.
- * Non modifica le collezioni A/C.
+ * La classe dati nuova ha descriptor LsVY; e campo Ddz:Z. Il costruttore
+ * mantiene la firma (List, boolean, Set, String) documentata nel confronto.
+ * Questa patch modifica il booleano del modello e non è una diagnostica passiva.
  */
 @Suppress("unused")
 val booleanFieldDiagnosticPatch = bytecodePatch(
@@ -26,43 +27,56 @@ val booleanFieldDiagnosticPatch = bytecodePatch(
         Compatibility(
             name = "Leghe FC",
             packageName = "it.quadronica.leghe",
-            targets = listOf(AppTarget(version = "13.2.1"))
+            targets = listOf(AppTarget(version = "13.2.3"))
         )
     )
 
     execute {
+        val owner = "LsVY;"
         val method = Fingerprint(
-            definingClass = "Lkqgs;",
-            name = "<init>"
+            definingClass = owner,
+            name = "<init>",
+            parameters = listOf(
+                "Ljava/util/List;",
+                "Z",
+                "Ljava/util/Set;",
+                "Ljava/lang/String;"
+            ),
+            returnType = "V"
         ).method
 
-        // Dopo tutte le assegnazioni del costruttore; prima del suo return.
+        val implementation = method.implementation
+            ?: error("Leghe FC: sVY.<init> non contiene istruzioni")
+        val booleanWrites = implementation.instructions.withIndex().filter { (_, instruction) ->
+            val field = (instruction as? ReferenceInstruction)?.reference as? FieldReference
+            instruction.opcode == Opcode.IPUT_BOOLEAN &&
+                field != null && field.definingClass == owner && field.name == "Ddz" && field.type == "Z"
+        }
+        require(booleanWrites.size == 1) {
+            "Attesa una sola scrittura di sVY.Ddz:Z nel costruttore, trovate ${booleanWrites.size}"
+        }
+
         val beforeReturn = method.indexOfFirstInstructionOrThrow {
             opcode == Opcode.RETURN_VOID
+        }
+        require(booleanWrites.single().index < beforeReturn) {
+            "La scrittura originale di sVY.Ddz:Z non precede RETURN_VOID"
         }
 
         method.addInstructions(
             beforeReturn,
             """
-                new-instance p1, Landroid/util/MutableBoolean;
-                const/4 p2, 0x0
-                invoke-direct {p1, p2}, Landroid/util/MutableBoolean;-><init>(Z)V
+                const/4 p1, 0x1
+                iput-boolean p1, p0, $owner->Ddz:Z
 
-                const/4 p2, 0x1
-                iput-boolean p2, p1, Landroid/util/MutableBoolean;->value:Z
-                iget-boolean p2, p1, Landroid/util/MutableBoolean;->value:Z
-
-                iput-boolean p2, p0, Lkqgs;->B:Z
-            
-                iget-boolean p2, p0, Lkqgs;->B:Z
+                iget-boolean p2, p0, $owner->Ddz:Z
                 invoke-static {p2}, Ljava/lang/String;->valueOf(Z)Ljava/lang/String;
                 move-result-object p2
-                const-string p1, "B = "
+                const-string p1, "Ddz = "
                 invoke-virtual {p1, p2}, Ljava/lang/String;->concat(Ljava/lang/String;)Ljava/lang/String;
                 move-result-object p2
-                const-string p1, "LegheFC-B"
+                const-string p1, "LegheFC-Ddz"
                 invoke-static {p1, p2}, Landroid/util/Log;->i(Ljava/lang/String;Ljava/lang/String;)I
-
             """.trimIndent()
         )
     }

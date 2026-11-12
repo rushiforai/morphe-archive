@@ -1,6 +1,5 @@
 package app.template.patches.wemuslim.misc.encryption
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
@@ -13,6 +12,7 @@ import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import app.template.patches.shared.addInstructionsChecked
 
 private const val ATHAN_ENCRYPTION = "Lcom/common/support/encryption/AthanEncryption;"
 
@@ -140,7 +140,7 @@ private fun BytecodePatchContext.patchNativeKeyCalls() {
 
             replacements.asReversed().forEach { (instructionIndex, code) ->
                 method.removeInstructions(instructionIndex, 2)
-                method.addInstructions(instructionIndex, code)
+                method.addInstructionsChecked(instructionIndex, code)
             }
             replaced += replacements.size
         }

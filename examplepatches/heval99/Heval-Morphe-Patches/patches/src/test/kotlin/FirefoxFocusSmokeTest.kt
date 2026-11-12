@@ -14,7 +14,9 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import org.w3c.dom.Element
 import java.io.File
+import javax.xml.parsers.DocumentBuilderFactory
 
 private const val PKG = "org.mozilla.focus"
 private const val GECKO_RUNTIME = "Lorg/mozilla/geckoview/GeckoRuntime;"
@@ -81,7 +83,10 @@ class FirefoxFocusSmokeTest {
             workDir = workDir,
             pkg = PKG,
             version = "159.0.1",
-            patchNames = setOf("Enable about:config", "Disable telemetry", "Disable rating prompts", "Hide promotional prompts", DNS_FILTER),
+            patchNames = setOf(
+                "Enable about:config", "Disable telemetry", "Disable rating prompts", "Hide promotional prompts",
+                "Move address bar to the bottom", DNS_FILTER,
+            ),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
         val byType = classes.associateBy { it.type }
@@ -201,5 +206,42 @@ class FirefoxFocusSmokeTest {
         // the other options to the chosen resolver in TRR-first mode (2).
         assertGeckoViewDnsForced(classes, DEFAULT_DOH_URL, trrMode = 3)
         assertGeckoViewDnsForced(applyDnsFilterFallback(apk, workDir, PKG, "159.0.1"), OTHER_DOH_URL, trrMode = 2)
+
+        // Move address bar to the bottom: the browser toolbar's gravity is bottom in the decoded
+        // layout.
+        val browserLayout = workDir.walkTopDown()
+            .singleOrNull { it.name == "fragment_browser.xml" && it.parentFile.name == "layout" }
+            ?: error("fragment_browser.xml was not decoded under $workDir")
+        val browserDoc = DocumentBuilderFactory.newInstance().newDocumentBuilder()
+            .parse(browserLayout).documentElement
+        val toolbars = browserDoc.getElementsByTagName("mozilla.components.browser.toolbar.BrowserToolbar")
+            .let { list -> (0 until list.length).map { list.item(it) as Element } }
+        assertEquals(1, toolbars.size, "BrowserToolbar elements in fragment_browser.xml")
+        assertEquals(
+            "bottom", toolbars.single().getAttribute("android:layout_gravity"),
+            "the browser toolbar is not pinned to the bottom",
+        )
+
+        // The code half: the page is laid out for a bottom bar. enableDynamicBehavior shows the bar
+        // fixed, showAsFixed and the fullscreen handler use bottomMargin instead of topMargin.
+        val byTypeLayout = classes.associateBy { it.type }
+        val toolbarKt = byTypeLayout.getValue("Lorg/mozilla/focus/ext/BrowserToolbarKt;")
+        fun margins(method: com.android.tools.smali.dexlib2.iface.Method) = method.implementation!!.instructions
+            .filter { it.opcode == Opcode.IPUT }
+            .mapNotNull { ((it as ReferenceInstruction).reference as? com.android.tools.smali.dexlib2.iface.reference.FieldReference)?.name }
+            .filter { it == "topMargin" || it == "bottomMargin" }
+        val enable = toolbarKt.methods.single { it.name == "enableDynamicBehavior" && it.parameterTypes.size == 3 }
+        val enableInsns = enable.implementation!!.instructions.toList()
+        assertTrue(
+            enableInsns[0].opcode == Opcode.INVOKE_STATIC &&
+                ((enableInsns[0] as ReferenceInstruction).reference as MethodReference).name == "showAsFixed" &&
+                enableInsns[1].opcode == Opcode.RETURN_VOID,
+            "enableDynamicBehavior does not show the bar fixed",
+        )
+        val fixed = toolbarKt.methods.single { it.name == "showAsFixed" }
+        assertEquals(listOf("bottomMargin"), margins(fixed), "showAsFixed margin writes")
+        val fullscreen = byTypeLayout.getValue("Lorg/mozilla/focus/browser/integration/FullScreenIntegration\$feature\$2;")
+            .methods.single { it.name == "invoke" }
+        assertEquals(listOf("bottomMargin"), margins(fullscreen), "fullscreen margin writes")
     }
 }

@@ -205,7 +205,9 @@ public final class ChannelSearchRequest {
             String channelName = parseChannelName(json);
             int[] indexRef = {0};
             for (int page = 1; ; page++) {
-                String nextToken = parseResponsePage(json, allResults, seenVideoIds, indexRef, isEnglish);
+                String browseToken = parseBrowseContents(json, allResults, seenVideoIds, indexRef, isEnglish);
+                String actionToken = parseContinuationActions(json, allResults, seenVideoIds, indexRef, isEnglish);
+                String nextToken = browseToken != null ? browseToken : actionToken;
                 final boolean isLast = nextToken == null || nextToken.isEmpty()
                         || page >= MAX_CONTINUATION_PAGES || allResults.size() >= MAX_SEARCH_RESULTS;
                 ChannelSearchResponse response = new ChannelSearchResponse(channelName, new ArrayList<>(allResults));
@@ -234,15 +236,6 @@ public final class ChannelSearchRequest {
                     + " took: " + (System.currentTimeMillis() - startTime) + "ms");
         }
         return null;
-    }
-
-    @Nullable
-    private static String parseResponsePage(JSONObject json, List<ChannelSearchResult> results,
-                                           Set<String> seenVideoIds, int[] indexRef, boolean isEnglish) {
-        String browseToken = parseBrowseContents(json, results, seenVideoIds, indexRef, isEnglish);
-        String actionToken = parseContinuationActions(json, results, seenVideoIds, indexRef, isEnglish);
-
-        return browseToken != null ? browseToken : actionToken;
     }
 
     @Nullable
@@ -553,7 +546,7 @@ public final class ChannelSearchRequest {
     /**
      * Text is either a plain string or a list of runs, depending on the field.
      */
-    private static String parseText(@Nullable JSONObject text) {
+    static String parseText(@Nullable JSONObject text) {
         if (text == null) {
             return "";
         }

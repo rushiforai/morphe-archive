@@ -13,8 +13,7 @@ package app.morphe.patches.youtube.layout.sponsorblock
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.patch
 import app.morphe.patches.all.misc.resources.addAppResources
 import app.morphe.patches.all.misc.resources.addResourcesPatch
 import app.morphe.patches.shared.misc.settings.preference.BasePreference
@@ -26,6 +25,7 @@ import app.morphe.patches.shared.misc.settings.preference.PreferenceScreenPrefer
 import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
 import app.morphe.patches.shared.misc.settings.preference.TextPreference
 import app.morphe.patches.shared.misc.settings.preference.screenInfoPreferenceCategory
+import app.morphe.patches.youtube.interaction.downloads.YouTubeOfflineVideoEndpointFingerprint
 import app.morphe.patches.youtube.layout.player.icons.copyPlayerButtonIcons
 import app.morphe.patches.youtube.misc.extension.sharedExtensionPatch
 import app.morphe.patches.youtube.misc.playercontrols.addTopControl
@@ -50,8 +50,6 @@ import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.copyResources
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 
 private const val SB_PREFERENCES_PACKAGE = "app.morphe.extension.youtube.sponsorblock.preferences"
 private const val YOUTUBE_PREFERENCES_PACKAGE = "app.morphe.extension.youtube.settings.preference"
@@ -61,7 +59,7 @@ private const val SEGMENT_CATEGORY_PREFERENCE_TAG =
 fun categoryPreference(settingKey: String): BasePreference =
     object : BasePreference(settingKey, null, null, null, null, null, SEGMENT_CATEGORY_PREFERENCE_TAG) {}
 
-private val sponsorBlockResourcePatch = resourcePatch {
+private val sponsorBlockResourcePatch = patch {
     dependsOn(
         settingsPatch,
         legacyPlayerControlsPatch,
@@ -128,6 +126,7 @@ private val sponsorBlockResourcePatch = resourcePatch {
                 key = "morphe_sb_general",
                 sorting = PreferenceScreenPreference.Sorting.UNSORTED,
                 preferences = setOf(
+                    SwitchPreference("morphe_sb_offline_segments", summary = true),
                     SwitchPreference("morphe_sb_toast_on_connection_error", summary = true),
                     SwitchPreference("morphe_sb_track_skip_count", summary = true),
                     TextPreference(
@@ -216,7 +215,7 @@ private const val EXTENSION_SPONSORBLOCK_VIEW_CONTROLLER_CLASS =
     "Lapp/morphe/extension/youtube/sponsorblock/ui/SponsorBlockViewController;"
 
 @Suppress("unused")
-val sponsorBlockPatch = bytecodePatch(
+val sponsorBlockPatch = patch(
     name = "SponsorBlock",
     description = "Adds options to enable and configure SponsorBlock, which can skip undesired video segments such as sponsored content."
 ) {
@@ -251,7 +250,7 @@ val sponsorBlockPatch = bytecodePatch(
 
         // Set seekbar draw rectangle.
         val rectangleFieldName = RectangleFieldInvalidatorFingerprint.instructionMatches.last()
-            .getInstruction<ReferenceInstruction>().reference as FieldReference
+            .fieldReference
 
         // Seekbar drawing.
 
@@ -343,6 +342,13 @@ val sponsorBlockPatch = bytecodePatch(
                 )
             }
         }
+
+        // Save and remove the segments of downloaded videos.
+        YouTubeOfflineVideoEndpointFingerprint.method.addInstruction(
+            0,
+            "invoke-static/range { p3 .. p4 }, $EXTENSION_SEGMENT_PLAYBACK_CONTROLLER_CLASS->" +
+                    "offlineVideoAction(Ljava/lang/String;Ljava/lang/Enum;)V"
+        )
 
         // FIXME: Skip buttons do not show in new player controls layout.
         //        Skip buttons may need to be added at runtime like other overlay buttons.

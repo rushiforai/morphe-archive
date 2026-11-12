@@ -1,6 +1,7 @@
 package app.morphe.patches.pixiv.popularsearch
 
 import app.morphe.patches.pixiv.shared.PixivConstants
+import app.morphe.patches.pixiv.shared.searchPagerAdapterFingerprint
 
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatch
@@ -29,19 +30,13 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 val pixivPopularSearchPatch: BytecodePatch = bytecodePatch(
     name = "Pixiv Popular Search Unlock",
     description = "Fakes the premium flag in the search pager so the app asks for popular_desc. " +
-        "Pixiv still answers a free account with date order, so use Pixiv Popular Search Trial instead.",
+        "Pixiv still answers a free account with date order.",
     default = false
 ) {
     compatibleWith(PixivConstants.PIXIV)
 
     execute {
-        val searchAdapterClass = mutableClassDefBy("Lrr8;")
-
-        val adapterMethod = searchAdapterClass.methods.first {
-            it.name == "a" &&
-                it.returnType == "Landroidx/fragment/app/Fragment;" &&
-                it.parameterTypes.size == 1
-        }
+        val adapterMethod = searchPagerAdapterFingerprint.method
 
         val instructions = adapterMethod.implementation?.instructions
             ?: throw IllegalStateException("Search pager adapter has no implementation")

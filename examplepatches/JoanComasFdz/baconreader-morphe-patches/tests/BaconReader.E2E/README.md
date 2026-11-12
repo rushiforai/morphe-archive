@@ -341,6 +341,11 @@ with the VS Code extension's scenarios ([tests/BaconReader.VsCodeExtension.E2E](
 - **`Scenarios/LoggedIn/`: everything else.** Every scenario is patched with every patch, one APK for all of them, and
   its Given logs in and opens the app: `And BaconReader is patched with every patch`, `And the test account is logged
   in`, `And BaconReader is open`.
+- **`Scenarios/Manager/`: how a user patches BaconReader with the patcher's manager.** BaseE2E patches nothing: it leaves
+  Morphe Manager installed as just installed (2.5.0, downloaded once from its release), no BaconReader, and the clean APK
+  in Downloads (`Device/TheManager`); the scenario adds the source from the repository's page on GitHub, patches and
+  installs, as the README's "Install" says. It needs the phone online (GitHub, morphe.software). Its page is the user
+  guide's `docs/manager/<page>.md`, which the guide shows first.
 
 Inside a group, folders follow the patches' areas (`account`, `comments`, `editor`, `inbox`, `links`, `media`, `misc`,
 `posts`, and `e2e` for the test-only patches): folder = area, class = one patch (`<Patch>Tests.cs`) in a folder of its

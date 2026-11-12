@@ -18,7 +18,7 @@ body:
     attributes:
       label: HushTelegram and Telegram versions
       description: Long-press the Telegram icon and tap HushTelegram, or open Telegram's App info page and tap Additional settings in the app. Then tap About to open it and copy the Version line.
-      placeholder: HushTelegram 0.0.24 on Telegram 13.2.0
+      placeholder: HushTelegram 0.0.25 on Telegram 13.2.1
     validations:
       required: true
   - type: input
@@ -26,7 +26,7 @@ body:
     attributes:
       label: Which Telegram file did you patch?
       description: Where it came from, such as telegram.org's APK, and its version code if you know it. Most bugs on a build that should work come from a different build of the same version.
-      placeholder: telegram.org's APK, 13.2.0
+      placeholder: telegram.org's APK, 13.2.1
   - type: dropdown
     id: manager
     attributes:
@@ -146,6 +146,11 @@ body:
         - Text direction
         - Lyrics and song dates
         - Chat preview buttons
+        - Suppress screenshot notification
+        - Unlock Premium features
+        - Bypass channel restrictions
+        - Bypass integrity check
+        - Auto-forwarding rules
         - HushTelegram settings
     validations:
       required: true

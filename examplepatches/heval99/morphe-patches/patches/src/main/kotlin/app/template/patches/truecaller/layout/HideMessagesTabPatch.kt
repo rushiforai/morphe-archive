@@ -87,28 +87,26 @@ val hideMessagesTabPatch = truecallerControls.featurePatch(
     val builder = BottomBarTabsFingerprint.method
     val builderClass = BottomBarTabsFingerprint.classDef
     val instructions = builder.instructions
-    val take = instructions.indices.singleOrNull { index ->
-        val call = (instructions[index] as? ReferenceInstruction)?.reference as? MethodReference
-        instructions[index].opcode == Opcode.INVOKE_STATIC && call?.definingClass == "Lkotlin/collections/CollectionsKt;" &&
-            call.returnType == "Ljava/util/List;" &&
-            call.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/Iterable;", "I")
-    } ?: throw PatchException("${builderClass.type}->${builder.name} has no single take(Iterable, I) call")
-    val listResult = instructions.getOrNull(take + 1)?.takeIf { it.opcode == Opcode.MOVE_RESULT_OBJECT }
-        ?: throw PatchException("${builderClass.type}->${builder.name} does not keep the tab list")
-    val listRegister = (listResult as OneRegisterInstruction).registerA
-    val cast = (take + 2 until instructions.size).firstOrNull { index ->
+    val listCall = findTabListCall()
+    val listRegister = listCall.listRegister
+    val cast = (listCall.resultIndex + 1 until instructions.size).firstOrNull { index ->
         instructions[index].opcode == Opcode.CHECK_CAST &&
             ((instructions[index] as ReferenceInstruction).reference as TypeReference).type == BOTTOM_BAR_VIEW
     } ?: throw PatchException("${builderClass.type}->${builder.name} does not cast to $BOTTOM_BAR_VIEW")
     val barRegister = (instructions[cast] as OneRegisterInstruction).registerA
-    val listOverwritten = (take + 2 until cast).any { index ->
-        instructions[index].opcode.setsRegister() && (instructions[index] as? OneRegisterInstruction)?.registerA == listRegister
+    // Only the move-result right after one of our own morpheHideTabs_* helper calls puts the (filtered) list
+    // back into this register; any other write to it means the builder no longer holds the tab list.
+    val listOverwritten = (listCall.resultIndex + 1 until cast).any { index ->
+        val ownHelperResult = instructions[index].opcode == Opcode.MOVE_RESULT_OBJECT && index > 0 &&
+            ((instructions[index - 1] as? ReferenceInstruction)?.reference as? MethodReference)
+                ?.name?.startsWith("morpheHideTabs_") == true
+        instructions[index].opcode.setsRegister() && !ownHelperResult &&
+            (instructions[index] as? OneRegisterInstruction)?.registerA == listRegister
     }
     if (listOverwritten || barRegister == listRegister) {
         throw PatchException("${builderClass.type}->${builder.name} no longer holds the tab list at the BottomBarView cast")
     }
-    if (barRegister > 15 || listRegister > 15) throw PatchException("Bottom bar registers are out of invoke range")
-
+    if (barRegister > 15) throw PatchException("Bottom bar register is out of invoke range")
     builderClass.methods.add(
         ImmutableMethod(
             builderClass.type,

@@ -21,7 +21,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val cloneAppPatch = resourcePatch(
     name = "Clone app",
-    description = "Changes the app package name and label so you can install several clones. " +
+    description = "Installs the app as a numbered clone." +
         "Pick a clone number (1–50). Each number is a different package " +
         "(app.clone1, app.clone2…). On update, re-apply the same number on each clone.",
     default = false,

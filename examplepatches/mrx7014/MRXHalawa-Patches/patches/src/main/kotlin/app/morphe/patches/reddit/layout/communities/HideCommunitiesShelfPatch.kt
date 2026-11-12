@@ -9,10 +9,11 @@ package app.morphe.patches.reddit.layout.communities
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 import app.morphe.patches.reddit.misc.settings.settingsPatch
 import app.morphe.patches.reddit.misc.version.is_2026_16_0_or_greater
 import app.morphe.patches.reddit.misc.version.is_2026_18_0_or_greater
+import app.morphe.patches.reddit.misc.version.is_2026_44_0_or_greater
 import app.morphe.patches.reddit.misc.version.versionCheckPatch
 import app.morphe.patches.reddit.shared.Constants.COMPATIBILITY_REDDIT
 import app.morphe.util.setExtensionIsPatchIncluded
@@ -21,7 +22,7 @@ private const val EXTENSION_CLASS =
     "Lapp/morphe/extension/reddit/patches/HideCommunitiesShelfPatch;"
 
 @Suppress("unused")
-val hideCommunitiesShelfPatch = bytecodePatch(
+val hideCommunitiesShelfPatch = patch(
     name = "Hide communities shelf",
     description = "Adds an option to hide the related or suggested communities shelf in subreddits."
 ) {
@@ -44,11 +45,17 @@ val hideCommunitiesShelfPatch = bytecodePatch(
             )
         }
 
-        val legacyFingerprint = if (is_2026_18_0_or_greater) CommunityRecommendationSection_2026_18_Fingerprint
-        else if (is_2026_16_0_or_greater) CommunityRecommendationSection_2026_16_Fingerprint
-        else CommunityRecommendationSectionLegacyFingerprint
+        if (is_2026_18_0_or_greater) {
+            // List style section was removed in 2026.44.0.
+            if (!is_2026_44_0_or_greater) {
+                CommunityRecommendationSection_2026_18_Fingerprint.applyHideShelf()
+            }
+        } else if (is_2026_16_0_or_greater) {
+            CommunityRecommendationSection_2026_16_Fingerprint.applyHideShelf()
+        } else {
+            CommunityRecommendationSectionLegacyFingerprint.applyHideShelf()
+        }
 
-        legacyFingerprint.applyHideShelf()
         CommunityRecommendationsComposeMethodFingerprint.applyHideShelf()
 
         setExtensionIsPatchIncluded(EXTENSION_CLASS)

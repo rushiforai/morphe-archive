@@ -55,4 +55,22 @@ object Constants {
             )
         )
     )
+
+    val COMPATIBILITY_BDVPN = Compatibility(
+        name = "Bangladesh VPN",
+        packageName = "com.banglatech.bangladeshvpn",
+        // Distributed as a split bundle (.apks): base + arm64 + xxhdpi.
+        apkFileType = ApkFileType.APKM,
+        appIconColor = 0x2196F3,
+        targets = listOf(
+            // Version the VIP patch was developed and verified against
+            // (hand-built v4 .apks, confirmed working on device 2026-11-12).
+            AppTarget(
+                version = "67.26",
+                versionCodes = mapOf(
+                    SupportedAbi.ARM64_V8A to 67
+                )
+            )
+        )
+    )
 }

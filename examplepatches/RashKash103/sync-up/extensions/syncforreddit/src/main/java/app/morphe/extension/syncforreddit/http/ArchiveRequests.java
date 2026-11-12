@@ -68,6 +68,17 @@ public final class ArchiveRequests {
      *                     away for asking too often.
      */
     public static String get(String url, String accept) throws IOException {
+        return get(url, accept, null);
+    }
+
+    /**
+     * The same, with headers of its own. Imgur's API wants the client id named in one, and it
+     * is asked for an album the same way and under the same restraint as everything else here.
+     *
+     * @param alsoSend Headers to send beside the Accept, or null for none.
+     */
+    public static String get(String url, String accept, Map<String, String> alsoSend)
+            throws IOException {
         String host = hostOf(url);
         // An archive that has just failed twice is not asked again for a while. Without this an
         // outage is paid for over and over — once per thread holding anything removed, every
@@ -90,6 +101,11 @@ public final class ArchiveRequests {
             HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
             connection.setRequestMethod("GET");
             connection.setRequestProperty("Accept", accept);
+            if (alsoSend != null) {
+                for (Map.Entry<String, String> each : alsoSend.entrySet()) {
+                    connection.setRequestProperty(each.getKey(), each.getValue());
+                }
+            }
             connection.setUseCaches(false);
             connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
             connection.setReadTimeout(READ_TIMEOUT_MS);

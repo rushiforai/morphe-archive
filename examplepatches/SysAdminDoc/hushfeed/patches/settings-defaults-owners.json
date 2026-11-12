@@ -76,6 +76,7 @@
     "Block author button": [
       "NO_RESUME_ON_FOREGROUND",
       "PAUSE_FIRST_VIDEO",
+      "PAUSE_BEFORE_FEED_SECONDS",
       "KEEP_PAUSED_ON_RETURN",
       "LEAVE_ON_REST_REMINDER",
       "IDLE_LEAVE_MINUTES",
@@ -134,6 +135,8 @@
       "COMMENT_EXPORT",
       "COMMENT_SEARCH_FOLDED",
       "COMMENT_LINKS",
+      "FOLD_LONG_COMMENTS",
+      "FOLD_LONG_COMMENTS_LINES",
       "HIDE_COMMENT_MEDIA",
       "HIDE_VOICE_COMMENTS",
       "HIDE_SPAM_COMMENTS",
@@ -168,6 +171,7 @@
     "Custom offline videos limit": [
       "CUSTOM_OFFLINE_VIDEOS",
       "CUSTOM_OFFLINE_VIDEO_LIMIT",
+      "DELETE_WATCHED_OFFLINE_VIDEOS",
       "KEEP_OFFLINE_VIDEOS"
     ],
     "Device privacy guard": [
@@ -248,6 +252,7 @@
       "HIDE_LIVE",
       "HIDE_SHOP",
       "HIDE_SEARCH_SHOP",
+      "SEARCH_TAB_PICKS",
       "HIDE_STORY",
       "HIDE_IMAGE",
       "MIN_MAX_VIEWS",
@@ -839,6 +844,7 @@
     "SHARE_ACTION_CATALOG": "Runtime state or legacy migration data; not a configurable feature default.",
     "PROFILE_SHORTCUT_CATALOG": "Runtime state or legacy migration data; not a configurable feature default.",
     "POPUP_LABEL_CATALOG": "Runtime state or legacy migration data; not a configurable feature default.",
+    "SEARCH_TAB_CATALOG": "Runtime state or legacy migration data; not a configurable feature default.",
     "DIAGNOSTIC_REPORT_SALT": "Runtime state or legacy migration data; not a configurable feature default.",
     "DEBUG_CAPTURE": "Runtime state or legacy migration data; not a configurable feature default.",
     "CHECK_ENVIRONMENT_WARNINGS_ISSUED": "Runtime state or legacy migration data; not a configurable feature default.",

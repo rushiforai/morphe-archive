@@ -40,7 +40,7 @@ versions may work but aren't guaranteed; if an app update breaks a patch,
 [open an issue](https://github.com/heval99/Heval-Morphe-Patches/issues/new/choose).
 
 <!-- PATCHES_START EXPANDED -->
-> **[v2.2.0](https://github.com/heval99/Heval-Morphe-Patches/releases/tag/v2.2.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;**89** apps&nbsp;&nbsp;•&nbsp;&nbsp;**244** patches&nbsp;&nbsp;•&nbsp;&nbsp;updated 2026-11-04
+> **[v2.3.0](https://github.com/heval99/Heval-Morphe-Patches/releases/tag/v2.3.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;**100** apps&nbsp;&nbsp;•&nbsp;&nbsp;**297** patches&nbsp;&nbsp;•&nbsp;&nbsp;updated 2026-11-12
 
 🚫 ads&nbsp;&nbsp;🛡️ telemetry / tracking&nbsp;&nbsp;💎 premium / pro&nbsp;&nbsp;🔑 license check&nbsp;&nbsp;🔕 prompts / notifications&nbsp;&nbsp;🧪 experimental
 
@@ -50,49 +50,61 @@ versions may work but aren't guaranteed; if an app update breaks a patch,
 
 | | App | Patches | Latest verified | Type | Google Play |
 |:-:|---|---|---|:-:|:-:|
-| <img src="assets/icons/com.scores365.png" width="20" height="20" alt=""> | **365Scores** | 🚫 💎 🔕 🧩 5 | `15.0.0` | APKM | [Play](https://play.google.com/store/apps/details?id=com.scores365) |
-| <img src="assets/icons/com.football433.png" width="20" height="20" alt=""> | **433** | 🚫 🛡️ 🧪 2 | `2.3.585` | APKM | [Play](https://play.google.com/store/apps/details?id=com.football433) |
+| <img src="assets/icons/com.scores365.png" width="20" height="20" alt=""> | **365Scores** | 🚫 💎 🔕 🧩 10 | `15.0.1` | APKM | [Play](https://play.google.com/store/apps/details?id=com.scores365) |
+| <img src="assets/icons/com.football433.png" width="20" height="20" alt=""> | **433** | 🚫 🛡️ 🧪 2 | `2.3.608` | APKM | [Play](https://play.google.com/store/apps/details?id=com.football433) |
 | <img src="assets/icons/com.onesports.score.png" width="20" height="20" alt=""> | **AiScore** | 💎 🧩 2 | `4.3.2` | APKM | [Play](https://play.google.com/store/apps/details?id=com.onesports.score) |
 | <img src="assets/icons/com.resultadosfutbol.mobile.png" width="20" height="20" alt=""> | **BeSoccer** | 🚫 🔑 2 | `6.7.1` | APKM | [Play](https://play.google.com/store/apps/details?id=com.resultadosfutbol.mobile) |
 | <img src="assets/icons/com.bleacherreport.android.teamstream.png" width="20" height="20" alt=""> | **Bleacher Report** | 🚫 🛡️ 🧩 3 | `11.13.0.39` | APKM | [Play](https://play.google.com/store/apps/details?id=com.bleacherreport.android.teamstream) |
 | <img src="assets/icons/club.boxbox.android.png" width="20" height="20" alt=""> | **BoxBox** | 🚫 🛡️ 💎 3 | `5.4.18` | APKM | [Play](https://play.google.com/store/apps/details?id=club.boxbox.android) |
-| <img src="assets/icons/in.cricketexchange.app.cricketexchange.png" width="20" height="20" alt=""> | **CREX** | 🚫 💎 2 | `26.10.09` | APKM | [Play](https://play.google.com/store/apps/details?id=in.cricketexchange.app.cricketexchange) |
-| <img src="assets/icons/ro.rcsrds.digisport.png" width="20" height="20" alt=""> | **Digi Sport** | 🚫 🛡️ 🔕 🧩 🧪 8 | `1.1.15` | APK | [Play](https://play.google.com/store/apps/details?id=ro.rcsrds.digisport) |
-| <img src="assets/icons/com.eurosport.png" width="20" height="20" alt=""> | **Eurosport** | 🚫 🛡️ 🧩 3 | `8.34.1` | APKM | [Play](https://play.google.com/store/apps/details?id=com.eurosport) |
-| <img src="assets/icons/eu.livesport.FlashScore_com.png" width="20" height="20" alt=""> | **Flashscore** | 🚫 🛡️ 🔕 🧩 6 | `26.11.4` | APKS | [Play](https://play.google.com/store/apps/details?id=eu.livesport.FlashScore_com) |
+| <img src="assets/icons/in.cricketexchange.app.cricketexchange.png" width="20" height="20" alt=""> | **CREX** | 🚫 💎 2 | `26.11.01` | APKM | [Play](https://play.google.com/store/apps/details?id=in.cricketexchange.app.cricketexchange) |
+| <img src="assets/icons/ro.rcsrds.digisport.png" width="20" height="20" alt=""> | **Digi Sport** | 🚫 🛡️ 🔕 🧩 8 | `1.1.15` | APK | [Play](https://play.google.com/store/apps/details?id=ro.rcsrds.digisport) |
+| <img src="assets/icons/com.eurosport.png" width="20" height="20" alt=""> | **Eurosport** | 🚫 🛡️ 🧩 3 | `8.35.0` | APKM | [Play](https://play.google.com/store/apps/details?id=com.eurosport) |
+| <img src="assets/icons/eu.livesport.FlashScore_com.png" width="20" height="20" alt=""> | **Flashscore** | 🚫 🛡️ 🔕 🧩 12 | `26.11.6` | APKS | [Play](https://play.google.com/store/apps/details?id=eu.livesport.FlashScore_com) |
 | <img src="assets/icons/se.footballaddicts.livescore.png" width="20" height="20" alt=""> | **Forza Football** | 🚫 🛡️ 💎 🧩 5 | `6.15.10` | APKM | [Play](https://play.google.com/store/apps/details?id=se.footballaddicts.livescore) |
-| <img src="assets/icons/com.mobilefootie.wc2010.png" width="20" height="20" alt=""> | **FotMob** | 🚫 🛡️ 💎 🔕 🧩 15 | `241.18134.20261030` | APKM | [Play](https://play.google.com/store/apps/details?id=com.mobilefootie.wc2010) |
-| <img src="assets/icons/com.futbin.png" width="20" height="20" alt=""> | **Futbin** | 🚫 1 | `27.10` | APK | [Play](https://play.google.com/store/apps/details?id=com.futbin) |
-| <img src="assets/icons/lequipe.fr.png" width="20" height="20" alt=""> | **L'Équipe** | 🚫 🧪 1 | `10.70.0` | APKM | [Play](https://play.google.com/store/apps/details?id=lequipe.fr) |
-| <img src="assets/icons/com.livescore.png" width="20" height="20" alt=""> | **Livescore** | 🚫 1 | `10.4` | APK | [Play](https://play.google.com/store/apps/details?id=com.livescore) |
+| <img src="assets/icons/com.mobilefootie.wc2010.png" width="20" height="20" alt=""> | **FotMob** | 🚫 🛡️ 💎 🔕 🧩 18 | `241.18134.20261030` | APKM | [Play](https://play.google.com/store/apps/details?id=com.mobilefootie.wc2010) |
+| <img src="assets/icons/com.futbin.png" width="20" height="20" alt=""> | **Futbin** | 🚫 1 | `27.13` | APK | [Play](https://play.google.com/store/apps/details?id=com.futbin) |
+| <img src="assets/icons/lequipe.fr.png" width="20" height="20" alt=""> | **L'Équipe** | 🚫 🧪 1 | `10.71.1` | APKM | [Play](https://play.google.com/store/apps/details?id=lequipe.fr) |
+| <img src="assets/icons/com.livescore.png" width="20" height="20" alt=""> | **Livescore** | 🚫 1 | `10.4.1` | APK | [Play](https://play.google.com/store/apps/details?id=com.livescore) |
 | <img src="assets/icons/one.cricket.app.png" width="20" height="20" alt=""> | **OneCricket** | 🚫 1 | `26.10.01` | APKM | [Play](https://play.google.com/store/apps/details?id=one.cricket.app) |
-| <img src="assets/icons/de.motain.iliga.png" width="20" height="20" alt=""> | **OneFootball** | 🚫 1 | `15.148.0` | APKM | [Play](https://play.google.com/store/apps/details?id=de.motain.iliga) |
-| <img src="assets/icons/com.sofascore.results.png" width="20" height="20" alt=""> | **Sofascore** | 🚫 🛡️ 💎 🔕 🧩 19 | `26.10.26` | APKM | [Play](https://play.google.com/store/apps/details?id=com.sofascore.results) |
+| <img src="assets/icons/de.motain.iliga.png" width="20" height="20" alt=""> | **OneFootball** | 🚫 1 | `15.150.0` | APKM | [Play](https://play.google.com/store/apps/details?id=de.motain.iliga) |
+| <img src="assets/icons/com.sofascore.results.png" width="20" height="20" alt=""> | **Sofascore** | 🚫 🛡️ 💎 🔕 🧩 26 | `26.11.03` | APKM | [Play](https://play.google.com/store/apps/details?id=com.sofascore.results) |
 | <img src="assets/icons/de.transfermarkt.v2.png" width="20" height="20" alt=""> | **Transfermarkt** | 🚫 🛡️ 2 | `4.3.3` | APKM | [Play](https://play.google.com/store/apps/details?id=de.transfermarkt.v2) |
-| <img src="assets/icons/com.yahoo.mobile.client.android.sportacular.png" width="20" height="20" alt=""> | **Yahoo Sports** | 🚫 🧩 2 | `12.27.0` | APKM | [Play](https://play.google.com/store/apps/details?id=com.yahoo.mobile.client.android.sportacular) |
+| <img src="assets/icons/com.yahoo.mobile.client.android.sportacular.png" width="20" height="20" alt=""> | **Yahoo Sports** | 🚫 🧩 2 | `12.28.1` | APKM | [Play](https://play.google.com/store/apps/details?id=com.yahoo.mobile.client.android.sportacular) |
 
-#### 📰 News & finance <sub>7 apps</sub>
+#### 📰 News & finance <sub>20 apps</sub>
 
 | | App | Patches | Latest verified | Type | Google Play |
 |:-:|---|---|---|:-:|:-:|
-| <img src="assets/icons/bbc.mobile.news.ww.png" width="20" height="20" alt=""> | **BBC News** | 🚫 1 | `2026.9.1` | APKM | [Play](https://play.google.com/store/apps/details?id=bbc.mobile.news.ww) |
-| <img src="assets/icons/com.rammigsoftware.bluecoins.png" width="20" height="20" alt=""> | **Bluecoins** | 💎 1 | `13.1.149` | APK | [Play](https://play.google.com/store/apps/details?id=com.rammigsoftware.bluecoins) |
+| <img src="https://img.shields.io/badge/-%20-0096D6?style=flat-square" height="14" alt=""> | **Allente** | 🛡️ 1 | `6.2.1.0` | APKM | [Play](https://play.google.com/store/apps/details?id=com.canaldigital.go) |
+| <img src="https://img.shields.io/badge/-%20-E30613?style=flat-square" height="14" alt=""> | **B.T.** | 🚫 🛡️ 2 | `4.5.8` | APK | [Play](https://play.google.com/store/apps/details?id=com.mecom.bt) |
+| <img src="assets/icons/bbc.mobile.news.ww.png" width="20" height="20" alt=""> | **BBC News** | 🚫 1 | `2026.10.0` | APKM | [Play](https://play.google.com/store/apps/details?id=bbc.mobile.news.ww) |
+| <img src="https://img.shields.io/badge/-%20-002B5C?style=flat-square" height="14" alt=""> | **Berlingske** | 🚫 🛡️ 2 | `4.5.8` | APKM | [Play](https://play.google.com/store/apps/details?id=com.mecom.Berlingske) |
+| <img src="https://img.shields.io/badge/-%20-0057B8?style=flat-square" height="14" alt=""> | **Blockbuster** | 🛡️ 1 | `7.1.27` | APKM | [Play](https://play.google.com/store/apps/details?id=dk.tdc.blockbuster.nordic) |
+| <img src="https://img.shields.io/badge/-%20-E30613?style=flat-square" height="14" alt=""> | **Ekstra Bladet** | 🛡️ 1 | `2026.09.20` | APKM | [Play](https://play.google.com/store/apps/details?id=dk.ekstrabladet.breakingnews) |
+| <img src="https://img.shields.io/badge/-%20-E30613?style=flat-square" height="14" alt=""> | **Fyens Stiftstidende** | 🚫 🛡️ 🧩 3 | `15.32` | APKM | [Play](https://play.google.com/store/apps/details?id=dk.fyensstifts.areader) |
+| <img src="https://img.shields.io/badge/-%20-E30613?style=flat-square" height="14" alt=""> | **JydskeVestkysten** | 🚫 🛡️ 🧩 3 | `15.32` | APKM | [Play](https://play.google.com/store/apps/details?id=dk.jydskevestkystenmain.areader) |
+| <img src="https://img.shields.io/badge/-%20-C8102E?style=flat-square" height="14" alt=""> | **Jyllands Posten** | 🚫 🛡️ 2 | `2026.10.15` | APKM | [Play](https://play.google.com/store/apps/details?id=dk.jyllandsposten.jp) |
 | <img src="assets/icons/com.monefy.app.lite.png" width="20" height="20" alt=""> | **Monefy** | 💎 1 | `1.22.11` | APKM | [Play](https://play.google.com/store/apps/details?id=com.monefy.app.lite) |
 | <img src="assets/icons/com.divum.MoneyControl.png" width="20" height="20" alt=""> | **Moneycontrol** | 🚫 🧪 1 | `14.6.3.RC0` | APKM | [Play](https://play.google.com/store/apps/details?id=com.divum.MoneyControl) |
+| <img src="https://img.shields.io/badge/-%20-0B1F3A?style=flat-square" height="14" alt=""> | **Nordisk Film+** | 🛡️ 1 | `1.5.4` | APKM | [Play](https://play.google.com/store/apps/details?id=com.nordiskfilmplus.android) |
+| <img src="https://img.shields.io/badge/-%20-E20110?style=flat-square" height="14" alt=""> | **Nordjyske** | 🚫 🛡️ 🧩 3 | `8.0.17` | APKM | [Play](https://play.google.com/store/apps/details?id=dk.nordjyske.reader) |
+| <img src="https://img.shields.io/badge/-%20-E30613?style=flat-square" height="14" alt=""> | **Politiken** | 🚫 🛡️ 2 | `4.1.5` | APKM | [Play](https://play.google.com/store/apps/details?id=dk.pol.news) |
 | <img src="assets/icons/ie.rte.news.png" width="20" height="20" alt=""> | **RTÉ News** | 🚫 1 | `10.0.2` | APKM | [Play](https://play.google.com/store/apps/details?id=ie.rte.news) |
 | <img src="assets/icons/com.guardian.png" width="20" height="20" alt=""> | **The Guardian** | 🚫 🛡️ 🧩 3 | `6.241.23504` | APKM | [Play](https://play.google.com/store/apps/details?id=com.guardian) |
-| <img src="assets/icons/wsj.reader_sp.png" width="20" height="20" alt=""> | **The Wall Street Journal** | 🚫 1 | `15.12.0.42675` | APK | [Play](https://play.google.com/store/apps/details?id=wsj.reader_sp) |
+| <img src="assets/icons/wsj.reader_sp.png" width="20" height="20" alt=""> | **The Wall Street Journal** | 🚫 1 | `15.13.0.44249` | APK | [Play](https://play.google.com/store/apps/details?id=wsj.reader_sp) |
+| <img src="https://img.shields.io/badge/-%20-E30613?style=flat-square" height="14" alt=""> | **TV 2 Nyheder** | 🚫 🛡️ 2 | `2026.10-10188:RELEASE` | APKM | [Play](https://play.google.com/store/apps/details?id=dk.tv2.nyhedscenter) |
+| <img src="https://img.shields.io/badge/-%20-E30613?style=flat-square" height="14" alt=""> | **TV 2 Play** | 🛡️ 1 | `2026.10-1` | APKM | [Play](https://play.google.com/store/apps/details?id=dk.tv2.tv2play) |
+| <img src="https://img.shields.io/badge/-%20-00539B?style=flat-square" height="14" alt=""> | **Århus Stiftstidende** | 🚫 🛡️ 🧩 3 | `15.32` | APKM | [Play](https://play.google.com/store/apps/details?id=dk.aasmain.areader) |
 
-#### 💬 Messaging, email & calls <sub>6 apps</sub>
+#### 💬 Messaging, email & calls <sub>5 apps</sub>
 
 | | App | Patches | Latest verified | Type | Google Play |
 |:-:|---|---|---|:-:|:-:|
 | <img src="assets/icons/org.kman.AquaMail.png" width="20" height="20" alt=""> | **Aqua Mail** | 💎 1 | `2.8.1` | APKM | [Play](https://play.google.com/store/apps/details?id=org.kman.AquaMail) |
-| <img src="assets/icons/me.bluemail.mail.png" width="20" height="20" alt=""> | **BlueMail** | 🚫 1 | `2.2.418` | APKM | [Play](https://play.google.com/store/apps/details?id=me.bluemail.mail) |
+| <img src="assets/icons/me.bluemail.mail.png" width="20" height="20" alt=""> | **BlueMail** | 🚫 1 | `2.2.426` | APKM | [Play](https://play.google.com/store/apps/details?id=me.bluemail.mail) |
 | <img src="assets/icons/eu.faircode.email.png" width="20" height="20" alt=""> | **FairEmail** | 💎 1 | `1.2339` | APK | [Play](https://play.google.com/store/apps/details?id=eu.faircode.email) |
 | <img src="assets/icons/com.mail.mobile.android.mail.png" width="20" height="20" alt=""> | **mail.com** | 🚫 🛡️ 🔕 🧩 4 | `9.20.2` | APKM | [Play](https://play.google.com/store/apps/details?id=com.mail.mobile.android.mail) |
-| <img src="assets/icons/com.textra.png" width="20" height="20" alt=""> | **Textra** | 💎 1 | `4.87` | APKM | [Play](https://play.google.com/store/apps/details?id=com.textra) |
-| <img src="assets/icons/com.truecaller.png" width="20" height="20" alt=""> | **Truecaller** | 🚫 🛡️ 💎 🔕 🧩 30 | `26.43.5` | APKM | [Play](https://play.google.com/store/apps/details?id=com.truecaller) |
+| <img src="assets/icons/com.truecaller.png" width="20" height="20" alt=""> | **Truecaller** | 🚫 🛡️ 💎 🔕 🧩 34 | `26.44.6` | APKM | [Play](https://play.google.com/store/apps/details?id=com.truecaller) |
 
 #### 🎵 Music, podcasts & radio <sub>7 apps</sub>
 
@@ -100,26 +112,27 @@ versions may work but aren't guaranteed; if an app update breaks a patch,
 |:-:|---|---|---|:-:|:-:|
 | <img src="assets/icons/fm.castbox.audiobook.radio.podcast.png" width="20" height="20" alt=""> | **Castbox** | 🚫 1 | `11.27.0-261014339` | APKM | [Play](https://play.google.com/store/apps/details?id=fm.castbox.audiobook.radio.podcast) |
 | <img src="assets/icons/com.jetappfactory.jetaudio.png" width="20" height="20" alt=""> | **jetAudio** | 💎 1 | `13.2.0` | APKM | [Play](https://play.google.com/store/apps/details?id=com.jetappfactory.jetaudio) |
-| <img src="assets/icons/com.Project100Pi.themusicplayer.png" width="20" height="20" alt=""> | **Pi Music Player** | 🚫 💎 2 | `3.2.1.0_release_1` | APKM | [Play](https://play.google.com/store/apps/details?id=com.Project100Pi.themusicplayer) |
+| <img src="assets/icons/com.Project100Pi.themusicplayer.png" width="20" height="20" alt=""> | **Pi Music Player** | 🚫 💎 2 | `3.2.3.0_release_1` | APKM | [Play](https://play.google.com/store/apps/details?id=com.Project100Pi.themusicplayer) |
 | <img src="assets/icons/com.podcast.podcasts.png" width="20" height="20" alt=""> | **Podcast Republic** | 🚫 1 | `9.17.0-260909124` | APK | [Play](https://play.google.com/store/apps/details?id=com.podcast.podcasts) |
-| <img src="assets/icons/com.shazam.android.png" width="20" height="20" alt=""> | **Shazam** | 🛡️ 🧩 4 | `16.66.0-261029` | APKM | [Play](https://play.google.com/store/apps/details?id=com.shazam.android) |
-| <img src="assets/icons/com.streema.simpleradio.png" width="20" height="20" alt=""> | **Simple Radio** | 🚫 💎 2 | `6.3.0` | APKM | [Play](https://play.google.com/store/apps/details?id=com.streema.simpleradio) |
+| <img src="assets/icons/com.shazam.android.png" width="20" height="20" alt=""> | **Shazam** | 🛡️ 🧩 4 | `16.67.0-261105` | APKM | [Play](https://play.google.com/store/apps/details?id=com.shazam.android) |
+| <img src="assets/icons/com.streema.simpleradio.png" width="20" height="20" alt=""> | **Simple Radio** | 🚫 💎 2 | `6.3.1` | APKM | [Play](https://play.google.com/store/apps/details?id=com.streema.simpleradio) |
 | <img src="assets/icons/com.melodis.midomiMusicIdentifier.freemium.png" width="20" height="20" alt=""> | **SoundHound** | 🚫 1 | `10.5.8` | APK | [Play](https://play.google.com/store/apps/details?id=com.melodis.midomiMusicIdentifier.freemium) |
 
-#### 📺 Video & TV <sub>4 apps</sub>
+#### 📺 Video & TV <sub>5 apps</sub>
 
 | | App | Patches | Latest verified | Type | Google Play |
 |:-:|---|---|---|:-:|:-:|
-| <img src="assets/icons/dk.dr.webplayer.png" width="20" height="20" alt=""> | **DRTV** | 🛡️ 🧩 3 | `4.39.0` | APKM | [Play](https://play.google.com/store/apps/details?id=dk.dr.webplayer) |
-| <img src="assets/icons/com.duplila.screenshare.png" width="20" height="20" alt=""> | **Duplila** | 🚫 💎 🔑 3 | `5.4` | APKM | [Play](https://play.google.com/store/apps/details?id=com.duplila.screenshare) |
+| <img src="https://img.shields.io/badge/-%20-E94122?style=flat-square" height="14" alt=""> | **Add Music** | 💎 1 | `9.6` | APKM | [Play](https://play.google.com/store/apps/details?id=kgs.com.addmusictovideos) |
+| <img src="assets/icons/dk.dr.webplayer.png" width="20" height="20" alt=""> | **DRTV** | 🛡️ 🧩 3 | `4.40.4` | APKM | [Play](https://play.google.com/store/apps/details?id=dk.dr.webplayer) |
 | <img src="assets/icons/app.expert.player.png" width="20" height="20" alt=""> | **TV Smarters Player Expert** | 🚫 💎 2 | `11.6.1` | APKM | [Play](https://play.google.com/store/apps/details?id=app.expert.player) |
-| <img src="assets/icons/com.viaplay.android.png" width="20" height="20" alt=""> | **Viaplay** | 🚫 🛡️ 🧪 2 | `26.42.1` | APKM | [Play](https://play.google.com/store/apps/details?id=com.viaplay.android) |
+| <img src="assets/icons/com.viaplay.android.png" width="20" height="20" alt=""> | **Viaplay** | 🚫 🛡️ 🧪 2 | `26.44.0` | APKM | [Play](https://play.google.com/store/apps/details?id=com.viaplay.android) |
+| <img src="https://img.shields.io/badge/-%20-00DC00?style=flat-square" height="14" alt=""> | **YouSee Play** | 🛡️ 1 | `13.12.0 (build 22025)` | APKS | [Play](https://play.google.com/store/apps/details?id=yiuo.mobile.tv) |
 
 #### 📚 Books & reading <sub>2 apps</sub>
 
 | | App | Patches | Latest verified | Type | Google Play |
 |:-:|---|---|---|:-:|:-:|
-| <img src="assets/icons/com.foobnix.pdf.reader.png" width="20" height="20" alt=""> | **Librera** | 🚫 1 | `10.0.22` | APK | [Play](https://play.google.com/store/apps/details?id=com.foobnix.pdf.reader) |
+| <img src="assets/icons/com.foobnix.pdf.reader.png" width="20" height="20" alt=""> | **Librera** | 🚫 1 | `10.0.31` | APK | [Play](https://play.google.com/store/apps/details?id=com.foobnix.pdf.reader) |
 | <img src="assets/icons/com.flyersoft.moonreader.png" width="20" height="20" alt=""> | **Moon+ Reader** | 🚫 1 | `10.8` | APKM | [Play](https://play.google.com/store/apps/details?id=com.flyersoft.moonreader) |
 
 #### 🏋️ Health & fitness <sub>5 apps</sub>
@@ -127,9 +140,9 @@ versions may work but aren't guaranteed; if an app update breaks a patch,
 | | App | Patches | Latest verified | Type | Google Play |
 |:-:|---|---|---|:-:|:-:|
 | <img src="assets/icons/dk.bold.png" width="20" height="20" alt=""> | **Bold** | 🚫 1 | `6.5.2` | APKS | [Play](https://play.google.com/store/apps/details?id=dk.bold) |
-| <img src="assets/icons/com.hevy.png" width="20" height="20" alt=""> | **Hevy** | 🛡️ 💎 2 | `3.2.4` | APKM | [Play](https://play.google.com/store/apps/details?id=com.hevy) |
-| <img src="assets/icons/cc.dreamspark.intervaltimer.png" width="20" height="20" alt=""> | **Interval Timer** | 🚫 🛡️ 2 | `2.3.30` | APK | [Play](https://play.google.com/store/apps/details?id=cc.dreamspark.intervaltimer) |
-| <img src="assets/icons/com.myfitnesspal.android.png" width="20" height="20" alt=""> | **MyFitnessPal** | 🛡️ 💎 2 | `26.44.0` | APKM | [Play](https://play.google.com/store/apps/details?id=com.myfitnesspal.android) |
+| <img src="assets/icons/com.hevy.png" width="20" height="20" alt=""> | **Hevy** | 🛡️ 💎 2 | `3.2.6` | APKM | [Play](https://play.google.com/store/apps/details?id=com.hevy) |
+| <img src="assets/icons/cc.dreamspark.intervaltimer.png" width="20" height="20" alt=""> | **Interval Timer** | 🚫 🛡️ 2 | `2.3.31` | APK | [Play](https://play.google.com/store/apps/details?id=cc.dreamspark.intervaltimer) |
+| <img src="assets/icons/com.myfitnesspal.android.png" width="20" height="20" alt=""> | **MyFitnessPal** | 🛡️ 💎 2 | `26.45.0` | APKM | [Play](https://play.google.com/store/apps/details?id=com.myfitnesspal.android) |
 | <img src="assets/icons/net.smartwod.timer.png" width="20" height="20" alt=""> | **SmartWOD Timer** | 🚫 💎 2 | `1.47.1` | APKM | [Play](https://play.google.com/store/apps/details?id=net.smartwod.timer) |
 
 #### 🗺️ Maps, weather & outdoors <sub>5 apps</sub>
@@ -137,7 +150,7 @@ versions may work but aren't guaranteed; if an app update breaks a patch,
 | | App | Patches | Latest verified | Type | Google Play |
 |:-:|---|---|---|:-:|:-:|
 | <img src="assets/icons/no.fishbuddy_playground.app.png" width="20" height="20" alt=""> | **FishBuddy** | 💎 1 | `11.0.137` | APKM | [Play](https://play.google.com/store/apps/details?id=no.fishbuddy_playground.app) |
-| <img src="assets/icons/com.gregacucnik.fishingpoints.png" width="20" height="20" alt=""> | **Fishing Points** | 💎 1 | `4.8.0` | APK | [Play](https://play.google.com/store/apps/details?id=com.gregacucnik.fishingpoints) |
+| <img src="assets/icons/com.gregacucnik.fishingpoints.png" width="20" height="20" alt=""> | **Fishing Points** | 💎 1 | `4.8.1` | APK | [Play](https://play.google.com/store/apps/details?id=com.gregacucnik.fishingpoints) |
 | <img src="assets/icons/net.osmand.png" width="20" height="20" alt=""> | **OsmAnd** | 💎 1 | `5.4.11` | APKM | [Play](https://play.google.com/store/apps/details?id=net.osmand) |
 | <img src="assets/icons/com.astrapaging.vff.png" width="20" height="20" alt=""> | **VesselFinder** | 🚫 🔑 2 | `6.7.8` | APKM | [Play](https://play.google.com/store/apps/details?id=com.astrapaging.vff) |
 | <img src="assets/icons/com.wunderground.android.weather.png" width="20" height="20" alt=""> | **Weather Underground** | 🚫 1 | `6.20.1` | APK | [Play](https://play.google.com/store/apps/details?id=com.wunderground.android.weather) |
@@ -148,12 +161,12 @@ versions may work but aren't guaranteed; if an app update breaks a patch,
 |:-:|---|---|---|:-:|:-:|
 | <img src="assets/icons/com.alarmclock.xtreme.free.png" width="20" height="20" alt=""> | **Alarm Clock Xtreme** | 🚫 1 | `26.06.0` | APKM | [Play](https://play.google.com/store/apps/details?id=com.alarmclock.xtreme.free) |
 | <img src="assets/icons/com.twodoor.bookly.png" width="20" height="20" alt=""> | **Bookly** | 💎 1 | `2.4.2` | APKM | [Play](https://play.google.com/store/apps/details?id=com.twodoor.bookly) |
-| <img src="assets/icons/com.appgenix.bizcal.png" width="20" height="20" alt=""> | **Business Calendar 2** | 🚫 🛡️ 💎 3 | `2.55.8` | APKM | [Play](https://play.google.com/store/apps/details?id=com.appgenix.bizcal) |
+| <img src="assets/icons/com.appgenix.bizcal.png" width="20" height="20" alt=""> | **Business Calendar 2** | 🚫 🛡️ 💎 3 | `2.56.0` | APKM | [Play](https://play.google.com/store/apps/details?id=com.appgenix.bizcal) |
 | <img src="assets/icons/easynotes.notes.notepad.notebook.privatenotes.note.png" width="20" height="20" alt=""> | **EasyNotes** | 🚫 💎 2 | `1.3.65.1019` | APKM | [Play](https://play.google.com/store/apps/details?id=easynotes.notes.notepad.notebook.privatenotes.note) |
 | <img src="assets/icons/com.ztnstudio.notepad.png" width="20" height="20" alt=""> | **#Notepad** | 🚫 💎 2 | `5.4.4.19080` | APKM | [Play](https://play.google.com/store/apps/details?id=com.ztnstudio.notepad) |
 | <img src="assets/icons/io.unorderly.structured.png" width="20" height="20" alt=""> | **Structured** | 💎 🔑 2 | `3.9.6` | APKM | [Play](https://play.google.com/store/apps/details?id=io.unorderly.structured) |
 | <img src="assets/icons/net.dinglisch.android.taskerm.png" width="20" height="20" alt=""> | **Tasker** | 💎 🧩 2 | `6.7.8` | APK | [Play](https://play.google.com/store/apps/details?id=net.dinglisch.android.taskerm) |
-| <img src="assets/icons/com.fenchtose.reflog.png" width="20" height="20" alt=""> | **Taskito** | 💎 🧩 2 | `1.3.3` | APK | [Play](https://play.google.com/store/apps/details?id=com.fenchtose.reflog) |
+| <img src="assets/icons/com.fenchtose.reflog.png" width="20" height="20" alt=""> | **Taskito** | 💎 🧩 2 | `1.3.4` | APK | [Play](https://play.google.com/store/apps/details?id=com.fenchtose.reflog) |
 | <img src="assets/icons/com.gmail.jmartindev.timetune.png" width="20" height="20" alt=""> | **TimeTune** | 💎 1 | `5.6.3` | APK | [Play](https://play.google.com/store/apps/details?id=com.gmail.jmartindev.timetune) |
 | <img src="assets/icons/com.getupnote.android.png" width="20" height="20" alt=""> | **UpNote** | 💎 1 | `9.22.8` | APKM | [Play](https://play.google.com/store/apps/details?id=com.getupnote.android) |
 
@@ -161,23 +174,23 @@ versions may work but aren't guaranteed; if an app update breaks a patch,
 
 | | App | Patches | Latest verified | Type | Google Play |
 |:-:|---|---|---|:-:|:-:|
-| <img src="assets/icons/com.brave.browser.png" width="20" height="20" alt=""> | **Brave Browser** | 🚫 🛡️ 💎 🔕 🧩 🧪 5 | `1.98.63` | APKM | [Play](https://play.google.com/store/apps/details?id=com.brave.browser) |
-| <img src="assets/icons/org.mozilla.firefox.png" width="20" height="20" alt=""> | **Firefox** | 🛡️ 🔕 🧩 7 | `159.0` | APK | [Play](https://play.google.com/store/apps/details?id=org.mozilla.firefox) |
-| <img src="assets/icons/org.mozilla.focus.png" width="20" height="20" alt=""> | **Firefox Focus** | 🛡️ 🔕 🧩 6 | `159.0.1` | APKM | [Play](https://play.google.com/store/apps/details?id=org.mozilla.focus) |
+| <img src="assets/icons/com.brave.browser.png" width="20" height="20" alt=""> | **Brave Browser** | 🚫 🛡️ 💎 🔕 🧩 🧪 5 | `1.99.56` | APKM | [Play](https://play.google.com/store/apps/details?id=com.brave.browser) |
+| <img src="assets/icons/org.mozilla.firefox.png" width="20" height="20" alt=""> | **Firefox** | 🛡️ 🔕 🧩 7 | `159.0.1` | APK | [Play](https://play.google.com/store/apps/details?id=org.mozilla.firefox) |
+| <img src="assets/icons/org.mozilla.focus.png" width="20" height="20" alt=""> | **Firefox Focus** | 🛡️ 🔕 🧩 7 | `159.0.1` | APKM | [Play](https://play.google.com/store/apps/details?id=org.mozilla.focus) |
 | <img src="assets/icons/mark.via.gp.png" width="20" height="20" alt=""> | **Via** | 🛡️ 1 | `7.3.3` | APK | [Play](https://play.google.com/store/apps/details?id=mark.via.gp) |
 
 #### 🏠 Launchers <sub>6 apps</sub>
 
 | | App | Patches | Latest verified | Type | Google Play |
 |:-:|---|---|---|:-:|:-:|
-| <img src="assets/icons/easy.launcher.png" width="20" height="20" alt=""> | **Easy Homescreen** | 🚫 🛡️ 🔕 🧩 6 | `1.10.29` | APKM | [Play](https://play.google.com/store/apps/details?id=easy.launcher) |
-| <img src="assets/icons/projekt.launcher.png" width="20" height="20" alt=""> | **Hyperion Launcher** | 💎 1 | `2.2.14` | APKM | [Play](https://play.google.com/store/apps/details?id=projekt.launcher) |
-| <img src="assets/icons/app.pinya.mango.png" width="20" height="20" alt=""> | **Mango Launcher** | 💎 🔑 2 | `1.64` | APKM | [Play](https://play.google.com/store/apps/details?id=app.pinya.mango) |
+| <img src="assets/icons/easy.launcher.png" width="20" height="20" alt=""> | **Easy Homescreen** | 🚫 🛡️ 🔕 🧩 6 | `1.10.31` | APKM | [Play](https://play.google.com/store/apps/details?id=easy.launcher) |
+| <img src="assets/icons/projekt.launcher.png" width="20" height="20" alt=""> | **Hyperion Launcher** | 💎 1 | `2.2.16` | APKM | [Play](https://play.google.com/store/apps/details?id=projekt.launcher) |
+| <img src="assets/icons/app.pinya.mango.png" width="20" height="20" alt=""> | **Mango Launcher** | 💎 🔑 2 | `1.67` | APKM | [Play](https://play.google.com/store/apps/details?id=app.pinya.mango) |
 | <img src="assets/icons/com.qqlabs.minimalistlauncher.png" width="20" height="20" alt=""> | **Minimalist Launcher** | 💎 1 | `1.22.8v236` | APKM | [Play](https://play.google.com/store/apps/details?id=com.qqlabs.minimalistlauncher) |
-| <img src="assets/icons/bitpit.launcher.png" width="20" height="20" alt=""> | **Niagara Launcher** | 🛡️ 💎 2 | `1.16.35` | APK | [Play](https://play.google.com/store/apps/details?id=bitpit.launcher) |
+| <img src="assets/icons/bitpit.launcher.png" width="20" height="20" alt=""> | **Niagara Launcher** | 🛡️ 💎 🧩 3 | `1.16.36` | APK | [Play](https://play.google.com/store/apps/details?id=bitpit.launcher) |
 | <img src="assets/icons/app.prolauncher.png" width="20" height="20" alt=""> | **Pro Launcher** | 💎 1 | `v2.4.3` | APKM | [Play](https://play.google.com/store/apps/details?id=app.prolauncher) |
 
-#### 🛠️ Tools & utilities <sub>13 apps</sub>
+#### 🛠️ Tools & utilities <sub>11 apps</sub>
 
 | | App | Patches | Latest verified | Type | Google Play |
 |:-:|---|---|---|:-:|:-:|
@@ -185,38 +198,41 @@ versions may work but aren't guaranteed; if an app update breaks a patch,
 | <img src="assets/icons/com.pzolee.bluetoothscanner.png" width="20" height="20" alt=""> | **Bluetooth Scanner** | 🚫 1 | `1.9.3` | APK | [Play](https://play.google.com/store/apps/details?id=com.pzolee.bluetoothscanner) |
 | <img src="assets/icons/me.piebridge.brevent.png" width="20" height="20" alt=""> | **Brevent** | 💎 1 | `4.2.31.1` | APK | [Play](https://play.google.com/store/apps/details?id=me.piebridge.brevent) |
 | <img src="assets/icons/com.dev47apps.obsdroidcam.png" width="20" height="20" alt=""> | **DroidCam** | 🚫 1 | `8.2` | APK | [Play](https://play.google.com/store/apps/details?id=com.dev47apps.obsdroidcam) |
-| <img src="assets/icons/com.gkfriend.gpsmapcameraeditor.png" width="20" height="20" alt=""> | **GPS Map Camera Editor** | 🚫 💎 🔑 🧩 5 | `1.0.31` | APKM | [Play](https://play.google.com/store/apps/details?id=com.gkfriend.gpsmapcameraeditor) |
+| <img src="https://img.shields.io/badge/-%20-1F6AFF?style=flat-square" height="14" alt=""> | **EX File Manager** | 🚫 🛡️ 💎 3 | `1.6.2` | APKM | [Play](https://play.google.com/store/apps/details?id=com.ace.ex.file.manager) |
+| <img src="assets/icons/com.gkfriend.gpsmapcameraeditor.png" width="20" height="20" alt=""> | **GPS Map Camera Editor** | 🚫 💎 🔑 🧩 5 | `1.0.32` | APKM | [Play](https://play.google.com/store/apps/details?id=com.gkfriend.gpsmapcameraeditor) |
 | <img src="assets/icons/ru.wasiliysoft.ircodefindernec.png" width="20" height="20" alt=""> | **IrCode Finder** | 🚫 1 | `14.17.0 build 206 InAPP` | APKM | [Play](https://play.google.com/store/apps/details?id=ru.wasiliysoft.ircodefindernec) |
-| <img src="assets/icons/com.peter890331.luckyclick.app.png" width="20" height="20" alt=""> | **LuckyClick** | 🚫 🔑 2 | `2026/10/22` | APKM | [Play](https://play.google.com/store/apps/details?id=com.peter890331.luckyclick.app) |
 | <img src="assets/icons/com.rawcam.app.png" width="20" height="20" alt=""> | **Native Camera** | 💎 🔑 2 | `1.4.5` | APKM | [Play](https://play.google.com/store/apps/details?id=com.rawcam.app) |
+| <img src="https://img.shields.io/badge/-%20-FAF5FF?style=flat-square" height="14" alt=""> | **NotiAlarm** | 💎 🔑 2 | `1.3.31` | APKM | [Play](https://play.google.com/store/apps/details?id=com.soosu.notialarm) |
 | <img src="assets/icons/com.pocketcolorwheel.PCW.png" width="20" height="20" alt=""> | **Pocket Color Wheel** | 🚫 1 | `3.26` | APKM | [Play](https://play.google.com/store/apps/details?id=com.pocketcolorwheel.PCW) |
-| <img src="assets/icons/com.rarecam.app.png" width="20" height="20" alt=""> | **RareCam** | 💎 🔑 2 | `1.0.95` | APKM | [Play](https://play.google.com/store/apps/details?id=com.rarecam.app) |
-| <img src="assets/icons/com.Relmtech.Remote.png" width="20" height="20" alt=""> | **Unified Remote** | 💎 1 | `3.25.1` | APK | [Play](https://play.google.com/store/apps/details?id=com.Relmtech.Remote) |
-| <img src="assets/icons/com.fyxtech.muslim.png" width="20" height="20" alt=""> | **WeMuslim** | 🚫 🛡️ 💎 🧩 5 | `3.5.5` | APKM | [Play](https://play.google.com/store/apps/details?id=com.fyxtech.muslim) |
-| <img src="https://img.shields.io/badge/-%20-00ACC1?style=flat-square" height="14" alt=""> | **WiFi Analyzer** | 🚫 1 | `3.11.2` | APK | — |
+| <img src="assets/icons/com.fyxtech.muslim.png" width="20" height="20" alt=""> | **WeMuslim** | 🚫 🛡️ 💎 🧩 8 | `3.5.5` | APKM | [Play](https://play.google.com/store/apps/details?id=com.fyxtech.muslim) |
 
 ### 🔍 Patch details
 
 #### ⚽ Sports & scores
 
 <details>
-<summary><img src="assets/icons/com.scores365.png" width="16" height="16" alt=""> <b>365Scores</b> &nbsp;·&nbsp; 5 patches &nbsp;·&nbsp; <code>com.scores365</code></summary>
+<summary><img src="assets/icons/com.scores365.png" width="16" height="16" alt=""> <b>365Scores</b> &nbsp;·&nbsp; 10 patches &nbsp;·&nbsp; <code>com.scores365</code></summary>
 
-Verified on: `15.0.0`
+Verified on: `15.0.1`
 
 | Patch | What it does | Default |
 |---|---|:-:|
+| 🧩 **AMOLED black** | Makes the dark theme pure black on OLED screens. | ➖ |
 | 🚫 **Disable ads** | Removes all ads. | ✅ |
 | 🔕 **Disable update prompts** | Disables the update prompts. | ✅ |
 | 💎 **Enable Premium** | Unlocks premium features. | ✅ |
 | 🧩 **GmsCore support** | Makes Google sign-in and Google services work. Requires MicroG RE. | ➖ |
+| 🧩 **Hide competitions** | Hides the competitions you pick in Patch settings from the match lists. | ➖ |
+| 🧩 **Hide countries** | Hides every competition of the countries you pick in Patch settings from the match lists. | ➖ |
+| 🧩 **Patch settings** | Adds a screen to turn supported features on or off. | ✅ |
+| 🧩 **Spoiler-free mode** | Lets you hide scores and goal alerts for matches and competitions you mark. | ✅ |
 | 🧩 **Spoof signature** | Fixes Google features that check the app's original signature. | ➖ |
 
 </details>
 <details>
 <summary><img src="assets/icons/com.football433.png" width="16" height="16" alt=""> <b>433</b> &nbsp;·&nbsp; 2 patches &nbsp;·&nbsp; <code>com.football433</code></summary>
 
-Verified on: `2.3.585`
+Verified on: `2.3.608`
 
 | Patch | What it does | Default |
 |---|---|:-:|
@@ -273,7 +289,7 @@ Verified on: `5.4.18`
 <details>
 <summary><img src="assets/icons/in.cricketexchange.app.cricketexchange.png" width="16" height="16" alt=""> <b>CREX</b> &nbsp;·&nbsp; 2 patches &nbsp;·&nbsp; <code>in.cricketexchange.app.cricketexchange</code></summary>
 
-Verified on: `26.10.09`
+Verified on: `26.11.01`
 
 | Patch | What it does | Default |
 |---|---|:-:|
@@ -289,7 +305,7 @@ Verified on: `1.1.15`
 | Patch | What it does | Default |
 |---|---|:-:|
 | 🚫 **Disable ads** | Removes banner ads and video ads. | ✅ |
-| 🚫 **Disable live stream ads** 🧪 | Removes ads from live channels. Turn off if a channel stops playing. | ✅ |
+| 🚫 **Disable live stream ads** | Removes ads from live channels. Turn off if a channel stops playing. | ✅ |
 | 🛡️ **Disable telemetry** | Disables analytics and crash reporting. | ✅ |
 | 🔕 **Disable update prompts** | Disables the in-app update prompt. | ✅ |
 | 🧩 **Hide betting odds** | Hides betting odds in match lists. | ✅ |
@@ -301,7 +317,7 @@ Verified on: `1.1.15`
 <details>
 <summary><img src="assets/icons/com.eurosport.png" width="16" height="16" alt=""> <b>Eurosport</b> &nbsp;·&nbsp; 3 patches &nbsp;·&nbsp; <code>com.eurosport</code></summary>
 
-Verified on: `8.34.1`
+Verified on: `8.35.0`
 
 | Patch | What it does | Default |
 |---|---|:-:|
@@ -311,18 +327,24 @@ Verified on: `8.34.1`
 
 </details>
 <details>
-<summary><img src="assets/icons/eu.livesport.FlashScore_com.png" width="16" height="16" alt=""> <b>Flashscore</b> &nbsp;·&nbsp; 6 patches &nbsp;·&nbsp; <code>eu.livesport.FlashScore_com</code></summary>
+<summary><img src="assets/icons/eu.livesport.FlashScore_com.png" width="16" height="16" alt=""> <b>Flashscore</b> &nbsp;·&nbsp; 12 patches &nbsp;·&nbsp; <code>eu.livesport.FlashScore_com</code></summary>
 
-Verified on: `26.11.4`
+Verified on: `26.11.6`
 
 | Patch | What it does | Default |
 |---|---|:-:|
+| 🧩 **Animation speed** | Adds switches to turn off or speed up animations. | ➖ |
+| 🔕 **Block marketing notifications** | Drops promotional push notifications. | ➖ |
 | 🧩 **Block marketing popups** | Blocks promo popups. | ✅ |
 | 🚫 **Disable ads** | Removes all ads. | ✅ |
 | 🔕 **Disable rating prompts** | Disables the rating prompts. | ✅ |
 | 🛡️ **Disable telemetry** | Disables analytics and crash reporting. | ✅ |
 | 🔕 **Disable update prompts** | Disables the update prompts. | ✅ |
+| 🧩 **Force edge-to-edge** | Blends the navigation bar area into the bottom tab bar. | ➖ |
 | 🧩 **Hide betting content** | Hides odds and betting content. | ➖ |
+| 🧩 **Patch settings** | Adds a screen to turn supported features on or off. | ✅ |
+| 🧩 **Spoof signature** | Fixes Google features that check the app's original signature. | ➖ |
+| 🧩 **Use system font** | Uses the device's system font instead of Flashscore's custom font. | ➖ |
 
 </details>
 <details>
@@ -340,12 +362,13 @@ Verified on: `6.15.10`
 
 </details>
 <details>
-<summary><img src="assets/icons/com.mobilefootie.wc2010.png" width="16" height="16" alt=""> <b>FotMob</b> &nbsp;·&nbsp; 15 patches &nbsp;·&nbsp; <code>com.mobilefootie.wc2010</code></summary>
+<summary><img src="assets/icons/com.mobilefootie.wc2010.png" width="16" height="16" alt=""> <b>FotMob</b> &nbsp;·&nbsp; 18 patches &nbsp;·&nbsp; <code>com.mobilefootie.wc2010</code></summary>
 
 Verified on: `241.18134.20261030`
 
 | Patch | What it does | Default |
 |---|---|:-:|
+| 🧩 **AMOLED black** | Makes the dark theme pure black on OLED screens. Can be turned off in Patch settings. | ➖ |
 | 💎 **Disable FotMob+ promo popup** | Disables the FotMob+ promo popup. | ✅ |
 | 🚫 **Disable ads** | Removes all ads. | ✅ |
 | 🔕 **Disable rating prompts** | Disables the rating prompt. | ✅ |
@@ -357,7 +380,9 @@ Verified on: `241.18134.20261030`
 | 🧩 **Hide competitions** | Hides the competitions you pick in Patch settings from match lists, leagues and search. | ➖ |
 | 🧩 **Hide countries** | Hides the countries you pick in Patch settings from match lists, leagues and search. | ➖ |
 | 🧩 **Patch settings** | Adds a screen to turn supported features on or off. | ✅ |
+| 💎 **Show FotMob+ logo** | Shows the FotMob+ wordmark in the home header. | ✅ |
 | 🧩 **Slower live refresh** | Refreshes an open live match every 30 seconds instead of every 15. | ➖ |
+| 🧩 **Spoiler-free mode** | Lets you hide scores and goal alerts for matches and competitions you mark. | ✅ |
 | 🧩 **Spoof signature** | Fixes Google features that check the app's original signature. | ➖ |
 | 🧩 **Turn off animations** | Turns off animations in the app. | ➖ |
 | 🧩 **Use system font** | Uses the system font instead of the app's own font. | ➖ |
@@ -366,7 +391,7 @@ Verified on: `241.18134.20261030`
 <details>
 <summary><img src="assets/icons/com.futbin.png" width="16" height="16" alt=""> <b>Futbin</b> &nbsp;·&nbsp; 1 patch &nbsp;·&nbsp; <code>com.futbin</code></summary>
 
-Verified on: `27.10`
+Verified on: `27.13`
 
 | Patch | What it does | Default |
 |---|---|:-:|
@@ -376,7 +401,7 @@ Verified on: `27.10`
 <details>
 <summary><img src="assets/icons/lequipe.fr.png" width="16" height="16" alt=""> <b>L'Équipe</b> &nbsp;·&nbsp; 1 patch &nbsp;·&nbsp; <code>lequipe.fr</code></summary>
 
-Verified on: `10.70.0`
+Verified on: `10.71.1`
 
 | Patch | What it does | Default |
 |---|---|:-:|
@@ -386,7 +411,7 @@ Verified on: `10.70.0`
 <details>
 <summary><img src="assets/icons/com.livescore.png" width="16" height="16" alt=""> <b>Livescore</b> &nbsp;·&nbsp; 1 patch &nbsp;·&nbsp; <code>com.livescore</code></summary>
 
-Verified on: `10.4`
+Verified on: `10.4.1`
 
 | Patch | What it does | Default |
 |---|---|:-:|
@@ -406,7 +431,7 @@ Verified on: `26.10.01`
 <details>
 <summary><img src="assets/icons/de.motain.iliga.png" width="16" height="16" alt=""> <b>OneFootball</b> &nbsp;·&nbsp; 1 patch &nbsp;·&nbsp; <code>de.motain.iliga</code></summary>
 
-Verified on: `15.148.0`
+Verified on: `15.150.0`
 
 | Patch | What it does | Default |
 |---|---|:-:|
@@ -414,31 +439,38 @@ Verified on: `15.148.0`
 
 </details>
 <details>
-<summary><img src="assets/icons/com.sofascore.results.png" width="16" height="16" alt=""> <b>Sofascore</b> &nbsp;·&nbsp; 19 patches &nbsp;·&nbsp; <code>com.sofascore.results</code></summary>
+<summary><img src="assets/icons/com.sofascore.results.png" width="16" height="16" alt=""> <b>Sofascore</b> &nbsp;·&nbsp; 26 patches &nbsp;·&nbsp; <code>com.sofascore.results</code></summary>
 
-Verified on: `26.10.26`
+Verified on: `26.11.03`
 
 | Patch | What it does | Default |
 |---|---|:-:|
+| 🧩 **AMOLED black** | Makes the dark theme pure black on OLED screens. | ➖ |
 | 🧩 **Animation speed** | Adds switches to turn off or speed up animations. | ➖ |
 | 🔕 **Block marketing notifications** | Blocks promo popups and banners. | ✅ |
 | 🛡️ **Disable Facebook SDK** | Disables Facebook ads and tracking. Facebook login keeps working. | ✅ |
 | 🚫 **Disable ads** | Removes all ads. | ✅ |
 | 🔕 **Disable rating prompts** | Disables the rating prompt. | ✅ |
 | 🛡️ **Disable telemetry** | Disables analytics and crash reporting. | ✅ |
+| 🔕 **Disable update prompts** | Disables the update prompts. | ✅ |
 | 💎 **Enable Premium** | Unlocks premium features. AI insights stay locked. | ✅ |
 | 🧩 **GmsCore support** | Makes Google sign-in and Google services work. Requires MicroG RE. | ➖ |
 | 🧩 **Hide AI insights** | Hides AI insights on match pages. | ➖ |
 | 🧩 **Hide betting content** | Hides odds and betting content. | ➖ |
 | 🧩 **Hide competitions** | Hides the competitions you pick in Patch settings from match lists, leagues and search. | ➖ |
 | 🧩 **Hide countries** | Hides the countries you pick in Patch settings from match lists, leagues and search. | ➖ |
+| 🧩 **Hide main tabs** | Adds switches to hide tabs from the bottom bar. | ➖ |
+| 🧩 **Hide match chat** | Hides the Chat button on match and league pages. | ➖ |
 | 🧩 **Hide match tabs** | Adds switches to hide match page tabs. | ➖ |
 | 🧩 **Hide promo pop-ups** | Stops promotional pop-ups. | ✅ |
 | 🧩 **Hide promo sections** | Adds switches to hide promotional sections. | ➖ |
 | 🧩 **Hide sports** | Adds switches to hide sports you don't follow. | ➖ |
 | 🧩 **Patch settings** | Adds a screen to turn supported features on or off. | ✅ |
 | 🧩 **Slower widget refresh** | Refreshes home screen widgets every hour instead of every 30 minutes. | ➖ |
+| 🧩 **Spoiler-free mode** | Lets you hide scores for matches and competitions you mark, and goal alerts for matches you mark. | ✅ |
 | 🧩 **Spoof signature** | Fixes Google features that check the app's original signature. | ➖ |
+| 🧩 **Turn off video autoplay** | Highlight videos wait for a tap instead of playing on their own. | ➖ |
+| 🧩 **Unlock developer options** | Opens the hidden developer menu without the password. | ➖ |
 
 </details>
 <details>
@@ -455,7 +487,7 @@ Verified on: `4.3.3`
 <details>
 <summary><img src="assets/icons/com.yahoo.mobile.client.android.sportacular.png" width="16" height="16" alt=""> <b>Yahoo Sports</b> &nbsp;·&nbsp; 2 patches &nbsp;·&nbsp; <code>com.yahoo.mobile.client.android.sportacular</code></summary>
 
-Verified on: `12.27.0`
+Verified on: `12.28.1`
 
 | Patch | What it does | Default |
 |---|---|:-:|
@@ -467,9 +499,30 @@ Verified on: `12.27.0`
 #### 📰 News & finance
 
 <details>
+<summary><b>Allente</b> &nbsp;·&nbsp; 1 patch &nbsp;·&nbsp; <code>com.canaldigital.go</code></summary>
+
+Verified on: `6.2.1.0`
+
+| Patch | What it does | Default |
+|---|---|:-:|
+| 🛡️ **Disable telemetry** | Disables analytics. | ✅ |
+
+</details>
+<details>
+<summary><b>B.T.</b> &nbsp;·&nbsp; 2 patches &nbsp;·&nbsp; <code>com.mecom.bt</code></summary>
+
+Verified on: `4.5.8`
+
+| Patch | What it does | Default |
+|---|---|:-:|
+| 🚫 **Disable ads** | Blocks the website's ad requests inside the article WebView. | ✅ |
+| 🛡️ **Disable telemetry** | Disables analytics and crash reporting. | ✅ |
+
+</details>
+<details>
 <summary><img src="assets/icons/bbc.mobile.news.ww.png" width="16" height="16" alt=""> <b>BBC News</b> &nbsp;·&nbsp; 1 patch &nbsp;·&nbsp; <code>bbc.mobile.news.ww</code></summary>
 
-Verified on: `2026.9.1`
+Verified on: `2026.10.0`
 
 | Patch | What it does | Default |
 |---|---|:-:|
@@ -477,13 +530,69 @@ Verified on: `2026.9.1`
 
 </details>
 <details>
-<summary><img src="assets/icons/com.rammigsoftware.bluecoins.png" width="16" height="16" alt=""> <b>Bluecoins</b> &nbsp;·&nbsp; 1 patch &nbsp;·&nbsp; <code>com.rammigsoftware.bluecoins</code></summary>
+<summary><b>Berlingske</b> &nbsp;·&nbsp; 2 patches &nbsp;·&nbsp; <code>com.mecom.Berlingske</code></summary>
 
-Verified on: `13.1.149`
+Verified on: `4.5.8`
 
 | Patch | What it does | Default |
 |---|---|:-:|
-| 💎 **Enable Premium** | Unlocks premium features and removes ads. | ✅ |
+| 🚫 **Disable ads** | Blocks the website's ad requests inside the article WebView. | ✅ |
+| 🛡️ **Disable telemetry** | Disables analytics and crash reporting. | ✅ |
+
+</details>
+<details>
+<summary><b>Blockbuster</b> &nbsp;·&nbsp; 1 patch &nbsp;·&nbsp; <code>dk.tdc.blockbuster.nordic</code></summary>
+
+Verified on: `7.1.27`
+
+| Patch | What it does | Default |
+|---|---|:-:|
+| 🛡️ **Disable telemetry** | Disables analytics and crash reporting. | ✅ |
+
+</details>
+<details>
+<summary><b>Ekstra Bladet</b> &nbsp;·&nbsp; 1 patch &nbsp;·&nbsp; <code>dk.ekstrabladet.breakingnews</code></summary>
+
+Verified on: `2026.09.20`
+
+| Patch | What it does | Default |
+|---|---|:-:|
+| 🛡️ **Disable telemetry** | Disables analytics and crash reporting. | ✅ |
+
+</details>
+<details>
+<summary><b>Fyens Stiftstidende</b> &nbsp;·&nbsp; 3 patches &nbsp;·&nbsp; <code>dk.fyensstifts.areader</code></summary>
+
+Verified on: `15.32`
+
+| Patch | What it does | Default |
+|---|---|:-:|
+| 🚫 **Disable ads** | Disables banner, interstitial and WebView ads. | ✅ |
+| 🛡️ **Disable telemetry** | Disables analytics, crash reporting and session collection. | ✅ |
+| 🧩 **Unlock articles** | Treats every article as entitled, so the paywall is not shown. | ✅ |
+
+</details>
+<details>
+<summary><b>JydskeVestkysten</b> &nbsp;·&nbsp; 3 patches &nbsp;·&nbsp; <code>dk.jydskevestkystenmain.areader</code></summary>
+
+Verified on: `15.32`
+
+| Patch | What it does | Default |
+|---|---|:-:|
+| 🚫 **Disable ads** | Disables banner, interstitial and WebView ads. | ✅ |
+| 🛡️ **Disable telemetry** | Disables analytics, crash reporting and session collection. | ✅ |
+| 🧩 **Unlock articles** | Treats every article as entitled, so the paywall is not shown. | ✅ |
+
+</details>
+<details>
+<summary><b>Jyllands Posten</b> &nbsp;·&nbsp; 2 patches &nbsp;·&nbsp; <code>dk.jyllandsposten.jp</code></summary>
+
+Verified on: `2026.10.15`
+
+| Patch | What it does | Default |
+|---|---|:-:|
+| 🚫 **Disable ads** | Blocks the website's ad requests inside the article WebView. | ✅ |
+| 🛡️ **Disable telemetry** | Disables analytics and crash reporting. | ✅ |
 
 </details>
 <details>
@@ -504,6 +613,39 @@ Verified on: `14.6.3.RC0`
 | Patch | What it does | Default |
 |---|---|:-:|
 | 🚫 **Disable ads** 🧪 | Removes all ads. | ✅ |
+
+</details>
+<details>
+<summary><b>Nordisk Film+</b> &nbsp;·&nbsp; 1 patch &nbsp;·&nbsp; <code>com.nordiskfilmplus.android</code></summary>
+
+Verified on: `1.5.4`
+
+| Patch | What it does | Default |
+|---|---|:-:|
+| 🛡️ **Disable telemetry** | Disables analytics and crash reporting. | ✅ |
+
+</details>
+<details>
+<summary><b>Nordjyske</b> &nbsp;·&nbsp; 3 patches &nbsp;·&nbsp; <code>dk.nordjyske.reader</code></summary>
+
+Verified on: `8.0.17`
+
+| Patch | What it does | Default |
+|---|---|:-:|
+| 🚫 **Disable ads** | Disables banner, interstitial and WebView ads. | ✅ |
+| 🛡️ **Disable telemetry** | Disables analytics, crash reporting and session collection. | ✅ |
+| 🧩 **Unlock articles** | Treats every article as entitled, so the paywall is not shown. | ✅ |
+
+</details>
+<details>
+<summary><b>Politiken</b> &nbsp;·&nbsp; 2 patches &nbsp;·&nbsp; <code>dk.pol.news</code></summary>
+
+Verified on: `4.1.5`
+
+| Patch | What it does | Default |
+|---|---|:-:|
+| 🚫 **Disable ads** | Blocks the website's ad requests inside the article WebView. | ✅ |
+| 🛡️ **Disable telemetry** | Disables analytics and crash reporting. | ✅ |
 
 </details>
 <details>
@@ -531,11 +673,44 @@ Verified on: `6.241.23504`
 <details>
 <summary><img src="assets/icons/wsj.reader_sp.png" width="16" height="16" alt=""> <b>The Wall Street Journal</b> &nbsp;·&nbsp; 1 patch &nbsp;·&nbsp; <code>wsj.reader_sp</code></summary>
 
-Verified on: `15.12.0.42675`
+Verified on: `15.13.0.44249`
 
 | Patch | What it does | Default |
 |---|---|:-:|
 | 🚫 **Disable ads** | Removes all ads. | ✅ |
+
+</details>
+<details>
+<summary><b>TV 2 Nyheder</b> &nbsp;·&nbsp; 2 patches &nbsp;·&nbsp; <code>dk.tv2.nyhedscenter</code></summary>
+
+Verified on: `2026.10-10188:RELEASE`
+
+| Patch | What it does | Default |
+|---|---|:-:|
+| 🚫 **Disable ads** | Removes every Google Ad Manager ad. | ✅ |
+| 🛡️ **Disable telemetry** | Disables analytics and crash reporting. | ✅ |
+
+</details>
+<details>
+<summary><b>TV 2 Play</b> &nbsp;·&nbsp; 1 patch &nbsp;·&nbsp; <code>dk.tv2.tv2play</code></summary>
+
+Verified on: `2026.10-1`
+
+| Patch | What it does | Default |
+|---|---|:-:|
+| 🛡️ **Disable telemetry** | Disables analytics. | ✅ |
+
+</details>
+<details>
+<summary><b>Århus Stiftstidende</b> &nbsp;·&nbsp; 3 patches &nbsp;·&nbsp; <code>dk.aasmain.areader</code></summary>
+
+Verified on: `15.32`
+
+| Patch | What it does | Default |
+|---|---|:-:|
+| 🚫 **Disable ads** | Disables banner, interstitial and WebView ads. | ✅ |
+| 🛡️ **Disable telemetry** | Disables analytics, crash reporting and session collection. | ✅ |
+| 🧩 **Unlock articles** | Treats every article as entitled, so the paywall is not shown. | ✅ |
 
 </details>
 
@@ -554,7 +729,7 @@ Verified on: `2.8.1`
 <details>
 <summary><img src="assets/icons/me.bluemail.mail.png" width="16" height="16" alt=""> <b>BlueMail</b> &nbsp;·&nbsp; 1 patch &nbsp;·&nbsp; <code>me.bluemail.mail</code></summary>
 
-Verified on: `2.2.418`
+Verified on: `2.2.426`
 
 | Patch | What it does | Default |
 |---|---|:-:|
@@ -585,27 +760,18 @@ Verified on: `9.20.2`
 
 </details>
 <details>
-<summary><img src="assets/icons/com.textra.png" width="16" height="16" alt=""> <b>Textra</b> &nbsp;·&nbsp; 1 patch &nbsp;·&nbsp; <code>com.textra</code></summary>
+<summary><img src="assets/icons/com.truecaller.png" width="16" height="16" alt=""> <b>Truecaller</b> &nbsp;·&nbsp; 34 patches &nbsp;·&nbsp; <code>com.truecaller</code></summary>
 
-Verified on: `4.87`
-
-| Patch | What it does | Default |
-|---|---|:-:|
-| 💎 **Enable Pro** | Unlocks Pro features and removes ads. | ✅ |
-
-</details>
-<details>
-<summary><img src="assets/icons/com.truecaller.png" width="16" height="16" alt=""> <b>Truecaller</b> &nbsp;·&nbsp; 30 patches &nbsp;·&nbsp; <code>com.truecaller</code></summary>
-
-Verified on: `26.43.5`
+Verified on: `26.44.6`
 
 | Patch | What it does | Default |
 |---|---|:-:|
+| 🧩 **Disable Who viewed me** | Stops Truecaller telling others you viewed their profile. | ➖ |
 | 🚫 **Disable ads** | Removes all ads. | ✅ |
 | 🧩 **Disable auto-launch** | Stops Truecaller from opening itself in the background. | ✅ |
 | 🧩 **Disable call button haptics** | Stops the vibration when you answer or decline a call. | ➖ |
 | 🧩 **Disable contact upload** | Stops uploading your contacts. Chat can no longer find which contacts use it. | ✅ |
-| 🧩 **Disable nags** | Disables default dialer, permission and survey prompts. | ✅ |
+| 🧩 **Disable nags** | Disables default dialer, permission, survey and profile reminder prompts. | ✅ |
 | 🛡️ **Disable telemetry** | Disables analytics, tracking and crash reporting. | ✅ |
 | 🔕 **Disable update prompts** | Disables the update prompts. | ✅ |
 | 💎 **Enable Premium** | Unlocks premium features. Server features like Who viewed me stay locked. | ✅ |
@@ -623,13 +789,16 @@ Verified on: `26.43.5`
 | 🧩 **Hide family button** | Turns off Family Protection and hides its button. | ➖ |
 | 🧩 **Hide frequently called contacts** | Hides the row of frequently called contacts above the call log. | ➖ |
 | 🧩 **Hide important senders** | Hides the Important senders section in the Messages tab. | ➖ |
+| 🧩 **Hide poor network warning** | Hides the "Your network is poor" tooltip on the in-call screen. | ➖ |
 | 🧩 **Hide profile menu items** | Adds switches to hide items in the profile menu. | ➖ |
 | 🧩 **Hide promotions** | Hides promo banners, referral offers and Who viewed me promos. | ✅ |
 | 🧩 **Patch settings** | Adds a screen to turn supported features on or off. | ✅ |
+| 🧩 **Privacy defaults** | Turns the Privacy Center sharing options off unless you opt in. | ✅ |
 | 🧩 **Restore classic call log** | Experimental: restores the classic call log. | ➖ |
 | 🧩 **Show caller number in call log** | Shows the caller's number in the new call log for callers who aren't in your contacts. | ➖ |
 | 🧩 **Spoof signature** | Fixes Google features that check the app's original signature. | ✅ |
 | 🧩 **Swap call answer and decline buttons** | Puts the answer button on the left and the decline button on the right for incoming calls. | ➖ |
+| 🧩 **Turn off Ad Campaign Analytics** | Turns the "Ad Campaign Analytics" privacy toggle off by default. You can still turn it on in Settings > Privacy Center. | ➖ |
 | 🧩 **Use SMS for verification codes** | Reads the verification code from SMS. Verification can still fail on patched apps. | ➖ |
 
 </details>
@@ -659,7 +828,7 @@ Verified on: `13.2.0`
 <details>
 <summary><img src="assets/icons/com.Project100Pi.themusicplayer.png" width="16" height="16" alt=""> <b>Pi Music Player</b> &nbsp;·&nbsp; 2 patches &nbsp;·&nbsp; <code>com.Project100Pi.themusicplayer</code></summary>
 
-Verified on: `3.2.1.0_release_1`
+Verified on: `3.2.3.0_release_1`
 
 | Patch | What it does | Default |
 |---|---|:-:|
@@ -680,7 +849,7 @@ Verified on: `9.17.0-260909124`
 <details>
 <summary><img src="assets/icons/com.shazam.android.png" width="16" height="16" alt=""> <b>Shazam</b> &nbsp;·&nbsp; 4 patches &nbsp;·&nbsp; <code>com.shazam.android</code></summary>
 
-Verified on: `16.66.0-261029`
+Verified on: `16.67.0-261105`
 
 | Patch | What it does | Default |
 |---|---|:-:|
@@ -693,7 +862,7 @@ Verified on: `16.66.0-261029`
 <details>
 <summary><img src="assets/icons/com.streema.simpleradio.png" width="16" height="16" alt=""> <b>Simple Radio</b> &nbsp;·&nbsp; 2 patches &nbsp;·&nbsp; <code>com.streema.simpleradio</code></summary>
 
-Verified on: `6.3.0`
+Verified on: `6.3.1`
 
 | Patch | What it does | Default |
 |---|---|:-:|
@@ -715,27 +884,25 @@ Verified on: `10.5.8`
 #### 📺 Video & TV
 
 <details>
+<summary><b>Add Music</b> &nbsp;·&nbsp; 1 patch &nbsp;·&nbsp; <code>kgs.com.addmusictovideos</code></summary>
+
+Verified on: `9.6`
+
+| Patch | What it does | Default |
+|---|---|:-:|
+| 💎 **Enable Premium** | Unlocks the premium features. | ✅ |
+
+</details>
+<details>
 <summary><img src="assets/icons/dk.dr.webplayer.png" width="16" height="16" alt=""> <b>DRTV</b> &nbsp;·&nbsp; 3 patches &nbsp;·&nbsp; <code>dk.dr.webplayer</code></summary>
 
-Verified on: `4.39.0`
+Verified on: `4.40.4`
 
 | Patch | What it does | Default |
 |---|---|:-:|
 | 🧩 **Allow free rotation** | Lets the video player turn to portrait as well as landscape. | ➖ |
 | 🧩 **Auto skip intro** | Skips intros and recaps automatically. | ✅ |
 | 🛡️ **Disable telemetry** | Disables analytics, tracking and crash reporting. | ✅ |
-
-</details>
-<details>
-<summary><img src="assets/icons/com.duplila.screenshare.png" width="16" height="16" alt=""> <b>Duplila</b> &nbsp;·&nbsp; 3 patches &nbsp;·&nbsp; <code>com.duplila.screenshare</code></summary>
-
-Verified on: `5.4`
-
-| Patch | What it does | Default |
-|---|---|:-:|
-| 🚫 **Disable ads** | Removes ads and the ad consent form. | ✅ |
-| 🔑 **Disable license check** | Disables the Play Store license check so the app starts. | ✅ |
-| 💎 **Enable Premium** | Unlocks Premium features. | ✅ |
 
 </details>
 <details>
@@ -752,12 +919,22 @@ Verified on: `11.6.1`
 <details>
 <summary><img src="assets/icons/com.viaplay.android.png" width="16" height="16" alt=""> <b>Viaplay</b> &nbsp;·&nbsp; 2 patches &nbsp;·&nbsp; <code>com.viaplay.android</code></summary>
 
-Verified on: `26.42.1`
+Verified on: `26.44.0`
 
 | Patch | What it does | Default |
 |---|---|:-:|
 | 🛡️ **Disable telemetry** | Disables analytics, tracking and crash reporting. | ✅ |
 | 🚫 **Skip ads** 🧪 | Skips the ad breaks in on-demand videos. | ✅ |
+
+</details>
+<details>
+<summary><b>YouSee Play</b> &nbsp;·&nbsp; 1 patch &nbsp;·&nbsp; <code>yiuo.mobile.tv</code></summary>
+
+Verified on: `13.12.0 (build 22025)`
+
+| Patch | What it does | Default |
+|---|---|:-:|
+| 🛡️ **Disable telemetry** | Disables analytics and crash reporting. | ✅ |
 
 </details>
 
@@ -766,7 +943,7 @@ Verified on: `26.42.1`
 <details>
 <summary><img src="assets/icons/com.foobnix.pdf.reader.png" width="16" height="16" alt=""> <b>Librera</b> &nbsp;·&nbsp; 1 patch &nbsp;·&nbsp; <code>com.foobnix.pdf.reader</code></summary>
 
-Verified on: `10.0.22`
+Verified on: `10.0.31`
 
 | Patch | What it does | Default |
 |---|---|:-:|
@@ -799,7 +976,7 @@ Verified on: `6.5.2`
 <details>
 <summary><img src="assets/icons/com.hevy.png" width="16" height="16" alt=""> <b>Hevy</b> &nbsp;·&nbsp; 2 patches &nbsp;·&nbsp; <code>com.hevy</code></summary>
 
-Verified on: `3.2.4`
+Verified on: `3.2.6`
 
 | Patch | What it does | Default |
 |---|---|:-:|
@@ -810,7 +987,7 @@ Verified on: `3.2.4`
 <details>
 <summary><img src="assets/icons/cc.dreamspark.intervaltimer.png" width="16" height="16" alt=""> <b>Interval Timer</b> &nbsp;·&nbsp; 2 patches &nbsp;·&nbsp; <code>cc.dreamspark.intervaltimer</code></summary>
 
-Verified on: `2.3.30`
+Verified on: `2.3.31`
 
 | Patch | What it does | Default |
 |---|---|:-:|
@@ -821,7 +998,7 @@ Verified on: `2.3.30`
 <details>
 <summary><img src="assets/icons/com.myfitnesspal.android.png" width="16" height="16" alt=""> <b>MyFitnessPal</b> &nbsp;·&nbsp; 2 patches &nbsp;·&nbsp; <code>com.myfitnesspal.android</code></summary>
 
-Verified on: `26.44.0`
+Verified on: `26.45.0`
 
 | Patch | What it does | Default |
 |---|---|:-:|
@@ -856,7 +1033,7 @@ Verified on: `11.0.137`
 <details>
 <summary><img src="assets/icons/com.gregacucnik.fishingpoints.png" width="16" height="16" alt=""> <b>Fishing Points</b> &nbsp;·&nbsp; 1 patch &nbsp;·&nbsp; <code>com.gregacucnik.fishingpoints</code></summary>
 
-Verified on: `4.8.0`
+Verified on: `4.8.1`
 
 | Patch | What it does | Default |
 |---|---|:-:|
@@ -920,7 +1097,7 @@ Verified on: `2.4.2`
 <details>
 <summary><img src="assets/icons/com.appgenix.bizcal.png" width="16" height="16" alt=""> <b>Business Calendar 2</b> &nbsp;·&nbsp; 3 patches &nbsp;·&nbsp; <code>com.appgenix.bizcal</code></summary>
 
-Verified on: `2.55.8`
+Verified on: `2.56.0`
 
 | Patch | What it does | Default |
 |---|---|:-:|
@@ -976,7 +1153,7 @@ Verified on: `6.7.8`
 <details>
 <summary><img src="assets/icons/com.fenchtose.reflog.png" width="16" height="16" alt=""> <b>Taskito</b> &nbsp;·&nbsp; 2 patches &nbsp;·&nbsp; <code>com.fenchtose.reflog</code></summary>
 
-Verified on: `1.3.3`
+Verified on: `1.3.4`
 
 | Patch | What it does | Default |
 |---|---|:-:|
@@ -1010,7 +1187,7 @@ Verified on: `9.22.8`
 <details>
 <summary><img src="assets/icons/com.brave.browser.png" width="16" height="16" alt=""> <b>Brave Browser</b> &nbsp;·&nbsp; 5 patches &nbsp;·&nbsp; <code>com.brave.browser</code></summary>
 
-Verified on: `1.98.63`
+Verified on: `1.99.56`
 
 | Patch | What it does | Default |
 |---|---|:-:|
@@ -1024,7 +1201,7 @@ Verified on: `1.98.63`
 <details>
 <summary><img src="assets/icons/org.mozilla.firefox.png" width="16" height="16" alt=""> <b>Firefox</b> &nbsp;·&nbsp; 7 patches &nbsp;·&nbsp; <code>org.mozilla.firefox</code></summary>
 
-Verified on: `159.0`
+Verified on: `159.0.1`
 
 | Patch | What it does | Default |
 |---|---|:-:|
@@ -1038,7 +1215,7 @@ Verified on: `159.0`
 
 </details>
 <details>
-<summary><img src="assets/icons/org.mozilla.focus.png" width="16" height="16" alt=""> <b>Firefox Focus</b> &nbsp;·&nbsp; 6 patches &nbsp;·&nbsp; <code>org.mozilla.focus</code></summary>
+<summary><img src="assets/icons/org.mozilla.focus.png" width="16" height="16" alt=""> <b>Firefox Focus</b> &nbsp;·&nbsp; 7 patches &nbsp;·&nbsp; <code>org.mozilla.focus</code></summary>
 
 Verified on: `159.0.1`
 
@@ -1050,6 +1227,7 @@ Verified on: `159.0.1`
 | 🛡️ **Disable telemetry** | Disables the usage ping and experiments. | ✅ |
 | 🧩 **Enable about:config** | Enables about:config. | ✅ |
 | 🔕 **Hide promotional prompts** | Hides the search widget promo and tip bubbles. | ✅ |
+| 🧩 **Move address bar to the bottom** | Moves the address bar to the bottom of the screen. | ✅ |
 
 </details>
 <details>
@@ -1068,7 +1246,7 @@ Verified on: `7.3.3`
 <details>
 <summary><img src="assets/icons/easy.launcher.png" width="16" height="16" alt=""> <b>Easy Homescreen</b> &nbsp;·&nbsp; 6 patches &nbsp;·&nbsp; <code>easy.launcher</code></summary>
 
-Verified on: `1.10.29`
+Verified on: `1.10.31`
 
 | Patch | What it does | Default |
 |---|---|:-:|
@@ -1083,7 +1261,7 @@ Verified on: `1.10.29`
 <details>
 <summary><img src="assets/icons/projekt.launcher.png" width="16" height="16" alt=""> <b>Hyperion Launcher</b> &nbsp;·&nbsp; 1 patch &nbsp;·&nbsp; <code>projekt.launcher</code></summary>
 
-Verified on: `2.2.14`
+Verified on: `2.2.16`
 
 | Patch | What it does | Default |
 |---|---|:-:|
@@ -1093,7 +1271,7 @@ Verified on: `2.2.14`
 <details>
 <summary><img src="assets/icons/app.pinya.mango.png" width="16" height="16" alt=""> <b>Mango Launcher</b> &nbsp;·&nbsp; 2 patches &nbsp;·&nbsp; <code>app.pinya.mango</code></summary>
 
-Verified on: `1.64`
+Verified on: `1.67`
 
 | Patch | What it does | Default |
 |---|---|:-:|
@@ -1112,14 +1290,15 @@ Verified on: `1.22.8v236`
 
 </details>
 <details>
-<summary><img src="assets/icons/bitpit.launcher.png" width="16" height="16" alt=""> <b>Niagara Launcher</b> &nbsp;·&nbsp; 2 patches &nbsp;·&nbsp; <code>bitpit.launcher</code></summary>
+<summary><img src="assets/icons/bitpit.launcher.png" width="16" height="16" alt=""> <b>Niagara Launcher</b> &nbsp;·&nbsp; 3 patches &nbsp;·&nbsp; <code>bitpit.launcher</code></summary>
 
-Verified on: `1.16.35`
+Verified on: `1.16.36`
 
 | Patch | What it does | Default |
 |---|---|:-:|
 | 🛡️ **Disable telemetry** | Disables analytics, tracking and crash reporting. | ✅ |
 | 💎 **Enable Premium** | Unlocks Niagara Pro and skips the 7-day trial prompt. | ✅ |
+| 🧩 **Fix home screen numbers tile** | Hides the Channels diagnostic tip that shows up as a tile of giant numbers. | ✅ |
 
 </details>
 <details>
@@ -1176,9 +1355,21 @@ Verified on: `8.2`
 
 </details>
 <details>
+<summary><b>EX File Manager</b> &nbsp;·&nbsp; 3 patches &nbsp;·&nbsp; <code>com.ace.ex.file.manager</code></summary>
+
+Verified on: `1.6.2`
+
+| Patch | What it does | Default |
+|---|---|:-:|
+| 🚫 **Disable ads** | Removes all ads. | ✅ |
+| 🛡️ **Disable telemetry** | Disables analytics and crash reporting. | ✅ |
+| 💎 **Enable Premium** | Unlocks the premium features. | ✅ |
+
+</details>
+<details>
 <summary><img src="assets/icons/com.gkfriend.gpsmapcameraeditor.png" width="16" height="16" alt=""> <b>GPS Map Camera Editor</b> &nbsp;·&nbsp; 5 patches &nbsp;·&nbsp; <code>com.gkfriend.gpsmapcameraeditor</code></summary>
 
-Verified on: `1.0.31`
+Verified on: `1.0.32`
 
 | Patch | What it does | Default |
 |---|---|:-:|
@@ -1200,17 +1391,6 @@ Verified on: `14.17.0 build 206 InAPP`
 
 </details>
 <details>
-<summary><img src="assets/icons/com.peter890331.luckyclick.app.png" width="16" height="16" alt=""> <b>LuckyClick</b> &nbsp;·&nbsp; 2 patches &nbsp;·&nbsp; <code>com.peter890331.luckyclick.app</code></summary>
-
-Verified on: `2026/10/22`
-
-| Patch | What it does | Default |
-|---|---|:-:|
-| 🚫 **Disable ads** | Removes all ads. | ✅ |
-| 🔑 **Disable license check** | Disables the Play Store license check so the app starts. | ✅ |
-
-</details>
-<details>
 <summary><img src="assets/icons/com.rawcam.app.png" width="16" height="16" alt=""> <b>Native Camera</b> &nbsp;·&nbsp; 2 patches &nbsp;·&nbsp; <code>com.rawcam.app</code></summary>
 
 Verified on: `1.4.5`
@@ -1219,6 +1399,17 @@ Verified on: `1.4.5`
 |---|---|:-:|
 | 🔑 **Disable license check** | Disables the Play Store license check so the app starts. | ✅ |
 | 💎 **Enable Premium** | Unlocks premium features. | ✅ |
+
+</details>
+<details>
+<summary><b>NotiAlarm</b> &nbsp;·&nbsp; 2 patches &nbsp;·&nbsp; <code>com.soosu.notialarm</code></summary>
+
+Verified on: `1.3.31`
+
+| Patch | What it does | Default |
+|---|---|:-:|
+| 🔑 **Disable license check** | Disables the Play Store license check so the app starts. | ✅ |
+| 💎 **Enable Premium** | Unlocks the premium features. | ✅ |
 
 </details>
 <details>
@@ -1232,28 +1423,7 @@ Verified on: `3.26`
 
 </details>
 <details>
-<summary><img src="assets/icons/com.rarecam.app.png" width="16" height="16" alt=""> <b>RareCam</b> &nbsp;·&nbsp; 2 patches &nbsp;·&nbsp; <code>com.rarecam.app</code></summary>
-
-Verified on: `1.0.95`
-
-| Patch | What it does | Default |
-|---|---|:-:|
-| 🔑 **Disable license check** | Disables the Play Store license check so the app starts. | ✅ |
-| 💎 **Enable Premium** | Unlocks RareCam Pro. | ✅ |
-
-</details>
-<details>
-<summary><img src="assets/icons/com.Relmtech.Remote.png" width="16" height="16" alt=""> <b>Unified Remote</b> &nbsp;·&nbsp; 1 patch &nbsp;·&nbsp; <code>com.Relmtech.Remote</code></summary>
-
-Verified on: `3.25.1`
-
-| Patch | What it does | Default |
-|---|---|:-:|
-| 💎 **Enable Pro** | Unlocks the full version. | ✅ |
-
-</details>
-<details>
-<summary><img src="assets/icons/com.fyxtech.muslim.png" width="16" height="16" alt=""> <b>WeMuslim</b> &nbsp;·&nbsp; 5 patches &nbsp;·&nbsp; <code>com.fyxtech.muslim</code></summary>
+<summary><img src="assets/icons/com.fyxtech.muslim.png" width="16" height="16" alt=""> <b>WeMuslim</b> &nbsp;·&nbsp; 8 patches &nbsp;·&nbsp; <code>com.fyxtech.muslim</code></summary>
 
 Verified on: `3.5.5`
 
@@ -1262,18 +1432,11 @@ Verified on: `3.5.5`
 | 🚫 **Disable ads** | Removes all ads. Opt-in rewarded ads keep working. | ✅ |
 | 🛡️ **Disable telemetry** | Disables analytics and crash reporting. | ✅ |
 | 🧩 **Fix native encryption check** | Fixes the app not starting after patching. | ✅ |
+| 🧩 **Hide Ummah tab** | Hides the Ummah tab. | ➖ |
+| 🧩 **Hide activity banners** | Hides event banners, the home pop-up and the floating event icon. | ➖ |
 | 🧩 **Hide feed clutter** | Hides the login, Nearby, Feeds, theme store, recharge and watch-ad reward units. | ✅ |
-| 💎 **Hide premium banners** | Hides the membership banners. | ✅ |
-
-</details>
-<details>
-<summary><b>WiFi Analyzer</b> &nbsp;·&nbsp; 1 patch &nbsp;·&nbsp; <code>com.farproc.wifi.analyzer</code></summary>
-
-Verified on: `3.11.2`
-
-| Patch | What it does | Default |
-|---|---|:-:|
-| 🚫 **Disable ads** | Removes all ads. | ✅ |
+| 💎 **Hide premium banners** | Hides the membership banners and pop-ups. | ✅ |
+| 🧩 **Hide shortcut promotions** | Hides the Egg and Rebates shortcuts. | ➖ |
 
 </details>
 

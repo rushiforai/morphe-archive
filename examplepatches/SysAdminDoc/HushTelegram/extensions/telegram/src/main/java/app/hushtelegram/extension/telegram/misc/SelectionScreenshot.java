@@ -9,7 +9,6 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Rect;
-import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.PixelCopy;
@@ -171,7 +170,7 @@ public final class SelectionScreenshot {
             Bitmap picture = Bitmap.createBitmap(band.width(), band.height(), Bitmap.Config.ARGB_8888);
             Activity activity = MessageMenu.activity(chat);
             Window window = activity == null ? null : activity.getWindow();
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && window != null) {
+            if (window != null) {
                 // What the screen shows, video and all. The drawing below is for when the copy can't be made.
                 int[] at = new int[2];
                 root.getLocationInWindow(at);

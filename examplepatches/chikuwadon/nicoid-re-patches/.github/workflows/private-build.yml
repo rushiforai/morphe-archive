@@ -2,7 +2,7 @@ name: Private patch build
 
 on:
   push:
-    branches: [dev, 'audit/**']
+    branches: [dev, 'audit/**', 'v2.0.0-dev']
   workflow_dispatch:
 
 permissions:
@@ -16,9 +16,10 @@ concurrency:
 jobs:
   build:
     if: >-
-      github.event_name != 'push' ||
-      (!startsWith(github.event.head_commit.message, 'docs: update release notes') &&
-       !startsWith(github.event.head_commit.message, 'chore(maintenance):'))
+      github.ref != 'refs/heads/v2.0.0-dev' &&
+      (github.event_name != 'push' ||
+       (!startsWith(github.event.head_commit.message, 'docs: update release notes') &&
+        !startsWith(github.event.head_commit.message, 'chore(maintenance):')))
     runs-on: ubuntu-latest
     timeout-minutes: 65
     steps:
@@ -369,6 +370,7 @@ jobs:
           retention-days: 2
 
   release-tools-smoke:
+    if: github.ref != 'refs/heads/v2.0.0-dev'
     name: Validate lockfile and release tooling without publishing
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -394,6 +396,7 @@ jobs:
           NODE
 
   actions-lock-verify:
+    if: github.ref != 'refs/heads/v2.0.0-dev'
     name: Verify GitHub official workflow lockfile
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -411,3 +414,165 @@ jobs:
           gh extension install github/gh-actions-lock --pin v0.4.1
           gh actions-lock --verify
           gh actions-lock --verify-local
+
+
+  v2-source-test:
+    name: Validate v2 live source changes (no APK)
+    if: github.ref == 'refs/heads/v2.0.0-dev'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Check source-only v2 live regression contracts
+        run: python3 porting/revisions/v2.0.0-dev.1/tests/verify-dev12.py
+      - name: Run NicoLive data/API contract JUnit tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          revision=porting/revisions/v2.0.0-dev.1
+          mkdir -p /tmp/nicoid-v2-jars /tmp/nicoid-v2-classes
+          curl -fLs --retry 2 https://repo.maven.apache.org/maven2/org/json/json/20240303/json-20240303.jar -o /tmp/nicoid-v2-jars/json.jar
+          curl -fLs --retry 2 https://repo.maven.apache.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar -o /tmp/nicoid-v2-jars/junit.jar
+          curl -fLs --retry 2 https://repo.maven.apache.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar -o /tmp/nicoid-v2-jars/hamcrest.jar
+          javac --release 8 -cp '/tmp/nicoid-v2-jars/*' -d /tmp/nicoid-v2-classes \
+            "$revision/java/e/e/a/NicoliveData.java" \
+            "$revision/java/e/e/a/NicoliveCatalog.java" \
+            "$revision/tests/e/e/a/NicoliveAccessLabelsTest.java"
+          java -cp '/tmp/nicoid-v2-classes:/tmp/nicoid-v2-jars/*' org.junit.runner.JUnitCore \
+            e.e.a.NicoliveAccessLabelsTest
+          echo "MPP generation and device/runtime playback were NOT performed by this source-only job."
+
+      - name: Test double-Back timing boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          revision=porting/revisions/v2.0.0-dev.1
+          mkdir -p /tmp/nicoid-exit-policy-tests
+          javac --release 8 -d /tmp/nicoid-exit-policy-tests "$revision/java/e/e/a/ExitBackPolicy.java" "$revision/tests/ExitBackPolicyTest.java"
+          java -cp /tmp/nicoid-exit-policy-tests e.e.a.ExitBackPolicyTest
+      - name: Test bounded HLS AES-128 recovery policy
+        shell: bash
+        run: |
+          set -euo pipefail
+          revision=porting/revisions/v2.0.0-dev.1
+          mkdir -p /tmp/nicoid-live-recovery-tests
+          javac --release 8 -d /tmp/nicoid-live-recovery-tests "$revision/java/e/e/a/LiveRecoveryPolicy.java" "$revision/tests/LiveRecoveryPolicyTest.java"
+          java -cp /tmp/nicoid-live-recovery-tests e.e.a.LiveRecoveryPolicyTest
+          javac --release 8 -d /tmp/nicoid-live-recovery-tests "$revision/java/e/e/a/HlsKeyRefreshPolicy.java" "$revision/tests/HlsKeyRefreshPolicyTest.java"
+          java -cp /tmp/nicoid-live-recovery-tests e.e.a.HlsKeyRefreshPolicyTest
+      - name: Test uninterrupted live stream credential refresh policy
+        shell: bash
+        run: |
+          set -euo pipefail
+          revision=porting/revisions/v2.0.0-dev.1
+          mkdir -p /tmp/nicoid-live-stream-policy
+          javac --release 8 -d /tmp/nicoid-live-stream-policy "$revision/java/e/e/a/LiveStreamUpdatePolicy.java" "$revision/tests/LiveStreamUpdatePolicyTest.java"
+          java -cp /tmp/nicoid-live-stream-policy e.e.a.LiveStreamUpdatePolicyTest
+      - name: Test Niconico HLS filler gap policy
+        shell: bash
+        run: |
+          set -euo pipefail
+          revision=porting/revisions/v2.0.0-dev.1
+          mkdir -p /tmp/nicoid-hls-blank-tests
+          javac --release 8 -d /tmp/nicoid-hls-blank-tests "$revision/java/e/e/a/HlsBlankSegmentPolicy.java" "$revision/tests/HlsBlankSegmentPolicyTest.java"
+          java -cp /tmp/nicoid-hls-blank-tests e.e.a.HlsBlankSegmentPolicyTest
+      - name: Test full-segment HLS fallback for encrypted NicoLive
+        shell: bash
+        run: |
+          set -euo pipefail
+          revision=porting/revisions/v2.0.0-dev.1
+          mkdir -p /tmp/nicoid-full-hls-tests
+          javac --release 8 -d /tmp/nicoid-full-hls-tests "$revision/java/e/e/a/HlsFullSegmentPolicy.java" "$revision/tests/HlsFullSegmentPolicyTest.java"
+          java -cp /tmp/nicoid-full-hls-tests e.e.a.HlsFullSegmentPolicyTest
+      - name: Compile complete Android live source against official MPP
+        shell: bash
+        run: |
+          set -euo pipefail
+          revision=porting/revisions/v2.0.0-dev.1
+          python3 "$revision/bootstrap_tools.py"
+          python3 "$revision/bootstrap_live.py"
+          curl -fLs --retry 2 https://github.com/chikuwadon/nicoid-re-patches/releases/download/v1.11.1/patches-1.11.1.mpp -o /tmp/stable-nicoid.mpp
+          echo "8920e9cdc9fc49178be5bc78cdb990627f4e7a7be83fef782eece3e7c443bcce  /tmp/stable-nicoid.mpp" | sha256sum -c -
+          python3 -c 'from zipfile import ZipFile;ZipFile("/tmp/stable-nicoid.mpp").extract("nicoid/helpers.mpe","/tmp")'
+          java -cp "$revision/deps/*" com.googlecode.dex2jar.tools.Dex2jarCmd -o /tmp/nicoid-v2-helpers.jar /tmp/nicoid/helpers.mpe
+          mkdir -p /tmp/nicoid-v2-android-classes
+          # NicoLiveSession uses OkHttp from the native APK. CI has no private
+          # APK, so supply pinned, API-compatible OkHttp solely for compilation.
+          curl -fLs --retry 2 https://repo.maven.apache.org/maven2/com/squareup/okhttp3/okhttp/3.14.9/okhttp-3.14.9.jar -o /tmp/nicoid-v2-okhttp.jar
+          curl -fLs --retry 2 https://repo.maven.apache.org/maven2/com/squareup/okio/okio/1.17.2/okio-1.17.2.jar -o /tmp/nicoid-v2-okio.jar
+          cp="$revision/tools/android-all-16-robolectric-13921718.jar:/tmp/nicoid-v2-helpers.jar:/tmp/nicoid-v2-okhttp.jar:/tmp/nicoid-v2-okio.jar"
+          for jar in "$revision"/deps/*.jar; do cp="$cp:$jar"; done
+          java -jar "$revision/tools/ecj.jar" -8 -proc:none -nowarn -cp "$cp" \
+            -d /tmp/nicoid-v2-android-classes \
+            $(find "$revision/java" -name '*.java' | sort) \
+            porting/revisions/v1.11.1/java/e/e/a/AmbientLight.java
+          test -s /tmp/nicoid-v2-android-classes/e/e/a/NicoliveActivity.class
+          test -s /tmp/nicoid-v2-android-classes/e/e/a/NicoliveBrowser.class
+          test -s /tmp/nicoid-v2-android-classes/e/e/a/NicoliveData.class
+          echo "Complete live Java source compiled. No original APK was used or distributed."
+
+      - name: Build guarded v2 candidate MPP from stable release and validated sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          revision=porting/revisions/v2.0.0-dev.1
+          output=/tmp/nicoid-re-2.0.0-dev.1-27.mpp
+          python3 "$revision/build_mpp.py" \
+            --base /tmp/stable-nicoid.mpp \
+            --tools "$revision/tools" --media "$revision/deps" \
+            --ci-without-apk \
+            --compile-jar /tmp/nicoid-v2-okhttp.jar \
+            --compile-jar /tmp/nicoid-v2-okio.jar \
+            --output "$output"
+          python3 "$revision/verify_ci_candidate.py" /tmp/stable-nicoid.mpp "$output"
+          mkdir -p /tmp/nicoid-v2-delivery
+          cp "$output" /tmp/nicoid-v2-delivery/
+          {
+            echo "nicoid Re v2.0.0-dev.1-27"
+            echo "Branch: v2.0.0-dev"
+            echo "Source commit: $GITHUB_SHA"
+            echo "Original nicoid APK SHA-256 checked separately: 17fc6b46228af184437ade7e6f5573915bc655b86996307ff3270fdf35279cce"
+            echo "MPP build: completed (stable MPP and pinned source dependencies)"
+            echo "No original APK was included in this build."
+            echo "Source contract / Java compile: successful."
+            echo "Morphe application and Android runtime: NOT VERIFIED in this job."
+            echo
+            sha256sum "$output"
+          } > /tmp/nicoid-v2-delivery/verification.txt
+          # upload-artifact already creates a ZIP; upload the two files directly.
+          # This avoids a ZIP inside the downloadable Actions artifact.
+          test -s /tmp/nicoid-v2-delivery/nicoid-re-2.0.0-dev.1-27.mpp
+          test -s /tmp/nicoid-v2-delivery/verification.txt
+          test "$(find /tmp/nicoid-v2-delivery -maxdepth 1 -type f | wc -l)" -eq 2
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: nicoid-re-v2.0.0-dev.1-27-mpp
+          path: /tmp/nicoid-v2-delivery/*
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 2
+
+      - name: Package complete source archives
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/nicoid-v2-source
+          git archive --format=zip --output=/tmp/nicoid-v2-source/nicoid-re-v2.0.0-dev.1-27-source.zip HEAD
+          git archive --format=tar.gz --output=/tmp/nicoid-v2-source/nicoid-re-v2.0.0-dev.1-27-source.tar.gz HEAD
+          unzip -tq /tmp/nicoid-v2-source/nicoid-re-v2.0.0-dev.1-27-source.zip
+          tar -tzf /tmp/nicoid-v2-source/nicoid-re-v2.0.0-dev.1-27-source.tar.gz > /dev/null
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: nicoid-re-v2.0.0-dev.1-27-source
+          path: /tmp/nicoid-v2-source/*
+          if-no-files-found: error
+          retention-days: 2
+

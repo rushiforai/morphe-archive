@@ -18,10 +18,16 @@ Second \"item\" text"</string>
 -->
 <resources>
   <!-- layout.theme.splashAnimationPatch -->
-  <string name="morphe_splash_screen_animation_style_title">Başlangıç animasyonu</string>
-  <string name="morphe_splash_screen_animation_style_entry_1">Devre dışı</string>
-  <string name="morphe_splash_screen_animation_style_entry_2">Renkli</string>
-  <string name="morphe_splash_screen_animation_style_entry_3">Tek renk</string>
+  <string name="morphe_splash_screen_style_title">Başlangıç animasyonu</string>
+  <string name="morphe_splash_screen_style_entry_1">Devre dışı</string>
+  <string name="morphe_splash_screen_style_entry_2">Renkli</string>
+  <string name="morphe_splash_screen_style_entry_3">Morphe Renkli</string>
+  <string name="morphe_splash_screen_style_entry_4">Tek Renk</string>
+  <string name="morphe_splash_screen_style_entry_5">Morphe Tek Renk</string>
+  <!-- misc.settings.settingsPatch -->
+  <string name="morphe_settings_new_indicator_days_title">Yeni ayarları vurgula</string>
+  <string name="morphe_settings_new_indicator_days_summary">Bir güncelleme ile eklenen ayar ve seçeneklerin yanında bir noktanın gösterileceği gün sayısı</string>
+  <string name="morphe_settings_new_indicator_days_off">Kapalı</string>
   <!-- misc.initialization.initializationPatch -->
   <string name="morphe_restart_first_run">Kurulumu tamamlamak için yeniden başlatın</string>
   <!-- layout.branding.baseCustomBrandingPatch -->
@@ -109,7 +115,7 @@ YouTube Premium kullanıcısıysanız, bu ayar gerekli olmayabilir"</string>
   <string name="morphe_spoof_video_streams_client_type_title">Varsayılan istemci</string>
   <!-- Ensure this translation matches the translation of morphe_spoof_video_streams_no_clients_suggest_vr_toast -->
   <string name="morphe_spoof_video_streams_sign_in_android_vr_about_title">Android VR oturum açma</string>
-  <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary">Android VR oturumu açılmadı. Oturum açmak için buraya dokunun</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary">Android VR ayrı bir oturum açma işlemi gerektirir. Devam etmek için buraya dokunun</string>
   <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary_signed_in">Şu anda Android VR oturumu açık</string>
   <!-- "Default client" must be the same translated text as morphe_spoof_video_streams_client_type_title -->
   <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary_disabled">Bu özelliği kullanmak için \'Varsayılan istemci\'yi Android VR olarak değiştirin</string>
@@ -148,8 +154,15 @@ Oturum açmak için, devam et butonuna basın."</string>
   <string name="morphe_notification_media_screen_summary">Kilit ekranınızda ve bildirim panelinizde görünen oynatma kontrollerini özelleştirin</string>
   <string name="morphe_hide_notification_media_prev_next_title">Önceki ve Sonraki butonlarını gizle</string>
   <string name="morphe_hide_notification_media_prev_next_summary">Medya bildirimi, kilit ekranı ve kulaklık kontrollerindeki Önceki ve Sonraki butonlarını gizler</string>
-  <string name="morphe_disable_notification_media_seekbar_title">İlerleme çubuğunu devre dışı bırak</string>
-  <string name="morphe_disable_notification_media_seekbar_summary">Bildirim panelindeki ve kilit ekranındaki ilerleme çubuğunu sürüklemeyi engeller</string>
+  <string name="morphe_disable_notification_media_seekbar_title">Sardırma çubuğunu devre dışı bırak</string>
+  <string name="morphe_disable_notification_media_seekbar_summary">Bildirim paneli ve kilit ekranındaki sardırma çubuğunu sürüklemeyi engeller</string>
+  <string name="morphe_seek_notification_media_prev_next_title">Önceki &amp; Sonraki düğmeleriyle sardırma</string>
+  <string name="morphe_seek_notification_media_prev_next_summary">Medya bildirimi, kilit ekranı ve kulaklık kontrollerinin videoları değiştirmek yerine sardırma yapmasını sağlar</string>
+  <string name="morphe_seek_notification_media_rewind_length_title">Geri sarma süresi</string>
+  <string name="morphe_seek_notification_media_rewind_length_summary">Önceki düğmesiyle geri sarılacak saniye sayısı</string>
+  <string name="morphe_seek_notification_media_fast_forward_length_title">İleri sarma süresi</string>
+  <string name="morphe_seek_notification_media_fast_forward_length_summary">Sonraki düğmesiyle ileri sarılacak saniye sayısı</string>
+  <string name="morphe_seek_notification_media_length_invalid">Sardırma süresi 1 ile %s saniye arasında olmalıdır. Varsayılan kullanılıyor</string>
   <!-- misc.quic.disableQUICProtocolPatch -->
   <string name="morphe_disable_quic_protocol_title">QUIC protokolünü devre dışı bırak</string>
   <!-- misc.audio.drc.disableDRCAudioPatch  -->
@@ -194,13 +207,15 @@ Oturum açmak için, devam et butonuna basın."</string>
   <string name="morphe_replace_links_with_shortener_title">Paylaşım bağlantılarını youtu.be olarak değiştir</string>
   <string name="morphe_replace_links_with_shortener_summary">Videoları kısaltılmış youtu.be URL formatını kullanmaya zorlar</string>
   <!-- misc.debugging.enableDebuggingPatch -->
-  <string name="morphe_debug_protobuffer_title">Hata ayıklama günlüğü protokol arabelleği</string>
-  <string name="morphe_debug_protobuffer_summary">Geliştiricilerin uygulama bileşenlerini belirlemesine yardımcı olacak ek günlük bilgileri ekler</string>
-  <string name="morphe_debug_protobuffer_user_dialog_message">"Bu ayarı etkinleştirmek, bazı kullanıcı arayüzü bileşenleri için ekrandaki metin de dahil olmak üzere ek düzen verilerini günlüğe kaydeder.
+  <string name="morphe_debug_litho_title">Litho kayıtları</string>
+  <string name="morphe_debug_litho_entry_disabled">Devre dışı</string>
+  <string name="morphe_debug_litho_entry_path">Yol</string>
+  <string name="morphe_debug_litho_entry_path_and_buffer">Yol ve ara bellek</string>
+  <string name="morphe_debug_litho_user_dialog_message">"Litho günlükleme, bazı kullanıcı arayüzü bileşenleri için ekrandaki metinler de dahil olmak üzere uygulamanın düzen bileşenlerini günlüğe kaydeder
 
-Bu, özel filtreler oluştururken bileşenleri tanımlamaya yardımcı olabilir.
+Bu, özel filtreler oluştururken bileşenleri tanımlamaya yardımcı olabilir
 
-Ancak, bunun etkinleştirilmesi IP adresiniz gibi bazı kullanıcı verilerini de günlüğe kaydeder"</string>
+Ancak, bu işlem IP adresiniz gibi bazı kullanıcı verilerini de günlüğe kaydedecektir"</string>
   <!-- Custom filter -->
   <string name="morphe_custom_filter_screen_title">Özel filtre</string>
   <string name="morphe_custom_filter_screen_summary">Herhangi bir bileşeni gizlemek için özel filtreleri yapılandırın</string>
@@ -282,9 +297,9 @@ Daha sonra bu özellik kapatılırsa, arayüz hatalarını önlemek için uygula
   <string name="morphe_ryd_estimated_like_summary">İçerik üreticisinin beğenmeleri kapattığı videolarda tahmini bir beğeni sayısı gösterir</string>
   <string name="morphe_ryd_toast_on_connection_error_title">Bağlantı hatası uyarılarını göster</string>
   <string name="morphe_ryd_toast_on_connection_error_summary">Return YouTube Dislike sunucusu kullanılamadığında bir bildirim gösterir</string>
-  <string name="morphe_ryd_attribution_summary">"Return YouTube Dislike, YouTube'un 2021'de gizlediği dislike sayılarını geri getirir. Sayılar, kaldırma işleminden önce arşivlenen verilerden gelir ve daha yeni videolar için kullanıcıların oylarından tahmin edilir, bu nedenle yaklaşıktır ve birkaç günde bir güncellenir.
+  <string name="morphe_ryd_attribution_summary">"Return YouTube Dislike, YouTube'nin 2021 yılında gizlediği beğenilmeme sayılarını geri getirir. Sayılar, kaldırılmasından önce arşivlenen verilerden gelir ve yeni videolar için kullanıcılarının oylarından tahmin edilir, bu nedenle yaklaşık sayılardır ve her birkaç gün güncellenir
 
-İzlediğiniz videonun kimliği Return YouTube Dislike API'sine gönderilir ve beğenileriniz ve beğenmeme işlemleriniz, tahminleri iyileştirmek için anonim olarak gönderilir.}],\"action\":\"translate\"}"</string>
+İzlediğiniz videonun kimliği Return YouTube Dislike API'sine gönderilir, ayrıca tahminleri iyileştirmek için beğeni ve beğenmeme işlemleriniz anonim olarak gönderilir"</string>
   <!-- Statistic strings are shown in the settings only when Morphe debug mode is enabled. Typical users will never see these. -->
   <string name="morphe_ryd_statistics_category_title">Bu cihazın Return YouTube Dislike API istatistikleri</string>
   <string name="morphe_ryd_statistics_getFetchCallResponseTimeAverage_title">API yanıt süresi, ortalama</string>

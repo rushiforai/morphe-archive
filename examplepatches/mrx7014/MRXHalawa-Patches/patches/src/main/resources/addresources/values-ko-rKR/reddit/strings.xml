@@ -18,6 +18,9 @@ Second \"item\" text"</string>
 <resources>
   <string name="reddit_privacy_policy">Reddit 개인정보 처리방침</string>
   <string name="morphe_google_signin_not_available_toast">Google 로그인을 사용할 수 없습니다. 이메일로 로그인하세요</string>
+  <string name="morphe_app_downgrade_dialog_title">다운그레이드는 지원되지 않음</string>
+  <string name="morphe_app_downgrade_dialog_message">"이 Reddit 앱은 &lt;b&gt;%1$s&lt;/b&gt;에서 &lt;b&gt;%2$s&lt;/b&gt; 버전으로 다운그레이드되었습니다&lt;br/&gt;&lt;br/&gt;최신 버전의 앱 데이터는 이전 버전과 호환되지 않으며, 앱이 정상적으로 작동하지 않을 수 있습니다&lt;br/&gt;&lt;br/&gt;이전 버전을 사용하려면 Reddit 앱을 &lt;b&gt;제거&lt;/b&gt;한 후 이전 버전을 다시 설치해야 합니다"</string>
+  <string name="morphe_app_downgrade_dialog_open_app_info">앱 정보 열기</string>
   <string name="morphe_screen_ads_title">광고</string>
   <string name="morphe_hide_post_ads_title">피드 광고 숨기기</string>
   <string name="morphe_hide_comment_ads_title">댓글 광고 숨기기</string>
@@ -58,7 +61,9 @@ Second \"item\" text"</string>
   <string name="morphe_hide_trending_shelves_summary">피드 및 검색 추천에서 \'인기 급상승 중\' 선반을 숨깁니다</string>
   <string name="morphe_remove_notification_dialog_title">알림 제안 대화 상자 제거하기</string>
   <string name="morphe_remove_notification_dialog_summary">서브레딧 방문 시 나타나는 알림 제안 대화 상자를 자동으로 닫습니다</string>
-  <string name="morphe_show_flairs_in_home_feed_title">홈 피드에서 분류 태그 배지 표시하기</string>
+  <string name="morphe_high_quality_avatars_title">고화질 아바타</string>
+  <string name="morphe_high_quality_avatars_summary">사용자 아바타를 전체 해상도로 표시합니다</string>
+  <string name="morphe_show_flairs_in_home_feed_title">홈 피드에 분류 태그 배지 표시하기</string>
   <string name="morphe_show_flairs_in_home_feed_summary">홈 피드에 게시글 분류 태그 배지를 표시합니다</string>
   <string name="morphe_show_flairs_in_home_feed_user_dialog_message">일부 피드 항목에는 분류 태그 배지가 표시되지 않을 수 있습니다</string>
   <string name="morphe_show_view_count_title">게시물에서 조회수 표시하기</string>
@@ -84,10 +89,6 @@ Second \"item\" text"</string>
   <string name="morphe_keep_feed_position_summary">게시물, 이미지 또는 동영상을 열었다가 닫아도 피드가 원래 위치에 그대로 유지됩니다. 열린 게시물이 피드 맨 위로 이동하지 않습니다</string>
   <string name="morphe_feed_media_max_height_title">피드 미디어 최대 높이</string>
   <string name="morphe_feed_media_max_height_summary">피드에 표시되는 이미지, 동영상 및 갤러리의 최대 높이를 너비의 배수로 설정할 수 있습니다. 설정한 높이보다 긴 미디어는 잘려서 표시됩니다. Reddit 기본값은 1.33입니다</string>
-  <string name="morphe_redgifs_audio_title">오디오가 포함된 Redgifs 재생하기</string>
-  <string name="morphe_redgifs_audio_summary">Redgifs의 원본 동영상을 재생합니다. Reddit에 올라온 복사본은 소리가 없는 경우가 많습니다</string>
-  <string name="morphe_redgifs_hd_title">Redgifs HD 화질</string>
-  <string name="morphe_redgifs_hd_summary">HD Redgifs 동영상을 재생합니다. HD 동영상은 크기가 더 크며 로딩하는 동안 일시 정지될 수 있습니다</string>
   <string name="morphe_download_location_title">다운로드 위치</string>
   <string name="morphe_download_location_all_title">모든 계정</string>
   <string name="morphe_download_location_default_summary">Reddit 기본값: 이미지는 Pictures/Reddit, 동영상은 Download에 저장됩니다</string>

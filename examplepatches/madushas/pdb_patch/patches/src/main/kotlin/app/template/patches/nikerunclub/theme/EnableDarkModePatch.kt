@@ -25,7 +25,6 @@ val nikeEnableDarkModePatch = bytecodePatch(
         "DefaultDesignManager colour-mode gate, so the Compose UI renders dark.",
     default = true,
 ) {
-    category("Theme")
     compatibleWith(NIKE_RUN_CLUB_COMPATIBILITY)
 
     execute {

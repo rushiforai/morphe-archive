@@ -155,6 +155,9 @@ val lichessPuzzlesPatch = bytecodePatch(
                     it.parameterTypes[1] == "Lcom/chess/navigationinterface/NavigationDirections;"
             }
         } ?: throw PatchException("Solve Puzzles' navigation was not found")
+        // The interface that navigation goes through: the runtime finds the router by it, which
+        // works whether the listener keeps the router in its own fields or in a holder.
+        name("routerClass", navigate.definingClass.javaName())
         val directions = solveCode.firstNotNullOfOrNull { instruction ->
             instruction.methodReference?.takeIf {
                 instruction.opcode == Opcode.INVOKE_DIRECT && it.name == "<init>" && it.parameterTypes.map(CharSequence::toString) == listOf(MODE)

@@ -21,6 +21,7 @@ internal object TruecallerControlsCategory {
     const val CONTACTS = "Contacts & business"
     const val CALL_SCREEN = "Call screen"
     const val PROFILE_MENU = "Profile menu"
+    const val PRIVACY = "Privacy"
 }
 
 /**
@@ -67,3 +68,4 @@ internal val truecallerControls = hevalControlsPatch(
 // Expose the host patch, so Manager lists "Patch settings".
 @Suppress("unused")
 val truecallerHevalControlsPatch = truecallerControls.patch
+

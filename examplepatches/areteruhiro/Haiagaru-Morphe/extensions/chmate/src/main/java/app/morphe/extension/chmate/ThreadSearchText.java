@@ -37,7 +37,17 @@ public final class ThreadSearchText {
         StringBuilder result=new StringBuilder(body).append('\n');
         if(ThreadSearchOptions.enabled(ThreadSearchOptions.NAME))result.append(WACCHOI.matcher(name).replaceAll("")).append('\n');
         if(ThreadSearchOptions.enabled(ThreadSearchOptions.WACCHOI)){
-            Matcher matcher=WACCHOI.matcher(name+"\n"+header);while(matcher.find())result.append(matcher.group()).append('\n');
+            String source=name+"\n"+header;
+            Matcher matcher=WACCHOI.matcher(source);while(matcher.find()){
+                result.append(matcher.group()).append('\n');
+                int end=matcher.end();
+                if(end<source.length()&&(source.charAt(end)==')'||source.charAt(end)=='）')){
+                    int begin=Math.max(source.lastIndexOf('(',matcher.start()),source.lastIndexOf('（',matcher.start()));
+                    String prefix=begin<0?"":source.substring(begin,matcher.start());
+                    if(begin<0||prefix.length()>80||prefix.indexOf('\n')>=0||prefix.indexOf(')')>=0||prefix.indexOf('）')>=0||prefix.indexOf('[')>=0)begin=matcher.start();
+                    result.append(source,begin,end+1).append('\n');
+                }
+            }
         }
         if(ThreadSearchOptions.enabled(ThreadSearchOptions.ID)){
             Matcher matcher=ID.matcher(header);boolean found=false;

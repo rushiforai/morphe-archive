@@ -16,6 +16,7 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
@@ -50,7 +51,16 @@ private val FLASHSCORE_PATCHES = setOf(
     "Disable telemetry",
     "Disable update prompts",
     "Hide betting content",
+    "Use system font",
+    "Spoof signature",
+    "Patch settings",
+    "Animation speed",
+    "Force edge-to-edge",
+    "Block marketing notifications",
 )
+
+// SHA-1 of the original signing certificate (CN=Pavel Cvetler, O=LiveSport s.r.o.).
+private const val SIGNATURE_SHA1 = "fd9fbf3b2dac2390355b54c50a1b716076d79bc1"
 
 // Hide betting content: the remote-config keys and the value the helper must answer with.
 private val BETTING_KEYS = mapOf(
@@ -201,7 +211,7 @@ class FlashscoreSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "26.11.4",
+            version = "26.11.6",
             patchNames = FLASHSCORE_PATCHES,
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
@@ -756,5 +766,199 @@ class FlashscoreSmokeTest {
                 )
             }
         }
+
+        // Use system font: ResourcesCompat.getFont(int, Context) asks SystemFonts first and returns its
+        // typeface when it has one; the app's own font families (and their weights) are untouched.
+        val getFonts = classes.flatMap { it.methods }.filter { m ->
+            AccessFlags.STATIC.isSet(m.accessFlags) && m.returnType == "Landroid/graphics/Typeface;" &&
+                m.parameterTypes.map(CharSequence::toString) == listOf("I", "Landroid/content/Context;") &&
+                m.implementation?.instructions?.any {
+                    ((it as? ReferenceInstruction)?.reference as? MethodReference)?.name == "isRestricted"
+                } == true
+        }
+        assertTrue(getFonts.size == 1, "ResourcesCompat.getFont candidates: ${getFonts.map { "${it.definingClass}->${it.name}" }}")
+        val fontInsns = getFonts.single().instructions()
+        val lookup = (fontInsns[0] as? ReferenceInstruction)?.reference as? MethodReference
+        assertTrue(
+            fontInsns[0].opcode == Opcode.INVOKE_STATIC &&
+                lookup?.definingClass == "Lapp/template/extension/flashscore/SystemFonts;" && lookup.name == "typeface" &&
+                fontInsns[1].opcode == Opcode.MOVE_RESULT_OBJECT && fontInsns[2].opcode == Opcode.IF_EQZ &&
+                fontInsns[3].opcode == Opcode.RETURN_OBJECT,
+            "ResourcesCompat.getFont does not ask SystemFonts first: ${fontInsns.take(4).map { it.opcode }}",
+        )
+        assertTrue(classes.any { it.type == "Lapp/template/extension/flashscore/SystemFonts;" }, "SystemFonts is not merged")
+
+        // Use system font (styles): the decoded text appearances and layouts no longer name the
+        // custom families, and the weight mapping uses the system families.
+        val styles = workDir.walkTopDown()
+            .singleOrNull { it.name == "styles.xml" && it.parentFile.name == "values" }
+            ?: error("res/values/styles.xml was not decoded under $workDir")
+        val stylesDoc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(styles)
+        val fontItems = stylesDoc.getElementsByTagName("item").let { items ->
+            (0 until items.length).map { items.item(it) as Element }
+        }.filter { it.getAttribute("name") in setOf("android:fontFamily", "fontFamily") }
+        assertTrue(fontItems.isNotEmpty(), "styles.xml has no fontFamily items")
+        val customLeft = fontItems.filter { it.textContent.trim().startsWith("@font/") }
+        assertTrue(customLeft.isEmpty(), "${customLeft.size} text appearances still name a custom font")
+        assertTrue(
+            fontItems.map { it.textContent.trim() }.any { it.startsWith("sans-serif") },
+            "styles.xml fontFamily items are not system families: ${fontItems.map { it.textContent.trim() }.distinct()}",
+        )
+        val layoutFonts = workDir.walkTopDown()
+            .filter { it.parentFile?.name == "layout" && it.extension == "xml" }
+            .flatMap { file ->
+                val nodes = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file)
+                    .getElementsByTagName("*")
+                (0 until nodes.length).mapNotNull { nodes.item(it) as? Element }.flatMap { element ->
+                    val attributes = element.attributes
+                    (0 until attributes.length).map { attributes.item(it) }.filter { it.nodeName.endsWith("fontFamily") }
+                }
+            }
+            .map { it.nodeValue }
+        assertTrue(layoutFonts.none { it.startsWith("@font/") }, "layouts still name a custom font: $layoutFonts")
+        // The three layouts that set a custom family inline were decoded and now use system families
+        // (the v2.3.0-dev.1 check passed vacuously because no layout was decoded).
+        for (name in listOf("duel_detail_header_with_tabs.xml", "fragment_event_participant_page_squad_row.xml", "tooltip_with_tip.xml")) {
+            val file = workDir.walkTopDown().singleOrNull { it.name == name && it.parentFile?.name == "layout" }
+                ?: error("$name was not decoded under $workDir")
+            val fonts = Regex("""fontFamily="([^"]+)"""").findAll(file.readText()).map { it.groupValues[1] }.toList()
+            assertTrue(fonts.isNotEmpty() && fonts.all { it.startsWith("sans-serif") }, "$name font families: $fonts")
+        }
+
+        // Spoof signature: the extension returns Flashscore's package and original certificate,
+        // and every PackageManager.getPackageInfo(String, ...) call is routed through it.
+        assertSpoofSignature(classes, PKG, SIGNATURE_SHA1)
+
+        // Patch settings: the Settings screen calls the row entry right after setContentView.
+        val settings = classes.singleOrNull { it.type == "Leu/livesport/LiveSport_cz/view/settings/SettingsActivity;" }
+            ?: error("SettingsActivity not found")
+        val onCreate = settings.method("onCreate", listOf("Landroid/os/Bundle;"))
+        val entryCall = onCreate.instructions().withIndex().singleOrNull { (_, insn) ->
+            val ref = (insn as? ReferenceInstruction)?.reference as? MethodReference
+            ref?.definingClass == "Lapp/template/extension/flashscore/HevalControlsEntry;" && ref.name == "addRow"
+        } ?: error("SettingsActivity.onCreate does not call HevalControlsEntry.addRow")
+        val setContentView = onCreate.instructions().withIndex().singleOrNull { (_, insn) ->
+            (insn as? ReferenceInstruction)?.reference.let { (it as? MethodReference)?.name == "setContentView" }
+        } ?: error("SettingsActivity.onCreate has no setContentView")
+        assertTrue(
+            entryCall.index == setContentView.index + 1,
+            "addRow is at ${entryCall.index}, not directly after setContentView at ${setContentView.index}",
+        )
+
+        // The "Patch settings" row itself is a resource patch; its decoded layout is not asserted
+        // here because the harness reads the patcher's decode cache, which a later resource patch
+        // can reset depending on execution order. The CLI run (aapt2: the include and the
+        // re-constrained version label) and the emulator check cover it.
+        // Animation speed: App.onCreate initialises the hooks right after super.onCreate, the
+        // Compose duration-scale read goes through the extension, and both features are in the
+        // Patch settings registry.
+        val app = classes.singleOrNull { it.type == "Leu/livesport/LiveSport_cz/App;" } ?: error("App class not found")
+        val appOnCreate = app.method("onCreate", emptyList())
+        val appInsns = appOnCreate.instructions()
+        val superIndex = appInsns.indexOfFirst {
+            (it.opcode == Opcode.INVOKE_SUPER || it.opcode == Opcode.INVOKE_SUPER_RANGE) &&
+                ((it as? ReferenceInstruction)?.reference as? MethodReference)?.name == "onCreate"
+        }
+        val initCall = appInsns.indexOfFirst {
+            val ref = (it as? ReferenceInstruction)?.reference as? MethodReference
+            ref?.definingClass == "Lapp/template/extension/flashscore/AnimationSpeed;" && ref.name == "init"
+        }
+        assertEquals(superIndex + 1, initCall, "AnimationSpeed.init is not directly after super.onCreate")
+
+        fun Instruction.callsAnimationScale() = (this as? ReferenceInstruction)?.reference.let { reference ->
+            val ref = reference as? MethodReference
+            ref?.definingClass == "Lapp/template/extension/flashscore/AnimationSpeed;" && ref.name == "durationScale"
+        }
+        fun Instruction.readsValueAnimatorScale() = (this as? ReferenceInstruction)?.reference.let { reference ->
+            val ref = reference as? MethodReference
+            ref?.definingClass == "Landroid/animation/ValueAnimator;" && ref.name == "getDurationScale"
+        }
+        val scaleCalls = classes.filterNot { it.type.startsWith("Lapp/template/extension/") }
+            .flatMap { it.methods }.filter { it.implementation != null }
+            .flatMap { it.instructions() }
+            .count { it.callsAnimationScale() }
+        val directReads = classes.filterNot { it.type.startsWith("Lapp/template/extension/") }
+            .flatMap { it.methods }.filter { it.implementation != null }
+            .flatMap { it.instructions() }
+            .count { it.readsValueAnimatorScale() }
+        assertTrue(scaleCalls > 0, "no duration-scale read goes through AnimationSpeed")
+        assertEquals(0, directReads, "a ValueAnimator.getDurationScale read is left outside the extension")
+
+        val registry = classes.singleOrNull { it.type == "Lapp/template/extension/hevalcontrols/Registry;" }
+            ?: error("Registry class not merged")
+        val encoded = registry.method("encoded", emptyList()).instructions()
+            .mapNotNull { insn ->
+                ((insn as? ReferenceInstruction)?.reference as? StringReference)?.string
+            }
+            .singleOrNull { it.startsWith("hevalcontrols-registry:") }
+            ?: error("Registry.encoded() was not rewritten")
+        for (id in listOf("flashscore.animations_off", "flashscore.animations_fast")) {
+            assertTrue(id in encoded, "Patch settings registry has no $id")
+        }
+
+        // Force edge-to-edge: every navigation-bar colour write is preceded by a zero constant in
+        // the register the call passes, so the bar is transparent (the status bar is untouched).
+        fun Instruction.navigationColour() = (this as? ReferenceInstruction)?.reference.let { reference ->
+            val ref = reference as? MethodReference
+            ref?.definingClass == "Landroid/view/Window;" && ref.name == "setNavigationBarColor"
+        }
+        var edgeSites = 0
+        for (cls in classes) {
+            for (method in cls.methods) {
+                if (method.implementation == null) continue
+                val insns = method.instructions()
+                insns.forEachIndexed { index, insn ->
+                    if (!insn.navigationColour()) return@forEachIndexed
+                    val colour = (insn as FiveRegisterInstruction).registerD
+                    val previous = insns.getOrNull(index - 1)
+                    assertTrue(
+                        previous is NarrowLiteralInstruction && previous.opcode == Opcode.CONST_16 &&
+                            previous.narrowLiteral == 0 && (previous as OneRegisterInstruction).registerA == colour,
+                        "${cls.type}->${method.name}: the navigation bar colour is not forced transparent",
+                    )
+                    edgeSites++
+                }
+            }
+        }
+        assertTrue(edgeSites > 0, "no navigation-bar colour write was patched")
+        // Android 15+: the content view gets the navigation-bar strip right after its lookup.
+        val eventList = classes.single { it.type == "Leu/livesport/LiveSport_cz/EventListActivity;" }
+            .methods.single { it.name == "onCreate" && it.parameterTypes.size == 1 }.instructions()
+        val contentAt = eventList.indexOfFirst { (it as? NarrowLiteralInstruction)?.narrowLiteral == 0x01020002 }
+        val strip = eventList.getOrNull(contentAt + 3)
+        assertTrue(
+            strip?.opcode == Opcode.INVOKE_STATIC_RANGE &&
+                ((strip as ReferenceInstruction).reference as MethodReference).let {
+                    it.definingClass == "Lapp/template/extension/flashscore/NavigationBarStrip;" && it.name == "install"
+                } &&
+                (strip as RegisterRangeInstruction).startRegister == (eventList[contentAt + 2] as OneRegisterInstruction).registerA,
+            "EventListActivity.onCreate does not install the navigation-bar strip on the content view",
+        )
+
+        // Block marketing notifications: HandlerInfo.process starts with the Heval gate that
+        // returns at once while the switch is on; the stock body stays after the gate's label.
+        val handlerInfo = classes.singleOrNull { it.type == "Leu/livesport/notification/handler/HandlerInfo;" }
+            ?: error("HandlerInfo not found")
+        val process = handlerInfo.methods.single {
+            it.name == "process" && it.parameterTypes.size == 2 && it.parameterTypes[0].toString() == "Landroid/content/Context;"
+        }
+        val processInsns = process.instructions()
+        assertTrue(
+            processInsns[0].opcode == Opcode.CONST_STRING &&
+                ((processInsns[0] as? ReferenceInstruction)?.reference as? StringReference)?.string ==
+                "flashscore.block_marketing_notifications",
+            "HandlerInfo.process does not start with the marketing gate",
+        )
+        assertTrue(
+            processInsns.any { insn ->
+                val ref = (insn as? ReferenceInstruction)?.reference as? MethodReference
+                ref?.definingClass == "Lapp/template/extension/hevalcontrols/HevalSettings;" && ref.name == "isEnabled"
+            },
+            "HandlerInfo.process has no HevalSettings.isEnabled call",
+        )
+        assertTrue(processInsns.any { it.opcode == Opcode.RETURN_VOID }, "HandlerInfo.process lost its stock body")
     }
 }
+
+
+

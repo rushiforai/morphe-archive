@@ -61,7 +61,7 @@ class TextDirectionFixtureTest {
             val name = build.name
             val context = PatchContexts.of(hosts(build))
             val site = context.resolveTextDirection()
-            if (name.contains("-72919")) {
+            if (name.contains("-73039")) {
                 assertEquals("Lorg/telegram/ui/Components/ft;", site.box)
                 assertEquals("G", site.choose.name)
             }

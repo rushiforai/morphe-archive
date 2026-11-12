@@ -472,7 +472,8 @@ public class HiddenChatsTest {
     @Test public void theLongPressItemFollowsTheSwitch() {
         Object list = new Object();
         HiddenChats.menuItem(list, new Object());
-        assertEquals(Arrays.asList("48544801 Hide from chat list", "48544802 Ghost mode exception", "48544803 Fake typing"), telegram.menu);
+        assertEquals(Arrays.asList("48544801 Hide from chat list", "48544802 Ghost mode exception", "48544803 Fake typing",
+                "48544804 Record calls here"), telegram.menu);
         View item = telegram.items.get(HiddenChats.MENU_ID);
         assertEquals(View.GONE, item.getVisibility());
         Settings.HIDDEN_CHATS.save(true);

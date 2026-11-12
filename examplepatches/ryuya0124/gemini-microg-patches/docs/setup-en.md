@@ -20,7 +20,7 @@ No root operation or de-Googled ROM is required by the install procedure. The Is
 
 ## Morphe Manager configuration
 
-Use **v0.3.2 or newer** with the matching original APKs. The local pipeline uses Morphe Desktop 1.15.0 / Patcher 1.12.0. The official patches bundle 1.41.0 is retained for historical baseline and compatibility tests; it is not needed for normal patching.
+Use **v0.3.5 or newer** with the matching original APKs. This includes compatibility with optional update blocking, the Google startup fix from v0.3.3 and an explanation of the initial account permissions. Manager 2.5.0 / Patcher 2.3.0 generation and Android12 runtime were checked directly; the local pipeline also uses Morphe Desktop 1.15.0 / Patcher 1.12.0. See the [Manager regression](testing/issue-8-manager-registers.md). The official patches bundle is not needed for normal patching; 1.41.0 was used for Desktop compatibility tests and 2.2.0 in Android Manager.
 
 For **both** Google and Gemini:
 
@@ -48,6 +48,20 @@ Never enable these historical experiments:
 They previously broke synchronization or token acquisition. They are disabled by default, and the patcher now rejects them before modifying DEX. “Select every patch” is not a supported configuration.
 
 The GmsCore redirect targets `app.revanced.android.gms`. The old title containing `7.0.0` was historical wording, not a hard version check; the title was clarified. The known working microG version is 7.3.0. Please provide the exact version rather than the ambiguous spelling “7.30”.
+
+## Initial account permissions
+
+Choose **Continue** in the account-access explanation to open Android's permission prompts. Android may call GET_ACCOUNTS **Contacts** and microG's account permission **an unknown action**. The second wording comes from a missing permission description in microG RE, not an app error. This setup requests account access; it does not add a contact-reading request. The Android wording itself is unchanged.
+
+**Not now**, Back and permission denial are respected across restarts. To allow access later, open Android app info for **Google (Morphe)** in the same profile and change its permissions; microG's permission may appear under Additional permissions. Existing grants are preserved, and already-authorized installations skip the explanation. See the [permission UI investigation](testing/issue-8-permission-ui.md).
+
+## Optional Play Store update blocking
+
+Keep this source's default **Compatible Play Store Update Blocking** selected. If you want update blocking, also select the official Morphe **Disable Play Store updates** patch for the desired app; it remains optional and is not enabled by this source. In Manager's Expert selection, keep the source defaults and add that one universal patch. Official Clone app, installer spoofing and signature spoofing are not required.
+
+Use v0.3.5 on both Google and Gemini when combining update blocking. Earlier universal behavior could make Gemini read Google's maximum version code as Gemini's original code and display a false **Update your Google app** screen. Repatch original APKs using the same signing key. When updating an existing maximum-code installation, keep its update-blocking selection; a normal lower-code APK is rejected as a downgrade.
+
+The `.morphe` clones are separate packages from the official Store apps. The update-blocking patch does not change the original packages' updates. A genuine missing/outdated Google-clone warning still requires installing or repatching the supported clone as described above; its native Store link may have no listing for the clone. See the [signed-in Play Store investigation](testing/issue-8-play-store.md).
 
 ## Verified local build
 

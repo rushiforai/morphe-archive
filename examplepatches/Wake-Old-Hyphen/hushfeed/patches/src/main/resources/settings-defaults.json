@@ -76,6 +76,7 @@
     "Block author button": [
       "no_resume_on_foreground",
       "pause_first_video",
+      "pause_before_feed_seconds",
       "keep_paused_on_return",
       "leave_on_rest_reminder",
       "idle_leave_minutes",
@@ -134,6 +135,8 @@
       "comment_export",
       "comment_search_folded",
       "comment_links",
+      "fold_long_comments",
+      "fold_long_comments_lines",
       "hide_comment_media",
       "hide_voice_comments",
       "hide_spam_comments",
@@ -306,6 +309,7 @@
       "keep_for_you_on_pull_down",
       "home_tab_opens_settings",
       "profile_tab_opens_watch_history",
+      "profile_tab_switches_accounts",
       "inbox_tab_flips_read_receipts",
       "search_instead_of_home",
       "start_page",
@@ -1865,6 +1869,20 @@
       "key": "focus_waits_for_video",
       "type": "boolean",
       "default": false
+    },
+    "fold_long_comments": {
+      "field": "FOLD_LONG_COMMENTS",
+      "key": "fold_long_comments",
+      "type": "boolean",
+      "default": false
+    },
+    "fold_long_comments_lines": {
+      "field": "FOLD_LONG_COMMENTS_LINES",
+      "key": "fold_long_comments_lines",
+      "type": "integer",
+      "default": 4,
+      "minimum": 1,
+      "maximum": 20
     },
     "foldable_split_view": {
       "field": "FOLDABLE_SPLIT_VIEW",
@@ -3476,6 +3494,14 @@
       "type": "boolean",
       "default": false
     },
+    "pause_before_feed_seconds": {
+      "field": "PAUSE_BEFORE_FEED_SECONDS",
+      "key": "pause_before_feed_seconds",
+      "type": "integer",
+      "default": 0,
+      "minimum": 0,
+      "maximum": 60
+    },
     "pause_first_video": {
       "field": "PAUSE_FIRST_VIDEO",
       "key": "pause_first_video",
@@ -3571,6 +3597,12 @@
     "profile_tab_opens_watch_history": {
       "field": "PROFILE_TAB_OPENS_WATCH_HISTORY",
       "key": "profile_tab_opens_watch_history",
+      "type": "boolean",
+      "default": false
+    },
+    "profile_tab_switches_accounts": {
+      "field": "PROFILE_TAB_SWITCHES_ACCOUNTS",
+      "key": "profile_tab_switches_accounts",
       "type": "boolean",
       "default": false
     },

@@ -95,7 +95,7 @@ private fun Method.hasInstallSourceTarget() =
 
 @Suppress("unused")
 val spoofInstallSourcePatch = bytecodePatch(
-    name = "Spoof install source",
+    name = null,
     description = """
         Makes the app think it was installed from a specific store (default: Google Play).
 

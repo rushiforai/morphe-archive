@@ -1,4 +1,4 @@
-package app.morphe.patches.pixiv.downloader
+package app.morphe.patches.pixiv.downloader
 
 import app.morphe.patches.pixiv.shared.PixivConstants
 
@@ -8,7 +8,9 @@ import app.morphe.patcher.patch.bytecodePatch
 
 val pixivDownloaderPatch: BytecodePatch = bytecodePatch(
     name = "Pixiv Downloader",
-    description = "Adds a button to the illustration and manga detail view to download original full-quality artwork directly to your Photos library with clean metadata filenames.",
+    description = "Adds a save button to the illustration and manga detail screen that writes the " +
+        "original artwork to Pictures/Pixiv, named after the work id, title and author. Android 9 and " +
+        "older save into the app's private folder.",
     default = true
 ) {
     compatibleWith(PixivConstants.PIXIV)

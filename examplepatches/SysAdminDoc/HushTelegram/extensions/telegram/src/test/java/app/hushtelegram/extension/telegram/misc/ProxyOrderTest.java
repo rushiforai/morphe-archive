@@ -167,6 +167,26 @@ public class ProxyOrderTest {
         assertEquals("Telegram's proxy list is in your order, with 1 proxy pinned on top.", ProxyOrder.summary());
     }
 
+    @Test public void aPinnedProxyDeletedInTelegramStopsCountingAndComesBackPinnedWhenSavedAgain() {
+        list.entries = new ArrayList<>(Arrays.asList("A", "B"));
+        ProxyOrder.Stored.ARRANGED.save("*kA");
+        assertEquals("1 proxy pinned on top of Telegram's proxy list. The rest keep Telegram's order.", ProxyOrder.summary());
+
+        // Both deleted in Telegram's proxy screen, as on the phone.
+        list.entries = new ArrayList<>();
+        assertEquals("Drag the proxies in Telegram's proxy list into your own order, or pin some on top.", ProxyOrder.summary());
+        ProxyOrder.Stored.ARRANGED.save("kB\n*kA");
+        assertEquals("Drag the proxies in Telegram's proxy list into your own order, or pin some on top.", ProxyOrder.summary());
+
+        list.entries = new ArrayList<>(Arrays.asList("A"));
+        assertEquals("1 proxy pinned on top of Telegram's proxy list. The rest keep Telegram's order.", ProxyOrder.summary());
+        assertTrue(ProxyOrder.rows().get(0).pinned);
+
+        // A list that can't be read counts every line kept.
+        list.entries = null;
+        assertEquals("Telegram's proxy list is in your order, with 1 proxy pinned on top.", ProxyOrder.summary());
+    }
+
     // ---- Helpers --------------------------------------------------------------------------------
 
     private static List<Object> sorted(String... shown) {

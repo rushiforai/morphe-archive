@@ -13,4 +13,10 @@ internal fun BytecodePatchContext.patchReadingPosition(version: String) {
             "invoke-static/range {p0 .. p0}, Lapp/morphe/extension/chmate/ReadingPosition;->register(Ljava/lang/Object;)V") }
     owner.methods.single { it.name == "onPause" && it.parameterTypes.isEmpty() }.addInstructions(0,
         "invoke-static/range {p0 .. p0}, Lapp/morphe/extension/chmate/ReadingPosition;->save(Ljava/lang/Object;)V")
+    // The fragment can be resumed without recreating the response list.
+    owner.methods.filter { it.name == "onResume" && it.parameterTypes.isEmpty() }.forEach { resume ->
+        resume.implementation!!.instructions.withIndex().filter { it.value.opcode == Opcode.RETURN_VOID }
+            .asReversed().forEach { (index, _) -> resume.addInstructions(index,
+                "invoke-static/range {p0 .. p0}, Lapp/morphe/extension/chmate/ThreadWatchNavigation;->onResume(Ljava/lang/Object;)V") }
+    }
 }

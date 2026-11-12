@@ -109,7 +109,7 @@ internal val injectSignatureHookAppPatch = resourcePatch {
  */
 @Suppress("unused")
 val spoofSignatureVerificationPatch = bytecodePatch(
-    name = "Spoof app signature",
+    name = null,
     description = """
         Makes the app think its signing certificate is unchanged after Morphe re-signs it.
 

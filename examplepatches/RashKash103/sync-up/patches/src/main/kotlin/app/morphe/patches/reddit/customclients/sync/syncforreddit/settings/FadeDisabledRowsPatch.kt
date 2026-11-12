@@ -19,6 +19,10 @@ private val rowKinds = listOf(
     "SyncPreference;",
     "SyncListPreference;",
     "SyncCheckBoxPreference;",
+    // The row that leads to another screen. It draws its own title, summary and icon, so a
+    // disabled one looked exactly like an enabled one while refusing to be tapped, which reads
+    // as a row that is broken rather than as one that does not apply yet.
+    "RootPreference;",
 )
 
 /** Where a row of a given kind draws itself. */

@@ -33,7 +33,7 @@ class LibreraSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "10.0.22",
+            version = "10.0.31",
             patchNames = setOf("Disable ads"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

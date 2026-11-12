@@ -28,9 +28,9 @@ import app.morphe.extension.shared.theme.ThemeUtils;
 @SuppressWarnings({"deprecation", "RedundantSuppression"})
 class LicenseTextDialog extends Dialog {
 
-    private final List<LicenseContent> content;
+    private final List<LicensesDialog.LicenseContent> content;
 
-    LicenseTextDialog(Context context, List<LicenseContent> content) {
+    LicenseTextDialog(Context context, List<LicensesDialog.LicenseContent> content) {
         super(context, android.R.style.Theme_DeviceDefault_NoActionBar);
         this.content = content;
     }
@@ -105,9 +105,11 @@ class LicenseTextDialog extends Dialog {
         // The notices are pre-formatted English whose alignment only holds left to right, so they
         // stay unmirrored even when the surrounding app language reads the other way.
         html.append("<div class=\"license-body\" dir=\"ltr\">");
-        for (LicenseContent item : content) {
+        for (LicensesDialog.LicenseContent item : content) {
             html.append("<h2>").append(AboutDialogStyle.escapeHtml(item.title())).append("</h2>");
-            html.append("<pre>").append(AboutDialogStyle.linkifyHtml(item.content())).append("</pre>");
+            // Urls are turned into links, so the addresses named inside a license can be opened.
+            html.append("<pre>").append(AboutDialogStyle.escapeHtml(item.content())
+                    .replaceAll("(https?://[^\\s<>\"]+)", "<a href='$1'>$1</a>")).append("</pre>");
         }
         html.append("</div>").append(AboutDialogStyle.DOCUMENT_END);
 

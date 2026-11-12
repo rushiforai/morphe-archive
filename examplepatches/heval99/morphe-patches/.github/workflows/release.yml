@@ -46,6 +46,22 @@ jobs:
       - name: Install dependencies
         run: npm ci --allow-git=root
 
+      # Run the tests that need no APK before anything is released: the helper, registry and
+      # bundle-selection tests, the webviewads extension unit tests and the release-script tests. The
+      # per-app smoke tests skip here (their APKs are gitignored), so they stay a local check.
+      # A cold compile runs out of memory at Gradle's default heap, hence the explicit sizes.
+      # The tests build a bundle with the CURRENT version number. It is deleted afterwards: the release
+      # builds its own with the next version, and a leftover file would be published with it (it was
+      # once, as patches-2.3.0-dev.6.mpp inside the dev.7 release) and make the attest step skip.
+      - name: Test
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ./gradlew -Pkotlin.daemon.jvmargs=-Xmx4g -Dorg.gradle.jvmargs=-Xmx3g --no-daemon \
+            :patches:test :extensions:webviewads:testDebugUnitTest
+          python3 -m unittest discover -s .github/scripts/tests
+          rm -f patches/build/libs/*.mpp
+
       # Semantic release runs its own Gradle build command.
       # Only dev and main branch will generate a release as specified by .releaserc
       - name: Release

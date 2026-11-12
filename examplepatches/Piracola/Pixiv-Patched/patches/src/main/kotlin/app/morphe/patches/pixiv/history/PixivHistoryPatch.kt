@@ -17,7 +17,8 @@ import app.morphe.patcher.patch.bytecodePatch
  */
 val pixivHistoryPatch: BytecodePatch = bytecodePatch(
     name = "Pixiv Browsing History",
-    description = "Records the illustrations, manga and novels opened in the app into an on-device browsing history, and shows it in the app's own history screen (manga and novels apart) instead of Pixiv's server-side list.",
+    description = "Records the illustrations, manga and novels opened in the app into a history kept " +
+        "on the device, and takes over Pixiv's history screen with it (manga and novels on separate tabs).",
     default = true
 ) {
     compatibleWith(PixivConstants.PIXIV)

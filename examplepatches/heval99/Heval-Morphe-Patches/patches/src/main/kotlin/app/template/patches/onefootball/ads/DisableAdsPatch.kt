@@ -1,49 +1,42 @@
 package app.template.patches.onefootball.ads
 
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.util.returnEarly
 import app.template.patches.shared.Constants.COMPATIBILITY_ONEFOOTBALL
 import app.template.patches.shared.addInstructionsChecked
 import app.template.patches.shared.addInstructionsWithLabelsChecked
+import app.template.patches.shared.misc.ads.failFlutterGmaPluginLoads
 import app.template.patches.shared.misc.ads.neutraliseMobileAdsStatics
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.iface.Method
 
-// OneFootball's app code is obfuscated, but every ad runs through Google Mobile Ads
-// (com.google.android.gms.ads), whose class and method names are stable library API.
-// The patch hooks that surface: the SDK never initializes, direct loads become no-ops
-// and the app-open preloader reports failure. The native feeds' ad slots are server-driven
-// components; their two parsers keep their names, but are found by shape and the protobuf class
-// they decode (Fingerprints.kt), and return null so the feed drops them. The Flutter feeds ask
-// the native side for each ad over the method channel; those requests get the app's own
-// "Ad Blocked" error reply at once, so Dart is not left waiting on a load. The Home feed's Dart
-// "Ad Break" card still shows its no-fill skeleton (Dart-only, no native lever).
+// OneFootball's app code is obfuscated, and from 15.150.0 so is most of Google Mobile Ads: R8 renamed
+// the full-screen ad classes (InterstitialAd, RewardedAd, AppOpenAd, ...) and AdLoader, and
+// inlined or renamed MobileAds.initialize(Context). What stays are the request types (AdRequest,
+// AdManagerAdRequest), the banner views (AdView, AdManagerAdView and their kept loadAd), the
+// Flutter google_mobile_ads plugin's method-channel strings, and the SDK's own init log line.
+// The patch therefore anchors on those: every plugin load reports NO_FILL to Dart (shared
+// helper), the SDK never initializes, and the native load entry points are found by their
+// signature (a void taking a request, or a static void taking Context, String, request). The
+// native feeds' ad slots are server-driven components; their two parsers keep their names, but
+// are found by shape and the protobuf class they decode (Fingerprints.kt), and return null so
+// the feed drops them. The Flutter feeds ask the native side for each ad over the method channel;
+// those requests get the app's own "Ad Blocked" error reply at once, so Dart is not left waiting
+// on a load. The Home feed's Dart "Ad Break" card still shows its no-fill skeleton (Dart-only, no
+// native lever).
 private const val GMA = "Lcom/google/android/gms/ads/"
+private const val AD_VIEW = GMA + "AdView;"
+private const val AD_MANAGER_AD_VIEW = GMA + "admanager/AdManagerAdView;"
+private const val CONTEXT = "Landroid/content/Context;"
+private const val STRING = "Ljava/lang/String;"
+private val REQUEST_TYPES = setOf(GMA + "AdRequest;", GMA + "admanager/AdManagerAdRequest;")
 
-private val LOAD_NAMES = setOf("load", "loadAd", "loadAds")
+private class LoadSite(val type: String, val name: String, val parameters: List<String>, val isStatic: Boolean)
 
-// Every concrete void load/loadAd/loadAds of these classes is neutered. The value lists the
-// loads each class is known to declare (15.147.0): the class and those methods must be there, so a
-// drifted SDK fails the patch instead of leaving a format loading. AdLoader has the batch
-// loadAds(AdRequest, int) next to loadAd. AdView declares no load of its own (it inherits
-// BaseAdView's), so no method is required there; an override would still be neutered.
-private val AD_CLASSES = mapOf(
-    "BaseAdView" to listOf("loadAd"),
-    "AdView" to emptyList(),
-    "AdLoader" to listOf("loadAd", "loadAds"),
-    "interstitial/InterstitialAd" to listOf("load"),
-    "rewarded/RewardedAd" to listOf("load"),
-    "rewardedinterstitial/RewardedInterstitialAd" to listOf("load"),
-    "appopen/AppOpenAd" to listOf("load"),
-    "admanager/AdManagerAdView" to listOf("loadAd"),
-    "admanager/AdManagerInterstitialAd" to listOf("load"),
-)
-
-private fun BytecodePatchContext.methods(relative: String): Set<MutableMethod> =
-    mutableClassDefBy(GMA + relative + ";").methods
+private fun Method.parameterList() = parameterTypes.map(CharSequence::toString)
 
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
@@ -55,29 +48,60 @@ val disableAdsPatch = bytecodePatch(
     execute {
         // Never initialize the ads SDK, and neuter the other MobileAds statics, which throw
         // without init (AGENTS.md rule 9): the internal feature-flag screen calls openDebugMenu
-        // with no catch. Required: a missing MobileAds or either method fails the patch.
-        neutraliseMobileAdsStatics("initialize", "openDebugMenu")
-
-        // Direct loads become no-ops.
-        for ((relative, required) in AD_CLASSES) {
-            val loads = methods(relative)
-                .filter { it.implementation != null }
-                .filter { it.name in LOAD_NAMES && it.returnType == "V" }
-            for (name in required) {
-                if (loads.none { it.name == name }) {
-                    throw PatchException("Disable ads: no concrete void $GMA$relative;->$name")
-                }
-            }
-            loads.forEach { it.returnEarly() }
+        // with no catch. R8 renamed initialize and openDebugMenu from 15.150.0 (a, b), so no names
+        // are required; the helper returns early from every concrete static void of MobileAds, and
+        // the check below makes the patch fail if no such method takes (Context, ...) any more.
+        if (!neutraliseMobileAdsStatics()) throw PatchException("Disable ads: ${GMA}MobileAds; not found")
+        val initLike = mutableClassDefBy(GMA + "MobileAds;").methods.filter {
+            AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == "V" && it.implementation != null &&
+                it.parameterList().firstOrNull() == CONTEXT
         }
+        if (initLike.isEmpty()) throw PatchException("Disable ads: no static void ${GMA}MobileAds;->(Context, ...)")
 
-        // Nothing is preloaded for app-open ads.
-        val preloads = methods("appopen/AppOpenAdPreloader")
-            .filter { it.implementation != null }
-            .filter { it.name == "start" && it.returnType == "Z" }
-        if (preloads.isEmpty()) throw PatchException("Disable ads: no concrete ${GMA}appopen/AppOpenAdPreloader;->start(...)Z")
-        preloads.forEach { it.returnEarly(false) }
+        // The Flutter google_mobile_ads plugin (every concrete ad load; eight in 15.150.0) reports
+        // NO_FILL to Dart.
+        failFlutterGmaPluginLoads()
 
+        // Direct native loads become no-ops. The banner loads (BaseAdView.loadAd, which AdView
+        // inherits, and AdManagerAdView.loadAd) are required; the rest are found by shape: any
+        // concrete instance void inside com.google.android.gms.ads taking exactly one request
+        // (AdLoader.loadAd, the AdManagerAdView helper) or any static void taking
+        // (Context, String, request, ...) (the full-screen loads, in classes R8 moved).
+        val sites = mutableListOf<LoadSite>()
+        classDefForEach { classDef ->
+            for (method in classDef.methods) {
+                if (method.implementation == null || method.returnType != "V" ||
+                    method.name == "<init>" || method.name == "<clinit>"
+                ) continue
+                val parameters = method.parameterList()
+                val isStatic = AccessFlags.STATIC.isSet(method.accessFlags)
+                val inGma = classDef.type.startsWith(GMA)
+                val singleRequest = !isStatic && inGma && parameters.size == 1 && parameters[0] in REQUEST_TYPES
+                val staticLoad = isStatic && parameters.size >= 3 && parameters[0] == CONTEXT &&
+                    parameters[1] == STRING && parameters[2] in REQUEST_TYPES
+                if (singleRequest || staticLoad) sites += LoadSite(classDef.type, method.name, parameters, isStatic)
+            }
+        }
+        val bannerBase = mutableClassDefBy(AD_VIEW).superclass
+        for ((owner, label) in listOf(bannerBase to "BaseAdView", AD_MANAGER_AD_VIEW to "AdManagerAdView")) {
+            if (sites.none { it.type == owner && it.name == "loadAd" }) {
+                throw PatchException("Disable ads: no concrete void $label ($owner)->loadAd(request)")
+            }
+        }
+        // The other loads must not silently disappear in a later R8 build: the app's own native ad
+        // path goes through the AdLoader request load (an instance void outside the banner
+        // classes), and the full-screen loads are the static (Context, String, request, ...) ones.
+        if (sites.none { !it.isStatic && it.type != bannerBase && it.type != AD_MANAGER_AD_VIEW }) {
+            throw PatchException("Disable ads: no AdLoader-style instance load found")
+        }
+        if (sites.none { it.isStatic }) {
+            throw PatchException("Disable ads: no static full-screen load found")
+        }
+        for (site in sites) {
+            mutableClassDefBy(site.type).methods.single {
+                it.name == site.name && it.parameterList() == site.parameters
+            }.returnEarly()
+        }
         // The native experience feeds' ad components are dropped. Both ad component parsers
         // return null at the top; ComponentParserRegistry passes the null on and the feed leaves
         // the component out, the app's own path for a component it cannot parse. On the emulator

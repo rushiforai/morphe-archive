@@ -17,10 +17,17 @@ Second \"item\" text"</string>
 -->
 <resources>
     <!-- layout.theme.splashAnimationPatch -->
-    <string name="morphe_splash_screen_animation_style_title">Startup animation</string>
-    <string name="morphe_splash_screen_animation_style_entry_1">Disabled</string>
-    <string name="morphe_splash_screen_animation_style_entry_2">Color</string>
-    <string name="morphe_splash_screen_animation_style_entry_3">Monochrome</string>
+    <string name="morphe_splash_screen_style_title">Startup animation</string>
+    <string name="morphe_splash_screen_style_entry_1">Disabled</string>
+    <string name="morphe_splash_screen_style_entry_2">Color</string>
+    <string name="morphe_splash_screen_style_entry_3">Morphe Color</string>
+    <string name="morphe_splash_screen_style_entry_4">Monochrome</string>
+    <string name="morphe_splash_screen_style_entry_5">Morphe Monochrome</string>
+
+    <!-- misc.settings.settingsPatch -->
+    <string name="morphe_settings_new_indicator_days_title">Highlight new settings</string>
+    <string name="morphe_settings_new_indicator_days_summary">Number of days a dot is shown next to settings and options added by an update</string>
+    <string name="morphe_settings_new_indicator_days_off">Off</string>
 
     <!-- misc.initialization.initializationPatch -->
     <string name="morphe_restart_first_run">Restart to finish setting up</string>
@@ -119,7 +126,7 @@ Make %2$s the default client?"</string>
     <string name="morphe_spoof_video_streams_client_type_title">Default client</string>
     <!-- Ensure this translation matches the translation of morphe_spoof_video_streams_no_clients_suggest_vr_toast -->
     <string name="morphe_spoof_video_streams_sign_in_android_vr_about_title">Android VR sign in</string>
-    <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary">Not signed in to Android VR. Tap here to sign in</string>
+    <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary">Android VR requires a separate sign-in. Tap here to continue</string>
     <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary_signed_in">Currently signed into Android VR</string>
     <!-- "Default client" must be the same translated text as morphe_spoof_video_streams_client_type_title -->
     <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary_disabled">To use this feature, change \'Default client\' to Android VR</string>
@@ -161,6 +168,13 @@ To sign in, press continue below"</string>
     <string name="morphe_hide_notification_media_prev_next_summary">Hides Previous and Next buttons in media notification, lock screen, and headphone controls</string>
     <string name="morphe_disable_notification_media_seekbar_title">Disable seekbar</string>
     <string name="morphe_disable_notification_media_seekbar_summary">Prevents dragging the seekbar on the lock screen and notification panel</string>
+    <string name="morphe_seek_notification_media_prev_next_title">Seek with Previous &amp; Next buttons</string>
+    <string name="morphe_seek_notification_media_prev_next_summary">Changes controls for media notification, lock screen, and headphone to seek instead of changing videos</string>
+    <string name="morphe_seek_notification_media_rewind_length_title">Rewind length</string>
+    <string name="morphe_seek_notification_media_rewind_length_summary">Seconds to rewind with the Previous button</string>
+    <string name="morphe_seek_notification_media_fast_forward_length_title">Fast forward length</string>
+    <string name="morphe_seek_notification_media_fast_forward_length_summary">Seconds to fast-forward with the Next button</string>
+    <string name="morphe_seek_notification_media_length_invalid">Seek length must be between 1 and %s seconds. Using default</string>
 
     <!-- misc.quic.disableQUICProtocolPatch -->
     <string name="morphe_disable_quic_protocol_title">Disable QUIC protocol</string>
@@ -214,13 +228,15 @@ To sign in, press continue below"</string>
     <string name="morphe_replace_links_with_shortener_summary">Forces videos to use the shortened youtu.be URL format</string>
 
     <!-- misc.debugging.enableDebuggingPatch -->
-    <string name="morphe_debug_protobuffer_title">Debug log protocol buffer</string>
-    <string name="morphe_debug_protobuffer_summary">Adds additional logging information for developers to identify app components</string>
-    <string name="morphe_debug_protobuffer_user_dialog_message">"Enabling this setting will log additional layout data, including on-screen text for some UI components.
+    <string name="morphe_debug_litho_title">Litho logging</string>
+    <string name="morphe_debug_litho_entry_disabled">Disabled</string>
+    <string name="morphe_debug_litho_entry_path">Path</string>
+    <string name="morphe_debug_litho_entry_path_and_buffer">Path and buffer</string>
+    <string name="morphe_debug_litho_user_dialog_message">"Litho logging logs the layout components of the app, including on-screen text for some UI components.
 
 This can help identify components when creating custom filters.
 
-However, enabling this will also log some user data such as your IP address"</string>
+However, this will also log some user data such as your IP address"</string>
 
     <!-- Custom filter -->
     <string name="morphe_custom_filter_screen_title">Custom filter</string>

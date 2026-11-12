@@ -58,6 +58,8 @@ Second \"item\" text"</string>
   <string name="morphe_sb_guidelines_popup_already_read">Artıq oxudum</string>
   <string name="morphe_sb_guidelines_popup_open">Mənə göstər</string>
   <string name="morphe_sb_general_title">Ümumi</string>
+  <string name="morphe_sb_offline_segments_title">Yüklənmiş videoların bölümlərini saxla</string>
+  <string name="morphe_sb_offline_segments_summary">Oflayn olarkən yüklənmiş videoların bölümlərini ötürməyə imkan verir</string>
   <string name="morphe_sb_toast_on_connection_error_title">Bağlantı xətası xəbərdarlıqlarını göstər</string>
   <string name="morphe_sb_toast_on_connection_error_summary">SponsorBlock serveri əlçatmaz olduqda bildiriş göstərir</string>
   <string name="morphe_sb_track_skip_count_title">Ötürmə sayının izlənilməsini aktivləşdir</string>
@@ -149,7 +151,7 @@ Bu şəxsi istifadəçi kimliyinizi saxlayır. Bunu düşünülmüş şəkildə 
   <string name="morphe_sb_skip_automatically_once">Bir dəfə avtomatik ötür</string>
   <string name="morphe_sb_skip_showbutton">Ötürmə düyməsini göstər</string>
   <string name="morphe_sb_skip_seekbaronly">Çevirmə cizgisində göstər</string>
-  <string name="morphe_sb_skip_ignore">Qapadın</string>
+  <string name="morphe_sb_skip_ignore">Qapat</string>
   <string name="morphe_sb_submit_failed_invalid">Bölümü göndərmək olmadı: %s</string>
   <string name="morphe_sb_submit_failed_timeout">SponsorBlock müvəqqəti olaraq fəaliyyət göstərmir</string>
   <string name="morphe_sb_submit_failed_unknown_error">Bölümü göndərmək olmadı (status: %1$s %2$s)</string>

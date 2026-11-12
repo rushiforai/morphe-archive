@@ -29,7 +29,6 @@ fun replaceStringPatch(
 ) = bytecodePatch(
     description = "Replaces occurrences of '$from' with '$to' in String constants."
 ) {
-    category("Shared")
     execute {
         string(from, comparison).matchAllMethodIndicesForEach(requireMatches = requireMatches) { index ->
             val replacement = when (comparison) {

@@ -18,10 +18,16 @@ Second \"item\" text"</string>
 -->
 <resources>
   <!-- layout.theme.splashAnimationPatch -->
-  <string name="morphe_splash_screen_animation_style_title">Animacja startowa</string>
-  <string name="morphe_splash_screen_animation_style_entry_1">Wyłączona</string>
-  <string name="morphe_splash_screen_animation_style_entry_2">Kolorowa</string>
-  <string name="morphe_splash_screen_animation_style_entry_3">Monochromatyczna</string>
+  <string name="morphe_splash_screen_style_title">Animacja startowa</string>
+  <string name="morphe_splash_screen_style_entry_1">Wyłączona</string>
+  <string name="morphe_splash_screen_style_entry_2">Kolorowa</string>
+  <string name="morphe_splash_screen_style_entry_3">Kolorowa Morphe</string>
+  <string name="morphe_splash_screen_style_entry_4">Monochromatyczna</string>
+  <string name="morphe_splash_screen_style_entry_5">Monochromatyczna Morphe</string>
+  <!-- misc.settings.settingsPatch -->
+  <string name="morphe_settings_new_indicator_days_title">Wyróżniaj nowe ustawienia</string>
+  <string name="morphe_settings_new_indicator_days_summary">Liczba dni, przez które obok ustawień i opcji dodanych w aktualizacji wyświetlana jest kropka</string>
+  <string name="morphe_settings_new_indicator_days_off">Wyłączone</string>
   <!-- misc.initialization.initializationPatch -->
   <string name="morphe_restart_first_run">Uruchom ponownie, aby dokończyć konfigurację</string>
   <!-- layout.branding.baseCustomBrandingPatch -->
@@ -109,7 +115,7 @@ Ustawić %2$s jako domyślnego klienta?"</string>
   <string name="morphe_spoof_video_streams_client_type_title">Domyślny klient</string>
   <!-- Ensure this translation matches the translation of morphe_spoof_video_streams_no_clients_suggest_vr_toast -->
   <string name="morphe_spoof_video_streams_sign_in_android_vr_about_title">Logowanie Android VR</string>
-  <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary">Nie zalogowano do Android VR. Dotknij tutaj, aby się zalogować</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary">Android VR wymaga osobnego logowania. Dotknij tutaj, aby kontynuować</string>
   <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary_signed_in">Obecnie zalogowano do Android VR</string>
   <!-- "Default client" must be the same translated text as morphe_spoof_video_streams_client_type_title -->
   <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary_disabled">By używać tej funkcji, zmień \"Domyślny klient\" na Android VR</string>
@@ -150,6 +156,13 @@ Aby się zalogować, naciśnij \"Kontynuuj\" poniżej"</string>
   <string name="morphe_hide_notification_media_prev_next_summary">Ukrywa przyciski Poprzedni i Następny w powiadomieniu o multimediach, na ekranie blokady i w sterowaniu słuchawkami</string>
   <string name="morphe_disable_notification_media_seekbar_title">Wyłącz pasek postępu</string>
   <string name="morphe_disable_notification_media_seekbar_summary">Zapobiega przeciąganiu paska postępu na ekranie blokady i w panelu powiadomień</string>
+  <string name="morphe_seek_notification_media_prev_next_title">Przewijaj przyciskami Poprzedni i Następny</string>
+  <string name="morphe_seek_notification_media_prev_next_summary">Zmienia działanie przycisków w powiadomieniu multimedialnym, na ekranie blokady oraz na słuchawkach na przewijanie zamiast przełączania filmów</string>
+  <string name="morphe_seek_notification_media_rewind_length_title">Czas przewijania do tyłu</string>
+  <string name="morphe_seek_notification_media_rewind_length_summary">Liczba sekund przewijania do tyłu przyciskiem Poprzedni</string>
+  <string name="morphe_seek_notification_media_fast_forward_length_title">Czas przewijania do przodu</string>
+  <string name="morphe_seek_notification_media_fast_forward_length_summary">Liczba sekund przewijania do przodu przyciskiem Następny</string>
+  <string name="morphe_seek_notification_media_length_invalid">Czas przewijania musi wynosić od 1 do %s sekund. Użyto wartości domyślnej</string>
   <!-- misc.quic.disableQUICProtocolPatch -->
   <string name="morphe_disable_quic_protocol_title">Wyłącz protokół QUIC</string>
   <!-- misc.audio.drc.disableDRCAudioPatch  -->
@@ -194,9 +207,11 @@ Aby się zalogować, naciśnij \"Kontynuuj\" poniżej"</string>
   <string name="morphe_replace_links_with_shortener_title">Zmień linki udostępniania na youtu.be</string>
   <string name="morphe_replace_links_with_shortener_summary">Wymusza używanie skróconych linków youtu.be dla filmów</string>
   <!-- misc.debugging.enableDebuggingPatch -->
-  <string name="morphe_debug_protobuffer_title">Logi debugowania buforów protokołu</string>
-  <string name="morphe_debug_protobuffer_summary">Dodaje szczegółowe informacje do logów, aby ułatwić programistom identyfikację elementów aplikacji</string>
-  <string name="morphe_debug_protobuffer_user_dialog_message">"Włączenie tej opcji spowoduje rejestrowanie dodatkowych danych układu, w tym tekst wyświetlany na ekranie dla niektórych elementów interfejsu.
+  <string name="morphe_debug_litho_title">Logowanie Litho</string>
+  <string name="morphe_debug_litho_entry_disabled">Wyłączone</string>
+  <string name="morphe_debug_litho_entry_path">Ścieżka</string>
+  <string name="morphe_debug_litho_entry_path_and_buffer">Ścieżka i bufor</string>
+  <string name="morphe_debug_litho_user_dialog_message">"Rejestrowanie Litho zapisuje w dzienniku komponenty układu aplikacji, w tym tekst wyświetlany na ekranie dla niektórych elementów interfejsu.
 
 Może to pomóc w identyfikacji elementów podczas tworzenia własnych filtrów.
 

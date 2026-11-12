@@ -32,12 +32,15 @@ package. Never infer it from the version name, a neighboring build or another ap
    portable tests.
 2. **Add, never widen.** Preserve every verified adaptation. Add a base or app
    with its own guarded layouts; do not replace or broaden an older one.
-   For every new or changed Steam Link patch, implement and validate exact base
-   `2.0.24/5002395` alongside the existing supported bases unless the user
-   explicitly excludes it. Compatibility metadata alone is not implementation.
-   If exact-base evidence is missing, report the blocker instead of silently
-   omitting this base or borrowing another build's offsets. Retired experiments
-   remain retired under rule 13.
+   Owner decision 2026-11-12: new Steam Link patch work targets exact bases
+   `2.0.20/5001712` and `2.0.20/5001812` only. Every other Steam Link base is
+   frozen: existing patches keep their declared compatibility, guards, tests
+   and payloads, but get no new patches, options or adaptations unless the
+   user names that base. Never drop a frozen base to simplify a change.
+   Far-plane experiment: `2.0.20/5001712` only.
+   Compatibility metadata alone is not implementation. If exact-base evidence is
+   missing, report the blocker instead of borrowing another build's offsets.
+   Retired experiments remain retired under rule 13.
 3. **Compatibility shape.** Use the primary `AppTarget` constructor so the
    `description` is retained. Builds that share a version name but differ by code
    stay in separate `Compatibility` objects and are passed together with
@@ -148,6 +151,11 @@ package. Never infer it from the version name, a neighboring build or another ap
     mechanism and new evidence. Read
     `diagnostics/steamlink-spacewarp-retirement/README.md` before frame-synthesis
     work.
+
+    `Native quad composition` was deleted on 2026-11-12; do not re-add it or its
+    helper/layouts. `Native quad far plane` is separate and targets only
+    `2.0.20/5001712`. Read
+    `diagnostics/steamlink-stock-quad-composition/NATIVE-EXPERIMENT.md`.
 
 14. **4XVR gates.** The adaptation targets exact base 2.0.22/20022 only. The
     pristine stock APK is retained at

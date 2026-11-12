@@ -10,6 +10,8 @@ import app.morphe.PatchContexts
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patches.facebook.feed.FixtureDex
 import app.morphe.patches.facebook.feed.holdsString
+import app.morphe.patches.facebook.feed.postprompts.QUANTITY_STRING
+import app.morphe.patches.facebook.layout.theme.branchTargets
 import app.morphe.patches.facebook.misc.settings.CREATE_WORDMARK_VIEW
 import app.morphe.patches.facebook.misc.settings.LOGO_TOUCH_STAND_IN
 import app.morphe.patches.facebook.misc.settings.WORDMARK_NAVIGATION_BAR
@@ -17,6 +19,8 @@ import app.morphe.patches.facebook.misc.settings.logoTouchListenerIndex
 import app.morphe.patches.facebook.misc.settings.sendToStandIn
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.findMutableMethodOf
+import app.morphe.util.readsAfter
+import app.morphe.util.writersReaching
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -29,18 +33,22 @@ import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstructio
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
 
+private const val INTEGER_VALUE_OF_CALL = "Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;"
+
 /**
  * The top bar's three hides (#181) on every Facebook build the bundle declares (every ABI with a
  * fixture, whose Redex names differ): the bar's builder holding setupMessengerGlyphView, the Messenger button
  * class it makes and adds, that class's two count setters, and the logo site. The Create (#257)
  * and search (#321) buttons. The newer bar some accounts get instead: NavigationBar's spec-to-button
- * method, its glyph, that glyph's count setters and its search glyph. Then the hooks go in on the
+ * method, its glyph, that glyph's count setters and its search glyph. The Litho bar's render and the
+ * count it reads. Then the hooks go in on the
  * real classes, which also assembles their smali. Reads the fixture bundles from
  * HUSHFACEBOOK_FIXTURE_DIR and skips without it.
  */
@@ -239,6 +247,30 @@ class TopBarButtonsFixtureTest {
                         (after[0] as RegisterRangeInstruction).startRegister)
                 }
                 assertNotEquals("$name: the button class and the bar differ", site.buttonType, WORDMARK_NAVIGATION_BAR)
+                // The Litho bar's render asks once, after it reads the count.
+                assertTrue("$name: no Litho bar render", newer.litho.isNotEmpty())
+                newer.litho.forEach { c ->
+                    val asks = context.mutableClassDefBy(c.type).methods.sumOf { m -> m.implementation?.instructions?.count { it.call() == BAR_SPEC_COUNT_HOOK } ?: 0 }
+                    assertEquals("$name: ${c.type} asks once", 1, asks)
+                    val keys = context.mutableClassDefBy(c.type).methods.sumOf { m -> m.implementation?.instructions?.count { it.call() == BAR_SPEC_KEY_HOOK } ?: 0 }
+                    assertEquals("$name: ${c.type} hands over the badge's key once", 1, keys)
+                }
+                // The badge's store reads by its key ask too, each once: its first count, its count as
+                // the key changes, and the store's updates.
+                assertTrue("$name: no badge reads the store by its key", newer.badgeReaders.values.flatten().isNotEmpty())
+                newer.badgeReaders.forEach { (keyField, readers) ->
+                    var reads = 0
+                    var posts = 0
+                    readers.forEach { c ->
+                        val sites = c.methods.flatMap { badgeCountSites(it, keyField) }
+                        reads += sites.count { !it.posted }
+                        posts += sites.count { it.posted }
+                        val asks = context.mutableClassDefBy(c.type).methods.sumOf { m -> m.implementation?.instructions?.count { it.call() == BAR_BADGE_COUNT_HOOK } ?: 0 }
+                        assertEquals("$name: ${c.type} asks once for each store read by the badge's key", sites.size, asks)
+                    }
+                    assertTrue("$name: nothing reads ${keyField.definingClass}'s count off the store", reads > 0)
+                    assertTrue("$name: nothing takes the store's updates for ${keyField.definingClass}", posts > 0)
+                }
                 checked += "$name"
             }
         }
@@ -246,17 +278,58 @@ class TopBarButtonsFixtureTest {
         assertTrue("a declared build has no fixture, got $checked", versions.all { v -> checked.any { "-$v-" in it } })
     }
 
-    /** The newer bar, its button glyph class and the interfaces the glyph implements, out of [bundle]. */
-    private class NewerBar(val bar: ClassDef, val glyph: ClassDef, val faces: List<ClassDef>) {
-        val classes get() = listOf(bar, glyph) + faces
+    /**
+     * The newer bar, its button glyph class, the interfaces the glyph implements and the classes that
+     * word a glyph's label from the count they hand it, the Litho bar's render classes, and its
+     * numeric badges with the classes that take a badge's count off the store by its key, out of [bundle].
+     */
+    private class NewerBar(
+        val bar: ClassDef,
+        val glyph: ClassDef,
+        val faces: List<ClassDef>,
+        val labellers: List<ClassDef>,
+        val litho: List<ClassDef>,
+        val badges: List<ClassDef>,
+        val badgeReaders: Map<FieldReference, List<ClassDef>>,
+    ) {
+        val classes get() = (listOf(bar, glyph) + faces + labellers + litho + badges + badgeReaders.values.flatten()).distinctBy { it.type }
     }
 
     private fun newerBar(bundle: File): NewerBar {
         val bar = FixtureDex.classes(bundle, setOf(NAVIGATION_BAR))[NAVIGATION_BAR]
             ?: throw AssertionError("${bundle.name}: no $NAVIGATION_BAR")
         val glyphType = specButtonSite(bar).glyphType
+        val nameField = specButtonSite(bar).nameField
+        val litho = FixtureDex.classesHolding(bundle, LITHO_BAR_ICON_BUTTON).filter { c ->
+            c.methods.any { holdsString(it, LITHO_BAR_ICON_BUTTON) && specCountSites(it, nameField).isNotEmpty() }
+        }
         val glyph = FixtureDex.classes(bundle, setOf(glyphType)).getValue(glyphType)
-        return NewerBar(bar, glyph, FixtureDex.classes(bundle, glyph.interfaces.toSet()).values.toList())
+        val faces = FixtureDex.classes(bundle, glyph.interfaces.toSet()).values.toList()
+        val counts = glyphCountMethods(glyph, faces)
+        val labellers = mutableListOf<ClassDef>()
+        FixtureDex.forEach(bundle) { dex ->
+            if (dex.typeSection.none { it.toString() == glyphType }) return@forEach
+            for (classDef in dex.classes) {
+                if (classDef.methods.any { countLabelSites(it, glyphType, counts).isNotEmpty() }) labellers += ImmutableClassDef.of(classDef)
+            }
+        }
+        val badgeKeys = litho.flatMap { c ->
+            c.methods.filter { holdsString(it, LITHO_BAR_ICON_BUTTON) }.flatMap { specCountSites(it, nameField) }
+        }.map { it.badge to it.keyType }.distinct()
+        val badges = FixtureDex.classes(bundle, badgeKeys.map { it.first }.toSet()).values.toList()
+        val badgeReaders = badgeKeys.associate { (type, keyType) ->
+            val badge = badges.singleOrNull { it.type == type } ?: throw AssertionError("${bundle.name}: no $type")
+            val keyField = badgeKeyField(badge, keyType) ?: throw AssertionError("${bundle.name}: $type keeps no one $keyType")
+            val readers = mutableListOf<ClassDef>()
+            FixtureDex.forEach(bundle) { dex ->
+                if (dex.typeSection.none { it.toString() == type }) return@forEach
+                for (classDef in dex.classes) {
+                    if (classDef.methods.any { badgeCountSites(it, keyField).isNotEmpty() }) readers += ImmutableClassDef.of(classDef)
+                }
+            }
+            keyField to readers
+        }
+        return NewerBar(bar, glyph, faces, labellers, litho, badges, badgeReaders)
     }
 
     @Test
@@ -291,14 +364,63 @@ class TopBarButtonsFixtureTest {
                 val firstCount = code.indexOfFirst { it.call() == "${site.glyphType}->${counts[0].name}(I)V" }
                 assertTrue("$name: the first count follows the glyph's constructor", firstCount > site.made)
 
+                // The bar's count observer words the glyph's TalkBack label from the count it hands the
+                // glyph (#181: "15 unread messages" with the badge gone). Positive control: each such
+                // method reads the plural off the spec, its Integer field.
+                val labelMethods = newer.labellers.flatMap { c -> c.methods.filter { countLabelSites(it, site.glyphType, counts).isNotEmpty() } }
+                assertTrue("$name: nothing words a glyph's label from the count it hands the glyph", labelMethods.isNotEmpty())
+                for (method in labelMethods) {
+                    assertTrue("$name: ${method.definingClass}->${method.name} reads no plural off $spec", method.code().any {
+                        val field = (it as? ReferenceInstruction)?.reference as? FieldReference
+                        it.opcode == Opcode.IGET_OBJECT && field?.definingClass == spec && field.type == "Ljava/lang/Integer;"
+                    })
+                }
+                // The observer (586 arm64 LX/02K4;->A00) is handed the count as its last parameter, an
+                // int, and passes it on untouched, so the matcher has to land on that register there.
+                assertTrue("$name: no label site gets its count as the method's last parameter", labelMethods.any { method ->
+                    method.parameterTypes.lastOrNull()?.toString() == "I" &&
+                        countLabelSites(method, site.glyphType, counts).any { it.count == method.implementation!!.registerCount - 1 }
+                })
+
                 val context = PatchContexts.of(newer.classes)
                 val before = context.mutableClassDefBy(NAVIGATION_BAR).findMutableMethodOf(site.method).code().size
                 val countBefore = counts.map { c -> countMethod(context, site.glyphType, c).code().size }
+                val labelBefore = labelMethods.map { m -> countLabelSites(m, site.glyphType, counts).size to m.code().size }
                 context.run {
                     val bar = mutableClassDefBy(NAVIGATION_BAR)
                     bar.findMutableMethodOf(site.method).markSpecButtonAfter(site)
                     val glyph = mutableClassDefBy(site.glyphType)
                     counts.forEach { c -> glyph.methods.single { it.name == c.name && it.parameterTypes.map(CharSequence::toString) == c.parameters }.gateGlyphCountFirst(c.intRegister) }
+                    labelMethods.forEach { m ->
+                        val method = mutableClassDefBy(m.definingClass).findMutableMethodOf(m)
+                        countLabelSites(method, site.glyphType, counts).sortedByDescending { it.call }.forEach { method.gateCountLabelBefore(it) }
+                    }
+                }
+
+                labelMethods.forEachIndexed { i, m ->
+                    val body = context.mutableClassDefBy(m.definingClass).findMutableMethodOf(m).code()
+                    val (sites, size) = labelBefore[i]
+                    assertEquals("$name: ${m.name} grew by two per label", size + 2 * sites, body.size)
+                    val hooks = body.indices.filter { body[it].call() == BAR_BUTTON_COUNT_HOOK }
+                    assertEquals("$name: ${m.name} asks once per label", sites, hooks.size)
+                    for (at in hooks) {
+                        val ask = body[at] as FiveRegisterInstruction
+                        assertEquals("$name: ${m.name} keeps the answer in the count", Opcode.MOVE_RESULT, body[at + 1].opcode)
+                        assertEquals("$name: ${m.name} keeps it in the register it handed over", ask.registerD, (body[at + 1] as OneRegisterInstruction).registerA)
+                        val c = counts.firstOrNull { "${site.glyphType}->${it.name}(${it.parameters.joinToString("")})V" == body[at + 2].call() }
+                        assertTrue("$name: ${m.name} asks right before a count setter, got ${body[at + 2].call()}", c != null)
+                        val setter = body[at + 2] as FiveRegisterInstruction
+                        val handed = listOf(setter.registerC, setter.registerD, setter.registerE, setter.registerF, setter.registerG).take(setter.registerCount)
+                        assertEquals("$name: ${m.name} hands over the glyph the setter gets", handed[0], ask.registerC)
+                        assertEquals("$name: ${m.name} hands over the count the setter gets", handed[c!!.intRegister], ask.registerD)
+                        // The label after it is worded from the answer and goes on the same glyph.
+                        val worded = (at + 3 until body.size).firstOrNull { body[it].call() == QUANTITY_STRING }
+                        assertTrue("$name: ${m.name} words no label after the hook", worded != null)
+                        assertEquals("$name: ${m.name} words the label from the answer", ask.registerD, (body[worded!!] as FiveRegisterInstruction).registerE)
+                        val described = (worded + 1 until body.size).firstOrNull { body[it].call()?.contains("->setContentDescription(Ljava/lang/CharSequence;)V") == true }
+                        assertTrue("$name: ${m.name} sets no label after wording it", described != null)
+                        assertEquals("$name: ${m.name} labels the glyph it asked about", ask.registerC, (body[described!!] as FiveRegisterInstruction).registerC)
+                    }
                 }
 
                 val after = context.mutableClassDefBy(NAVIGATION_BAR).findMutableMethodOf(site.method).code()
@@ -329,6 +451,195 @@ class TopBarButtonsFixtureTest {
         assertTrue("a declared build has no fixture, got $checked", versions.all { v -> checked.any { "-$v-" in it } })
     }
 
+    /** The registers [instruction] hands its call, in order. */
+    private fun handed(instruction: Instruction): List<Int> = when (instruction) {
+        is FiveRegisterInstruction -> listOf(instruction.registerC, instruction.registerD, instruction.registerE, instruction.registerF, instruction.registerG)
+            .take(instruction.registerCount)
+        is RegisterRangeInstruction -> (instruction.startRegister until instruction.startRegister + instruction.registerCount).toList()
+        else -> emptyList()
+    }
+
+    @Test
+    fun `each declared build resolves the Litho bar's count read and takes the hooks`() {
+        val versions = AppCompatibilities.facebook().single().targets.mapNotNull { it.version }.toSet()
+        val checked = mutableListOf<String>()
+        for (version in versions) {
+            for (bundle in Fixtures.files { it.extension == "apkm" && it.name.contains("-$version-") }) {
+                val name = bundle.name
+                val bar = FixtureDex.classes(bundle, setOf(NAVIGATION_BAR))[NAVIGATION_BAR]
+                    ?: throw AssertionError("$name: no $NAVIGATION_BAR")
+                val nameField = specButtonSite(bar).nameField
+                val holders = FixtureDex.classesHolding(bundle, LITHO_BAR_ICON_BUTTON)
+                val renders = holders.flatMap { c ->
+                    c.methods.filter { holdsString(it, LITHO_BAR_ICON_BUTTON) && specCountSites(it, nameField).isNotEmpty() }
+                }
+                // 586 arm64 LX/0BQo;->A16, the one component render that reads a button's count.
+                val render = renders.singleOrNull()
+                    ?: throw AssertionError("$name: want one render reading a count after the name, got ${renders.map { "${it.definingClass}->${it.name}" }}")
+                val site = specCountSites(render, nameField).single()
+                val code = render.code()
+                val read = code[site.read - 1]
+                assertEquals("$name: the count comes off an interface", Opcode.INVOKE_INTERFACE, read.opcode)
+                assertEquals("$name: looked up by one key", 1, ((read as ReferenceInstruction).reference as MethodReference).parameterTypes.size)
+                val load = code.subList(0, site.read).indexOfLast {
+                    it.opcode == Opcode.IGET_OBJECT && (it as ReferenceInstruction).reference.toString() == nameField.toString()
+                }
+                assertEquals("$name: the name register is the spec's name field", site.name, (code[load] as TwoRegisterInstruction).registerA)
+                // A spec without a store key brings its own count and joins the read's way right after
+                // it (586 arm64 LX/0BQo;->A16 at 0x01a2), which is why the hooks go in at a label.
+                assertTrue("$name: nothing joins right after the count's read", site.read + 1 in branchTargets(code))
+
+                // Positive control for the key hook: the numeric badge keeps the key and the int it is
+                // handed, reads the store by the key itself, and falls back on the int only without one
+                // (586 arm64 LX/0BzE;, read in LX/0RRm; and LX/0RS4;).
+                val badge = FixtureDex.classes(bundle, setOf(site.badge))[site.badge]
+                    ?: throw AssertionError("$name: no ${site.badge}")
+                val init = badge.methods.single { it.name == "<init>" && it.parameterTypes.any { p -> p.toString() == site.keyType } }
+                val initCode = init.code()
+                fun keptFrom(type: String): String {
+                    val from = registerOf(init, init.parameterTypes.indexOfFirst { it.toString() == type } + 1)
+                    val put = initCode.single {
+                        (it.opcode == Opcode.IPUT || it.opcode == Opcode.IPUT_OBJECT) &&
+                            (it as TwoRegisterInstruction).registerA == from && it.registerB == registerOf(init, 0)
+                    }
+                    return (put as ReferenceInstruction).reference.toString()
+                }
+                val keyField = keptFrom(site.keyType)
+                val intField = keptFrom("I")
+                val keyRef = badgeKeyField(badge, site.keyType) ?: throw AssertionError("$name: ${site.badge} keeps no one ${site.keyType}")
+                assertEquals("$name: the patch takes the field the badge keeps its key in", keyField, keyRef.toString())
+                val store = (read as ReferenceInstruction).reference as MethodReference
+                val storeCall = "${store.definingClass}->${store.name}(${store.parameterTypes.joinToString("")})${store.returnType}"
+                fun readsKey(instruction: Instruction) =
+                    instruction.opcode == Opcode.IGET_OBJECT && (instruction as ReferenceInstruction).reference.toString() == keyField
+                val readers = FixtureDex.methodsWhere(bundle, dexFilter = { dex -> dex.fieldSection.any { it.toString() == keyField } }) { m ->
+                    m.implementation?.instructions?.any(::readsKey) == true
+                }
+                assertTrue("$name: nothing reads $keyField", readers.isNotEmpty())
+                // Every use of the badge's key is one of three: the test for none before a store read
+                // by it, the compare that lets a store update for it through, or a memo's dependency.
+                // The first two are where the badge takes a count, and each is a site the hook goes in at.
+                var lookups = 0
+                var posts = 0
+                for (m in readers) {
+                    val body = m.code()
+                    val sites = badgeCountSites(m, keyRef)
+                    val tested = mutableSetOf<Int>()
+                    var matched = 0
+                    body.forEachIndexed { i, it ->
+                        if (!readsKey(it)) return@forEachIndexed
+                        val key = (it as TwoRegisterInstruction).registerA
+                        val holder = it.registerB
+                        val next = body[i + 1]
+                        val where = "${m.definingClass}->${m.name} at $i"
+                        when (next.opcode) {
+                            Opcode.IF_NEZ -> {
+                                assertEquals("$name: $where tests another register", key, (next as OneRegisterInstruction).registerA)
+                                val fallback = body[i + 2]
+                                assertTrue("$name: $where reads no $intField without a key", fallback.opcode == Opcode.IGET &&
+                                    (fallback as ReferenceInstruction).reference.toString() == intField &&
+                                    (fallback as TwoRegisterInstruction).registerB == holder)
+                                tested += i
+                            }
+                            Opcode.IF_NE -> {
+                                val compare = next as TwoRegisterInstruction
+                                assertTrue("$name: $where compares another register", key == compare.registerA || key == compare.registerB)
+                                val boxed = (body[(i + 2 until body.size).first { j -> body[j].call() == INTEGER_VALUE_OF_CALL }]
+                                    as FiveRegisterInstruction).registerC
+                                assertTrue("$name: $where lets an update through with no hook on the int it boxes",
+                                    sites.any { s -> s.posted && s.at == i + 2 && s.key == key && s.count == boxed })
+                                posts++
+                                matched++
+                            }
+                            Opcode.FILLED_NEW_ARRAY, Opcode.FILLED_NEW_ARRAY_RANGE -> assertTrue("$name: $where keeps another register", key in handed(next))
+                            else -> throw AssertionError("$name: $where uses the key some other way: ${next.opcode}")
+                        }
+                    }
+                    body.forEachIndexed { i, it ->
+                        if (it.call() != storeCall) return@forEachIndexed
+                        val key = (it as FiveRegisterInstruction).registerD
+                        val writers = m.writersReaching(i, key)
+                        if (writers.isEmpty() || writers.any { w -> w !in tested }) return@forEachIndexed
+                        val count = (body[i + 1] as OneRegisterInstruction).registerA
+                        assertTrue("$name: ${m.definingClass}->${m.name} at $i reads the store with no hook",
+                            sites.any { s -> !s.posted && s.at == i + 2 && s.key == key && s.count == count })
+                        lookups++
+                        matched++
+                    }
+                    assertEquals("$name: ${m.definingClass}->${m.name} has a site for no read or update", matched, sites.size)
+                }
+                assertTrue("$name: the badge never reads the store by its tested key", lookups > 0)
+                assertTrue("$name: the badge never takes a store update for its key", posts > 0)
+
+                // The hook goes in at each site, and the store's count reaches nothing but the hook.
+                val readerClasses = FixtureDex.classes(bundle, readers.map { it.definingClass }.toSet()).values.toList()
+                val readerContext = PatchContexts.of(readerClasses)
+                for (m in readers) {
+                    val sites = badgeCountSites(m, keyRef)
+                    if (sites.isEmpty()) continue
+                    val patched = readerContext.mutableClassDefBy(m.definingClass).findMutableMethodOf(m)
+                    sites.sortedByDescending { it.at }.forEach { patched.gateBadgeCountAt(it) }
+                    val after = patched.code()
+                    assertEquals("$name: ${m.definingClass}->${m.name} grew by the hooks only", m.code().size + 2 * sites.size, after.size)
+                    sites.sortedBy { it.at }.forEachIndexed { j, s ->
+                        val at = s.at + 2 * j
+                        val where = "${m.definingClass}->${m.name} at ${s.at}"
+                        val hook = after[at]
+                        assertEquals("$name: $where asks", BAR_BADGE_COUNT_HOOK, hook.call())
+                        assertEquals("$name: $where hands over the badge's key", s.key, (hook as FiveRegisterInstruction).registerC)
+                        assertEquals("$name: $where and the count", s.count, hook.registerD)
+                        assertEquals("$name: $where keeps the answer", Opcode.MOVE_RESULT, after[at + 1].opcode)
+                        assertEquals("$name: $where in the count", s.count, (after[at + 1] as OneRegisterInstruction).registerA)
+                        assertTrue("$name: $where a way lands past the hook", at + 1 !in branchTargets(after) && at !in branchTargets(after))
+                        if (s.posted) {
+                            val box = (at + 2 until after.size).first { after[it].call() == INTEGER_VALUE_OF_CALL }
+                            assertEquals("$name: $where boxes the answer", s.count, (after[box] as FiveRegisterInstruction).registerC)
+                            assertEquals("$name: $where posts only the answer", listOf(at + 1), patched.writersReaching(box, s.count))
+                        } else {
+                            assertEquals("$name: $where the store's count goes only to the hook", listOf(at), patched.readsAfter(at - 1, s.count))
+                        }
+                    }
+                }
+
+                val owner = holders.single { it.type == render.definingClass }
+                val context = PatchContexts.of(listOf(owner))
+                context.run { mutableClassDefBy(owner.type).findMutableMethodOf(render).gateSpecCountAfter(site) }
+
+                val after = context.mutableClassDefBy(owner.type).findMutableMethodOf(render).code()
+                // Not counting nops: the three hooks are 7 code units, which can shift the render's payload off its alignment.
+                assertEquals("$name: the render grew by the hooks only",
+                    code.count { it.opcode != Opcode.NOP } + 3, after.count { it.opcode != Opcode.NOP })
+                val hook = after[site.read + 1]
+                assertEquals("$name: the count hook comes first at the join", BAR_SPEC_COUNT_HOOK, hook.call())
+                assertEquals("$name: the name goes first", site.name, (hook as FiveRegisterInstruction).registerC)
+                assertEquals("$name: the count goes second", site.count, hook.registerD)
+                assertEquals("$name: the answer is kept", Opcode.MOVE_RESULT, after[site.read + 2].opcode)
+                assertEquals("$name: in the count", site.count, (after[site.read + 2] as OneRegisterInstruction).registerA)
+                val keyHook = after[site.read + 3]
+                assertEquals("$name: the key hook follows", BAR_SPEC_KEY_HOOK, keyHook.call())
+                assertEquals("$name: the key hook gets the name", site.name, (keyHook as FiveRegisterInstruction).registerC)
+                assertEquals("$name: and the key", site.key, keyHook.registerD)
+                val targets = branchTargets(after)
+                assertTrue("$name: the keyless spec's way skips the hooks", site.read + 1 in targets)
+                assertTrue("$name: a way lands past the hooks", site.read + 4 !in targets)
+                val worded = (site.read + 4 until after.size).firstOrNull { after[it].call() == QUANTITY_STRING }
+                assertTrue("$name: no label worded after the hooks", worded != null)
+                assertEquals("$name: the label is worded from the answer", site.count, (after[worded!!] as FiveRegisterInstruction).registerE)
+                val badgeInit = "${site.badge}-><init>(${init.parameterTypes.joinToString("")})V"
+                val made = (site.read + 4 until after.size).singleOrNull { after[it].call() == badgeInit }
+                    ?: throw AssertionError("$name: want one $badgeInit after the hooks")
+                assertEquals("$name: the badge gets the key the hook kept", site.key,
+                    handed(after[made])[1 + init.parameterTypes.indexOfFirst { it.toString() == site.keyType }])
+                assertEquals("$name: the badge gets the answer as its count", site.count,
+                    handed(after[made])[1 + init.parameterTypes.indexOfFirst { it.toString() == "I" }])
+                val patchedRender = context.mutableClassDefBy(owner.type).findMutableMethodOf(render)
+                assertEquals("$name: and only the answer", listOf(site.read + 2), patchedRender.writersReaching(made, site.count))
+                checked += name
+            }
+        }
+        assertTrue("a declared build has no fixture, got $checked", versions.all { v -> checked.any { "-$v-" in it } })
+    }
+
     private fun countMethod(context: BytecodePatchContext, type: String, count: CountMethod) =
         context.mutableClassDefBy(type).methods.single {
             it.name == count.name && it.parameterTypes.map(CharSequence::toString) == count.parameters
@@ -345,7 +656,8 @@ class TopBarButtonsFixtureTest {
             .map { "${it.definingClass}->${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
         for (hook in listOf(
             HIDE_MESSENGER_BUTTON_HOOK, HIDE_MESSENGER_COUNT_HOOK, HIDE_FACEBOOK_LOGO_HOOK, BAR_BUTTON_HOOK, BAR_BUTTON_COUNT_HOOK,
-            HIDE_CREATE_BUTTON_HOOK, HIDE_SEARCH_BUTTON_HOOK, BAR_SEARCH_BUTTON_HOOK,
+            HIDE_CREATE_BUTTON_HOOK, HIDE_SEARCH_BUTTON_HOOK, BAR_SEARCH_BUTTON_HOOK, BAR_SPEC_COUNT_HOOK, BAR_SPEC_KEY_HOOK,
+            BAR_BADGE_COUNT_HOOK,
         )) {
             assertTrue("the extension declares no public static $hook: $calls", hook in calls)
         }

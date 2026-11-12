@@ -34,7 +34,6 @@ val materialCapsuleBypassPairIpPatch = bytecodePatch(
         "(com.pryshedko.mtisland.App).",
     default = true,
 ) {
-    category("PairIP")
     compatibleWith(MATERIAL_CAPSULE_COMPATIBILITY)
 
     dependsOn(

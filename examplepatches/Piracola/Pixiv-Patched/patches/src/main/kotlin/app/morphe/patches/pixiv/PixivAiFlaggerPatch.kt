@@ -8,7 +8,10 @@ import app.morphe.patcher.patch.bytecodePatch
 
 val pixivAiFlaggerPatch: BytecodePatch = bytecodePatch(
     name = "Pixiv AI Work Flagger",
-    description = "Identifies AI-generated works, dims thumbnails with an [AI] badge (or hides them completely), displays a full-width warning banner below the top toolbar on artwork detail, adds title [AI] pill, auto-blocks AI artists, and provides in-app settings with tag editor.",
+    description = "Identifies AI-generated works from Pixiv's illustAiType field, dims their thumbnails " +
+        "with an [AI] badge or hides them, adds a warning banner and an [AI] title pill on the detail " +
+        "screen, and can auto-block AI artists or drop works whose tags match a blacklist. " +
+        "Adjustable in the Pixiv-Patched page.",
     default = true
 ) {
     compatibleWith(PixivConstants.PIXIV)

@@ -55,7 +55,6 @@ val glassdoorDisableTrackerComponentsPatch = resourcePatch(
         "off, and removes the install-referrer permission. FCM push is kept.",
     default = true,
 ) {
-    category("Privacy")
     compatibleWith(GLASSDOOR_COMPATIBILITY)
 
     execute {

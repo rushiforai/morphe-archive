@@ -9,9 +9,10 @@ package app.morphe.patches.youtube.misc.feedcards
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 import app.morphe.patches.shared.misc.litho.relayout.COMPONENT_HOST_CLASS
 import app.morphe.patches.shared.misc.proto.hookElement
+import app.morphe.patches.youtube.layout.originaltitles.hookCompactVideoTitle
 import app.morphe.patches.youtube.misc.extension.sharedExtensionPatch
 import app.morphe.patches.youtube.misc.playertype.playerTypeHookPatch
 import app.morphe.patches.youtube.misc.proto.elementProtoParserHookPatch
@@ -39,7 +40,7 @@ internal object FeedCardComponentHostLayoutFingerprint : Fingerprint(
  * Finds the full width video cards of the feeds and the video of each card,
  * for the patches that draw on the thumbnails of feed videos.
  */
-internal val feedVideoCardsHookPatch = bytecodePatch(
+internal val feedVideoCardsHookPatch = patch(
     description = "Hooks the video cards of the feeds and finds their video ids.",
 ) {
     dependsOn(
@@ -70,5 +71,8 @@ internal val feedVideoCardsHookPatch = bytecodePatch(
                 )
             }
         }
+
+        // Compact videos are not drawn by Litho, such as the videos of the watch history.
+        hookCompactVideoTitle("$EXTENSION_CLASS->onCompactVideoBound")
     }
 }

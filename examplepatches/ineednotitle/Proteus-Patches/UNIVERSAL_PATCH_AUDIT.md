@@ -147,3 +147,54 @@ See `docs/UNIVERSAL-PATCHES.md` for user-facing examples and limitations.
 `./gradlew :patches:testPermissionRemoval` runs the permission policy and DOM
 regression suite; CI also verifies the generated Android bundle before release.
 On-device verification of actual apps is still needed before publishing.
+
+## v2.2.10 re-cut #4 universal set
+
+The earlier 24-patch audit table is historical. The current visible universal
+set is **23 patches** after this prune, hide and addition pass.
+
+### Removed
+
+| Patch | Reason |
+|-------|--------|
+| Change package name (clone app) | Duplicate of official Morphe **Clone app**; clone support burden. |
+| Force not debuggable | Release APKs already have `debuggable=false`; no-op in practice. |
+| Lock down exported components | High risk of breaking explicit intents with little benefit. |
+
+### Hidden, still available as dependencies
+
+| Patch | Reason |
+|-------|--------|
+| Spoof app signature | Duplicate of official **Spoof signature**; required by Mubi, Word, Telegram, ProtonPass and Excel patches. |
+| Spoof install source | Duplicate of official **Change installer source**; required by Mubi, Telegram and ProtonPass patches. |
+
+`Spoof Widevine / DRM level` remains visible as an advanced patch because it is
+unique and Mubi depends on it.
+
+### Merged
+
+`WebView: block mixed content`, `WebView: disable local file access` and
+`WebView: remove JavaScript interface objects` are replaced by
+**WebView hardening**. It adds autoplay, geolocation, third-party-cookie and
+JavaScript-popup switches. The old three patch names are removed.
+
+### Added
+
+| Patch | Coverage | Main limitation |
+|-------|----------|-----------------|
+| Block advertising & device IDs | AdvertisingIdClient `getId`/`isLimitAdTrackingEnabled`, `Settings.Secure android_id` | Stable device IDs may reset; apps can still use other identifiers. |
+| Block in-app update & review prompts | Play Core `AppUpdateInfo`, `AppUpdateManager`, `ReviewManager` | Obfuscated Play Core or review flows that consume the returned `Task` are skipped. |
+| Block crash-reporting SDKs | Sentry, Crashlytics, Bugsnag, Datadog, New Relic, AppCenter | Calls whose return value is consumed are skipped; reports are intentionally lost. |
+| Force offline mode (simulate no network) | `ConnectivityManager`, `NetworkInfo`, `NetworkCapabilities` | Simulation only, not a firewall. |
+| Block Play Billing purchase prompts | `BillingClient.launchBillingFlow`, `launchPriceConfirmationFlow` | Does not unlock paid features; flows that consume `BillingResult` are skipped. |
+
+### Verification status for this re-cut
+
+- Kotlin compilation passes.
+- Static DEX review: new rewriters only replace `move-result`/`move-result-object`
+  immediately after the target call, or NOP void/ignored-result calls.
+- `Force offline mode` is intentionally best-effort: it changes reported
+  connectivity state but does not intercept sockets.
+- `Block Play Billing purchase prompts` is intentionally not a payment bypass.
+- On-device runtime verification is still not available; release verification is
+  DEX/static only.

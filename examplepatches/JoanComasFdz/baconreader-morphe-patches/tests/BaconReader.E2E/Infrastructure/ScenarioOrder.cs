@@ -18,6 +18,8 @@ namespace BaconReader.E2E.Infrastructure;
 /// 1. the tests that aren't scenarios (the shape and naming tests), which need no phone;
 /// 2. the Startup scenarios, those with the same patches together;
 /// 3. the LoggedIn scenarios, all on the one APK with every patch;
+/// 4. the Manager scenarios, which uninstall BaconReader to patch it through the manager: last, so the LoggedIn APK isn't
+///    sent again;
 /// then by class and method, so a run is the same each time.
 /// xunit runs the test collections in the order this gives them, and a collection's tests by their class, then in the
 /// order this gives them inside it. Each class is a collection of its own (<see cref="ScenarioCollections"/>), named by
@@ -57,8 +59,9 @@ public sealed class ScenarioOrder : ITestCollectionOrderer, ITestCaseOrderer
         {
             ScenarioGroup.Startup => 1,
             ScenarioGroup.LoggedIn => 2,
-            // Neither (ScenarioShapeTests fails it): last, apart from both groups.
-            _ => 3,
+            ScenarioGroup.Manager => 3,
+            // None of them (ScenarioShapeTests fails it): last, apart from every group.
+            _ => 4,
         };
         var patches = scenario && PatchSet.Of(method!) is { } set ? string.Join('\n', set.ToShownText()) : "";
         return new Key(rank, patches, testClass?.FullName ?? "", method?.Name ?? "");

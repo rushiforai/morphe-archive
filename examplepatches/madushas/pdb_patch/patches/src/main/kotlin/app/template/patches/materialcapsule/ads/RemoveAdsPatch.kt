@@ -49,7 +49,6 @@ val materialCapsuleRemoveAdsPatch = resourcePatch(
         "ad-services permissions so no advertising ID is exposed.",
     default = true,
 ) {
-    category("Ads")
     compatibleWith(MATERIAL_CAPSULE_COMPATIBILITY)
 
     execute {

@@ -20,7 +20,7 @@ private const val HOME_TILE_BRIDGE = "Lapp/spicetify/extension/spotify/home/nati
 @Suppress("unused")
 val homePinsPatch = bytecodePatch(
     name = "Pin shortcuts on Home",
-    description = "Pick playlists, albums or Liked Songs to pin first on Home, or turn on Show only " +
+    description = "NOT SUPPORTED ON 9.2.0.26 - only works on 9.1.80.2221. " + "Pick playlists, albums or Liked Songs to pin first on Home, or turn on Show only " +
         "my pins to hide Spotify's other shortcuts. Pins are saved on this device; restart Spotify " +
         "after changing them.",
     default = false,

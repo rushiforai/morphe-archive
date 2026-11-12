@@ -55,12 +55,7 @@ private object StartupLauncherFingerprint : Fingerprint(
     parameters = listOf(),
 )
 
-@Suppress("unused")
-val disablePairipPatch = bytecodePatch(
-    name = "Disable Pairip",
-    description = "Skips the local license and integrity checks so the app can keep running offline.",
-    default = true,
-) {
+internal val disablePairipPatch = bytecodePatch {
     compatibleWith(MINIMAL_WIDGETS)
 
     execute {

@@ -34,3 +34,10 @@ internal object RollingNumberSetterFingerprint : Fingerprint(
         string("RollingNumberType required properties missing! Need updatedCount, color, fontAttributes or fontName + fontSize. Properties missing: ")
     )
 )
+
+/** YouTube's playback modality (PlaybackModality): its method leaving the audio-only mode logs this name. */
+internal object DisableAudioOnlyModeFingerprint : Fingerprint(
+    filters = listOf(
+        string("disableAudioOnlyMode")
+    )
+)

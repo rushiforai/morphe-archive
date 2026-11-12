@@ -25,6 +25,7 @@ internal object FotMobControlsCategory {
     const val POPUPS = "Pop-ups & promotions"
     const val DISPLAY = "Display"
     const val MATCH_PAGE = "Match page"
+    const val SPOILER_FREE = "Spoiler-free"
     const val LEAGUES = "Leagues"
 }
 

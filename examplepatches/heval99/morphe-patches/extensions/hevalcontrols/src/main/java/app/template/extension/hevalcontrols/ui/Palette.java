@@ -5,9 +5,19 @@ import android.content.res.Configuration;
 
 import app.template.extension.hevalcontrols.HevalSettings;
 
-/** Colour tokens for the settings screen. Framework only: the .mpe carries no resources. */
+/**
+ * Colour tokens for the settings screen. Framework only: the .mpe carries no resources.
+ *
+ * <p>Text contrast (WCAG 2.x, on the row surface / the page background), 2026-11-11:
+ * {@code secondary} (descriptions) light 9.33 / 8.65, dark 10.08 / 11.47, AMOLED 11.26 / 12.88;
+ * {@code muted} (tertiary: "Off", footnotes) light 6.50, dark 7.63, AMOLED 8.52 on the surface;
+ * {@code accent} ("On", the row marker) light 6.53, dark 8.83, AMOLED 9.86 on the surface.
+ * Every pair stays above AA 4.5:1.
+ */
 final class Palette {
     final boolean light;
+    /** Descriptions and other secondary text; {@code muted} is for tertiary text only. */
+    final int secondary;
     final int background, surface, text, muted, accent, onAccent, line, outline, track, ripple;
     final int warning, warningSurface, error, errorSurface, success;
 
@@ -17,6 +27,7 @@ final class Palette {
             background = 0xfff6f6f9;
             surface = 0xffffffff;
             text = 0xff1b1b21;
+            secondary = 0xff454652;
             muted = 0xff5c5d6a;
             accent = 0xff2f55c4;
             onAccent = 0xffffffff;
@@ -33,6 +44,7 @@ final class Palette {
             background = amoled ? 0xff000000 : 0xff121214;
             surface = amoled ? 0xff141419 : 0xff1e1f25;
             text = 0xffeeeef3;
+            secondary = 0xffc8cad6;
             muted = 0xffaeb0bd;
             accent = 0xffa7bcff;
             onAccent = 0xff0e1b45;

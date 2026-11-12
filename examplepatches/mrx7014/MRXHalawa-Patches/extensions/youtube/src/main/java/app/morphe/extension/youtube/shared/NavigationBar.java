@@ -35,7 +35,6 @@ import app.morphe.extension.shared.ResourceType;
 import app.morphe.extension.shared.ResourceUtils;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.patches.components.ContextInterface;
-import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.spoof.SpoofAppVersionPatch;
 import app.morphe.extension.youtube.patches.VersionCheckPatch;
 import app.morphe.extension.youtube.settings.Settings;
@@ -71,13 +70,6 @@ public final class NavigationBar {
         onNavigationButtonChangedListeners.add(listener);
     }
 
-    /**
-     * Unregisters a listener from being notified when the navigation button changes.
-     */
-    public static void removeOnNavigationButtonChangedListener(OnNavigationButtonChangedListener listener) {
-        onNavigationButtonChangedListeners.remove(listener);
-    }
-
     private static void notifyNavigationButtonChangedListeners(@Nullable NavigationButton button) {
         for (OnNavigationButtonChangedListener listener : onNavigationButtonChangedListeners) {
             listener.onNavigationButtonChanged(button);
@@ -109,6 +101,7 @@ public final class NavigationBar {
                 }
                 if (view == searchBarResultsRef.get()) {
                     isSearchBarAttached = true;
+                    Logger.printVerbose(() -> "Search bar shown");
                 }
             }
 
@@ -121,6 +114,7 @@ public final class NavigationBar {
                 if (view == searchBarResultsRef.get()) {
                     // View#isShown() is still true while the detach listeners are called.
                     isSearchBarAttached = false;
+                    Logger.printVerbose(() -> "Search bar hidden");
                 }
             }
         });
@@ -197,10 +191,7 @@ public final class NavigationBar {
 
         Utils.runOnMainThreadDelayed(() -> {
             if (closingSearchBarResultsRef.get() == searchbarResults) {
-                // Log as exception level, only if debug is enabled.
-                if (Settings.DEBUG.get()) {
-                    Logger.printException(() -> "Search bar was not closed");
-                }
+                Logger.printExceptionIfDebug(() -> "Search bar was not closed");
                 closingSearchBarResultsRef = new WeakReference<>(null);
             }
         }, SEARCH_BAR_CLOSING_TIMEOUT_MILLISECONDS);
@@ -435,6 +426,9 @@ public final class NavigationBar {
             goingBackCancelled = false;
 
             String lastEnumName = lastYTNavigationEnumName;
+            // The enum is of this tab only. The 'You' tab has no enum, and it's
+            // created right after the Create tab of the newer layout.
+            lastYTNavigationEnumName = null;
 
             for (NavigationButton buttonType : NavigationButton.values()) {
                 if (buttonType.ytEnumNames.contains(lastEnumName)) {
@@ -445,12 +439,9 @@ public final class NavigationBar {
                 }
             }
 
-            // Log the unknown tab as exception level, only if debug is enabled.
-            // This is because unknown tabs do no harm, and it's only relevant to developers.
-            if (Settings.DEBUG.get()) {
-                Logger.printException(() -> "Unknown tab: " + lastEnumName
-                        + " view: " + navigationButtonGroup.getClass());
-            }
+            // Unknown tabs do no harm, and are only relevant to developers.
+            Logger.printExceptionIfDebug(() -> "Unknown tab: " + lastEnumName
+                    + " view: " + navigationButtonGroup.getClass());
         } catch (Exception ex) {
             Logger.printException(() -> "navigationTabLoaded failure", ex);
         }
@@ -459,17 +450,15 @@ public final class NavigationBar {
     /**
      * Injection point.
      * <p>
-     * Unique hook just for the 'Create' and 'You' tab.
+     * Unique hook just for the 'Create' and 'You' tab (all tabs in 21.43+).
      */
     public static void navigationImageResourceTabLoaded(View view) {
         // 'You' tab has no YT enum name and the enum hook is not called for it.
         // Compare the last enum to figure out which tab this actually is.
-        if (NavigationBar.NavigationButton.CREATE.ytEnumNames.contains(lastYTNavigationEnumName)) {
-            navigationTabLoaded(view);
-        } else {
+        if (lastYTNavigationEnumName == null) {
             lastYTNavigationEnumName = NavigationButton.LIBRARY.ytEnumNames.get(0);
-            navigationTabLoaded(view);
         }
+        navigationTabLoaded(view);
     }
 
     /**
@@ -485,10 +474,7 @@ public final class NavigationBar {
             NavigationButton oldButton = NavigationButton.selectedNavigationButton;
 
             if (button == null) { // An unknown tab was selected.
-                // Show a toast only if debug mode is enabled.
-                if (BaseSettings.DEBUG.get()) {
-                    Logger.printException(() -> "Unknown navigation view selected: " + navButtonImageView);
-                }
+                Logger.printExceptionIfDebug(() -> "Unknown navigation view selected: " + navButtonImageView);
 
                 NavigationButton.selectedNavigationButton = null;
                 openedFromNavigationButton = null;
@@ -638,9 +624,9 @@ public final class NavigationBar {
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static void setCairoNotificationFilledIcon(EnumMap enumMap, Enum tabActivityCairo) {
         // Show a popup informing this fix is no longer needed to those who might care.
-        if (BaseSettings.DEBUG.get() && enumMap.containsKey(tabActivityCairo)) {
-            Logger.printException(() -> "YouTube fixed the notification icons");
-        }
+        Logger.printExceptionIfDebug(() -> enumMap.containsKey(tabActivityCairo)
+                ? "YouTube fixed the notification icons"
+                : null);
 
         enumMap.putIfAbsent(tabActivityCairo, fillBellCairoBlack);
     }
@@ -652,7 +638,12 @@ public final class NavigationBar {
          * Create new video tab.
          * This tab will never be in a selected state, even if the Create video UI is on screen.
          */
-        CREATE("CREATION_TAB_LARGE", "CREATION_TAB_LARGE_CAIRO"),
+        CREATE(
+                "CREATION_TAB_LARGE",
+                "CREATION_TAB_LARGE_CAIRO",
+                // Newer layout, where the tab is a regular tab next to the 'You' tab.
+                "ADD_CIRCLE_OUTLINE"
+        ),
         /**
          * Only shown when 'Show Search' is turned on.
          */
@@ -661,6 +652,10 @@ public final class NavigationBar {
          * Only shown when 'Show Settings' is turned on.
          */
         SETTINGS("SETTINGS", "SETTINGS_CAIRO"),
+        /**
+         * Only shown when 'Show Watch later' is turned on.
+         */
+        WATCH_LATER("WATCH_LATER", "WATCH_LATER_FILLED", "WATCH_LATER_CAIRO"),
         /**
          * Only shown when 'Show Series in navigation bar' is turned on.
          */
@@ -700,7 +695,7 @@ public final class NavigationBar {
          */
         boolean closesSearch() {
             return this == HOME || this == SHORTS || this == SUBSCRIPTIONS
-                    || this == NOTIFICATIONS || this == SERIES || this == LIBRARY;
+                    || this == NOTIFICATIONS || this == SERIES || this == WATCH_LATER || this == LIBRARY;
         }
 
         /**

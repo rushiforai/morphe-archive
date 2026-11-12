@@ -1,0 +1,91 @@
+# GitLab CI: build merge requests and publish semantic releases.
+#
+# Release auth: add a masked CI/CD variable named GL_TOKEN (project access
+# token, Maintainer role, scopes: api + write_repository). The release job
+# is manual, matching the old GitHub workflow_dispatch behavior.
+
+default:
+  image: eclipse-temurin:17-jdk-jammy
+  cache:
+    - key: gradle-$CI_COMMIT_REF_SLUG
+      paths:
+        - .gradle/
+    - key: android-sdk
+      paths:
+        - .android-sdk/
+    - key: npm-$CI_COMMIT_REF_SLUG
+      paths:
+        - .npm/
+
+variables:
+  GRADLE_USER_HOME: "$CI_PROJECT_DIR/.gradle"
+  ANDROID_HOME: "$CI_PROJECT_DIR/.android-sdk"
+  ANDROID_SDK_ROOT: "$CI_PROJECT_DIR/.android-sdk"
+  npm_config_cache: "$CI_PROJECT_DIR/.npm"
+  # The patches plugin adds MorpheApp/registry to every project with a
+  # credentials block, and Gradle throws IllegalArgumentException when that
+  # block receives a null username or password. It reads GITHUB_ACTOR and
+  # GITHUB_TOKEN, so they must be non-empty even though the repository is
+  # unreachable; resolution comes from the GitLab mirror instead.
+  GITHUB_ACTOR: "ci"
+  GITHUB_TOKEN: "unavailable"
+
+.setup:
+  before_script:
+    - apt-get update -qq
+    - apt-get install -y -qq ca-certificates curl git gnupg unzip wget jq
+    - curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+    - apt-get install -y -qq nodejs
+    - mkdir -p "$ANDROID_HOME/cmdline-tools"
+    - |
+      if [ ! -x "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" ]; then
+        wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O /tmp/cmdtools.zip
+        rm -rf /tmp/cmdtools && mkdir -p /tmp/cmdtools
+        unzip -q /tmp/cmdtools.zip -d /tmp/cmdtools
+        mkdir -p "$ANDROID_HOME/cmdline-tools/latest"
+        cp -r /tmp/cmdtools/cmdline-tools/* "$ANDROID_HOME/cmdline-tools/latest/"
+      fi
+    - export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH"
+    - yes | sdkmanager --licenses > /dev/null || true
+    - sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0" > /dev/null
+    - chmod +x gradlew
+    - java -version
+    - node --version
+
+stages:
+  - build
+  - release
+
+build:
+  stage: build
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+  before_script:
+    - !reference [.setup, before_script]
+  script:
+    - ./gradlew :patches:build
+  artifacts:
+    paths:
+      - patches/build/libs/*.mpp
+    expire_in: 1 week
+
+release:
+  stage: release
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: manual
+      allow_failure: false
+  before_script:
+    - !reference [.setup, before_script]
+    - git config user.email "semantic-release-bot@kmru.gitlab"
+    - git config user.name "semantic-release-bot"
+    - git remote set-url origin "https://gitlab-ci-token:${GL_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"
+  script:
+    - npm ci
+    - npx semantic-release
+  artifacts:
+    paths:
+      - patches/build/libs/*.mpp
+      - patches-bundle.json
+      - patches-list.json
+    expire_in: 1 week

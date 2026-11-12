@@ -7,6 +7,10 @@ import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.returnEarly
 import com.android.tools.smali.dexlib2.AccessFlags
+import app.template.patches.shared.cert.extractApkCertificatePatch
+import app.template.patches.shared.firebase.spoofFirebaseCertHashPatch
+import app.template.patches.shared.installer.spoofInstallSourcePatch
+import app.template.patches.shared.signature.spoofSignatureVerificationPatch
 
 private val MINIMAL_WIDGETS = Compatibility(
     name = "Minimal Widgets",
@@ -29,12 +33,19 @@ private object PremiumUnlockedFingerprint : Fingerprint(
 
 @Suppress("unused")
 val localPreferencePatch = bytecodePatch(
-    name = "Local Preference",
-    description = "Uses a local preference so optional widget features stay available offline.",
+    name = "Unlock premium",
+    description = "Unlocks premium features.",
     default = true,
 ) {
     compatibleWith(MINIMAL_WIDGETS)
 
+    dependsOn(
+        disablePairipPatch,
+        extractApkCertificatePatch,
+        spoofFirebaseCertHashPatch,
+        spoofInstallSourcePatch,
+        spoofSignatureVerificationPatch,
+    )
     execute {
         PremiumUnlockedFingerprint.method.returnEarly(true)
     }

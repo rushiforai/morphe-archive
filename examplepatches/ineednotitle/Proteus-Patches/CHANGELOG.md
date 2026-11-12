@@ -1,3 +1,9 @@
+## [2.3.0](https://github.com/[secure]/Proteus-Patches/compare/v2.2.10...v2.3.0) (2026-11-12)
+
+### ✨ New Features
+
+* **release:** expand Proton Pass and Gboard patches for v2.2.10 ([2de3200](https://github.com/[secure]/Proteus-Patches/commit/2de3200757447185ba8eaa9dd127d85e4d807b2c))
+
 ## [2.2.2](https://github.com/ineednotitle/Proteus-Patches/compare/v2.2.1...v2.2.2) (2026-11-05)
 
 ### 🐛 Fixes and usability

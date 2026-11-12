@@ -111,6 +111,28 @@ val geminiStandalonePatch = app.morphe.patcher.patch.resourcePatch(
         val verName = packageMetadata.versionName
         println("[GeminiStandalonePatch] Target App: $pkgName (Version: $verName)")
 
+        // The density split owns the original error-screen logo. A base-only APK
+        // must still render genuine missing/outdated-Google errors without crashing.
+        VersionHookRegistry.requireProfile(packageMetadata).hooks[HookId.GEMINI_ERROR_LOGO_FALLBACK]?.let { spec ->
+            document("res/values/styles.xml").use { doc ->
+                val styles = doc.getElementsByTagName("style")
+                var changed = 0
+                for (i in 0 until styles.length) {
+                    val style = styles.item(i) as org.w3c.dom.Element
+                    if (style.getAttribute("name") != spec.value("style")) continue
+                    val items = style.getElementsByTagName("item")
+                    for (j in 0 until items.length) {
+                        val item = items.item(j) as org.w3c.dom.Element
+                        if (item.getAttribute("name") == spec.value("attribute")) {
+                            item.textContent = spec.value("fallback")
+                            changed++
+                        }
+                    }
+                }
+                check(changed == spec.expectedMatches) { "Unexpected Gemini error-logo count: $changed" }
+            }
+        }
+
         document("AndroidManifest.xml").use { document ->
             val manifestElement = document.documentElement
             val androidNs = "http://schemas.android.com/apk/res/android"

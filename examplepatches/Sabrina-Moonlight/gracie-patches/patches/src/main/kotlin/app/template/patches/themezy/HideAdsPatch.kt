@@ -8,6 +8,10 @@ import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.returnEarly
 import com.android.tools.smali.dexlib2.AccessFlags
+import app.template.patches.shared.cert.extractApkCertificatePatch
+import app.template.patches.shared.firebase.spoofFirebaseCertHashPatch
+import app.template.patches.shared.installer.spoofInstallSourcePatch
+import app.template.patches.shared.signature.spoofSignatureVerificationPatch
 
 private val THEMEZY = Compatibility(
     name = "Themezy",
@@ -279,12 +283,19 @@ private fun invokeUnitCallbackThenReturn(paramIndex: Int): String = """
 
 @Suppress("unused")
 val hideAdsPatch = bytecodePatch(
-    name = "Hide Ads",
-    description = "Turns off every ad gate and every show/preload path in Themezy.",
+    name = "Hide ads",
+    description = "Hides ads.",
     default = true,
 ) {
     compatibleWith(THEMEZY)
 
+    dependsOn(
+        disablePairipPatch,
+        extractApkCertificatePatch,
+        spoofFirebaseCertHashPatch,
+        spoofInstallSourcePatch,
+        spoofSignatureVerificationPatch,
+    )
     execute {
         // Gates off
         runCatching { EnableAllAdsFingerprint.method.returnEarly(false) }

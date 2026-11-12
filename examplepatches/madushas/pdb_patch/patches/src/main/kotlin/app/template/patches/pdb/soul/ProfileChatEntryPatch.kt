@@ -40,7 +40,6 @@ val pdbProfileChatEntryPatch = bytecodePatch(
         "profile (channels are server-created — no fake channel making).",
     default = false,
 ) {
-    category("Interface")
     compatibleWith(PDB_COMPATIBILITY)
 
     execute {

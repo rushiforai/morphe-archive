@@ -79,15 +79,6 @@ public final class ChangeStartPagePatch extends BaseChangeStartPagePatch {
             this.id = id;
             this.isBrowseId = isBrowseId;
         }
-
-        private boolean isBrowseId() {
-            return TRUE.equals(isBrowseId);
-        }
-
-        @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-        private boolean isIntentAction() {
-            return FALSE.equals(isBrowseId);
-        }
     }
 
     /**
@@ -100,12 +91,30 @@ public final class ChangeStartPagePatch extends BaseChangeStartPagePatch {
      */
     private static final StartPage START_PAGE = Settings.CHANGE_START_PAGE.get();
 
+    /**
+     * Value of the flag of the milestone that the request of the guide waits for, which does not
+     * need the homepage to be shown.
+     */
+    private static final int GUIDE_MILESTONE_NOT_HOMEPAGE = 1;
+
     public static String overrideBrowseId(@NonNull String original) {
-        return processBrowseId(original, START_PAGE.isBrowseId(), START_PAGE.id, START_PAGE.id);
+        return processBrowseId(original, TRUE.equals(START_PAGE.isBrowseId), START_PAGE.id, START_PAGE.id);
+    }
+
+    /**
+     * Injection point.
+     * <p>
+     * The guide has the buttons of the top bar and of the navigation bar, and the header of the
+     * subscriptions page needs it too. Without a guide in the cache, the request waits for a
+     * milestone reached when the homepage is shown. So another start page shows the default
+     * buttons for about 20 seconds, or until the homepage is opened.
+     */
+    public static int overrideGuideMilestone(int original) {
+        return TRUE.equals(START_PAGE.isBrowseId) ? GUIDE_MILESTONE_NOT_HOMEPAGE : original;
     }
 
     public static void overrideIntentAction(@NonNull Intent intent) {
-        if (!START_PAGE.isIntentAction()) {
+        if (!FALSE.equals(START_PAGE.isBrowseId)) {
             return;
         }
 

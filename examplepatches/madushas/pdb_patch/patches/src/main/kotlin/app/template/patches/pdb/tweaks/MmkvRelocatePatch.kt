@@ -35,7 +35,6 @@ val pdbMmkvRelocatePatch = bytecodePatch(
         "crashes; no effect on a clean device).",
     default = false,
 ) {
-    category("Interface")
     compatibleWith(PDB_COMPATIBILITY)
 
     execute {

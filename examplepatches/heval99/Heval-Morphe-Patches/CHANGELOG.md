@@ -1,3 +1,399 @@
+## 2.3.0 (2026-11-12)
+
+### 🆕 New apps
+- **Add Music** `9.6` - Enable Premium
+- **Allente** `6.2.1.0` - Disable telemetry
+- **B.T.** `4.5.8` - Disable ads, Disable telemetry
+- **Berlingske** `4.5.8` - Disable ads, Disable telemetry
+- **Blockbuster** `7.1.27` - Disable telemetry
+- **Ekstra Bladet** `2026.09.20` - Disable telemetry
+- **EX File Manager** `1.6.2` - Disable ads, Disable telemetry, Enable Premium
+- **Fyens Stiftstidende** `15.32` - Disable ads, Disable telemetry, Unlock articles
+- **JydskeVestkysten** `15.32` - Disable ads, Disable telemetry, Unlock articles
+- **Jyllands Posten** `2026.10.15` - Disable ads, Disable telemetry
+- **Nordisk Film+** `1.5.4` - Disable telemetry
+- **Nordjyske** `8.0.17` - Disable ads, Disable telemetry, Unlock articles
+- **NotiAlarm** `1.3.31` - Disable license check, Enable Premium
+- **Politiken** `4.1.5` - Disable ads, Disable telemetry
+- **TV 2 Nyheder** `2026.10-10188:RELEASE` - Disable ads, Disable telemetry
+- **TV 2 Play** `2026.10-1` - Disable telemetry
+- **YouSee Play** `13.12.0 (build 22025)` - Disable telemetry
+- **Århus Stiftstidende** `15.32` - Disable ads, Disable telemetry, Unlock articles
+
+### 📱 365Scores `15.0.1`
+- New: AMOLED black, Hide competitions, Hide countries, Patch settings, Spoiler-free mode
+- New: Add Patch settings with Spoiler-free switches
+
+### 📱 Digi Sport `1.1.15`
+- Fixed: Disable live stream ads is no longer experimental
+
+### 📱 Firefox Focus `159.0.1`
+- New: Move address bar to the bottom
+- Fixed: Keep the page clear of the bottom address bar
+
+### 📱 Flashscore `26.11.6`
+- New: Animation speed, Block marketing notifications, Force edge-to-edge, Patch settings, Spoof signature, Use system font
+- Fixed: Finish Use system font and tidy the new patches
+- Fixed: Keep bold text bold and blend the navigation bar area
+
+### 📱 FotMob `241.18134.20261030`
+- New: AMOLED black, Show FotMob+ logo, Spoiler-free mode
+- New: Choose what Spoiler-free mode hides in Patch settings
+- New: Make AMOLED black a Patch settings switch
+- Fixed: AMOLED black no longer empties the league table rows
+- New: AMOLED black also darkens buttons, switches, popups, segmented tabs and predictor sheets
+
+### 📱 Mango Launcher `1.67`
+- Fixed: Keep Pro unlocked after the Play Billing purchase query
+
+### 📱 Niagara Launcher `1.16.36`
+- New: Fix home screen numbers tile
+
+### 📱 Sofascore `26.11.03`
+- New: AMOLED black, Disable update prompts, Hide main tabs, Hide match chat, Spoiler-free mode, Turn off video autoplay, Unlock developer options
+- Fixed: Describe the spoiler-free master switch accurately
+- New: Add a Turn off video autoplay switch
+
+### 📱 Truecaller `26.44.6`
+- New: Disable Who viewed me, Hide poor network warning, Privacy defaults, Turn off Ad Campaign Analytics
+- New: Add poor network and ad campaign analytics controls
+- Fixed: Keep Privacy defaults to its own settings
+- Fixed: Turn Hide poor network warning on once selected
+- New: Show the caller number for contacts too
+- New: Hide all referral offers, add Disable Who viewed me and more privacy switches
+- New: Hide promotions also turns off the Gold gift promo
+
+### 📱 WeMuslim `3.5.5`
+- New: Hide activity banners, Hide shortcut promotions, Hide Ummah tab
+- New: Hide activity banners also hides the home pop-up and floating event icon
+
+### ⬆️ Updated apps
+| App | From | To |
+|---|---|---|
+| 365Scores | `15.0.0` | `15.0.1` |
+| 433 | `2.3.585` | `2.3.608` |
+| BBC News | `2026.9.1` | `2026.10.0` |
+| BlueMail | `2.2.418` | `2.2.426` |
+| Brave Browser | `1.98.63` | `1.99.56` |
+| Business Calendar 2 | `2.55.8` | `2.56.0` |
+| CREX | `26.10.09` | `26.11.01` |
+| DRTV | `4.39.0` | `4.40.4` |
+| Easy Homescreen | `1.10.29` | `1.10.31` |
+| Eurosport | `8.34.1` | `8.35.0` |
+| Firefox | `159.0` | `159.0.1` |
+| Fishing Points | `4.8.0` | `4.8.1` |
+| Flashscore | `26.11.4` | `26.11.6` |
+| Futbin | `27.10` | `27.13` |
+| GPS Map Camera Editor | `1.0.31` | `1.0.32` |
+| Hevy | `3.2.4` | `3.2.6` |
+| Hyperion Launcher | `2.2.14` | `2.2.16` |
+| Interval Timer | `2.3.30` | `2.3.31` |
+| L'Équipe | `10.70.0` | `10.71.1` |
+| Librera | `10.0.22` | `10.0.31` |
+| Livescore | `10.4` | `10.4.1` |
+| Mango Launcher | `1.64` | `1.67` |
+| MyFitnessPal | `26.44.0` | `26.45.0` |
+| Niagara Launcher | `1.16.35` | `1.16.36` |
+| OneFootball | `15.148.0` | `15.150.0` |
+| Pi Music Player | `3.2.1.0_release_1` | `3.2.3.0_release_1` |
+| Shazam | `16.66.0-261029` | `16.67.0-261105` |
+| Simple Radio | `6.3.0` | `6.3.1` |
+| Sofascore | `26.10.26` | `26.11.03` |
+| Taskito | `1.3.3` | `1.3.4` |
+| The Wall Street Journal | `15.12.0.42675` | `15.13.0.44249` |
+| Truecaller | `26.43.5` | `26.44.6` |
+| Viaplay | `26.42.1` | `26.44.0` |
+| Yahoo Sports | `12.27.0` | `12.28.1` |
+
+### 🗑️ Removed apps
+- Bluecoins
+- Duplila
+- LuckyClick
+- RareCam
+- Textra
+- Unified Remote
+- WiFi Analyzer
+
+### 🔧 Other
+- New: Add Jyllands-Posten and Politiken telemetry
+- New: Block WebView ads in Jyllands-Posten and Politiken
+- New: Add Disable telemetry
+- New: Add Disable telemetry
+- New: Add the PugPig papers Fyens, Stiften and JydskeVestkysten
+- New: Add Disable telemetry
+- New: Add Disable telemetry
+- Fixed: Shorten patch descriptions
+- Fixed: Apply Firebase telemetry switches in bytecode
+- New: Add row and category icons, collapsible sections and search
+- New: Show animation speed as one Normal/Faster/Off choice
+- New: Give spoiler-free its own section and plain names
+- New: Add a custom DNS-over-HTTPS resolver option
+- New: Add profiles, export and import
+- New: Add a one-tap Calm mode preset
+- New: Show AMOLED black as a read-only row in Sofascore and 365Scores
+- Fixed: Drop the WiFi Analyzer, Unified Remote and LuckyClick patches
+- Fixed: Drop RareCam, Duplila and four small Danish telemetry-only apps
+- Fixed: Drop the Textra and Bluecoins patches
+- Fixed: Keep the app's own WebViewClient when blocking ads
+- New: Make Patch settings easier to read and regroup the Sofascore sections
+- Fixed: Stop pinning Taskito's renamed class and make three optional anchors mandatory
+- Fixed: Use the checked smali helpers in Brave, Sofascore, Truecaller and WeMuslim
+- Fixed: Tighten the Truecaller tab-list guard and the WSJ section-ads match
+- Fixed: Correct the garbled app names L'Équipe and RTÉ News
+
+**Download:** [patches-2.3.0.mpp](https://github.com/heval99/Heval-Morphe-Patches/releases/download/v2.3.0/patches-2.3.0.mpp)
+
+## 2.3.0-dev.8 (2026-11-12)
+
+### 🔧 Other
+- Fixed: Correct the garbled app names L'Équipe and RTÉ News
+
+**Download:** [patches-2.3.0-dev.8.mpp](https://github.com/heval99/Heval-Morphe-Patches/releases/download/v2.3.0-dev.8/patches-2.3.0-dev.8.mpp)
+
+## 2.3.0-dev.7 (2026-11-12)
+
+### 📱 Digi Sport `1.1.15`
+- Fixed: Disable live stream ads is no longer experimental
+
+### 📱 FotMob `241.18134.20261030`
+- Fixed: AMOLED black no longer empties the league table rows
+- New: AMOLED black also darkens buttons, switches, popups, segmented tabs and predictor sheets
+
+### 📱 Sofascore `26.11.03`
+- New: Turn off video autoplay
+- New: Add a Turn off video autoplay switch
+
+### 📱 WeMuslim `3.5.5`
+- New: Hide shortcut promotions, Hide Ummah tab
+- New: Hide activity banners also hides the home pop-up and floating event icon
+
+### ⬆️ Updated apps
+| App | From | To |
+|---|---|---|
+| 365Scores | `15.0.0` | `15.0.1` |
+| Add Music | `9.5` | `9.6` |
+| BBC News | `2026.9.1` | `2026.10.0` |
+| BlueMail | `2.2.424` | `2.2.426` |
+| Brave Browser | `1.99.55` | `1.99.56` |
+| Business Calendar 2 | `2.55.8` | `2.56.0` |
+| Eurosport | `8.34.1` | `8.35.0` |
+| Fishing Points | `4.8.0` | `4.8.1` |
+| Flashscore | `26.11.4` | `26.11.6` |
+| Futbin | `27.11` | `27.13` |
+| GPS Map Camera Editor | `1.0.31` | `1.0.32` |
+| Hevy | `3.2.5` | `3.2.6` |
+| Interval Timer | `2.3.30` | `2.3.31` |
+| Jyllands Posten | `2026.09.24` | `2026.10.15` |
+| L'Ã‰quipe | `10.70.0` | `10.71.1` |
+| Librera | `10.0.22` | `10.0.31` |
+| Mango Launcher | `1.64` | `1.67` |
+| MyFitnessPal | `26.44.0` | `26.45.0` |
+| Niagara Launcher | `1.16.35` | `1.16.36` |
+| NotiAlarm | `1.3.29` | `1.3.31` |
+| OneFootball | `15.148.0` | `15.150.0` |
+| Pi Music Player | `3.2.1.0_release_1` | `3.2.3.0_release_1` |
+| Politiken | `4.1.4` | `4.1.5` |
+| Shazam | `16.66.0-261029` | `16.67.0-261105` |
+| Simple Radio | `6.3.0` | `6.3.1` |
+| Sofascore | `26.10.26` | `26.11.03` |
+| The Wall Street Journal | `15.12.0.42675` | `15.13.0.44249` |
+| Truecaller | `26.43.5` | `26.44.6` |
+| Viaplay | `26.42.1` | `26.44.0` |
+| Yahoo Sports | `12.27.0` | `12.28.1` |
+| YouSee Play | `13.11.0 (build 21977)` | `13.12.0 (build 22025)` |
+
+### 🗑️ Removed apps
+- Bluecoins
+- Duplila
+- Herning Folkeblad
+- Information
+- LuckyClick
+- RareCam
+- Textra
+- Tipsbladet
+- Unified Remote
+- Weekendavisen
+- WiFi Analyzer
+
+### 🔧 Other
+- Fixed: Drop the WiFi Analyzer, Unified Remote and LuckyClick patches
+- Fixed: Drop RareCam, Duplila and four small Danish telemetry-only apps
+- Fixed: Drop the Textra and Bluecoins patches
+- Fixed: Keep the app's own WebViewClient when blocking ads
+- New: Make Patch settings easier to read and regroup the Sofascore sections
+- Fixed: Stop pinning Taskito's renamed class and make three optional anchors mandatory
+- Fixed: Use the checked smali helpers in Brave, Sofascore, Truecaller and WeMuslim
+- Fixed: Tighten the Truecaller tab-list guard and the WSJ section-ads match
+
+**Download:** [patches-2.3.0-dev.7.mpp](https://github.com/heval99/Heval-Morphe-Patches/releases/download/v2.3.0-dev.7/patches-2.3.0-dev.7.mpp)
+
+## 2.3.0-dev.6 (2026-11-09)
+
+### 📱 FotMob `241.18134.20261030`
+- New: Make AMOLED black a Patch settings switch
+
+### 📱 Mango Launcher `1.64`
+- Fixed: Keep Pro unlocked after the Play Billing purchase query
+
+### 📱 Truecaller `26.43.5`
+- New: Hide promotions also turns off the Gold gift promo
+
+### ⬆️ Updated apps
+| App | From | To |
+|---|---|---|
+| DRTV | `4.39.0` | `4.40.4` |
+
+### 🔧 Other
+- New: Add profiles, export and import
+- New: Add a one-tap Calm mode preset
+- New: Show AMOLED black as a read-only row in Sofascore and 365Scores
+
+**Download:** [patches-2.3.0-dev.6.mpp](https://github.com/heval99/Heval-Morphe-Patches/releases/download/v2.3.0-dev.6/patches-2.3.0-dev.6.mpp)
+
+## 2.3.0-dev.5 (2026-11-09)
+
+### 📱 365Scores `15.0.0`
+- New: AMOLED black, Hide competitions, Hide countries, Patch settings
+- New: Add Patch settings with Spoiler-free switches
+
+### 📱 FotMob `241.18134.20261030`
+- New: AMOLED black
+
+### 📱 Sofascore `26.10.26`
+- New: AMOLED black
+
+### 🔧 Other
+- New: Add row and category icons, collapsible sections and search
+- New: Show animation speed as one Normal/Faster/Off choice
+- New: Give spoiler-free its own section and plain names
+- New: Add a custom DNS-over-HTTPS resolver option
+
+**Download:** [patches-2.3.0-dev.5.mpp](https://github.com/heval99/Heval-Morphe-Patches/releases/download/v2.3.0-dev.5/patches-2.3.0-dev.5.mpp)
+
+## 2.3.0-dev.4 (2026-11-09)
+
+### 📱 365Scores `15.0.0`
+- New: Spoiler-free mode
+
+### 📱 FotMob `241.18134.20261030`
+- New: Spoiler-free mode
+- New: Choose what Spoiler-free mode hides in Patch settings
+
+### 📱 Sofascore `26.10.26`
+- New: Spoiler-free mode
+- Fixed: Describe the spoiler-free master switch accurately
+
+### 📱 Truecaller `26.43.5`
+- New: Disable Who viewed me
+- New: Hide all referral offers, add Disable Who viewed me and more privacy switches
+
+### 🔧 Other
+- Fixed: Apply Firebase telemetry switches in bytecode
+
+**Download:** [patches-2.3.0-dev.4.mpp](https://github.com/heval99/Heval-Morphe-Patches/releases/download/v2.3.0-dev.4/patches-2.3.0-dev.4.mpp)
+
+## 2.3.0-dev.3 (2026-11-08)
+
+### 🆕 New apps
+- **Allente** `6.2.1.0` - Disable telemetry
+- **B.T.** `4.5.8` - Disable ads, Disable telemetry
+- **Berlingske** `4.5.8` - Disable ads, Disable telemetry
+- **Blockbuster** `7.1.27` - Disable telemetry
+- **Ekstra Bladet** `2026.09.20` - Disable telemetry
+- **Fyens Stiftstidende** `15.32` - Disable ads, Disable telemetry, Unlock articles
+- **Herning Folkeblad** `15.0.0` - Disable telemetry
+- **Information** `4.37.0` - Disable telemetry
+- **JydskeVestkysten** `15.32` - Disable ads, Disable telemetry, Unlock articles
+- **Jyllands Posten** `2026.09.24` - Disable ads, Disable telemetry
+- **Nordisk Film+** `1.5.4` - Disable telemetry
+- **Nordjyske** `8.0.17` - Disable ads, Disable telemetry, Unlock articles
+- **Politiken** `4.1.4` - Disable ads, Disable telemetry
+- **Tipsbladet** `6.0` - Disable telemetry
+- **TV 2 Nyheder** `2026.10-10188:RELEASE` - Disable ads, Disable telemetry
+- **TV 2 Play** `2026.10-1` - Disable telemetry
+- **Weekendavisen** `8.4.0` - Disable telemetry
+- **YouSee Play** `13.11.0 (build 21977)` - Disable telemetry
+- **Århus Stiftstidende** `15.32` - Disable ads, Disable telemetry, Unlock articles
+
+### 📱 Sofascore `26.10.26`
+- New: Unlock developer options
+
+### 🔧 Other
+- New: Add Jyllands-Posten and Politiken telemetry
+- New: Block WebView ads in Jyllands-Posten and Politiken
+- New: Add the PugPig papers Fyens, Stiften and JydskeVestkysten
+- Fixed: Shorten patch descriptions
+
+**Download:** [patches-2.3.0-dev.3.mpp](https://github.com/heval99/Heval-Morphe-Patches/releases/download/v2.3.0-dev.3/patches-2.3.0-dev.3.mpp)
+
+## 2.3.0-dev.2 (2026-11-07)
+
+### 🆕 New apps
+- **EX File Manager** `1.6.2` - Disable ads, Disable telemetry, Enable Premium
+
+### 📱 Add Music `9.5`
+- Fixed: Guard the premium result override
+
+### 📱 Firefox Focus `159.0.1`
+- Fixed: Keep the page clear of the bottom address bar
+
+### 📱 Flashscore `26.11.4`
+- Fixed: Finish Use system font and tidy the new patches
+- Fixed: Keep bold text bold and blend the navigation bar area
+- Removed: Use system font (styles)
+
+### 📱 Sofascore `26.10.26`
+- New: Disable update prompts, Hide main tabs, Hide match chat
+
+### 📱 Truecaller `26.43.5`
+- Fixed: Keep Privacy defaults to its own settings
+- Fixed: Turn Hide poor network warning on once selected
+- New: Show the caller number for contacts too
+
+### 📱 WeMuslim `3.5.5`
+- New: Hide activity banners
+
+### ⬆️ Updated apps
+| App | From | To |
+|---|---|---|
+| 433 | `2.3.585` | `2.3.608` |
+| BlueMail | `2.2.418` | `2.2.424` |
+| Brave Browser | `1.98.63` | `1.99.55` |
+| CREX | `26.10.09` | `26.11.01` |
+| Easy Homescreen | `1.10.29` | `1.10.31` |
+| Firefox | `159.0` | `159.0.1` |
+| Futbin | `27.10` | `27.11` |
+| Hevy | `3.2.4` | `3.2.5` |
+| Hyperion Launcher | `2.2.14` | `2.2.16` |
+| Livescore | `10.4` | `10.4.1` |
+| Taskito | `1.3.3` | `1.3.4` |
+
+**Download:** [patches-2.3.0-dev.2.mpp](https://github.com/heval99/Heval-Morphe-Patches/releases/download/v2.3.0-dev.2/patches-2.3.0-dev.2.mpp)
+
+## 2.3.0-dev.1 (2026-11-06)
+
+### 🆕 New apps
+- **Add Music** `9.5` - Enable Premium
+- **NotiAlarm** `1.3.29` - Disable license check, Enable Premium
+
+### 📱 Firefox Focus `159.0.1`
+- New: Move address bar to the bottom
+
+### 📱 Flashscore `26.11.4`
+- New: Animation speed, Block marketing notifications, Force edge-to-edge, Patch settings, Spoof signature, Use system font, Use system font (styles)
+
+### 📱 FotMob `241.18134.20261030`
+- New: Show FotMob+ logo
+
+### 📱 Niagara Launcher `1.16.35`
+- New: Fix home screen numbers tile
+
+### 📱 Truecaller `26.43.5`
+- New: Hide poor network warning, Privacy defaults, Turn off Ad Campaign Analytics
+- New: Add poor network and ad campaign analytics controls
+
+**Download:** [patches-2.3.0-dev.1.mpp](https://github.com/heval99/Heval-Morphe-Patches/releases/download/v2.3.0-dev.1/patches-2.3.0-dev.1.mpp)
+
 ## 2.2.0 (2026-11-04)
 
 ### 🆕 New apps

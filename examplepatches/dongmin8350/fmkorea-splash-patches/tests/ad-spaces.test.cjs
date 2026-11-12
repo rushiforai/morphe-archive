@@ -21,10 +21,23 @@ const wait = () => new Promise(resolve => setTimeout(resolve, 100));
     <div id="spacer" style="display:block !important;visibility:hidden;height:80px;min-height:80px;margin:10px;padding:5px"></div>
 
     <div class="power_ad" id="class-ad">Advertisement</div>
+    <div class="fmad_wrapper" id="fmad-wrapper">
+      <div id="fmad_123"></div>
+      <div id="fmad-spacer" class="slot" style="height:250px"></div>
+    </div>
+    <div class="adpost" id="adpost">Ad post</div>
     <ins class="adsbygoogle" id="adsbygoogle" style="height:100px">Google ad</ins>
     <div class="bd_mobile bd" id="ad-wrapper" style="margin:0px;padding:0px">
       <iframe id="ad-frame" src="https://ad.doubleclick.net/example"></iframe>
     </div>
+
+    <div id="top-ad-shell" style="height:100px">
+      <div id="top-ad-inner">
+        <iframe id="top-loader-ad" src="https://loader.fmkorea.com/_loader/loader.php?slot=top"></iframe>
+      </div>
+    </div>
+    <iframe id="adpage-frame" src="https://m.fmkorea.com/_adpage/top"></iframe>
+    <iframe id="loader2-frame" src="https://loader2.fmkorea.com/_myphp/adpost/content_new.php"></iframe>
 
     <script></script>
     <div class="bd_mobile bd" id="mobile-ad-space" style="margin: 0px 5px; padding: 3px"></div>
@@ -71,9 +84,17 @@ const wait = () => new Promise(resolve => setTimeout(resolve, 100));
   for (const id of [
     'spacer',
     'class-ad',
+    'fmad-wrapper',
+    'fmad-spacer',
+    'adpost',
     'adsbygoogle',
     'ad-frame',
     'ad-wrapper',
+    'top-loader-ad',
+    'top-ad-inner',
+    'top-ad-shell',
+    'adpage-frame',
+    'loader2-frame',
     'mobile-ad-space',
     'widget-ad-space',
     'footer-gap'
@@ -105,7 +126,7 @@ const wait = () => new Promise(resolve => setTimeout(resolve, 100));
   assert.equal(dynamicSpacer.style.display, 'none', 'late spacer must collapse');
 
   w.eval(script);
-  assert.equal(d.querySelectorAll('#dongmin-fmkorea-ad-spaces-style-v12').length, 1, 'duplicate injection must be ignored');
+  assert.equal(d.querySelectorAll('#dongmin-fmkorea-ad-spaces-style-v134').length, 1, 'duplicate injection must be ignored');
 
   observers.forEach(observer => observer.disconnect());
   await wait();
@@ -123,7 +144,7 @@ const wait = () => new Promise(resolve => setTimeout(resolve, 100));
   );
   external.window.close();
 
-  console.log('PASS: AdGuard-free ad removal, mobile container collapse, power-link suppression, footer-gap cleanup, dynamic ads, protected content, and domain guard');
+  console.log('PASS: AdGuard-free ad removal, FMKorea top-loader ad collapse, mobile container collapse, power-link suppression, footer-gap cleanup, dynamic ads, protected content, and domain guard');
 })().catch(error => {
   console.error(error);
   process.exitCode = 1;

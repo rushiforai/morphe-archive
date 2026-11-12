@@ -6,6 +6,10 @@ import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.returnEarly
+import app.template.patches.shared.cert.extractApkCertificatePatch
+import app.template.patches.shared.firebase.spoofFirebaseCertHashPatch
+import app.template.patches.shared.installer.spoofInstallSourcePatch
+import app.template.patches.shared.signature.spoofSignatureVerificationPatch
 
 private val THEMEZY = Compatibility(
     name = "Themezy",
@@ -49,12 +53,19 @@ private object DownloadEntityIsUnlocked : Fingerprint(
 
 @Suppress("unused")
 val unlockLocalPatch = bytecodePatch(
-    name = "Unlock Local",
-    description = "Marks icons, wallpapers and widgets as unlocked so only Add/Apply shows, never Unlock.",
+    name = "Unlock premium",
+    description = "Unlocks premium content.",
     default = true,
 ) {
     compatibleWith(THEMEZY)
 
+    dependsOn(
+        disablePairipPatch,
+        extractApkCertificatePatch,
+        spoofFirebaseCertHashPatch,
+        spoofInstallSourcePatch,
+        spoofSignatureVerificationPatch,
+    )
     execute {
         IconIsUnlocked.method.returnEarly(true)
         WallpaperIsUnlocked.method.returnEarly(true)

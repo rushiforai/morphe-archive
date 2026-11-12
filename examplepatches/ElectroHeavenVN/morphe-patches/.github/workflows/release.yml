@@ -39,7 +39,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           mkdir -p patches/src/main/resources/modules
-          gh release download --repo ElectroHeavenVN/ZaloXposed --pattern "*.apk" --output /tmp/zaloxposed.apk --clobber
+          TAG_FLAG=""
+          if [ "${{ github.ref_name }}" = "dev" ]; then
+            TAG_FLAG="nightly"
+          fi
+          gh release download $TAG_FLAG --repo ElectroHeavenVN/ZaloXposed --pattern "*.apk" --output /tmp/zaloxposed.apk --clobber
 
       - name: Patch ZaloXposed APK and sign
         env:
@@ -88,10 +92,11 @@ jobs:
       # Semantic release runs its own Gradle build command.
       # Only dev and main branch will generate a release as specified by .releaserc
       - name: Release
-        uses: cycjimmy/semantic-release-action@v6
+        uses: cycjimmy/semantic-release-action@v8
         id: release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MORPHE_SIGNING_KEY: ${{ secrets.MORPHE_SIGNING_KEY }}
 
       - name: Attest
         if: steps.release.outputs.new_release_published == 'true'

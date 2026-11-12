@@ -216,6 +216,96 @@ public final class SofascoreControls {
     }
 
     // ---------------------------------------------------------------------------------------
+    // Match chat: the "Chat" button (an ExtendedFloatingActionButton with the id
+    // floating_action_button) on match, league, team and stage pages.
+    // ---------------------------------------------------------------------------------------
+
+    static final String HIDE_MATCH_CHAT = "sofascore.hide_match_chat";
+
+    private static int chatButtonId;
+
+    /** The chat buttons already kept hidden, so each gets one guard. */
+    private static final java.util.Map<android.view.View, Boolean> GUARDED = new java.util.WeakHashMap<>();
+
+    private static boolean isChatButton(android.view.View view) {
+        if (chatButtonId == 0) {
+            android.content.Context context = view.getContext();
+            int id = context.getResources().getIdentifier("floating_action_button", "id", context.getPackageName());
+            chatButtonId = id != 0 ? id : -1;
+        }
+        return chatButtonId != -1 && view.getId() == chatButtonId;
+    }
+
+    /**
+     * Patched in at the start of the chat button helper (which shows the button and sets its click
+     * listener) and of the button's show/hide/extend/shrink motion: true makes the caller return at
+     * once. While the switch is on, the chat button is set GONE and a pre-draw guard keeps it GONE
+     * against the pages that also set its visibility directly. Other buttons and the switch off:
+     * false (stock).
+     */
+    public static boolean hideChatButton(android.view.View view) {
+        try {
+            if (view == null || !HevalSettings.isEnabled(HIDE_MATCH_CHAT) || !isChatButton(view)) return false;
+            view.setVisibility(android.view.View.GONE);
+            synchronized (GUARDED) {
+                if (GUARDED.put(view, Boolean.TRUE) == null) {
+                    final java.lang.ref.WeakReference<android.view.View> ref = new java.lang.ref.WeakReference<>(view);
+                    view.getViewTreeObserver().addOnPreDrawListener(new android.view.ViewTreeObserver.OnPreDrawListener() {
+                        @Override
+                        public boolean onPreDraw() {
+                            android.view.View button = ref.get();
+                            if (button == null || button.getVisibility() == android.view.View.GONE) return true;
+                            button.setVisibility(android.view.View.GONE);
+                            return false;
+                        }
+                    });
+                }
+            }
+            return true;
+        } catch (Throwable failure) {
+            HevalSettings.reportFailure(HIDE_MATCH_CHAT, failure);
+            return false;
+        }
+    }
+
+    // ---------------------------------------------------------------------------------------
+    // Main tabs: the bottom bar of the main screen (its tab enum constants, by name).
+    // ---------------------------------------------------------------------------------------
+
+    /** The feature of the main tab constant {@code name}, or null (a switch, see modalFeature). */
+    static String mainTabFeature(String name) {
+        switch (name) {
+            case "FAVORITES": return "sofascore.hide_main_tab_favorites";
+            case "FEED": return "sofascore.hide_main_tab_feed";
+            case "FANTASY": return "sofascore.hide_main_tab_fantasy";
+            case "FEATURED_TOURNAMENT":
+            case "WORLD_CUP": return "sofascore.hide_main_tab_featured";
+            default: return null;
+        }
+    }
+
+    /**
+     * Patched in before the main tab list is returned: drops the tabs whose switch is on. The sport
+     * tab has no switch, so the list never ends up empty. Opening a dropped tab (a notification or
+     * link) finds no page for it and stays on the current tab.
+     */
+    public static java.util.ArrayList<Object> filterMainTabs(java.util.ArrayList<Object> tabs) {
+        if (tabs == null) return null;
+        try {
+            java.util.Iterator<Object> iterator = tabs.iterator();
+            while (iterator.hasNext()) {
+                Object tab = iterator.next();
+                if (!(tab instanceof Enum)) continue;
+                String feature = mainTabFeature(((Enum<?>) tab).name());
+                if (feature != null && tabs.size() > 1 && HevalSettings.isEnabled(feature)) iterator.remove();
+            }
+        } catch (Throwable failure) {
+            HevalSettings.reportFailure("sofascore.hide_main_tab", failure);
+        }
+        return tabs;
+    }
+
+    // ---------------------------------------------------------------------------------------
     // Widgets: the periodic refresh work.
     // ---------------------------------------------------------------------------------------
 

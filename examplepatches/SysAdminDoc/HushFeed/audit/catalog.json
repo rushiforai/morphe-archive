@@ -1382,6 +1382,12 @@
     "default": false,
     "type": "bool",
     "row": "Show the block sound button"
+   },
+   {
+    "key": "pause_before_feed_seconds",
+    "default": 0,
+    "type": "int",
+    "row": "Pause before the feed"
    }
   ],
   "surface": "feed",
@@ -1489,6 +1495,56 @@
      }
     ],
     "auto": true
+   },
+   {
+    "id": "pause-before-feed",
+    "what": "Review: with Pause before the feed at 10 seconds, a restart opens For You behind a countdown with Continue dimmed until the count ends; Continue then lets the feed play. At 0 the feed opens as stock.",
+    "steps": [
+     {
+      "set": {
+       "pause_before_feed_seconds": "10"
+      }
+     },
+     {
+      "restart": true
+     },
+     {
+      "open": "feed"
+     },
+     {
+      "wait": 2500
+     },
+     {
+      "shot": "pause-before-feed",
+      "review": "For You covered by a dark panel titled 'Pause before the feed' with a seconds count, a dimmed Continue and a Leave TikTok button; the tab bar stays visible under it and nothing plays. Failing looks like the feed playing with no panel."
+     },
+     {
+      "wait": 9000
+     },
+     {
+      "shot": "pause-before-feed-done",
+      "review": "Same panel after the count: it reads 'You can continue now.' and Continue is at full brightness. Do not tap Leave TikTok."
+     },
+     {
+      "set": {
+       "pause_before_feed_seconds": "0"
+      }
+     },
+     {
+      "restart": true
+     },
+     {
+      "open": "feed"
+     },
+     {
+      "wait": 2500
+     },
+     {
+      "shot": "pause-before-feed-off",
+      "review": "At 0 the feed opens and plays with no panel."
+     }
+    ],
+    "auto": false
    }
   ],
   "notes": "The buttons are never pressed (a press sends a real block request). Hide this creator and Block this sound need the Feed filter patch in the build (SettingsStatus.feedFilterEnabled, BlockAuthorOverlay.java:setFeedVisible), true on an all-patches APK. The sound button also needs a usable sound on the current video and the overlay only shows on the recommendation feed with no comment sheet open, so a sound-less first video (a photo post or LIVE) can make that one finddesc fail; swipe once and rerun. The probe set for block_author_button runs the overlay refresh itself, the restart is for the other two switches."
@@ -3303,7 +3359,9 @@
   "source": [
    "patches/src/main/kotlin/app/morphe/patches/tiktok/interaction/offlinevideos/CustomOfflineVideosLimitPatch.kt",
    "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/offline/CustomOfflineVideosLimitPatch.java",
-   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/offline/OfflineVideoExpiry.java"
+   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/offline/OfflineVideoExpiry.java",
+   "patches/src/main/kotlin/app/morphe/patches/tiktok/interaction/offlinevideos/OfflineWatchedDelete.kt",
+   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/offline/OfflineWatchedDelete.java"
   ],
   "settings": [
    {
@@ -3325,6 +3383,13 @@
     "default": false,
     "type": "bool",
     "row": "Keep offline videos until you delete them",
+    "restart": true
+   },
+   {
+    "key": "delete_watched_offline_videos",
+    "default": false,
+    "type": "bool",
+    "row": "Delete watched offline videos",
     "restart": true
    }
   ],
@@ -3407,6 +3472,43 @@
      {
       "probe": "report",
       "expect": "registered_switches:[^\\n]*\\bkeepOfflineVideos\\b"
+     },
+     {
+      "probe": "report",
+      "expect": "registered_switches:[^\\n]*\\bofflineWatchedDelete\\b"
+     }
+    ],
+    "auto": true
+   },
+   {
+    "id": "watched-delete",
+    "what": "With Delete watched offline videos on, TikTok's watched-video clean-up runs at start (HookStatus 'offline watched delete').",
+    "steps": [
+     {
+      "set": {
+       "delete_watched_offline_videos": "true"
+      }
+     },
+     {
+      "restart": true
+     },
+     {
+      "open": "feed"
+     },
+     {
+      "wait": 4000
+     },
+     {
+      "probe": "hookdetails",
+      "extras": {
+       "family": "offline watched delete"
+      },
+      "expect": "deleted watched|nothing watched|skipped while playing offline"
+     },
+     {
+      "set": {
+       "delete_watched_offline_videos": "false"
+      }
      }
     ],
     "auto": true
@@ -4887,6 +4989,8 @@
    "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/feedfilter/LiveFilter.java",
    "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/feedfilter/ContentMarkerFilters.java",
    "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/feedfilter/KeywordRules.java",
+   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/feedfilter/SearchTabs.java",
+   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/settings/preference/SearchTabChecklistPreference.java",
    "extensions/shared/library/src/main/java/app/morphe/extension/shared/diagnostics/FeedFilterCounters.java"
   ],
   "settings": [
@@ -5053,10 +5157,70 @@
     "default": false,
     "type": "bool",
     "row": "Show how many were filtered"
+   },
+   {
+    "key": "search_tab_picks",
+    "default": "",
+    "type": "string",
+    "row": "Hide search result tabs"
+   },
+   {
+    "key": "search_tab_catalog",
+    "default": "",
+    "type": "string",
+    "row": "(internal list behind the Hide search result tabs checklist, no row)"
    }
   ],
   "surface": "feed",
   "checks": [
+   {
+    "id": "search-tabs-hidden",
+    "what": "With Shop, LIVE and Places picked in Hide search result tabs, a search reports the picked tabs hidden (Hook status 'search tabs' says 'picked tabs hidden') and the catalog behind the checklist holds the served tabs. The strip is read on every search, so no restart.",
+    "steps": [
+     {
+      "set": {
+       "search_tab_picks": "shop,live,place"
+      }
+     },
+     {
+      "open": "search:cats"
+     },
+     {
+      "wait": 4000
+     },
+     {
+      "probe": "hookdetails",
+      "extras": {
+       "family": "search tabs"
+      },
+      "expect": "^hookdetail search tabs ",
+      "precondition": true
+     },
+     {
+      "probe": "hookdetails",
+      "extras": {
+       "family": "search tabs"
+      },
+      "expect": "^hookdetail search tabs bound=\\[[^\\]]*picked tabs hidden"
+     },
+     {
+      "probe": "get",
+      "extras": {
+       "key": "search_tab_catalog"
+      },
+      "expect": "ok get search_tab_catalog=\\S"
+     },
+     {
+      "back": true
+     },
+     {
+      "set": {
+       "search_tab_picks": ""
+      }
+     }
+    ],
+    "auto": true
+   },
    {
     "id": "ads-removed",
     "what": "With Remove feed ads on, none of eight videos swiped through is a native or soft ad, and the filter's counters show the main feed route ran.",

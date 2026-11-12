@@ -27,7 +27,31 @@ public sealed class Phone
         FolderPicker = new FolderPicker(driver);
         Clipboard = new Clipboard(driver);
         BaconReader = new BaconReaderApp(driver, Launcher, patches, noteAppShown);
+        Chrome = new Chrome.ChromeApp(driver);
+        MorpheManager = new MorpheManager.MorpheManagerApp(driver);
+        FilePicker = new FilePicker(driver);
+        InstallUnknownApps = new InstallUnknownApps(driver);
+        PackageInstaller = new PackageInstaller(driver);
+        NotificationPermission = new NotificationPermission(driver);
     }
+
+    /// <summary>Chrome, the phone's browser.</summary>
+    public Chrome.ChromeApp Chrome { get; }
+
+    /// <summary>Morphe Manager, the patcher's app, for a Manager scenario.</summary>
+    public MorpheManager.MorpheManagerApp MorpheManager { get; }
+
+    /// <summary>Android's file picker, which an app opens to be given a file.</summary>
+    public FilePicker FilePicker { get; }
+
+    /// <summary>Android's permission for an app to install apps: "Permission required", then "Install unknown apps".</summary>
+    public InstallUnknownApps InstallUnknownApps { get; }
+
+    /// <summary>Android's package installer: "Install this app?".</summary>
+    public PackageInstaller PackageInstaller { get; }
+
+    /// <summary>Android's "Allow BaconReader Premium to send you notifications?".</summary>
+    public NotificationPermission NotificationPermission { get; }
 
     /// <summary>Android's launcher: opens an app, as tapping its icon does.</summary>
     public Launcher Launcher { get; }

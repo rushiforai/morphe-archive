@@ -222,8 +222,11 @@ public final class SduiComponentFilter {
         boolean expandPosts = Settings.expandPosts();
         boolean viewer = Settings.viewerTapToHide();
         boolean postMenu = Settings.postMenu();
-        if (!expandPosts && !viewer && !postMenu) return component;
+        boolean copyPostText = Settings.copyPostText();
+        if (!expandPosts && !viewer && !postMenu && !copyPostText) return component;
         String viewName = viewName(component);
+        // Before the transform builds this component's ClickActions, which the copy hook then replaces.
+        if (copyPostText) CopyPostText.onComponent(component, viewName);
         if (expandPosts && COMMENTARY.equals(viewName)) {
             try {
                 byte[] bytes = payload(component);

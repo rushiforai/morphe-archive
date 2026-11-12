@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 JoanComasFdz
 // SPDX-License-Identifier: GPL-3.0-only
 
+using System.Drawing;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Appium.Android;
 
@@ -39,11 +40,28 @@ public sealed class ImgurGalleryViewer(AndroidDriver driver)
     /// <summary>Taps the arrow to the image after.</summary>
     public Task ClickNextAsync() => OnScreen.PressAsync(driver, Forward);
 
+    /// <summary>Swipes left on the album's image ("Swipe through albums"), which goes to the item after.</summary>
+    public Task SwipeLeftOnTheImageAsync() => OnScreen.DoAsync(driver, () => AlbumGestures.Swipe(driver, Shown(Image), toTheLeft: true));
+
+    /// <summary>Swipes right on the album's image ("Swipe through albums"), which goes to the item before.</summary>
+    public Task SwipeRightOnTheImageAsync() => OnScreen.DoAsync(driver, () => AlbumGestures.Swipe(driver, Shown(Image), toTheLeft: false));
+
+    /// <summary>Swipes right on the album's video ("Swipe through albums"), which goes to the item before.</summary>
+    public Task SwipeRightOnTheVideoAsync() => OnScreen.DoAsync(driver, () => AlbumGestures.Swipe(driver, Shown(Player), toTheLeft: false));
+
     /// <summary>Taps Android's Back, which closes the album and goes back to the post.</summary>
     public Task ClickBackAsync() => OnScreen.PressBackAsync(driver);
 
     /// <summary>What the album shows: its image or its video, its thumbnails and their play badges, and its arrows.</summary>
     public Task<ImgurGalleryViewerSnapshot> ReadAsync() => OnScreen.ReadAsync(driver, Read);
+
+    // Where the album's image or video is on the screen: the view above the strip, whose thumbnails are images too.
+    private Rectangle Shown(By view)
+    {
+        var top = driver.FindElements(Strip).FirstOrDefault()?.Location.Y ?? int.MaxValue;
+        var shown = driver.FindElements(view).First(found => found.Size.Height > 0 && found.Location.Y + found.Size.Height <= top);
+        return new Rectangle(shown.Location, shown.Size);
+    }
 
     private ImgurGalleryViewerSnapshot Read()
     {

@@ -14,8 +14,9 @@ internal const val RATING_MODAL = "Rating Info"
 
 internal val DISABLE_RATING_PROMPTS = HevalFeature(
     id = "sofascore.disable_rating_prompts",
-    name = "Disable rating prompts",
-    description = "Disables the rating prompt.",
+    calm = true,
+    name = "Hide rating requests",
+    description = "Stops the app asking you to rate it.",
     category = SofascoreControlsCategory.POPUPS,
 )
 
@@ -23,6 +24,9 @@ internal val DISABLE_RATING_PROMPTS = HevalFeature(
 @Suppress("unused")
 val disableRatingPromptsPatch = sofascoreControls.featurePatch(
     DISABLE_RATING_PROMPTS,
+    // The Manager patch keeps its name and description; only the Patch settings row was reworded (2026-11-11).
+    name = "Disable rating prompts",
+    description = "Disables the rating prompt.",
     dependencies = setOf(modalQueueHookPatch),
 ) {
     // The rating dialog is a startup modal: the queue's evaluator answers "not eligible" for

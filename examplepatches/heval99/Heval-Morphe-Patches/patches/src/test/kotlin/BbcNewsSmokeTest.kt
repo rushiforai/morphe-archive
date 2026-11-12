@@ -39,7 +39,7 @@ class BbcNewsSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "2026.9.1",
+            version = "2026.10.0",
             patchNames = setOf("Disable ads"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

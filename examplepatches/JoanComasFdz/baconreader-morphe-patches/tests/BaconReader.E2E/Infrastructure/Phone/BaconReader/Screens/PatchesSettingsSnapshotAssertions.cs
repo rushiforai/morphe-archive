@@ -39,4 +39,22 @@ public static class PatchesSettingsSnapshotAssertions
         Assert.True(setting.On, $"The setting \"{setting.Setting.ToShownText()}\" is off, but on was expected.");
         return that;
     }
+
+    /// <summary>The setting's switch is off.</summary>
+    public static AssertingThat<PatchSettingSwitchSnapshot> IsOff(this AssertingThat<PatchSettingSwitchSnapshot> that)
+    {
+        var setting = that.InstanceToAssert;
+        Assert.False(setting.On, $"The setting \"{setting.Setting.ToShownText()}\" is on, but off was expected.");
+        return that;
+    }
+
+    /// <summary>The setting shows under its section's title.</summary>
+    public static AssertingThat<PatchSettingPlaceSnapshot> ShowsUnderItsSection(this AssertingThat<PatchSettingPlaceSnapshot> that)
+    {
+        var place = that.InstanceToAssert;
+        Assert.True(
+            place.Under,
+            $"The settings don't show \"{place.Setting.ToShownText()}\" under \"{place.Section.ToShownText()}\", but it was expected.");
+        return that;
+    }
 }

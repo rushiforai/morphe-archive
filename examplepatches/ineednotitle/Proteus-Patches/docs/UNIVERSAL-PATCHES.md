@@ -79,3 +79,55 @@ In v2.2.1, AdServices was removed even with a custom legacy list; the new switch
 can explicitly disable that behavior. The keep list always takes precedence.
 After changing options, patch a fresh original APK rather than assuming a
 previously patched APK will regain removed declarations.
+
+## v2.2.10 re-cut #4 universal changes
+
+### Removed universal patches
+
+- **Change package name (clone app)** — use the official Morphe **Clone app**
+  patch instead.
+- **Force not debuggable** — release APKs are already non-debuggable.
+- **Lock down exported components** — too likely to break explicit intents.
+
+### Hidden dependency patches
+
+**Spoof app signature** and **Spoof install source** are no longer listed in the
+universal section because official Morphe provides equivalent patches. Their
+implementations remain available to app-specific patches that depend on them.
+Use the official Morphe patches if you need them as standalone universal
+patches.
+
+### WebView hardening
+
+The three separate WebView patches are replaced by **WebView hardening** with
+individual switches:
+
+- block mixed content
+- disable local file access
+- remove JavaScript bridges
+- block media autoplay
+- disable geolocation
+- block third-party cookies
+- block JavaScript popups
+
+All switches start on. Turn off the ones that break a web login or legacy web
+flow.
+
+### New opt-in patches
+
+- **Block advertising & device IDs** — empty advertising ID, limited ad
+  tracking and empty Android ID reads.
+- **Block in-app update & review prompts** — reports no Play Core update and
+  removes update/review flows when safe. Best effort.
+- **Block crash-reporting SDKs** — removes Sentry, Crashlytics, Bugsnag,
+  Datadog, New Relic and AppCenter reporting calls. Best effort.
+- **Force offline mode (simulate no network)** — makes connectivity APIs report
+  no active network. This is a simulation, not a firewall; sockets and HTTP
+  clients that ignore connectivity state can still reach the network.
+- **Block Play Billing purchase prompts** — removes Play Billing purchase-flow
+  calls when their result is unused. It does **not** unlock paid features or
+  fake purchases, and flows that consume the returned `BillingResult` are
+  skipped.
+
+These patches are heuristic and opt-in. They are not a guarantee of privacy,
+offline enforcement or purchase protection.

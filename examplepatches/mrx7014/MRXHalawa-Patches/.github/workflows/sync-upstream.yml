@@ -1,0 +1,183 @@
+name: Sync upstream Morphe patches
+
+on:
+  workflow_dispatch:
+    inputs:
+      upstream_ref:
+        description: "Upstream branch or tag to merge"
+        required: false
+        default: "main"
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout target repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Merge upstream and preserve MRX custom patches
+        env:
+          UPSTREAM_REF: ${{ inputs.upstream_ref }}
+        run: |
+          set -euo pipefail
+          base_sha="$(git rev-parse HEAD)"
+          git remote add upstream https://github.com/MorpheApp/morphe-patches.git
+          git fetch --no-tags upstream "$UPSTREAM_REF"
+          branch="sync/upstream-${UPSTREAM_REF//\//-}-$(date -u +%Y%m%d%H%M%S)"
+          git switch -c "$branch"
+
+          git show HEAD:patches-list.json > /tmp/mrx-patches-list.json
+          git show HEAD:patches/src/main/resources/addresources/values/youtube/strings.xml > /tmp/mrx-youtube-strings.xml
+
+          # Upstream wins ordinary conflicts; MRX-owned files and catalog entries are restored below.
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" merge --no-ff -X theirs --no-edit "upstream/$UPSTREAM_REF"
+
+          # Protect MRX custom patch source files from future upstream changes or deletions.
+          git checkout "$base_sha" -- \
+            extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/components/BlockChannelsFilter.java \
+            extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/components/ChannelPageFlyoutFilter.java \
+            patches/src/main/kotlin/app/morphe/patches/youtube/layout/hide/blockchannels/BlockChannelsPatch.kt \
+            extensions/reddit/src/main/java/app/morphe/extension/reddit/patches/RemoveEnableNSFWButtonPatch.java \
+            patches/src/main/kotlin/app/morphe/patches/reddit/layout/nsfw/RemoveEnableNSFWButtonPatch.kt \
+            extensions/shared-youtube/library/src/main/java/app/morphe/extension/shared/patches/BaseSettingsMenuFilter.java
+
+          # YouTube Music is intentionally excluded from MRX. Enforce that on every sync.
+          rm -rf extensions/music patches/src/main/kotlin/app/morphe/patches/music patches/src/test/kotlin/app/morphe/patches/music
+          find patches/src/main/resources -type d -name music -prune -exec rm -rf {} +
+          rm -f extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/OverrideYouTubeMusicButtonsPatch.java
+          rm -f patches/src/main/kotlin/app/morphe/patches/youtube/layout/music/OverrideYouTubeMusicButtonsPatch.kt
+          rm -f extensions/reddit/src/main/java/app/morphe/extension/reddit/patches/RedgifsAudioPatch.java
+          rm -rf patches/src/main/kotlin/app/morphe/patches/reddit/misc/redgifs
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+
+          # Remove Redgifs settings and its preference block if upstream reintroduces them.
+          settings = Path('extensions/reddit/src/main/java/app/morphe/extension/reddit/settings/Settings.java')
+          text = settings.read_text()
+          text = re.sub(r'^\s*public static final BooleanSetting REDGIFS_(?:AUDIO|HD) = .*\n', '', text, flags=re.M)
+          settings.write_text(text)
+
+          category = Path('extensions/reddit/src/main/java/app/morphe/extension/reddit/settings/preference/categories/MiscellaneousPreferenceCategory.java')
+          text = category.read_text()
+          text = re.sub(r'\s*if \(RedgifsAudioPatch\.isPatchIncluded\(\)\) \{.*?\n\s*\}\n', '\n', text, flags=re.S)
+          text = text.replace('                RedgifsAudioPatch.isPatchIncluded() ||\n', '')
+          category.write_text(text)
+
+          # Remove translated Redgifs strings.
+          for path in Path('patches/src/main/resources/addresources').glob('values*/reddit/strings.xml'):
+              lines = [line for line in path.read_text().splitlines()
+                       if 'morphe_redgifs_' not in line]
+              path.write_text('\n'.join(lines) + '\n')
+
+          # The YouTube Music-only validation task must not survive removal of that module.
+          build = Path('patches/build.gradle.kts')
+          text = build.read_text()
+          text = re.sub(r'    register<JavaExec>\("validateJam"\) \{.*?\n    \}\n', '', text, flags=re.S)
+          build.write_text(text)
+          PY
+
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          ours = json.loads(Path('/tmp/mrx-patches-list.json').read_text())
+          current_path = Path('patches-list.json')
+          current = json.loads(current_path.read_text())
+          custom_names = {'Block Channel', 'Remove Enable NSFW button'}
+
+          def find_custom(value):
+              result = []
+              if isinstance(value, dict):
+                  if value.get('name') in custom_names:
+                      result.append(value)
+                  for child in value.values():
+                      result.extend(find_custom(child))
+              elif isinstance(value, list):
+                  for child in value:
+                      result.extend(find_custom(child))
+              return result
+
+          def find_patch_list(value):
+              if isinstance(value, dict):
+                  if isinstance(value.get('patches'), list):
+                      return value['patches']
+                  for child in value.values():
+                      result = find_patch_list(child)
+                      if result is not None:
+                          return result
+              elif isinstance(value, list):
+                  for child in value:
+                      result = find_patch_list(child)
+                      if result is not None:
+                          return result
+              return None
+
+          filtered = []
+          for patch in current['patches']:
+              original = patch.get('compatiblePackages', [])
+              packages = [entry for entry in original
+                          if entry.get('packageName') != 'com.google.android.apps.youtube.music']
+              patch['compatiblePackages'] = packages
+              if packages or not original:
+                  filtered.append(patch)
+          current['patches'] = [p for p in filtered if p.get('name') not in {'Override YouTube Music buttons', 'Redgifs audio'}]
+
+          patches = find_patch_list(current)
+          existing = {p.get('name') for p in patches}
+          for custom in find_custom(ours):
+              if custom.get('name') not in existing:
+                  index = next((i for i, p in enumerate(patches)
+                                if p.get('name', '') > custom.get('name', '')), len(patches))
+                  patches.insert(index, custom)
+                  existing.add(custom.get('name'))
+          current_path.write_text(json.dumps(current, ensure_ascii=False, indent=2) + '\n')
+          PY
+
+          python3 - <<'PY'
+          from pathlib import Path
+          upstream = Path('patches/src/main/resources/addresources/values/youtube/strings.xml')
+          custom = Path('/tmp/mrx-youtube-strings.xml').read_text()
+          text = upstream.read_text()
+          start = custom.find('    <!-- Block Channels -->')
+          end = custom.find('</resources>', start)
+          if start >= 0 and end >= 0 and 'morphe_block_channels_screen_title' not in text:
+              upstream.write_text(text.replace('</resources>', '\n' + custom[start:end].rstrip() + '\n</resources>'))
+          PY
+
+          python3 .github/scripts/generate_patches_readme.py "$GITHUB_REPOSITORY" "$branch" patches-list.json README.md
+          git add -A
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit --amend --no-edit
+
+          if git diff --quiet "$base_sha" HEAD; then
+            echo "SYNC_NEEDED=false" >> "$GITHUB_ENV"
+            echo "Upstream is already synchronized; no PR is needed."
+          else
+            echo "SYNC_NEEDED=true" >> "$GITHUB_ENV"
+          fi
+          echo "SYNC_BRANCH=$branch" >> "$GITHUB_ENV"
+
+      - name: Push sync branch
+        if: env.SYNC_NEEDED == 'true'
+        run: git push --set-upstream origin "$SYNC_BRANCH"
+
+      - name: Open pull request
+        if: env.SYNC_NEEDED == 'true'
+        env:
+          # PR_TOKEN should be a fine-grained PAT with Contents and Pull requests write access.
+          # The built-in token remains a fallback for repositories that allow Actions PR creation.
+          GH_TOKEN: ${{ secrets.PR_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+            --base main \
+            --head "$SYNC_BRANCH" \
+            --title "chore: sync Morphe upstream (${{ inputs.upstream_ref }})" \
+            --body "This PR merges Morphe upstream while preserving MRX custom patches and excluding YouTube Music and Redgifs. Review the generated diff and run the build before merging."

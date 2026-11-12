@@ -71,6 +71,28 @@ public class JSONArray {
     public JSONObject optJSONObject(int index) { throw new AssertionError(); }
 }
 """,
+    "android/util/Base64.java": """
+package android.util;
+public class Base64 {
+    public static final int DEFAULT = 0;
+    public static byte[] decode(String text, int flags) {
+        // The platform throws IllegalArgumentException for text that is not base64, which is
+        // what the code under test catches, and so is what this has to do too.
+        return java.util.Base64.getMimeDecoder().decode(text);
+    }
+}
+""",
+    "okhttp3/OkHttpClient.java": """
+package okhttp3;
+public class OkHttpClient {
+    public static class Builder {
+        public Builder sslSocketFactory(javax.net.ssl.SSLSocketFactory factory,
+                                        javax.net.ssl.X509TrustManager trusting) {
+            return this;
+        }
+    }
+}
+""",
     "okhttp3/Interceptor.java": """
 package okhttp3;
 public interface Interceptor {
@@ -175,8 +197,12 @@ def main():
         sync / "app/morphe/extension/syncforreddit/http/posts/FixPostLookupPatch.java",
         sync / "app/morphe/extension/syncforreddit/http/comments/FixMoreCommentsPatch.java",
         sync / "app/morphe/extension/syncforreddit/http/imgur/ImgurIds.java",
+        sync / "app/morphe/extension/syncforreddit/redirects/imgur/ImgurRoutes.java",
+        sync / "app/morphe/extension/syncforreddit/redirects/ClientCertificate.java",
         tests / "RequestParsingTest.java",
         tests / "ImgurIdsTest.java",
+        tests / "ImgurRoutesTest.java",
+        tests / "ClientCertificateTest.java",
     ]
     for source in sources:
         if not source.is_file():
@@ -193,7 +219,8 @@ def main():
             sources.append(path)
         subprocess.run([tool("javac"), "--release", "11", "-nowarn",
                         "-d", str(classes), *map(str, sources)], check=True)
-        for name in ("RequestParsingTest", "ImgurIdsTest"):
+        for name in ("RequestParsingTest", "ImgurIdsTest", "ImgurRoutesTest",
+                     "ClientCertificateTest"):
             subprocess.run([tool("java"), "-cp", str(classes),
                             "app.morphe.extension.syncforreddit.http." + name], check=True)
 

@@ -3,12 +3,9 @@ package app.morphe.patches.youtube.misc.settings
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.literal
 import app.morphe.patcher.methodCall
-import app.morphe.patcher.opcode
-import app.morphe.patcher.string
 import app.morphe.patcher.resource.ResourceType
 import app.morphe.patcher.resourceLiteral
 import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.Opcode
 
 internal object SetThemeFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
@@ -26,20 +23,12 @@ internal object CairoFragmentConfigFingerprint : Fingerprint(
 )
 
 /**
- * Synthetic Runnable from YT settings intent handling, fired after the PreferenceScreen builds.
+ * Lays out the snackbars and the other bottom messages, then keeps the top of the shown one.
  */
-internal object SettingsPreferenceScreenSyntheticFingerprint : Fingerprint(
-    name = "run",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    parameters = listOf(),
-    returnType = "V",
+internal object BottomUiContainerOnLayoutFingerprint : Fingerprint(
+    definingClass = "Lcom/google/android/apps/youtube/app/common/ui/bottomui/BottomUiContainer;",
+    name = "onLayout",
     filters = listOf(
-        string(":android:show_fragment_args"),
-        methodCall(
-            opcode = Opcode.INVOKE_VIRTUAL,
-            parameters = listOf(),
-            returnType = "Landroidx/preference/PreferenceScreen;"
-        ),
-        opcode(Opcode.RETURN_VOID)
+        methodCall(smali = "Landroid/widget/FrameLayout;->onLayout(ZIIII)V")
     )
 )

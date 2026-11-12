@@ -96,12 +96,15 @@ val disableTelemetryPatch = bytecodePatch(
         comscore.filter { it.name.startsWith("notify") && !it.name.endsWith("Native") }.forEach { it.returnEarly() }
 
         // 3. New Relic: the agent never starts. Its static API (recordCustomEvent, ...) works
-        // without a started agent.
-        mutableClassDefByOrNull(NEW_RELIC)?.methods?.singleOrNull {
-            it.name == "start" && it.returnType == "V" && it.implementation != null &&
-                !AccessFlags.STATIC.isSet(it.accessFlags) &&
-                it.parameterTypes.map(CharSequence::toString) == listOf(CONTEXT)
-        }?.returnEarly() ?: throw PatchException("$NEW_RELIC.start(Context) not found")
+        // without a started agent. 8.35.0 dropped New Relic entirely, so the class may be absent;
+        // if it is present its start(Context) must still be found.
+        mutableClassDefByOrNull(NEW_RELIC)?.let { newRelic ->
+            newRelic.methods.singleOrNull {
+                it.name == "start" && it.returnType == "V" && it.implementation != null &&
+                    !AccessFlags.STATIC.isSet(it.accessFlags) &&
+                    it.parameterTypes.map(CharSequence::toString) == listOf(CONTEXT)
+            }?.returnEarly() ?: throw PatchException("$NEW_RELIC.start(Context) not found")
+        }
 
         // 4. AppsFlyer: start, every logEvent overload, logSession and logAdRevenue.
         var appsFlyerStart = 0
@@ -131,8 +134,12 @@ val disableTelemetryPatch = bytecodePatch(
         // activity, ad tracking and full video analytics, whatever the app passes.
         val trackingOptions = mutableClassDefByOrNull(STORYTELLER_EVENT_TRACKING_OPTIONS)?.methods?.singleOrNull {
             it.name == "<init>" && it.implementation != null &&
-                it.parameterTypes.joinToString("") == "ZZZZZZLjava/util/List;"
-        } ?: throw PatchException("$STORYTELLER_EVENT_TRACKING_OPTIONS.<init>(ZZZZZZList) not found")
+                // 8.35.0 appended a seventh flag (enableAutomaticDeepLinkTracking) after the list;
+                // the synthetic default-args constructor ends in DefaultConstructorMarker.
+                it.parameterTypes.joinToString("").let { params ->
+                    params.startsWith("ZZZZZZLjava/util/List;") && "DefaultConstructorMarker" !in params
+                }
+        } ?: throw PatchException("$STORYTELLER_EVENT_TRACKING_OPTIONS.<init>(ZZZZZZList...) not found")
         STORYTELLER_TRACKING_FIELDS
             .map { trackingOptions.singleStore(Opcode.IPUT_BOOLEAN, it, "Z") }
             // Insert from the last store up, so the earlier indices stay valid.

@@ -4,7 +4,6 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.InstructionLocation
 import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.StringFilter
-import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -13,6 +12,7 @@ import app.morphe.patcher.string
 import app.morphe.util.returnEarly
 import app.template.patches.shared.Constants.COMPATIBILITY_BRAVE_EXPERIMENTAL
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import app.template.patches.shared.addInstructionChecked
 
 private const val SHARED_PREFERENCES = "Landroid/content/SharedPreferences;"
 
@@ -47,7 +47,7 @@ private fun forcePrefRead(
     val method = fingerprint.method
     val register = method.getInstruction<OneRegisterInstruction>(moveResultIndex).registerA
     // const/16 takes any 8-bit register; const/4 would fail above v15.
-    method.addInstruction(moveResultIndex + 1, "const/16 v$register, $value")
+    method.addInstructionChecked(moveResultIndex + 1, "const/16 v$register, $value")
 }
 
 @Suppress("unused")

@@ -1,3 +1,15 @@
+## [1.5.1](https://github.com/sabbirdj/viper-patches/compare/v1.5.0...v1.5.1) (2026-11-12)
+
+### 🐛 Bug Fixes
+
+* correct parameter register in Bangladesh VPN H/I tier patches ([ffade23](https://github.com/sabbirdj/viper-patches/commit/ffade23955e300cfd76ae4bc8c6d2363e53c3d35))
+
+## [1.5.0](https://github.com/sabbirdj/viper-patches/compare/v1.4.0...v1.5.0) (2026-11-12)
+
+### ✨ New Features
+
+* add Bangladesh VPN VIP unlock patch ([3d3a2c1](https://github.com/sabbirdj/viper-patches/commit/3d3a2c1f28287b4c3cb2c7b5c99e2c340c562c38))
+
 ## [1.4.0](https://github.com/sabbirdj/viper-patches/compare/v1.3.0...v1.4.0) (2026-11-11)
 
 ### ✨ New Features

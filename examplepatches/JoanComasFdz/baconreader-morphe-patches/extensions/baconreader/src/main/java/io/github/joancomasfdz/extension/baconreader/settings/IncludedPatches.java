@@ -28,6 +28,10 @@ public final class IncludedPatches {
         return false;
     }
 
+    public static boolean openWebPagesInBrowser() {
+        return false;
+    }
+
     public static boolean loadMoreComments() {
         return false;
     }

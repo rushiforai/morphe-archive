@@ -117,7 +117,8 @@ public final class SettingsEntry {
 
     /**
      * Injected before each return of the application's {@code onCreate}, after Telegram's own
-     * startup. Watches every Telegram activity, so a pending open lands on whichever one resumes
+     * startup. Any process but Telegram's main one (13.2.2's isolated widget process returns before
+     * that startup) does nothing here. Watches every Telegram activity, so a pending open lands on whichever one resumes
      * next: signed out, the launcher hands straight over to the login screen. Also where the
      * release check, when it's on, asks at most once a day, on a worker, where free proxies are
      * looked for every six hours when that's on, and where a UnifiedPush sign-up is renewed. A start that the settings screen's restart row asked for opens the

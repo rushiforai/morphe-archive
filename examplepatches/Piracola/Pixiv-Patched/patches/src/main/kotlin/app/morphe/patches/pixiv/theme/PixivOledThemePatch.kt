@@ -1,4 +1,4 @@
-package app.morphe.patches.pixiv.theme
+package app.morphe.patches.pixiv.theme
 
 import app.morphe.patches.pixiv.shared.PixivConstants
 
@@ -8,7 +8,7 @@ import org.w3c.dom.Element
 
 val pixivOledThemePatch: ResourcePatch = resourcePatch(
     name = "Pixiv OLED Dark Theme",
-    description = "Overrides dark gray surface and background colors with pure pitch black (#ff000000) for OLED battery savings and true high-contrast dark mode.",
+    description = "Overrides the dark theme's surface and background colours with pure black (#ff000000).",
     default = true
 ) {
     compatibleWith(PixivConstants.PIXIV)

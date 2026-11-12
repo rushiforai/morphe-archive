@@ -11,7 +11,8 @@ object PixivConstants {
         apkFileType = ApkFileType.APK,
         appIconColor = 0x0096FA,
         targets = listOf(
-            AppTarget(version = "6.202.1")
+            AppTarget(version = "6.202.1"),
+            AppTarget(version = "6.203.0")
         )
     )
 }

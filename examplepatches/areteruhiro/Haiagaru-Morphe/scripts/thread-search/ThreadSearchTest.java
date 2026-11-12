@@ -10,6 +10,14 @@ public class ThreadSearchTest{
    ThreadSearchOptions.mask=mask;check(!search(r,"2026/10/28")&&!search(r,"水"),"header date and weekday excluded "+mask);check(search(r,"本文"),"body always");check(search(r,"名前")==((mask&4)!=0),"name toggle "+mask);check(search(r,"abcd-EF12")==((mask&2)!=0),"wacchoi toggle "+mask);check(search(r,"ID:A.Af1CYTq")==((mask&1)!=0),"ID toggle "+mask);
    check(search(r,"本文 AND abcd-EF12")==((mask&2)!=0),"AND respects wacchoi "+mask);check(search(r,"名前 A.Af1CYTq")==((mask&5)==5),"AND across selected fields "+mask);check(search(r,"本文.*検索"),"regex retained");
   }
+  r.getClass().getField(fields[1]).set(r,"名前 (ﾜｯﾁｮｲ abcd-EF12)");
+  for(String literal:new String[]{"(ﾜｯﾁｮｲ abcd-EF12)","-EF12)","(ﾜｯﾁｮｲ abcd-EF12","-EF12","EF12"}){
+   ThreadSearchOptions.mask=2;check(search(r,Pattern.quote(literal)),"literal wacchoi including closing parenthesis: "+literal);
+   ThreadSearchOptions.mask=0;check(!search(r,Pattern.quote(literal)),"wacchoi OFF excludes header: "+literal);
+  }
+  ThreadSearchOptions.mask=2;r.getClass().getField(fields[1]).set(r,"名前 (ﾜｯﾁｮｲ abcd-EF12 [192.0.2.1])");
+  check(search(r,"abcd-EF12")&&!search(r,"192.0.2.1"),"wacchoi projection does not expose header IP");
+  r.getClass().getField(fields[1]).set(r,values[1]);
   ThreadSearchOptions.mask=0;r.getClass().getField(fields[0]).set(r,"本文にID:A.Af1CYTqとabcd-EF12と名前を引用");check(search(r,"A.Af1CYTq")&&search(r,"abcd-EF12")&&search(r,"名前"),"body quotes still match");r.getClass().getField(fields[0]).set(r,values[0]);
   ThreadSearchOptions.mask=7;Matcher reused=Pattern.compile("名前 AND 本文").matcher("");reused=ThreadSearchText.reset(reused,r);check(reused.find(),"AND first row");r.getClass().getField(fields[0]).set(r,"違う内容");reused=ThreadSearchText.reset(reused,r);check(!reused.find(),"no matcher row leak");r.getClass().getField(fields[0]).set(r,values[0]);
   for(int i=0;i<4;i++)check(values[i].equals(r.getClass().getField(fields[i]).get(r)),"source unchanged");

@@ -1,7 +1,6 @@
 package app.template.patches.sofascore.sports
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
@@ -152,21 +151,29 @@ val hideSportsPatch = bytecodePatch(
             method to method.stringIndices(SPORT_NAMES_QUERY).map { method.queryListReturn(it, SPORT_NAMES_QUERY) }
         }
 
-        // 3. The selected sport query. R8 loads its SQL once at the top of the shared lambda, so its
-        //    sites are the prepare calls (same method as step 1) taking that register; the first
-        //    return-object after each returns the name (or null). Since 26.10.26 the other queries
-        //    of the lambda reuse that register, each loading its own SQL right before its prepare
-        //    call, so a call whose register was just loaded with a const-string is not a site.
+        // 3. The selected sport query. Its sites are the prepare calls taking the register its SQL is
+        //    loaded into; the first return-object after each returns the name (or null). Up to
+        //    26.10.26 R8 loaded that SQL once at the top of one shared lambda; in 26.11.03 the queries
+        //    are split over three lambda classes (rows + selected, names + selected, names) and each
+        //    loads its SQL right before its own prepare call, often reusing the same register. So a
+        //    prepare call is a site only when the nearest preceding const-string into that register
+        //    is the selected-sport SQL. The scan is straight-line, not control-flow aware: the smoke
+        //    test pins the exact site counts, keep them strict.
         val selectedSites = methodsHolding(SELECTED_SPORT_QUERY).map { method ->
             val loads = method.stringIndices(SELECTED_SPORT_QUERY)
             val load = loads.singleOrNull()
                 ?: throw PatchException("\"$SELECTED_SPORT_QUERY\" is loaded ${loads.size} times in ${method.definingClass}")
             val sqlRegister = (method.getInstruction(load) as OneRegisterInstruction).registerA
+            // The nearest const-string into the SQL register before a call tells which query it
+            // prepares (26.11.03: every query loads its SQL right before its own prepare call).
+            fun lastSqlLoad(before: Int): Int? = (before - 1 downTo 0).firstOrNull { j ->
+                val ins = method.getInstruction(j)
+                (ins.opcode == Opcode.CONST_STRING || ins.opcode == Opcode.CONST_STRING_JUMBO) &&
+                    (ins as OneRegisterInstruction).registerA == sqlRegister
+            }
             val returns = (load + 1 until method.instructions.size).filter { i ->
                 val call = method.getInstruction(i)
-                val before = method.getInstruction(i - 1)
-                val reloaded = (before.opcode == Opcode.CONST_STRING || before.opcode == Opcode.CONST_STRING_JUMBO) &&
-                    (before as OneRegisterInstruction).registerA == sqlRegister
+                val reloaded = lastSqlLoad(i) != load
                 !reloaded && call is FiveRegisterInstruction && call.registerCount == 2 && call.registerD == sqlRegister &&
                     ((call as ReferenceInstruction).reference as? MethodReference)?.let {
                         it.name == prepare.name && it.definingClass == prepare.definingClass
@@ -182,8 +189,9 @@ val hideSportsPatch = bytecodePatch(
         val homeSport = HomeSportFingerprint.method
         val homeReturns = homeSport.instructions.indices.filter { homeSport.getInstruction(it).opcode == Opcode.RETURN_OBJECT }
 
-        // Edits. The three queries share one lambda method, so every insert of a method is made
-        // from its last index to its first, which keeps the earlier indices valid.
+        // Edits. Several sites can sit in one method (two queries share a lambda class in 26.11.03),
+        // so every insert of a method is made from its last index to its first, which keeps the
+        // earlier indices valid.
         data class Edit(val method: MutableMethod, val index: Int, val helper: String, val signature: String)
         val edits = listOf(Edit(rowsQuery, rowsReturn, "filterSportOrders", "(Ljava/util/List;)Ljava/util/List;")) +
             namesSites.flatMap { (method, returns) ->
@@ -204,7 +212,7 @@ val hideSportsPatch = bytecodePatch(
                 ret,
                 "invoke-static/range { v$register .. v$register }, $SOFASCORE_CONTROLS->visibleSport(Ljava/lang/String;)Ljava/lang/String;",
             )
-            homeSport.addInstructions(ret + 1, "move-result-object v$register\nreturn-object v$register")
+            homeSport.addInstructionsChecked(ret + 1, "move-result-object v$register\nreturn-object v$register")
         }
 
         features.forEach { (_, feature) -> sofascoreControls.register(feature) }

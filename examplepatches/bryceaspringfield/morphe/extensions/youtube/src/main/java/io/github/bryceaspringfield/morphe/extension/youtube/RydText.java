@@ -101,18 +101,33 @@ public final class RydText {
     }
 
     /**
-     * Injection point, on the text of each animated count YouTube draws (the like button's count, among others): the
-     * like count as a percentage, or both, when the text matches RYD's like count within 15%.
+     * Injection point, on the text of each animated count YouTube draws (the like count of live streams, among others):
+     * the like count as a percentage, or both, when the text matches RYD's like count within 15%.
      */
     public static String rollingNumber(String text) {
+        return likeText(text, "rolling number");
+    }
+
+    /**
+     * Injection point, on the count Morphe's RYD draws under a compact action bar's like and dislike icons (YouTube's
+     * own like count, e.g. "9M"): the like count as a percentage, or both. The dislike count never matches RYD's like
+     * count, and a text already holding a percentage is kept.
+     */
+    public static String iconText(String text) {
+        return likeText(text, "icon count");
+    }
+
+    private static String likeText(String text, String where) {
         try {
-            if (text == null || "count".equals(mode())) return text;
+            if (text == null || text.indexOf('%') >= 0 || "count".equals(mode())) return text;
             Object vote = voteData(currentRyd());
             if (vote == null) return text;
             long likes = (Long) vote.getClass().getMethod("getLikeCount").invoke(vote);
+            long dislikes = (Long) vote.getClass().getMethod("getDislikeCount").invoke(vote);
             double shown = parseCount(text);
-            if (XSettings.DEBUG.get()) Logger.printDebug(() -> "YouTube Extras: rolling number " + text + " = " + shown + ", RYD likes " + likes);
-            if (likes <= 0 || shown <= 0 || Math.abs(shown - likes) > 0.15 * likes) return text;
+            if (XSettings.DEBUG.get()) Logger.printDebug(() -> "YouTube Extras: " + where + " " + text + " = " + shown + ", RYD likes " + likes);
+            if (likes <= 0 || shown <= 0 || Math.abs(shown - likes) > 0.15 * likes
+                    || Math.abs(shown - dislikes) < Math.abs(shown - likes)) return text;
             String percent = pct(share(vote, "getLikePercentage"));
             return "percent".equals(mode()) ? percent : text + " · " + percent;
         } catch (Throwable t) {

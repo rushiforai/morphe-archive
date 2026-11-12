@@ -15,14 +15,13 @@ object ApplicationAttachBaseContextFingerprint : Fingerprint(
     parameters = listOf("Landroid/content/Context;"),
 )
 
+// 8.3.0.1 inlines the certificate digest instead of calling AndroidUtilsLight, so the
+// reviewed class and signature are the stable anchor rather than that helper call.
 private object FirebaseCertificateFingerprint : Fingerprint(
     definingClass = "Lcom/google/firebase/installations/remote/FirebaseInstallationServiceClient;",
     name = "getFingerprintHashForPackage",
     returnType = "Ljava/lang/String;",
     parameters = emptyList(),
-    filters = listOf(
-        methodCall(definingClass = "Lcom/google/android/gms/common/util/AndroidUtilsLight;", name = "getPackageCertificateHashBytes"),
-    ),
 )
 
 @Suppress("unused")

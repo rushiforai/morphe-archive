@@ -30,6 +30,7 @@ public final class GlassCapsule extends Drawable {
     }
 
     private final Layout layout;
+    private final SlidingPill slider = new SlidingPill(this::invalidateSelf);
     private final float density;
     private final RectF rect = new RectF();
     private final RectF pillRect = new RectF();
@@ -65,6 +66,8 @@ public final class GlassCapsule extends Drawable {
         edge.setStrokeWidth(density);
         setColor(color);
     }
+
+    public SlidingPill slider() { return slider; }
 
     /** Changes the color of the fill, for an app that only learns its bar color after the capsule is installed. */
     public void setColor(int color) {
@@ -109,7 +112,9 @@ public final class GlassCapsule extends Drawable {
         canvas.drawRoundRect(rect, radius, radius, fill);
         canvas.drawRoundRect(rect, radius, radius, sheen);
         if (layout.pill(pillRect)) {
-            canvas.drawRoundRect(pillRect, Math.min(pillRect.width(), pillRect.height()) / 2,
+            float swell = slider.swell();
+            pillRect.inset(-pillRect.width() * (swell - 1) / 2, -pillRect.height() * (swell - 1) / 2);
+            if (pillRect.intersect(rect)) canvas.drawRoundRect(pillRect, Math.min(pillRect.width(), pillRect.height()) / 2,
                     Math.min(pillRect.width(), pillRect.height()) / 2, pill);
         }
         canvas.drawRoundRect(rect, radius, radius, edge);

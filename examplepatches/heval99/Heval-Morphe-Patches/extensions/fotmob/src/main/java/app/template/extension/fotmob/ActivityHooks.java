@@ -37,6 +37,7 @@ public final class ActivityHooks implements Application.ActivityLifecycleCallbac
     @Override
     public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
         SystemFontPatch.applyTheme(activity);
+        AmoledBlack.applyTheme(activity);
         AnimationSpeed.onActivityCreated(activity);
     }
 

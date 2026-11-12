@@ -1,6 +1,6 @@
 ## Current prerelease
 
-[0.9.0-beta.2](https://github.com/BDCrusher/ytmusic-lyrics/releases/tag/v0.9.0-beta.2) targets original YouTube Music 9.45.51 / 94551240 arm64. It adds Spicy Lyrics, improves lyric lookup recovery, and integrates in-app downloads into Library. See the release for verification and remaining device checks. [Current source](https://github.com/BDCrusher/ytmusic-lyrics/tree/v0.9.0-beta.2).
+[0.9.0-beta.3](https://github.com/BDCrusher/ytmusic-lyrics/releases/tag/v0.9.0-beta.3) targets original YouTube Music **9.45.51 / 94551240** arm64. It improves Library Downloads, updates the lyrics renderer and Unison attribution, and adds a player volume boost control. See the release for verification and remaining device checks. [Current source](https://github.com/BDCrusher/ytmusic-lyrics/tree/v0.9.0-beta.3).
 
 Enable **Pre-release patches** and **Experimental app versions** for this source in Morphe Manager, then refresh it and patch the supported original APK. The records below cover earlier releases and APK targets.
 

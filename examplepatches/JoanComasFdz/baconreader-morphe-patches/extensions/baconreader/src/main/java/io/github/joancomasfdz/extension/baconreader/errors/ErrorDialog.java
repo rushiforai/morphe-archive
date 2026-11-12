@@ -14,6 +14,8 @@ import android.content.ClipboardManager;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
+import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -23,6 +25,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -63,7 +66,13 @@ public final class ErrorDialog {
     private static final int MAX_ERRORS = 20;
     private static final String SEPARATOR = "\n\n────────────\n\n";
 
+    private static final String TAG = "ErrorDialog";
+    private static final String PATCHES_PACKAGE = "io.github.joancomasfdz.";
+    private static final String ERRORS_PACKAGE = "io.github.joancomasfdz.extension.baconreader.errors.";
+
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
+
+    private static final String ISSUES = "https://github.com/JoanComasFdz/baconreader-morphe-patches/issues";
 
     /** The screen on top, to show the dialog on. */
     private static WeakReference<Activity> resumed = new WeakReference<>(null);
@@ -122,6 +131,7 @@ public final class ErrorDialog {
             public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
             }
         });
+        catchErrors();
     }
 
     /**
@@ -131,7 +141,15 @@ public final class ErrorDialog {
     public static void printException(Logger.LogMessage message, @Nullable Throwable ex) {
         String text = message.buildMessageString();
         Logger.printInfo(message, ex instanceof Exception ? (Exception) ex : null);
-        String details = details(source(message), text, ex);
+        showDetails(details(source(message), text, ex));
+    }
+
+    public static void printException(Logger.LogMessage message) {
+        printException(message, null);
+    }
+
+    /** Shows the details on the screen on top, or keeps them until one is. Safe from any thread. */
+    private static void showDetails(String details) {
         MAIN.post(() -> {
             Activity activity = resumed.get();
             if (activity == null || activity.isFinishing()) {
@@ -146,8 +164,51 @@ public final class ErrorDialog {
         });
     }
 
-    public static void printException(Logger.LogMessage message) {
-        printException(message, null);
+    // Every error is caught, on any thread, and shown here instead of closing the app. The dialog
+    // says "Patches" when a patch's code is in the error, else "BaconReader".
+    private static void catchErrors() {
+        Thread.UncaughtExceptionHandler previous = Thread.getDefaultUncaughtExceptionHandler();
+        Thread.setDefaultUncaughtExceptionHandler((thread, error) -> {
+            try {
+                report(sourceOf(error), "An error stopped the thread " + thread.getName(), error);
+            } catch (Throwable failed) {
+                if (previous != null) previous.uncaughtException(thread, error);
+            }
+        });
+        // An error on the main thread ends its message loop. Running the loop again inside a
+        // message lets the error be shown there and the loop continue.
+        MAIN.post(ErrorDialog::loopMainThread);
+    }
+
+    private static void loopMainThread() {
+        while (true) {
+            try {
+                Looper.loop();
+                return;
+            } catch (Throwable error) {
+                try {
+                    report(sourceOf(error), "An error stopped a screen", error);
+                } catch (Throwable failed) {
+                    Log.e(TAG, "Could not show the error", failed);
+                }
+            }
+        }
+    }
+
+    private static void report(String source, String message, Throwable error) {
+        Log.e(source, message, error);
+        showDetails(details(source, message, error));
+    }
+
+    // The dialog's own classes are in every error shown here, so they are not a patch's.
+    private static String sourceOf(Throwable error) {
+        for (Throwable cause = error; cause != null; cause = cause.getCause() == cause ? null : cause.getCause()) {
+            for (StackTraceElement frame : cause.getStackTrace()) {
+                String name = frame.getClassName();
+                if (name.startsWith(PATCHES_PACKAGE) && !name.startsWith(ERRORS_PACKAGE)) return "Patches";
+            }
+        }
+        return "BaconReader";
     }
 
     // region Details
@@ -234,6 +295,16 @@ public final class ErrorDialog {
             header.addView(close, new LinearLayout.LayoutParams(dp(activity, 48), dp(activity, 48)));
             root.addView(header);
 
+            // Above the details, so that the link shows without scrolling to them.
+            TextView issue = new TextView(activity);
+            issue.setText(str("revanced_baconreader_error_issue"));
+            issue.setTextColor(textColor);
+            issue.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+            issue.setPaintFlags(issue.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
+            issue.setPadding(0, dp(activity, 4), 0, dp(activity, 4));
+            issue.setOnClickListener(v -> openIssues(activity));
+            root.addView(issue);
+
             final TextView text = new TextView(activity);
             text.setText(details);
             text.setTextColor(textColor);
@@ -283,6 +354,15 @@ public final class ErrorDialog {
             // The dialog itself failed: the error is still in the log, show it short.
             Logger.printInfo(() -> "Could not show the error dialog", ex);
             Utils.showToastLong(details.substring(0, Math.min(details.length(), 300)));
+        }
+    }
+
+    /** The repo's issues, where the error can be reported. */
+    private static void openIssues(Activity activity) {
+        try {
+            activity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(ISSUES)));
+        } catch (Exception ex) {
+            Utils.showToastLong(ISSUES);
         }
     }
 

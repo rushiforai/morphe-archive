@@ -86,7 +86,6 @@ internal val extraSettingsResourcePatch = resourcePatch(
     description = "Registers the Extra Settings activity and applies the accent color.",
     default = true,
 ) {
-    category("Settings")
     compatibleWith(STRAVA_COMPATIBILITY)
 
     val accent by stringOption(
@@ -396,7 +395,6 @@ val extraSettingsPatch = bytecodePatch(
         "switching and patch info. Accent color is a build-time option.",
     default = true,
 ) {
-    category("Settings")
     compatibleWith(STRAVA_COMPATIBILITY)
 
     dependsOn(extraSettingsResourcePatch)

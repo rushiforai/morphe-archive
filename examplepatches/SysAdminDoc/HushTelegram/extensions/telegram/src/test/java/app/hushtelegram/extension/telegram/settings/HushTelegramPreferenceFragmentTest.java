@@ -69,6 +69,7 @@ import app.hushtelegram.extension.telegram.misc.LaunchFolderForTests;
 import app.hushtelegram.extension.telegram.misc.MessageFilters;
 import app.hushtelegram.extension.telegram.misc.OutsideTranslate;
 import app.hushtelegram.extension.telegram.misc.OutsideTranslateForTests;
+import app.hushtelegram.extension.telegram.misc.RecordChats;
 import app.hushtelegram.extension.telegram.misc.SpecialContactsForTests;
 
 import org.json.JSONObject;
@@ -2163,6 +2164,93 @@ public class HushTelegramPreferenceFragmentTest {
             Settings.HIDDEN_CHATS_PASSCODE.resetToDefault();
             HiddenChatsForTests.restore();
             GhostChats.save(Collections.emptySet());
+        }
+    }
+
+    /**
+     * Record calls has three rows under it (#72): which calls it saves, the chats picked for it
+     * when that's chosen, and how long recordings stay. Picking chats needs Hide picked chats'
+     * hooks, so a build without them offers three choices and no chats row.
+     */
+    @Test
+    public void theRecordCallsRowsPickWhichCallsAndHowLongRecordingsStay() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.DISABLE_CALL_DEBUG);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushTelegramPreferenceFragment page = pageOf(controller);
+            List<Preference> rows = new ArrayList<>();
+            collect(page.getPreferenceScreen(), rows);
+            int toggle = indexOfKey(rows, Settings.RECORD_CALLS.key);
+            Preference which = rows.get(toggle + 1);
+            assertEquals(HushTelegramPreferenceFragment.RECORD_WHICH_ROW, which.getKey());
+            assertEquals("Calls to record", String.valueOf(which.getTitle()));
+            assertFalse(which.isPersistent());
+            assertEquals("Every call", String.valueOf(which.getSummary()));
+            assertNull(page.findPreference(HushTelegramPreferenceFragment.RECORD_CHATS_ROW));
+            Preference keep = rows.get(toggle + 2);
+            assertEquals(HushTelegramPreferenceFragment.RECORD_KEEP_ROW, keep.getKey());
+            assertEquals("Keep recordings", String.valueOf(keep.getTitle()));
+            assertEquals("Recordings stay until you delete them.", String.valueOf(keep.getSummary()));
+
+            AlertDialog list = dialogOf(which);
+            assertEquals("Calls to record", String.valueOf(shadowOf(list).getTitle()));
+            List<String> labels = new ArrayList<>();
+            for (int i = 0; i < list.getListView().getCount(); i++) {
+                labels.add(String.valueOf(list.getListView().getAdapter().getItem(i)));
+            }
+            assertEquals(Arrays.asList("Every call", "Private calls only", "Voice chats and live streams only"), labels);
+            assertEquals(0, list.getListView().getCheckedItemPosition());
+            shadowOf(list).clickOnItem(1);
+            settle();
+            assertFalse(list.isShowing());
+            assertEquals(RecordChats.PRIVATE, Settings.RECORD_CALLS_WHICH.get());
+            assertEquals("Private calls only", String.valueOf(which.getSummary()));
+
+            list = dialogOf(keep);
+            assertEquals(4, list.getListView().getCount());
+            assertEquals(0, list.getListView().getCheckedItemPosition());
+            shadowOf(list).clickOnItem(2);
+            settle();
+            assertFalse(list.isShowing());
+            assertEquals(30, (int) Settings.RECORD_CALLS_KEEP_DAYS.get());
+            assertEquals("Recordings older than 30 days are deleted when the next one is saved.",
+                    String.valueOf(keep.getSummary()));
+            assertEquals(2, dialogOf(keep).getListView().getCheckedItemPosition());
+        } finally {
+            Settings.RECORD_CALLS_WHICH.resetToDefault();
+            Settings.RECORD_CALLS_KEEP_DAYS.resetToDefault();
+        }
+
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.DISABLE_CALL_DEBUG, PatchFamily.HIDE_FOLDER_COUNTERS);
+        HiddenChatsForTests.Fake telegram = HiddenChatsForTests.use(new HiddenChatsForTests.Fake().chats(0, 0, 11, 12));
+        telegram.users.put(0, 1000L);
+        telegram.names.put(11L, "Alice");
+        telegram.names.put(12L, "Book club");
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushTelegramPreferenceFragment page = pageOf(controller);
+            Preference which = page.findPreference(HushTelegramPreferenceFragment.RECORD_WHICH_ROW);
+            AlertDialog list = dialogOf(which);
+            assertEquals(4, list.getListView().getCount());
+            shadowOf(list).clickOnItem(3);
+            settle();
+            assertEquals(RecordChats.CHOSEN, Settings.RECORD_CALLS_WHICH.get());
+            assertEquals("Only calls in the chats you pick below", String.valueOf(which.getSummary()));
+
+            Preference chats = page.findPreference(HushTelegramPreferenceFragment.RECORD_CHATS_ROW);
+            assertEquals("Chats to record", String.valueOf(chats.getTitle()));
+            assertEquals("No chats picked yet.", String.valueOf(chats.getSummary()));
+            list = dialogOf(chats);
+            assertEquals("Chats to record", String.valueOf(shadowOf(list).getTitle()));
+            shadowOf(list).clickOnItem(1);
+            list.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            settle();
+            assertFalse(list.isShowing());
+            assertEquals(Collections.singleton(12L), RecordChats.chats());
+            assertEquals("Book club", String.valueOf(chats.getSummary()));
+            assertTrue("Ghost mode's exceptions are their own", GhostChats.chats().isEmpty());
+        } finally {
+            Settings.RECORD_CALLS_WHICH.resetToDefault();
+            HiddenChatsForTests.restore();
+            RecordChats.save(Collections.emptySet());
         }
     }
 

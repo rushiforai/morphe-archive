@@ -19,9 +19,7 @@ private const val PKG = "com.viaplay.android"
 private const val ANALYTICS_DEACTIVATED_KEY = "firebase_analytics_collection_deactivated"
 private const val VP_TRACKING_EVENT = "Lcom/viaplay/tracking/data/VPTrackingEvent;"
 private const val VP_BASE_DATA = "Lcom/viaplay/tracking/network/model/BaseData;"
-private const val AD_PLAYBACK_STATE = "Landroidx/media3/common/AdPlaybackState;"
-private const val AD_PLAYBACK_STATE_UPDATER =
-    "Landroidx/media3/exoplayer/source/ads/ServerSideAdInsertionMediaSource\$AdPlaybackStateUpdater;"
+private const val EXO_TOOLS = "Lcom/viaplay/android/player/players/exo/tools/"
 
 class ViaplaySmokeTest {
 
@@ -44,14 +42,22 @@ class ViaplaySmokeTest {
         return found.single()
     }
 
-    // The SSAI updater, found like the patch: the onAdPlaybackStateUpdateRequested(Timeline)Z of
-    // the class implementing Media3's AdPlaybackStateUpdater.
-    private fun List<ClassDef>.adPlaybackStateUpdaters() = filter { AD_PLAYBACK_STATE_UPDATER in it.interfaces }
-        .flatMap { it.methods }
-        .filter {
-            it.name == "onAdPlaybackStateUpdateRequested" && it.returnType == "Z" &&
-                it.params() == listOf("Landroidx/media3/common/Timeline;") && it.implementation != null
+    // The SSAI source's onChildSourceInfoRefreshed with the app's updater inlined, found like the
+    // patch: a (X, Timeline)V that calls the exo/tools period check (Timeline, int)Z and holds a
+    // Set.contains + move-result guard (the patched method has the inserted reads before its if-eqz).
+    private fun List<ClassDef>.ssaiSourceInfoRefreshers() = flatMap { it.methods }.filter { m ->
+        m.returnType == "V" && m.params().size == 2 && m.implementation != null && m.instructions().let { insns ->
+            insns.any {
+                it.methodRef()?.let { r ->
+                    r.definingClass.startsWith(EXO_TOOLS) && r.returnType == "Z" &&
+                        r.parameterTypes.map(CharSequence::toString) == listOf(m.params()[1], "I")
+                } == true
+            } && insns.indices.any { i ->
+                insns[i].methodRef()?.let { it.definingClass == "Ljava/util/Set;" && it.name == "contains" } == true &&
+                    insns.getOrNull(i + 1)?.opcode == Opcode.MOVE_RESULT
+            }
         }
+    }
 
     @Test
     fun `Viaplay patches disable telemetry and skip VOD ad breaks`() {
@@ -66,7 +72,7 @@ class ViaplaySmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "26.42.1",
+            version = "26.44.0",
             patchNames = setOf("Disable telemetry", "Skip ads"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
@@ -143,38 +149,45 @@ class ViaplaySmokeTest {
 
         // --- Skip ads ---
 
-        // The withSkippedAd(0, 0) guard in the SSAI updater now tests the state's adGroupCount
-        // instead of Set.contains: an iget of AdPlaybackState.adGroupCount into the guard's
-        // register sits right before the if-eqz, read from the same state withSkippedAd is called
-        // on. Empty states (content and live periods) keep jumping over the call. Nothing else in
-        // the method changed.
-        val updater = classes.adPlaybackStateUpdaters().single("AdPlaybackStateUpdater implementations") { true }
-        val stockUpdater = stockClasses.adPlaybackStateUpdaters().single("stock AdPlaybackStateUpdater implementations") { true }
+        // The inlined withSkippedAd(0, 0) guard in the SSAI source now tests whether the state has
+        // an ad group instead of Set.contains: an iget-object of the state's AdGroup[] field and an
+        // array-length into the guard's register sit right before the if-eqz, read from the same
+        // state the skipped-ad code reads (the int read right behind the guard). Empty states
+        // (content and live periods) keep jumping over it. Nothing else in the method changed.
+        val updater = classes.ssaiSourceInfoRefreshers().single("SSAI source info refreshers") { true }
+        val stockUpdater = stockClasses.ssaiSourceInfoRefreshers().single("stock SSAI source info refreshers") { true }
         val insns = updater.instructions()
-        val skips = insns.indices.filter { insns[it].methodRef()?.let { r -> r.definingClass == AD_PLAYBACK_STATE && r.name == "withSkippedAd" } == true }
-        assertEquals(1, skips.size, "${updater.label()}: withSkippedAd calls at $skips")
-        val skip = skips.single()
-        val guard = insns[skip - 1]
-        val count = insns[skip - 2]
-        val countField = (count as? ReferenceInstruction)?.reference as? FieldReference
+        val contains = insns.indices.filter { i ->
+            insns[i].methodRef()?.let { it.definingClass == "Ljava/util/Set;" && it.name == "contains" } == true &&
+                insns.getOrNull(i + 1)?.opcode == Opcode.MOVE_RESULT
+        }.single()
+        val arrayGet = insns[contains + 1 + 1]
+        val arrayLength = insns[contains + 3]
+        val ifGuard = insns[contains + 4]
+        val countRead = insns[contains + 5]
+        val adGroups = (arrayGet as? ReferenceInstruction)?.reference as? FieldReference
+        val state = (arrayGet as? com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction)
+        val count = (countRead as? ReferenceInstruction)?.reference as? FieldReference
         assertTrue(
-            guard.opcode == Opcode.IF_EQZ &&
-                count.opcode == Opcode.IGET &&
-                countField?.definingClass == AD_PLAYBACK_STATE && countField.name == "adGroupCount" && countField.type == "I" &&
-                (count as com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction).registerA ==
-                (guard as OneRegisterInstruction).registerA &&
-                count.registerB == (insns[skip] as FiveRegisterInstruction).registerC &&
-                insns[skip - 3].opcode == Opcode.MOVE_RESULT &&
-                insns[skip - 4].methodRef()?.let { it.definingClass == "Ljava/util/Set;" && it.name == "contains" } == true,
-            "${updater.label()}: withSkippedAd is not guarded by adGroupCount; before it: ${insns.subList(skip - 4, skip).map { it.opcode }}\n$diagnostics",
+            arrayGet.opcode == Opcode.IGET_OBJECT && arrayLength.opcode == Opcode.ARRAY_LENGTH && ifGuard.opcode == Opcode.IF_EQZ &&
+                adGroups?.type?.startsWith("[L") == true && countRead.opcode == Opcode.IGET && count?.type == "I" &&
+                adGroups.definingClass == count.definingClass &&
+                state!!.registerB == (countRead as com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction).registerB &&
+                state.registerA == (ifGuard as OneRegisterInstruction).registerA &&
+                (arrayLength as com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction).registerA == state.registerA &&
+                arrayLength.registerB == state.registerA &&
+                insns[contains + 1].opcode == Opcode.MOVE_RESULT,
+            "${updater.label()}: the Set.contains guard does not test the AdGroup[] length; around it: " +
+                "${insns.subList(contains, contains + 6).map { it.opcode }}\n$diagnostics",
         )
         val stockInsns = stockUpdater.instructions()
-        val stockSkip = skip - 1
-        assertEquals(Opcode.IF_EQZ, stockInsns[stockSkip - 1].opcode, "stock ${stockUpdater.label()}: no if-eqz before withSkippedAd")
         assertEquals(
-            stockInsns.map { it.opcode }.toMutableList().apply { add(stockSkip - 1, Opcode.IGET) },
+            stockInsns.map { it.opcode }.toMutableList().apply {
+                add(contains + 2, Opcode.IGET_OBJECT)
+                add(contains + 3, Opcode.ARRAY_LENGTH)
+            },
             insns.map { it.opcode },
-            "${updater.label()} changed beyond the inserted adGroupCount read",
+            "${updater.label()} changed beyond the inserted AdGroup[] length read",
         )
     }
 }

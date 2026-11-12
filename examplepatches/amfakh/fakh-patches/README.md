@@ -26,6 +26,7 @@ Each app has its own README with the full patch list.
 | detikcom | `org.detikcom.rss` | `7.14.1` | APK from APKMirror | [apps/detik](apps/detik/README.md) |
 | CNN Indonesia | `com.cnn.indonesia` | `2.50.7` | APK from APKMirror | [apps/cnn](apps/cnn/README.md) |
 | FlipSide | `com.dinoster.flipside` | `1.6` | APKS from APKCube | [apps/flipside](apps/flipside/README.md) |
+| CoverScreen OS | `apps.ijp.coverscreenos` | `CSOS_9.0.1_BETA` | APKM from APKMirror | [apps/coverscreen](apps/coverscreen/README.md) |
 
 ## Use
 

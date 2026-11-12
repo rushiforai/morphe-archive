@@ -140,6 +140,11 @@ Die Paket-Unterordner unter `app/ysamjo/patches/` sind produktweise geschnitten
 - **Zielversion pflegen.** Neue App-Versionen in `shared/Constants.kt` als `AppTarget`
   eintragen. `7.25.302` ist am Gerät nachgeprüft, `7.11.300` nur statisch analysiert — der
   Unterschied gehört in den Kommentar. Kein `version = null` als „geht schon".
+- **Kanal-Katalog teilen.** Die Standardkanäle in
+  `extensions/extension/src/main/js/channel-speed.js` (`DEFAULT_CHANNELS`) müssen dem Katalog
+  `../video-speed-control-chrome/channels.json` entsprechen. `test/channel-catalog.test.cjs`
+  prüft das, wenn das Nachbar-Repo vorhanden ist; in einem alleinigen Morphe-Checkout wird der
+  Test übersprungen. Kanaländerungen immer in beiden Repos committen.
 - **Sprache:** Doku, Commit-Messages und Fehlermeldungen auf Deutsch, Code-Identifier englisch.
 - **Kein manuelles Release.** `release.yml` schreibt `CHANGELOG.md`, `gradle.properties`,
   `patches-bundle.json`, `patches-list.json` und die Patch-Liste im README. Nie von Hand

@@ -1797,3 +1797,59 @@ Not in secret chats	Не и в тайни чатове
 This chat doesn't allow saving	Този чат не позволява запазване
 # context: Toast once the Screenshot button's picture is saved. Pictures is the phone's pictures folder. Two short lines at most.
 Screenshot saved to Pictures	Снимката е запазена в Снимки
+
+# context: Title of a settings row and of its dialog: type a user, group or channel ID and that chat opens
+Open a chat by ID	Отваряне на чат по ID
+# context: Summary of the Open a chat by ID row. Telegram only opens people and chats it already has stored on the phone
+Type a user, group or channel ID to open that chat. It works for anyone this app has already seen, such as someone who wrote in a group you opened.	Въведете ID на потребител, група или канал, за да отворите този чат. Работи за всеки, когото приложението вече е виждало, например някой, писал в група, която сте отваряли.
+# context: Hint and label of the number field in the Open a chat by ID dialog
+User or chat ID	ID на потребител или чат
+# context: Note in the Open a chat by ID dialog. The ID row is the one Show user and chat IDs adds to a profile; bots write a group ID with a minus sign and a channel ID starting with -100
+The number from a profile's ID row, or a chat ID the way bots write it.	Числото от реда ID в профил или ID на чат, както го пишат ботовете.
+# context: Button in the Open a chat by ID dialog that opens the chat
+Open	Отвори
+# context: Toast when what was typed in Open a chat by ID isn't a number. Two short lines at most.
+Type the ID in numbers	Въведете ID с цифри
+# context: Toast when Telegram on this phone has never stored that user or chat, so it can't open it. Two short lines at most.
+This app hasn't seen that ID yet	Приложението още не е виждало това ID
+# context: Title of a settings row under Free proxies and of its dialog: the addresses of proxy lists the person adds
+Your proxy lists	Вашите списъци с проксита
+# context: Summary of the Your proxy lists row when none are added. Free proxies is the name of the switch above it
+Add the addresses of proxy lists you trust, and Free proxies reads those instead of the public ones.	Добавете адресите на списъци с проксита, на които имате доверие, и Безплатни проксита ще чете тях вместо публичните.
+# context: Summary of the Your proxy lists row with the number of lists added. Free proxies is the name of the switch above it
+Lists added: %1$s. Free proxies reads these instead of the public ones.	Добавени списъци: %1$s. Безплатни проксита чете тях вместо публичните.
+# context: Hint and label of the box in the Your proxy lists dialog, where each line is one web address
+One https address a line	По един https адрес на ред
+# context: Note in the Your proxy lists dialog. t.me/proxy and tg://proxy are link forms and stay as they are
+Each list is a page of t.me/proxy or tg://proxy links. Free proxies times them and adds the 10 fastest. Leave it empty to use the public lists again.	Всеки списък е страница с връзки t.me/proxy или tg://proxy. Безплатни проксита ги измерва и добавя 10-те най-бързи. Оставете полето празно, за да използвате отново публичните списъци.
+# context: Toast when a line in Your proxy lists isn't an https web address. Two short lines at most.
+Each line needs an https address	Всеки ред трябва да е https адрес
+# context: Toast when more lists are typed than Your proxy lists keeps; %1$s is the most it keeps (5). Two short lines at most.
+Up to %1$s lists	До %1$s списъка
+# context: Toast when Your proxy lists couldn't be saved. Two short lines at most.
+Couldn't save the lists. Try again in a moment.	Списъците не се запазиха. Опитайте пак след малко.
+# context: Summary of the Find free proxies now row before its first try, when the person has added lists of their own
+Downloads your proxy lists now, times them and adds the fastest to Telegram's proxy list, even with the switch above off.	Изтегля вашите списъци с проксита сега, измерва ги и добавя най-бързите в списъка с проксита на Telegram, дори ако превключвателят по-горе е изключен.
+# context: Toast and dialog note when Open a chat by ID couldn't look the ID up or couldn't start the chat. Two short lines at most.
+Couldn't open that. Try again.	Не можа да се отвори. Опитайте пак.
+# context: Record calls (#72). The chat list long press item and its toasts, the call screen's pause button and toasts, and three settings rows: which calls are recorded, the chats picked for it, and how long recordings are kept.
+Record calls here	Записване на обажданията тук
+Calls in these chats aren't recorded anymore.	Обажданията в тези чатове вече не се записват.
+Calls in these chats are recorded.	Обажданията в тези чатове се записват.
+Recording paused	Записът е на пауза
+Recording resumed	Записът продължава
+Pause recording	Пауза на записа
+Resume recording	Продължаване на записа
+Calls to record	Кои обаждания да се записват
+Every call	Всяко обаждане
+Private calls only	Само лични обаждания
+Voice chats and live streams only	Само гласови чатове и предавания на живо
+Only calls in the chats you pick below	Само обажданията в чатовете, избрани по-долу
+Chats to record	Чатове за записване
+Keep recordings	Пазене на записите
+Recordings stay until you delete them.	Записите остават, докато не ги изтриете.
+Recordings older than %1$d day are deleted when the next one is saved.	Записите, по-стари от %1$d ден, се изтриват при запазване на следващия.
+Recordings older than %1$d days are deleted when the next one is saved.	Записите, по-стари от %1$d дни, се изтриват при запазване на следващия.
+Until you delete them	Докато не ги изтриете
+%1$d day	%1$d ден
+%1$d days	%1$d дни

@@ -1,5 +1,6 @@
 package app.morphe.extension.chmate
 
+import kotlin.math.roundToInt
 import android.text.InputType
 import android.view.View
 import android.view.ViewGroup
@@ -35,6 +36,7 @@ internal data class BoundSetting(
     val label: String,
     val enabled: Boolean = control.isEnabled,
     val checked: Boolean? = (control as? CompoundButton)?.isChecked,
+    val progress: Int? = (control as? SeekBar)?.progress,
     val description: String = "",
     val previewColor: Int? = control.getTag(PosterHighlight.COLOR_PREVIEW_TAG) as? Int,
 ) {
@@ -66,25 +68,28 @@ internal fun prepareSettingsBindings(root: ViewGroup) {
     }
 }
 
-internal fun settingsRows(root: ViewGroup): List<BoundSetting> {
+internal fun settingsRows(root: ViewGroup): List<BoundSetting> = settingsRows(root, false)
+
+internal fun settingsRows(root: ViewGroup, includeHidden: Boolean): List<BoundSetting> {
     val result = mutableListOf<BoundSetting>()
     fun collect(parent: ViewGroup) {
         var index = 0
         while (index < parent.childCount) {
             val view = parent.getChildAt(index++)
-            if (view.visibility != View.VISIBLE) continue
+            if (!includeHidden && view.visibility != View.VISIBLE) continue
             val next = parent.getChildAt(index)
             if (view is TextView && view !is Button && view !is EditText &&
-                !view.hasOnClickListeners() && (next is EditText || next is Spinner)) {
+                !view.hasOnClickListeners() && (next is EditText || next is Spinner || next is SeekBar)) {
                 index++
-                if (next.visibility == View.VISIBLE) {
+                if (includeHidden || next.visibility == View.VISIBLE) {
                     val text = view.text.toString()
                     // Floating labels cannot display paragraphs, route syntax or examples.
                     // Keep the complete help text in the row, separate from its short label.
-                    result.add(labeledSetting(next, text))
+                    result.add(if (next is SeekBar) BoundSetting(next, next.contentDescription?.toString().orEmpty())
+                        else labeledSetting(next, text))
                 }
             } else if (view is ViewGroup && view !is Spinner) collect(view)
-            else if (view is TextView || view is Spinner || view is ImageView) {
+            else if (view is TextView || view is Spinner || view is ImageView || view is SeekBar) {
                 val label = if (view is EditText) view.hint?.toString().orEmpty()
                     else if (view is TextView) view.text.toString() else view.contentDescription?.toString().orEmpty()
                 result.add(BoundSetting(view, label))
@@ -130,6 +135,7 @@ internal fun BoundSettingRow(item: BoundSetting, changed: () -> Unit) {
                 Switch(checked = item.checked == true, onCheckedChange = null, enabled = item.enabled)
             }
         }
+        is SeekBar -> BoundSeekBar(view, item.label, changed)
         is EditText -> BoundTextField(view, item.label, enabled = item.enabled, changed = changed)
         is ImageView -> view.drawable?.let { drawable ->
             val bitmap = remember(drawable) { drawable.toBitmap(width = 96, height = 96).asImageBitmap() }
@@ -259,4 +265,28 @@ internal fun BoundTextField(view: EditText, title: String, enabled: Boolean = vi
         isError = view.error != null,
         supportingText = if (view.error != null) ({ Text(view.error.toString()) }) else null,
         shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp))
+}
+
+
+@Composable
+internal fun BoundSeekBar(view: SeekBar, label: String, changed: () -> Unit) {
+    var progress by remember(view) { mutableIntStateOf(view.progress) }
+    Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp)) {
+        Text(label, style = MaterialTheme.typography.bodyLarge)
+        if (view is LiveSettings.Range) Text(view.valueText(), style = MaterialTheme.typography.bodyMedium)
+        Slider(value = progress.toFloat().coerceIn(0f, view.max.coerceAtLeast(1).toFloat()),
+            onValueChange = { value ->
+                if (view is LiveSettings.Range) view.userProgress(value.roundToInt())
+                else view.progress = value.roundToInt()
+                progress = view.progress
+                changed()
+            },
+            onValueChangeFinished = {
+                if (view is LiveSettings.Range) view.finishUserChange()
+                changed()
+            },
+            steps = (view.max - 1).coerceAtLeast(0),
+            valueRange = 0f..view.max.coerceAtLeast(1).toFloat(),
+            enabled = view.isEnabled)
+    }
 }

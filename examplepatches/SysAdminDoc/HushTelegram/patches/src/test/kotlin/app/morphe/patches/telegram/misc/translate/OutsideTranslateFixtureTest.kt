@@ -109,10 +109,10 @@ class OutsideTranslateFixtureTest {
             val name = build.name
             val context = PatchContexts.of(ExtensionDex.classes() + hosts(build))
             val site = context.resolveOutsideTranslate()
-            // 13.1's R8 gave both builds the same wrapper and menu names (v0, x0 and u); 13.2's builds differ.
+            // 13.1's R8 gave both builds v0, x0 and u, and 13.2.2's gives both r0, t0 and z.
             val (itemType, menuType, adder) = when {
-                name.contains("-72919") -> Triple("Lorg/telegram/ui/ActionBar/q0;", "Lorg/telegram/ui/ActionBar/s0;", "z")
-                name.contains("-72911") -> Triple("Lorg/telegram/ui/ActionBar/r0;", "Lorg/telegram/ui/ActionBar/t0;", "z")
+                name.contains("-73039") || name.contains("-73031") ->
+                    Triple("Lorg/telegram/ui/ActionBar/r0;", "Lorg/telegram/ui/ActionBar/t0;", "z")
                 else -> Triple("Lorg/telegram/ui/ActionBar/v0;", "Lorg/telegram/ui/ActionBar/x0;", "u")
             }
             assertEquals("$name: the stock lazy item adder", "$menuType->$adder(IILjava/lang/String;)$itemType", site.lazyAdd.toString())

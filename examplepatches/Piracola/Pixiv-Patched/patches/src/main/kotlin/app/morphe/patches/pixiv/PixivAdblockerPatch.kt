@@ -1,16 +1,23 @@
 package app.morphe.patches.pixiv
 
 import app.morphe.patches.pixiv.shared.PixivConstants
+import app.morphe.patches.pixiv.shared.bannerBinderConstructorFingerprint
+import app.morphe.patches.pixiv.shared.bannerShowFingerprint
+import app.morphe.patches.pixiv.shared.interstitialLoadFingerprint
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatch
 import app.morphe.patcher.patch.bytecodePatch
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 val pixivAdblockerPatch: BytecodePatch = bytecodePatch(
     name = "Pixiv Adblocker",
-    description = "Eliminates bottom advertising banners and interstitials across all screens without layout padding, suppresses rate-this-app dialogs, and hides sponsored works in feeds.",
+    description = "Removes the bottom banner frame on every screen, blocks AppLovin interstitials, " +
+        "suppresses rate-this-app dialogs, and hides sponsored works in feeds and on the illustration detail screen.",
     default = true
 ) {
     compatibleWith(PixivConstants.PIXIV)
@@ -18,19 +25,15 @@ val pixivAdblockerPatch: BytecodePatch = bytecodePatch(
 
     execute {
         // --- Hook 1: collapse the bottom banner frame where it is built ---
-        // Lbz6; is the per-screen banner binder used by the illustration detail, fullscreen and
-        // novel text screens. Its constructor instantiates the Lvy6; FrameLayout, inflates the four
-        // overlay ad views into it, sizes it to feature_advertisement_ad_frame_overlay_height (50dp)
-        // plus 8dp top/bottom margins, and adds it to the screen's ad FrameLayout.
-        // Lty6; - the state flow collector - only switches the four children between VISIBLE and GONE
-        // on every emission, so hiding the children alone leaves that 66dp opaque container behind.
-        val bannerBinderClass = mutableClassDefBy("Lbz6;")
-        val bannerBinderCtor = bannerBinderClass.methods.firstOrNull { it.name == "<init>" }
-            ?: error("Lbz6;: banner frame constructor not found")
-
-        // v2 holds the Lvy6; frame at this call: iput-object v2, p0, Lbz6;->c then addView(p2, v2).
+        // The banner binder is the per-screen class that inflates the four overlay ad views into a
+        // frame, sizes it to feature_advertisement_ad_frame_overlay_height (50dp) plus 8dp top and
+        // bottom margins, and adds it to the screen's ad FrameLayout. Its class name is obfuscated,
+        // so the fingerprint finds it by the ad view classes it builds. The frame has to be collapsed
+        // at construction: the companion collector only toggles the four children between VISIBLE and
+        // GONE, which would leave that 66dp opaque container behind.
+        val bannerBinderCtor = bannerBinderConstructorFingerprint.method
         val ctorInstructions = bannerBinderCtor.implementation?.instructions
-            ?: error("Lbz6;: banner frame constructor has no body")
+            ?: error("banner binder constructor has no body")
         val addFrameIndex = ctorInstructions.indexOfFirst { instruction ->
             val reference = (instruction as? ReferenceInstruction)?.reference
             reference is MethodReference &&
@@ -38,19 +41,21 @@ val pixivAdblockerPatch: BytecodePatch = bytecodePatch(
                 reference.name == "addView" &&
                 reference.parameterTypes.size == 1
         }
-        check(addFrameIndex >= 0) { "Lbz6;.<init>: banner frame addView() call not found" }
+        check(addFrameIndex >= 0) { "banner binder constructor: addView() call not found" }
+        // The frame is added with a five-register call; anything else means the layout of that
+        // constructor changed, and guessing a register would patch in a call that fails to verify.
+        val addFrameCall = ctorInstructions[addFrameIndex] as? FiveRegisterInstruction
+            ?: error("banner binder constructor: addView() call is not a five-register call")
+        val frameRegister = registerName(bannerBinderCtor, addFrameCall.registerD)
         bannerBinderCtor.addInstructions(
             addFrameIndex + 1,
-            "invoke-static {v2}, Lapp/morphe/extension/pixiv/adblock/AdblockHelper;->collapseOverlayFrame(Landroid/view/View;)V"
+            "invoke-static {$frameRegister}, Lapp/morphe/extension/pixiv/adblock/AdblockHelper;->collapseOverlayFrame(Landroid/view/View;)V"
         )
 
         // --- Hook 2: never let the binder show the frame again ---
-        // d() is the "show banner frame" callback invoked by the pager ad controllers (pb0, rl6, s81):
-        // it only sets the Lvy6; container to VISIBLE. The companion a() hides it, so returning early
-        // here keeps the frame collapsed for the whole screen lifetime.
-        val showFrameMethod = bannerBinderClass.methods.firstOrNull {
-            it.name == "d" && it.returnType == "V" && it.parameterTypes.isEmpty()
-        } ?: error("Lbz6;: d() not found")
+        // The show callback only sets the frame to VISIBLE. Returning early keeps it collapsed for
+        // the whole screen lifetime; the hider callback stays untouched.
+        val showFrameMethod = bannerShowFingerprint.method
         showFrameMethod.addInstructions(0, "return-void")
 
         // --- Hook 3: neutralize the overlay ad view constructors (secondary safeguard) ---
@@ -82,24 +87,11 @@ val pixivAdblockerPatch: BytecodePatch = bytecodePatch(
         }
 
         // --- Hook 4: AppLovin interstitial load -> return early ---
-        // Liw; is the MaxInterstitialAd container and listener. a(Lel1;)V is its load entry point:
-        // it creates the MaxInterstitialAd, registers the listener, publishes the ready state and
-        // calls loadAd(). Returning before that line means no interstitial exists, so none can be
-        // displayed later either.
-        // The method name is part of the match on purpose: onAdLoaded(MaxAd) also returns void, takes
-        // one argument and calls MaxInterstitialAd.isReady(), so the old matcher could hit it instead.
-        val interstitialManagerClass = mutableClassDefBy("Liw;")
-        val interstitialLoadMethod = interstitialManagerClass.methods.firstOrNull { method ->
-            method.name == "a" &&
-                method.returnType == "V" &&
-                method.parameterTypes.size == 1 &&
-                method.implementation?.instructions?.any { instruction ->
-                    val reference = (instruction as? ReferenceInstruction)?.reference
-                    reference is MethodReference &&
-                        reference.definingClass == "Lcom/applovin/mediation/ads/MaxInterstitialAd;" &&
-                        reference.name == "isReady"
-                } == true
-        } ?: error("Liw;: AppLovin interstitial load entry a(Lel1;)V not found")
+        // The interstitial manager builds the MaxInterstitialAd, registers the listener, publishes
+        // the ready state and calls loadAd(). Returning before that means no interstitial exists, so
+        // none can be displayed later either. The fingerprint requires creating the ad object *and*
+        // calling loadAd in the same method, so the onAdLoaded(MaxAd) callback cannot match it.
+        val interstitialLoadMethod = interstitialLoadFingerprint.method
         interstitialLoadMethod.addInstructions(0, "return-void")
 
         // --- Hook 5: hide sponsored works and promotional cards in feeds and detail screen ---
@@ -122,4 +114,13 @@ val pixivAdblockerPatch: BytecodePatch = bytecodePatch(
             )
         }
     }
+}
+
+/** Formats an absolute dex register the way smali spells it: N for locals, pN for parameters. */
+private fun registerName(method: Method, absolute: Int): String {
+    val implementation = method.implementation ?: return "v$absolute"
+    val parameterRegisters =
+        method.parameterTypes.size + if (AccessFlags.STATIC.isSet(method.accessFlags)) 0 else 1
+    val firstParameter = implementation.registerCount - parameterRegisters
+    return if (absolute >= firstParameter) "p${absolute - firstParameter}" else "v$absolute"
 }

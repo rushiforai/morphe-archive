@@ -26,6 +26,12 @@ public class VerifyViewingUserAgent {
         check(original.length==8&&original[1].equals("native"),"original headers not mutated");
         check(ViewingUserAgentRules.headers(original,"bad\nheader")==original,"invalid UA preserves original headers");
         check(ViewingUserAgentRules.headers(new String[]{"invalid"},"Agent").length==1,"malformed native headers left alone");
+        check(ViewingUserAgentRules.catboxImage("https://files.catbox.moe/tll23r.jpg"), "Catbox thumbnail identified");
+        check(ViewingUserAgentRules.catboxImage("https://files.catbox.moe/tll23r.JPG?raw=1"), "image suffix and query");
+        check(!ViewingUserAgentRules.catboxImage("https://files.catbox.moe.evil/tll23r.jpg"), "unrelated host unchanged");
+        check(!ViewingUserAgentRules.catboxImage("https://files.catbox.moe/api.php"), "non-image request unchanged");
+        check(ViewingUserAgentRules.imageAgent("Test-Agent").startsWith("Mozilla/"), "non-browser template uses compatible image agent");
+        check(ViewingUserAgentRules.imageAgent("Mozilla/5.0 Test").equals("Mozilla/5.0 Test"), "browser template preserved");
         System.out.println("COMPLETE checks="+count);
     }
 }

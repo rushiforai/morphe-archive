@@ -152,7 +152,7 @@ public final class JavaScriptManager {
      * instead of after its response.
      */
     public static void warmUpInBackground() {
-        if (cachedPlayerDataExtractor != null || !warmUpStarted.compareAndSet(false, true)) {
+        if (!Utils.isNetworkConnected() || cachedPlayerDataExtractor != null || !warmUpStarted.compareAndSet(false, true)) {
             return;
         }
         Utils.runOnBackgroundThread(() -> {
@@ -169,7 +169,7 @@ public final class JavaScriptManager {
     }
 
     private static void handleDebugToast(String message) {
-        if (BaseSettings.DEBUG.get() && BaseSettings.DEBUG_TOAST_ON_ERROR.get()) {
+        if (Logger.isDebugEnabled() && BaseSettings.DEBUG_TOAST_ON_ERROR.get()) {
             Utils.showToastShort(message);
         } else {
             Logger.printInfo(() -> message);
@@ -183,8 +183,10 @@ public final class JavaScriptManager {
                 String playerJs = getPlayerJs();
                 if (isNotEmpty(playerJs)) {
                     cachedPlayerDataExtractor = new PlayerDataExtractor(playerJs, Objects.requireNonNull(cachedPlayerJsHash));
-                } else {
+                } else if (Utils.isNetworkConnected()) {
                     Logger.printException(() -> "playerJs not found");
+                } else {
+                    Logger.printInfo(() -> "playerJs not found (network disconnected)");
                 }
             }
 
@@ -222,6 +224,11 @@ public final class JavaScriptManager {
                 // There is no player JavaScript save in the cache,
                 // or if there is a player JavaScript, it has been more than 3 days since it was last saved.
                 // Download the latest player JavaScript.
+                if (!Utils.isNetworkConnected()) {
+                    Logger.printInfo(() -> "Cannot download playerJs (network disconnected)");
+                    return null;
+                }
+
                 String playerJs = downloadUrl(playerJsUrl);
                 if (isNotEmpty(playerJs)) {
                     cachedPlayerJs = playerJs;
@@ -327,9 +334,9 @@ public final class JavaScriptManager {
 
         try {
             Logger.printDebug(() -> "Starting download of: " + url);
-            if (BaseSettings.DEBUG.get() && Utils.isCurrentlyOnMainThread()) {
-                Logger.printException(() -> "Debug: downloadUrl() called on main thread!");
-            }
+            Logger.printExceptionIfDebug(() -> Utils.isCurrentlyOnMainThread()
+                    ? "Debug: downloadUrl() called on main thread!"
+                    : null);
 
             final long start = System.currentTimeMillis();
             final int connectionTimeoutMillis = 5000;
@@ -358,7 +365,7 @@ public final class JavaScriptManager {
             Logger.printInfo(() -> "Could not download URL: " + url, ex);
         }
 
-        if (BaseSettings.DEBUG.get()) {
+        if (Logger.isDebugEnabled()) {
             Utils.showToastLong("Could not download URL: " + url);
         }
 

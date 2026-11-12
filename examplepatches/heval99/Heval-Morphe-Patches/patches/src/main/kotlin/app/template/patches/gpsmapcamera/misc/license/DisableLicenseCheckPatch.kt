@@ -12,7 +12,7 @@ private const val LICENSE_CLIENT = "Lcom/pairip/licensecheck/LicenseClient;"
  * Application is com.pairip.application.Application, whose attachBaseContext calls
  * LicenseClient.checkLicense(Context) before the app's own MyApplication runs; a re-signed build
  * fails it and is sent to LicenseActivity, so the check is skipped. LicenseContentProvider, the
- * only other caller, is not in the manifest. Same approach as RareCam, Structured and Mango.
+ * only other caller, is not in the manifest. Same approach as Structured and Mango.
  */
 @Suppress("unused")
 val disableLicenseCheckPatch = bytecodePatch(

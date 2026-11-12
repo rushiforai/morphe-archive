@@ -33,7 +33,6 @@ import app.morphe.extension.shared.patches.components.ContextInterface;
 import app.morphe.extension.shared.patches.components.Filter;
 import app.morphe.extension.shared.patches.components.StringFilterGroup;
 import app.morphe.extension.shared.patches.components.StringFilterGroupList;
-import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.BooleanSetting;
 import app.morphe.extension.youtube.patches.LayoutReloadObserverPatch;
 import app.morphe.extension.youtube.settings.Settings;
@@ -41,7 +40,6 @@ import app.morphe.extension.youtube.shared.EngagementPanel;
 import app.morphe.extension.youtube.shared.NavigationBar;
 import app.morphe.extension.youtube.shared.PlayerType;
 import app.morphe.extension.youtube.shared.ShortsPlayerState;
-import kotlin.Unit;
 
 @SuppressWarnings({"unused", "FieldCanBeLocal"})
 public final class ShortsFilter extends Filter {
@@ -663,16 +661,15 @@ public final class ShortsFilter extends Filter {
      * @return The decision.
      */
     private static boolean logDecision(CharSequence component, boolean hide, String reason) {
-        if (BaseSettings.DEBUG.get()) {
+        Logger.printDebug(() -> {
             String message = "Shorts " + (hide ? "hidden" : "shown") + " (" + reason + ") player: "
                     + PlayerType.getCurrent() + " search bar: " + NavigationBar.isSearchBarActive()
                     + " component: " + component;
             // The same element is filtered again on every layout, which would fill the log.
-            if (!message.equals(lastDecisionLog)) {
-                lastDecisionLog = message;
-                Logger.printDebug(() -> message);
-            }
-        }
+            if (message.equals(lastDecisionLog)) return null;
+            lastDecisionLog = message;
+            return message;
+        });
         return hide;
     }
 
@@ -776,7 +773,6 @@ public final class ShortsFilter extends Filter {
                             }
                             navigationBar.setLayoutParams(params);
                         }
-                        return Unit.INSTANCE;
                     });
                 }
             }

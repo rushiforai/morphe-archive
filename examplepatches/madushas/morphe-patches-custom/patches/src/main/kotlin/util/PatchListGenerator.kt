@@ -41,8 +41,99 @@ fun main() {
             .getValue("Version")
             ?.let {
                 generatePatchList(it, loadedPatches)
+                generateReadme(it, loadedPatches)
             }
     }
+}
+
+/**
+ * Regenerate the patch list inside README.md, between `<!-- PATCHES_START -->` and
+ * `<!-- PATCHES_END -->` — the same convention the official Morphe/ReVanced bundles use.
+ *
+ * The structure mirrors the upstream standard:
+ *   - one `<details>` block per supported app, `<details>` for the universal patches last;
+ *   - a "🎯 Supported versions" table (🧪 marks an experimental target);
+ *   - a "💊 Patch | 📜 Description | ⚙️ Options" table.
+ *
+ * Grouping is by **compatible package**, not by an authored category — patches that
+ * declare no package (the shared/universal ones) go in the 🌐 block. There is no
+ * per-patch category anywhere in the catalogue (upstream emits `category: null` for
+ * every patch), so nothing here invents one.
+ */
+@Suppress("DEPRECATION")
+private fun generateReadme(version: String, patches: Set<Patch<*>>) {
+    val readme = File("../README.md")
+    if (!readme.exists()) return
+    val text = readme.readText()
+    val startMarker = "<!-- PATCHES_START -->"
+    val endMarker = "<!-- PATCHES_END -->"
+    val startIdx = text.indexOf(startMarker)
+    val endIdx = text.indexOf(endMarker)
+    if (startIdx < 0 || endIdx < 0) return
+
+    fun anchor(name: String) = name.lowercase()
+        .map { if (it.isLetterOrDigit()) it else '-' }
+        .joinToString("")
+        .trim('-')
+
+    val apps = sortedMapOf<String, MutableList<Patch<*>>>()
+    val universal = mutableListOf<Patch<*>>()
+    patches.sortedBy { it.name }.forEach { patch ->
+        val compat = patch.compatibility.orEmpty()
+        if (compat.isEmpty()) {
+            universal += patch
+        } else {
+            compat.forEach { c ->
+                apps.getOrPut(c.name ?: c.packageName ?: "Unknown") { mutableListOf() } += patch
+            }
+        }
+    }
+
+    fun render(name: String, list: List<Patch<*>>): String = buildString {
+        appendLine("<details>")
+        appendLine("<summary>$name&nbsp;&nbsp;•&nbsp;&nbsp;${list.size} patches</summary>")
+        appendLine("<br>")
+        appendLine()
+        val targets = list.flatMap { it.compatibility.orEmpty() }
+            .flatMap { it.targets }
+            .distinctBy { it.version }
+        if (targets.isNotEmpty()) {
+            appendLine("**🎯 Supported versions:**")
+            appendLine()
+            appendLine("| " + targets.joinToString(" | ") {
+                (if (it.isExperimental) "🧪&nbsp;" else "") + (it.version ?: "?")
+            } + " |")
+            appendLine("| " + targets.joinToString(" | ") { ":---:" } + " |")
+            appendLine()
+        }
+        appendLine("| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |")
+        appendLine("|----------|----------------|-----------|")
+        list.forEach { p ->
+            val options = p.options.values
+                .map { "• " + (it.title ?: it.key) }
+                .joinToString("<br>")
+            appendLine(
+                "| [${p.name}](#${anchor(p.name!!)}) | ${p.description ?: ""} | $options |",
+            )
+        }
+        appendLine()
+        appendLine("</details>")
+        appendLine()
+    }
+
+    val sb = StringBuilder()
+    sb.appendLine()
+    sb.appendLine(
+        "> **[v$version](https://github.com/madushas/morphe-patches-custom/releases/tag/v$version)**" +
+            "&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;${patches.size} patches total",
+    )
+    sb.appendLine()
+    apps.forEach { (name, list) -> sb.append(render("📦 $name", list)) }
+    if (universal.isNotEmpty()) sb.append(render("🌐 Universal", universal))
+
+    val head = text.substring(0, startIdx + startMarker.length)
+    val tail = text.substring(endIdx)
+    readme.writeText(head + "\n" + sb.toString() + tail)
 }
 
 @Suppress("DEPRECATION")

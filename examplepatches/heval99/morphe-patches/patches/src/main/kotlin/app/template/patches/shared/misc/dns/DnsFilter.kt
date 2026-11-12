@@ -41,15 +41,27 @@ internal fun isValidDohUrl(url: String?): Boolean {
         uri.rawUserInfo == null && uri.rawFragment == null
 }
 
-/** The two options every "DNS filter" patch registers, read once its execute block runs. */
+/** The options every "DNS filter" patch registers, read once its execute block runs. */
 internal class DnsFilterOptions(
     private val urlOption: Option<String>,
+    private val customUrlOption: Option<String>,
     private val modeOption: Option<String>,
 ) {
-    /** The resolver URL, validated again so a bad value can never reach a const-string. */
+    /**
+     * The resolver URL, validated again so a bad value can never reach a const-string. A filled-in
+     * custom resolver replaces the choice of the list (2026-11-09: Manager's list only offers the
+     * presets, so your own address, for example NextDNS, goes in its own field).
+     */
     val url: String
-        get() = urlOption.value?.takeIf(::isValidDohUrl)
-            ?: throw PatchException("DNS-over-HTTPS resolver URL is not a valid https URL: ${urlOption.value}")
+        get() {
+            val custom = customUrlOption.value?.trim()
+            if (!custom.isNullOrEmpty()) {
+                return custom.takeIf(::isValidDohUrl)
+                    ?: throw PatchException("Custom DNS-over-HTTPS resolver is not a valid https URL: $custom")
+            }
+            return urlOption.value?.takeIf(::isValidDohUrl)
+                ?: throw PatchException("DNS-over-HTTPS resolver URL is not a valid https URL: ${urlOption.value}")
+        }
 
     /** True when browsing must stop if the resolver is unreachable, false to fall back to the system DNS. */
     val strict: Boolean
@@ -70,6 +82,14 @@ internal fun PatchBuilder<*>.dnsFilterOptions() = DnsFilterOptions(
         description = "The https address of the DNS-over-HTTPS resolver the browser must use.",
         required = true,
     ) { isValidDohUrl(it) },
+    customUrlOption = stringOption(
+        key = "customDohUrl",
+        default = null,
+        title = "Custom DNS-over-HTTPS resolver",
+        description = "Optional. Your own https address, for example a NextDNS address " +
+            "(https://dns.nextdns.io/<id>). When filled in it replaces the resolver chosen above; leave it empty to use that one.",
+        required = false,
+    ) { it.isNullOrBlank() || isValidDohUrl(it.trim()) },
     modeOption = stringOption(
         key = "dohMode",
         default = DOH_MODE_STRICT,

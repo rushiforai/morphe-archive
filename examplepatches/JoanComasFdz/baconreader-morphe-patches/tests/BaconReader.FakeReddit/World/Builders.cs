@@ -298,6 +298,18 @@ public sealed class CommentBuilder
     }
 
     /// <summary>
+    /// The comment's text as a link to a web page the fake serves, <c>&lt;baseUrl&gt;/_media/example.com/&lt;id&gt;e2epage.html</c>,
+    /// a page as a link post's (<see cref="PostBuilder.LinkingToAPageWithAPreview"/>): <c>[text](address)</c>. Returns
+    /// the page's address.
+    /// </summary>
+    public string AsALinkToAWebPage()
+    {
+        var address = world.AddMedia($"example.com/{world.NewId()}e2epage.html", "text/html", MediaAsset.WebPage.Bytes);
+        Comment.Body = $"[{Comment.Body}]({address})";
+        return address;
+    }
+
+    /// <summary>
     /// A bare link to an image file the fake serves, <c>&lt;baseUrl&gt;/_media/example.com/&lt;id&gt;.jpg</c>, posted on
     /// its own line: a JPEG unless <paramref name="image"/> says otherwise.
     /// </summary>

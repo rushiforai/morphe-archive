@@ -29,7 +29,7 @@ Second \"item\" text"</string>
   <string name="morphe_sb_auto_hide_skip_button_summary">Nasconde il pulsante Salta dopo alcuni secondi anziché mantenerlo visibile per l\'intero segmento</string>
   <string name="morphe_sb_auto_hide_skip_button_duration_title">Durata pulsante Salta</string>
   <string name="morphe_sb_auto_hide_skip_button_duration_summary">Imposta la durata per cui i pulsanti Salta rimangono visibili</string>
-  <string name="morphe_sb_toast_on_skip_title">Mostra notifica annulla salto</string>
+  <string name="morphe_sb_toast_on_skip_title">Mostra notifica di salto</string>
   <string name="morphe_sb_toast_on_skip_summary">Mostra una notifica quando un segmento viene saltato automaticamente</string>
   <string name="morphe_sb_toast_on_skip_duration_title">Durata notifica di salto</string>
   <string name="morphe_sb_toast_on_skip_duration_summary">Imposta la durata per cui rimane visibile la notifica di annullamento</string>
@@ -58,6 +58,8 @@ Second \"item\" text"</string>
   <string name="morphe_sb_guidelines_popup_already_read">Già lette</string>
   <string name="morphe_sb_guidelines_popup_open">Mostramele</string>
   <string name="morphe_sb_general_title">Generale</string>
+  <string name="morphe_sb_offline_segments_title">Salva segmenti di video scaricati</string>
+  <string name="morphe_sb_offline_segments_summary">Consente di saltare segmenti di video scaricati mentre si è offline</string>
   <string name="morphe_sb_toast_on_connection_error_title">Mostra avvisi di errore di connessione</string>
   <string name="morphe_sb_toast_on_connection_error_summary">Mostra una notifica quando il server SponsorBlock non è disponibile</string>
   <string name="morphe_sb_track_skip_count_title">Attiva il monitoraggio del conteggio dei salti</string>
@@ -195,7 +197,7 @@ Pronto per l'invio?"</string>
   <string name="morphe_sb_new_segment_mark_locations_first">Imposta innanzitutto una posizione sulla barra di avanzamento</string>
   <string name="morphe_sb_new_segment_preview_segment_first">Guarda l\'anteprima del segmento e verifica che lo salti senza problemi</string>
   <string name="morphe_sb_new_segment_edit_by_hand_title">Modifica manualmente il tempo del segmento</string>
-  <string name="morphe_sb_new_segment_edit_by_hand_content">Vuoi modificare il tempo di l\'inizio o di fine del segmento?</string>
+  <string name="morphe_sb_new_segment_edit_by_hand_content">Vuoi modificare il tempo dell\'inizio o della fine del segmento?</string>
   <string name="morphe_sb_new_segment_edit_by_hand_parse_error">Il minutaggio fornito non è valido</string>
   <string name="morphe_sb_new_segment_highlight_title">Invia evidenziazione</string>
   <string name="morphe_sb_new_segment_highlight_content">"L'ora del momento saliente è corretta?

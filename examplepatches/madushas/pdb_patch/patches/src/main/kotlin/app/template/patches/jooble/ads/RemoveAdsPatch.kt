@@ -51,7 +51,6 @@ val joobleRemoveAdsPatch = resourcePatch(
         "in the Flutter UI cannot be removed, but they no longer fill.",
     default = true,
 ) {
-    category("Ads")
     compatibleWith(JOOBLE_COMPATIBILITY)
 
     execute {

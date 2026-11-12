@@ -5,60 +5,45 @@ import app.template.patches.shared.Constants.TEXTNOW_COMPATIBILITY
 import org.w3c.dom.Element
 
 /**
- * Every ad-network component declared in TextNow's manifest. TextNow is ad-supported
- * and bundles several mediation SDKs; each registers activities/services/receivers/
- * providers that are only needed to *serve* ads. Setting `android:enabled="false"`
- * neutralises them while leaving the app's own code paths intact (calls into a disabled
- * component fail silently instead of crashing).
+ * Ad-network components declared in TextNow 26.45.0.0's manifest. Each is only needed
+ * to *serve* ads; setting `android:enabled="false"` neutralises it while leaving the
+ * app's own code paths intact (calls into a disabled component fail silently instead
+ * of crashing). The partner SDKs themselves are never started — their initializer
+ * `setup()` methods are no-op'ed by [textnowDisableAdSdkPatch].
  */
 private val AD_COMPONENTS = listOf(
-    // AdMarvel
-    "com.admarvel.android.ads.AdMarvelActivity",
-    "com.admarvel.android.ads.AdMarvelMediationActivity",
-    // Amazon Mobile Ads
-    "com.amazon.device.ads.DTBActivity",
-    // AppNext
-    "com.appnext.actionssdk.ActionActivity",
-    "com.appnext.actionssdk.ActionService",
-    "com.appnext.core.AdsService",
-    "com.appnext.base.services.OperationService",
-    "com.appnext.base.services.ReceiverService",
-    "com.appnext.base.receivers.imp.bootreceiver",
-    "com.enflick.android.TextNow.ads.appnext.AppNextDbFileDownloadService",
-    // Google Mobile Ads
-    "com.google.android.gms.ads.AdActivity",
-    // MoPub
-    "com.mopub.common.MoPubBrowser",
-    "com.mopub.common.privacy.ConsentDialogActivity",
-    "com.mopub.mobileads.MoPubActivity",
-    "com.mopub.mobileads.MraidActivity",
-    "com.mopub.mobileads.MraidVideoPlayerActivity",
-    "com.mopub.mobileads.RewardedMraidActivity",
+    // Facebook Audience Network (the primary ad SDK in this build).
+    "com.facebook.ads.AudienceNetworkActivity",
+    "com.facebook.ads.AudienceNetworkContentProvider",
+    // Amazon Publisher Services / DTB.
+    "com.amazon.aps.ads.activity.ApsInterstitialActivity",
+    "com.amazon.device.ads.DTBInterstitialActivity",
 )
 
-/** Advertising / attribution permissions stripped (defensive — none are declared here). */
+/** Advertising / attribution permissions stripped. */
 private val AD_PERMISSIONS = listOf(
     "com.google.android.gms.permission.AD_ID",
     "android.permission.ACCESS_ADSERVICES_ATTRIBUTION",
     "android.permission.ACCESS_ADSERVICES_AD_ID",
+    "android.permission.ACCESS_ADSERVICES_CUSTOM_AUDIENCE",
+    "android.permission.ACCESS_ADSERVICES_TOPICS",
+    "com.appsflyer.referrer.INSTALL_PROVIDER",
     "com.google.android.finsky.permission.BIND_GET_INSTALL_REFERRER_SERVICE",
 )
 
 /**
- * Removes ads from TextNow by disabling every bundled ad-network component (AdMarvel,
- * Amazon, AppNext, Google Mobile Ads, MoPub) and stripping the advertising-ID /
- * ad-services / install-referrer permissions. The ad SDK init calls are additionally
- * no-op'ed by [textnowDisableAdSdkPatch].
+ * Removes ads from TextNow 26.45.0.0: disables every ad-network component declared in
+ * the manifest (Facebook Audience Network, Amazon APS/DTB) and strips the
+ * advertising-ID / ad-services / install-referrer permissions.
  */
 @Suppress("unused")
 val textnowRemoveAdsPatch = resourcePatch(
     name = "Remove ads",
-    description = "Disables every ad-network component TextNow declares (AdMarvel, Amazon, " +
-        "AppNext, Google Mobile Ads, MoPub) and strips the ad-ID / ad-services / " +
+    description = "Disables every ad-network component TextNow declares (Facebook " +
+        "Audience Network, Amazon APS/DTB) and strips the ad-ID / ad-services / " +
         "install-referrer permissions.",
     default = true,
 ) {
-    category("Ads")
     compatibleWith(TEXTNOW_COMPATIBILITY)
 
     execute {

@@ -1,3 +1,15 @@
+## [1.10.2](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/compare/v1.10.1...v1.10.2) (2026-11-12)
+
+### 🐛 Bug Fixes
+
+* **leghefc:** complete 13.2.3 compatibility for percentuali and launcher ([66be44e](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/66be44eb3630c7615810361fe4523ff01d5207e0)), closes [#38](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/issues/38)
+
+## [1.10.1](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/compare/v1.10.0...v1.10.1) (2026-11-12)
+
+### 🐛 Bug Fixes
+
+* **leghefc:** update demo patch for 13.2.3 ([eb39e6a](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/eb39e6aa5c32cf49294dbd44950f047325c7f3f5))
+
 ## [1.10.0](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/compare/v1.9.0...v1.10.0) (2026-11-03)
 
 ### ✨ New Features

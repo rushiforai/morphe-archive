@@ -188,7 +188,8 @@ final class FeedItems {
     }
 
     private static final String[] NOT_A_NAME = {"follow", "following", "subscribe", "subscribed", "like", "comment", "share", "send message",
-            "more", "sponsored", "reply", "see more", "join", "go to reels", "reels", "watch", "see all", "suggested for you"};
+            "more", "sponsored", "reply", "see more", "join", "go to reels", "reels", "watch", "see all", "suggested for you",
+            "متابعة", "تتم متابعته", "اشتراك", "انضمام", "إعجاب", "تعليق", "مشاركة", "المزيد", "ريلز", "ممول"};
     /** Start of the placeholder texts of input bars and buttons. The player opened from a post lists "Add a comment..." before the creator. */
     private static final String[] NOT_A_NAME_PREFIX = {"add a comment", "write a comment", "write a public comment", "comment as", "send message",
             "type a message", "say something", "search", "reply to", "view all", "view more", "see translation"};
@@ -210,7 +211,8 @@ final class FeedItems {
 
     private static boolean isFollowWord(String text) {
         String lower = text.toLowerCase(java.util.Locale.ROOT);
-        return lower.equals("follow") || lower.equals("following") || lower.equals("subscribe") || lower.equals("subscribed") || lower.equals("join");
+        return lower.equals("follow") || lower.equals("following") || lower.equals("subscribe") || lower.equals("subscribed") || lower.equals("join")
+                || lower.equals("متابعة") || lower.equals("تتم متابعته") || lower.equals("اشتراك") || lower.equals("انضمام");
     }
 
     /**

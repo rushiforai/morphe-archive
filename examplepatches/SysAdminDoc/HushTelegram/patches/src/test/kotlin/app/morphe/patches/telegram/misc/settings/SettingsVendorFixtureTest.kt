@@ -49,6 +49,8 @@ class SettingsVendorFixtureTest {
             val create = context.declaredInHierarchy(MAIN_ACTIVITY, "onCreate", "Landroid/os/Bundle;")
             val intent = context.declaredInHierarchy(MAIN_ACTIVITY, "onNewIntent", "Landroid/content/Intent;")
             val original = listOf(application, create, intent).associate { it.signature() to it.operations() }
+            // 13.2.2 returns early in its isolated :widgets process too, and that return gets the hook as well.
+            val returns = application.implementation!!.instructions.count { it.opcode == Opcode.RETURN_VOID }
             assertTrue("${build.name}: application returns after native setup",
                 application.implementation!!.instructions.any { it.opcode == Opcode.RETURN_VOID })
             telegramExtensionPatch.execute(context)
@@ -59,7 +61,7 @@ class SettingsVendorFixtureTest {
             for (method in listOf(application, create, intent)) {
                 val added = method.operations().filter { it.second?.startsWith("Lapp/hushtelegram/extension/") == true }
                 val expected = when (method) {
-                    application -> listOf("setContext", "onApplicationCreate")
+                    application -> listOf("setContext") + List(returns) { "onApplicationCreate" }
                     create -> listOf("onActivityCreate")
                     else -> listOf("onNewIntent")
                 }

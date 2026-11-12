@@ -28,4 +28,9 @@ final class MediaAttemptGate {
         if(success)attempts.remove(key);else attempts.put(key,new Attempt(false,now));
     }
     synchronized void cancel(String key){attempts.remove(key);}
+    synchronized boolean beginManual(String key,long now){
+        Attempt previous=attempts.get(key);if(previous!=null&&previous.running)return false;
+        attempts.remove(key);return begin(key,now);
+    }
+    synchronized boolean running(String key){Attempt value=attempts.get(key);return value!=null&&value.running;}
 }

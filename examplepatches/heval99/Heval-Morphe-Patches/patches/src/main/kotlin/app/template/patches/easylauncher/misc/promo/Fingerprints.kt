@@ -4,13 +4,12 @@ import app.morphe.patcher.Fingerprint
 
 // Remote-config data classes for the GetJar and SportsPass partner promos (kept: they are
 // deserialized by name). Their enabled getters decide whether the workspace banners, the app
-// drawer tile, the search action cards and the search suggestions are shown.
+// drawer tile/icon/folder, the search action cards and the search suggestions are shown.
 internal val PROMO_CONFIG_CLASSES = listOf(
     "Lcom/eet/promos/getjar/config/GetJarRemoteConfig\$BannerConfig;",
     "Lcom/eet/promos/getjar/config/GetJarRemoteConfig\$SearchConfig;",
-    "Lcom/eet/promos/sportspass/config/SportsPassRemoteConfig\$BannerConfig;",
-    "Lcom/eet/promos/sportspass/config/SportsPassRemoteConfig\$IconConfig;",
-    "Lcom/eet/promos/sportspass/config/SportsPassRemoteConfig\$TileConfig;",
+    // 1.10.31 merged the SportsPass banner, icon, tile (and new folder) configs into one entry config.
+    "Lcom/eet/promos/sportspass/config/SportsPassRemoteConfig\$SportsPassEntryConfig;",
     "Lcom/eet/promos/sportspass/config/SportsPassRemoteConfig\$SearchConfig;",
 )
 internal val PROMO_ENABLED_GETTERS = setOf("getEnabled", "getActionCardEnabled", "getSuggestEnabled")

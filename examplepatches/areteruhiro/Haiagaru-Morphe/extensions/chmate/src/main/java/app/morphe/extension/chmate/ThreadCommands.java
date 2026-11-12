@@ -70,9 +70,13 @@ public final class ThreadCommands {
             // A new thread has no thread ID: the native thread URL is null.
             // Use the board URL for commands, per-board settings and authentication.
             String url = postingUrl(target, thread, urlMethod, boardUrlMethod);
+            if(fragment.getClass().getName().equals("o.p9ExternalSyntheticLambda6")&&!thread)
+                PostAutoReload191.editor(root,url);
             EditText body = (EditText) field(binding, bodyName);
+            attachSiteImage(root,body,url);
             ExternalBoardAuth.target(fragment, url, body);
             BeAutoLogout.editor(fragment, target, thread, url);
+            PostingIpWarning.editor(fragment, model);
             // Commands belong only to thread creation, not ordinary replies.
             // Keep target registration above for external-board authentication.
             if (!thread||!FeatureSwitches.enabled("threadCommandsEnabled",true)) return;
@@ -93,6 +97,21 @@ public final class ThreadCommands {
             }
         } catch (Exception e) {
             android.util.Log.w("Haiagaru", "Thread command UI unavailable", e);
+        }
+    }
+    private static void attachSiteImage(View root,EditText body,String url){
+        if(url==null||root.findViewWithTag("haiagaru.site.image")!=null)return;
+        final boolean animanch;
+        try{SiteBoardGateway gateway=SiteBoardGateway.get(root.getContext());String target=gateway.attachmentTarget(url);animanch=gateway.boards.get(target.substring(0,target.indexOf(':'))).kind.equals("animanch");}catch(Exception otherBoard){return;}
+        View anchor=body;
+        while(anchor.getParent() instanceof ViewGroup){ViewGroup parent=(ViewGroup)anchor.getParent();
+            if(parent instanceof LinearLayout&&((LinearLayout)parent).getOrientation()==LinearLayout.VERTICAL){
+                Button button=new Button(root.getContext());button.setTag("haiagaru.site.image");button.setText("画像添付（追加掲示板）");
+                button.setOnClickListener(v->root.getContext().startActivity(new android.content.Intent(root.getContext(),SitePostingImageActivity.class).putExtra("postingUrl",url)));
+                parent.addView(button,parent.indexOfChild(anchor),new LinearLayout.LayoutParams(-1,-2));
+                if(animanch){Button auth=new Button(root.getContext());auth.setTag("haiagaru.site.auth");auth.setText("あにまんの認証");auth.setOnClickListener(v->root.getContext().startActivity(new android.content.Intent(root.getContext(),SiteBoardSettingsActivity.class).putExtra("authenticateAnimanch",true)));parent.addView(auth,parent.indexOfChild(anchor),new LinearLayout.LayoutParams(-1,-2));}
+                return;
+            }anchor=parent;
         }
     }
     private static void choose(EditText body, String profile) {

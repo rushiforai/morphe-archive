@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) 2026 Lokesh Sparrow
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 package app.badfella.extension.linkedin;
 
 import android.app.Activity;
@@ -151,14 +156,14 @@ public final class DocumentPdf {
                     writeToDownloads(context, name, out -> out.write(pdf));
                 } else {
                     List<File> files = new ArrayList<>();
-                    for (Slice slice : doc.slices) {
-                        File file = File.createTempFile("badfella_slice", ".pdf", context.getCacheDir());
-                        try (OutputStream out = new FileOutputStream(file)) {
-                            out.write(fetch(resolve(doc.rootUrl, slice.suffix)));
-                        }
-                        files.add(file);
-                    }
                     try {
+                        for (Slice slice : doc.slices) {
+                            File file = File.createTempFile("badfella_slice", ".pdf", context.getCacheDir());
+                            files.add(file);
+                            try (OutputStream out = new FileOutputStream(file)) {
+                                out.write(fetch(resolve(doc.rootUrl, slice.suffix)));
+                            }
+                        }
                         writeToDownloads(context, name, out -> combine(files, out));
                     } finally {
                         for (File file : files) //noinspection ResultOfMethodCallIgnored

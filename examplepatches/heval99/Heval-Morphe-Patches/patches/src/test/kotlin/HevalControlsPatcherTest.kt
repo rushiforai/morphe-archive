@@ -102,8 +102,26 @@ class HevalControlsPatcherTest {
         // The extension classes are merged into the emitted dex.
         listOf(
             "HevalSettings;", "Registry;", "RegistryCodec;", "CrashGuard;", "InitProvider;", "PrefsStore;",
-            "ui/HevalControlsActivity;", "ui/ListPicker;", "ui/OptionImageLoader;", "ui/Views;", "ui/Palette;", "ui/Diagnostics;",
+            "Sections;", "ui/HevalControlsActivity;", "ui/ListPicker;", "ui/OptionImageLoader;", "ui/Views;", "ui/Palette;",
+            "ui/Diagnostics;", "ui/Icons;",
         ).forEach { assertTrue("$EXTENSION$it" in byType, "$EXTENSION$it is not in the patched dex") }
+
+        // Readability (2026-11-11): the secondary text colour, two-line descriptions, the row "on" marker,
+        // and the section rules (spoilers first, collapsed unless on, "N of M on") used by the screen.
+        assertTrue(byType.getValue("${EXTENSION}ui/Palette;").fields.any { it.name == "secondary" && it.type == "I" })
+        val views = byType.getValue("${EXTENSION}ui/Views;")
+        assertTrue(views.methods.any { it.name == "description" && it.returnType == "Landroid/widget/TextView;" })
+        assertTrue(views.methods.any { it.name == "onMarker" && it.returnType == "Landroid/view/View;" })
+        // The activity and its inner classes (FeatureRow, ChoiceRow, ...).
+        val activityCalls = classes.filter { it.type.startsWith("${EXTENSION}ui/HevalControlsActivity") }.flatMap { it.methods }.flatMap { method ->
+            method.implementation?.instructions?.mapNotNull { ((it as? ReferenceInstruction)?.reference as? MethodReference) }.orEmpty()
+        }
+        listOf("isFirst", "startsCollapsed", "onCount", "spokenCount").forEach { name ->
+            assertTrue(activityCalls.any { it.definingClass == "${EXTENSION}Sections;" && it.name == name },
+                "HevalControlsActivity does not call Sections.$name")
+        }
+        assertTrue(activityCalls.any { it.definingClass == "${EXTENSION}HevalSettings;" && it.name == "showsOn" },
+            "HevalControlsActivity does not call HevalSettings.showsOn")
 
         // Registry getters were rewritten.
         val registry = byType.getValue("${EXTENSION}Registry;")

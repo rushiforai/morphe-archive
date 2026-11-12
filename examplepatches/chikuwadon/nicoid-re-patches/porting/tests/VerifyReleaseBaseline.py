@@ -41,8 +41,9 @@ if version != metadata_version:
     new = tuple(int(x) for x in version.split("."))
     old = tuple(int(x) for x in metadata_version.split("."))
     require((new[:2] == old[:2] and new[2] == old[2] + 1)
-            or (new[0] == old[0] and new[1] == old[1] + 1 and new[2] == 0),
-            "Release candidate must be the next patch or next minor version")
+            or (new[0] == old[0] and new[1] == old[1] + 1 and new[2] == 0)
+            or (new[0] == old[0] + 1 and new[1] == 0 and new[2] == 0),
+            "Release candidate must be the next patch, minor, or major version")
     require((ROOT / ".github" / "release-notes" / f"v{version}.md").is_file(),
             "Approved release notes missing")
     exists = subprocess.run(

@@ -20,6 +20,12 @@ public sealed partial class Reddit
     public void ImgurHasAnAlbumOfVideos(string title, int videos) => world.Imgur.AddAlbum(title, 0, videos: videos);
 
     /// <summary>
+    /// "Imgur has an album "&lt;title&gt;" of &lt;images&gt; image(s) and &lt;videos&gt; video(s)": its JPEGs first, then its
+    /// MP4s.
+    /// </summary>
+    public void ImgurHasAnAlbumOfImagesAndVideos(string title, int images, int videos) => world.Imgur.AddAlbum(title, images, videos: videos);
+
+    /// <summary>
     /// "Imgur has a gallery post "&lt;title&gt;" of &lt;images&gt; images": an album shared on Imgur's gallery, linked
     /// <c>https://imgur.com/gallery/&lt;id&gt;</c>.
     /// </summary>

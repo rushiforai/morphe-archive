@@ -55,6 +55,8 @@ public final class DeArrowToggle {
     private static final String API = "https://sponsor.ajay.app";
     private static final char ICON = '\u25CE';
     private static final char PENCIL = '\u270E';
+    /** Marks a title taken from the video's top comments ({@link CommentTitle}); a tap switches it. */
+    private static final char QUOTE = '\u275D';
     /** An en space: wider than a space, so the icon and the pencil are separate tap targets. */
     private static final char GAP = '\u2002';
 
@@ -77,6 +79,8 @@ public final class DeArrowToggle {
 
     private static final ThreadLocal<CharSequence> INPUT = new ThreadLocal<>();
     private static final ThreadLocal<String> IDENTIFIER = new ThreadLocal<>();
+    /** Whether the text is the open video's title under the player (video_metadata, outside its subtitle). */
+    private static final ThreadLocal<Boolean> WATCH_TITLE = new ThreadLocal<>();
 
     private DeArrowToggle() {
     }
@@ -86,17 +90,31 @@ public final class DeArrowToggle {
         final String key;
         final boolean original;
         final boolean pencil;
+        /** For a video without a DeArrow title: its own title, and whether the comments' title is shown. */
+        final String plain;
+        final boolean commentShown;
 
         State(String key, boolean original, boolean pencil) {
+            this(key, original, pencil, null, false);
+        }
+
+        State(String key, boolean original, boolean pencil, String plain, boolean commentShown) {
             this.key = key;
             this.original = original;
             this.pencil = pencil;
+            this.plain = plain;
+            this.commentShown = commentShown;
         }
 
         @Override
         public boolean isOutdated() {
+            if (plain != null) return (CommentTitle.shown(plain) != null) != commentShown
+                    || (!commentShown && CommentTitle.known(plain) != null && XSettings.COMMENT_TITLE.get() && !hasQuote);
             return key != null && showsOriginal(key) != original;
         }
+
+        /** Whether the text drawn has the comments' quote mark. */
+        boolean hasQuote;
 
         @Override
         public boolean canRelayoutHost(View host) {
@@ -146,11 +164,21 @@ public final class DeArrowToggle {
     public static void in(Object context, CharSequence text) {
         INPUT.set(text);
         String id = null;
+        boolean watchTitle = false;
         try {
-            if (context instanceof ContextInterface c) id = c.patch_getIdentifier();
+            if (context instanceof ContextInterface c) {
+                id = c.patch_getIdentifier();
+                // As Morphe's Copy video title finds the title: the metadata element, its inner text, not the subtitle.
+                if (id != null && id.startsWith("video_metadata.e")) {
+                    StringBuilder path = c.patch_getPathBuilder();
+                    String p = path == null ? "" : path.toString();
+                    watchTitle = p.contains("video_metadata_inner.e") && !p.contains("video_subtitle.e") && p.endsWith("|TextType|");
+                }
+            }
         } catch (Throwable ignored) {
         }
         IDENTIFIER.set(id);
+        WATCH_TITLE.set(watchTitle);
     }
 
     /** Injection point, on each text Morphe's Litho text hook returns. */
@@ -166,11 +194,22 @@ public final class DeArrowToggle {
             }
             String key = state != null ? state.key : hasIcon(text) ? text.toString().substring(1).trim() : null;
             if (key == null) {
-                // No DeArrow title: only the open video's own title gets the pencil.
-                if (!suggests || state != null) return text;
-                String shown = text.toString().trim();
-                String videoId = openVideo(shown, stripped(INPUT.get()));
-                return videoId == null ? text : build(text, null, shown, false, videoId);
+                // No DeArrow title: a title the video's top comments correct shows the corrected one, with a quote
+                // mark; only the open video's own title gets the pencil.
+                String own = state != null && state.plain != null ? state.plain : stripped(text);
+                String comment = CommentTitle.shown(own);
+                boolean quote = XSettings.COMMENT_TITLE.get() && CommentTitle.known(own) != null;
+                String videoId = suggests ? openVideo(own, stripped(INPUT.get())) : null;
+                if (state != null && (state.plain == null || (state.commentShown == (comment != null)
+                        && state.hasQuote == quote && state.pencil == (videoId != null)))) return text;
+                if (!quote && videoId == null) {
+                    // A plain title gets a span only on the open video's page, where a comments' title may arrive.
+                    return text;
+                }
+                if (XSettings.DEBUG.get() && quote) {
+                    Logger.printDebug(() -> "YouTube Extras: comments' title " + comment + " | own " + own + " | " + IDENTIFIER.get());
+                }
+                return buildPlain(text, own, comment, quote, videoId);
             }
             if (key.isEmpty()) return text;
             Info info = info(key);
@@ -238,6 +277,13 @@ public final class DeArrowToggle {
      */
     private static String openVideo(String a, String b) {
         try {
+            String videoId0 = VideoInformation.getVideoId();
+            // The title element under the player is the open video's, whether or not its title is known yet (a title
+            // laid out before the player knew it got no pencil and was never laid out again).
+            if (Boolean.TRUE.equals(WATCH_TITLE.get()) && videoId0 != null && videoId0.length() == 11) {
+                if (XSettings.DEBUG.get()) Logger.printDebug(() -> "YouTube Extras: open video title by its element: " + videoId0);
+                return videoId0;
+            }
             if (PlayerType.getCurrent() != PlayerType.WATCH_WHILE_MAXIMIZED) return null;
             String id = IDENTIFIER.get();
             if (id != null && (id.contains("video_with_context") || id.contains("video_lockup") || id.contains("compact_")
@@ -283,6 +329,51 @@ public final class DeArrowToggle {
             b.setSpan(new PencilClick(pencilVideoId, title), pencilStart, titleStart, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
         return b;
+    }
+
+    /** A title without a DeArrow title: the quote mark when the comments correct it, the pencil, then the title. */
+    private static CharSequence buildPlain(CharSequence source, String own, String comment, boolean quote, String pencilVideoId) {
+        SpannableStringBuilder b = new SpannableStringBuilder();
+        if (quote) b.append(QUOTE).append(GAP);
+        int pencilStart = b.length();
+        if (pencilVideoId != null) b.append(PENCIL).append(GAP);
+        int titleStart = b.length();
+        String title = comment != null ? comment : own;
+        b.append(title);
+        if (source instanceof Spanned s) {
+            for (Object span : s.getSpans(0, s.length(), Object.class)) {
+                if (span instanceof State || span instanceof IconClick || span instanceof PencilClick || span instanceof QuoteClick) continue;
+                if (s.getSpanStart(span) == 0 && s.getSpanEnd(span) == s.length()) b.setSpan(span, 0, b.length(), s.getSpanFlags(span));
+            }
+        }
+        State state = new State(null, false, pencilVideoId != null, own, comment != null);
+        state.hasQuote = quote;
+        b.setSpan(state, 0, b.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        if (quote) b.setSpan(new QuoteClick(own), 0, 2, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        if (pencilVideoId != null) {
+            // The suggestion starts from the comments' title when they give one.
+            CommentTitle.Found f = CommentTitle.known(own);
+            b.setSpan(new PencilClick(pencilVideoId, f != null ? f.title : title), pencilStart, titleStart, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+        return b;
+    }
+
+    private static final class QuoteClick extends ClickableSpan {
+        final String own;
+
+        QuoteClick(String own) {
+            this.own = own;
+        }
+
+        @Override
+        public void onClick(View widget) {
+            CommentTitle.toggle(own);
+        }
+
+        @Override
+        public void updateDrawState(TextPaint paint) {
+            paint.setAlpha(paint.getAlpha() * 2 / 3);
+        }
     }
 
     private static State firstState(CharSequence text) {

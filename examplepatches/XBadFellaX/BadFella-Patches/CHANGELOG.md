@@ -1,3 +1,182 @@
+## 1.4.0 (2026-11-12)
+
+The complete 44-patch BadFella Patches bundle includes these improvements to our LinkedIn patches.
+
+### ✨ New Features
+
+* **LinkedIn:** add preset and custom hex accent colors alongside wallpaper colors; give Copy text, Download and Save PDF their own post-menu icons; refine the glass navigation bar with a spring selection pill, a thin rim and no press ripple while keeping its floating inset and full-height hiding behavior.
+
+### 🔧 Improvements
+
+* **LinkedIn:** use Morphe's class, string and method-call indexes for theme, share-link and GmsCore patch discovery, preserving the existing checks and Google identity.
+* Keep the post-text extraction and failed PDF-download cleanup fixes from 1.3.1.
+
+### Updating
+
+Refresh Sources in Morphe Manager and patch the original app again with the same signing key. Accent colors require Material You; glass styling requires Glass navigation bar. Restart LinkedIn after changing colors. Experimental features remain experimental.
+
+## 1.4.0-dev.1 (2026-11-12)
+
+The complete 44-patch BadFella Patches bundle includes these improvements to our LinkedIn patches.
+
+### ✨ New Features
+
+* **LinkedIn:** add preset and custom hex accent colors alongside wallpaper colors; give Copy text, Download and Save PDF their own post-menu icons; refine the glass navigation bar with a spring selection pill, a thin rim and no press ripple while keeping its floating inset and full-height hiding behavior.
+
+### 🔧 Improvements
+
+* **LinkedIn:** use Morphe's class, string and method-call indexes for theme, share-link and GmsCore patch discovery, preserving the existing checks and Google identity.
+* Keep the post-text extraction and failed PDF-download cleanup fixes from 1.3.1.
+
+### Updating
+
+Refresh Sources in Morphe Manager and patch the original app again with the same signing key. Accent colors require Material You; glass styling requires Glass navigation bar. Restart LinkedIn after changing colors. Experimental features remain experimental.
+
+## 1.3.1 (2026-11-12)
+
+Includes the complete 44-patch bundle from v1.3.0 and all dev changes promoted into v1.3.1, across LinkedIn, TickTick, Emby, Remote for Android TV, Pep Talk, Wanderlog and Torrent Search Revolution V2. This is the full BadFella Patches bundle, with additional LinkedIn corrections.
+
+### 🐛 Bug Fixes
+
+* **LinkedIn:** copy actual post text, including line breaks, from the post menu instead of a tracking identifier.
+* **LinkedIn:** remove temporary document slices when a PDF download fails.
+* Restore copyright notices and source credits.
+
+### Updating
+
+Refresh Sources in Morphe Manager and patch the original app again. Keep the same Manager signing key when updating an existing patched installation. Experimental features remain experimental.
+
+## 1.3.1-dev.1 (2026-11-12)
+
+### 🐛 Bug Fixes
+
+* **LinkedIn:** copy the actual post text, including line breaks, from the post menu instead of a tracking identifier; remove temporary document slices when a PDF download fails; restore copyright notices and credits.
+
+### Notes
+
+* Applies to the existing LinkedIn 4.1.1271 patches. Keep the same Morphe Manager signing key when updating an existing patched installation.
+* Anonymous profile viewing remains experimental. These fixes do not change Google sign-in or privacy guarantees.
+
+## 1.3.0 (2026-11-12)
+
+### ✨ New Features
+
+* **torrent search revolution:** add the local Pro patch for Torrent Search Revolution V2 2.3.5, covering thirteen local Pro checks across search ads, banners, native ads and Pro settings to unlock the full offline search experience and remove ads while retaining startup callbacks
+* **ticktick:** support TickTick 8.3.0.1 (build 8301) across TickTick Premium, Disable analytics collection, Restore notifications and Restore reminder alarms by finding the reviewed bytecode shapes instead of the class names R8 renamed, and declare 8.3.0.1 as an explicit target so Morphe can fetch that exact version
+* **linkedin:** add the Install next to LinkedIn patch for LinkedIn 4.1.1271 and 4.1.1267, which installs the patched build as a second app with its own package name, home screen name and data, so both the copy and the installed LinkedIn can be signed in side by side (closes #2)
+* **linkedin:** add a Dark app icon option, Material bottom navigation icons, an Icon-only post actions option, Copy post text and an Always show navigation bar option
+* **linkedin:** float the glass navigation bar above the system navigation bar, with the screen showing through the room under it, and slide it fully off screen while scrolling
+
+### 🐛 Bug Fixes
+
+* **linkedin:** keep the Install next to LinkedIn copy's microG spoofed package name as LinkedIn's own, so Continue with Google signs in instead of reporting an account abnormality
+* **linkedin:** center the tab icons and labels inside the glass navigation bar capsule
+* **linkedin:** decode bottom bar icon resources before replacing them
+* **linkedin:** close an empty Premium upsell full-page takeover instead of leaving a blank screen
+* **linkedin:** resolve the My Network tab from the visible tab row when swiping between feeds
+
+### 🗑️ Removed
+
+* **ultimea:** remove the experimental Pitch black, Hide Explorer tab and Custom font patches and the font files bundled only for them, so the bundle covers LinkedIn, TickTick, Emby, Remote for Android TV, Pep Talk, Wanderlog and Torrent Search Revolution V2
+
+### Notes
+
+* Patch the unmodified APKs in Morphe Manager. Keep the same Manager signing key when updating an existing patched installation.
+* TickTick Premium and the Torrent Search Revolution local Pro patch change local app behavior only; they do not grant a Pro Key, a subscription or a server entitlement.
+* The Install next to LinkedIn copy starts with empty data and needs its own sign-in. Select GmsCore support to sign in with Google through microG RE.
+
+## 1.3.0-dev.10 (2026-11-12)
+
+### ✨ New Features
+
+* **Torrent Search Revolution V2:** add local Pro/ad-free mode for the original 2.3.5 APKS, covering thirteen local Pro checks across search ads, banners, native ads and Pro settings while retaining startup callbacks.
+
+### Notes
+
+* Patch the unmodified Torrent Search Revolution V2 2.3.5 APKS in Morphe Manager. Keep the same Manager signing key when updating an existing patched installation.
+* This patch changes local app behavior; it does not grant a Pro Key subscription or server entitlement. Changed app bytecode is rejected for review.
+
+## 1.3.0-dev.9 (2026-11-11)
+
+### ✨ New Features
+
+* **ticktick:** support TickTick 8.3.0.1 (build 8301) by finding the premium wrapper, limits, privacy gate, reminder guard and analytics provider through their reviewed bytecode shapes instead of the class names that R8 renamed, and declare 8.3.0.1 as an explicit target so Morphe sources can fetch that exact version
+
+### Notes
+
+* TickTick also keeps the experimental any-version target. Every patch still verifies its own anchors and fails closed on a changed one.
+* TickTick Premium remains client-side only: it does not grant server AI access, cloud quota or a subscription.
+
+## 1.3.0-dev.8 (2026-11-10)
+
+### 🗑️ Removed
+
+* **ultimea:** remove the experimental Ultimea patches (Pitch black, Hide Explorer tab and Custom font) and the font files bundled only for them, so the bundle covers LinkedIn, TickTick, Emby, Remote for Android TV, Pep Talk and Wanderlog again
+
+### Notes
+
+* Preparation of a clean baseline for the upcoming stable release after the experimental Ultimea patches are withdrawn. An already patched Ultimea install is unaffected by this bundle change.
+
+## 1.3.0-dev.7 (2026-11-11)
+
+### 🐛 Bug Fixes
+
+* **linkedin:** keep the Install next to LinkedIn copy's microG spoofed package name as LinkedIn's own, so Continue with Google signs in instead of reporting an account abnormality
+
+## 1.3.0-dev.6 (2026-11-11)
+
+### 🐛 Bug Fixes
+
+* **linkedin:** slide the floating glass navigation bar completely off screen when scrolling, instead of leaving half of the capsule at the bottom
+
+## 1.3.0-dev.5 (2026-11-11)
+
+### 🐛 Bug Fixes
+
+* **linkedin:** float the glass navigation bar above the system navigation bar, with the screen showing through the room under it, and center the tab icons and labels inside the capsule
+
+## 1.3.0-dev.4 (2026-11-10)
+
+### ✨ New Features
+
+* **linkedin:** add a Dark app icon option that paints the launcher icon background black while keeping the white "in"
+* **linkedin:** add Material icons to the bottom navigation bar, filled when selected and outlined otherwise
+* **linkedin:** add an Icon-only post actions option that shows Like, Comment, Repost and Send as icons without their labels
+* **linkedin:** add Copy post text, so long pressing a post's text copies all of it, including the part behind "...more"
+* **linkedin:** add an Always show navigation bar option that keeps the bar on screen while scrolling
+
+### 🐛 Bug Fixes
+
+* **linkedin:** close an empty Premium upsell full-page takeover instead of leaving a blank screen
+* **linkedin:** resolve the My Network tab from the visible tab row when swiping between feeds
+
+## 1.3.0-dev.3 (2026-11-10)
+
+### ✨ New Features
+
+* **linkedin:** add the Install next to LinkedIn patch for LinkedIn 4.1.1271 and 4.1.1267, which installs the patched build as a second app with its own package name, home screen name and data, so both the copy and the installed LinkedIn can be signed in side by side (closes #2)
+
+### Notes
+
+* The copy starts with empty data and needs its own sign-in.
+* Features that check the installed package or signing certificate, such as verified app links and Google Play services based sign-in, may behave differently in the copy. Select GmsCore support as well to sign in with Google through microG RE.
+
+## 1.3.0-dev.2 (2026-11-10)
+
+### 🐛 Bug Fixes
+
+* **ultimea:** make the Ultimea patches take effect on device: pitch black dark mode now replaces the reviewed dark palette tokens and the native night window colors, the Explorer/Community tab is removed from the bottom navigation and its icons are blanked, and the chosen font is injected through the Flutter font manifest so it renders across the app
+
+### 🚀 Features
+
+* **ultimea:** add a Custom font option with Rosemary (Samsung), Google Sans, Open Sans, Segoe UI and System Default
+
+## 1.3.0-dev.1 (2026-11-10)
+
+### 🚀 Features
+
+* **ultimea:** add Pitch black AMOLED dark theme, Hide Explorer tab, and Use system font patches for Ultimea 1.4.4
+
 ## 1.2.0 (2026-11-08)
 
 ### 🐛 Bug Fixes

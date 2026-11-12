@@ -179,6 +179,7 @@ private fun BytecodePatchContext.patchThumbnailPlaybackOverlay(version: String) 
     image.methods.add(changed)
     val url = image.methods.single { it.name == "setImageUrl" && it.parameterTypes == listOf("Ljava/lang/String;", "I", "I") }
     url.addInstructions(0, "invoke-virtual/range {p0 .. p1}, $imageType->haiagaruOverlayUrl(Ljava/lang/String;)V")
+    url.addInstructions(0, "invoke-static/range {p0 .. p1}, Lapp/morphe/extension/chmate/VideoThumbnailRetry;->bind(Ljava/lang/Object;Ljava/lang/String;)V")
 }
 
 /** Retain the old image until the legacy decoder delivers its replacement/error. */

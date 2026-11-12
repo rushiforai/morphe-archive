@@ -17,7 +17,6 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.preference.Preference;
 import android.text.InputType;
@@ -59,7 +58,6 @@ import app.morphe.extension.shared.ResourceType;
 import app.morphe.extension.shared.ResourceUtils;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.patches.EnableDebuggingPatch;
-import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.SharedYouTubeSettings;
 import app.morphe.extension.shared.theme.ThemeUtils;
 import app.morphe.extension.shared.ui.CustomDialog;
@@ -194,7 +192,7 @@ public class FeatureFlagsManagerPreference extends Preference {
      * Shows the main dialog for managing feature flags.
      */
     private void showFlagsManagerDialog() {
-        if (!BaseSettings.DEBUG.get()) {
+        if (!Logger.isDebugEnabled()) {
             Utils.showToastShort(str("morphe_debug_logs_disabled"));
             return;
         }
@@ -331,7 +329,8 @@ public class FeatureFlagsManagerPreference extends Preference {
     private EditText createSearchBox(Context context) {
         EditText search = CustomDialog.createSearchBar(context,
                 str("morphe_debug_feature_flags_manager_search_hint"), query -> {
-            adapter.setSearchQuery(query);
+            adapter.searchQuery = query == null ? "" : query.trim();
+            adapter.refresh();
             listView.clearChoices();
             updateChips();
             updateBottomBar();
@@ -419,19 +418,6 @@ public class FeatureFlagsManagerPreference extends Preference {
                     ? ThemeUtils.getOkButtonBackgroundColor()
                     : ThemeUtils.getEditTextBackground()));
         }
-    }
-
-    /**
-     * The icons use a theme attribute for their color, which is only resolved if the drawable
-     * is loaded with a theme, and the app theme can differ from the dialog theme.
-     */
-    private Drawable createSearchBoxIcon(Context context, int drawableResId) {
-        Drawable icon = context.getDrawable(drawableResId);
-        //noinspection DataFlowIssue
-        icon.setBounds(0, 0, Dim.dp20, Dim.dp20);
-        icon.setTint(ThemeUtils.getAppForegroundColor());
-
-        return icon;
     }
 
     /**
@@ -941,13 +927,13 @@ public class FeatureFlagsManagerPreference extends Preference {
     }
 
     /**
-     * Saves the flags and asks to restart.
+     * Saves the flags. The restart dialog is shown when the settings are closed.
      */
     private void saveFlags() {
         persistFlagStates();
         Utils.showToastShort(str("morphe_debug_feature_flags_manager_toast_saved"));
 
-        AbstractPreferenceFragment.showRestartDialog(getContext());
+        AbstractPreferenceFragment.setRestartNeeded();
     }
 
     /**
@@ -958,7 +944,7 @@ public class FeatureFlagsManagerPreference extends Preference {
         SharedYouTubeSettings.FORCED_FEATURE_FLAGS.resetToDefault();
         Utils.showToastShort(str("morphe_debug_feature_flags_manager_toast_reset"));
 
-        AbstractPreferenceFragment.showRestartDialog(getContext());
+        AbstractPreferenceFragment.setRestartNeeded();
     }
 
     /**
@@ -1023,11 +1009,6 @@ public class FeatureFlagsManagerPreference extends Preference {
 
         FlagAdapter(Context context) {
             this.context = context;
-        }
-
-        void setSearchQuery(String query) {
-            searchQuery = query == null ? "" : query.trim();
-            refresh();
         }
 
         void refresh() {

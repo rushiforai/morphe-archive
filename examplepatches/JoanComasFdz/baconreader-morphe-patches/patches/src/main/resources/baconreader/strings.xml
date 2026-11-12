@@ -25,6 +25,10 @@
     <string name="revanced_baconreader_show_videos_title">Play videos in comments</string>
     <string name="revanced_baconreader_show_videos_summary_on">Videos uploaded in comments and video links are played in the comment</string>
     <string name="revanced_baconreader_show_videos_summary_off">Videos uploaded in comments and video links are shown as links</string>
+    <string name="revanced_baconreader_open_web_pages_in_browser_title">Open web pages in the browser</string>
+    <string name="revanced_baconreader_open_web_pages_in_browser_summary_on">Links to web pages open in your browser, not in BaconReader. Images, GIFs, galleries and videos still open in BaconReader, whether or not \"Open links inside app\" is on</string>
+    <string name="revanced_baconreader_open_web_pages_in_browser_summary_off">Links to web pages open where \"Open links inside app\" says</string>
+    <string name="revanced_baconreader_open_link_button">Open link</string>
     <string name="revanced_baconreader_autoplay_videos_in_detail_view_title">Autoplay videos in Detail View</string>
     <string name="revanced_baconreader_autoplay_videos_in_detail_view_summary_on">Videos in a post\'s detail view, such as v.redd.it videos, start playing when the post opens</string>
     <string name="revanced_baconreader_autoplay_videos_in_detail_view_summary_off">The post shows its preview image with a play button, and the video loads when you tap it. GIFs are not affected</string>
@@ -51,6 +55,11 @@
     <string name="revanced_embed_comment_images_tap_to_load">Tap to load image</string>
     <string name="revanced_embed_comment_images_downloading">Downloading image…</string>
     <string name="revanced_embed_comment_images_download_failed">Could not download image</string>
+    <!-- What the buttons over a video playing in a comment say to screen readers. -->
+    <string name="revanced_embed_comment_images_video_shrink">Shrink video</string>
+    <string name="revanced_embed_comment_images_video_enlarge">Enlarge video</string>
+    <string name="revanced_embed_comment_images_video_full_screen">Full screen</string>
+    <string name="revanced_embed_comment_images_video_exit_full_screen">Exit full screen</string>
     <string name="revanced_post_media_redgifs_deleted">This RedGIFs video was deleted</string>
     <string name="revanced_post_media_redgifs_not_found">This RedGIFs video was not found</string>
     <string name="revanced_post_media_loading">Loading media</string>
@@ -106,6 +115,7 @@
     <string name="revanced_baconreader_error_copied">Copied to the clipboard</string>
     <string name="revanced_baconreader_error_saved">Saved to %s</string>
     <string name="revanced_baconreader_error_save_failed">Could not save the file: %s</string>
+    <string name="revanced_baconreader_error_issue">Consider opening an issue here</string>
     <string name="revanced_baconreader_comment_limit_title">Comments to load</string>
     <string name="revanced_baconreader_comment_limit_summary">%d comments when a post opens (200 to 500). Fewer load faster on slow connections</string>
     <string name="revanced_baconreader_auto_load_more_comments_title">Auto-load \"load more comments\"</string>

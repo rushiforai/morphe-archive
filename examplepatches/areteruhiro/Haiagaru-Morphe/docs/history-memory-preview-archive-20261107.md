@@ -1,0 +1,31 @@
+# 履歴メモリ不足・画像プレビュー・過去ログUnicode（2026-11-07）
+
+## 履歴の補助情報保存
+
+Sony SOG02 / Android12 / ChMate191で、512MiBのヒープ上限付近でSharedPreferencesImpl.commitToMemoryのHashMapコピーに失敗。呼び出し元はEdgeReporterHistory.metadataTitle。ログだけではプロセス全体でメモリを消費した内訳は確定できないが、同じ履歴タイトルを読むたびにputString/applyを繰り返すコードを確認した。Androidは同じ値でも保存中にEditorを適用すると先にMapをコピーするため、単なる再表示でも大きな割り当てを誘発する。
+
+変更分だけをReporterMetadataWritesへまとめ、履歴呼び出し元からSharedPreferences.Editor操作を除去。200ms単位の単一ワーカーでcommitを完了してから次のバッチへ進み、同ファイルへのapplyを重ねない。未保存/保存中の値も読み出せるのでNGメニューと表示は保存完了を待たない。未保存キューは4096件を上限に古い保留分を外す。空きヒープが少ない時は補助保存を控える。補助保存でOOM等が発生した場合はその保存処理を停止し、既存のファイルやユーザーのNG/履歴は消さない。プロセス全体の他のOOMまで防げるという保証ではない。既存のユーザー指定キャッシュ設定も変更しない。
+
+## アップロード済み画像のプレビュー
+
+報告は242 / Haiagaru1.25.0-dev.3。通常画像2枚の左右移動にもHaiagaruの混在メディア用ジェスチャが入り、nativeドラッグをキャンセルして画像ごとにActivityを起動し直す経路があった。242の標準pagerを持つビューアでは、全レス移動ではない通常画像プレビューを標準に委ねる。GIF/動画を専用ビューアで扱う混在リストと、全レス移動は既存処理を使う。
+
+191/226には同じnative pagerがないことを原本DEXで確認。途中候補で一律に委ねた際の回帰試験は両版とも2枚目に進めず失敗した。公開せず、ImagesViewerViewModelの存在を確認できる242だけに限定するよう修正。既存フックの引数/元命令は変更しない。
+
+## 初見のdat落ちスレの文字欠落
+
+https://egg.5ch.io/test/read.cgi/android/1781461086/13 を通常GETで取得し、HTTP200 / text/html;charset=Shift_JIS、本文に&#120143;が存在することを確認（build/reported-archive-thread.raw）。元サイトには𝕏が残っている。Kako HTMLをHtml.fromHtmlで文字へ戻した後、MS932へそのままgetBytesして未対応文字を失う処理があり、itest JSONでも同じ欠落経路だった。
+
+両変換の出力を既存のTalkDatEncodingで数値参照として保持し、𝕏・絵文字・補助漢字・異体字セレクタ・ZWJを残す。HTML読取は厳密にUTF-8として読める場合はUTF-8、そうでなければMS932とする。通常DATの通過経路は変えない。既に文字が欠落した保存DATは自動では修復しない。
+
+## 検証経過
+
+ホスト: ReporterMetadataWritesTest 14項目（1万回の重複投入、8並列の読取、保存中の更新、上限、OOM注入）、VerifyEdgeReporterHistory 27項目（1万回再表示でEditor数不変と永続化）、MediaGalleryTest47項目、ArchiveUnicodeEncodingTest11項目、既存TalkDatEncoding試験成功。
+
+通常Lint/R8: memory-only3m44s、swipe追加3m27s、archive追加3m29s成功。互換性限定の最終ビルド/試験を実行中。先行の242はnative27項目成功。途中の起動直後の試験手順と他windowへのpointer注入は失敗したため、Homeの起動完了後、対象のnative Activity自身へMotionEventをdispatchする試験に変更。単にポリシー関数を呼ぶ試験ではなく、実際の標準プレビューのページ表示とActivityの保持/移動を確認する。元の失敗ログも保持し成功数に含めない。
+
+追加確認: 報告実HTMLはdiv形式で旧正規表現には一致しなかったため、番号付きpost要素の構造をJsoupで読むfallbackを追加。旧sectionが存在しない場合は旧形式正規表現を全レスへ試さず、構造解析へ進む。ホストで旧/現行・UTF-8・実レス・1000レスの21項目が成功。実際のUnicode変換結果が一致することを確認。
+
+前段最終候補reporter-archive-release.mppは通常Lint/R8成功3m23s。emulator-5580へ同署名更新し、191/226/242それぞれ34項目成功。メモリ/実レス/画像切替のfixture試験。191の右移動は既存のBackジェスチャが優先されていたため、試験中だけBackを0にしてページ移動と分離、終了時に元値を復元。242では同一Activityで3往復し、191/226は従来のActivity経由で双方へ移動した。最後の旧形式判定スキップを含む配布候補をhistory-release-build.logでビルド中。
+
+32MiBの低ヒープ試験では、空きが少ない状態で履歴・表示・メニュー・コピー・captureの5経路がSharedPreferencesへ触れずに元の値を返すことを確認。元ログの24byte割り当ても難しい状態で、補助処理がさらに割り当てを誘発しないよう、入り口でもheadroomを確認する。

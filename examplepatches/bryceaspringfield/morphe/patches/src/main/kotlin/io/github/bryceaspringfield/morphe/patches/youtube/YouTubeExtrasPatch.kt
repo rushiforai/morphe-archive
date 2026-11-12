@@ -7,6 +7,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.getReference
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
@@ -27,6 +28,8 @@ private const val MORPHE_SETTINGS_FRAGMENT =
 
 private const val MORPHE_VIDEO_INFORMATION = "Lapp/morphe/extension/youtube/patches/VideoInformation;"
 
+private const val MORPHE_RYD_ICON_COUNT =
+    "Lapp/morphe/extension/shared/returnyoutubedislike/ReturnYouTubeDislikeButtons\$IconButtonCountDrawable;"
 private const val MORPHE_FEED_CARD_LAYOUT = "Lapp/morphe/extension/youtube/patches/FeedCardLayoutPatch;"
 
 private const val MORPHE_ORIGINAL_TITLES =
@@ -74,6 +77,35 @@ internal val youtubeExtrasBasePatch = bytecodePatch {
                     iput-object v$free, v$model, $count
                 """
             )
+        }
+
+        // Audio only: YouTube's playback modality is kept by the extension at the end of each constructor, with the
+        // names of its public enable (boolean, boolean) and disable (boolean) methods, which change with each version.
+        val disable = DisableAudioOnlyModeFingerprint.matchOrNull()?.method
+        val modality = disable?.let { mutableClassDefByOrNull(it.definingClass) }
+        val enable = modality?.methods?.firstOrNull {
+            AccessFlags.PUBLIC.isSet(it.accessFlags) && it.returnType == "V" && it.parameterTypes.size == 2 &&
+                it.parameterTypes.all { p -> p.toString() == "Z" }
+        }
+        val disablePublic = disable != null && AccessFlags.PUBLIC.isSet(disable.accessFlags) && disable.returnType == "V" &&
+            disable.parameterTypes.size == 1 && disable.parameterTypes[0].toString() == "Z"
+        if (disable == null || modality == null || enable == null || !disablePublic) {
+            logger.warning("YouTube's audio-only mode changed, so Audio only falls back to the lowest quality.")
+        } else {
+            modality.methods.filter { it.name == "<init>" && it.implementation != null }.forEach { init ->
+                val params = init.parameterTypes.sumOf { p -> if (p.toString() == "J" || p.toString() == "D") 2 else 1 } + 1
+                if (init.implementation!!.registerCount - params < 1) {
+                    logger.warning("YouTube's playback modality constructor has no free register, so Audio only is off.")
+                } else {
+                    init.hookReturns(
+                        Opcode.RETURN_VOID,
+                        """
+                            const-string v0, "${enable.name}|${disable.name}"
+                            invoke-static { p0, v0 }, $EXTENSION/AudioOnly;->setModality(Ljava/lang/Object;Ljava/lang/String;)V
+                        """
+                    )
+                }
+            }
         }
     }
 
@@ -145,6 +177,20 @@ internal val youtubeExtrasBasePatch = bytecodePatch {
                 """
             ) ?: logger.warning("Morphe's RYD $name is missing, so the vote format option is off there.")
         }
+
+        // The count Morphe's RYD draws under the like icon of the compact action bar is YouTube's own like count,
+        // formatted by RYD's formatLikeCount, so the vote format is applied to the text the drawable returns.
+        mutableClassDefByOrNull(MORPHE_RYD_ICON_COUNT)?.methods?.firstOrNull {
+            it.name == "getText" && it.parameterTypes.isEmpty() && it.returnType == "Ljava/lang/String;" && it.implementation != null
+        }?.apply {
+            hookReturns(
+                Opcode.RETURN_OBJECT,
+                """
+                    invoke-static { {reg} }, $EXTENSION/RydText;->iconText(Ljava/lang/String;)Ljava/lang/String;
+                    move-result-object {reg}
+                """
+            )
+        } ?: logger.warning("Morphe's RYD icon count is missing, so the like count under the icon stays a number.")
 
         // The feed card save button of Morphe's card layout runs the menu's Save to Watch later command, which the
         // extension swaps for Save to... when that option is on.

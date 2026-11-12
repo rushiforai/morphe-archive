@@ -1,3 +1,15 @@
+## [1.15.0](https://github.com/mich111discord/MightyMichs-Patches/compare/v1.14.1...v1.15.0) (2026-11-12)
+
+### 🐛 Bug Fixes
+
+* point patches-bundle.json to existing v1.14.0 asset after 1.14.1 removal [skip ci] ([4c4c6c0](https://github.com/mich111discord/MightyMichs-Patches/commit/4c4c6c0fc19c8cae875f97bbd788ddc7a03fdb0a))
+* **screentranslate:** bypass PairIP Play install gate ([#49](https://github.com/mich111discord/MightyMichs-Patches/issues/49)) [skip ci] ([11c652d](https://github.com/mich111discord/MightyMichs-Patches/commit/11c652def7d049f476631126c04eb4804b24a413))
+* **whatsapp:** App icon adaptive XML must not reference missing ic_launcher [skip ci] ([cea9c9e](https://github.com/mich111discord/MightyMichs-Patches/commit/cea9c9eac3ff98bd07e1529f3d1288d0aade5b0b))
+
+### ✨ New Features
+
+* **whatsapp:** App icon can load PNG from phone storage [skip ci] ([4ecef12](https://github.com/mich111discord/MightyMichs-Patches/commit/4ecef1251878df1a38e2a6e08a81943a43c5f116))
+
 ## [1.14.1](https://github.com/mich111discord/MightyMichs-Patches/compare/v1.14.0...v1.14.1) (2026-11-10)
 
 ### 🐛 Bug Fixes

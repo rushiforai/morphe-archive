@@ -26,6 +26,11 @@ public final class XSettings {
 
     // Playlists (not mixes) in the home feed.
     public static final BooleanSetting HIDE_HOME_PLAYLISTS = new BooleanSetting("yx_hide_home_playlists", FALSE);
+    /** Home suggestions of a never-opened video before it gets Not interested; "0" turns it off. */
+    public static final StringSetting RESUGGESTED_LIMIT = new StringSetting("yx_resuggested_limit", "3");
+    /** Seconds between two visits of Home which count a video's suggestion twice (not shown; tests shorten it). */
+    public static final StringSetting RESUGGESTED_GAP = new StringSetting("yx_resuggested_gap_s", "600");
+    public static final BooleanSetting HIDE_PAST_STREAMS = new BooleanSetting("yx_hide_past_streams", FALSE);
 
     // Topic presets (comma-separated keys of Topics.KEYS) and the user's own channels to hide.
     public static final StringSetting TOPICS = new StringSetting("yx_topics", "");
@@ -55,6 +60,8 @@ public final class XSettings {
     // DeArrow: a tap on Morphe's title icon switches the title, and a pencil on the open video's title suggests one.
     public static final BooleanSetting DEARROW_TAP = new BooleanSetting("yx_dearrow_tap", true);
     public static final BooleanSetting DEARROW_SUGGEST = new BooleanSetting("yx_dearrow_suggest", true);
+    /** A title the video's top comments correct ("... correct title") is shown in place of its own. */
+    public static final BooleanSetting COMMENT_TITLE = new BooleanSetting("yx_comment_title", true);
     /** The private ID submissions are counted under when Morphe's SponsorBlock has none; never logged or shown. */
     public static final StringSetting DEARROW_USER_ID = new StringSetting("yx_dearrow_user_id_Do_Not_Share", "");
 
@@ -64,6 +71,7 @@ public final class XSettings {
 
     // Playback with the screen off: a pause right after the screen turns off is undone; the lowest quality while off.
     public static final BooleanSetting KEEP_PLAYING_SCREEN_OFF = new BooleanSetting("yx_keep_playing_screen_off", true);
+    public static final BooleanSetting AUDIO_ONLY = new BooleanSetting("yx_audio_only", FALSE);
     public static final BooleanSetting AUDIO_ONLY_SCREEN_OFF = new BooleanSetting("yx_audio_only_screen_off", FALSE);
 
     /** Like and dislike counts: count, percent, or both. */

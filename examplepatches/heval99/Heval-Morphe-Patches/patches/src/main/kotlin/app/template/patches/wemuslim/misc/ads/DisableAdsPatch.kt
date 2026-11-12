@@ -1,6 +1,5 @@
 package app.template.patches.wemuslim.misc.ads
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
@@ -16,6 +15,7 @@ import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import app.template.patches.shared.addInstructionsWithLabelsChecked
 
 private const val CONTINUATION = "Lkotlin/coroutines/Continuation;"
 private const val STATE_FLOW_KT = "Lkotlinx/coroutines/flow/StateFlowKt;"
@@ -86,7 +86,7 @@ val disableAdsPatch = bytecodePatch(
 
         // p1 is the AuthorityType; v0 is the first local, written before it is read.
         val hasAuthority = authorityMethod("Z", listOf(AUTHORITY_TYPE))
-        hasAuthority.addInstructionsWithLabels(
+        hasAuthority.addInstructionsWithLabelsChecked(
             0,
             """
                 sget-object v0, $AUTHORITY_TYPE->$NO_ADS:$AUTHORITY_TYPE
@@ -107,7 +107,7 @@ val disableAdsPatch = bytecodePatch(
             throw PatchException("Disable ads: $STATE_FLOW_KT has no MutableStateFlow(Object)")
         }
         val authorityFlow = authorityMethod("Ljava/lang/Object;", listOf(AUTHORITY_TYPE, CONTINUATION))
-        authorityFlow.addInstructionsWithLabels(
+        authorityFlow.addInstructionsWithLabelsChecked(
             0,
             """
                 sget-object v0, $AUTHORITY_TYPE->$NO_ADS:$AUTHORITY_TYPE

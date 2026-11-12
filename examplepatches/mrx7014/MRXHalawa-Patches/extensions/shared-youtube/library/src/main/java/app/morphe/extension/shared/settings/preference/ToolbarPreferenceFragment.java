@@ -30,6 +30,8 @@ import android.widget.Toolbar;
 
 import androidx.annotation.Nullable;
 
+import java.lang.reflect.Method;
+
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.ResourceUtils;
 import app.morphe.extension.shared.Utils;
@@ -121,7 +123,8 @@ public class ToolbarPreferenceFragment extends AbstractPreferenceFragment {
                             }
 
                             Toolbar toolbar = new Toolbar(childScreen.getContext());
-                            toolbar.setTitle(childScreen.getTitle());
+                            // The title can have a new setting dot, which is not shown here.
+                            toolbar.setTitle(childScreen.getTitle().toString());
                             toolbar.setNavigationIcon(getBackButtonDrawable());
                             toolbar.setNavigationContentDescription(str("morphe_settings_navigate_up"));
                             toolbar.setNavigationOnClickListener(view -> preferenceScreenDialog.dismiss());
@@ -138,7 +141,7 @@ public class ToolbarPreferenceFragment extends AbstractPreferenceFragment {
                             if (screenInfo != null) {
                                 addToolbarButton(toolbar, "morphe_settings_screen_00_about",
                                         str("morphe_settings_screen_info_title"),
-                                        () -> screenInfo.showDialog(toolbar.getContext(), childScreen.getTitle()));
+                                        () -> screenInfo.showDialog(toolbar.getContext(), childScreen.getTitle().toString()));
                             }
 
                             // Allow package-specific toolbar customization.
@@ -169,10 +172,28 @@ public class ToolbarPreferenceFragment extends AbstractPreferenceFragment {
     }
 
     /**
+     * Clicks a preference as if its row was tapped. A nested PreferenceScreen opens its screen.
+     *
+     * @param preference The preference to click.
+     * @param rootScreen The main screen of the fragment that holds the preference.
+     */
+    @SuppressWarnings("all")
+    public static void performClick(Preference preference, PreferenceScreen rootScreen) {
+        try {
+            Method m = Preference.class.getDeclaredMethod("performClick", PreferenceScreen.class);
+            m.setAccessible(true);
+            m.invoke(preference, rootScreen);
+        } catch (Exception e) {
+            Logger.printException(() -> "Failed to invoke performClick()", e);
+        }
+    }
+
+    /**
      * Adds an icon button to the toolbar, such as search or screen info.
      *
      * @param iconName Drawable name, the "_bold" variant is used with bold icons.
      */
+    @SuppressLint("AlwaysShowAction")
     public static MenuItem addToolbarButton(Toolbar toolbar, String iconName,
                                             CharSequence description, Runnable onClick) {
         MenuItem item = toolbar.getMenu().add(description);

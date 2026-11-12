@@ -246,7 +246,6 @@ val removeDataPeekUpsellPatch = bytecodePatch(
     description = "Removes Strava's subscription upsells and promos: server-driven modular upsells (matched by an upsell-shape predicate so new server types stay covered), subscription bottom-sheet upsells, and the dedicated upsell screens (Year in Sport 2026, Best Efforts Data Peek, Device Connect). Runtime toggles in Extra Settings; the Settings Subscriptions section is stripped.",
     default = true,
 ) {
-    category("Upsells")
     compatibleWith(STRAVA_COMPATIBILITY)
 
     execute {

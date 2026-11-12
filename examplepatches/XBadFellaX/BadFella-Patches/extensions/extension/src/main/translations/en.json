@@ -188,5 +188,19 @@
   "microG RE is not running in the background, so Google sign-in may fail. Your phone may stop it; the website explains how to allow it.": "microG RE is not running in the background, so Google sign-in may fail. Your phone may stop it; the website explains how to allow it.",
   "Open settings": "Open settings",
   "Open website": "Open website",
-  "Not now": "Not now"
+  "Not now": "Not now",
+  "Accent color": "Accent color",
+  "Wallpaper": "Wallpaper",
+  "LinkedIn blue": "LinkedIn blue",
+  "Blue": "Blue",
+  "Teal": "Teal",
+  "Green": "Green",
+  "Purple": "Purple",
+  "Pink": "Pink",
+  "Red": "Red",
+  "Orange": "Orange",
+  "Amber": "Amber",
+  "Custom…": "Custom…",
+  "A color as #RRGGBB. Light and dark shades are made from it.": "A color as #RRGGBB. Light and dark shades are made from it.",
+  "Enter a color as #RRGGBB.": "Enter a color as #RRGGBB."
 }

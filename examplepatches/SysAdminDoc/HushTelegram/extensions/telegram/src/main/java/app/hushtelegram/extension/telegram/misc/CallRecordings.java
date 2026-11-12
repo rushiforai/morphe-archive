@@ -6,15 +6,18 @@ package app.hushtelegram.extension.telegram.misc;
 
 import android.Manifest;
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
 
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import java.io.File;
@@ -24,7 +27,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -52,7 +57,41 @@ final class CallRecordings {
 
     /** "Telegram call 2026-10-30 21-15.m4a", from when the call's audio began, in the phone's time zone. */
     static String name(long began) {
-        return "Telegram call " + new SimpleDateFormat("yyyy-MM-dd HH-mm", Locale.US).format(new Date(began)) + ".m4a";
+        return name(began, null);
+    }
+
+    /**
+     * "Telegram call with Alex Kim 2026-10-30 21-15.m4a" (#72), or the plain name when there's no
+     * one to name. Characters a file name can't carry go, and a long name is cut.
+     */
+    static String name(long began, @Nullable String with) {
+        String who = fileSafe(with);
+        return PREFIX + (who.isEmpty() ? "" : "with " + who + " ")
+                + new SimpleDateFormat("yyyy-MM-dd HH-mm", Locale.US).format(new Date(began)) + ".m4a";
+    }
+
+    /** Every recording's name starts with this, which is how cleanup knows its own files. */
+    static final String PREFIX = "Telegram call ";
+    private static final int LONGEST_NAME = 60;
+
+    /** [text] with what Android's and Windows' file names refuse turned to spaces, trimmed and cut short. */
+    static String fileSafe(@Nullable String text) {
+        if (text == null) return "";
+        StringBuilder safe = new StringBuilder();
+        for (int i = 0; i < text.length(); ) {
+            int point = text.codePointAt(i);
+            i += Character.charCount(point);
+            // Direction marks too, so a name can't turn the rest of the file name around.
+            boolean refused = Character.isISOControl(point) || Character.getType(point) == Character.FORMAT
+                    || "/\\:*?\"<>|".indexOf(point) >= 0;
+            safe.appendCodePoint(refused || Character.isWhitespace(point) ? ' ' : point);
+        }
+        String collapsed = safe.toString().replaceAll(" {2,}", " ").trim();
+        while (collapsed.startsWith(".")) collapsed = collapsed.substring(1).trim();
+        if (collapsed.codePointCount(0, collapsed.length()) > LONGEST_NAME) {
+            collapsed = collapsed.substring(0, collapsed.offsetByCodePoints(0, LONGEST_NAME)).trim();
+        }
+        return collapsed;
     }
 
     /**
@@ -130,6 +169,56 @@ final class CallRecordings {
             throw failure;
         }
         MediaScannerConnection.scanFile(context, new String[]{target.getPath()}, new String[]{MIME}, null);
+    }
+
+    /**
+     * Deletes the recordings in the folder saved before [before], wall clock, and answers how many
+     * went (#72). Only names this gives are touched. One saved before Telegram was reinstalled
+     * isn't Telegram's anymore, so MediaStore won't let go of it, and it stays.
+     */
+    static int clean(Context context, long before) {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ? cleanStore(context, before) : cleanFolder(before);
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private static int cleanStore(Context context, long before) {
+        ContentResolver resolver = context.getContentResolver();
+        String path = folder() + "/";
+        String[] columns = {MediaStore.MediaColumns._ID, MediaStore.MediaColumns.DISPLAY_NAME,
+                MediaStore.MediaColumns.RELATIVE_PATH, MediaStore.MediaColumns.DATE_ADDED};
+        String where = MediaStore.MediaColumns.RELATIVE_PATH + "=? AND " + MediaStore.MediaColumns.DISPLAY_NAME
+                + " LIKE ? AND " + MediaStore.MediaColumns.DATE_ADDED + "<?";
+        String[] values = {path, PREFIX + "%", String.valueOf(before / 1000)};
+        List<Uri> old = new ArrayList<>();
+        try (Cursor rows = resolver.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, columns, where, values, null)) {
+            if (rows == null) return 0;
+            while (rows.moveToNext()) {
+                // Checked again here, so nothing but an old recording of ours goes whatever the query matched.
+                String name = rows.getString(1);
+                if (name == null || !name.startsWith(PREFIX) || !path.equals(rows.getString(2))
+                        || rows.isNull(3) || rows.getLong(3) * 1000 >= before) continue;
+                old.add(ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, rows.getLong(0)));
+            }
+        }
+        int deleted = 0;
+        for (Uri uri : old) {
+            try {
+                deleted += resolver.delete(uri, null, null);
+            } catch (SecurityException notOurs) {
+                // Saved by an earlier install of Telegram.
+            }
+        }
+        return deleted;
+    }
+
+    @SuppressWarnings("deprecation")
+    private static int cleanFolder(long before) {
+        File[] files = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC), FOLDER).listFiles();
+        int deleted = 0;
+        for (File file : files == null ? new File[0] : files) {
+            if (file.isFile() && file.getName().startsWith(PREFIX) && file.lastModified() < before && file.delete()) deleted++;
+        }
+        return deleted;
     }
 
     /** [name] in [folder], or "name (2).m4a" and up when that's taken, as MediaStore numbers them. */

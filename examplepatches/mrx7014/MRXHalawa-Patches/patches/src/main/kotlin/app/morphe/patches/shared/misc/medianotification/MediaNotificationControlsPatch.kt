@@ -1,6 +1,7 @@
 /*
  * Copyright 2026 Morphe.
  * https://github.com/MorpheApp/morphe-patches/pull/1322
+ * https://github.com/MorpheApp/morphe-patches/pull/3955
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
@@ -9,10 +10,10 @@ package app.morphe.patches.shared.misc.medianotification
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.patch.BytecodePatchBuilder
-import app.morphe.patcher.patch.BytecodePatchContext
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.PatchDefinition
+import app.morphe.patcher.patch.patch
 import app.morphe.patches.shared.MediaSessionSetPlaybackStateFingerprint
+import app.morphe.patches.shared.misc.settings.preference.BasePreference
 import app.morphe.patches.shared.misc.settings.preference.BasePreferenceScreen
 import app.morphe.patches.shared.misc.settings.preference.PreferenceScreenPreference
 import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
@@ -22,10 +23,11 @@ internal const val EXTENSION_CLASS =
     "Lapp/morphe/extension/shared/patches/MediaNotificationControlsPatch;"
 
 internal fun mediaNotificationControlsPatch(
-    block: BytecodePatchBuilder.() -> Unit,
+    block: PatchDefinition.() -> Unit,
     preferenceScreen: BasePreferenceScreen.Screen,
-    executeBlock: BytecodePatchContext.() -> Unit = {},
-) = bytecodePatch(
+    additionalPreferences: Set<BasePreference> = emptySet(),
+    executeBlock: () -> Unit = {},
+) = patch(
     name = "Media notification controls",
     description = "Adds options to disable the seekbar and previous/next buttons in the " +
             "media notification and headphone controls.",
@@ -36,10 +38,12 @@ internal fun mediaNotificationControlsPatch(
         preferenceScreen.addPreferences(
             PreferenceScreenPreference(
                 key = "morphe_notification_media_screen",
+                // Keep the seek options right below the switch they depend on.
+                sorting = PreferenceScreenPreference.Sorting.UNSORTED,
                 preferences = setOf(
-                    SwitchPreference("morphe_hide_notification_media_prev_next", summary = true),
                     SwitchPreference("morphe_disable_notification_media_seekbar", summary = true),
-                )
+                    SwitchPreference("morphe_hide_notification_media_prev_next", summary = true),
+                ) + additionalPreferences
             )
         )
 
@@ -48,7 +52,7 @@ internal fun mediaNotificationControlsPatch(
             it.clearMatch()
 
             it.method.apply {
-                val index = it.instructionMatches.first().index
+                val index = it.instructionMatches.last().index
                 val register = getInstruction<FiveRegisterInstruction>(index).registerD
 
                 addInstructions(

@@ -1,18 +1,18 @@
 package community.nobrokerhood
 
 /**
- * NoBrokerHood 3.6.11 (versionCode 712) — consolidated 11-patch candidate.
+ * NoBrokerHood 3.6.11 (versionCode 712) — 11-patch corrected candidate.
  *
- * Retains the 10-patch curated baseline and adds a targeted AppBarIsland
- * single-banner renderer suppression experiment for the blue visitor promo.
+ * Retains the prior 11-patch baseline but replaces two ineffective hooks:
+ * the post-approval media renderer and notification tap metadata handling.
  *
  * Broadens the existing homepage-billboard patch to also clear both the
  * TopAdState and BannerState observable lists/loading/expansion flags.
  * These additional getter hooks existed in the earlier 16-patch build where
  * the top banner was absent; the individual contribution is not proven.
  *
- * WARNING: New UI hooks are experimental until tested. Does not alter FCM
- * reception, security approvals, notification channels, or registration.
+ * WARNING: New hooks are experimental until tested on-device. Do not alter FCM
+ * reception, security approval actions, channels, or token registration.
  */
 
 import app.morphe.patcher.Fingerprint
@@ -317,105 +317,85 @@ val hideVisitorIslandOfferPatch = bytecodePatch(
 }
 
 @Suppress("unused")
-val hidePostApprovalAdContainerPatch = bytecodePatch(
-    name = "NoBrokerHood: Skip post-approval ad container (experimental)",
-    description = "Do not initialize the image/video ad RecyclerView after entry approval; preserve approval details.",
+val hidePostApprovalMediaPatch = bytecodePatch(
+    name = "NoBrokerHood: Hide post-approval sponsored media",
+    description = "Suppress the Compose PacCard image/video renderer while retaining the approval screen (experimental).",
     default = false,
 ) {
     compatibleWith(NOBROKERHOOD_3611)
     execute {
+        // Observed path in 3.6.11:
+        // PreApprovalBannerActivityNew.R1 -> preapprovalbanner/i.d -> sg/t0.G0
+        // This composable's source name is PacCard (ApprovalComposables.kt:812).
+        // The previous DisplayEntryBannerFragment.initRecyclerView hook did not
+        // affect this separate Compose rendering path.
         Fingerprint(
-            definingClass = "Lcom/app/nobrokerhood/fragments/DisplayEntryBannerFragment;",
-            name = "initRecyclerView",
+            definingClass = "Lsg/t0;",
+            name = "G0",
             returnType = "V",
-            parameters = emptyList(),
+            parameters = listOf(
+                "Ljava/lang/String;", "Ljava/lang/String;", "Ljava/lang/String;",
+                "Lc4/m;",
+                "Lcom/app/nobrokerhood/newnobrokerhood/postApprovalCard/data/model/CardPersonalizedData;",
+                "Z", "Lkotlin/jvm/functions/Function2;", "Ljava/lang/String;",
+                "Li3/r;", "I", "I",
+            ),
         ).matchSingle().method.returnEarly()
     }
 }
 
 @Suppress("unused")
 val stopNotificationPromoBrowserRedirectPatch = bytecodePatch(
-    name = "NoBrokerHood: Stop promotional browser launches from notifications",
-    description = "Clear advertising click metadata and browser-directed routes from notification intents, preserving security-event fields (experimental).",
+    name = "NoBrokerHood: Sanitize entry/exit notification ad links",
+    description = "Remove promotional URL extras when building entry/exit notification tap intents (experimental).",
     default = false,
 ) {
     compatibleWith(NOBROKERHOOD_3611)
     execute {
+        // DoorFirebaseMessagingService.J builds a PendingIntent from an Intent
+        // that carries screenName, gaClick, destination_route and hybridUrl.
+        // J invokes I(Intent, String[]) before creating the PendingIntent.
+        // Thus I is a narrow, early tap-intent sanitation point.
+        // It only modifies CHECK_IN / CHECK_OUT, preserving other event types.
         Fingerprint(
-            definingClass = "Lcom/app/nobrokerhood/activities/DoorSplashScreen;",
-            name = "R1",
+            definingClass = "Lcom/app/nobrokerhood/notifications/DoorFirebaseMessagingService;",
+            name = "I",
             returnType = "V",
-            parameters = emptyList(),
+            parameters = listOf("Landroid/content/Intent;", "[Ljava/lang/String;"),
         ).matchSingle().method.addInstructionsWithLabels(
             0,
             """
-            move-object/from16 v0, p0
-            invoke-virtual {v0}, Landroid/app/Activity;->getIntent()Landroid/content/Intent;
+            if-eqz p1, :nbhIntentDone
+            const-string v0, "screenName"
+            invoke-virtual {p1, v0}, Landroid/content/Intent;->getStringExtra(Ljava/lang/String;)Ljava/lang/String;
             move-result-object v0
-            if-eqz v0, :nbhNotificationRouteDone
-            const-string v1, "uniqueCode"
-            invoke-virtual {v0, v1}, Landroid/content/Intent;->hasExtra(Ljava/lang/String;)Z
-            move-result v1
-            if-nez v1, :nbhRecognizedNotification
-            const-string v1, "messageType"
-            invoke-virtual {v0, v1}, Landroid/content/Intent;->hasExtra(Ljava/lang/String;)Z
-            move-result v1
-            if-eqz v1, :nbhNotificationRouteDone
-            :nbhRecognizedNotification
-            const-string v1, "gaClick"
-            invoke-virtual {v0, v1}, Landroid/content/Intent;->removeExtra(Ljava/lang/String;)V
-            const-string v1, "screenName"
-            invoke-virtual {v0, v1}, Landroid/content/Intent;->getStringExtra(Ljava/lang/String;)Ljava/lang/String;
-            move-result-object v2
-            const-string v3, "CHECK_IN"
-            invoke-virtual {v3, v2}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
-            move-result v3
-            if-nez v3, :nbhDropHybridUrl
-            const-string v3, "CHECK_OUT"
-            invoke-virtual {v3, v2}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
-            move-result v3
-            if-eqz v3, :nbhCheckRoute
-            :nbhDropHybridUrl
-            const-string v1, "hybridUrl"
-            invoke-virtual {v0, v1}, Landroid/content/Intent;->removeExtra(Ljava/lang/String;)V
-            :nbhCheckRoute
-            const-string v1, "destination_route"
-            invoke-virtual {v0, v1}, Landroid/content/Intent;->getStringExtra(Ljava/lang/String;)Ljava/lang/String;
-            move-result-object v2
-            const-string v3, "chromeTab"
-            invoke-virtual {v3, v2}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
-            move-result v3
-            if-nez v3, :nbhRemoveExternalRoute
-            const-string v1, "deeplink"
-            invoke-virtual {v0, v1}, Landroid/content/Intent;->getStringExtra(Ljava/lang/String;)Ljava/lang/String;
-            move-result-object v2
-            if-eqz v2, :nbhNotificationRouteDone
-            const-string v3, "https://"
-            invoke-virtual {v2, v3}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
-            move-result v3
-            if-nez v3, :nbhRemoveExternalRoute
-            const-string v3, "http://"
-            invoke-virtual {v2, v3}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
-            move-result v3
-            if-nez v3, :nbhRemoveExternalRoute
-            const-string v3, "target_url"
-            invoke-virtual {v2, v3}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
-            move-result v3
-            if-eqz v3, :nbhNotificationRouteDone
-            :nbhRemoveExternalRoute
-            const-string v1, "destination_route"
-            invoke-virtual {v0, v1}, Landroid/content/Intent;->removeExtra(Ljava/lang/String;)V
-            const-string v1, "deeplink"
-            invoke-virtual {v0, v1}, Landroid/content/Intent;->removeExtra(Ljava/lang/String;)V
-            const-string v1, "url"
-            invoke-virtual {v0, v1}, Landroid/content/Intent;->removeExtra(Ljava/lang/String;)V
-            const-string v1, "hybridUrl"
-            invoke-virtual {v0, v1}, Landroid/content/Intent;->removeExtra(Ljava/lang/String;)V
-            const-string v1, "target_url"
-            invoke-virtual {v0, v1}, Landroid/content/Intent;->removeExtra(Ljava/lang/String;)V
-            const/4 v1, 0x0
-            invoke-virtual {v0, v1}, Landroid/content/Intent;->setData(Landroid/net/Uri;)Landroid/content/Intent;
-            :nbhNotificationRouteDone
+            const-string p0, "CHECK_IN"
+            invoke-virtual {p0, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+            move-result p0
+            if-nez p0, :nbhSanitize
+            const-string p0, "CHECK_OUT"
+            invoke-virtual {p0, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+            move-result p0
+            if-eqz p0, :nbhIntentDone
+            :nbhSanitize
+            const-string v0, "gaClick"
+            invoke-virtual {p1, v0}, Landroid/content/Intent;->removeExtra(Ljava/lang/String;)V
+            const-string v0, "hybridUrl"
+            invoke-virtual {p1, v0}, Landroid/content/Intent;->removeExtra(Ljava/lang/String;)V
+            const-string v0, "target_url"
+            invoke-virtual {p1, v0}, Landroid/content/Intent;->removeExtra(Ljava/lang/String;)V
+            const-string v0, "url"
+            invoke-virtual {p1, v0}, Landroid/content/Intent;->removeExtra(Ljava/lang/String;)V
+            const-string v0, "destination_route"
+            invoke-virtual {p1, v0}, Landroid/content/Intent;->getStringExtra(Ljava/lang/String;)Ljava/lang/String;
+            move-result-object p0
+            const-string v0, "chromeTab"
+            invoke-virtual {v0, p0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+            move-result p0
+            if-eqz p0, :nbhIntentDone
+            const-string v0, "destination_route"
+            invoke-virtual {p1, v0}, Landroid/content/Intent;->removeExtra(Ljava/lang/String;)V
+            :nbhIntentDone
             nop
             """.trimIndent(),
         )

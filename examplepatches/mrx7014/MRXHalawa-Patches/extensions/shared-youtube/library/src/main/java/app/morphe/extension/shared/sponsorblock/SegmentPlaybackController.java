@@ -34,12 +34,12 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.ResourceUtils;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.misc.MediaTime;
 import app.morphe.extension.shared.settings.BooleanSetting;
 import app.morphe.extension.shared.settings.IntegerSetting;
 import app.morphe.extension.shared.settings.LongSetting;
@@ -401,7 +401,7 @@ public class SegmentPlaybackController {
                 Logger.printDebug(() -> "Ignoring Short");
                 return;
             }
-            if (!Utils.isNetworkConnected()) {
+            if (!Utils.isNetworkConnected() && !SponsorBlockOfflineStorage.hasSavedSegments(videoId)) {
                 Logger.printDebug(() -> "Network not connected, ignoring video");
                 return;
             }
@@ -432,7 +432,16 @@ public class SegmentPlaybackController {
         Objects.requireNonNull(videoId);
         Utils.verifyOffMainThread();
 
-        SponsorSegment[] segments = SBRequester.getSegments(videoId);
+        SponsorSegment[] segments;
+        if (Utils.isNetworkConnected()) {
+            segments = SBRequester.getSegments(videoId);
+            // Keep the saved segments of downloaded videos up to date.
+            if (segments.length > 0 && SponsorBlockOfflineStorage.hasSavedSegments(videoId)) {
+                SponsorBlockOfflineStorage.saveSegments(videoId, segments);
+            }
+        } else {
+            segments = SponsorBlockOfflineStorage.loadSegments(videoId);
+        }
 
         Utils.runOnMainThread(() -> {
             if (!videoId.equals(currentVideoId)) {
@@ -856,7 +865,7 @@ public class SegmentPlaybackController {
                 if (timeSavedCount != null) timeSavedCount.save(timeSavedCount.get() + 1);
 
                 BooleanSetting trackSkipCount = settings().trackSkipCount();
-                if (trackSkipCount == null || trackSkipCount.get()) {
+                if ((trackSkipCount == null || trackSkipCount.get()) && Utils.isNetworkConnected()) {
                     Utils.runOnBackgroundThread(() -> SBRequester.sendSegmentSkippedViewedRequest(segmentToSkip));
                 }
             }
@@ -1144,14 +1153,7 @@ public class SegmentPlaybackController {
             return;
         }
 
-        final long hours = timeWithoutSegmentsValue / 3600000;
-        final long minutes = (timeWithoutSegmentsValue / 60000) % 60;
-        final long seconds = (timeWithoutSegmentsValue / 1000) % 60;
-        if (hours > 0) {
-            timeWithoutSegments = String.format(Locale.ENGLISH, "\u2009(%d:%02d:%02d)", hours, minutes, seconds);
-        } else {
-            timeWithoutSegments = String.format(Locale.ENGLISH, "\u2009(%d:%02d)", minutes, seconds);
-        }
+        timeWithoutSegments = " (" + MediaTime.format(timeWithoutSegmentsValue) + ")";
     }
 
     /**

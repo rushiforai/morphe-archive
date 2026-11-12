@@ -106,7 +106,7 @@ class HaiagaruSettingsActivity : HaiagaruComposeActivity() {
     @Composable
     private fun SettingsScreen() {
         var selected by rememberSaveable { mutableIntStateOf(-1) }
-        var query by rememberSaveable { mutableStateOf("") }
+        var query by rememberSaveable { mutableStateOf(intent.getStringExtra("haiagaru.settings.search").orEmpty().take(160)) }
         val english = SettingsLanguage.text(getSharedPreferences(WacchoiSearchOptions.PREFS, 0)
             .getString("settingsLanguage", "ja"), java.util.Locale.getDefault(), "ja", "en") == "en"
         val groups = remember { settingsGroups() }

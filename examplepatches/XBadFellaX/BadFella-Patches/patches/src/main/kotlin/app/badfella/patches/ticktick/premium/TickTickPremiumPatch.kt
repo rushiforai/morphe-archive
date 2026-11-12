@@ -24,11 +24,11 @@ val tickTickPremiumPatch = bytecodePatch(
             return v0
         """)
 
-        // LimitHelper.getLimits(ZZ) → always return pro limits
+        // LimitHelper.getLimits(ZZ) → evaluate every caller as Pro, like getLimitsPro():
+        // first argument (Pro) true, second argument (Team) false.
         GetLimitsFingerprint.method.addInstructions(0, """
-            invoke-virtual {p0}, Lcom/ticktick/task/helper/LimitHelper;->getLimitsPro()Lcom/ticktick/task/data/Limits;
-            move-result-object v0
-            return-object v0
+            const/4 p1, 0x1
+            const/4 p2, 0x0
         """)
 
         // SubscriptionInfo.getIsPro() → client billing DTO gate; server entitlement is unchanged.

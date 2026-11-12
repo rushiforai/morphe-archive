@@ -15,6 +15,9 @@ public partial record PatchesSection
     /// <summary>"Account colors"' section, whose one setting has the same title.</summary>
     public partial record AccountColors;
 
+    /// <summary>The "Links" section: "Open web pages in the browser" first.</summary>
+    public partial record Links;
+
     /// <summary>What the app shows that no case names yet: a failing assertion names it as the app shows it.</summary>
     public partial record Unlisted(string Shown);
 }
@@ -26,5 +29,6 @@ public static class PatchesSectionShowing
     public static string ToShownText(this PatchesSection value) =>
         value.Match(
             accountColors => "Account colors",
+            links => "Links",
             unlisted => unlisted.Shown);
 }

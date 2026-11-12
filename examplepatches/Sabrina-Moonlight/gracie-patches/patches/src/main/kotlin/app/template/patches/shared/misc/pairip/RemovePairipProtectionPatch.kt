@@ -12,11 +12,7 @@ import app.morphe.patcher.util.returnEarly
  * Skips PairIP license checks and the delayed shutdown (scheduleAppShutdown →
  * System.exit after 30s) that closes clones after a while.
  */
-val removePairipProtectionPatch = bytecodePatch(
-    name = "Remove Pairip Protection",
-    description = "Skips PairIP license checks and the delayed process exit.",
-    default = true,
-) {
+internal val removePairipProtectionPatch = bytecodePatch {
     compatibleWith(GLASS_WIDGETS)
 
     execute {

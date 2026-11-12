@@ -9,6 +9,7 @@ import app.template.patches.shared.hevalcontrols.hevalReturnNull
 
 internal val DISABLE_RATING_PROMPTS = HevalFeature(
     id = "fotmob.disable_rating_prompts",
+    calm = true,
     name = "Disable rating prompts",
     description = "Disables the rating prompt.",
     category = FotMobControlsCategory.POPUPS,

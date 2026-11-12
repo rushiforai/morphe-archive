@@ -55,20 +55,20 @@ class WsjSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "15.12.0.42675",
+            version = "15.13.0.44249",
             patchNames = setOf("Disable ads"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
         fun cls(type: String) = classes.firstOrNull { it.type == type } ?: error("$type not found in emitted dexes")
 
         // 1. Every SectionAdPlacementStrategyContract implementation returns Collections.emptyList()
-        // from getAdSlotConfigList(cardCount, isSingleModule, placementModel).
+        // from getAdSlotConfigList([sectionId,] cardCount, isSingleModule, placementModel).
         val sectionStrategies = classes.filter { SECTION_STRATEGY in it.interfaces }
         check(sectionStrategies.isNotEmpty()) { "no $SECTION_STRATEGY implementation" }
         for (strategy in sectionStrategies) {
             val slots = strategy.methods.filter {
                 it.implementation != null && it.returnType == "Ljava/util/List;" &&
-                    it.params() == listOf("I", "Z", "${ADS}data/model/SectionAdPlacementModel;")
+                    it.params().takeLast(3) == listOf("I", "Z", "${ADS}data/model/SectionAdPlacementModel;")
             }
             check(slots.size == 1) { "${strategy.type}: expected one ad-slots method, found ${slots.size}" }
             assertReturnsMethodCall(

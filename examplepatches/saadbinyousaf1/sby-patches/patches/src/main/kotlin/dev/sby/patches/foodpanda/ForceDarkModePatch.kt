@@ -5,6 +5,8 @@ import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.classDefForEach
 import app.morphe.patcher.patch.mutableClassDefBy
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import dev.sby.patches.shared.Constants.COMPATIBILITY_FOODPANDA
@@ -77,6 +79,15 @@ private val AMBIGUOUS = setOf(
 )
 
 // © https://saadbinyousaf.dev/ © //
+private val WIDE_CONSTS = setOf(
+    Opcode.CONST_WIDE_16, Opcode.CONST_WIDE_32, Opcode.CONST_WIDE, Opcode.CONST_WIDE_HIGH16,
+)
+
+// © https://saadbinyousaf.dev/ © //
+private fun Instruction.wideColor(): Long? =
+    if (opcode in WIDE_CONSTS && this is WideLiteralInstruction) wideLiteral else null
+
+// © https://saadbinyousaf.dev/ © //
 val forceDarkModePatch = bytecodePatch(
     name = "Force dark mode",
     description = "Repaints foodpanda's built-in light colour constants with dark equivalents so the app " +
@@ -96,10 +107,8 @@ val forceDarkModePatch = bytecodePatch(
             val distinctive = HashSet<Long>()
             classDef.methods.forEach { method ->
                 method.implementation?.instructions?.forEach { instruction ->
-                    if (instruction is WideLiteralInstruction) {
-                        val value = instruction.wideLiteral
-                        if (value in DARK_BY_LIGHT && value !in AMBIGUOUS) distinctive.add(value)
-                    }
+                    val value = instruction.wideColor() ?: return@forEach
+                    if (value in DARK_BY_LIGHT && value !in AMBIGUOUS) distinctive.add(value)
                 }
             }
             if (distinctive.size >= 6) paletteTypes.add(classDef.type)
@@ -112,11 +121,10 @@ val forceDarkModePatch = bytecodePatch(
                 val size = implementation.instructions.size
                 for (index in 0 until size) {
                     val instruction = implementation.instructions.elementAt(index)
-                    if (instruction is WideLiteralInstruction) {
-                        val dark = DARK_BY_LIGHT[instruction.wideLiteral] ?: continue
-                        val register = (instruction as OneRegisterInstruction).registerA
-                        method.replaceInstruction(index, "const-wide v$register, 0x${dark.toString(16)}L")
-                    }
+                    val light = instruction.wideColor() ?: continue
+                    val dark = DARK_BY_LIGHT[light] ?: continue
+                    val register = (instruction as OneRegisterInstruction).registerA
+                    method.replaceInstruction(index, "const-wide v$register, 0x${dark.toString(16)}L")
                 }
             }
         }

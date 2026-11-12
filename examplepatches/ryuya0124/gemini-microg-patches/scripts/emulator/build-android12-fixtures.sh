@@ -30,7 +30,7 @@ done
 "$ROOT/scripts/patch-apk.sh" "$google" "$fixture/bad-unsigned.apk" "$fixture/bad.json" \
   --exclusive -p "$BUILD_DIR/gemini-patches.jar" -e 'Google App Manifest Tweaks' \
   -p "$PATCHES" -e 'Clone app' -O packageName=com.quicksearch.bond -O updatePermissions=false -O updateProviders=true
-for name in VerifyDexBranches VerifyWorkProfile VerifyCompliance VerifyTrampoline VerifyProcessName VerifyGeminiManifest; do
+for name in VerifyDexBranches VerifyWorkProfile VerifyCompliance VerifyTrampoline VerifyProcessName VerifyPermissionSetup VerifyGeminiManifest; do
   "$KOTLINC" "$ROOT/scripts/kotlin/$name.kt" -cp "$MORPHE:$BUILD_DIR/gemini-patches.jar" -d "$BUILD_DIR/$name.jar"
 done
 classpath="$MORPHE:$BUILD_DIR/gemini-patches.jar"
@@ -39,6 +39,7 @@ for name in VerifyWorkProfile VerifyCompliance VerifyTrampoline; do
   "$JAVA" -cp "$BUILD_DIR/$name.jar:$classpath" "${name}Kt" "$google" "$fixture/google-login-unsigned.apk"
 done
 "$JAVA" -cp "$BUILD_DIR/VerifyProcessName.jar:$classpath" VerifyProcessNameKt "$fixture/google-login-unsigned.apk"
+"$JAVA" -cp "$BUILD_DIR/VerifyPermissionSetup.jar:$classpath" VerifyPermissionSetupKt "$fixture/google-login-unsigned.apk"
 "$JAVA" -cp "$BUILD_DIR/VerifyGeminiManifest.jar:$classpath" VerifyGeminiManifestKt "$fixture/gemini-login-unsigned.apk"
 : "${GEMINIPATCH_STORE_PASS:?Set local signing environment first}"
 export GEMINIPATCH_STORE_PASS

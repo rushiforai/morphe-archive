@@ -928,7 +928,11 @@ public final class Haiagaru {
 
     /** Applies the bundled emoji fallback while preserving the original text. */
     public static CharSequence processEmojiText(CharSequence source) {
-        return EmojiFontFallback.processText(source);
+        return SettingsOptionLinks.apply(EmojiFontFallback.processText(source));
+    }
+
+    public static String cleanOutgoingBody(String body) {
+        return OutgoingPostCleanup.apply(body);
     }
 
     public static CharSequence processEmojiTextForView(Object view,CharSequence source){
@@ -963,12 +967,15 @@ public final class Haiagaru {
         MediaUploadHosts.init(appContext);
         ImageVpnController.initialize(appContext);
         PatrolImages.initialize(appContext);
+        RegisteredImageNg.initialize(appContext);
         PatrolErrorHistory.initialize(appContext);
         ExternalBoardAuth.initialize(appContext);
         BoardCookies.initialize(appContext);
         ExternalBoardEditor.initialize(appContext);
+        SiteBoardGateway.initialize(appContext);
         EdgeReporterHistory.initialize(appContext);
         EdgeReporterOptions.initialize(appContext);
+        PopularReplies.initialize(appContext);
         ProgrammableNgController.initialize(appContext);
         HiddenIdNg.initialize(appContext);
         PosterHighlight.initialize(appContext);
@@ -3462,6 +3469,10 @@ public final class Haiagaru {
     private static LinearLayout settingsGENERAL(Activity activity) {
         LinearLayout layout = new LinearLayout(activity);
         layout.setOrientation(LinearLayout.VERTICAL);
+        Button addedFeatures = new Button(activity);
+        addedFeatures.setText("更新履歴");
+        addedFeatures.setOnClickListener(view -> UpdateHistory.show(activity));
+        layout.addView(addedFeatures);
         ThreadWatch.addSettingsButton(layout, activity);
         SharedPreferences preferences = preferences(activity);
         SharedPreferences chMatePreferences = PreferenceManager.getDefaultSharedPreferences(activity);
@@ -3472,6 +3483,22 @@ public final class Haiagaru {
             View decor = activity.getWindow().getDecorView();
             decor.requestLayout(); decor.invalidate();
         });
+        Switch settingOptionLinks = addSwitch(layout, activity,
+                "設定内の機能名をタップして設定を開く", FeatureSwitches.enabled("settingsOptionLinksEnabled", true));
+        new LiveSettings(FeatureSwitches.prefs(activity), () -> {}).toggle(settingOptionLinks, "settingsOptionLinksEnabled");
+        SiteBoardGateway siteGateway = SiteBoardGateway.get(activity);
+        for (String kind : SiteBoardMenuProtocol.KINDS) {
+            Switch site = addSwitch(layout, activity,
+                    "使用する：" + SiteBoardMenuProtocol.title(kind) + "の閲覧・板一覧",
+                    siteGateway.siteEnabled(kind));
+            site.setOnCheckedChangeListener((button, checked) ->
+                    siteGateway.prefs.edit().putBoolean(SiteBoardGateway.siteFlag(kind), checked).apply());
+        }
+        Switch siteGroups=addSwitch(layout,activity,text("外部板をサイト別に板一覧の最上位へ表示","Show external boards by site at the top level"),preferences.getBoolean(ExternalBoardGroups.KEY,false));
+        live.toggle(siteGroups,ExternalBoardGroups.KEY);
+        TextView siteGroupsHelp=new TextView(activity);siteGroupsHelp.setText("初期OFF。オンではエッヂ・けんも板・したらばなどをサイト別に表示します。板一覧のキャッシュへ反映するため、変更後はChMateを再起動してください。");layout.addView(siteGroupsHelp);
+        android.widget.Button settingLinks=new android.widget.Button(activity);settingLinks.setText("設定リンクを作成");layout.addView(settingLinks);
+        settingLinks.setOnClickListener(v->activity.startActivity(new Intent(activity,SettingLinkActivity.class)));
         Switch nativeTabs = addSwitch(layout, activity,
                 text("タブレットの追加画面をホーム側のタブで開く", "Open extra tablet screens in HOME tabs"),
                 preferences.getBoolean(NativeToolTabs.KEY, false));
@@ -3670,15 +3697,31 @@ public final class Haiagaru {
                 layout,
                 activity,
                 text(EdgeReporterOptions.MENU_LABEL, "Edge reporter IDs: long press / NG Threads"),
-                preferences.getBoolean("edgeReporterId", true)
+                EdgeReporterOptions.menu()
         );
         Switch edgeReporterBoardList=addSwitch(layout,activity,
                 text(EdgeReporterOptions.BOARD_LABEL,"Edge reporter IDs: board thread list"),EdgeReporterOptions.board());
+        Switch reporterSearchEnabled = addSwitch(layout, activity,
+                "記者ID・スレ名の期間指定検索を有効にする",
+                FeatureSwitches.enabled("reporterSearchEnabled", true));
+        new LiveSettings(FeatureSwitches.prefs(activity), () -> {}).toggle(reporterSearchEnabled, "reporterSearchEnabled");
+        new LiveSettings(FeatureSwitches.prefs(activity), () -> {}).toggle(edgeReporterId, EdgeReporterOptions.MENU);
+        new LiveSettings(FeatureSwitches.prefs(activity), () -> {}).toggle(edgeReporterBoardList, EdgeReporterOptions.BOARD);
+        Button reporterSearch = new Button(activity);
+        reporterSearch.setText("記者ID・スレ名から過去スレを検索");
+        reporterSearch.setOnClickListener(v -> ReporterSearchUi.show(activity, null));
+        layout.addView(reporterSearch);
         TextView reporterHelp=new TextView(activity);
         reporterHelp.setText("長押し・NG追加・Threadsと、板を開いたスレ一覧への表示を別々に設定できます。既存の設定は両方へ引き継ぎます。表示を変えた後は一覧を開き直してください。未取得の記者IDは板を更新すると反映されます。");layout.addView(reporterHelp);
 
         PosterHighlight.addSettingsButton(layout, activity);
         if (StringReplacement.supported(activity)) {
+            Switch replacementEnabled = addSwitch(layout, activity, "本文の文字列置換を有効にする",
+                    StringReplacement.prefs(activity).getBoolean("enabled", false));
+            replacementEnabled.setOnCheckedChangeListener((button, checked) -> {
+                StringReplacement.prefs(activity).edit().putBoolean("enabled", checked).apply();
+                StringReplacement.setEnabled(activity, checked);
+            });
             Button replaceStrings = new Button(activity);
             replaceStrings.setText("本文の文字列置換（外部TXT）");
             replaceStrings.setOnClickListener(v -> activity.startActivity(
@@ -3775,6 +3818,21 @@ public final class Haiagaru {
         });
 
 
+        int ipWarningNetworks=preferences.getInt(PostingIpWarning.KEY,0)&3;
+        Switch ipWifiWarning=addSwitch(layout,activity,
+                text("IP表示スレへの書き込み前に警告（Wi-Fi）", "Warn before posting in IP-visible threads (Wi-Fi)"),(ipWarningNetworks&1)!=0);
+        Switch ipMobileWarning=addSwitch(layout,activity,
+                text("IP表示スレへの書き込み前に警告（モバイル回線）", "Warn before posting in IP-visible threads (mobile)"),(ipWarningNetworks&2)!=0);
+        Runnable saveIpWarnings=()->preferences.edit().putInt(PostingIpWarning.KEY,(ipWifiWarning.isChecked()?1:0)|(ipMobileWarning.isChecked()?2:0)).apply();
+        ipWifiWarning.setOnCheckedChangeListener((button,checked)->saveIpWarnings.run());
+        ipMobileWarning.setOnCheckedChangeListener((button,checked)->saveIpWarnings.run());
+        ipWifiWarning.setEnabled(PostingIpWarning.supported(activity));
+        ipMobileWarning.setEnabled(PostingIpWarning.supported(activity));
+        TextView ipPostHelp = new TextView(activity);
+        ipPostHelp.setText(text("IP表示のあるスレへ送信する前に、戻る／書き込むを選べます。初期は警告なしです。モバイル回線での書き込み指定を優先します。保存済みレスやVPNなどでIP表示・回線を判定できない場合も確認します。",
+                "Confirm or cancel before submitting to an IP-visible thread. Initially off. The editor's mobile routing choice takes priority. Also confirms when cached posts or VPN routing cannot establish IP visibility or the network."));
+        ipPostHelp.setTextSize(13);layout.addView(ipPostHelp,rowParams(activity));
+        if(!PostingIpWarning.supported(activity))ipPostHelp.setText(text("IP表示の投稿確認は191・226・242に対応しています。", "IP-visible posting confirmation supports 191, 226 and 242."));
         Switch refreshCellularNetwork = addSwitch(
                 layout,
                 activity,
@@ -4123,6 +4181,7 @@ public final class Haiagaru {
     private static LinearLayout settingsMEDIA(Activity activity) {
         LinearLayout layout = new LinearLayout(activity);
         layout.setOrientation(LinearLayout.VERTICAL);
+        ThreadListThumbnailSettings.addSettings(layout, activity);
         SharedPreferences preferences = preferences(activity);
         SharedPreferences chMatePreferences = PreferenceManager.getDefaultSharedPreferences(activity);
         String chMateVersion = "";
@@ -4206,6 +4265,10 @@ public final class Haiagaru {
         videoFrameThumbnails.setOnCheckedChangeListener((button, checked) ->
                 activity.getSharedPreferences(WacchoiSearchOptions.PREFS, 0).edit()
                         .putBoolean("videoFrameThumbnailsEnabled", checked).apply());
+        Switch videoLandscapeImmersive = addSwitch(layout, activity,
+                "専用動画ビューアを横画面で没入表示する",
+                FeatureSwitches.enabled("videoLandscapeImmersive", true));
+        new LiveSettings(FeatureSwitches.prefs(activity), () -> {}).toggle(videoLandscapeImmersive, "videoLandscapeImmersive");
 
         Spinner mediaAutoFetch = addSpinner(layout, activity,
                 text("動画リンクから自動で読み込むもの", "What to load from video links"),
@@ -4380,6 +4443,16 @@ public final class Haiagaru {
             decor.requestLayout(); decor.invalidate();
         });
         HiddenIdNg.addSettingsButton(layout, activity);
+        Button imageNg = new Button(activity);
+        imageNg.setText("登録画像によるあぼーん（判定レベル・一致枚数）");
+        imageNg.setOnClickListener(view -> activity.startActivity(new Intent(activity, RegisteredImageNgSettingsActivity.class)));
+        layout.addView(imageNg, rowParams(activity));
+        Switch registeredImageNg = addSwitch(layout, activity, "登録画像に一致するレスをあぼーん",
+                RegisteredImageNg.prefs(activity).getBoolean(RegisteredImageNg.ENABLE, false));
+        registeredImageNg.setOnCheckedChangeListener((button, checked) -> {
+            RegisteredImageNg.prefs(activity).edit().putBoolean(RegisteredImageNg.ENABLE, checked).apply();
+            RegisteredImageNg.settingsChanged();
+        });
         Switch autoNgRedIds = addSwitch(layout, activity, "全スレで赤いIDのレスを自動で非表示にする",
                 preferences.getBoolean(RedIdAutoNg.KEY, false));
         TextView autoNgRedIdsDescription = new TextView(activity);
@@ -4399,6 +4472,10 @@ public final class Haiagaru {
         chainAboneDescription.setTextSize(13);
         layout.addView(chainAboneDescription, rowParams(activity));
         live.toggle(hideChainedAbone, ChainAboneVisibility.KEY);
+        Switch hideCopyPasteAbone = addSwitch(layout, activity,
+                text("コピペ省略されたレスを透明あぼーん", "Hide copy-paste abbreviated replies"),
+                preferences.getBoolean(ChainAboneVisibility.COPY_PASTE_KEY, false));
+        live.toggle(hideCopyPasteAbone, ChainAboneVisibility.COPY_PASTE_KEY);
         Switch hideNgWordIdReplies = addSwitch(layout, activity,
                 text("NGWord-IDへの返信も非表示", "Hide replies to NGWord-ID responses"),
                 preferences.getBoolean("hideNgWordIdReplies", false));
@@ -5481,6 +5558,11 @@ public final class Haiagaru {
     public static boolean hideChainedAbone() {
         SharedPreferences prefs = preferencesOrNull();
         return prefs != null && prefs.getBoolean(ChainAboneVisibility.KEY, false);
+    }
+
+    static boolean hideCopyPasteAbone() {
+        SharedPreferences prefs = preferencesOrNull();
+        return prefs != null && prefs.getBoolean(ChainAboneVisibility.COPY_PASTE_KEY, false);
     }
 
     public static boolean hideNgWordIdReplies() {

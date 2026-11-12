@@ -24,7 +24,6 @@ val myDialogDisableAppsFlyerPatch = bytecodePatch(
         "initialized or started, and the JS bridge reports success as usual.",
     default = true,
 ) {
-    category("Privacy")
     compatibleWith(MYDIALOG_COMPATIBILITY)
 
     execute {

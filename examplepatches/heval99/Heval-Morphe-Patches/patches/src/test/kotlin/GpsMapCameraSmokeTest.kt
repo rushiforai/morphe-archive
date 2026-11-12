@@ -52,7 +52,7 @@ class GpsMapCameraSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "1.0.31",
+            version = "1.0.32",
             patchNames = setOf(
                 "Disable license check", "Disable ads", "Enable Premium", "Spoof signature", "GmsCore support",
             ),

@@ -4,6 +4,7 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.ResourcePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -48,30 +49,91 @@ private val gboardPrivacyResourcesPatch = resourcePatch(
             }
         }
 
-        // The restriction file is stored as res/Ktm.xml in the exact XAPK target.
-        document("res/Ktm.xml").use { doc ->
-            val targetKeys = setOf(
-                "enable_user_metrics",
-                "user_enable_federated_training",
-                "config_agentic_dictation",
-            )
+        // The restriction XML has a stable content shape but its decoded file name can
+        // differ between the XAPK and standalone APK resource tables.
+        val restrictionsPath = findRestrictionsFile()
+        val requiredKeys = setOf(
+            "enable_user_metrics",
+            "user_enable_federated_training",
+            "config_agentic_dictation",
+            "config_clipboard",
+        )
+        val privacyDefaults = mapOf(
+            "enable_user_metrics" to "false",
+            "user_enable_federated_training" to "false",
+            "config_agentic_dictation" to "false",
+            "config_clipboard" to "false",
+            "enable_scribe" to "false",
+            "enable_voice_widget" to "false",
+            "show_direct_to_dictation_access_point" to "false",
+            "config_global_direct_to_dictation" to "false",
+            "enable_global_direct_to_voice_toolbar" to "false",
+            "writing_tools_enable_hybrid" to "false",
+            "config_default_layouts" to "",
+            "config_default_theme_file" to "",
+            "config_default_dark_theme_file" to "",
+        )
+
+        document(restrictionsPath).use { doc ->
             val updatedKeys = mutableSetOf<String>()
             val restrictions = doc.getElementsByTagName("restriction")
             for (index in 0 until restrictions.length) {
                 val restriction = restrictions.item(index) as? Element ?: continue
                 val key = restriction.getAttribute("android:key")
-                if (key in targetKeys) {
-                    restriction.setAttribute("android:defaultValue", "false")
-                    updatedKeys += key
-                }
+                val value = privacyDefaults[key] ?: continue
+                restriction.setAttribute("android:defaultValue", value)
+                updatedKeys += key
             }
-            val missingKeys = targetKeys - updatedKeys
+            val missingKeys = requiredKeys - updatedKeys
             if (missingKeys.isNotEmpty()) {
                 throw PatchException(
                     "Gboard managed-configuration keys not found: ${missingKeys.joinToString()}",
                 )
             }
         }
+    }
+}
+
+private fun ResourcePatchContext.findRestrictionsFile(): String {
+    val resDirectory = get("res")
+    val candidates = resDirectory.walkTopDown()
+        .filter { it.isFile && it.extension == "xml" }
+    val file = candidates.firstOrNull { it.readText().contains("<restrictions") }
+        ?: throw PatchException("Gboard managed-configuration restrictions XML was not found")
+    return "res/" + file.relativeTo(resDirectory).invariantSeparatorsPath
+}
+
+/**
+ * Replace the source register of a static flag assignment with the constant-false flag.
+ */
+private fun MutableMethod.forceStaticFlagsFalse(
+    definingClass: String,
+    fieldNames: Set<String>,
+    fieldType: String = "Lokc;",
+) {
+    val instructions = implementation?.instructions
+        ?: throw PatchException("Gboard $definingClass flags have no class initializer")
+
+    val assignments = fieldNames.map { fieldName ->
+        val matches = instructions.mapIndexedNotNull { index, instruction ->
+            if (instruction.opcode != Opcode.SPUT_OBJECT) return@mapIndexedNotNull null
+            val field = (instruction as? ReferenceInstruction)?.reference as? FieldReference
+                ?: return@mapIndexedNotNull null
+            if (field.definingClass != definingClass || field.name != fieldName || field.type != fieldType) {
+                return@mapIndexedNotNull null
+            }
+            val register = (instruction as? OneRegisterInstruction)?.registerA
+                ?: throw PatchException("Gboard $definingClass.$fieldName assignment has no source register")
+            index to register
+        }
+        if (matches.size != 1) {
+            throw PatchException("Expected one Gboard $definingClass.$fieldName flag assignment, found ${matches.size}")
+        }
+        matches.single()
+    }
+
+    assignments.sortedByDescending { it.first }.forEach { (index, register) ->
+        addInstructions(index, "sget-object v$register, Lokf;->b:Lokc;")
     }
 }
 
@@ -117,7 +179,7 @@ private fun MutableMethod.forceAgenticFlagsFalse() {
 val gboardOfflineVoicePrivacyPatch = bytecodePatch(
     name = "Offline-only voice typing & telemetry reduction",
     description = """
-        On Gboard 18.5.4.993608717 arm64, routes core voice typing only through the on-device
+        On Gboard 18.5.4.993608717 arm/arm64, routes core voice typing only through the on-device
         recognizers and returns no recognizer when a local provider/model is unavailable (no
         online fallback). Disables Agentic Dictation's server/batch retry path, reduces selected
         metrics/telemetry and disables app backup. INTERNET and unrelated network features are
@@ -242,5 +304,21 @@ val gboardOfflineVoicePrivacyPatch = bytecodePatch(
             returnType = "V",
             parameters = emptyList(),
         ).method.forceAgenticFlagsFalse()
+
+        // Disable the clipboard feature even when no managed configuration is present.
+        Fingerprint(
+            definingClass = "Lfsc;",
+            name = "<clinit>",
+            returnType = "V",
+            parameters = emptyList(),
+        ).method.forceStaticFlagsFalse("Lfsc;", setOf("a"))
+
+        // Hard-disable voice flags that bind Wi-Fi, request contacts or route through Bluetooth.
+        Fingerprint(
+            definingClass = "Lsgy;",
+            name = "<clinit>",
+            returnType = "V",
+            parameters = emptyList(),
+        ).method.forceStaticFlagsFalse("Lsgy;", setOf("f", "h", "i"))
     }
 }

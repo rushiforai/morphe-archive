@@ -110,6 +110,9 @@ internal val AD_SDKS = setOf("GOOGLE_AD", "TEADS")
 internal val TELEMETRY_SDKS = setOf("ADOBE", "APPSFLYER", "CHARTBEAT", "PERMUTIVE", "MUX", "MEDIAMELON")
 internal const val CONTENT_SDK = "STORYTELLER"
 
+/** Names the Sdk enum may lack: 8.35.0 dropped MUX (the Mux SDK is gone); the block still compares it, harmlessly. */
+internal val OPTIONAL_SDKS = setOf("MUX")
+
 /**
  * Appends a block before the SdkConfig constructor's return-void that stores enabled = false
  * when the SDK's name() is one of [names]. Each block re-reads the sdk field and ends with an
@@ -127,7 +130,7 @@ internal fun BytecodePatchContext.disableSdkConfigs(names: Set<String>) {
     val sdkClass = classDefByOrNull(sdk) ?: throw PatchException("SdkConfig enum $sdk not found")
     if (sdkClass.superclass != "Ljava/lang/Enum;") throw PatchException("$sdk is not an enum")
     val enumNames = sdkClass.methods.singleOrNull { it.name == "<clinit>" }?.strings().orEmpty().toSet()
-    val missing = names + CONTENT_SDK - enumNames
+    val missing = names + CONTENT_SDK - enumNames - OPTIONAL_SDKS
     if (missing.isNotEmpty()) throw PatchException("SdkConfig enum $sdk lacks $missing")
 
     val instanceFields = config.fields.filterNot { AccessFlags.STATIC.isSet(it.accessFlags) }

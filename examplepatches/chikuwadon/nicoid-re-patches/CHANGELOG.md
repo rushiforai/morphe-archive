@@ -1,3 +1,143 @@
+## 2.0.0 (2026-11-12)
+
+### ✨ New Features
+
+* **nicoid:** Add Niconico Live support with HLS playback, real-time comments, quality selection, fullscreen playback, popup playback, and background playback.
+* **nicoid:** Add six Niconico Live navigation sections: Live, Ranking, Timetable, Following, Watch History, and Timeshift Reservations.
+* **nicoid:** Add a searchable live broadcast list with filters for all, user, official, and channel broadcasts. Support searching by title, program ID, or URL.
+* **nicoid:** Add live broadcast sorting by start time, viewer count, and comment count.
+* **nicoid:** Add live broadcast rankings with separate user and official/channel categories and filters for live, upcoming, and ended broadcasts.
+* **nicoid:** Add a timetable for official and channel broadcasts, with date navigation covering the previous and next seven days.
+* **nicoid:** Add followed live broadcasts with overview, live, upcoming, and ended filters.
+* **nicoid:** Add live broadcast watch history with thumbnails and long-press deletion.
+* **nicoid:** Add timeshift reservation management, including reservation counts, reservation lists, and actions to reserve or cancel reservations.
+* **nicoid:** Display broadcast status and viewing restriction labels, including paid, member-free, and partially free programs, with alerts for unmet viewing requirements.
+* **nicoid:** Support real-time live comments, comment posting, anonymous comments, comment copying, and NG filtering by user or keyword.
+* **nicoid:** Add draggable and resizable live popup playback, allowing users to browse nicoid Re while watching broadcasts.
+* **nicoid:** Add Android media controls for live broadcasts, including program artwork, playback controls, and notification actions.
+* **nicoid:** Add Niconico Live settings for startup navigation, broadcast time display, floating refresh button, program tap behavior, and exit confirmation.
+* **nicoid:** Add an option to show or hide Niconico Live in the sidebar and support opening it through customizable gestures.
+* **nicoid:** Add options to position the multiple-tab bar at the top or bottom and adjust its height from 28 to 64 dp.
+* **nicoid:** Add an option to recognize horizontal-only gestures independently of vertical-only gesture recognition.
+* **nicoid:** Add an option to enable or disable rounded thumbnails across video lists, video information screens, playback screens, and Niconico Live.
+* **nicoid:** Add three exit confirmation modes: No Confirmation, Dialog, and Press Back Twice.
+* **nicoid:** Add manual drag-and-drop reordering to local playlists, with a persistent Custom Order sorting option.
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Fix recurring live playback interruptions caused by compatibility issues with encrypted low-latency HLS streams.
+* **nicoid:** Fix AES-128 decryption failures and malformed MP4 parsing errors during live playback.
+* **nicoid:** Fix crashes, black screens, and playback interruptions when switching between normal and popup live playback.
+* **nicoid:** Fix the app closing when starting live popup playback, allowing the broadcast and browsing screen to remain active.
+* **nicoid:** Fix playback session conflicts between regular NicoNico videos and live broadcasts.
+* **nicoid:** Fix duplicate comment connections, outdated playback callbacks, and stale streaming sessions affecting active broadcasts.
+* **nicoid:** Fix missing thumbnails in live watch history and improve recovery from incomplete broadcast information.
+* **nicoid:** Fix inconsistent live broadcast lists and missing entries when loading multiple pages or combining different broadcast categories.
+* **nicoid:** Fix incorrect live playback controls, popup touch handling, and layout behavior during screen transitions.
+* **nicoid:** Fix timeshift reservation and cancellation requests being interrupted by concurrent list refreshes.
+* **nicoid:** Fix live media controls displaying incomplete artwork and incorrect playback states.
+* **nicoid:** Fix overlapping comment outlines becoming excessively dark when comment opacity is reduced.
+* **nicoid:** Fix visible boundaries between Ambient Mode lighting and the surrounding background, including noticeable seams in landscape mode.
+* **nicoid:** Fix local playlist thumbnails disappearing after adding manual reordering.
+* **nicoid:** Fix local playlists reopening at the wrong folder level when restoring the last selected tab.
+* **nicoid:** Fix the navigation drawer button incorrectly returning to the previous folder in local playlists.
+* **nicoid:** Fix playlist scroll positions being lost when entering or leaving reordering mode.
+
+### 🔧 Improvements
+
+* **nicoid:** Redesign the Niconico Live interface with compact navigation, integrated search controls, category filters, and a six-section bottom navigation bar.
+* **nicoid:** Improve live broadcast lists with clearer thumbnails, program titles, broadcaster names, viewer counts, comment counts, broadcast status, and reservation information.
+* **nicoid:** Improve live ranking, timetable, and following screens with more intuitive navigation, filtering, sorting, and presentation.
+* **nicoid:** Automatically load additional broadcast pages, remove duplicate entries, and preserve available results during refresh failures.
+* **nicoid:** Improve the live player layout, comment panel, program information screen, and playback controls across portrait and landscape orientations.
+* **nicoid:** Improve transitions between live playback and broadcast lists while preserving the active playback session.
+* **nicoid:** Add quick access to the currently playing broadcast, including an option to stop playback directly from the broadcast list.
+* **nicoid:** Improve encrypted HLS compatibility by refreshing AES-128 keys and prioritizing complete CMAF segments over low-latency partial segments for more stable continuous playback.
+* **nicoid:** Prevent unnecessary player initialization when live stream information is refreshed without changes to the media URL or quality.
+* **nicoid:** Improve live authentication handling by updating session cookies without interrupting active playback.
+* **nicoid:** Improve WebSocket connection management, viewing session maintenance, automatic recovery, and reconnection handling.
+* **nicoid:** Improve live comment synchronization, rendering efficiency, and connection management during long-running broadcasts.
+* **nicoid:** Improve live media notifications with program artwork, accurate playback states, and synchronized playback actions.
+* **nicoid:** Improve login handling, viewing restriction messages, reservation error reporting, and recovery from network failures.
+* **nicoid:** Add detailed Niconico Live diagnostics to the existing debug log export, including playback errors, HLS processing, HTTP communication, and WebSocket status, without exposing authentication credentials.
+* **nicoid:** Refine live broadcast menus, dialogs, playback controls, status labels, and theme integration for a more consistent interface.
+* **nicoid:** Improve multiple-tab settings with configurable placement, adjustable height, and more consistent setting descriptions.
+* **nicoid:** Refine gesture recognition settings with separate horizontal and vertical options, clearer defaults, and compact information dialogs.
+* **nicoid:** Improve rounded thumbnail rendering while preserving viewing progress indicators and existing video information.
+* **nicoid:** Improve local playlist management with persistent manual ordering, per-playlist sorting preferences, and restored navigation states.
+* **nicoid:** Improve Ambient Mode lighting with smoother falloff and more natural blending along video edges, corners, and landscape split-screen boundaries.
+* **nicoid:** Improve playback stability, resource management, and asynchronous processing while preserving existing features and compatibility.
+
+## 2.0.0 (2026-11-12)
+
+### ✨ New Features
+
+* **nicoid:** Add Niconico Live support with HLS playback, real-time comments, quality selection, fullscreen playback, popup playback, and background playback.
+* **nicoid:** Add six Niconico Live navigation sections: Live, Ranking, Timetable, Following, Watch History, and Timeshift Reservations.
+* **nicoid:** Add a searchable live broadcast list with filters for all, user, official, and channel broadcasts. Support searching by title, program ID, or URL.
+* **nicoid:** Add live broadcast sorting by start time, viewer count, and comment count.
+* **nicoid:** Add live broadcast rankings with separate user and official/channel categories and filters for live, upcoming, and ended broadcasts.
+* **nicoid:** Add a timetable for official and channel broadcasts, with date navigation covering the previous and next seven days.
+* **nicoid:** Add followed live broadcasts with overview, live, upcoming, and ended filters.
+* **nicoid:** Add live broadcast watch history with thumbnails and long-press deletion.
+* **nicoid:** Add timeshift reservation management, including reservation counts, reservation lists, and actions to reserve or cancel reservations.
+* **nicoid:** Display broadcast status and viewing restriction labels, including paid, member-free, and partially free programs, with alerts for unmet viewing requirements.
+* **nicoid:** Support real-time live comments, comment posting, anonymous comments, comment copying, and NG filtering by user or keyword.
+* **nicoid:** Add draggable and resizable live popup playback, allowing users to browse nicoid Re while watching broadcasts.
+* **nicoid:** Add Android media controls for live broadcasts, including program artwork, playback controls, and notification actions.
+* **nicoid:** Add Niconico Live settings for startup navigation, broadcast time display, floating refresh button, program tap behavior, and exit confirmation.
+* **nicoid:** Add an option to show or hide Niconico Live in the sidebar and support opening it through customizable gestures.
+* **nicoid:** Add options to position the multiple-tab bar at the top or bottom and adjust its height from 28 to 64 dp.
+* **nicoid:** Add an option to recognize horizontal-only gestures independently of vertical-only gesture recognition.
+* **nicoid:** Add an option to enable or disable rounded thumbnails across video lists, video information screens, playback screens, and Niconico Live.
+* **nicoid:** Add three exit confirmation modes: No Confirmation, Dialog, and Press Back Twice.
+* **nicoid:** Add manual drag-and-drop reordering to local playlists, with a persistent Custom Order sorting option.
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Fix recurring live playback interruptions caused by compatibility issues with encrypted low-latency HLS streams.
+* **nicoid:** Fix AES-128 decryption failures and malformed MP4 parsing errors during live playback.
+* **nicoid:** Fix crashes, black screens, and playback interruptions when switching between normal and popup live playback.
+* **nicoid:** Fix the app closing when starting live popup playback, allowing the broadcast and browsing screen to remain active.
+* **nicoid:** Fix playback session conflicts between regular NicoNico videos and live broadcasts.
+* **nicoid:** Fix duplicate comment connections, outdated playback callbacks, and stale streaming sessions affecting active broadcasts.
+* **nicoid:** Fix missing thumbnails in live watch history and improve recovery from incomplete broadcast information.
+* **nicoid:** Fix inconsistent live broadcast lists and missing entries when loading multiple pages or combining different broadcast categories.
+* **nicoid:** Fix incorrect live playback controls, popup touch handling, and layout behavior during screen transitions.
+* **nicoid:** Fix timeshift reservation and cancellation requests being interrupted by concurrent list refreshes.
+* **nicoid:** Fix live media controls displaying incomplete artwork and incorrect playback states.
+* **nicoid:** Fix overlapping comment outlines becoming excessively dark when comment opacity is reduced.
+* **nicoid:** Fix visible boundaries between Ambient Mode lighting and the surrounding background, including noticeable seams in landscape mode.
+* **nicoid:** Fix local playlist thumbnails disappearing after adding manual reordering.
+* **nicoid:** Fix local playlists reopening at the wrong folder level when restoring the last selected tab.
+* **nicoid:** Fix the navigation drawer button incorrectly returning to the previous folder in local playlists.
+* **nicoid:** Fix playlist scroll positions being lost when entering or leaving reordering mode.
+
+### 🔧 Improvements
+
+* **nicoid:** Redesign the Niconico Live interface with compact navigation, integrated search controls, category filters, and a six-section bottom navigation bar.
+* **nicoid:** Improve live broadcast lists with clearer thumbnails, program titles, broadcaster names, viewer counts, comment counts, broadcast status, and reservation information.
+* **nicoid:** Improve live ranking, timetable, and following screens with more intuitive navigation, filtering, sorting, and presentation.
+* **nicoid:** Automatically load additional broadcast pages, remove duplicate entries, and preserve available results during refresh failures.
+* **nicoid:** Improve the live player layout, comment panel, program information screen, and playback controls across portrait and landscape orientations.
+* **nicoid:** Improve transitions between live playback and broadcast lists while preserving the active playback session.
+* **nicoid:** Add quick access to the currently playing broadcast, including an option to stop playback directly from the broadcast list.
+* **nicoid:** Improve encrypted HLS compatibility by refreshing AES-128 keys and prioritizing complete CMAF segments over low-latency partial segments for more stable continuous playback.
+* **nicoid:** Prevent unnecessary player initialization when live stream information is refreshed without changes to the media URL or quality.
+* **nicoid:** Improve live authentication handling by updating session cookies without interrupting active playback.
+* **nicoid:** Improve WebSocket connection management, viewing session maintenance, automatic recovery, and reconnection handling.
+* **nicoid:** Improve live comment synchronization, rendering efficiency, and connection management during long-running broadcasts.
+* **nicoid:** Improve live media notifications with program artwork, accurate playback states, and synchronized playback actions.
+* **nicoid:** Improve login handling, viewing restriction messages, reservation error reporting, and recovery from network failures.
+* **nicoid:** Add detailed Niconico Live diagnostics to the existing debug log export, including playback errors, HLS processing, HTTP communication, and WebSocket status, without exposing authentication credentials.
+* **nicoid:** Refine live broadcast menus, dialogs, playback controls, status labels, and theme integration for a more consistent interface.
+* **nicoid:** Improve multiple-tab settings with configurable placement, adjustable height, and more consistent setting descriptions.
+* **nicoid:** Refine gesture recognition settings with separate horizontal and vertical options, clearer defaults, and compact information dialogs.
+* **nicoid:** Improve rounded thumbnail rendering while preserving viewing progress indicators and existing video information.
+* **nicoid:** Improve local playlist management with persistent manual ordering, per-playlist sorting preferences, and restored navigation states.
+* **nicoid:** Improve Ambient Mode lighting with smoother falloff and more natural blending along video edges, corners, and landscape split-screen boundaries.
+* **nicoid:** Improve playback stability, resource management, and asynchronous processing while preserving existing features and compatibility.
+
 ## 1.11.1 (2026-11-11)
 
 ### 🐛 Bug Fixes

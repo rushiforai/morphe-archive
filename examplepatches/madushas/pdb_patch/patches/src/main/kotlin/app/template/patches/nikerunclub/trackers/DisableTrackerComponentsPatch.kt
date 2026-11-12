@@ -40,7 +40,6 @@ val nikeDisableTrackerComponentsPatch = resourcePatch(
         "and sets the Firebase Analytics collection opt-outs.",
     default = true,
 ) {
-    category("Privacy")
     compatibleWith(NIKE_RUN_CLUB_COMPATIBILITY)
 
     execute {

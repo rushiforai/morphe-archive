@@ -91,6 +91,7 @@ import app.hushtelegram.extension.shared.settings.preference.AbstractPreferenceF
 import app.hushtelegram.extension.shared.settings.preference.LogBufferManager;
 import app.hushtelegram.extension.shared.settings.preference.QuickSetups;
 import app.hushtelegram.extension.shared.settings.preference.SharedPrefCategory;
+import app.hushtelegram.extension.telegram.misc.RecordChats;
 
 /**
  * Export settings and Import settings: what a file may carry, what an import refuses, the preview
@@ -212,9 +213,9 @@ public class SettingsBackupTest {
         assertEquals("a setting in Settings isn't a switch, and a settings file has no format for it",
                 Collections.emptyList(), notSwitches);
         assertEquals(Arrays.asList(Settings.MESSAGE_FILTERS_GROUPS, Settings.MESSAGE_FILTERS_CHANNELS), SettingsBackup.FILTER_LISTS);
-        assertEquals(Collections.singletonList(Settings.STICKER_SIZE), SettingsBackup.NUMBERS);
+        assertEquals(Arrays.asList(Settings.STICKER_SIZE, Settings.RECORD_CALLS_KEEP_DAYS), SettingsBackup.NUMBERS);
         assertEquals(Arrays.asList(Settings.TITLE_EMOJI, Settings.GALLERY_FOLDER, Settings.TRANSLATE_TARGET, Settings.FOLDER_ICON_PACK, Settings.STORAGE_FOLDER_NAME,
-                Settings.SAVE_KINDS_LEFT_OUT), SettingsBackup.TEXTS);
+                Settings.SAVE_KINDS_LEFT_OUT, Settings.RECORD_CALLS_WHICH), SettingsBackup.TEXTS);
         assertEquals(Arrays.asList(Settings.HIDE_ADS, Settings.HIDE_STORIES, Settings.HIDE_RECOMMENDATIONS, Settings.HIDE_KEYBOARD_FEATURED, Settings.HIDE_COMMERCE, Settings.HIDE_EMOJI_STATUS, Settings.UNLOCK_PREMIUM_ICONS, Settings.LOCAL_EMOJI_STATUS,
                         Settings.HIDE_PROMOTIONAL_BANNERS, Settings.HIDE_SPONSORED_PROXY, Settings.HIDE_POPULAR_APPS, Settings.SEARCH_ONLY_MY_CHATS, Settings.SEARCH_STYLED_NAMES, Settings.BLOCK_NEW_CHATS, Settings.DISABLE_SECRET_CHATS, Settings.HIDE_CONTACTS_BLOCK,
                         Settings.HIDE_GREETING_STICKERS, Settings.DISABLE_CHAT_SWIPE, Settings.CHAT_PREVIEW_BUTTONS, Settings.DISABLE_CHANNEL_PULL, Settings.DISABLE_TOPIC_PULL, Settings.NORMAL_PASTE, Settings.MENTION_BY_ID, Settings.SHOW_LOCAL_IDS, Settings.PROFILE_DATA_CENTER,
@@ -678,12 +679,13 @@ public class SettingsBackupTest {
             assertEquals(String.valueOf(bad), SettingsBackup.Reason.VALUE, reasonFor(wrong.toString()));
         }
 
-        // A saved state is read back as strictly: a size that isn't a choice is left out.
+        // A saved state is read back as strictly: a size that isn't a choice is left out, and only the
+        // days recordings stay come back.
         Bundle state = snapshot.toBundle();
         state.getBundle("numbers").putInt(Settings.STICKER_SIZE.key, 100);
-        assertTrue(SettingsBackup.Snapshot.fromBundle(state).numbers.isEmpty());
+        assertEquals(Collections.singleton(Settings.RECORD_CALLS_KEEP_DAYS), SettingsBackup.Snapshot.fromBundle(state).numbers.keySet());
         state.getBundle("numbers").putString(Settings.STICKER_SIZE.key, "150");
-        assertTrue(SettingsBackup.Snapshot.fromBundle(state).numbers.isEmpty());
+        assertEquals(Collections.singleton(Settings.RECORD_CALLS_KEEP_DAYS), SettingsBackup.Snapshot.fromBundle(state).numbers.keySet());
     }
 
     /**
@@ -729,11 +731,11 @@ public class SettingsBackupTest {
         assertEquals("", SettingsBackup.parse(cleared.toString()).texts.get(Settings.TITLE_EMOJI));
 
         // A saved state is read back as strictly: text the title can't show is left out, and only
-        // the file's other texts, the gallery folder, the translation language and the storage folder, come back.
+        // the file's other texts come back.
         Bundle state = snapshot.toBundle();
         state.getBundle("texts").putString(Settings.TITLE_EMOJI.key, tooLong.toString());
         Set<StringSetting> others = new java.util.HashSet<>(Arrays.asList(Settings.GALLERY_FOLDER, Settings.TRANSLATE_TARGET, Settings.STORAGE_FOLDER_NAME, Settings.FOLDER_ICON_PACK,
-                Settings.SAVE_KINDS_LEFT_OUT));
+                Settings.SAVE_KINDS_LEFT_OUT, Settings.RECORD_CALLS_WHICH));
         assertEquals(others, SettingsBackup.Snapshot.fromBundle(state).texts.keySet());
         state.getBundle("texts").putInt(Settings.TITLE_EMOJI.key, 1);
         assertEquals(others, SettingsBackup.Snapshot.fromBundle(state).texts.keySet());
@@ -1262,6 +1264,51 @@ public class SettingsBackupTest {
                     HushTelegramPreferenceFragment.GALLERY_FOLDER_ROW).getSummary()).contains("DCIM/Telegram/Photos"));
             // Each save reads the choice, so nothing waits for a restart.
             assertTrue(AbstractPreferenceFragment.restartPending.isEmpty());
+        }
+    }
+
+    /**
+     * Which calls Record calls saves and how long recordings stay go out with the switches, come
+     * back only as choices their rows offer, and show by name in the preview (#72).
+     */
+    @Test
+    public void theRecordCallsChoicesRoundTripAndShowInThePreview() throws Exception {
+        Settings.RECORD_CALLS_WHICH.save(RecordChats.PRIVATE);
+        Settings.RECORD_CALLS_KEEP_DAYS.save(30);
+        String file = SettingsBackup.create();
+        JSONObject written = new JSONObject(file).getJSONObject("settings");
+        assertEquals(RecordChats.PRIVATE, written.get(Settings.RECORD_CALLS_WHICH.key));
+        assertEquals(30, written.get(Settings.RECORD_CALLS_KEEP_DAYS.key));
+
+        for (Object bad : new Object[]{45, -7, 366, "30", true}) {
+            JSONObject wrong = new JSONObject(file);
+            wrong.getJSONObject("settings").put(Settings.RECORD_CALLS_KEEP_DAYS.key, bad);
+            assertEquals(String.valueOf(bad), SettingsBackup.Reason.VALUE, reasonFor(wrong.toString()));
+        }
+        for (Object bad : new Object[]{"everything", "PRIVATE", 1}) {
+            JSONObject wrong = new JSONObject(file);
+            wrong.getJSONObject("settings").put(Settings.RECORD_CALLS_WHICH.key, bad);
+            assertEquals(String.valueOf(bad), SettingsBackup.Reason.VALUE, reasonFor(wrong.toString()));
+        }
+
+        Settings.RECORD_CALLS_WHICH.resetToDefault();
+        Settings.RECORD_CALLS_KEEP_DAYS.resetToDefault();
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            HushTelegramPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
+            deliver(activity, tap(activity, page, IMPORT_ROW), file);
+            AlertDialog preview = shownPreview();
+            assertEquals("Keep recordings: Until you delete them to 30 days\nCalls to record: Every call to Private calls only",
+                    String.valueOf(shadowOf(preview).getMessage()));
+            preview.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            settle();
+            assertEquals("Settings imported.", ShadowToast.getTextOfLatestToast());
+            assertEquals(RecordChats.PRIVATE, Settings.RECORD_CALLS_WHICH.savedValue());
+            assertEquals(30, (int) Settings.RECORD_CALLS_KEEP_DAYS.savedValue());
+            assertTrue(AbstractPreferenceFragment.restartPending.isEmpty());
+        } finally {
+            Settings.RECORD_CALLS_WHICH.resetToDefault();
+            Settings.RECORD_CALLS_KEEP_DAYS.resetToDefault();
         }
     }
 

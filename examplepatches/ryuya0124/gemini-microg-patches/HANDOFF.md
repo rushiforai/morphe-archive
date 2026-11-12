@@ -1,6 +1,10 @@
 # 引き継ぎメモ
 
-更新: 2026-11-12（最新の追記は末尾）
+更新: 2026-11-13（最新の追記は末尾）
+
+## リリース本文の方針
+
+利用者から見える変更点・修正点だけを短く書く。内部実装の説明やテスト結果は含めず、必要な開発記録はdocs/testingやこの引き継ぎメモに残す。2026-11-12の利用者の指示で、他のリポジトリにも共通する方針。v0.3.3の公開Release本文と元Markdownをこの形式へ修正済み。
 
 ## 現在の状態
 
@@ -165,3 +169,56 @@ ProcessNameProbeがインストール済みAPKの実コードを呼び、初回/
 - LensServiceは `com.google.android.googlequicksearchbox.morphe.permission.LENS_SERVICE` を要求する状態へ修正済み。user150のCE/DE領域を維持し、user0/10は未導入のまま。OS/SystemUI識別・SELinux状態も維持。
 - Samsungがshellのcross-userアクセスを拒否したため、このSecure Folderへの自動更新では許可済みroot PackageInstallerを使用。通常ユーザーでのエミュレータインストールはshell UID2000で確認済み。
 - 一時APKと所有したleaseを解放。親も `local/issue8/auto-clone/device-update/RESULT.md` と `verified-summary.json` を照合。更新後、利用者がログイン状態の維持とチャット返答成功を「返答できた」と確認。自動照合結果と利用者の動作確認を区別して記録。秘密の端末識別子・生ログはGitへ含めない。
+
+## Issue #8再返信・Android ManagerのVerifyError（2026-11-12）
+
+- 追加報告はインストール後の `ekjg.b(): register index out of range (1 >= 1)`。Android Manager2.5.0（Patcher2.3.0）の実GUIで公開v0.3.2 MPPを原本Google API30へ既定適用し、専用API31 AVDで同じVerifyErrorを再現。
+- 原因はProcessNameSanitizePatchのprivate registerCountへのreflection。Patcher2.3.0のMutableMethod.ImplementationはサブクラスのためgetDeclaredFieldが失敗し、例外を握りつぶした旧版は1レジスタにv1/v2を注入した。Desktop1.12生成だけでは見つからなかった。
+- v0.3.3では3レジスタ明示のprivate static synthetic helperを追加し、元providerのレジスタを変更しない。returnのラベルはhelper呼び出しへ維持。GMS/無効の旧account実験からも同じreflectionを除去し、既存レジスタ数を検証。旧実験は引き続き実行拒否。
+- 実Android Managerで同じ原本からv0.3.3を生成・書き出し、静的レジスタ検査とAPI31での初回/キャッシュ/seeded正常化・Widget入口・Google起動・クラッシュ無しを確認。専用runnerは16項目成功（既存test clone削除を含む）、最後にManager署名のtest cloneだけ削除。実機と元Googleは変更しない。
+- Desktop生成のAPI31/API36も各26項目、MPP設定11項目を再実行し成功。MPPは26クラスをAndroid DEXへ収録。今回はアカウント未登録のエミュレータでの検証で、実機チャット確認はv0.3.2のまま。
+- 詳細・原本ハッシュ参照・実GUI手順・生成APKハッシュ・コマンドは [docs/testing/issue-8-manager-registers.md](docs/testing/issue-8-manager-registers.md)。ローカル証拠は `local/issue8/register-fix/`。今後Patcher更新ではDesktop生成APKの実行だけで済ませず、実Android Managerでの生成を比較する。
+- Issueへ短い原因説明を返信済み。自動closeはしない。リリース後の返信・公開結果は次の追記へ記録する。
+
+### v0.3.3公開・返信完了
+
+- コードcommit `691092193ab07f26faabd216fb1ac0fd646846b0` のCI `43202588258`、Release `43202870466` が成功。タグv0.3.3と [Release](https://github.com/ryuya0124/gemini-microg-patches/releases/tag/v0.3.3) を公開。
+- 公開MPPをダウンロードして照合。SHA256 `c7b72128b63f6f4e91b0da79dcb56200dd5369f1380bfb57d14987aebe6a929c`、171035 bytesで、実Android Managerに読み込ませて検証したMPPと完全一致。CI生成物も全29 ZIPエントリが一致。
+- Issue #8へ [短い返信](https://github.com/ryuya0124/gemini-microg-patches/issues/8#issuecomment-6821468926) を投稿。Android12で再現と解消を確認済みと伝え、ソース更新・原本Google APKの標準選択での再パッチを案内。Issueは閉じていない。投稿者の実機での結果は未確認。
+
+## Issue #8 権限画面の追加返信・v0.3.4（2026-11-12）
+
+- [追加返信](https://github.com/ryuya0124/gemini-microg-patches/issues/8#issuecomment-6822070486) はv0.3.3の起動成功と、Contacts→unknown actionという2つの権限画面。画像と実microG RE7.3.0を確認し、専用API31/API36 AVDで両画面・拒否後の再要求を再現した。
+- unknown actionはmicroG所有EXTENDED_ACCESSにdescriptionがなく、Androidが代替文言を使うため。Googleから宣言を上書きしない。v0.3.4は権限前に用途を説明し、後回し/Back/拒否を尊重、不足分だけ要求する。OSの文言そのものを直したとは説明しない。
+- JavaランタイムをD8→MPP内extensions/microg-permissions.bin→extendWithで統合。DialogFragmentを使い、選択はプロファイル別SharedPreferencesへ保存。すでに許可済みなら無表示。microG無効/未導入時は要求せず、有効化/導入後に試せる。
+- 最終MPPを実Android Manager2.5.0で原本へ既定10パッチ適用・書き出し。生成APKでAPI31の48/48、API36の52/52権限UI項目が成功。同一署名での上書き更新と既存UID/許可維持、部分許可、拒否、再起動、取り消し、microG再導入、日本語を検証。英日画面も目視確認した。
+- 既存回帰はDesktop生成で各API26項目、Managerの旧VerifyError比較16項目、MPP設定11項目が成功。静的検査へVerifyPermissionSetupを追加。MPP内26パッチクラスと2ランタイムクラスを検証し、JDK21/24のランタイムDEX一致も確認。
+- 実機にはインストールや設定変更をしていない。アカウント未登録AVDの検証であり、チャット/認証成功や投稿者の実機結果とは区別する。詳細・ハッシュ・コマンド・テストハーネスの修正理由は [権限UI検証記録](docs/testing/issue-8-permission-ui.md)。ローカル証拠はlocal/issue8/permission-ui/。
+- リリース本文は利用者の指示どおり変更点/修正点の2項目のみ。内部実装とテスト結果は本文に含めない。公開・返信の結果は次の追記へ記録する。
+
+### v0.3.4公開・返信完了
+
+- コードcommit `19370b98adfd825ba7aa0c45809c06642adaf239` のCI `43225699248` とRelease `43226055432` が成功。[v0.3.4](https://github.com/ryuya0124/gemini-microg-patches/releases/tag/v0.3.4) を公開。
+- 公開MPPをダウンロードして検証済みMPPと照合。173574 bytes、SHA256 `3958947638c8ecebe6f9752a4395dd4e24c2a55da88b7c1a1a4de956e0ac0393` で完全一致。公開SHA256SUMSのMPP/更新JSONも一致。本文は変更点2項目だけになっていることを確認。
+- [Issue返信](https://github.com/ryuya0124/gemini-microg-patches/issues/8#issuecomment-6824765654) で権限の用途・事前説明・拒否後の再要求抑止を短く案内。システム文言自体は変わらないことを明記。Issueを閉じる操作は行っていない。
+- 専用AVD2台は名前を確認して停止。実機接続やADBサーバーは停止せず、実機アプリも変更していない。証拠はMacのlocal/issue8/permission-uiとWindowsのoutputsへ保存。
+
+## Issue #8 更新停止の追加返信・v0.3.5候補（2026-11-12〜13）
+
+- 投稿者が汎用更新停止はGeminiに効かないと報告。短く確認したところ、画像はGemini自身の更新ではなくネイティブのUpdate your Google app画面だった。該当コメント6825468743。利用者は実ストアでのデバッグと、原因特定/再現/修正確認後の公開を明示。
+- 公式Play Store入り専用API31 AVD GeminiPatch_PlayStore_API31 / emulator-5584を追加。利用者がWindowsのscrcpy画面から手動ログイン。ログイン中は操作・画面取得を止め、完了後にテストした。ストア54.0.09-31で公式Google/GeminiはOpen、クローンIDはItem not foundを確認。物理端末のアプリ/設定は変更しない。
+- 原因を実APKで確定: Google/Gemini両方のversionCodeは2147483647になっていたが、Geminiの汎用ランタイムが他パッケージの値も自分の元コード345へ戻し、Googleを古いと誤判定。画像どおりの警告とStoreへの遷移結果を再現。
+- Compatible Play Store Update Blockingをdefault追加し、汎用ランタイムの復元を自分の.morpheだけへ限定。未選択時はNoop。int/long/majorの既存処理を維持、レジスタ数を拡大しない。これは更新停止そのものを自動有効化するパッチではなく、公式の任意パッチとの互換修正。
+- 再現中に、Gemini単体APKのエラー画像がdensity split依存で落ちる別件も発見。現行版のBardErrorLogoをframework画像へ変更し、コード1の低バージョンfixture/クローン未導入時も警告が正しく表示されることを確認。警告分岐や最低版チェックは無効化していない。新しいstyleフックを版別Kotlin/JSONへ記録。
+- 最終MPPからDesktop+公式1.41で23/23、実Android Manager2.5/Patcher2.3+公式2.2で生成/保存した両APKでも同じ実ストアの23/23を成功。両方/片方の最大値、元のコード、foreign/own/major、同一署名ダウングレード拒否、真の不足/低コード、原本/アカウント維持を確認。
+- default回帰API31/API36各26、MPP設定11も成功。追加のUniversalVersionProbeとVerifyUpdateCompatibilityで実APKと分岐/レジスタを検査。MPPは27パッチクラスをDEX収録。検証MPP SHA256 c8fde8dad57baba664fd8a8f948125fdeca77165b20a0cba37ad73b9ba771778。
+- 詳細/コマンド/範囲/ハッシュはdocs/testing/issue-8-play-store.md。生UI XMLやAVDにはログイン情報があるためlocal/のまま公開しない。StoreログインとmicroG側のチャット認証は別で、今回は後者を確認したとは扱わない。
+- リリース本文は変更/修正2点のみ。CI/配布物照合後に公開・短い返信を行う。署名キーは既存を維持し、公開APK/キー/生ログを添付しない。
+
+### v0.3.5公開・返信完了（2026-11-13）
+
+- コードcommit `cf964a6f4c2239015b678e9ad1b5f0d6e53ec5b0` のCI `43244021175` が成功。CI生成MPPが実APK生成・検証に使用したMPPとバイト一致した後にタグを作成。Release `43244474608` も成功し、[v0.3.5](https://github.com/ryuya0124/gemini-microg-patches/releases/tag/v0.3.5)を公開した。
+- 公開MPPを再ダウンロードし、182391 bytes、SHA256 `c8fde8dad57baba664fd8a8f948125fdeca77165b20a0cba37ad73b9ba771778`で一致。SHA256SUMSのMPP/更新JSONも照合済み。mainの更新JSONは0.3.5へ反映。本文は修正点2項目だけ。
+- APK入力guard追加後のManager最終マトリクスも23/23成功。証拠はMacのlocal/issue8/play-store/manager-final-results、集計JSONのWindows控えはoutputs/v0.3.5-evidence。認証済UI XMLは公開しない。
+- [Issue返信](https://github.com/ryuya0124/gemini-microg-patches/issues/8#issuecomment-6827381066)で原因と、原本両APKをsource既定選択＋任意の更新停止で再パッチする方法を短く案内。Issueは閉じていない。投稿者の実機での解消報告はまだない。
+- 専用の旧回帰AVD5580/5582は名前を確認して停止。ユーザーがログインしたPlay Store AVD5584とWindowsのscrcpy画面は維持し、アカウント/公式アプリを消去していない。実機/Tail ADB/ADBサーバーは変更・停止していない。

@@ -9,13 +9,14 @@ package app.morphe.patches.youtube.misc.loadvideo
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.mutableClassDefBy
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.util.getReference
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import app.morphe.patcher.util.returnEarly
 import app.morphe.patches.youtube.misc.extension.sharedExtensionPatch
 import app.morphe.patches.youtube.shared.YOUTUBE_MAIN_ACTIVITY_CLASS_TYPE
-import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstructionReversedOrThrow
-import app.morphe.util.returnEarly
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
@@ -37,7 +38,7 @@ private const val EXTENSION_MAIN_ACTIVITY_INTERFACE =
 private const val EXTENSION_INLINE_PLAYBACK_INTERFACE =
     $$"Lapp/morphe/extension/youtube/patches/LoadVideoPatch$InlinePlaybackInterface;"
 
-internal val loadVideoHookPatch = bytecodePatch(
+internal val loadVideoHookPatch = patch(
     description = "Hooks the player so the extension can dismiss it and open videos."
 ) {
     dependsOn(sharedExtensionPatch)

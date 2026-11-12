@@ -46,7 +46,6 @@ val teamsTrimManifestPatch = resourcePatch(
         "(Samsung/HTC/Sony/Huawei/OPPO/badger), which only add manifest bulk.",
     default = true,
 ) {
-    category("Unbloat")
     compatibleWith(TEAMS_COMPATIBILITY)
 
     execute {

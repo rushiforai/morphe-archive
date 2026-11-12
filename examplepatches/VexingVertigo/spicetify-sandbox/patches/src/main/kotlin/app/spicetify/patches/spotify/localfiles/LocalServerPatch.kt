@@ -47,7 +47,7 @@ private val serverResourcesPatch = resourcePatch {
 @Suppress("unused")
 val localFilesFromServerPatch = bytecodePatch(
     name = "Local files from a server",
-    description = "Streams audio from an HTTPS WebDAV folder or Jellyfin music library into Local Files and Your Library. " +
+    description = "NOT SUPPORTED ON 9.2.0.26 - only works on 9.1.80.2221. " + "Streams audio from an HTTPS WebDAV folder or Jellyfin music library into Local Files and Your Library. " +
         "Configure the server in Spicetify settings; playback needs Spotify's Local audio files setting. Experimental; requires byte-range support. " +
         "Not available for root mount installs.",
     default = false,

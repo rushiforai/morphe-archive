@@ -36,6 +36,11 @@ final class Feedback {
         if (XSettings.AUTO_DISLIKE_FILTERED.get()) send(item, Reason.DONT_LIKE, why);
     }
 
+    /** Not interested whatever the filters' Not interested switch says (Home's repeated suggestions). */
+    static void notInterested(VideoItem item, String why) {
+        send(item, Reason.DONT_LIKE, why);
+    }
+
     static void onWatched(VideoItem item) {
         String mode = XSettings.AUTO_WATCHED.get();
         if ("off".equals(mode) || item == null || item.videoId == null) return;

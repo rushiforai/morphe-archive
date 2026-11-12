@@ -19,7 +19,7 @@ Click the button below, or manually add this repo url to Morphe Manager: https:/
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.9.0](https://github.com/srinath1848/nobrokerhood-patches/releases/tag/v1.9.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;11 patches total
+> **[v1.9.1](https://github.com/srinath1848/nobrokerhood-patches/releases/tag/v1.9.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;11 patches total
 <details open>
 <summary>📦 NoBrokerHood&nbsp;&nbsp;•&nbsp;&nbsp;11 patches</summary>
 <br>
@@ -38,12 +38,12 @@ Click the button below, or manually add this repo url to Morphe Manager: https:/
 | [NoBrokerHood: Hide feed ad cards](#nobrokerhood-hide-feed-ad-cards) | Hide forum/home-feed ad cards (3.6.11). |  |
 | [NoBrokerHood: Hide floating promotional sidebar](#nobrokerhood-hide-floating-promotional-sidebar) | Hide the SideAd.kt Compose renderer attached to the RIGHT_AD home section. |  |
 | [NoBrokerHood: Hide homepage billboard](#nobrokerhood-hide-homepage-billboard) | Clear both top-billboard state and app-bar banner state to hide rotating top ads. |  |
+| [NoBrokerHood: Hide post-approval sponsored media](#nobrokerhood-hide-post-approval-sponsored-media) | Suppress the Compose PacCard image/video renderer while retaining the approval screen (experimental). |  |
 | [NoBrokerHood: Hide promotional popups](#nobrokerhood-hide-promotional-popups) | Suppress app-level marketing dialogs (3.6.11). |  |
 | [NoBrokerHood: Hide visitor promotional island](#nobrokerhood-hide-visitor-promotional-island) | Suppress AppBarIsland single-card and horizontal promotional rendering (experimental). |  |
 | [NoBrokerHood: Hide visitor-flow ads](#nobrokerhood-hide-visitor-flow-ads) | Hide the visitor-flow promotional carousel (3.6.11). |  |
-| [NoBrokerHood: Skip post-approval ad container (experimental)](#nobrokerhood-skip-post-approval-ad-container-experimental) | Do not initialize the image/video ad RecyclerView after entry approval; preserve approval details. |  |
+| [NoBrokerHood: Sanitize entry/exit notification ad links](#nobrokerhood-sanitize-entry-exit-notification-ad-links) | Remove promotional URL extras when building entry/exit notification tap intents (experimental). |  |
 | [NoBrokerHood: Stop full-screen permission nag](#nobrokerhood-stop-full-screen-permission-nag) | Stop the home-screen full-screen alert reminder without changing permissions. |  |
-| [NoBrokerHood: Stop promotional browser launches from notifications](#nobrokerhood-stop-promotional-browser-launches-from-notifications) | Clear advertising click metadata and browser-directed routes from notification intents, preserving security-event fields (experimental). |  |
 
 </details>
 

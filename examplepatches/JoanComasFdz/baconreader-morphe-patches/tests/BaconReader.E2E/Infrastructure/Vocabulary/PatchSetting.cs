@@ -41,6 +41,9 @@ public partial record PatchSetting
     /// <summary>"Account colors"' one setting, in its section of the same title: the circles and the line.</summary>
     public partial record AccountColors;
 
+    /// <summary>"Open web pages in the browser", in the Links page's "Web pages" section.</summary>
+    public partial record OpenWebPagesInBrowser;
+
     /// <summary>What the app shows that no case names yet: a failing assertion names it as the app shows it.</summary>
     public partial record Unlisted(string Shown);
 }
@@ -73,6 +76,7 @@ public static class PatchSettingShowing
         new PatchSetting.ShowBlueskyPosts(),
         new PatchSetting.ChatMessagesApartFromTheInbox(),
         new PatchSetting.AccountColors(),
+        new PatchSetting.OpenWebPagesInBrowser(),
     ];
 
     /// <summary>What the app shows for <paramref name="value"/>.</summary>
@@ -100,6 +104,7 @@ public static class PatchSettingShowing
             showBlueskyPosts => "Show Bluesky posts",
             chatMessagesApartFromTheInbox => "Chat messages apart from the inbox",
             accountColors => "Account colors",
+            openWebPagesInBrowser => "Open web pages in the browser",
             unlisted => unlisted.Shown);
 
     /// <summary>The case the app's <paramref name="shown"/> text names, or <see cref="PatchSetting.Unlisted"/>.</summary>

@@ -2,9 +2,6 @@ package app.template.patches.brave.misc.telemetry
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.StringComparisonType
-import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.string
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
@@ -15,6 +12,9 @@ import app.template.patches.brave.P3A_ENABLED_PREF
 import app.template.patches.brave.PrefServiceSetBooleanFingerprint
 import app.template.patches.brave.STATS_REPORTING_ENABLED_PREF
 import app.template.patches.shared.Constants.COMPATIBILITY_BRAVE_EXPERIMENTAL
+import app.template.patches.shared.addInstructionChecked
+import app.template.patches.shared.addInstructionsChecked
+import app.template.patches.shared.addInstructionsWithLabelsChecked
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
@@ -54,7 +54,7 @@ val disableTelemetryPatch = bytecodePatch(
             null,
             MutableMethodImplementation(3),
         ).toMutable().apply {
-            addInstructionsWithLabels(
+            addInstructionsWithLabelsChecked(
                 0,
                 """
                     invoke-static {}, ${getter.definingClass}->${getter.name}()${getter.returnType}
@@ -80,7 +80,7 @@ val disableTelemetryPatch = bytecodePatch(
         val loadedFlagIndex = prefsLoaded.implementation!!.instructions
             .indexOfFirst { it.opcode == Opcode.SPUT_BOOLEAN }
         check(loadedFlagIndex >= 0) { "LocalStatePrefs loaded flag not found" }
-        prefsLoaded.addInstruction(
+        prefsLoaded.addInstructionChecked(
             loadedFlagIndex + 1,
             "invoke-static {}, ${localStatePrefs.type}->$HELPER_METHOD_NAME()V",
         )
@@ -101,7 +101,7 @@ val disableTelemetryPatch = bytecodePatch(
             returnType = "V",
             parameters = listOf("I", "Z"),
             strings = listOf(string(CRASH_CONSENT_PREF, StringComparisonType.CONTAINS)),
-        ).method.addInstruction(0, "const/4 p1, 0x0")
+        ).method.addInstructionChecked(0, "const/4 p1, 0x0")
 
         // ── 3. Install referrer: never turn the Play referrer into a promo/attribution code ─
         //
@@ -115,7 +115,7 @@ val disableTelemetryPatch = bytecodePatch(
                 string("urpc", StringComparisonType.CONTAINS),
                 string("gclid", StringComparisonType.CONTAINS),
             ),
-        ).method.addInstructions(
+        ).method.addInstructionsChecked(
             0,
             """
                 const/4 v0, 0x0

@@ -250,7 +250,8 @@ Turn on Tap to play to use this choice.	เปิด "แตะเพื่อ�
 Resume long videos	เล่นวิดีโอยาวต่อจากเดิม
 Videos and reels over two minutes pick up where you left off. Seek to start elsewhere. Live videos and ads start as usual.	วิดีโอและรีลส์ที่ยาวเกินสองนาทีจะเล่นต่อจากจุดที่คุณดูค้างไว้ เลื่อนแถบเวลาเพื่อเริ่มเล่นจากจุดอื่น ส่วนวิดีโอถ่ายทอดสดและโฆษณาจะเริ่มเล่นตามปกติ
 Default playback quality	คุณภาพการเล่นเริ่มต้น
-Videos, reels and stories play at the quality below, starting with the next one you open.	วิดีโอ, รีลส์ และสตอรี่จะเล่นตามคุณภาพด้านล่าง โดยเริ่มจากรายการถัดไปที่คุณเปิด
+# context: description of the Default playback quality switch on the Playback page, with the list of qualities below it. A video that keeps stalling because the connection is too slow for its quality switches to the next lower quality that video offers (#599)
+Videos, reels and stories play at the quality below, starting with the next one you open. When your connection can't keep up, a video drops to the next lower quality.	วิดีโอ, รีลส์ และสตอรี่จะเล่นตามคุณภาพด้านล่าง โดยเริ่มจากรายการถัดไปที่คุณเปิด เมื่อการเชื่อมต่อตามไม่ทัน วิดีโอจะลดไปใช้คุณภาพที่ต่ำกว่าถัดไป
 Playback quality	คุณภาพการเล่น
 Auto	อัตโนมัติ
 Data saver	โหมดประหยัดอินเทอร์เน็ต
@@ -1365,6 +1366,9 @@ Takes the arrow off the end of a profile's row of buttons, along with the menu i
 # context: Layout: Glass tab bar's switch that stops the liquid pill shrinking as you scroll (#256)
 Keep the pill full size	คงขนาดเต็มของแถบแคปซูล
 Scrolling a list down leaves the liquid pill as it is, every tab in place. Restart Instagram after changing it.	การเลื่อนรายการลงจะคงขนาดแถบแคปซูลแบบแก้วเหลวไว้ตามเดิม โดยทุกแท็บจะยังคงอยู่ที่เดิม รีสตาร์ท Instagram หลังจากเปลี่ยนแปลงการตั้งค่า
+# context: a switch under Glass tab bar that makes the standard pill (the one without the liquid look) smaller while a list scrolls down, and its description. Liquid glass look and Hide the tab bar as you scroll are the names of two other switches on the same page (#638)
+Shrink the pill as you scroll	ย่อแถบแคปซูลขณะเลื่อนหน้าจอ
+With Liquid glass look off, scrolling a list down makes the pill smaller, and scrolling up or changing tab brings it back to full size. Hide the tab bar as you scroll takes over when it's on. Restart Instagram after changing it.	เมื่อปิดรูปลักษณ์กระจกเหลว การเลื่อนรายการลงจะทำให้แถบแคปซูลเล็กลง และการเลื่อนขึ้นหรือเปลี่ยนแท็บจะทำให้กลับเป็นขนาดเต็ม หากเปิดซ่อนแถบแท็บขณะเลื่อนหน้าจออยู่ จะใช้การตั้งค่านั้นแทน รีสตาร์ท Instagram หลังจากเปลี่ยนแปลงการตั้งค่า
 # context: Layout: Glass tab bar's switch that makes the liquid pill's rim bend and mirror what's behind it like glass (#369)
 Bend light at the edges	หักเหแสงที่ขอบ
 # context: Ghost mode: the row and dialog picking which switches Ghost mode turns (#251). %1$s is a list of switch names
@@ -1512,7 +1516,7 @@ Couldn't use that folder. Saves go where they did.	ไม่สามารถ�
 Saves go to Movies and Pictures again.	การบันทึกจะกลับไปยัง Movies และ Pictures อีกครั้ง
 %1$s didn't take this save, so it went to Movies and Pictures.	%1$s ไม่ยอมรับการบันทึกนี้ ข้อมูลจึงถูกบันทึกไปยัง Movies และ Pictures แทน
 Start reels with sound	เริ่มเล่นรีลส์แบบมีเสียง
-A reel you open from the Reels tab or a post on Home plays with sound, and Home is muted again when you go back. Your phone's ringer and volume still count.	รีลส์ที่คุณเปิดจากแท็บรีลส์หรือจากโพสต์บนหน้าหลักจะเล่นแบบมีเสียง และหน้าหลักจะปิดเสียงอีกครั้งเมื่อคุณกลับไป โดยโหมดเสียงเรียกเข้าและระดับเสียงของโทรศัพท์จะยังมีผลอยู่
+A reel you open from the Reels tab, a profile or a post on Home plays with sound, and Home is muted again when you go back. Your phone's ringer and volume still count.	รีลส์ที่คุณเปิดจากแท็บรีลส์ จากโปรไฟล์ หรือจากโพสต์บนหน้าหลักจะเล่นแบบมีเสียง และหน้าหลักจะปิดเสียงอีกครั้งเมื่อคุณกลับไป โดยโหมดเสียงเรียกเข้าและระดับเสียงของโทรศัพท์จะยังมีผลอยู่
 Keep your place in Home	คงตำแหน่งเดิมของคุณบนหน้าหลัก
 Coming back to Instagram leaves Home on the post you were on, however long you were away. Pull down to refresh still reloads it.	เมื่อกลับมาที่ Instagram หน้าหลักจะยังคงอยู่ที่โพสต์เดิมที่คุณดูค้างไว้ ไม่ว่าคุณจะออกไปนานแค่ไหนก็ตาม โดยการดึงลงเพื่อรีเฟรชจะยังคงเป็นการโหลดใหม่เช่นเดิม
 Filter the Stories tray by verified accounts	กรองแถบสตอรี่ตามบัญชีที่ได้รับการยืนยัน
@@ -1580,7 +1584,7 @@ Previous page	หน้าก่อนหน้า
 Next page	หน้าถัดไป
 # context: Feed settings: the Page dots on a pill switch, right under Carousel arrows (#419). A pill is a small bar with round ends that holds the dots.
 Page dots on a pill	จุดบอกหน้าในแถบแคปซูล
-Moves a carousel post's page dots onto a round pill at the bottom of its photo or video, with the page you're on in blue.	ย้ายจุดบอกหน้าของโพสต์ภาพหมุนไปยังแถบแคปซูลมนที่ด้านล่างของรูปภาพหรือวิดีโอ โดยแสดงหน้าที่คุณเปิดอยู่เป็นสีฟ้า
+Moves a carousel post's page dots onto a round pill at the bottom of its photo or video, with the page you're on in blue. Hold the pill and slide left or right to move through the pages.	ย้ายจุดบอกหน้าของโพสต์ภาพหมุนไปยังแถบแคปซูลมนที่ด้านล่างของรูปภาพหรือวิดีโอ โดยแสดงหน้าที่คุณเปิดอยู่เป็นสีฟ้า กดแถบแคปซูลค้างไว้แล้วเลื่อนไปทางซ้ายหรือขวาเพื่อเปลี่ยนหน้า
 # context: Feed settings: the Ambient light switch and its Glow spread and Glow speed lists (#416)
 Ambient light	แสงรอบข้าง
 Puts a soft glow in a post's own colors around its photo or video, and in the bands around a reel that doesn't fill the screen. The glow follows a video as it plays.	แสดงแสงเรืองนุ่มนวลตามโทนสีของโพสต์รอบๆ รูปภาพหรือวิดีโอ และบริเวณขอบรอบรีลส์ที่ไม่เต็มหน้าจอ โดยแสงเรืองจะเปลี่ยนตามวิดีโอขณะเล่น
@@ -1655,6 +1659,12 @@ Stop videos looping	หยุดเล่นวิดีโอวนซ้ำ
 Feed videos and reels stop at their last frame instead of playing again. Reels still loop while auto scroll is on, so it can move on.	วิดีโอในฟีดและรีลส์จะหยุดอยู่ที่เฟรมสุดท้ายแทนที่จะเล่นซ้ำ รีลส์จะยังคงเล่นวนซ้ำเมื่อเปิดการเลื่อนอัตโนมัติ เพื่อให้สามารถเลื่อนต่อไปได้
 Not used while you've picked a folder. Saves go there.	ไม่ได้ใช้ขณะที่คุณเลือกโฟลเดอร์ไว้ การบันทึกจะไปยังโฟลเดอร์นั้น
 All	ทั้งหมด
+# context: names of the groups the settings categories fall into, shown over each group on the list of categories and on the chips above it next to All (#642): privacy, what the app shows, media and storage, how the app looks, and App for HushGram's own updates, backup, pause and about
+Privacy	ความเป็นส่วนตัว
+Content	เนื้อหา
+Media and storage	สื่อและพื้นที่เก็บข้อมูล
+Look	รูปลักษณ์
+App	แอป
 Posts	โพสต์
 Nothing matches.	ไม่พบรายการที่ตรงกัน
 Couldn't open that one.	ไม่สามารถเปิดรายการนั้นได้
@@ -1746,7 +1756,7 @@ Open a chat, tap the clock button next to the call buttons at the top, or long p
 Open a chat, tap the clock button next to the call buttons at the top, or long press the chat's name, and pick Export chat. The whole chat is saved as a text file in Downloads, HushGram folder, one line per message.	เปิดแชท แตะปุ่มนาฬิกาข้างปุ่มโทรที่ด้านบน หรือกดค้างที่ชื่อแชท แล้วเลือก "ส่งออกแชท" ระบบจะบันทึกทั้งแชทเป็นไฟล์ข้อความในโฟลเดอร์ดาวน์โหลด/HushGram บรรทัดละหนึ่งข้อความ
 Instagram stopped loading older messages.	Instagram หยุดโหลดข้อความที่เก่ากว่าแล้ว
 Black settings page	หน้าการตั้งค่าสีดำ
-Black rows and dialogs, HushGram's name at the top, and each category on one line.	แถวและกล่องโต้ตอบสีดำ พร้อมชื่อ HushGram ที่ด้านบน และแต่ละหมวดหมู่อยู่ในหนึ่งบรรทัด
+Black rows and dialogs, with HushGram's name at the top.	แถวและกล่องโต้ตอบสีดำ พร้อมชื่อ HushGram ที่ด้านบน
 Mark as read	ทำเครื่องหมายว่าอ่านแล้ว
 Nothing to mark as read	ไม่มีรายการที่จะทำเครื่องหมายว่าอ่านแล้ว
 Mark as read button in chats	ปุ่มทำเครื่องหมายว่าอ่านแล้วในแชท
@@ -1963,6 +1973,9 @@ Leaves out the live broadcasts Instagram puts between reels in the Reels tab and
 # context: a switch on the Feed page; Watch again is the button on the card Instagram shows when a reel in the feed ends, next to Watch more reels
 Watch again in the feed	ดูอีกครั้งในฟีด
 When a reel in your feed ends, Watch again plays it over right there instead of opening Reels.	เมื่อรีลส์ในฟีดของคุณเล่นจบ ปุ่ม "ดูอีกครั้ง" จะเล่นซ้ำตรงนั้นทันทีแทนที่จะเปิดแท็บรีลส์
+# context: a switch on the Feed page under Watch again in the feed; Watch more reels is the big button on the card Instagram shows when a reel in the feed ends, it opens Reels
+Hide Watch more reels	ซ่อนปุ่มดูรีลส์เพิ่มเติม
+Takes the Watch more reels button off the card a reel in your feed shows when it ends. Watch again stays.	นำปุ่ม "ดูรีลส์เพิ่มเติม" ออกจากการ์ดที่ขึ้นเมื่อรีลส์ในฟีดของคุณเล่นจบ ปุ่ม "ดูอีกครั้ง" ยังอยู่
 # context: a switch on the Playback page under Keep playing in the background; Android's own name for picture in picture
 Picture in picture for reels	การแสดงภาพซ้อนภาพสำหรับรีลส์
 Leaving Instagram while a reel plays shrinks it into a small window over your other apps. Works in Reels and on reels opened from the feed, on Android 15 or newer.	การออกจาก Instagram ขณะที่รีลส์กำลังเล่นจะย่อขนาดเป็นหน้าต่างขนาดเล็กทับบนแอปอื่นๆ ของคุณ ใช้งานได้ในแท็บรีลส์และรีลส์ที่เปิดจากฟีด บน Android 15 ขึ้นไป
@@ -2030,6 +2043,9 @@ Posts from your hidden accounts still show in Favorites. For you and Following l
 # context: switch next to Lock your messages; Saved is Instagram's page of your saved posts and collections (#597)
 Lock Saved	ล็อก "บันทึกแล้ว"
 Saved and everything in it stay covered until your fingerprint, face or screen lock says it's you.	"บันทึกแล้ว" และทุกอย่างในนั้นจะถูกปิดกั้นไว้จนกว่าลายนิ้วมือ ใบหน้า หรือการล็อกหน้าจอจะยืนยันตัวตนของคุณ
+# context: switch under Lock your messages; on, an unlock opens only the chat it was asked in, so the next chat, or going back to the inbox, asks for the fingerprint, face, screen lock or PIN again (#649)
+Ask for each chat	ถามทุกแชท
+Every chat you open asks again, and so does your inbox when you go back to it. Off, one unlock opens everything until you leave Instagram.	ทุกแชทที่คุณเปิดจะถามอีกครั้ง และกล่องข้อความก็เช่นกันเมื่อคุณกลับไป หากปิดไว้ การปลดล็อกครั้งเดียวจะเปิดทุกอย่างจนกว่าคุณจะออกจาก Instagram
 Saved is locked	"บันทึกแล้ว" ถูกล็อกอยู่
 Unlock Saved	ปลดล็อก "บันทึกแล้ว"
 # context: three-dot menu row on a reel or feed video with Stop videos looping on; makes only the video on screen play again and again (#610)

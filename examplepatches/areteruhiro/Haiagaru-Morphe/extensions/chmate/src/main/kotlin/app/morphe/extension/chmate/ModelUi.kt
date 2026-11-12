@@ -275,11 +275,7 @@ internal fun prepareNativeSurfaces(root: ViewGroup) {
                 }
             }
         }
-        is SeekBar -> {
-            Slider(value = view.progress.toFloat().coerceIn(0f, view.max.coerceAtLeast(1).toFloat()),
-                onValueChange = { value -> view.progress = value.toInt(); changed() },
-                valueRange = 0f..view.max.coerceAtLeast(1).toFloat(), enabled = view.isEnabled)
-        }
+        is SeekBar -> BoundSeekBar(view, view.contentDescription?.toString().orEmpty(), changed)
         is CompoundButton -> {
             // Validation may reject a toggle (for example, automatic backup without
             // a destination). Display the listener's final value, never an optimistic

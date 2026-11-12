@@ -21,8 +21,8 @@ val enablePremiumPatch = bytecodePatch(
 
         isVip.returnEarly(true)
 
-        // Cosmetic "Google VIP" badge. No unique string to anchor on, so best-effort:
-        // if R8 ever renames it, skip silently rather than fail the whole patch.
-        AppIsGoogleVipFingerprint.methodOrNull?.returnEarly(true)
+        // Cosmetic "Google VIP" badge. App.isGoogleVip is kept by name (matches in 1.3.65.1019), so
+        // a vanished anchor fails loudly instead of leaving the badge locked.
+        AppIsGoogleVipFingerprint.method.returnEarly(true)
     }
 }

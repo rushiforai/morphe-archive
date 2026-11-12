@@ -10,13 +10,16 @@
 
 package app.morphe.extension.youtube.settings.preference;
 
+import android.app.Activity;
 import android.app.Dialog;
+import android.content.Intent;
 import android.preference.PreferenceScreen;
 import android.widget.Toolbar;
 
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.patches.GmsCoreSupportPatch;
 import app.morphe.extension.shared.settings.SharedYouTubeSettings;
+import app.morphe.extension.shared.settings.preference.NewSettingsIndicator;
 import app.morphe.extension.shared.settings.preference.ToolbarPreferenceFragment;
 import app.morphe.extension.youtube.patches.HideStatusBarPatch;
 import app.morphe.extension.youtube.settings.YouTubeActivityHook;
@@ -53,6 +56,27 @@ public class YouTubePreferenceFragment extends ToolbarPreferenceFragment {
                         SharedYouTubeSettings.CUSTOM_BRANDING_ICON.key,
                         SharedYouTubeSettings.CUSTOM_BRANDING_NOTIFICATION_ICON.key,
                         SharedYouTubeSettings.CUSTOM_BRANDING_NAME.key);
+            }
+
+            NewSettingsIndicator.markNewPreferences(preferenceScreen);
+
+            Activity activity = getActivity();
+            Intent intent = activity.getIntent();
+            String screenKey = intent.getStringExtra(YouTubeActivityHook.EXTRA_SCREEN_KEY);
+            // Removed so recreating the activity, such as for a theme change, shows the main screen.
+            intent.removeExtra(YouTubeActivityHook.EXTRA_SCREEN_KEY);
+            if (screenKey != null && findPreference(screenKey) instanceof PreferenceScreen screen) {
+                performClick(screen, preferenceScreen);
+                // Opened from outside the settings, so closing the screen goes straight back.
+                Dialog dialog = screen.getDialog();
+                if (dialog != null) {
+                    dialog.setOnDismissListener(d -> {
+                        screen.onDismiss(d);
+                        if (!activity.isFinishing()) {
+                            YouTubeActivityHook.closeSettings(activity);
+                        }
+                    });
+                }
             }
         } catch (Exception ex) {
             Logger.printException(() -> "initialize failure", ex);
@@ -102,5 +126,13 @@ public class YouTubePreferenceFragment extends ToolbarPreferenceFragment {
      */
     public PreferenceScreen getPreferenceScreenForSearch() {
         return preferenceScreen;
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == CustomSeekbarThumbPreference.PICK_THUMB_REQUEST_CODE) {
+            CustomSeekbarThumbPreference.handleActivityResult(getContext(), resultCode, data);
+        }
     }
 }

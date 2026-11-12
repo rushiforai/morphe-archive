@@ -22,10 +22,10 @@ final class SharedNgReporterBlocks {
     }
     private static void confirm(Activity activity,String id){
         new HaiagaruDialog.Builder(activity).setTitle(ACTION)
-                .setMessage(label(id)+"\n\nこの端末で、このレポーターの現在・今後の報告を除外します。同じ条件への他のレポーターの報告は残ります。設定から解除できます。保存後はスレを開き直してください。")
+                .setMessage(label(id)+"\n\nこの端末で、このレポーターの現在・今後の報告を除外します。同じ条件への他のレポーターの報告は残ります。除外情報は共有NGの運用にも送信します。端末内の除外は設定から解除できます。保存後はスレを開き直してください。")
                 .setPositiveButton("除外する",(d,w)->{
                     Set<String> ignored=new HashSet<>(prefs(activity).getStringSet("ignored",Collections.emptySet()));ignored.add(id);
-                    prefs(activity).edit().putStringSet("ignored",ignored).apply();SharedNg.reload();
+                    prefs(activity).edit().putStringSet("ignored",ignored).apply();SharedNg.reload();SharedNgReporterFeedback.saved(activity,ignored);
                     Toast.makeText(activity,"このレポーターの現在・今後の報告を除外しました",Toast.LENGTH_LONG).show();
                 }).setNegativeButton("キャンセル",null).show();
     }
@@ -34,7 +34,7 @@ final class SharedNgReporterBlocks {
         Map<String,Integer> counts=new TreeMap<>();for(SharedNgRules.Rule rule:source)for(String id:rule.contributors)counts.put(id,counts.getOrDefault(id,0)+1);
         for(String id:ignored)if(id.matches("[a-f0-9]{64}"))counts.putIfAbsent(id,0);
         LinearLayout box=new LinearLayout(activity);box.setOrientation(1);
-        TextView help=new TextView(activity);help.setText("チェックしたレポーターの現在・今後の報告を、この端末で除外します。チェックを外して保存すると解除できます。報告者情報のない古い配信条件は対象外です。変更後はスレを開き直してください。");box.addView(help);
+        TextView help=new TextView(activity);help.setText("チェックしたレポーターの現在・今後の報告を、この端末で除外します。チェックを外して保存すると解除できます。報告者情報のない古い配信条件は対象外です。保存した除外情報は共有NGの運用にも送信します。変更後はスレを開き直してください。");box.addView(help);
         EditText search=new EditText(activity);search.setSingleLine(true);search.setHint("レポーターIDで検索");box.addView(search);
         LinearLayout rows=new LinearLayout(activity);rows.setOrientation(1);box.addView(rows);
         Map<CheckBox,String> labels=new LinkedHashMap<>();
@@ -45,6 +45,6 @@ final class SharedNgReporterBlocks {
         if(counts.isEmpty()){TextView empty=new TextView(activity);empty.setText("報告者情報がありません。共有NGを同期してください。");rows.addView(empty);}
         search.addTextChangedListener(new android.text.TextWatcher(){public void beforeTextChanged(CharSequence s,int start,int count,int after){}public void afterTextChanged(android.text.Editable e){}public void onTextChanged(CharSequence s,int start,int before,int count){String query=s.toString().trim().toLowerCase(Locale.ROOT);for(Map.Entry<CheckBox,String> entry:labels.entrySet())entry.getKey().setVisibility(entry.getValue().contains(query)?android.view.View.VISIBLE:android.view.View.GONE);}});
         ScrollView scroll=new ScrollView(activity);scroll.addView(box);
-        new HaiagaruDialog.Builder(activity).setTitle("除外するレポーター").setView(scroll).setPositiveButton("保存",(d,w)->{prefs(activity).edit().putStringSet("ignored",ignored).apply();SharedNg.reload();}).setNegativeButton("キャンセル",null).show();
+        new HaiagaruDialog.Builder(activity).setTitle("除外するレポーター").setView(scroll).setPositiveButton("保存",(d,w)->{prefs(activity).edit().putStringSet("ignored",ignored).apply();SharedNg.reload();SharedNgReporterFeedback.saved(activity,ignored);}).setNegativeButton("キャンセル",null).show();
     }
 }

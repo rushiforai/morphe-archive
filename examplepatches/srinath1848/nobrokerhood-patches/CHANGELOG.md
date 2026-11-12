@@ -1,3 +1,9 @@
+## [1.9.1](https://github.com/srinath1848/nobrokerhood-patches/compare/v1.9.0...v1.9.1) (2026-11-12)
+
+### 🐛 Bug Fixes
+
+* target Compose approval cards and notification tap intents ([56df86f](https://github.com/srinath1848/nobrokerhood-patches/commit/56df86ff1276b785977f03258620ca8f76cf3f0a))
+
 ## [1.9.0](https://github.com/srinath1848/nobrokerhood-patches/compare/v1.8.0...v1.9.0) (2026-11-11)
 
 ### ✨ New Features

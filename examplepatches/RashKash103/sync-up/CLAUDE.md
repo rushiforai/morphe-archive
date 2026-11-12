@@ -231,6 +231,14 @@ Errors found the hard way, all of which compiled cleanly and failed at patch or 
   reading `p1` silently handed the extension the wrong object, and because it was still a
   `View` subclass nothing complained. Disassemble the *patched* APK and read the registers at
   the injection site rather than trusting `p1` to mean what it says.
+- **`SyncPreference.S` reuses the holder's register for its own view two instructions from the
+  end.** Injecting before the final return and passing `p1` therefore hands a `View` where an
+  `androidx.preference.h` is declared, and the class fails to verify the moment the settings
+  open — `VerifyError: register v5 has type Reference: android.view.View but expected
+  Reference: androidx.preference.h`, which takes the app down rather than the screen. Reading
+  the disassembly is not enough here: the last few instructions *do* use that register as the
+  holder, through an `iget-object v5, v5, ...itemView` that quietly redefines it. Inject at the
+  start, and `post()` anything that has to happen after the row has drawn.
 - **Do not add a `new-instance`** to a method another patch fingerprints by counting them. The
   Redgifs fingerprint counts `NEW_INSTANCE == 1` in the method it hooks.
 - **Injecting before the final `return` does not cover every path.** `Loc/b;->F` jumps from the
@@ -259,7 +267,12 @@ Errors found the hard way, all of which compiled cleanly and failed at patch or 
   body is where this comes up, since writing one to a sink is the documented way. Read the bytes
   off the body object instead: what `RequestBody.create(MediaType, byte[])` returns holds them
   in a field, found by its type rather than its name, since the names do not survive R8.
-- **Most of the app's drawables are not there any more.** R8's resource shrinker left every
+- **A values file holding nothing but `<item type="id">` is refused when the resource table is
+written back**, as `XmlEncodeException` naming the file and the line, and the patcher then
+rebuilds the whole table as a fallback. Declare an id where it is used — `@+id/name` in the
+layout — which costs no file at all and is what the id is for.
+
+**Most of the app's drawables are not there any more.** R8's resource shrinker left every
   unused one's name and id in place and replaced the drawing with `<x/>`, a stub whose element
   names a class that was shrunk away too. A row given one patches perfectly and takes its whole
   settings screen down the moment it is opened, with
@@ -298,6 +311,16 @@ That class keeps its name, since Glide's generated code refers to it.
 There are at least three distinct OkHttp clients in play: Volley's, Glide's, and the several
 `OkHttpHelper` builds for other purposes. Before assuming an interceptor will see a request,
 find out which client actually issues it.
+
+**Reddit only answers with what was asked for, and Sync always asks for the same two things.**
+Every request Sync makes for comments carries `?always_show_media=1&profile_img=true` — the
+thread, and the `/api/morechildren` this bundle stands in for. `profile_img=true` is what puts
+each author's picture into the answer, as `profile_img` on the comment itself, and
+`PostParserHelper` stores it from there into `post_author_profile_pic` and from nowhere else:
+nothing goes back for it afterwards. So a replacement request that leaves the parameter off
+produces comments that are drawn with no picture beside the name, for good, while the ones that
+came with the thread have theirs. That is what made avatars disappear below a "view more", and
+anything else that stands in for one of Sync's requests has to carry what Sync asked for.
 
 **Requests are Volley `Request` subclasses**, one per endpoint, named for what they do
 (`OAuthCommentsRequest`, `GrabRedgifRequest`, `ImgurGalleryRequest`). They parse with
@@ -381,8 +404,155 @@ a dialog posted from there is gone before it can be read, while having already c
 `OnboardingActivity` is the first run's, and it stays. Read `dumpsys activity activities` for
 `topResumedActivity` rather than assuming the first activity named is the one in front.
 
+**The feed keeps its place as a row number, and the cache is swept from under it.**
+`RedditProvider.delete` runs `DELETE FROM tbl_posts WHERE age <= '<now - 48h>'` and the same for
+`tbl_lists`, plus `tbl_viewed_new` at 168h, and the only thing that calls it is `bulkInsert` —
+so every new page of posts sweeps whatever has aged out. `VerticalPostsFragment` saves its place
+as a `LinearLayoutManager` anchor *position* under the key `"SyncRecyclerView"`, in `w0` from
+`n2()` and in `u0` from `l2(Bundle)`, and `M3(Cursor)` reads it back. A position stops meaning
+the same post once rows above it are swept, and androidx then drops a pending position that is
+no longer a real row and lays out from the top. `Restore position` does not appear with it,
+because that snackbar is only ever built by `q4()`, the deliberate jump to the top.
+
+`M3` is the *only* caller of the adapter's `S(Cursor)`, so it is the one place to hook, and
+`PostAdapter.o(int)` is `getItemId` answered out of the `hash` column — a post identifier that
+survives its neighbours being deleted, and is what `keepFeedPositionPatch` anchors on.
+
+Three things about that method were found the hard way, and all three cost a round:
+
+- **Opening a post does not stop the feed.** Sync shows `CommentsActivity` translucently over
+  it, so `n2()` never runs and `M3` never restores on that path — the position is kept simply
+  because nothing was destroyed. The restore only happens when the screen is genuinely rebuilt,
+  which is what makes the bug rare, and it means a note held in memory under the old fragment is
+  gone by the time the new one asks. The note has to travel in the bundles themselves.
+- **`M3` holds one `return` but several ways of reaching it.** `if-nez v0` jumps from the middle
+  straight to that return whenever the feed already had posts — every time but the first, and so
+  exactly the times that matter. Counting `return` opcodes does not catch this. Worse, moving the
+  call earlier does not help either: the branches that skip the restore are retargeted onto
+  whatever is inserted in front of their target, so a call placed before the `Bundle.remove` run
+  is jumped over too. What works is to inject only at index 0, where nothing can branch over it,
+  and `post()` the rest.
+- **The adapter is already empty by the second save.** The app saves twice as a screen goes away
+  and `getItemCount()` is 0 on the second, which is the call that carries the outState bundle —
+  the one the rebuilt screen reads back. Working the position out afresh there yields nothing, so
+  the second call has to fall back to what the first worked out or the note never reaches the
+  bundle at all.
+
+**To reproduce it, shorten the window rather than waiting two days.** `Calendar.add` is reached
+twice in `delete` with a shared `const/16 v0, -48` and `const/16 v3, 11` (`HOUR_OF_DAY`); writing
+`12` (`MINUTE`) and `-2` in front of each of the two calls that go on to run the `tbl_posts` and
+`tbl_lists` statements makes the whole thing happen in the time it takes to read a post, and
+leaves the `tbl_viewed_new` week alone because that branch never crosses the insertions. Scroll
+to load a few pages, wait out the window, then scroll to the bottom: the next page load sweeps
+the rest and the list collapses — measured here from 50 rows to 25, with the reader's post moving
+from row 24 to row 5.
+
+**The recycler's own members, since the classes keep their names but nothing else does.**
+`RecyclerView.e0()` is getAdapter and `r0()` getLayoutManager; on `RecyclerView$h` (Adapter)
+`n()` is getItemCount and `o(I)J` getItemId; on `RecyclerView$p` (LayoutManager) `n0(View)` is
+getPosition and `D1(I)` scrollToPosition; `LinearLayoutManager.G2(I I)` is
+scrollToPositionWithOffset (it also invalidates any pending `SavedState`, so it settles where the
+list lands rather than racing a restore) and `g2()` findFirstVisibleItemPosition.
+`LinearLayoutManager$SavedState` keeps its name too, with `a`/`b`/`c` for the anchor position,
+offset and from-end flag. Sync's own `PostsRecyclerView.h2()` already answers
+findFirstVisibleItemPosition across all three of its `Custom*LayoutManager`s.
+
+**The floating button's place jumps about on its own, and anything standing in for it inherits
+that.** On a refresh, on a jump to the top and on taking the *Restore position* offer, Sync lays
+the button out at the place it sits when the bottom bar is away — `y=2190` on a 2400 tall screen,
+which is inside the bar — for a frame or three, then moves it up to where it is shown (`1917` or
+`1762`). It is drawn at full size and full opacity while it is down there, and the excursion
+repeats several times over a refresh. `translationY` stays `-63` throughout, so nothing is
+fighting over the offset; it is the laid-out position that moves.
+
+**That is the app's own, not this bundle's.** Measured with `extraFabActionsPatch` applied but
+inert — a fresh process with no extra actions chosen, so no surface is built and `over()` returns
+before it touches the button — and the excursions are still there, unchanged. The earlier reading
+that Sync fades the button in, and that the fade covers those frames, was wrong: the fade seen in
+a capture is Sync's animator interpolating up from the zero *this patch writes*, and with the
+alpha left alone the button reads `1.0` the whole way. The surface damps the jump instead: a step
+of about the button's own size or less is followed at once, and anything further has to stay
+where it jumped to for a few frames running before the surface goes with it. The surface then
+sits still through the wobble while the button underneath it bounces.
+
+**Damp both directions.** The first go at this followed a jump *upwards* at once and only made a
+drop wait, on the reasoning that a drop is what the wobble does. It is not the only thing that
+does: a screen change lays the button out high for a moment, the surface took that at once, and
+the slow release then left it stranded about twelve hundred pixels above the button for several
+frames — which reads as the button having vanished. Measured as `held=948` while the button sat
+at 1917. A rule that is instant one way and patient the other latches onto whichever transient
+goes the instant way.
+
+**Counting frames is not enough, because the button genuinely stays there.** On a *pull* to
+refresh the button sits at the lower place for as long as a finger keeps moving, so any patience
+runs out and the surface follows it down across the bar — measured as the settle counter
+reaching its limit and `held` going to 2041 at frame 517 of a drag. The rule that actually holds
+is physical rather than timed: read where the bottom bar is and never put the surface over it.
+`SyncBottomNavigationView` sits at `y=2127 h=273` on a 2400 tall screen while this happens, so
+the button at `y=2190` is plainly inside it and the button at `1917` is not. The bar is found by
+shape, not by name — the showing child as wide as its parent, against the bottom of it — so a bar
+sliding away carries its own position with it and the room reappears as it goes, which is what
+lets the surface follow the button down when the bar really has gone.
+
+**"Autohide FAB" turned off hides the button, and that is Sync's — but it is ours to put
+right.** Measured with the patch inert — *Show FAB* on, *Autohide FAB* off, no extra actions
+chosen so no surface is built and `over()` returns before touching anything — and the button is
+still `vis=4`. With autohide off the app never runs the path that shows its button, so it is
+left invisible for good and there is no floating button at all. Nothing here writes the button's
+visibility and the surface only mirrors it, so the surface went the same way.
+
+It is put right rather than merely attributed: `SettingsSingleton.x()` hands back a `Settings`
+whose fields keep their names, and `mainFab` with `mainFabAutohide` say exactly whether the
+reader asked for a button that never hides. Where they do and the button is invisible, it is
+shown. Where autohide is on, being invisible is the app doing what it was told and nothing is
+touched.
+
+**A flicker cannot be seen in a screenshot, and `screenrecord` drops the frame.** What settles it
+is logging the button's position, opacity, visibility and scale on every `OnPreDrawListener`
+call, printing only when the line changes and the first few unconditionally. A capture of the
+same recipe before and after is what shows a two-frame excursion going away; a video of it does
+not, since the recorder never captured the frame in the first place.
+
+**An interceptor never sees a picture that is already kept.** Glide looks in its own cache on
+disk before it goes to the network, so every route in this bundle — the Imgur unblocking above
+all — is simply skipped for anything fetched once before. Measured: the same feed of
+`/domain/imgur.com` opened twice produces the full set of requests the first time and **nothing
+at all** the second, with the interceptor not reached once.
+
+That is what a reader sees as thumbnails still showing Imgur's refusal while opening the same
+post works. The two are different addresses — Sync asks for `i.imgur.com/<id>h.jpeg` for the
+thumbnail and `i.imgur.com/<id>.jpeg` for the picture, the `h` being Imgur's own size suffix —
+so the thumbnail is the one that was fetched and kept while the region was refused, and the
+larger one was never fetched before and is routed normally. Imgur answers a refused region with
+a notice that is a perfectly good image, so Glide keeps it like any other.
+
+Both addresses do reach the interceptor and are read as `PICTURE`, and DuckDuckGo serves the
+suffixed one as readily as the plain one — checked against both. Nothing about the thumbnail is
+special except that it was already kept. `CachedPictures.watch()` therefore throws the kept
+pictures away when a setting that decides *how* one is fetched changes, which is the only moment
+the answer to an address can differ. Confirmed on a device: a reload that made no requests at all
+made 42 after the toggle, and 40 of them were routed once the unblocking was turned back on.
+
+Glide is `Lcom/bumptech/glide/b;` — the package survives, the members do not. `d(Context)` is
+`get`, `b()` is `clearDiskCache` and insists on *not* being on the drawing thread, `c()` is
+`clearMemory` and insists that it *is*. Only the settings that change how a picture is fetched
+count: throwing every picture away because somebody changed whether an address is handed out when
+sharing would cost a reader everything they have for nothing.
+
 **Note that `android:dependency` is not an answer here.** It only keys off a checkbox, so a row
 that should follow a list preference's value has to be turned on and off in code.
+
+**Sharing and copying both go through `RedditHelper` (`Ld7/f;`)**, which is where an address
+handed out can be changed. `u(Context, subject, url)` builds the SEND intent for a link — it is
+the one that rebuilds a `v.redd.it` address, which is how to tell it from `t`, the one that
+shares arbitrary text — and `a`, `b` and `c` put something on the clipboard, told apart by
+whether they announce *URL copied to clipboard* or *Text copied to clipboard*. All five names
+are the minifier's, so fingerprint them on those strings rather than on the names.
+
+Anything hooked there runs on the thread that drew the menu, so it must not touch the network:
+asking a Rimgo instance whether it is answering from one of these is a `NetworkOnMainThread`
+away from taking the app down. Say what is already known instead. And change only a string that
+is *wholly* an address — `a` and `b` carry comment text as readily as links.
 
 **Menus are layouts, not lists.** The post overflow sheet is
 `res/layout/dialog_bottom_post_more.xml`, a `LinearLayout` of `MaterialRow` views dispatched by
@@ -430,6 +600,174 @@ answers the API unauthenticated, so which one it was could not be established, a
 dropped. Do not gate on `Content-Type` being `application/json` — the undelete interceptor asks
 nothing about the kind and works on every listing — and let a regex over a body tolerate `\/`,
 since JSON may escape the slashes in a URL. Writing them back unescaped is valid either way.
+
+**Requests made while answering a request do not pass through the interceptor.** `ImgurAlbum`
+asks Imgur what an album holds from inside the answer to Sync's own album request, over
+`HttpURLConnection` — so none of the routes saw it, and a reader with a proxy configured still
+could not open an album. Anything of ours that reaches the network from outside an okhttp chain
+has to be offered the routes explicitly; `ImgurFetch` is where that is done.
+
+**Sync registers `imgur.com` and `i.imgur.com` as deep links**, on
+`.ui.activities.IntentActivity`. `adb shell am start -a android.intent.action.VIEW -d
+"https://imgur.com/a/<id>" -n com.laurencedawson.reddit_sync/.ui.activities.IntentActivity`
+therefore opens any Imgur address of any kind straight into Sync's own viewer, which beats
+hunting for a post that happens to link one. Without `-n` the default browser takes it.
+
+**Imgur refuses whole regions**, the United Kingdom among them, and what arrives is a notice
+rather than the picture. Three ways round it, and they do not cover the same ground — measured,
+not assumed:
+
+- **DuckDuckGo's image proxy**, `external-content.duckduckgo.com/iu/?u=<address>`, serves one
+  still picture. Asked for an album page, a video, a dead id or an address with no scheme it
+  answers **400 with a small SVG**, and an SVG apology handed to an image decoder draws as a
+  broken picture rather than as nothing — so it is only ever offered a picture. It takes the
+  address raw or encoded, and ignores whether the ending matches the real type, which is why
+  the browser extensions append `.png` to a bare id. An **animated GIF comes back byte for
+  byte** — measured against a known one, same length, same `image/gif` — so a gif needs no
+  other route. What looks like it mangling one is Imgur: asked for the `.gif` of a video post,
+  Imgur itself answers `image/jpeg`, and Rimgo hands back the same bytes.
+
+  **So videos and albums cannot be served by this route at all**, and no amount of code changes
+  that. `.mp4`, `.gifv`, `/a/<id>` and `api.imgur.com` each answer 400 with the SVG.
+- **Rimgo** serves media at `/<name>.<ext>` and keeps Imgur's own shape for pages, so an album
+  is `/a/<id>` or `/gallery/<id>` as HTML, each item written as `src="/<id>.<ext>"` — which is
+  how an album is recovered in a refusing region, where the page, the embed and the API are all
+  refused and the archive only holds what someone captured. `.gifv` is **not** media to an
+  instance: it answers with the same page Imgur does, so a route has to ask for the `.mp4`.
+
+  **Serving media and serving albums are two different abilities.** Of the 23 published
+  instances, one served an album page whole, two served media perfectly while answering 403 to
+  every album, and the rest were rate limited, refusing or gone — so an album has to be asked of
+  each chosen instance rather than only of the one that is carrying the pictures, and an instance
+  that cannot do albums must be rested rather than dropped.
+- **A proxy** carries the request itself, so it answers anything including the API. An
+  interceptor cannot change the proxy of the client it sits on, so the request is carried out on
+  a client of our own and the reply handed back to the chain.
+
+**Of the icons an alert would want, only some survived.** `outline_report_24`,
+`outline_info_24` and `outline_close_24` are real vectors carrying `android:tint="?attr/..."`;
+`outline_warning_24`, `outline_error_24` and every `chevron`/`arrow_forward`/`navigate_next` of
+that family are stubs. The one real chevron, `material_ic_keyboard_arrow_right_black_24dp`,
+has a literal black fill and so disappears in the dark theme — tint it at runtime with the
+colour the row's own title has just been given, which is what the app sets from the theme.
+
+**An instance answers differently depending on who is asking.** Several Rimgo instances hand a
+browser-like `User-Agent` a 7 KB error page and hand `Dalvik/2.1.0` the real one — measured on
+the same address a second apart. A survey run from a desktop with curl therefore reports
+instances as broken that work perfectly in the app, which is how the first count of them came
+out far too low.
+
+**Being on the published instance list says almost nothing about working.** Asked for the same
+picture, the 23 instances LibRedirect publishes answered nine different ways: nine served it,
+several answered 429 because Imgur rate limits them, some 403, 404 or 500, four did not resolve
+at all — and **two answered 200 with a page of HTML**, because they route a media address to
+their post handler. So a health check must ask what the reply *is*, not merely whether it
+arrived: status 200 **and** `Content-Type: image/*`. `/removed.png` is the thing to ask for —
+Imgur's own placeholder for something taken down, tiny, permanent, and it exercises the whole
+path including whether Imgur is answering that instance at all.
+
+**`RootPreference` takes the screen's id for its own key.** It reads `preference_ref` as an
+integer and calls `setKey(Integer.toString(it))` in its constructor, so an `android:key` written
+in the XML is replaced and `findPreference("my_key")` finds nothing. Look one up by the id as
+text instead. It is usable from a screen of ours, though: what it does by default is cast the
+activity to `PreferencesActivity` and call its screen lookup, and our screens are in that
+activity.
+
+The library's own members, established the same way and used by the alerts: `G0` is setTitle,
+`E` getTitle, `H0` setVisible (final) and `L` isVisible, `s0` setIcon by id, `t0` by drawable,
+`C0` setSelectable, `B0` setOrder, `u` getParent; on `PreferenceGroup`, `P0` is addPreference,
+`X0` removePreference, `Q0` findPreference, `T0` getPreference and `U0` getPreferenceCount.
+
+Looking one up by a key of our own does not fail loudly — `y(key)` simply answers nothing, and
+whatever was to be done to the row is quietly not done. That is how the three route rows went on
+answering a tap with the whole thing switched off: `q0(false)` was being called on nothing. It
+also draws its own title, summary and icon, so `fadeDisabledRowsPatch` has to cover it as well
+or a row that refuses to be tapped looks exactly like one that would.
+
+**A fragment is rebuilt from its class name**, so a settings screen has to be its own class.
+One class told which screen it is — through arguments or a field — comes back from a rotation
+not knowing, and loads the wrong screen. That is why the redirect screens are five subclasses of
+one base rather than one class with an id.
+
+**Nothing on the device can read a file you name by path.** Sync asks for no storage permission
+at all and targets Android 13, so there is no path a certificate or a key could be read from.
+What needs no permission is the system's document picker, which hands back the one file that was
+chosen — `ACTION_OPEN_DOCUMENT`, then `ContentResolver.openInputStream`. Pasting the text in
+remains the other way, and is the only one for the API keys.
+
+**The one place a picker's answer can be caught is `ComponentActivity.onActivityResult`.** A
+result is delivered to the activity, and the members a fragment is handed one through are
+renamed by the minifier — `androidx.fragment.app.Fragment.onActivityResult` is not in the dex at
+all. `onActivityResult` itself overrides a method of the framework's, so its name is fixed, and
+`androidx/activity/ComponentActivity` carries one that every activity in the app inherits;
+`PickAFile.whatCameBack` is called from there and answers to one request code of its own. Keep
+that code under 65536: `FragmentActivity.onActivityResult` dispatches anything with the top
+sixteen bits set to a fragment and never reaches `super`.
+
+**A multi-line `EditText` with no maximum fills the dialog it is in.** A certificate read out of
+a file is four thousand characters, and a field given only `setMinLines` grows to all of them —
+a swipe over it then scrolls the field rather than the dialog, and the password row underneath
+becomes unreachable, in the one dialog where a password is needed. `setMaxLines` as well as
+`setMinLines`.
+
+**`trimIndent()` is applied after interpolation**, so a template holding `${rows}` is indented
+by however far the rows are. For a written XML file that puts four spaces in front of the
+declaration, and the patch then fails while the APK is rebuilt with
+`Unexpected token (position:[1:5])` — naming neither the file nor the line. Build such a file
+line by line instead.
+
+**`chain.proceed` throws where a region is blocked at the connection**, rather than returning a
+reply to inspect. A route that reads the reply to decide whether to step in therefore has to
+catch `IOException` as well, or it will fail to do anything in exactly the case it exists for.
+
+**A client certificate is per host, never per service.** The server decides when to ask for
+one, and the certificate names whoever holds it, so a certificate kept for "Rimgo" would be
+handed over by whichever instance asked for one — including an instance asking precisely in
+order to find out who is reading. Each instance is offered the certificate attached to it and
+nothing else.
+
+**Testing the emulator's networking against the host is a trap.** `10.0.2.2` is slirp's alias
+for the host's loopback and is unreliable under load: the proxy accepts the connection, the
+guest never completes it, and the app eventually fails with `ECONNABORTED (Software caused
+connection abort)` while the proxy logs a read timeout — from the same device where
+`toybox nc 10.0.2.2 <port>` answers fine. `adb reverse` did not forward either. What works is a
+container with **no published ports**: the emulator reaches it on the docker bridge
+(`172.17.0.2`) and nothing is bound on a host interface. The same run then worked first time.
+
+**`adb shell input text` truncates at about 100 characters**, and a second call does not append
+— it inserts wherever the cursor is, so chunking interleaves the text. Anything longer than a
+password cannot be typed into the app from a script, which means a pasted certificate cannot be
+got onto the device through the test harness at all. The certificate reading is covered by
+`test/test_request_parsing.py` instead, where it is deterministic.
+
+**`uiautomator dump` leaves the last dump behind when it fails, and reading it back is
+indistinguishable from reading the screen.** It refuses to dump until the window goes idle, and
+a window with an autoplaying video in it never does — so the command writes nothing, the
+previous `/sdcard/ui.xml` is still there, and `cat` hands back a screen from several minutes
+ago that looks entirely plausible. That is how a dialog that `dumpsys window` said was not
+focused went on appearing in every reading. Delete the file first and refuse an answer that
+holds no `<hierarchy`; where it will not dump at all, `screencap` is the thing that always
+tells the truth.
+
+**The guest's own numbers say whether the emulator is actually starved.** `adb shell top` and
+`adb shell cat /proc/loadavg` are a few seconds and settle in one go what the host's load
+average only suggests: an emulator that was reported as CPU-starved was in fact **383% idle at
+a guest load of 1.15**, and swapping inside its own 2.5 GB — the AVD's memory is fixed whatever
+the host has spare. `am kill-all` and force-stopping Chrome freed 700 MB of it.
+
+**Every `adb install -r` leaves the app running interpreted.** ART compiles it in the
+background, and until it has, a first launch is slow enough to be declared unresponsive —
+which is why ANRs cluster immediately after a reinstall and look like whatever was just
+changed. `adb shell cmd package compile -m speed -f com.laurencedawson.reddit_sync` takes about
+nine seconds and takes the question away. `wm size 540x1200` with `wm density 240` quarters
+what a software-rendered emulator has to draw, and `wm size reset` puts it back.
+
+**An ANR on this emulator is usually the host.** Every one seen here read
+`Waited 5000ms for FocusEvent`, with the skipped frames and the `Davey!` lines belonging to
+`system_server` rather than to the app, and one of them landed on Sync's own Backup screen
+before any patched screen had been opened. Check `/proc/loadavg` before believing a patch
+caused it; software rendering plus a loaded host is enough on its own, and `uiautomator dump`
+forces a main-thread traversal every time it is called.
 
 **Dead endpoints Sync still calls.** Worth knowing before diagnosing a media bug:
 

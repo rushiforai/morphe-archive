@@ -14,6 +14,7 @@ import app.morphe.extension.syncforreddit.http.imgur.FixImgurProxyPatch;
 import app.morphe.extension.syncforreddit.http.posts.FixPostLookupPatch;
 import app.morphe.extension.syncforreddit.http.posts.TappableLinksPatch;
 import app.morphe.extension.syncforreddit.http.posts.WebsitePreviewImagePatch;
+import app.morphe.extension.syncforreddit.redirects.imgur.ImgurUnblock;
 import app.morphe.extension.syncforreddit.ui.banner.SubredditBannerPatch;
 import app.morphe.extension.syncforreddit.ui.comments.CommentMediaSizes;
 import app.morphe.extension.syncforreddit.http.profile.ArchivedProfilePatch;
@@ -154,6 +155,11 @@ public class OkHttpRequestHook extends BaseOkHttpRequestHook {
         // rather than starting again at the top. An image linked in a comment goes through the
         // proxy, which is why one has never been recovered.
         interceptors.add(new FixImgurProxyPatch());
+        // Below the proxy fix, which is what turns Sync's own dead proxy addresses into
+        // ordinary Imgur ones: a request it reissues carries on down the chain from there, so
+        // this is where an Imgur address is finally what it appears to be. Above the undelete,
+        // so that where no route answers the original request still reaches the archive.
+        interceptors.add(new ImgurUnblock());
         interceptors.add(new RecoverThumbnailsPatch());
         interceptors.add(new UndeleteImgurPatch());
         interceptors.add(RedirectGfycatPatch.get());

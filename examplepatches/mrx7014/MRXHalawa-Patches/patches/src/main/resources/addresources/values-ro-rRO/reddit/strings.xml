@@ -18,6 +18,13 @@ Second \"item\" text"</string>
 <resources>
   <string name="reddit_privacy_policy">Politica de confidențialitate a Reddit</string>
   <string name="morphe_google_signin_not_available_toast">Autentificarea cu Google nu este disponibilă. Folosiți e-mailul pentru autentificare</string>
+  <string name="morphe_app_downgrade_dialog_title">Downgradarea nu este suportată</string>
+  <string name="morphe_app_downgrade_dialog_message">"Această instalare Reddit a fost degradată de la &lt;b&gt;%1$s&lt;/b&gt; la &lt;b&gt;%2$s&lt;/b&gt;
+&lt;br/&gt;&lt;br/&gt;
+Datele aplicației dintr-o versiune mai nouă nu funcționează cu versiuni mai vechi și aplicația s-ar putea să nu funcționeze corect.
+&lt;br/&gt;&lt;br/&gt;
+Pentru a utiliza o versiune mai veche, trebuie să &lt;b&gt;dezinstalați&lt;/b&gt; Reddit și apoi să instalați versiunea mai veche."</string>
+  <string name="morphe_app_downgrade_dialog_open_app_info">Deschide info aplicație</string>
   <string name="morphe_screen_ads_title">Reclame</string>
   <string name="morphe_hide_post_ads_title">Ascunde reclamele din flux</string>
   <string name="morphe_hide_comment_ads_title">Ascunde reclamele din comentarii</string>
@@ -57,7 +64,9 @@ Second \"item\" text"</string>
   <string name="morphe_hide_trending_shelves_title">Ascunde rafturile în tendințe</string>
   <string name="morphe_hide_trending_shelves_summary">Ascunde rafturile \"În tendințe\" din flux și din sugestiile de căutare</string>
   <string name="morphe_remove_notification_dialog_title">Elimină dialogul de sugestie a notificărilor</string>
-  <string name="morphe_remove_notification_dialog_summary">Dismissă automat sugestia de notificare când vizitezi un subreddit</string>
+  <string name="morphe_remove_notification_dialog_summary">Închide automat sugestia de notificare când vizitezi un subreddit</string>
+  <string name="morphe_high_quality_avatars_title">Avatare de înaltă calitate</string>
+  <string name="morphe_high_quality_avatars_summary">Afișează avatarele utilizatorilor la rezoluție completă</string>
   <string name="morphe_show_flairs_in_home_feed_title">Afișează insignele în sursa de acasă</string>
   <string name="morphe_show_flairs_in_home_feed_summary">Afișează badge-urile de flair în sursa de acasă</string>
   <string name="morphe_show_flairs_in_home_feed_user_dialog_message">Unele elemente din sursă pot să nu afișeze un flair</string>
@@ -84,10 +93,6 @@ Second \"item\" text"</string>
   <string name="morphe_keep_feed_position_summary">Păstrează fluxul în aceeași poziție după ce închizi o postare, o imagine sau un videoclip, în loc să mute postarea deschisă în partea de sus</string>
   <string name="morphe_feed_media_max_height_title">Înălțimea maximă a conținutului media din flux</string>
   <string name="morphe_feed_media_max_height_summary">Înălțimea maximă a imaginilor, videoclipurilor și galeriilor din flux, ca multiplu al lățimii lor. Conținutul media mai înalt este decupat. 1,33 este valoarea implicită Reddit</string>
-  <string name="morphe_redgifs_audio_title">Redă Redgifs cu audio</string>
-  <string name="morphe_redgifs_audio_summary">Redă video-ul original Redgifs în locul copiei Reddit, care adesea nu are audio</string>
-  <string name="morphe_redgifs_hd_title">Calitate HD Redgifs</string>
-  <string name="morphe_redgifs_hd_summary">Redă video-ul Redgifs HD. Videoclipurile HD sunt mai mari și se pot pauza pentru a se încărca</string>
   <string name="morphe_download_location_title">Locație descărcare</string>
   <string name="morphe_download_location_all_title">Toate conturile</string>
   <string name="morphe_download_location_default_summary">Implicit Reddit: imagini în Pictures/Reddit, video în Download</string>

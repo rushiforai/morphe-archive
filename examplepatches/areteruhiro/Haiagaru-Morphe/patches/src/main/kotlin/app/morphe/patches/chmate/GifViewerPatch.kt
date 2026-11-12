@@ -18,6 +18,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 internal val gifViewerRoutingPatch = bytecodePatch {
     dependsOn(haiagaruPatch)
     execute {
+        patchContinuousThreadMedia(packageMetadata.versionName)
         val owner = mutableClassDefBy("Ljp/syoboi/a2chMate/activity/ImagesViewer2Activity;")
         // Capture the source Activity at its native thumbnail factory, before a new
         // viewer takes focus. A wrapper keeps every native argument and instruction.

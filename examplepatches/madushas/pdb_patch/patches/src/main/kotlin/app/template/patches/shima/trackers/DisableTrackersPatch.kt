@@ -49,7 +49,6 @@ val shimaDisableTrackersPatch = resourcePatch(
         "permission. Shima+ itself ships no telemetry SDK.",
     default = true,
 ) {
-    category("Privacy")
     compatibleWith(SHIMA_COMPATIBILITY)
 
     execute {

@@ -25,14 +25,16 @@ private fun manifest(path: String): Manifest {
     } finally { apk.close() }
 }
 fun main(args: Array<String>) {
-    require(args.size == 2) { "ORIGINAL_APK PATCHED_APK" }
+    require(args.size == 2 || (args.size == 3 && args[2] == "--update-blocked")) { "ORIGINAL_APK PATCHED_APK [--update-blocked]" }
     val original = manifest(args[0]); val patched = manifest(args[1])
     check(original.packageName in setOf("com.google.android.googlequicksearchbox", "com.google.android.apps.bard"))
     val clone = original.packageName + ".morphe"
     check(patched.packageName == clone) {
         "Unsupported clone package ${patched.packageName}; expected $clone. Keep Automatic Clone Setup selected."
     }
-    check(patched.versionName == original.versionName && patched.versionCode == original.versionCode)
+    check(patched.versionName == original.versionName)
+    val expectedCode = if (args.size == 3) Int.MAX_VALUE.toString() else original.versionCode
+    check(patched.versionCode == expectedCode) { "Unexpected versionCode ${patched.versionCode}; expected $expectedCode" }
     val before = original.nodes.filter { it.tag == "permission" }.associate { it.attrs.getValue("name") to it }
     val after = patched.nodes.filter { it.tag == "permission" }.associate { it.attrs.getValue("name") to it }
     check(before.isNotEmpty())

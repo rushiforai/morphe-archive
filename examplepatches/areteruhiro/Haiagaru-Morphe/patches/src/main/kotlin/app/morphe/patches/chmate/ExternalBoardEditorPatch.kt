@@ -14,6 +14,8 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 private const val EDITOR = "Lapp/morphe/extension/chmate/ExternalBoardEditor;"
 
 internal fun BytecodePatchContext.patchExternalBoardEditor(version: String) {
+    patchExternalBoardGroups(version)
+    patchBoardTitleSearch(version)
     val board = if(version == "0.8.10.191 dev")
         "Ljp/syoboi/a2chMate/client/BBSUrlInfo\$BoardID;" else "Ljp/syoboi/a2chMate/client/BoardID;"
     val bridge=mutableClassDefBy(EDITOR)

@@ -2,6 +2,7 @@ import app.template.patches.fotmob.betting.HIDE_BETTING_CONTENT
 import app.template.patches.fotmob.misc.animations.DISABLE_ANIMATIONS
 import app.template.patches.fotmob.misc.animations.FASTER_ANIMATIONS
 import app.template.patches.fotmob.misc.font.USE_SYSTEM_FONT
+import app.template.patches.fotmob.misc.theme.AMOLED_BLACK
 import app.template.patches.fotmob.misc.promotions.DISABLE_PLUS_PROMO_POPUP
 import app.template.patches.fotmob.misc.rating.DISABLE_RATING_PROMPTS
 import app.template.patches.fotmob.misc.refresh.SLOWER_LIVE_REFRESH
@@ -10,6 +11,16 @@ import app.template.patches.fotmob.countries.COMPETITION_FILTER
 import app.template.patches.fotmob.countries.COUNTRY_FILTER
 import app.template.patches.fotmob.countries.HIDDEN_COUNTRIES
 import app.template.patches.fotmob.countries.SUGGESTION_FILTERS
+import app.template.patches.fotmob.spoiler.LIVE_SCORE_WIDGET
+import app.template.patches.fotmob.spoiler.SCORE_FORMAT
+import app.template.patches.fotmob.spoiler.SPOILER_FREE
+import app.template.patches.fotmob.spoiler.SPOILER_FREE_COMPETITIONS
+import app.template.patches.fotmob.spoiler.SPOILER_FREE_LISTS
+import app.template.patches.fotmob.spoiler.SPOILER_FREE_MATCHES
+import app.template.patches.fotmob.spoiler.SPOILER_FREE_MATCH_PAGE
+import app.template.patches.fotmob.spoiler.SPOILER_FREE_NOTIFICATIONS
+import app.template.patches.fotmob.spoiler.SPOILER_FREE_WIDGET
+import app.template.patches.fotmob.spoiler.SPOILER_FREE_MODE
 import app.template.patches.shared.hevalcontrols.HEVAL_SETTINGS_CLASS
 import app.template.patches.shared.hevalcontrols.HevalRegistryCodec
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -109,7 +120,7 @@ class FotMobSmokeTest {
                 "Disable ads", "Disable telemetry", "Enable FotMob+", "GmsCore support", "Spoof signature",
                 "Hide betting content", "Disable rating prompts", "Disable FotMob+ promo popup",
                 "Use system font", "Patch settings", "Turn off animations", "Faster animations", "Slower live refresh",
-                "Hide countries", "Hide competitions",
+                "Hide countries", "Hide competitions", "Show FotMob+ logo", "Spoiler-free mode", "AMOLED black",
             ),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
@@ -205,6 +216,52 @@ class FotMobSmokeTest {
         assertSlowerLiveRefresh(classes)
         assertHideCountries(classes)
         assertHevalControls(classes)
+        assertSpoilerFree(classes, stock)
+
+        // AMOLED black (2026-11-09): the night theme's cards, surfaces, bottom bar and sheets are AMOLED values.
+        assertAmoledBlack(classes)
+
+        // Show FotMob+ logo: the toolbar refresher's shouldUseFotMobPlusLogo read is replaced
+        // with const/4 1, so it always picks the Plus wordmark.
+        val logoOwner = classes.firstOrNull { cls -> cls.fields.any { it.name == "shouldUseFotMobPlusLogo" } }
+            ?: error("shouldUseFotMobPlusLogo field not found")
+        fun Method.readsPlusLogo() = instructions().any {
+            it.opcode == Opcode.IGET_BOOLEAN && it.fieldRef()?.name == "shouldUseFotMobPlusLogo"
+        }
+        fun Method.writesPlusLogo() = instructions().any {
+            it.opcode == Opcode.IPUT_BOOLEAN && it.fieldRef()?.name == "shouldUseFotMobPlusLogo"
+        }
+        val stockReader = stock.first { it.type == logoOwner.type }
+            .methods.single { it.returnType == "V" && it.parameterTypes.isEmpty() && it.readsPlusLogo() && !it.writesPlusLogo() }
+        val readIndex = stockReader.instructions().indexOfFirst {
+            it.opcode == Opcode.IGET_BOOLEAN && it.fieldRef()?.name == "shouldUseFotMobPlusLogo"
+        }
+        val patchedReader = logoOwner.methods.single {
+            it.returnType == stockReader.returnType &&
+                it.parameterTypes.map(CharSequence::toString) == stockReader.parameterTypes.map(CharSequence::toString) &&
+                it.name == stockReader.name
+        }
+        val forced = patchedReader.instructions()[readIndex]
+        assertTrue(
+            forced is NarrowLiteralInstruction && forced.opcode == Opcode.CONST_4 && forced.narrowLiteral == 1,
+            "${logoOwner.type}->${patchedReader.name}: the FotMob+ logo read is not forced true; got ${forced.opcode}",
+        )
+
+        // The home toolbar observer's normal-logo branch is skipped: the if-eqz before the Plus
+        // drawable const is now a nop.
+        fun Instruction.literal(): Long? = (this as? NarrowLiteralInstruction)?.narrowLiteral?.toLong()
+        fun Method.setsToolbarLogo() = instructions().any {
+            val ref = (it as? ReferenceInstruction)?.reference as? MethodReference
+            ref?.definingClass == "Landroidx/appcompat/widget/Toolbar;" && ref.name == "setLogo"
+        }
+        val hook = classes.flatMap { it.methods }.filter { it.implementation != null }.singleOrNull { method ->
+            method.setsToolbarLogo() &&
+                method.instructions().any { it.literal() == 0x7f0802c5L } &&
+                method.instructions().any { it.literal() == 0x7f0802c2L }
+        } ?: error("toolbar logo observer not found")
+        val hookInsns = hook.instructions()
+        val plus = hookInsns.indexOfFirst { it.literal() == 0x7f0802c5L }
+        assertEquals(Opcode.NOP, hookInsns[plus - 1].opcode, "${hook.definingClass}->${hook.name}: normal-logo branch")
     }
 
     private fun Instruction.stringOrNull(): String? = ((this as? ReferenceInstruction)?.reference as? StringReference)?.string
@@ -463,8 +520,10 @@ class FotMobSmokeTest {
         val encoded = registry[0].stringOrNull()!!.split('\n')
         val wanted = HevalRegistryCodec.encode(
             listOf(
-                HIDE_BETTING_CONTENT, DISABLE_RATING_PROMPTS, DISABLE_PLUS_PROMO_POPUP, USE_SYSTEM_FONT,
+                HIDE_BETTING_CONTENT, DISABLE_RATING_PROMPTS, DISABLE_PLUS_PROMO_POPUP, USE_SYSTEM_FONT, AMOLED_BLACK,
                 DISABLE_ANIMATIONS, FASTER_ANIMATIONS, SLOWER_LIVE_REFRESH, HIDDEN_COUNTRIES, HIDDEN_COMPETITIONS,
+                SPOILER_FREE_MODE, SPOILER_FREE_MATCHES, SPOILER_FREE_COMPETITIONS,
+                SPOILER_FREE_NOTIFICATIONS, SPOILER_FREE_LISTS, SPOILER_FREE_MATCH_PAGE, SPOILER_FREE_WIDGET,
             ),
         ).split('\n')
         assertTrue(
@@ -499,6 +558,233 @@ class FotMobSmokeTest {
             "SettingsActivity.onCreate does not call addRow(p0) after setContentView; got ${entry.opcode} ${entry.methodRef()}"
         )
         assertEquals(1, insns.count { it.methodRef()?.definingClass == FOTMOB_CONTROLS_ENTRY }, "addRow calls")
+    }
+
+    // Spoiler-free mode. 1: onMessageReceived starts with the switch gate, then reads RemoteMessage's
+    // Bundle, asks SpoilerFree.blocksPush and returns; the gate and the "not blocked" branch both land
+    // on the stock first instruction. 2/3: the (Menu, MenuInflater) builders that inflate
+    // menu/activity_match_facts_v2 and menu/league_info (241 ids, aapt2 dump resources) start with the
+    // gate, then pass the menu and the builder's activity field to the extension.
+    /**
+     * AMOLED black (a Patch settings switch): the night Base.Theme.FotMob.DayNight is untouched, a new
+     * HevalAmoledOverlay style holds the twenty attributes at near-black values, and the activity hook
+     * applies it (AmoledBlack.applyTheme from ActivityHooks.onActivityCreated).
+     */
+    private fun assertAmoledBlack(classes: List<ClassDef>) {
+        fun styles(dir: String): Map<String, Map<String, String>> {
+            val file = workDir.walkTopDown().singleOrNull { it.name == "styles.xml" && it.parentFile.name == dir }
+                ?: error("no decoded $dir/styles.xml under $workDir")
+            val doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file)
+            val nodes = doc.getElementsByTagName("style")
+            return (0 until nodes.length).map { nodes.item(it) as Element }.associate { style ->
+                val items = style.getElementsByTagName("item")
+                style.getAttribute("name") to (0 until items.length).map { items.item(it) as Element }
+                    .associate { it.getAttribute("name") to it.textContent.trim() }
+            }
+        }
+        val night = styles("values-night")["Base.Theme.FotMob.DayNight"] ?: error("values-night: Base.Theme.FotMob.DayNight not found")
+        assertEquals("@color/nero_black", night["cardBackgroundColor"], "the night theme keeps its stock cardBackgroundColor")
+        assertEquals("@color/chinese_black", night["bottomNavBackgroundColor"], "the night theme keeps its stock bottomNavBackgroundColor")
+        assertEquals("@color/black", night["appBackground"], "appBackground stays black")
+        assertEquals("@color/nero_black", night["colorContainer"], "the night theme keeps its stock colorContainer")
+        assertEquals("@color/dark_charcoal", night["popupMenuBackgroundColor"], "the night theme keeps its stock popupMenuBackgroundColor")
+
+        val overlay = styles("values")["HevalAmoledOverlay"] ?: error("values: HevalAmoledOverlay not found")
+        fun String.opaque() = lowercase().let { if (it.length == 9 && it.startsWith("#ff")) "#" + it.substring(3) else it }
+        val expected = mapOf(
+            "cardBackgroundColor" to "#0a0a0a", "colorSurface" to "#0a0a0a", "colorSurfaceContainer" to "#0a0a0a",
+            "colorSurfaceContainerLow" to "#0a0a0a", "colorSurfaceContainerHigh" to "#0a0a0a",
+            "colorSurfaceContainerHighest" to "#0a0a0a", "bottomNavBackgroundColor" to "#000000",
+            "cardInCardHeaderBackground" to "#141414", "chipBackgroundUnselected" to "#141414",
+            "bottomSheetBackgroundColor" to "#121212", "popupMenuBackgroundColor" to "#121212",
+            "colorContainer" to "#0a0a0a", "predictorCardBackgroundColor" to "#0a0a0a",
+            "predictorBottomSheetBackgroundColor" to "#0a0a0a", "onboardingBottomSheetBackground" to "#0a0a0a",
+            "newsTopTransferItemBackgroundColor" to "#0a0a0a", "segmentedButtonsBackgroundColor" to "#0a0a0a",
+            "segmentedButtonsInsideCardSelectedBackgroundColor" to "#0a0a0a",
+            "fifaRankGraphBackgroundColor" to "#0a0a0a", "switchTrackBackgroundColorUnchecked" to "#0a0a0a",
+        )
+        // Issue #146: every item must reference a color resource, never a raw value. FotMob resolves
+        // some of these attributes through TypedArray.getResourceId + Context.getColorStateList (qo0.z,
+        // used by the league table row); a raw value has resource id 0, the call throws and the row
+        // stops binding, so the table showed no points.
+        overlay.forEach { (name, value) ->
+            assertTrue(value.startsWith("@color/"), "HevalAmoledOverlay $name must reference a color resource, is $value")
+        }
+        val colorsFile = workDir.walkTopDown().singleOrNull { it.name == "colors.xml" && it.parentFile.name == "values" }
+            ?: error("no decoded values/colors.xml under $workDir")
+        val colorDoc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(colorsFile)
+        val colorNodes = colorDoc.getElementsByTagName("color")
+        val colors = (0 until colorNodes.length).map { colorNodes.item(it) as Element }
+            .associate { it.getAttribute("name") to it.textContent.trim() }
+        val resolved = overlay.mapValues { (name, ref) ->
+            colors[ref.removePrefix("@color/")]?.opaque() ?: error("values/colors.xml has no ${ref.removePrefix("@color/")} for $name")
+        }
+        assertEquals(expected, resolved, "HevalAmoledOverlay items (resolved colors)")
+
+        // The hook: ActivityHooks.onActivityCreated calls AmoledBlack.applyTheme.
+        val hooks = classes.single { it.type == "Lapp/template/extension/fotmob/ActivityHooks;" }
+        val created = hooks.methods.single { it.name == "onActivityCreated" }
+        val calls = created.implementation!!.instructions.mapNotNull { ((it as? ReferenceInstruction)?.reference as? MethodReference) }
+        assertTrue(
+            calls.any { it.definingClass == "Lapp/template/extension/fotmob/AmoledBlack;" && it.name == "applyTheme" },
+            "ActivityHooks.onActivityCreated does not apply the AMOLED overlay",
+        )
+        assertTrue(classes.any { it.type == "Lapp/template/extension/fotmob/AmoledBlack;" }, "AmoledBlack is not in the patched dex")
+    }
+
+    private fun assertSpoilerFree(classes: List<ClassDef>, stock: List<ClassDef>) {
+        val featureId = SPOILER_FREE_MODE.id
+        assertTrue(classes.any { it.type == SPOILER_FREE }, "SpoilerFree is not in the patched dex")
+        val service = "Lcom/fotmob/android/feature/notification/push/PushMessagingService;"
+        val remoteMessage = "Lcom/google/firebase/messaging/RemoteMessage;"
+        val params = listOf(remoteMessage)
+        val push = classes.single { it.type == service }.method("onMessageReceived", params)
+        val stockPush = stock.single { it.type == service }.method("onMessageReceived", params)
+        val label = "PushMessagingService.onMessageReceived"
+        val target = assertGate(push, featureId, label)
+        val insns = push.instructions()
+        assertEquals(
+            listOf(Opcode.MOVE_OBJECT_FROM16, Opcode.IGET_OBJECT, Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.RETURN_VOID),
+            insns.subList(4, 10).map { it.opcode }, "$label: spoiler path",
+        )
+        val bundle = insns[5].fieldRef()
+        assertTrue(bundle?.definingClass == remoteMessage && bundle.type == "Landroid/os/Bundle;", "$label: reads $bundle, not the message Bundle")
+        val check = insns[6].methodRef()
+        assertTrue(check?.definingClass == SPOILER_FREE && check.name == "blocksPush", "$label: calls $check, not SpoilerFree.blocksPush")
+        assertEquals(10, target, "$label: the gate does not jump to the stock code")
+        assertEquals(10, insns.branchTarget(8), "$label: a push that is not blocked does not reach the stock code")
+        assertEquals(
+            stockPush.instructions().map { it.opcode }.filter { it != Opcode.NOP },
+            insns.drop(10).map { it.opcode }.filter { it != Opcode.NOP }, "$label: stock code changed",
+        )
+
+        val menuShape = listOf("Landroid/view/Menu;", "Landroid/view/MenuInflater;")
+        fun builder(all: List<ClassDef>, menuId: Long) = all.flatMap { it.methods }.filter { m ->
+            m.returnType == "V" && m.parameterTypes.map(CharSequence::toString) == menuShape &&
+                m.instructions().any { (it as? NarrowLiteralInstruction)?.narrowLiteral?.toLong() == menuId } &&
+                m.instructions().any { it.methodRef()?.let { r -> r.definingClass == "Landroid/view/MenuInflater;" && r.name == "inflate" } == true }
+        }.also { assertEquals(1, it.size, "builders inflating menu 0x${menuId.toString(16)}") }.single()
+        for ((menuId, helper) in listOf(0x7f0f0002L to "addMatchItem", 0x7f0f0004L to "addCompetitionItem")) {
+            val method = builder(classes, menuId)
+            val stockMethod = builder(stock, menuId)
+            val where = "${method.definingClass}->${method.name} ($helper)"
+            val menuTarget = assertGate(method, featureId, where)
+            val body = method.instructions()
+            // Compact form (p1 at most v15): iget-object v0, p0 + invoke-static {p1, v0}; else the
+            // parameters are first copied into v0/v1 with move-object/from16.
+            val path = body.subList(4, menuTarget).map { it.opcode }
+            assertTrue(
+                path == listOf(Opcode.IGET_OBJECT, Opcode.INVOKE_STATIC) ||
+                    path == listOf(Opcode.MOVE_OBJECT_FROM16, Opcode.IGET_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.INVOKE_STATIC),
+                "$where: menu item path is $path",
+            )
+            val host = body.subList(4, menuTarget).single { it.opcode == Opcode.IGET_OBJECT }.fieldRef()!!
+            assertEquals(method.definingClass, host.definingClass, "$where: the activity field is not the builder's own")
+            if (helper == "addMatchItem") assertEquals("Lcom/fotmob/android/feature/match/ui/MatchActivity;", host.type, "$where: activity field")
+            val call = body[menuTarget - 1].methodRef()
+            assertTrue(call?.definingClass == SPOILER_FREE && call.name == helper, "$where: calls $call")
+            // Alignment nops before switch payloads move with the inserted code, so they are ignored.
+            fun List<Instruction>.withoutNops() = map { it.opcode }.filter { it != Opcode.NOP }
+            assertEquals(stockMethod.instructions().withoutNops(), body.drop(menuTarget).withoutNops(), "$where: stock builder changed")
+        }
+
+        // 4. Live score widget row: Match's started check result is ANDed with !hidesScore(match)
+        // (if-eqz skips the call for a match that has not started), and the status label goes
+        // through SpoilerFree.status(label, match). One site each.
+        val widgetShape = listOf("Landroid/content/Context;", "Lcom/fotmob/models/Match;", "Z", "Ljava/lang/Integer;")
+        val widget = classes.single { it.type == LIVE_SCORE_WIDGET }.methods.single {
+            it.returnType == "Landroid/widget/RemoteViews;" && it.parameterTypes.map(CharSequence::toString) == widgetShape
+        }
+        val w = widget.instructions()
+        val wLabel = "${widget.definingClass}->${widget.name}"
+        fun calls(name: String) = w.indices.filter { w[it].methodRef()?.let { r -> r.definingClass == SPOILER_FREE && r.name == name } == true }
+        val hide = calls("hidesScoreInWidget").also { assertEquals(1, it.size, "$wLabel: hidesScoreInWidget calls") }.single()
+        val started = w[hide - 3].methodRef()
+        assertTrue(
+            w[hide - 3].opcode == Opcode.INVOKE_VIRTUAL && started?.definingClass == "Lcom/fotmob/models/Match;" &&
+                started.returnType == "Z" && started.parameterTypes.isEmpty(),
+            "$wLabel: hidesScore does not follow Match's started check; got ${w[hide - 3].opcode} $started",
+        )
+        val flag = (w[hide - 2] as OneRegisterInstruction).registerA
+        assertEquals(
+            listOf(Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.INVOKE_STATIC_RANGE, Opcode.MOVE_RESULT, Opcode.XOR_INT_LIT8),
+            w.subList(hide - 2, hide + 3).map { it.opcode }, "$wLabel: started-check override",
+        )
+        assertEquals((w[hide - 3] as FiveRegisterInstruction).registerC, (w[hide] as RegisterRangeInstruction).startRegister, "$wLabel: hidesScore gets the match")
+        assertTrue(
+            (w[hide - 1] as OneRegisterInstruction).registerA == flag && (w[hide + 1] as OneRegisterInstruction).registerA == flag &&
+                (w[hide + 2] as TwoRegisterInstruction).registerA == flag && (w[hide + 2] as NarrowLiteralInstruction).narrowLiteral == 1,
+            "$wLabel: the override does not write !hidesScore back into the started flag v$flag",
+        )
+        assertEquals(hide + 3, w.branchTarget(hide - 1), "$wLabel: a match that has not started does not skip the override")
+        val status = calls("status").also { assertEquals(1, it.size, "$wLabel: status calls") }.single()
+        val labelCall = w[status - 2]
+        assertTrue(
+            labelCall.opcode == Opcode.INVOKE_STATIC && labelCall.methodRef()?.returnType == "Ljava/lang/String;" &&
+                labelCall.methodRef()?.parameterTypes?.map(CharSequence::toString) == listOf("Landroid/content/Context;", "Lcom/fotmob/models/Match;", "Z"),
+            "$wLabel: status does not follow the status label call; got ${labelCall.opcode} ${labelCall.methodRef()}",
+        )
+        val labelRegister = (w[status - 1] as OneRegisterInstruction).registerA
+        val statusCall = w[status] as FiveRegisterInstruction
+        assertTrue(
+            w[status - 1].opcode == Opcode.MOVE_RESULT_OBJECT && w[status + 1].opcode == Opcode.MOVE_RESULT_OBJECT &&
+                (w[status + 1] as OneRegisterInstruction).registerA == labelRegister && statusCall.registerC == labelRegister &&
+                statusCall.registerD == (labelCall as FiveRegisterInstruction).registerD,
+            "$wLabel: status(label, match) does not replace the label",
+        )
+
+        // 5. Match rows: each method that formats the live score ("%d %s- %d") carries the same
+        // started-flag override at every started check (six in 241), and no started check is left bare.
+        val rowMethods = classes.flatMap { it.methods }.filter { m ->
+            val ins = m.instructions()
+            ins.any { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == SCORE_FORMAT } &&
+                ins.any { it.methodRef()?.let { r -> r.definingClass == SPOILER_FREE && r.name.startsWith("hidesScore") } == true }
+        }
+        assertEquals(6, rowMethods.size, "methods that format the live score and carry the started override")
+        for (row in rowMethods) {
+            val r = row.instructions()
+            val rLabel = "${row.definingClass}->${row.name}"
+            val hides = r.indices.filter {
+                r[it].methodRef()?.let { ref -> ref.definingClass == SPOILER_FREE && ref.name.startsWith("hidesScore") } == true
+            }
+            val startedCalls = r.indices.filter {
+                r[it].methodRef()?.let { ref ->
+                    ref.definingClass == "Lcom/fotmob/models/Match;" && ref.name == started!!.name &&
+                        ref.returnType == "Z" && ref.parameterTypes.isEmpty()
+                } == true
+            }
+            assertEquals(startedCalls.size, hides.size, "$rLabel: started checks and overrides")
+            // Each surface answers to its own switch: the match page header, the ongoing notification
+            // and every other row use their own SpoilerFree check.
+            val expectedHelper = when (row.definingClass) {
+                "Lcom/fotmob/android/feature/match/ui/MatchActivity;" -> "hidesScoreOnMatchPage"
+                "Lcom/fotmob/android/feature/liveupdate/worker/LiveUpdateWorker;" -> "hidesScoreInNotifications"
+                else -> "hidesScoreInLists"
+            }
+            assertTrue(
+                hides.all { r[it].methodRef()?.name == expectedHelper },
+                "$rLabel: the override must call SpoilerFree.$expectedHelper; got ${hides.map { r[it].methodRef()?.name }}",
+            )
+            for (h in hides) {
+                assertEquals(
+                    listOf(Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.INVOKE_STATIC_RANGE, Opcode.MOVE_RESULT, Opcode.XOR_INT_LIT8),
+                    r.subList(h - 2, h + 3).map { it.opcode }, "$rLabel: started-check override at $h",
+                )
+                val receiver = when (val call = r[h - 3]) {
+                    is FiveRegisterInstruction -> call.registerC
+                    is RegisterRangeInstruction -> call.startRegister
+                    else -> -1
+                }
+                assertEquals(receiver, (r[h] as RegisterRangeInstruction).startRegister, "$rLabel: hidesScore gets the match")
+                val flag = (r[h - 2] as OneRegisterInstruction).registerA
+                assertTrue(
+                    (r[h + 1] as OneRegisterInstruction).registerA == flag && (r[h + 2] as TwoRegisterInstruction).registerA == flag &&
+                        (r[h + 2] as NarrowLiteralInstruction).narrowLiteral == 1,
+                    "$rLabel: the override does not write !hidesScore back into the started flag v$flag",
+                )
+                assertEquals(h + 3, r.branchTarget(h - 1), "$rLabel: a match that has not started does not skip the override")
+            }
+        }
     }
 
     // Use system font, bytecode: both targets found like the patch does (the "my" locale check

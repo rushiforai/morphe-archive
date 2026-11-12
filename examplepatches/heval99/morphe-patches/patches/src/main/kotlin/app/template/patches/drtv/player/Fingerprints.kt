@@ -14,9 +14,9 @@ internal const val BINGE_MARKER_UTILITY = "Laxis/android/sdk/common/bingemarkers
 // intro ("INTRO") and recap ("SUMMARY") codes: end credits get no button title and stay hidden.
 internal object SkipButtonCheckFingerprint : Fingerprint(
     definingClass = "Laxis/android/sdk/app/player/PlayerFragment;",
+    name = "checkForBingMarkerButton",
     returnType = "V",
     parameters = listOf("J"),
-    strings = listOf("fragmentPlayerBinding.skipButton"),
     filters = listOf(
         methodCall(definingClass = BINGE_MARKER_UTILITY, name = "getTimeCodeWrapper"),
         methodCall(definingClass = BINGE_MARKER_UTILITY, name = "checkSkipThresholdInRange"),

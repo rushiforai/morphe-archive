@@ -9,6 +9,12 @@ public final class MediaGalleryTest {
         eq(MediaGallery.links(Arrays.asList(image,gif),video),new ArrayList<>(Arrays.asList(video)));
         eq(MediaGallery.links(null,gif),new ArrayList<>(Arrays.asList(gif)));
         eq(MediaGallery.links(Arrays.asList(image,gif),"file:///bad.gif"),new ArrayList<String>());
+        eq(MediaGallery.needsExternalPaging(Arrays.asList(image,"https://example.org/two.jpg"),false,false),false);
+        eq(MediaGallery.needsExternalPaging(Arrays.asList("content://upload/first","file:///upload/second.jpg"),false,false),false);
+        eq(MediaGallery.needsExternalPaging(Arrays.asList(image,gif),false,false),true);
+        eq(MediaGallery.needsExternalPaging(Arrays.asList(image,gif),true,false),false);
+        eq(MediaGallery.needsExternalPaging(Arrays.asList(image,video),false,false),true);
+        eq(MediaGallery.needsExternalPaging(Arrays.asList(image,video),false,true),false);
         eq(MediaGallery.links(Arrays.asList("ttps://example.org/b.gif",gif),gif).size(),1);
         for(String url:Arrays.asList(image,gif,video,"https://example.org/a.webp?x=1","https://example.org/a.webm"))eq(MediaGallery.supported(url),true);
         for(String url:Arrays.asList("javascript:evil.gif","https://user:secret@example.org/a.gif","https://example.org/page",null))eq(MediaGallery.supported(url),false);

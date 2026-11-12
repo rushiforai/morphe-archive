@@ -95,7 +95,7 @@ class FirefoxSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "159.0",
+            version = "159.0.1",
             patchNames = setOf(
                 "Disable telemetry",
                 "Hide sponsored content",
@@ -319,7 +319,7 @@ class FirefoxSmokeTest {
         assertDohEntryHidden(classes.first { it.type == SETTINGS_FRAGMENT })
 
         // Fallback mode and another resolver: TRR first (2) and Increased protection.
-        val fallback = applyDnsFilterFallback(apk, workDir, PKG, "159.0")
+        val fallback = applyDnsFilterFallback(apk, workDir, PKG, "159.0.1")
         assertGeckoViewDnsForced(fallback, OTHER_DOH_URL, trrMode = 2)
         assertReturnsStatic(
             fallback.first { it.type == SETTINGS }.method("getDohSettingsMode", emptyList()),

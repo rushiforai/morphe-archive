@@ -283,8 +283,9 @@ never renamed.
 
 | Feature id | Patch | Restart | Gated sites |
 |---|---|---|---|
-| `truecaller.hide_promotions` | Hide promotions | yes | toggle overrides |
+| `truecaller.hide_promotions` | Hide promotions | yes | toggle overrides, referral context gate at index 0 (answers false) |
 | `truecaller.disable_nags` | Disable nags | no | toggle overrides |
+| `truecaller.disable_who_viewed_me` | Disable Who viewed me (off) | no | toggle override |
 | `truecaller.disable_auto_launch` | Disable auto-launch | no | toggle override |
 | `truecaller.disable_update_prompts` | Disable update prompts | no | gates at index 0 |
 | `truecaller.hide_assistant_tab` | Hide Assistant tab | yes | gate at index 0 (answers false) |
@@ -316,6 +317,13 @@ switch makes the row's MenuItemUiState invisible, which the menu already filters
 them is on, a section left without rows is dropped so no divider is left behind. The Premium banner
 switch makes the banner's row state (titled "Premium member" or "Upgrade to Premium") the Disabled
 state, which draws nothing. The Settings screen's Wear OS row is still "Hide Wear OS settings".
+
+Added 2026-11-08 (Truecaller 26.43.5, smoke test only): Hide promotions also makes the per-context
+referral gate answer false, so no referral entry point shows (most of its keys are read from
+server-written SharedPreferences, which toggle overrides cannot reach). Disable nags also covers the
+invalid-profile reminder ("featureInvalidProfileNotification"). Disable Who viewed me is opt-in and
+starts off: it reads "featureWhoViewedMe" as off, which stops the app reporting your views of other
+profiles and removes the feature; "No profile view notifications" only silences the notification.
 
 Hide call log filters is marked restart because its row is a composable: an open call log screen
 keeps the row it composed until the screen composes it again. Swap call answer and decline buttons
@@ -349,6 +357,23 @@ switches: each switch is registered only when its anchor exists in the app. Swit
 | `sofascore.slower_widget_refresh` | Slower widget refresh | off | yes | widget refresh interval (`widgetRefreshInterval`) |
 | `sofascore.hidden_countries` (list) | Hide countries | off | yes | SportCategoriesResponse.getCategories (`filterCategories`), CategoriesForDateResponse.getCategories (`filterCategoryWrappers`), SearchResponse.getResults (`filterSearchResults`), the sportLiveEvents and getIndexedEventsPage request returns (`filterEventList`), the categoryScheduledEvents request return (`filterCategoryEvents`), seeds by `CountryFilter.init` at the end of ReleaseApp.onCreate |
 | `sofascore.hidden_competitions` (list) | Hide competitions | off | yes | the same shared sites minus the leagues list, plus UniqueTournamentGroupResponse.getUniqueTournaments (`filterUniqueTournaments`); icons by `CompetitionFilter.init` (called from `CountryFilter.init`) |
+| `sofascore.spoiler_free` | Spoiler-free mode | on | no | EventActivity and LeagueActivity onCreateOptionsMenu (`addMatchItem`, `addCompetitionItem`) and their (Event)V / (UniqueTournament)V methods (`onMatch`, `onCompetition`); master of the five rows below |
+| `sofascore.spoiler_notifications` | Spoiler-free mode | on | no | FCMListenerService.onMessageReceived (`blocksPush`) |
+| `sofascore.spoiler_lists` | Spoiler-free mode | on | no | EventListScoreTextView.setText (`scoreText`), the match row binder's start (`markRow`) |
+| `sofascore.spoiler_widget` | Spoiler-free mode | on | no | the widget row builder's return (`maskWidgetRow`) |
+| `sofascore.spoiler_events` (list) | Spoiler-free mode | off | no | read by every spoiler hook; filled by the match page item |
+| `sofascore.spoiler_competitions` (list) | Spoiler-free mode | off | no | read by every spoiler hook; filled by the competition page item |
+
+AMOLED black (2026-11-09, `sofascore.amoled_black`, build-time only) is an opt-in resource patch (the night values of
+`surface_1` and `surface_P`); the Patch settings screen shows it as a read-only "Applied at patch time" row
+(titled "Pure black dark theme" since 2026-11-11; the Manager patch is still "AMOLED black").
+Sofascore reads its dark colors by name, so a runtime switch is not possible (the patcher's resource API can only
+edit entries of existing resource files, so a second color set under a new qualifier cannot be added).
+
+Sofascore row titles changed on 2026-11-11 (ids and Manager patch names unchanged): "Hidden countries" and
+"Hidden competitions" are "Hide countries" and "Hide competitions", "Turn off animations" is "No animations",
+"Hide goal alerts" is "Hide alerts for marked matches"; the sections are Scores and spoilers, Leagues and
+countries, Sports, Match page, Bottom tabs, Pop-ups and banners, Betting and promotions, Look and feel.
 
 Hidden countries (2026-11-03) keys are the categories' `alpha2` codes (Sofascore's own, e.g. EN
 England, SX Scotland, WA Wales, NX Northern Ireland, XK Kosovo); categories without one (World,
@@ -396,6 +421,22 @@ Slower widget refresh changes the widget work's repeat interval from 30 minutes 
 app enqueues it with the UPDATE policy from the widget receiver's onEnabled/onUpdate, so a change
 applies at the widget's next update.
 
+Spoiler-free mode (2026-11-08, Sofascore 26.10.26, phase 1) lets the user mark a match on its match
+page or a competition on its page ("Spoiler-free: on/off" in the overflow menu; `SpoilerFree` in
+`extensions/sofascore`). The marks are the two lists (event ids, UniqueTournament ids), which depend
+on the master switch, so the user can un-mark entries in Patch settings. Each surface has its own
+switch (on by default, depending on the master), so the user picks what is hidden and turning one
+off restores stock for that surface only: notifications drops a push whose "notification" JSON opens
+a marked event (pushes carry no competition id, so a marked competition does not block pushes);
+match lists blank every EventListScoreTextView cell of a marked match's row (scores, period scores,
+aggregate, penalties, status) also on later updates, while the kickoff time cell stays; the widget
+empties a marked match's score cells and shows its kickoff time as the status. Only the display
+changes: the Event objects, sorting, the Live tab, live updates and stored favourites are stock.
+Not covered: the match page header and tabs, search, favourites' and featured match views, the chat
+and share card, team form, standings, the winner colour of team names, Wear, notifications the
+system shows on its own while the app is in the background, and old finished marks (they stay
+until the user un-marks them).
+
 Not converted: Disable ads,
 Enable Premium, Disable telemetry, Disable Facebook SDK, GmsCore support and Spoof signature.
 
@@ -417,8 +458,46 @@ did not change for the converted patches.
 | `fotmob.slower_live_refresh` | Slower live refresh | off | no | match page ticker limit 15 -> 30 (value helper) |
 | `fotmob.hidden_countries` (list) | Hide countries | off | yes | LiveMatchesAndLeagueRank.<init> (`filterLiveMatches`), LeagueConverter.convert returns (`filterLeagues`), Suggestion constructors' league/team/match stores (`filterLeagueSuggestions`, `filterTeamSuggestions`, `filterMatchSuggestions`) |
 | `fotmob.hidden_competitions` (list) | Hide competitions | off | yes | the same shared sites (`fotMobListFiltersPatch`); logos and seeds by `CompetitionFilter.init` (called from `CountryFilter.init`) |
+| `fotmob.spoiler_free` | Spoiler-free mode | on | no | PushMessagingService.onMessageReceived (index 0, `SpoilerFree.blocksPush`), the menu/activity_match_facts_v2 and menu/league_info builders (index 0, `addMatchItem` / `addCompetitionItem`); widget row via `SpoilerFree.hidesScoreInWidget` / `status`; the score rows via `SpoilerFree.hidesScoreInLists` (match page header: `hidesScoreOnMatchPage`, live-update notification: `hidesScoreInNotifications`) |
+| `fotmob.spoiler_matches` (list) | Spoiler-free mode | - | no | marked on the match page; needs `fotmob.spoiler_free` |
+| `fotmob.spoiler_competitions` (list) | Spoiler-free mode | - | no | marked on the competition page; needs `fotmob.spoiler_free` |
+| `fotmob.spoiler_notifications` | Spoiler-free mode | on | no | what gets hidden: the push drop and the ongoing live-update notification; needs `fotmob.spoiler_free` |
+| `fotmob.spoiler_lists` | Spoiler-free mode | on | no | what gets hidden: the score rows in the match lists; needs `fotmob.spoiler_free` |
+| `fotmob.spoiler_match_page` | Spoiler-free mode | on | no | what gets hidden: the score at the top of the match page; needs `fotmob.spoiler_free` |
+| `fotmob.spoiler_widget` | Spoiler-free mode | on | no | what gets hidden: the score in the live score widget; needs `fotmob.spoiler_free` |
+
+Each surface has its own switch (all default on, all off while `fotmob.spoiler_free` is off), so the
+user chooses in Patch settings what marked matches hide; every hook asks its own surface.
+
+Spoiler-free mode (2026-11-08, phase 1; smoke-tested on 241.18134, not run on a device). The user marks a
+match ("Spoiler-free: on/off" in the match page's overflow menu, keyed by FotMob's match id from the
+`PARAM_MATCHID` extra) or a competition (the same item on the competition page, keyed by the
+`leagueId` extra, like Hidden competitions). The marks are the two lists above; both depend on the
+switch, so turning it off restores stock everywhere, and marks can be removed in Patch settings. A
+match counts as marked when its id is marked or its league id or parent league id is a marked
+competition. Covered: match push notifications (the FCM message's `m`, `lid`, `plid`; the push is
+dropped before FotMob handles it) and the home-screen live score widget (kickoff time instead of the
+score, empty status label) and the six methods that format the live score and ask `Match` whether it
+has started (the live row, the fixture row, the match page header, two view-holder methods and the
+live-update worker): a marked match counts as not started there, so they show the kickoff time. Not
+covered yet: score-drawing methods that never ask whether the match started (the team form line,
+the holder-based builders, the shared string helper), the match page tabs (events, stats, momentum),
+the league and team widgets, search, head-to-head, brackets, standings, the bold winner in the live
+row, the status text ("FT", the minute) and the widget's bold winner after a penalty shootout. The
+live-update worker still shows an ongoing notification for a marked match, with kickoff time instead
+of the score. Marks of finished matches stay until the user removes them (at most 500 per list).
 
 Hidden countries (2026-11-03) keys are FotMob's league country codes (FIFA three-letter codes; `INT` national-team and `INT-2` club competitions, which match lists and search both call `INT`: `CountryData` in `extensions/fotmob` tells them apart by league id from the bundled `res/raw/available_leagues`, the last leagues list (saved in `heval_fotmob_countries`) and every leagues list loaded; while a league is unknown, a raw `INT` is hidden only when both are picked). Favourite leagues and favourite teams' matches always stay (FotMob's `FAVORITE_LEAGUES_JSON` / `FAVORITE_TEAMS_JSON`, re-read when they change). The picker is seeded with 217 FIFA codes plus the two International groups by `CountryFilter.init` from `ActivityHooks.register`, and the leagues list reports what it sees. The Leagues tab never goes empty (if every league would be hidden, the full list stays). The onboarding league picker uses the same leagues list, so it is filtered too; search filters leagues, teams (by league id) and matches, not players or referees; the widget and notifications are not filtered.
+
+AMOLED black (2026-11-09, `fotmob.amoled_black`, default on once the patch is in, restart required) is a
+runtime switch. The resource step (`amoledOverlayResourcePatch`) checks that the ten attributes of the night
+`Base.Theme.FotMob.DayNight` still reference their stock grays (`nero_black`, `chinese_black`, `raisin_black`,
+`dark_charcoal`) and adds a style `HevalAmoledOverlay` to `res/values/styles.xml` with the same ten
+attributes at AMOLED values (`#0a0a0a` cards and Material surfaces, `#000000` bottom bar, `#141414` card
+headers and unselected chips, `#121212` bottom sheets). `ActivityHooks.onActivityCreated` calls
+`AmoledBlack.applyTheme`, which applies that style to the activity's theme when the switch is on and the
+screen is in dark mode. The night theme itself and the shared colors are not edited, so the light theme is
+untouched and the switch can turn the look off again. Not run on a device.
 
 Hidden competitions (2026-11-03) keys are league ids ("47" is the Premier League); a stage or group league of the match lists (`ParentId` > 0, e.g. a qualification round) is keyed by its parent, as FotMob's own `League` picks a league's primary id, so all stages of a competition hide together (a league picked by its own id goes too, and search names a stage's league by the parent the match lists linked it to). Labels are "country · name" ("England · Premier League", "International (clubs) · Champions League"; the country part is the Hidden countries picker's name), so the alphabetical picker groups competitions by country. Both list patches depend on one unnamed hook patch (`fotMobListFiltersPatch` in `fotmob/countries/ListFilterHooks.kt`) that edits every site once; `CountryFilter` holds the hooks, and each feature patch only rewrites its `patched()` getter (`CountryFilter.patched`, `CompetitionFilter.patched`) to true, so a hook skips the list whose patch is not in. A league goes when its country or its competition is picked; favourite leagues and favourite teams' matches still win. Filtered: match lists, the Leagues tab and onboarding's league picker (never emptied) and search (league hits by id, teams and matches by their `leagueId`). Options: the app's bundled `res/raw/available_leagues` (388 leagues) is the in-memory seed, registered on a background thread by `CompetitionFilter.init`; the leagues list and search report only competitions the seed does not already name the same way, so the 500 saved options are spent on new ones, and match lists never report (hundreds of competitions a day). Not filtered: league/team/match pages, the widget and notifications.
 
@@ -427,6 +506,49 @@ resources: its resource part only adds the `HevalSystemFontOverlay` styles, and
 `ActivityHooks.onActivityCreated` applies them to each new screen while the switch is on. The
 activity hooks are registered from `FotMobApp.onCreate`. Not converted: Disable ads, Disable
 telemetry, Enable FotMob+, GmsCore support and Spoof signature.
+
+## 365Scores features
+
+365Scores 15.0.0 (2026-11-09). The entry point is a "Patch settings" row at the end of the Settings
+page (`scores365/controls/Scores365Controls.kt`): the page's list builder (found by the strings
+"Change Server" and "SETTINGS_CATEGORY_NOTIFICATIONS") gets one more row of the page's own row
+class, built like the dev-only "Change Server" row (same constructor and icon attribute) with the
+id 0x5EE7, and the row click handler (found by its `BolaoWebActivity` class constant) asks
+`SettingsEntry.handles(requireContext(), id)` first and returns when it answers true. The hook gets
+its Context from `Fragment.requireContext()` on p0, so the patch refuses to apply when p0 is
+overwritten before the hook.
+
+| Feature id | Patch | Default | Restart | Gated sites |
+|---|---|---|---|---|
+| `scores365.spoiler_free` | Spoiler-free mode | on | no | master; the match and competition toggles (`addMatchToggle`, `addCompetitionToggle`) are shown only while it is on |
+| `scores365.spoiler_notifications` | Spoiler-free mode | on | no | the notification handler (`blocksNotification`, surface 0) |
+| `scores365.spoiler_lists` | Spoiler-free mode | on | no | the row score formatter (`rowScoreText`, surface 1) |
+| `scores365.spoiler_match_header` | Spoiler-free mode | on | no | the ScoreBoxView header (`afterScoreBox`, surface 2) |
+| `scores365.spoiler_status` | Spoiler-free mode | on | no | the status text of rows and the header (surface 3) |
+| `scores365.spoiler_winner` | Spoiler-free mode | on | no | winner hints of rows and the header (surface 4) |
+
+| `scores365.hidden_competitions` (list) | Hide competitions | off | no | `GamesObj.getGames()` and `getCompetitions()` (`ListFilters.filterGames` / `filterCompetitions`) |
+| `scores365.hidden_countries` (list) | Hide countries | off | no | the same two getters |
+
+Hidden competitions and countries (2026-11-09, owner request: 365Scores lacked what Sofascore and
+FotMob have). Both lists are read at run time, so a change needs no restart. Keys are competition
+ids (`GameObj.getCompetitionID()`, the key of the `competitions` map) and country ids
+(`CompetitionObj.getCid()`); labels are "country · name" and the country name, learned from the
+responses the app loads (`filterCompetitions` reports every competition and country of a response
+once). The shared hook patch (unnamed, `scores365ListFiltersPatch` in `scores365/lists`) makes the
+two getters of the parsed response return a filtered copy: a game of a hidden competition or of a
+hidden country is left out, and so is the competition; the response itself is unchanged, so paging
+and updates keep working. Because the getters belong to the shared response type, a hidden competition
+is also gone from the match lists of team and competition pages. Not filtered: standings, news,
+search results, widgets and notifications. Not run on a device.
+
+`SpoilerFree.isSurfaceOn(surface)` reads the surface's switch through `HevalSettings.isEnabled`, which
+is off while the master is off. The marked matches and competitions are still kept in the
+extension's own preference file (`morphe_spoiler_free`), so 365Scores has no "Marked matches" list
+picker yet. AMOLED black (`scores365.amoled_black`, build-time only) is shown as a read-only row for the same
+reason as on Sofascore: the app picks its dark colors by name in code and layouts and its themes have only three
+attributes. Not converted: Disable ads, Enable Premium, Disable update prompts, GmsCore support and
+Spoof signature.
 
 ## App-specific Java helpers
 
@@ -647,9 +769,21 @@ The limits are stated in the UI, too. Safe mode cannot help when:
 2. **Banners**: safe mode, engine failure, unreadable registry, and pending restarts with a
    "Restart now" button.
 3. **Master switch**: "Pause all patches".
-4. **Feature rows**, one section per category. Each row has a name, a description, a state line
-   and, for restart-required features, a "Restart" badge. A list feature's row opens its picker
-   (see [List settings](#list-settings-pickers)).
+4. **Feature rows**, one collapsible section per category (2026-11-09: an icon and a chevron on the
+   header; 2026-11-11: the header reads "N of M on", in accent when something is on; when the screen
+   has a search field (8+ features) a section starts collapsed unless one of its rows is on; a
+   category whose name contains "spoiler" is listed first; core `Sections.java`). An enabled row has
+   a 4 dp accent bar at its start and a bold accent "On"; descriptions are 14sp, cut at two lines
+   (the spoken description keeps the full text). A search field above the sections (shown from 8
+   features on) filters rows by name, description or category. Each row has an icon (the
+   feature's `icon` key, else its category's: `ui/Icons.java`, drawn in code, no resources), a
+   name, a description, a state line and, for restart-required features, a "Restart" badge. A
+   list feature's row opens its picker (see [List settings](#list-settings-pickers)). Switches
+   that share a `choice` title in one category (2026-11-09) are one row with a picker dialog
+   ("Normal" plus one entry per switch; picking one turns its switch on and the others off): the
+   animation-speed pairs of Sofascore, FotMob and Flashscore. The switches, ids and hooks are
+   unchanged. In the registry the optional tenth field is the icon key and the eleventh the
+   choice title (earlier optional fields are written empty when a later one is present).
 5. **Appearance**: a theme cycle (System, Light, Dark, AMOLED black).
 6. **Diagnostics**: "Copy diagnostics".
 7. **App**: "Restart app", and "Reset all to defaults" with an inline confirmation.
@@ -681,8 +815,31 @@ counts only). Failures appear as an exception class and frame only. The report h
 app content or identifiers.
 The clipboard copy is marked sensitive.
 
-**Extension points** (not built yet): search above the categories, import and export next to
-"Copy diagnostics", and profiles after the master pause.
+**Profiles, export and import** (2026-11-09). A "Profiles" section above Appearance: "Save current
+settings as a profile" (a name of 1 to 40 characters, at most 20 profiles, kept in their own
+`heval_profiles` file so "Reset all to defaults" never removes them), one row per saved profile
+(Apply or Delete), "Copy settings", "Share settings" and "Import settings from the clipboard"
+(with a confirmation that says how many settings it applies). The text is
+`hevalcontrols-settings:1` followed by one line per choice (`f TAB id TAB 1|0` for a switch,
+`l TAB id TAB key` for each picked key of a list), written by `SettingsTransfer.export` and read by
+`SettingsTransfer.parse`; it holds choices only, not the pause, safe mode, theme or the options a
+picker has seen. Importing is forgiving: records for features this app does not have, of the wrong
+kind or with a bad value are skipped and counted, text without the header is rejected, and a list
+missing from the text is imported as empty (the text is a snapshot). A profile or import is applied
+in one write (`HevalSettings.applyChoices`). Covered by `SettingsTransferTest`; the screen part has
+not run on a device.
+
+**Calm mode** (2026-11-09) is a one-tap row at the top of the Profiles section, shown when the registry has
+at least one switch with the `calm` flag (`HevalFeature(calm = true)`, the twelfth registry field, `1`). It
+first saves the current choices as the profile "Before Calm mode" (replacing an older one), then turns every
+calm switch on in one write; nothing else changes, so turning it off is applying that profile. The flag is set
+on: FotMob - Spoiler-free mode and its four surfaces, Hide betting content, Disable rating prompts, Disable
+FotMob+ promo popup; Sofascore - Spoiler-free mode and its three surfaces, Hide betting content, Disable
+rating prompts, Block marketing notifications and the hide-modal pop-up switches; 365Scores - Spoiler-free
+mode and its five surfaces. Not run on a device.
+
+**Extension points** (not built yet): none open at the moment; a launcher shortcut and translations
+remain on the list below.
 
 ## Registry format
 

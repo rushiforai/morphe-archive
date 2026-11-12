@@ -17,7 +17,31 @@ final class Channels {
     private Channels() {
     }
 
+    /** Channels seen in feeds, newest last (ID, @handle, name; any may be null), for the filter editor's suggestions. */
+    private static final Map<String, String[]> SEEN = java.util.Collections.synchronizedMap(
+            new java.util.LinkedHashMap<String, String[]>(128, 0.75f, true) {
+                @Override
+                protected boolean removeEldestEntry(Map.Entry<String, String[]> e) {
+                    return size() > 500;
+                }
+            });
+
+    static java.util.List<String[]> seen() {
+        synchronized (SEEN) {
+            java.util.List<String[]> out = new java.util.ArrayList<>(SEEN.values());
+            java.util.Collections.reverse(out);
+            return out;
+        }
+    }
+
     static void learn(VideoItem item) {
+        if (item.channelName != null || item.handle != null) {
+            String key = item.channelId != null ? item.channelId : item.handle != null ? "@" + item.handle : item.channelName.toLowerCase();
+            String[] old = SEEN.get(key);
+            SEEN.put(key, new String[]{item.channelId,
+                    item.handle != null ? item.handle : old == null ? null : old[1],
+                    item.channelName != null ? VideoItem.cleanName(item.channelName) : old == null ? null : old[2]});
+        }
         if (item.channelId != null && item.handle != null) {
             HANDLE_BY_ID.put(item.channelId, item.handle);
             ID_BY_HANDLE.put(item.handle, item.channelId);

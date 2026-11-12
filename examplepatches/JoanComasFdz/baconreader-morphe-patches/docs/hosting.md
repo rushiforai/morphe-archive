@@ -7,7 +7,9 @@ of its e2e scenarios played beside its Gherkin and its marks.
 
 - **Built, not written:** `tools/guide/build.js` (Node, no dependencies; its tests: `node --test tools/guide/test/*.test.js`)
   builds `site/` into `_site/`:
-  - `index.html` is a user guide: a sidebar on the left lists the patches in docs/patches.md's groups (Fixes, Features,
+  - `index.html` is a user guide. It starts, under "Start here", with its pages on the patcher's manager,
+    `docs/manager/<page>.md` (how to install, with its Manager scenario's newest recording), and "How to update"
+    (`site/update.json`, below). Then a sidebar on the left lists the patches in docs/patches.md's groups (Fixes, Features,
     Cleanups; a patch in none comes under "More") where its `<!-- guide-nav -->` comment is, highlights the one being
     read and folds into a "Patches" menu on a phone; each patch's page, `docs/patches/<patch>.md` (AGENTS.md, "Patch
     pages"), comes in the same order where its `<!-- guide -->` comment is, with what it does only with this repo's
@@ -19,7 +21,12 @@ of its e2e scenarios played beside its Gherkin and its marks.
     come near the screen;
   - `site/favicon.png` is BaconReader's icon, from its APK (`res/mipmap-xxxhdpi/ic_launcher.png`); `site/preview.jpg`
     (1200 × 630) is the preview a shared link to the guide shows, through `index.html`'s Open Graph tags. Both are
-    copied as they are.
+    copied as they are;
+  - `site/update.json`, if any, makes the guide start with "How to update": its summary and bullets, and a video of
+    updating BaconReader with the patcher's manager, `site/update.mp4`, beside its Gherkin, each line marked when it
+    starts. A one-off recording, not an e2e scenario's: it is recorded again by hand when the manager's screens change,
+    and its Gherkin follows the Gherkin rules ([given-when-then-test-rules.md](given-when-then-test-rules.md)) as a
+    scenario's does.
 - **Which recording:** a scenario's newest in `prs-resources`, the highest PR, then its highest version, as the VS Code
   extension picks it (the builder uses its code). Its Gherkin and marks come from the player link in that PR's post,
   whose fragment carries them, since no page can read a file from the release. A scenario with no recording shows its

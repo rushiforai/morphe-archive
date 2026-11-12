@@ -55,6 +55,25 @@ public class FixMoreCommentsPatch extends PatchedditInterceptor {
     /** Reddit serves at most this many comments in one answer. */
     private static final String MOST_COMMENTS = "500";
 
+    /**
+     * What Sync asks of Reddit beside the comments themselves, and what has to be asked for
+     * here as well.
+     *
+     * <p>{@code profile_img=true} is what puts each author's picture into the answer, under
+     * {@code profile_img} on the comment itself, and Sync's parser stores it from there and
+     * from nowhere else — a comment that arrives without it is drawn with no picture beside
+     * the name, for good, since nothing goes back for it afterwards. Sync asks for it on the
+     * thread and on the endpoint this stands in for, which is why the comments that came with
+     * the thread had their pictures and the ones behind a <i>view more</i> did not.
+     *
+     * <p>{@code always_show_media=1} is asked beside it everywhere Sync asks for comments, so
+     * it is asked here too: what this hands back should differ from what Reddit would have
+     * answered in as little as possible.
+     */
+    private static final String SHOW_MEDIA = "always_show_media";
+
+    private static final String AUTHOR_PICTURES = "profile_img";
+
     @Override
     public boolean isPatchIncluded() {
         // Overridden by patch.
@@ -227,6 +246,8 @@ public class FixMoreCommentsPatch extends PatchedditInterceptor {
                         .addPathSegment("_").addPathSegment(id + ".json")
                         .addQueryParameter("limit", MOST_COMMENTS)
                         .addQueryParameter("context", "0")
+                        .addQueryParameter(SHOW_MEDIA, "1")
+                        .addQueryParameter(AUTHOR_PICTURES, "true")
                         .build())
                 .build();
     }
@@ -239,6 +260,8 @@ public class FixMoreCommentsPatch extends PatchedditInterceptor {
                         .scheme("https").host(HOST)
                         .addPathSegment("comments").addPathSegment(link + ".json")
                         .addQueryParameter("limit", MOST_COMMENTS)
+                        .addQueryParameter(SHOW_MEDIA, "1")
+                        .addQueryParameter(AUTHOR_PICTURES, "true")
                         .build())
                 .build();
     }

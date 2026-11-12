@@ -2,7 +2,7 @@
 
 Some apps I patched and other apps that were requested if you would like to request an app please drop a comment in my reddit discussion for patches: https://www.reddit.com/r/MorpheApp/s/xRx6wdTYA5
 
-**31 apps · 65 patches** · current bundle: [v1.69.2](https://github.com/mwbra130/Retro-Bowl-College/releases/tag/v1.69.2)
+**32 apps · 66 patches** · current bundle: [v1.70.0](https://github.com/mwbra130/Retro-Bowl-College/releases/tag/v1.70.0)
 
 ## Apps
 
@@ -13,7 +13,7 @@ Some apps I patched and other apps that were requested if you would like to requ
      the GRID_START / GRID_END markers on every release — new apps get their name, Play
      Store icon and experimental marker automatically, and grid names link to the
      detailed sections below (which use the apps' full Play Store names). Kept OUTSIDE the auto-generated patches
-     block below on purpose. Reflects bundle v1.69.2. -->
+     block below on purpose. Reflects bundle v1.70.0. -->
 
 <!-- GRID_START -->
 <table>
@@ -99,15 +99,19 @@ Some apps I patched and other apps that were requested if you would like to requ
 <br><a href="#app-com-rkgames-basisgame"><b>Smashy Road 2</b></a>
 </td>
 <td align="center" width="20%">
+<img src="https://play-lh.googleusercontent.com/G1eIJ3yor1yW20izrYjOfCzHgVkRtewlfPFG9CEFTHzSI2m0Lwds_Y1xYgeg21CFok_UXrol-ox2IwqL4JMrLQ=w128-h128" width="72" height="72" alt="Subway Surfers icon">
+<br><a href="#app-com-kiloo-subwaysurf"><b>Subway Surfers</b></a>
+</td>
+<td align="center" width="20%">
 <img src="https://play-lh.googleusercontent.com/5wJZegUK2e_dXD14bp1NqX_Op20rpfnSLAYiuVJR7e32095qA8-yEDlezpbT7r1mx69VzjqWbCyVhHMm1T8O=w128-h128" width="72" height="72" alt="Tuner icon">
 <br><a href="#app-com-studiosol-afinadorlite"><b>Tuner</b></a>
 </td>
+</tr>
+<tr>
 <td align="center" width="20%">
 <img src="https://play-lh.googleusercontent.com/o2AAUlWu7gGP5WwbE7eg0aP3vqNKjna0HbfFP3LIFVAHpUpT3KfLxnGv3R8Nn6z0XUP9hsly0SBR4jniSW08Dw=w128-h128" width="72" height="72" alt="Unified Remote icon">
 <br><a href="#app-com-relmtech-remote"><b>Unified Remote</b></a>
 </td>
-</tr>
-<tr>
 <td align="center" width="20%">
 <img src="https://play-lh.googleusercontent.com/z74H5YZukP3qJGkbJGUZj39y_1rDADZI_rkRUB04ID1x9WjhpuBA_t_FMdMQ7vFm0MFwLWkMFQPInRq-kC7MXg=w128-h128" width="72" height="72" alt="Video Cutter icon">
 <br><a href="#app-com-losslessvideocutter"><b>Video Cutter</b></a>
@@ -194,7 +198,7 @@ Some apps I patched and other apps that were requested if you would like to requ
 ## Patch descriptions
 
 <!-- PATCHES_START -->
-> **[v1.69.2](https://github.com/mwbra130/Retro-Bowl-College/releases/tag/v1.69.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;65 patches total
+> **[v1.70.0](https://github.com/mwbra130/Retro-Bowl-College/releases/tag/v1.70.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;66 patches total
 <a id="app-com-strava" name="app-com-strava"></a>
 <details>
 <summary>Strava: Run, Bike, Walk&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
@@ -677,6 +681,22 @@ Some apps I patched and other apps that were requested if you would like to requ
 
 </details>
 
+<a id="app-com-kiloo-subwaysurf" name="app-com-kiloo-subwaysurf"></a>
+<details>
+<summary>Subway Surfers&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported versions:**
+
+| 3.70.0 | 3.71.0 |
+| :---: | :---: |
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Unlimited coins and keys](#unlimited-coins-and-keys) | Coins and keys always report 2,147,483,647, so every purchase is affordable. Ported from legendsciber's Currency Hack and re-anchored for 3.71.0. |  |
+
+</details>
+
 <a id="app-com-maxmpz-audioplayer" name="app-com-maxmpz-audioplayer"></a>
 <details>
 <summary>Poweramp Music Player&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
@@ -752,6 +772,7 @@ Some patches in this bundle are ports or updates of other creators' work — cre
 - **Poweramp** — [arandomhooman](https://github.com/arandomhooman/hoomans-morphe-patches): the Poweramp "Unlock Premium" patch is a port of his patch for Poweramp build-1025, retargeted to build-1031.
 - **Gradient Weather** — [morningentree (Entree3k)](https://github.com/Entree3k/Morning-Entree-Patches): the Gradient Weather "Enable Premium" patch was authored from his Morning Entree Patches template.
 - **Crossy Road** — [byehi98](https://github.com/byehi98/okish-morphe-patches): the Crossy Road "Free store" patch is a port of his okish-morphe-patches version (his targeted Crossy Road 7.13.0; updated here for 7.14.0).
+- **Subway Surfers** — [legendsciber](https://github.com/legendsciber/morphe-patches): the "Unlimited coins and keys" patch is a port of his Currency Hack (his targeted Subway Surfers 3.70.0; re-anchored here and extended to 3.71.0 after he removed it upstream).
 
 ## Disclaimer
 

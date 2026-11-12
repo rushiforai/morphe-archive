@@ -1,5 +1,6 @@
 package app.template.patches.shared
 
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.builder.BuilderTryBlock
@@ -88,4 +89,43 @@ fun MutableMethod.ensureRegisters(needed: Int) {
                 "dexlib2 internal layout changed?",
         )
     field.setInt(impl, needed)
+}
+
+/**
+ * No-op a `void` method: wipe the body (including try-blocks) and return immediately.
+ * The standard neutralisation for an SDK entry point.
+ *
+ * The `(…)V` shape is required — a Kotlin **suspend** function
+ * (`(…)Ljava/lang/Object;`) must not be neutralised this way, and it must not be
+ * neutralised with `sget-object …Lkotlin/Unit;->INSTANCE` either: a shrunk app can strip
+ * `kotlin.Unit.INSTANCE` (nothing reads it), so that injection throws
+ * `NoSuchFieldError: No static field INSTANCE … in class Lkotlin/Unit` at runtime.
+ * Verified on device against TextNow 26.45.0.0.
+ *
+ * For a suspend function, do **not** rewrite it — neutralise the `void` SDK entry point
+ * it calls instead (TextNow: `AFa1tSDK.start()V` behind `AppsFlyerLib.start()`).
+ */
+fun MutableMethod.returnVoid() {
+    clearBody()
+    addInstructions(0, "return-void")
+}
+
+/**
+ * Complete a Kotlin **suspend** `Boolean`-returning method with `false`.
+ *
+ * Used to gate a suspend predicate — e.g. an ad-SDK `isEnabled(Context, …, Continuation)`
+ * — so the caller skips the feature without the predicate's suspend body ever running.
+ * Unlike `kotlin.Unit.INSTANCE`, `java.lang.Boolean.FALSE` cannot be stripped by R8, so
+ * this is the safe way to neutralise a suspend predicate.
+ */
+fun MutableMethod.returnFalseSuspend() {
+    clearBody()
+    ensureRegisters(1)
+    addInstructions(
+        0,
+        """
+        sget-object v0, Ljava/lang/Boolean;->FALSE:Ljava/lang/Boolean;
+        return-object v0
+        """.trimIndent(),
+    )
 }

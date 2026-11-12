@@ -1,6 +1,5 @@
 package app.template.patches.sofascore.ads
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
@@ -29,7 +28,7 @@ val disableAdsPatch = bytecodePatch(
         //   if (getForceAds()) showAds();                       // -> false
         //   if (!getHasServerAds() || getPurchasedAds()
         //       || getForceHideAds() || ...) hideAds();         // -> true
-        GetForceAdsFingerprint.method.addInstructions(
+        GetForceAdsFingerprint.method.addInstructionsChecked(
             0,
             """
                 const/4 v0, 0x0
@@ -37,7 +36,7 @@ val disableAdsPatch = bytecodePatch(
             """
         )
 
-        GetForceHideAdsFingerprint.method.addInstructions(
+        GetForceHideAdsFingerprint.method.addInstructionsChecked(
             0,
             """
                 const/4 v0, 0x1
@@ -45,7 +44,7 @@ val disableAdsPatch = bytecodePatch(
             """
         )
 
-        GetHasServerAdsFingerprint.method.addInstructions(
+        GetHasServerAdsFingerprint.method.addInstructionsChecked(
             0,
             """
                 const/4 v0, 0x0

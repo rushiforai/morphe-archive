@@ -1,5 +1,5 @@
 {
-  "version": "v0.81.0",
+  "version": "v0.82.0",
   "appNames": {
     "com.zhiliaoapp.musically": "TikTok"
   },
@@ -10,8 +10,7 @@
       "category": "Interface",
       "use": false,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch"
+        "Patch"
       ],
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
@@ -72,8 +71,7 @@
       "category": "Interface",
       "use": false,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch"
+        "Patch"
       ],
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
@@ -170,7 +168,7 @@
       "category": "Privacy",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -210,8 +208,7 @@
       "use": true,
       "dependencies": [
         "Block author button",
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -557,8 +554,7 @@
       "category": "Downloads",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -616,8 +612,7 @@
       "category": "Downloads",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -666,8 +661,7 @@
       "category": "Feed",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -815,8 +809,7 @@
       "category": "Interaction",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -865,8 +858,7 @@
       "category": "Privacy",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -924,8 +916,7 @@
       "category": "Playback",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -1001,7 +992,7 @@
       "category": "Performance",
       "use": false,
       "dependencies": [
-        "RawResourcePatch"
+        "Patch"
       ],
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
@@ -1039,8 +1030,7 @@
       "category": "Interaction",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -1088,6 +1078,15 @@
           "required": false,
           "type": "kotlin.Boolean",
           "default": false,
+          "values": null
+        },
+        {
+          "key": "pause_before_feed_seconds",
+          "title": "Default: pause before feed seconds",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Int",
+          "default": 0,
           "values": null
         },
         {
@@ -1305,8 +1304,7 @@
       "category": "Privacy",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -1355,8 +1353,7 @@
       "category": "Privacy",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -1405,8 +1402,7 @@
       "category": "Feed",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -1473,8 +1469,7 @@
       "category": "Inbox",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -1523,8 +1518,7 @@
       "category": "Privacy",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -1573,7 +1567,7 @@
       "category": "Interface",
       "use": false,
       "dependencies": [
-        "RawResourcePatch"
+        "Patch"
       ],
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
@@ -1621,7 +1615,7 @@
       "category": "Comments",
       "use": true,
       "dependencies": [
-        "BytecodePatch"
+        "Patch"
       ],
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
@@ -1659,8 +1653,8 @@
       "category": "Comments",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "Comment publish diagnostics"
+        "Comment publish diagnostics",
+        "Patch"
       ],
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
@@ -1698,8 +1692,7 @@
       "category": "Comments",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -1748,9 +1741,8 @@
       "category": "Comments",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
         "Double-tap controls",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -1900,6 +1892,24 @@
           "values": null
         },
         {
+          "key": "fold_long_comments",
+          "title": "Default: fold long comments",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "fold_long_comments_lines",
+          "title": "Default: fold long comments lines",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Int",
+          "default": 4,
+          "values": null
+        },
+        {
           "key": "hide_comment_media",
           "title": "Default: hide comment media",
           "description": null,
@@ -2043,8 +2053,7 @@
       "use": true,
       "dependencies": [
         "Block author button",
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -2129,8 +2138,7 @@
       "category": "Interaction",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -2197,8 +2205,7 @@
       "category": "Comments",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -2247,7 +2254,7 @@
       "category": "Comments",
       "use": true,
       "dependencies": [
-        "BytecodePatch"
+        "Patch"
       ],
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
@@ -2285,7 +2292,7 @@
       "category": "Interface",
       "use": false,
       "dependencies": [
-        "RawResourcePatch"
+        "Patch"
       ],
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
@@ -2369,8 +2376,7 @@
       "category": "Feed",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -2421,6 +2427,15 @@
           "values": null
         },
         {
+          "key": "delete_watched_offline_videos",
+          "title": "Default: delete watched offline videos",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
           "key": "keep_offline_videos",
           "title": "Default: keep offline videos",
           "description": null,
@@ -2437,8 +2452,7 @@
       "category": "Privacy",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -2514,8 +2528,7 @@
       "category": "Settings",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -2600,7 +2613,7 @@
       "category": "Settings",
       "use": true,
       "dependencies": [
-        "BytecodePatch"
+        "Patch"
       ],
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
@@ -2638,7 +2651,7 @@
       "category": "Downloads",
       "use": true,
       "dependencies": [
-        "BytecodePatch"
+        "Patch"
       ],
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
@@ -2676,8 +2689,7 @@
       "category": "Privacy",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -2726,8 +2738,7 @@
       "category": "Interaction",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -2776,8 +2787,7 @@
       "category": "Interaction",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -2827,8 +2837,7 @@
       "use": true,
       "dependencies": [
         "Block author button",
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -2922,8 +2931,7 @@
       "category": "Downloads",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -3080,8 +3088,7 @@
       "category": "Performance",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -3130,8 +3137,7 @@
       "category": "Comments",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -3180,8 +3186,7 @@
       "category": "Inbox",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -3307,8 +3312,7 @@
       "category": "Feed",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -3545,6 +3549,15 @@
           "required": false,
           "type": "kotlin.Boolean",
           "default": false,
+          "values": null
+        },
+        {
+          "key": "search_tab_picks",
+          "title": "Default: search tab picks",
+          "description": null,
+          "required": false,
+          "type": "kotlin.String",
+          "default": "",
           "values": null
         },
         {
@@ -3879,8 +3892,7 @@
       "category": "Settings",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -4172,8 +4184,7 @@
       "category": "Interface",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -4249,8 +4260,7 @@
       "category": "Playback",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -4308,7 +4318,7 @@
       "category": "Settings",
       "use": true,
       "dependencies": [
-        "BytecodePatch"
+        "Patch"
       ],
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
@@ -4346,8 +4356,7 @@
       "category": "Comments",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -4405,7 +4414,7 @@
       "category": "Interaction",
       "use": true,
       "dependencies": [
-        "BytecodePatch"
+        "Patch"
       ],
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
@@ -4443,8 +4452,7 @@
       "category": "Settings",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -4493,8 +4501,7 @@
       "category": "Privacy",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -4579,8 +4586,7 @@
       "category": "Feed",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -4629,7 +4635,7 @@
       "category": "Performance",
       "use": false,
       "dependencies": [
-        "RawResourcePatch"
+        "Patch"
       ],
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
@@ -4667,9 +4673,8 @@
       "category": "Feed",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
         "Feed filter",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -4763,8 +4768,7 @@
       "category": "Comments",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -4813,8 +4817,7 @@
       "category": "Comments",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -4863,8 +4866,7 @@
       "category": "Feed",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -4931,8 +4933,7 @@
       "category": "Feed",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -4981,8 +4982,7 @@
       "category": "Feed",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -5031,8 +5031,7 @@
       "category": "Feed",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -5081,8 +5080,7 @@
       "category": "Feed",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -5140,8 +5138,7 @@
       "category": "Inbox",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -5397,8 +5394,7 @@
       "category": "Inbox",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -5447,8 +5443,7 @@
       "category": "Feed",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -5542,8 +5537,7 @@
       "category": "Inbox",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -5592,8 +5586,7 @@
       "category": "Search",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -5660,8 +5653,7 @@
       "category": "Inbox",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -5710,8 +5702,7 @@
       "category": "Interface",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -5760,8 +5751,8 @@
       "category": "Feed",
       "use": false,
       "dependencies": [
-        "BytecodePatch",
-        "Hide CAPTCHA popups"
+        "Hide CAPTCHA popups",
+        "Patch"
       ],
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
@@ -5799,8 +5790,7 @@
       "category": "Feed",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -6389,8 +6379,7 @@
       "category": "Playback",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -6439,8 +6428,7 @@
       "category": "Privacy",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -6489,9 +6477,7 @@
       "category": "Inbox",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
-        "ResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -6567,8 +6553,7 @@
       "category": "Playback",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -6635,8 +6620,7 @@
       "category": "Playback",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -6685,7 +6669,7 @@
       "category": "Comments",
       "use": true,
       "dependencies": [
-        "BytecodePatch"
+        "Patch"
       ],
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
@@ -6723,8 +6707,7 @@
       "category": "Settings",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -6782,8 +6765,7 @@
       "category": "Settings",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -6832,8 +6814,7 @@
       "category": "Playback",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -6882,8 +6863,7 @@
       "category": "Interface",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -6932,8 +6912,7 @@
       "category": "Playback",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -6982,8 +6961,7 @@
       "category": "Inbox",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -7041,9 +7019,7 @@
       "category": "Playback",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
-        "ResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -7227,8 +7203,7 @@
       "category": "Comments",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -7277,8 +7252,7 @@
       "category": "Performance",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -7336,7 +7310,7 @@
       "category": "Comments",
       "use": true,
       "dependencies": [
-        "BytecodePatch"
+        "Patch"
       ],
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
@@ -7374,8 +7348,7 @@
       "category": "Privacy",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -7426,7 +7399,7 @@
       "dependencies": [
         "Block author button",
         "Double-tap controls",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -7556,8 +7529,7 @@
       "category": "Privacy",
       "use": false,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -7616,8 +7588,7 @@
       "use": true,
       "dependencies": [
         "Block author button",
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -7693,8 +7664,7 @@
       "category": "Settings",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -7788,7 +7758,7 @@
       "category": "Privacy",
       "use": false,
       "dependencies": [
-        "BytecodePatch"
+        "Patch"
       ],
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
@@ -7827,8 +7797,7 @@
       "use": true,
       "dependencies": [
         "Block author button",
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -7895,8 +7864,7 @@
       "category": "Inbox",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -7972,8 +7940,7 @@
       "category": "Interaction",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -8022,8 +7989,7 @@
       "category": "Comments",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -8072,9 +8038,7 @@
       "category": "Playback",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
-        "ResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -8123,8 +8087,7 @@
       "category": "Playback",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -8173,8 +8136,7 @@
       "category": "Playback",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -8232,8 +8194,7 @@
       "category": "Playback",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -8372,8 +8333,7 @@
       "category": "Playback",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -8422,8 +8382,7 @@
       "category": "Interaction",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -8472,7 +8431,7 @@
       "category": "Settings",
       "use": false,
       "dependencies": [
-        "RawResourcePatch",
+        "Patch",
         "SIM spoof",
         "Settings"
       ],
@@ -8603,8 +8562,7 @@
       "category": "Playback",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -8680,8 +8638,7 @@
       "category": "Performance",
       "use": false,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch"
+        "Patch"
       ],
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
@@ -8719,8 +8676,7 @@
       "category": "Feed",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -8814,8 +8770,7 @@
       "category": "Performance",
       "use": false,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch"
+        "Patch"
       ],
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
@@ -8853,7 +8808,7 @@
       "category": "Performance",
       "use": false,
       "dependencies": [
-        "RawResourcePatch"
+        "Patch"
       ],
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
@@ -8891,7 +8846,7 @@
       "category": "Performance",
       "use": false,
       "dependencies": [
-        "RawResourcePatch"
+        "Patch"
       ],
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
@@ -8939,8 +8894,7 @@
       "category": "Performance",
       "use": false,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch"
+        "Patch"
       ],
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
@@ -8978,8 +8932,7 @@
       "category": "Interface",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -9037,8 +8990,8 @@
       "category": "Interaction",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "Follow diagnostics"
+        "Follow diagnostics",
+        "Patch"
       ],
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
@@ -9076,8 +9029,7 @@
       "category": "Privacy",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -9135,8 +9087,7 @@
       "category": "Interaction",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -9185,7 +9136,7 @@
       "category": "Settings",
       "use": false,
       "dependencies": [
-        "BytecodePatch"
+        "Patch"
       ],
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
@@ -9223,8 +9174,7 @@
       "category": "Settings",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -9309,8 +9259,7 @@
       "category": "Interaction",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -9377,9 +9326,7 @@
       "category": "Settings",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
-        "ResourcePatch"
+        "Patch"
       ],
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
@@ -9576,8 +9523,7 @@
       "category": "Interaction",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -9707,8 +9653,7 @@
       "category": "Search",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch"
+        "Patch"
       ],
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
@@ -9756,8 +9701,7 @@
       "category": "Feed",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -9824,8 +9768,7 @@
       "category": "Comments",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -9901,8 +9844,7 @@
       "category": "Feed",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -9951,8 +9893,7 @@
       "category": "Feed",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -10001,8 +9942,7 @@
       "category": "Interaction",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -10096,8 +10036,7 @@
       "category": "Playback",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -10200,8 +10139,7 @@
       "category": "Playback",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch"
+        "Patch"
       ],
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
@@ -10249,8 +10187,7 @@
       "category": "Feed",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -10317,8 +10254,7 @@
       "category": "Settings",
       "use": false,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -10367,8 +10303,7 @@
       "category": "Settings",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -10417,8 +10352,7 @@
       "category": "Performance",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -10467,8 +10401,7 @@
       "category": "Performance",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -10517,8 +10450,7 @@
       "category": "Playback",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -10567,8 +10499,7 @@
       "category": "Privacy",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -10617,8 +10548,7 @@
       "category": "Privacy",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -10667,8 +10597,7 @@
       "category": "Privacy",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -10717,8 +10646,7 @@
       "category": "Search",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -10767,8 +10695,7 @@
       "category": "Playback",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -10817,8 +10744,7 @@
       "category": "Playback",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -10878,8 +10804,7 @@
       "dependencies": [
         "Advanced downloads",
         "Block author button",
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -11010,9 +10935,8 @@
       "use": true,
       "dependencies": [
         "Block author button",
-        "BytecodePatch",
         "Double-tap controls",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -11061,8 +10985,7 @@
       "category": "Comments",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -11174,7 +11097,7 @@
       "category": "Privacy",
       "use": false,
       "dependencies": [
-        "RawResourcePatch"
+        "Patch"
       ],
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
@@ -11212,8 +11135,7 @@
       "category": "Interaction",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -11262,8 +11184,7 @@
       "category": "Interface",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -11312,8 +11233,7 @@
       "category": "Search",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {
@@ -11362,8 +11282,7 @@
       "category": "Interface",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "RawResourcePatch",
+        "Patch",
         "Settings"
       ],
       "compatiblePackages": {

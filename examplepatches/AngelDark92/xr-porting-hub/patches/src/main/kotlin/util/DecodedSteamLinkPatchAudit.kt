@@ -5,15 +5,20 @@ import app.morphe.patcher.PatcherConfig
 import app.morphe.patcher.apk.ApkUtils.applyTo
 import app.morphe.patcher.patch.rawResourcePatch
 import app.morphe.patcher.patch.Patch
-import app.template.patches.steamlink.androidxr.STOCK_QUAD_LIBRARY
-import app.template.patches.steamlink.androidxr.STOCK_QUAD_MANIFEST
+import app.template.patches.steamlink.androidxr.androidSurfaceTriggerBuildIdForBuild
+import app.template.patches.steamlink.androidxr.ANDROID_SURFACE_TRIGGER_MANIFEST
 import app.template.patches.steamlink.androidxr.patchModernTongueTransport
+import app.template.patches.steamlink.androidxr.androidSurfaceTriggerResourceLibraryForBuild
 import app.template.patches.steamlink.androidxr.ensureIdsXml
+import app.template.patches.steamlink.androidxr.LEGACY_NATIVE_QUAD_MODE
+import app.template.patches.steamlink.androidxr.NATIVE_QUAD_LIBRARY
+import app.template.patches.steamlink.androidxr.NATIVE_QUAD_MODE
+import app.template.patches.steamlink.androidxr.nativeQuadFarPlanePatch
 import app.template.patches.steamlink.androidxr.gxrFacebridgePatch
 import app.template.patches.steamlink.androidxr.unrestrictedBatteryUsagePatch
 import app.template.patches.steamlink.androidxr.xrCoreRuntimePatch
 import app.template.patches.steamlink.androidxr.xrDeviceConfigBaselinePatch
-import app.template.patches.steamlink.androidxr.stockQuadCompositionPatch
+import app.template.patches.steamlink.androidxr.alpha0HighResolutionTriggerPatch
 import app.template.patches.steamlink.androidxr.xrInputRoutingConfigPatch
 import app.template.patches.steamlink.androidxr.xrLauncherBootstrapPatch
 import app.template.patches.steamlink.androidxr.xrManifestCapabilityPackPatch
@@ -27,6 +32,12 @@ import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstructio
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import app.template.patches.steamlink.binary.androidXrNativePermissionNamesPatch
+import app.template.patches.steamlink.binary.NATIVE_QUAD_FAR_DEFAULT_DISTANCE
+import app.template.patches.steamlink.binary.NATIVE_QUAD_FAR_DEFAULT_SETTINGS
+import app.template.patches.steamlink.binary.NATIVE_QUAD_FAR_HELPER_SIZE
+import app.template.patches.steamlink.binary.isNativeQuadFarPayload
+import app.template.patches.steamlink.binary.readNativeQuadFarDistance
+import app.template.patches.steamlink.binary.readNativeQuadFarSettings
 import app.template.patches.steamlink.binary.forceHmdInitializationGatesPatch
 import app.template.patches.steamlink.binary.forceLobbyPermissionStateGatePatch
 import app.template.patches.steamlink.binary.forceStreamXrGatesPatch
@@ -67,7 +78,7 @@ private val legacySites = mapOf(
 )
 
 private val publicPatchesFor5002363: List<Patch<*>> = listOf(
-    gxrFacebridgePatch, stockQuadCompositionPatch,
+    gxrFacebridgePatch, alpha0HighResolutionTriggerPatch,
     microphoneInputPresetPatch, oledCalibrationPatch, unrestrictedBatteryUsagePatch, hmdOnlyPatch,
 )
 
@@ -79,7 +90,7 @@ private val publicPatchesFor5001712: List<Patch<*>> = listOf(
     forceLobbyPermissionStateGatePatch,
     forceStreamXrGatesPatch,
     gxrFacebridgePatch,
-    stockQuadCompositionPatch,
+    alpha0HighResolutionTriggerPatch,
     microphoneInputPresetPatch,
     oledCalibrationPatch,
     unrestrictedBatteryUsagePatch,
@@ -175,7 +186,7 @@ private suspend fun runSingleAudit(args: Array<String>) {
             configurePublicAuditOptions(patch, base)
             executePatch(fixture, patch, File(patchDirectory, "temporary"), output)
             verifyPublicPatchOutput(output, patch, base)
-            if (patch == stockQuadCompositionPatch) {
+            if (patch == alpha0HighResolutionTriggerPatch) {
                 verifyStandaloneHighResolutionBoundary(fixture, output, base)
             }
             println("PASS ${base.versionName}/${base.versionCode} public patch output: $patchName: $output")
@@ -188,7 +199,7 @@ private suspend fun runSingleAudit(args: Array<String>) {
             val caseDirectory = File(outputDirectory, "high-resolution-${fixture.versionCode}")
             val output = File(caseDirectory, "steamlink-${fixture.versionCode}-high-resolution-unsigned.apk")
             output.parentFile.mkdirs()
-            executePatch(input, stockQuadCompositionPatch, File(caseDirectory, "temporary"), output)
+            executePatch(input, alpha0HighResolutionTriggerPatch, File(caseDirectory, "temporary"), output)
             verifyHighResolutionOutput(output, fixture)
             verifyStandaloneHighResolutionBoundary(input, output, fixture)
             println("PASS ${fixture.versionName}/${fixture.versionCode} high-resolution output: $output")
@@ -235,7 +246,70 @@ private suspend fun runSingleAudit(args: Array<String>) {
             println("PASS ${fixture.versionName}/${fixture.versionCode} Visual Delay output: $output")
         }
 
+        "far-plane" -> {
+            val fixture = highResolutionFixtures.single { it.versionCode == "5001712" }
+            val input = fixtureFile(fixtureDirectory, fixture)
+            require(input.isFile) { "Missing decoded APK fixture: $input" }
+            val caseDirectory = File(outputDirectory, "far-plane-${fixture.versionCode}")
+            val output = File(caseDirectory, "steamlink-${fixture.versionCode}-far-plane-unsigned.apk")
+            output.parentFile.mkdirs()
+            // Exclusive selection of a resourcePatch against the pristine APK whose manifest is
+            // packed AXML: this is the real single-patch FULL-decode boundary the far plane must
+            // survive, unlike Morphe's RAW_ONLY resource mode.
+            executePatch(input, nativeQuadFarPlanePatch, File(caseDirectory, "temporary"), output)
+            verifyFarPlaneOutput(input, output)
+            verifyFarPlaneReapply(output, File(caseDirectory, "temporary-reapply"))
+            println("PASS ${fixture.versionName}/${fixture.versionCode} exclusive far-plane output: $output")
+        }
+
         else -> error("Unknown audit kind: ${args[2]}")
+    }
+}
+
+private fun verifyFarPlaneOutput(inputApk: File, outputApk: File) {
+    check(outputApk.isFile && outputApk.length() > 0) { "Far plane did not emit an APK" }
+    val scenePath = "lib/arm64-v8a/libvrlink_scene.so"
+    ZipFile(inputApk).use { original ->
+        ZipFile(outputApk).use { result ->
+            val helper = result.requireEntryBytes("lib/arm64-v8a/$NATIVE_QUAD_LIBRARY")
+            check(helper.size == NATIVE_QUAD_FAR_HELPER_SIZE) {
+                "Far plane helper size drifted: ${helper.size}"
+            }
+            // The installed helper is the pinned payload with the default distance/settings slot.
+            check(isNativeQuadFarPayload(helper)) { "Far plane helper failed the pinned payload check" }
+            check(readNativeQuadFarDistance(helper) == NATIVE_QUAD_FAR_DEFAULT_DISTANCE) {
+                "Far plane helper distance drifted"
+            }
+            check(readNativeQuadFarSettings(helper) == NATIVE_QUAD_FAR_DEFAULT_SETTINGS) {
+                "Far plane helper layer settings drifted"
+            }
+            val sceneBefore = original.requireEntryBytes(scenePath)
+            val sceneAfter = result.requireEntryBytes(scenePath)
+            check(sceneAfter.size == sceneBefore.size) { "Far plane changed the scene library size" }
+            check(!sceneAfter.contentEquals(sceneBefore)) { "Far plane left the scene library unchanged" }
+            val manifest = result.requireEntryBytes("AndroidManifest.xml")
+            manifest.requireEncodedString(NATIVE_QUAD_MODE)
+            check(!manifest.containsEncodedString(LEGACY_NATIVE_QUAD_MODE)) {
+                "Far plane left the removed native_quad_v1 marker"
+            }
+        }
+    }
+}
+
+/** A second exclusive apply must not rewrite the helper, scene or metadata. */
+private suspend fun verifyFarPlaneReapply(patchedApk: File, temporaryDirectory: File) {
+    val reappliedApk = File(temporaryDirectory.parentFile, "${patchedApk.nameWithoutExtension}-reapply.apk")
+    temporaryDirectory.mkdirs()
+    executePatch(patchedApk, nativeQuadFarPlanePatch, temporaryDirectory, reappliedApk)
+    val scenePath = "lib/arm64-v8a/libvrlink_scene.so"
+    ZipFile(patchedApk).use { first ->
+        ZipFile(reappliedApk).use { second ->
+            listOf(scenePath, "lib/arm64-v8a/$NATIVE_QUAD_LIBRARY", "AndroidManifest.xml").forEach { path ->
+                check(first.requireEntryBytes(path).contentEquals(second.requireEntryBytes(path))) {
+                    "Far plane reapply changed $path"
+                }
+            }
+        }
     }
 }
 
@@ -287,7 +361,7 @@ private fun verifyPublicPatchOutput(outputApk: File, patch: Patch<*>, fixture: H
                 manifest.requireEncodedString("android.permission.FACE_TRACKING")
             }
 
-            stockQuadCompositionPatch -> verifyHighResolutionZip(apk, fixture)
+            alpha0HighResolutionTriggerPatch -> verifyHighResolutionZip(apk, fixture)
 
             microphoneInputPresetPatch -> scene.requireBytesAt(sites.mic, "c1008052".hexBytes())
 
@@ -390,7 +464,7 @@ private fun verifyModernPublicOutput(
             }
         }
     } }
-    if (patch == stockQuadCompositionPatch) {
+    if (patch == alpha0HighResolutionTriggerPatch) {
         verifyHighResolutionOutput(output, fixture)
         verifyStandaloneHighResolutionBoundary(input, output, fixture)
     }
@@ -483,22 +557,28 @@ private fun verifyHighResolutionZip(
     check(apk.getEntry("lib/arm64-v8a/libgxr_ast_underside.so") == null)
     check(apk.getEntry("assets/openxr/1/api_layers/implicit.d/" +
         "XR_APILAYER_local_GalaxyXR_android_surface_underside_projection_v1.json") == null)
-    // Retired Alpha-0 payloads must never survive on a stock-quad output.
-    check(apk.getEntry("lib/arm64-v8a/libgxr_ast.so") == null)
-    check(apk.getEntry("lib/arm64-v8a/libgxr_ast_5001712.so") == null)
-    check(apk.getEntry("assets/openxr/1/api_layers/implicit.d/" +
-        "XR_APILAYER_local_GalaxyXR_android_surface_trigger_passthrough_v1.json") == null)
-    val installedHelper = apk.requireEntryBytes("lib/arm64-v8a/$STOCK_QUAD_LIBRARY")
+    val installedHelper = apk.requireEntryBytes("lib/arm64-v8a/libgxr_ast.so")
     installedHelper.requireBytesAt(0, byteArrayOf(0x7f, 0x45, 0x4c, 0x46))
+    val expectedResourceName = androidSurfaceTriggerResourceLibraryForBuild(
+        fixture.versionName,
+        fixture.versionCode,
+    )
     val expectedHelper = requireNotNull(DecodedSteamLinkPatchAudit::class.java.getResourceAsStream(
-        "/steamlink/androidxr/$STOCK_QUAD_LIBRARY",
-    )) { "Missing bundled stock-quad helper" }.use { it.readBytes() }
+        "/steamlink/androidxr/$expectedResourceName",
+    )) { "Missing bundled high-resolution helper: $expectedResourceName" }.use { it.readBytes() }
     check(installedHelper.contentEquals(expectedHelper)) {
-        "${fixture.versionName}/${fixture.versionCode}: installed helper does not match $STOCK_QUAD_LIBRARY"
+        "${fixture.versionName}/${fixture.versionCode}: installed helper does not match " +
+            expectedResourceName
     }
+    val expectedBuildId = androidSurfaceTriggerBuildIdForBuild(
+        fixture.versionName,
+        fixture.versionCode,
+    )
+    installedHelper.requireEncodedString(expectedBuildId)
     apk.requireEntryBytes(
-        "assets/openxr/1/api_layers/implicit.d/" + STOCK_QUAD_MANIFEST,
-    ).requireEncodedString("XR_APILAYER_local_GalaxyXR_stock_quad_v1")
+        "assets/openxr/1/api_layers/implicit.d/" + ANDROID_SURFACE_TRIGGER_MANIFEST,
+    ).requireEncodedString("XR_APILAYER_local_GalaxyXR_android_surface_trigger_passthrough_v1")
+
     val bytes = apk.requireEntryBytes("lib/arm64-v8a/libvrlink_scene.so")
     val actual = bytes.copyOfRange(
         fixture.permissionOffset,

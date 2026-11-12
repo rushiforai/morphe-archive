@@ -282,19 +282,20 @@ public final class SettingsBackup {
             Settings.MESSAGE_FILTERS_CHANNELS));
 
     /**
-     * The numbers a file carries, each one of a few choices: today the sticker size. A build from
-     * before them counts the name as unknown and leaves it out.
+     * The numbers a file carries, each one of a few choices: the sticker size and how many days
+     * call recordings stay. A build from before them counts the name as unknown and leaves it out.
      */
-    static final List<IntegerSetting> NUMBERS = Collections.singletonList(Settings.STICKER_SIZE);
+    static final List<IntegerSetting> NUMBERS = Arrays.asList(Settings.STICKER_SIZE, Settings.RECORD_CALLS_KEEP_DAYS);
 
     /**
      * The short texts a file carries as they're saved: the emoji beside the chat list's title, the
      * gallery folder choice, the translation language, the folder icon pack, the name of Telegram's
-     * own folder and the kinds What to copy leaves out. A build from before them counts the name as
-     * unknown and leaves it out.
+     * own folder, the kinds What to copy leaves out and which calls Record calls saves. A build from
+     * before them counts the name as unknown and leaves it out.
      */
     static final List<StringSetting> TEXTS = Arrays.asList(Settings.TITLE_EMOJI, Settings.GALLERY_FOLDER,
-            Settings.TRANSLATE_TARGET, Settings.FOLDER_ICON_PACK, Settings.STORAGE_FOLDER_NAME, Settings.SAVE_KINDS_LEFT_OUT);
+            Settings.TRANSLATE_TARGET, Settings.FOLDER_ICON_PACK, Settings.STORAGE_FOLDER_NAME, Settings.SAVE_KINDS_LEFT_OUT,
+            Settings.RECORD_CALLS_WHICH);
 
     /**
      * Bounds for the parser, well past anything this class writes, so a file built to be
@@ -716,6 +717,7 @@ public final class SettingsBackup {
 
     /** Whether a number is one of its setting's choices. */
     static boolean allowed(IntegerSetting setting, int value) {
+        if (setting == Settings.RECORD_CALLS_KEEP_DAYS) return HushTelegramPreferenceFragment.RECORD_KEEP_DAYS.contains(value);
         return setting == Settings.STICKER_SIZE && StickerSize.percent(value) == value;
     }
 
@@ -726,6 +728,7 @@ public final class SettingsBackup {
         if (setting == Settings.STORAGE_FOLDER_NAME) return StorageFolder.allowedName(value);
         if (setting == Settings.FOLDER_ICON_PACK) return FolderIcons.allowed(value);
         if (setting == Settings.SAVE_KINDS_LEFT_OUT) return SaveDownloads.allowedLeftOut(value);
+        if (setting == Settings.RECORD_CALLS_WHICH) return HushTelegramPreferenceFragment.recordScopes().contains(value);
         return setting == Settings.TITLE_EMOJI && TitleEmoji.allowed(value);
     }
 

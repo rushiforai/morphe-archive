@@ -704,6 +704,8 @@ public class Settings extends BaseSettings {
     ).withRange(CustomOfflineVideosLimitPatch.MIN_LIMIT, CustomOfflineVideosLimitPatch.MAX_LIMIT);
     /** Offline videos stay until you clear them, instead of expiring after TikTok's lifetime (#123). */
     public static final BooleanSetting KEEP_OFFLINE_VIDEOS = new BooleanSetting("keep_offline_videos", FALSE, true);
+    /** Watched offline videos are deleted at each start, so the next download replaces them. */
+    public static final BooleanSetting DELETE_WATCHED_OFFLINE_VIDEOS = new BooleanSetting("delete_watched_offline_videos", FALSE, true);
     public static final BooleanSetting SHOW_SEEKBAR = new BooleanSetting("show_seekbar", TRUE);
     /** The time played and the video's length at the end of the progress bar (#90). */
     public static final BooleanSetting SEEKBAR_TIME = new BooleanSetting("seekbar_time", FALSE);
@@ -926,6 +928,13 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting PAUSE_FIRST_VIDEO = new BooleanSetting(
             "pause_first_video", FALSE, true);
+    /**
+     * Seconds of countdown in front of the first feed after TikTok starts or comes back from the
+     * background, or zero for none. Off by default. A shorter pause loosens the budget, so it
+     * waits for the next day the way the budget's own numbers do. See PausePlayback.
+     */
+    public static final IntegerSetting PAUSE_BEFORE_FEED_SECONDS = new IntegerSetting(
+            "pause_before_feed_seconds", 0).withRange(0, 60);
     /**
      * Keep a paused video paused. It reads the player in the pre-pause callback, which arrived in
      * Android 10, so older versions have nothing to read it by and the row is greyed there.
@@ -1637,6 +1646,10 @@ public class Settings extends BaseSettings {
     public static final StringSetting HIDDEN_PROFILE_SHORTCUTS = new StringSetting("hidden_profile_shortcuts", "");
     public static final StringSetting PROFILE_SHORTCUT_PICKS = new StringSetting("profile_shortcut_picks", "");
     public static final StringSetting PROFILE_SHORTCUT_CATALOG = new StringSetting("profile_shortcut_catalog", "");
+    // Search result tabs: the keys picked to hide, and the tabs TikTok has served on this phone,
+    // which the checklist offers. The strip is read on every search, so no restart.
+    public static final StringSetting SEARCH_TAB_PICKS = new StringSetting("search_tab_picks", "");
+    public static final StringSetting SEARCH_TAB_CATALOG = new StringSetting("search_tab_catalog", "");
     /** The Thoughts bubble above a profile picture (#122). Read when a profile's picture is built. */
     public static final BooleanSetting HIDE_PROFILE_THOUGHTS = new BooleanSetting("hide_profile_thoughts", FALSE, true);
     /** TikTok's two Thoughts gates answer yes (#186). A restart, since TikTok keeps what it built. */
@@ -1732,7 +1745,8 @@ public class Settings extends BaseSettings {
                 REMEMBERED_SPEED, SESSION_BUDGET_STATE, BLOCK_AUTHOR_BUTTON_POSITION,
                 LOCAL_HIDE_BUTTON_POSITION, BLOCK_SOUND_BUTTON_POSITION, NOT_INTERESTED_BUTTON_POSITION,
                 FEED_MUTE_BUTTON_POSITION, DOWNLOAD_BUTTON_POSITION, COMMENT_TRANSLATE_BUTTON_TURNED_ON,
-                SHARE_ACTION_CATALOG, PROFILE_SHORTCUT_CATALOG, POPUP_LABEL_CATALOG, DIAGNOSTIC_REPORT_SALT, AUTO_STREAK_STATE,
+                SHARE_ACTION_CATALOG, PROFILE_SHORTCUT_CATALOG, POPUP_LABEL_CATALOG, SEARCH_TAB_CATALOG,
+                DIAGNOSTIC_REPORT_SALT, AUTO_STREAK_STATE,
                 // The settings screen still searches while paused. Answering the empty default
                 // hid the recent searches, and the next search saved itself over all of them.
                 RECENT_SETTINGS_SEARCHES,

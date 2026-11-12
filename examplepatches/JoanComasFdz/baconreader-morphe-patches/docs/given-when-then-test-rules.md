@@ -40,6 +40,11 @@ The first worked example is
      background, never which colour: `the comment "Without an avatar" shows a faint disc before the name`.
 3. **Not yet:** what the phone can't reach (a second device, a real camera). Such a criterion stays a plain line,
    checked by hand on a phone, and says why.
+4. **A hand-recorded video follows these rules too.** A video recorded by hand rather than by a scenario, such as the
+   user guide's "How to update" (`site/update.json`: [hosting.md](hosting.md), "The user guide"), shows a Gherkin beside
+   it, written by these rules as a scenario's is, each line marked when it starts in the video. What happens off camera,
+   such as a new release of the patches, is a fact of its Given, never a line in the middle: a When is always an action
+   in the first person.
 
 ## 2. Scope
 
@@ -76,6 +81,8 @@ Scenario: <what it proves, as a statement>
      - a **Startup** scenario (how the app starts: the login, the first-start dialogs): **every patch it is patched
        with, each in quotes,** the fewest it needs, one line each: `And BaconReader is patched with "Spoof client"`;
      - a **LoggedIn** scenario (everything else): `And BaconReader is patched with every patch`, one line;
+     - a **Manager** scenario (how a user patches with the patcher's manager): `Given Morphe Manager is installed` and
+       `And the BaconReader Premium 6.1.4 APK is in Downloads`, and its steps patch through the manager's screens;
    - `And BaconReader is installed`: the app is installed, not opened yet;
    - `And the test account is logged in`: the app starts logged in with the test account (section 7), as the fake
      Reddit hands it the login; before "is open", as a recording's setup page shows it before the app opens;

@@ -9,6 +9,7 @@ Ljp/syoboi/a2chMate/feature/resedit/ResEditFragmentViewModel$_init_lambda4$read;
 [BoardCookiesPatch:1]
 Lo/zzcxt;
 [ChangeChMatePackageNamePatch:1]
+Lo/zzaQ;
 Ljp/syoboi/a2chMate/activity/SearchActivity$write;
 [ChangeChMatePackageNamePatch:2]
 Lcom/amazon/device/ads/DTBAdInterstitial;

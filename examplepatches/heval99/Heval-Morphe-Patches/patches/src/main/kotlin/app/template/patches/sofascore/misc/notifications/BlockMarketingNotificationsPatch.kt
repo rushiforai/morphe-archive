@@ -1,6 +1,5 @@
 package app.template.patches.sofascore.misc.notifications
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
@@ -18,11 +17,13 @@ import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
+import app.template.patches.shared.addInstructionsChecked
 
 internal val BLOCK_MARKETING_NOTIFICATIONS = HevalFeature(
     id = FEATURE,
-    name = "Block marketing notifications",
-    description = "Blocks promo popups and banners.",
+    calm = true,
+    name = "Hide promo banners",
+    description = "Hides promotional banners, offer sheets and pop-up campaigns.",
     category = SofascoreControlsCategory.POPUPS,
 )
 
@@ -87,7 +88,7 @@ private fun BytecodePatchContext.keepGone(type: String): () -> Unit {
             null,
             MutableMethodImplementation(3),
         ).toMutable().apply {
-            addInstructions(
+            addInstructionsChecked(
                 0,
                 """
                     invoke-super {p0, p1}, $superclass->setVisibility(I)V
@@ -102,12 +103,14 @@ private fun BytecodePatchContext.keepGone(type: String): () -> Unit {
 
 // A Heval Controls feature: on by default, like the always-on patch it replaced.
 @Suppress("unused")
-val blockMarketingNotificationsPatch = sofascoreControls.featurePatch(BLOCK_MARKETING_NOTIFICATIONS) {
+val blockMarketingNotificationsPatch = sofascoreControls.featurePatch(
+    BLOCK_MARKETING_NOTIFICATIONS,
+    // The Manager patch keeps its name and description; only the Patch settings row was reworded (2026-11-11).
+    name = "Block marketing notifications",
+    description = "Blocks promo popups and banners.",
+) {
     // Validate every site before the first edit.
     val promotionModal = PromotionModalFingerprint.method
-    // The tennis AI-insights promo sheet exists up to 26.09.14 and was removed in 26.09.28, so it
-    // is genuinely optional.
-    val tennisPromoSheet = TennisPromoSheetFingerprint.methodOrNull
     val banners = PROMO_BANNERS.map { keepGone(it) }
     val displays = inAppMessagingDisplays()
 
@@ -118,7 +121,6 @@ val blockMarketingNotificationsPatch = sofascoreControls.featurePatch(BLOCK_MARK
         return-void
     """.trimIndent()
     promotionModal.addHevalGate(FEATURE) { dismissEarly }
-    tennisPromoSheet?.addHevalGate(FEATURE) { dismissEarly }
 
     banners.forEach { it() }
 

@@ -33,6 +33,10 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Allow time for Gradle distribution download
+        run: |
+          sed -i 's/^networkTimeout=.*/networkTimeout=120000/; s/^retries=.*/retries=2/' gradle/wrapper/gradle-wrapper.properties
+
       # Semantic release runs its own Gradle build command.
       # Only dev and master branches generate releases as specified by .releaserc.
       - name: Release

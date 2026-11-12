@@ -210,6 +210,7 @@ public final class XPostPreview {
     /** Called after native binding; covers recycled rows even when no global layout fires. */
     public static void onBound(Object object) {
         if (object == WRITING.get() || SiteCards.writing(object) || Looper.myLooper() != Looper.getMainLooper()) return;
+        SettingsOptionLinks.onBound(object);
         DirectBodySelection.prepare(object);
         InlineGifPlayback.onBound(object);
         SiteCards.onBound(object);

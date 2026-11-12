@@ -4,7 +4,7 @@ A collection of [Morphe](https://github.com/MorpheApp) patches useful to me
 
 ## Patch list
 <!-- PATCHES_START -->
-> **[v1.13.1](https://github.com/cesbar/zpatches/releases/tag/v1.13.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;19 patches total
+> **[v1.14.0](https://github.com/cesbar/zpatches/releases/tag/v1.14.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;19 patches total
 <details open>
 <summary>📦 Vélo'v&nbsp;&nbsp;•&nbsp;&nbsp;8 patches</summary>
 <br>
@@ -113,7 +113,7 @@ A collection of [Morphe](https://github.com/MorpheApp) patches useful to me
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Export all activities](#export-all-activities) | Makes all activities launchable externally by setting android:exported="true" in the manifest |  |
+| [Export all components](#export-all-components) | Makes components accessible externally by setting android:exported="true" in the manifest | • Export activities<br>• Export services<br>• Export receivers |
 
 </details>
 

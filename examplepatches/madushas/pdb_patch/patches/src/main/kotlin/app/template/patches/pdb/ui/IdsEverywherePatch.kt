@@ -58,7 +58,6 @@ val pdbIdsEverywherePatch = bytecodePatch(
         "until the switch is enabled, so the toggle works without rebuilding.",
     default = true,
 ) {
-    category("Interface")
     compatibleWith(PDB_COMPATIBILITY)
 
     execute {

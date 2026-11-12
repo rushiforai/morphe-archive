@@ -51,7 +51,7 @@ final class PlaybackCategory {
             }
             if (build.contains(PatchFamily.REEL_SOUND)) {
                 playback.addPreference(toggle(context, Settings.START_REELS_WITH_SOUND, L10n.t("Start reels with sound"),
-                        L10n.t("A reel you open from the Reels tab or a post on Home plays with sound, and Home is muted "
+                        L10n.t("A reel you open from the Reels tab, a profile or a post on Home plays with sound, and Home is muted "
                                 + "again when you go back. Your phone's ringer and volume still count.")));
                 playback.addPreference(toggle(context, Settings.START_REELS_MUTED, L10n.t("Start reels muted"),
                         L10n.t("Every reel starts silent, wherever you open it from. The volume keys or the speaker "
@@ -90,7 +90,8 @@ final class PlaybackCategory {
             }
             if (build.contains(PatchFamily.PLAYBACK_QUALITY)) {
                 playback.addPreference(toggle(context, Settings.DEFAULT_PLAYBACK_QUALITY, L10n.t("Default playback quality"),
-                        L10n.t("Videos, reels and stories play at the quality below, starting with the next one you open.")));
+                        L10n.t("Videos, reels and stories play at the quality below, starting with the next one you open."
+                                + " When your connection can't keep up, a video drops to the next lower quality.")));
                 playback.addPreference(playbackQualityRow(context));
                 playback.addPreference(qualityTabRow(context));
             }

@@ -254,7 +254,8 @@ Turn on Tap to play to use this choice.	이 옵션을 사용하려면 ‘탭하�
 Resume long videos	긴 동영상 이어보기
 Videos and reels over two minutes pick up where you left off. Seek to start elsewhere. Live videos and ads start as usual.	2분이 넘는 동영상과 릴스는 시청을 중단한 시점부터 이어서 재생됩니다. 다른 부분을 보려면 원하는 시점으로 이동하세요. 라이브 동영상과 광고는 기존과 동일하게 처음부터 재생됩니다
 Default playback quality	기본 재생 화질
-Videos, reels and stories play at the quality below, starting with the next one you open.	동영상, 릴스 및 스토리는 다음에 여는 콘텐츠부터 아래 설정된 화질로 재생됩니다
+# context: description of the Default playback quality switch on the Playback page, with the list of qualities below it. A video that keeps stalling because the connection is too slow for its quality switches to the next lower quality that video offers (#599)
+Videos, reels and stories play at the quality below, starting with the next one you open. When your connection can't keep up, a video drops to the next lower quality.	동영상, 릴스 및 스토리는 다음에 여는 콘텐츠부터 아래 설정된 화질로 재생됩니다. 연결 속도가 따라가지 못하면 동영상이 한 단계 낮은 화질로 내려갑니다
 Playback quality	재생 화질
 Auto	자동
 Data saver	데이터 절약
@@ -1373,6 +1374,9 @@ Takes the arrow off the end of a profile's row of buttons, along with the menu i
 # context: Layout: Glass tab bar's switch that stops the liquid pill shrinking as you scroll (#256)
 Keep the pill full size	알약 크기 그대로 유지
 Scrolling a list down leaves the liquid pill as it is, every tab in place. Restart Instagram after changing it.	목록을 아래로 스크롤해도 리퀴드 글래스 알약이 그대로 유지되고 모든 탭이 제자리에 있습니다. 변경한 뒤에는 Instagram을 다시 시작하세요.
+# context: a switch under Glass tab bar that makes the standard pill (the one without the liquid look) smaller while a list scrolls down, and its description. Liquid glass look and Hide the tab bar as you scroll are the names of two other switches on the same page (#638)
+Shrink the pill as you scroll	스크롤할 때 알약 줄이기
+With Liquid glass look off, scrolling a list down makes the pill smaller, and scrolling up or changing tab brings it back to full size. Hide the tab bar as you scroll takes over when it's on. Restart Instagram after changing it.	리퀴드 글래스 스타일이 꺼져 있을 때 목록을 아래로 스크롤하면 알약이 작아지고, 위로 스크롤하거나 탭을 바꾸면 원래 크기로 돌아옵니다. 스크롤할 때 탭 바 숨기기가 켜져 있으면 그 설정이 우선합니다. 변경한 뒤에는 Instagram을 다시 시작하세요.
 # context: Layout: Glass tab bar's switch that makes the liquid pill's rim bend and mirror what's behind it like glass (#369)
 Bend light at the edges	가장자리에서 빛 굴절
 The pill's rim bends what's behind it like real glass, so what passes under the edge shows upside down. Android 13 and newer. Restart Instagram after changing it.	알약의 가장자리가 실제 유리처럼 뒤에 있는 것을 굴절시켜, 가장자리 아래로 지나가는 것이 거꾸로 보입니다. Android 13 이상. 변경한 뒤에는 Instagram을 다시 시작하세요.
@@ -1521,7 +1525,7 @@ Couldn't use that folder. Saves go where they did.	그 폴더를 사용할 수 �
 Saves go to Movies and Pictures again.	저장한 항목이 다시 Movies와 Pictures에 들어갑니다.
 %1$s didn't take this save, so it went to Movies and Pictures.	%1$s에서 이 항목을 저장하지 못해 Movies와 Pictures에 저장했습니다.
 Start reels with sound	릴스를 소리와 함께 시작
-A reel you open from the Reels tab or a post on Home plays with sound, and Home is muted again when you go back. Your phone's ringer and volume still count.	릴스 탭이나 홈의 게시물에서 연 릴스는 소리와 함께 재생되고, 돌아가면 홈은 다시 음소거됩니다. 휴대폰의 벨소리 모드와 볼륨은 그대로 적용됩니다.
+A reel you open from the Reels tab, a profile or a post on Home plays with sound, and Home is muted again when you go back. Your phone's ringer and volume still count.	릴스 탭, 프로필 또는 홈의 게시물에서 연 릴스는 소리와 함께 재생되고, 돌아가면 홈은 다시 음소거됩니다. 휴대폰의 벨소리 모드와 볼륨은 그대로 적용됩니다.
 Keep your place in Home	홈에서 보던 위치 유지
 Coming back to Instagram leaves Home on the post you were on, however long you were away. Pull down to refresh still reloads it.	Instagram으로 돌아오면 얼마나 오래 떠나 있었든 홈이 보던 게시물에 그대로 머뭅니다. 아래로 당겨 새로고침하면 여전히 다시 불러옵니다.
 Filter the Stories tray by verified accounts	인증된 계정으로 스토리 선반 필터링
@@ -1589,7 +1593,7 @@ Previous page	이전 페이지
 Next page	다음 페이지
 # context: Feed settings: the Page dots on a pill switch, right under Carousel arrows (#419). A pill is a small bar with round ends that holds the dots.
 Page dots on a pill	알약 모양 페이지 점
-Moves a carousel post's page dots onto a round pill at the bottom of its photo or video, with the page you're on in blue.	캐러셀 게시물의 페이지 점을 사진이나 동영상 아래쪽의 둥근 알약 모양 위로 옮깁니다. 지금 보고 있는 페이지는 파란색으로 표시됩니다.
+Moves a carousel post's page dots onto a round pill at the bottom of its photo or video, with the page you're on in blue. Hold the pill and slide left or right to move through the pages.	캐러셀 게시물의 페이지 점을 사진이나 동영상 아래쪽의 둥근 알약 모양 위로 옮깁니다. 지금 보고 있는 페이지는 파란색으로 표시됩니다. 알약을 길게 누른 채 왼쪽이나 오른쪽으로 밀면 페이지를 넘길 수 있습니다.
 # context: Feed settings: the Hide page number switch, under Carousel arrows (#581). The number is the 3/5 in the corner of a carousel post.
 Hide page number	페이지 번호 숨기기
 Takes the number like 3/5 off the corner of a carousel post's photo or video.	캐러셀 게시물의 사진이나 동영상 모서리에 있는 3/5 같은 숫자를 없앱니다.
@@ -1667,6 +1671,12 @@ Stop videos looping	동영상 반복 재생 중지
 Feed videos and reels stop at their last frame instead of playing again. Reels still loop while auto scroll is on, so it can move on.	피드 동영상과 릴스가 다시 재생되지 않고 마지막 장면에서 멈춥니다. 자동 스크롤이 켜져 있으면 다음 릴스로 넘어갈 수 있도록 릴스는 계속 반복됩니다.
 Not used while you've picked a folder. Saves go there.	폴더를 골라 둔 동안에는 사용되지 않아요. 고른 폴더에 저장돼요.
 All	전체
+# context: names of the groups the settings categories fall into, shown over each group on the list of categories and on the chips above it next to All (#642): privacy, what the app shows, media and storage, how the app looks, and App for HushGram's own updates, backup, pause and about
+Privacy	개인정보
+Content	콘텐츠
+Media and storage	미디어 및 저장공간
+Look	모양
+App	앱
 Posts	게시물
 Nothing matches.	일치하는 항목이 없습니다.
 Couldn't open that one.	열 수 없습니다.
@@ -1758,7 +1768,7 @@ Open a chat, tap the clock button next to the call buttons at the top, or long p
 Open a chat, tap the clock button next to the call buttons at the top, or long press the chat's name, and pick Export chat. The whole chat is saved as a text file in Downloads, HushGram folder, one line per message.	채팅을 열고 위쪽 통화 버튼 옆의 시계 버튼을 누르거나 채팅 이름을 길게 누른 뒤 채팅 내보내기를 고르세요. 채팅 전체가 다운로드의 HushGram 폴더에 텍스트 파일로 저장되며, 메시지 한 개가 한 줄입니다.
 Instagram stopped loading older messages.	Instagram이 이전 메시지 불러오기를 멈췄습니다.
 Black settings page	검은색 설정 페이지
-Black rows and dialogs, HushGram's name at the top, and each category on one line.	검은색 행과 대화상자, 맨 위의 HushGram 이름, 한 줄로 줄인 각 카테고리.
+Black rows and dialogs, with HushGram's name at the top.	검은색 행과 대화상자, 맨 위에 HushGram 이름.
 Mark as read	읽음으로 표시
 Nothing to mark as read	읽음으로 표시할 항목이 없습니다
 Mark as read button in chats	채팅의 읽음으로 표시 버튼
@@ -1975,6 +1985,9 @@ Leaves out the live broadcasts Instagram puts between reels in the Reels tab and
 # context: a switch on the Feed page; Watch again is the button on the card Instagram shows when a reel in the feed ends, next to Watch more reels
 Watch again in the feed	피드에서 다시 보기
 When a reel in your feed ends, Watch again plays it over right there instead of opening Reels.	피드의 릴스가 끝났을 때 다시 보기를 누르면 릴스 탭을 열지 않고 그 자리에서 다시 재생합니다.
+# context: a switch on the Feed page under Watch again in the feed; Watch more reels is the big button on the card Instagram shows when a reel in the feed ends, it opens Reels
+Hide Watch more reels	더 많은 릴스 보기 숨기기
+Takes the Watch more reels button off the card a reel in your feed shows when it ends. Watch again stays.	피드의 릴스가 끝날 때 나오는 카드에서 더 많은 릴스 보기 버튼을 없앱니다. 다시 보기는 그대로 남습니다.
 # context: a switch on the Playback page under Keep playing in the background; Android's own name for picture in picture
 Picture in picture for reels	릴스 PIP 모드
 Leaving Instagram while a reel plays shrinks it into a small window over your other apps. Works in Reels and on reels opened from the feed, on Android 15 or newer.	릴스가 재생되는 중에 Instagram을 나가면 다른 앱 위의 작은 창으로 줄어듭니다. 릴스 탭과 피드에서 연 릴스에서 작동하며, Android 15 이상이 필요합니다.
@@ -2032,6 +2045,9 @@ Posts from your hidden accounts still show in Favorites. For you and Following l
 # context: switch next to Lock your messages; Saved is Instagram's page of your saved posts and collections (#597)
 Lock Saved	저장됨 잠그기
 Saved and everything in it stay covered until your fingerprint, face or screen lock says it's you.	지문, 얼굴 또는 화면 잠금으로 본인임이 확인될 때까지 저장됨과 그 안의 모든 항목이 가려집니다.
+# context: switch under Lock your messages; on, an unlock opens only the chat it was asked in, so the next chat, or going back to the inbox, asks for the fingerprint, face, screen lock or PIN again (#649)
+Ask for each chat	채팅마다 확인
+Every chat you open asks again, and so does your inbox when you go back to it. Off, one unlock opens everything until you leave Instagram.	여는 채팅마다 다시 확인하고, 받은 메시지함으로 돌아갈 때도 다시 확인합니다. 끄면 한 번 잠금 해제로 Instagram을 나갈 때까지 모든 항목이 열립니다.
 Saved is locked	저장됨이 잠겨 있습니다
 Unlock Saved	저장됨 잠금 해제
 # context: three-dot menu row on a reel or feed video with Stop videos looping on; makes only the video on screen play again and again (#610)

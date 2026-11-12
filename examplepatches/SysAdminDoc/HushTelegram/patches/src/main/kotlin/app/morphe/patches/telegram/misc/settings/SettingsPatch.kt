@@ -755,7 +755,8 @@ val settingsPatch = bytecodePatch(
         val newIntent = declaredInHierarchy(MAIN_ACTIVITY, "onNewIntent", "Landroid/content/Intent;")
         // Before each return of the application's onCreate, after Telegram's own startup: the
         // extension registers activity lifecycle callbacks there, and that's only safe once Telegram
-        // has set itself up.
+        // has set itself up. 13.2.2 also returns early in its isolated :widgets process, before any
+        // of that startup, and the extension's main-process check leaves that start alone.
         val applicationOnCreate = declaredInHierarchy(TELEGRAM_APPLICATION, "onCreate")
         val hooked = applicationOnCreate.beforeEveryReturn(
             "invoke-static/range { p0 .. p0 }, $ENTRY->onApplicationCreate(Landroid/content/Context;)V")

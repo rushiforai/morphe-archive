@@ -1,7 +1,8 @@
 // Based on SysAdminDoc/HushMessenger (GPL-3.0), extensions/messenger/src/main/java/app/hushmessenger/extension/SettingsUi.java:
 // framework-only view builders (text, headings, cards, ripple + focus-ring backgrounds, 48 dp buttons, styled
 // Switch); modified 2026-10-14: minSdk 23 guards (accessibility heading on API 28+), RTL-safe relative padding
-// and alignment, Palette tokens, no field/pseudo-locale helpers.
+// and alignment, Palette tokens, no field/pseudo-locale helpers. 2026-11-11 (readability): sentence-case
+// 16 sp headings in the text colour, 14 sp two-line descriptions in Palette.secondary, the row "on" marker.
 
 package app.template.extension.hevalcontrols.ui;
 
@@ -13,14 +14,13 @@ import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.RippleDrawable;
 import android.graphics.drawable.StateListDrawable;
 import android.os.Build;
+import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Switch;
 import android.widget.TextView;
-
-import java.util.Locale;
 
 /** Framework-only view builders, so the screen needs no host resources. */
 final class Views {
@@ -62,11 +62,45 @@ final class Views {
         return view;
     }
 
+    /** A section heading: sentence case as written, 16 sp medium, full text colour. */
     TextView heading(String value) {
-        TextView view = text(value.toUpperCase(Locale.getDefault()), 13, palette.muted, true);
-        view.setLetterSpacing(0.06f);
+        TextView view = text(value, 16, palette.text, true);
         markHeading(view);
         return view;
+    }
+
+    /**
+     * A row description: 14 sp in the secondary colour. With {@code maxLines} above 0 it is cut
+     * with an ellipsis; the row's spoken description must then carry the full text.
+     */
+    TextView description(CharSequence value, int maxLines) {
+        TextView view = text(value, 14, palette.secondary, false);
+        if (maxLines > 0) {
+            view.setMaxLines(maxLines);
+            view.setEllipsize(TextUtils.TruncateAt.END);
+        }
+        return view;
+    }
+
+    /**
+     * The "on" marker at the start of a row: a rounded accent bar, shown while the row is on. It
+     * takes no width (negative start margin into the row's 16 dp start padding), so showing or hiding
+     * it never moves the row's content. Hidden from accessibility: the row says its state.
+     */
+    View onMarker(LinearLayout row) {
+        View bar = new View(context);
+        bar.setBackground(shape(palette.accent, 0, 2));
+        bar.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        bar.setVisibility(View.INVISIBLE);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(dp(4), LinearLayout.LayoutParams.MATCH_PARENT);
+        params.setMarginStart(-dp(10));
+        params.setMarginEnd(dp(6));
+        params.topMargin = dp(2);
+        params.bottomMargin = dp(2);
+        // The bar lives in the row's start padding, which a ViewGroup clips by default.
+        row.setClipToPadding(false);
+        row.addView(bar, params);
+        return bar;
     }
 
     static void markHeading(View view) {

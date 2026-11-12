@@ -145,9 +145,26 @@ public sealed class EmbedCommentImagesTests : BaseE2E
           And the comment "Mine and a link" shows no picture twice
           When I scroll to the comment "Here is a video"
           Then the comment "Here is a video" shows a video
+          # "Full width by default" is off: the video's preview starts at up to 200×200.
+          And the video of the comment "Here is a video" fits in 200×200
           When I tap the video of the comment "Here is a video"
           # A video that has ended shows its player's controls, with its position at its length.
           Then the video of the comment "Here is a video" played to "00:10" of "00:10"
+          # Once it plays, the video grows to the comment's width.
+          And the video of the comment "Here is a video" fills the comment's width
+          When I tap "Shrink video" on the video of the comment "Here is a video"
+          Then the video of the comment "Here is a video" fits in 200×200
+          When I tap "Enlarge video" on the video of the comment "Here is a video"
+          Then the video of the comment "Here is a video" fills the comment's width
+          When I tap "Full screen" on the video of the comment "Here is a video"
+          Then the video fills the screen
+          # The video is wider than high: the full screen turns the phone sideways.
+          And the screen is turned sideways
+          When I tap "Exit full screen"
+          Then the video of the comment "Here is a video" fills the comment's width
+          When I tap "Full screen" on the video of the comment "Here is a video"
+          And I tap Back
+          Then the video of the comment "Here is a video" fills the comment's width
           When I scroll to the comment "Here is a video link"
           And I tap the video of the comment "Here is a video link"
           Then the video of the comment "Here is a video link" played to "00:10" of "00:10"
@@ -550,7 +567,10 @@ public sealed class EmbedCommentImagesTests : BaseE2E
 
         // Then
         var video = await Phone.BaconReader.Detail.Comments.ReadAsync("Here is a video");
+        // "Full width by default" is off: the video's preview starts at up to 200×200.
+        var preview = await Phone.BaconReader.Detail.Comments.ReadVideoLayoutAsync("Here is a video");
         Asserting.That(video).ShowsAVideo();
+        Asserting.That(preview).TheVideoFitsIn200By200();
 
         // When
         await Phone.BaconReader.Detail.Comments.ClickVideoAsync("Here is a video");
@@ -559,7 +579,56 @@ public sealed class EmbedCommentImagesTests : BaseE2E
         // Then
         // A video that has ended shows its player's controls, with its position at its length.
         var played = await Phone.BaconReader.Detail.Comments.ReadVideoAsync("Here is a video");
+        // Once it plays, the video grows to the comment's width.
+        var playing = await Phone.BaconReader.Detail.Comments.ReadVideoLayoutAsync("Here is a video");
         Asserting.That(played).PlayedTo("00:10", "00:10");
+        Asserting.That(playing).TheVideoFillsTheCommentsWidth();
+
+        // When
+        await Phone.BaconReader.Detail.Comments.ClickVideoButtonAsync("Here is a video", new VideoButton.ShrinkVideo());
+        await Phone.BaconReader.Detail.Comments.WaitUntilVideoResizedAsync("Here is a video");
+
+        // Then
+        var shrunk = await Phone.BaconReader.Detail.Comments.ReadVideoLayoutAsync("Here is a video");
+        Asserting.That(shrunk).TheVideoFitsIn200By200();
+
+        // When
+        await Phone.BaconReader.Detail.Comments.ClickVideoButtonAsync("Here is a video", new VideoButton.EnlargeVideo());
+        await Phone.BaconReader.Detail.Comments.WaitUntilVideoResizedAsync("Here is a video");
+
+        // Then
+        var enlarged = await Phone.BaconReader.Detail.Comments.ReadVideoLayoutAsync("Here is a video");
+        Asserting.That(enlarged).TheVideoFillsTheCommentsWidth();
+
+        // When
+        await Phone.BaconReader.Detail.Comments.ClickVideoButtonAsync("Here is a video", new VideoButton.FullScreen());
+        await Phone.BaconReader.VideoFullScreen.WaitUntilShownAsync();
+
+        // Then
+        var fullScreen = await Phone.BaconReader.VideoFullScreen.ReadLayoutAsync();
+        Asserting.That(fullScreen).FillsTheScreen();
+        // The video is wider than high: the full screen turns the phone sideways.
+        Asserting.That(fullScreen).IsSideways();
+
+        // When
+        await Phone.BaconReader.VideoFullScreen.ClickAsync(new VideoButton.ExitFullScreen());
+        await Phone.BaconReader.VideoFullScreen.WaitUntilClosedAsync();
+        await Phone.BaconReader.Detail.Comments.WaitUntilVideoSettledAsync("Here is a video");
+
+        // Then
+        var afterExit = await Phone.BaconReader.Detail.Comments.ReadVideoLayoutAsync("Here is a video");
+        Asserting.That(afterExit).TheVideoFillsTheCommentsWidth();
+
+        // When
+        await Phone.BaconReader.Detail.Comments.ClickVideoButtonAsync("Here is a video", new VideoButton.FullScreen());
+        await Phone.BaconReader.VideoFullScreen.WaitUntilShownAsync();
+        await Phone.BaconReader.VideoFullScreen.ClickBackAsync();
+        await Phone.BaconReader.VideoFullScreen.WaitUntilClosedAsync();
+        await Phone.BaconReader.Detail.Comments.WaitUntilVideoSettledAsync("Here is a video");
+
+        // Then
+        var afterBack = await Phone.BaconReader.Detail.Comments.ReadVideoLayoutAsync("Here is a video");
+        Asserting.That(afterBack).TheVideoFillsTheCommentsWidth();
 
         // When
         await Phone.BaconReader.Detail.Comments.ScrollToCommentAsync("Here is a video link");

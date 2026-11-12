@@ -80,8 +80,7 @@ internal object NativeAdCacheReplenishFingerprint : Fingerprint(
     custom = { _, classDef -> classDef.type.startsWith(NATIVE_AD_PACKAGE) },
 )
 
-// The ad-free view model's own copy of the gate. Nothing collects its flows in 1.10.28, so this
-// is optional.
+// The ad-free view model's own copy of the gate (kept name: package com.eet.core.iap survives R8).
 internal object AdFreeViewModelIsAdsEnabledFingerprint : Fingerprint(
     definingClass = "Lcom/eet/core/iap/AdFreeViewModel;",
     name = "isAdsEnabled",

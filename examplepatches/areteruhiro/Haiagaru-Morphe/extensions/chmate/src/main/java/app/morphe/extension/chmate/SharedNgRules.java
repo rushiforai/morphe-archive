@@ -96,6 +96,8 @@ final class SharedNgRules {
         final List<String> contributors;
         private final Pattern expression;
         private final String requiredLiteral;
+        final boolean overbroadKeyword;
+        final boolean locallyEdited;
         Rule(String id,String board,String kind,String value,String period,int votes,boolean revoked){
             this(id,board,kind,value,period,votes,revoked,1,0);
         }
@@ -106,6 +108,9 @@ final class SharedNgRules {
             this(id,board,kind,value,period,votes,revoked,minLevel,minVotes,regex,Collections.emptyList());
         }
         Rule(String id,String board,String kind,String value,String period,int votes,boolean revoked,int minLevel,int minVotes,boolean regex,List<String> contributors){
+            this(id,board,kind,value,period,votes,revoked,minLevel,minVotes,regex,contributors,false);
+        }
+        private Rule(String id,String board,String kind,String value,String period,int votes,boolean revoked,int minLevel,int minVotes,boolean regex,List<String> contributors,boolean locallyEdited){
             if(id==null||!id.matches("[a-f0-9]{64}")||board==null||!(board.equals("*")||board.matches("[a-z0-9.-]+(?::[0-9]+)?(?:/[A-Za-z0-9_.-]+)+"))||board.equals("unknown.invalid/unresolved")||board.length()>300||votes<0)throw new IllegalArgumentException("共有NG形式が不正です");
             if(!Arrays.asList("id","wacchoi","prefix","suffix","keyword","name","trip","reporter").contains(kind)||value==null||value.isEmpty()||value.length()>2000||period==null)throw new IllegalArgumentException("共有NG条件が不正です");
             if(kind.equals("keyword")&&(text(value).isEmpty()||!period.isEmpty()))throw new IllegalArgumentException("キーワードまたは有効期間が不正です");
@@ -116,6 +121,8 @@ final class SharedNgRules {
             if(minLevel<1||minLevel>5||minVotes<0)throw new IllegalArgumentException("禁止レベルが不正です");
             if(regex&&kind.equals("reporter"))throw new IllegalArgumentException("記者IDは完全一致で指定してください");
             this.regex=regex;this.expression=regex?Pattern.compile(value):null;
+            this.locallyEdited=locallyEdited;
+            this.overbroadKeyword=!locallyEdited&&regex&&kind.equals("keyword")&&NgRegexSafety.overbroadKeyword(value);
             this.requiredLiteral=regex?NgRegexLiteralGuard.required(value):"";
             Set<String> unique=new LinkedHashSet<>(contributors);
             if(unique.size()!=contributors.size()||unique.size()>10000||(!unique.isEmpty()&&unique.size()!=votes))throw new IllegalArgumentException("報告者情報が不正です");
@@ -123,10 +130,17 @@ final class SharedNgRules {
             this.contributors=Collections.unmodifiableList(new ArrayList<>(unique));
             this.minLevel=minLevel;this.minVotes=minVotes;this.id=id;this.board=family(board);this.kind=kind;this.value=!regex&&kind.equals("keyword")?text(value):value;this.period="";this.votes=votes;this.revoked=revoked;
         }
+        Rule localValue(String value,boolean regex){return new Rule(id,board,kind,value,period,votes,revoked,minLevel,minVotes,regex,contributors,true);}
         boolean expressionMatches(String input){
-            if(expression==null||input==null)return false;
+            if(expression==null||input==null||overbroadKeyword)return false;
             if(!requiredLiteral.isEmpty()&&!input.contains(requiredLiteral))return false;
-            try{return expression.matcher(new TimedText(input,0,input.length(),System.nanoTime()+2_000_000L)).find();}
+            try{
+                Matcher match=expression.matcher(new TimedText(input,0,input.length(),System.nanoTime()+2_000_000L));
+                while(match.find()){
+                    if(locallyEdited||(kind.equals("keyword")?NgRegexSafety.keywordContent(match.group()):NgRegexSafety.identityContent(match.group())))return true;
+                }
+                return false;
+            }
             catch(RegexDeadline|StackOverflowError invalid){REGEX_UNCERTAIN.set(Boolean.TRUE);return false;}
         }
         boolean matches(String boardUrl,String responseId,String name,String date,String body,int threshold){

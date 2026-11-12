@@ -56,7 +56,7 @@ class ChatPreviewFixtureTest {
             val name = build.name
             val context = PatchContexts.of(hosts(build))
             val site = context.resolveChatPreview()
-            val (base, item) = if (name.contains("-72919")) "h2" to "a1" else "j2" to "b1"
+            val (base, item) = if (name.contains("-73039")) "i2" to "b1" else "j2" to "b1"
             assertEquals("Lorg/telegram/ui/ActionBar/$base;", site.base)
             assertEquals("Lorg/telegram/ui/ActionBar/$item;", site.item)
             assertEquals("$ACTION_BAR_LAYOUT->K:$PREVIEW_MENU", site.menuField)

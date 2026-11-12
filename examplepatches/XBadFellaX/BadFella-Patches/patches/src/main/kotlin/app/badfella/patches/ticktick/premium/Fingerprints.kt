@@ -16,25 +16,27 @@ object UserIsProFingerprint : Fingerprint(
 
 // ProHelper.isPro(User) — static null-safe wrapper
 // Returns user != null && (user.isPro() || user.isActiveTeamUser())
+// 8.3.0.1 moved this wrapper into an obfuscated class, so match its reviewed shape and
+// its two Pro calls instead of the class name.
 object ProHelperIsProFingerprint : Fingerprint(
-    definingClass = "Lcom/ticktick/task/helper/pro/ProHelper;",
-    name = "isPro",
     returnType = "Z",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
-    parameters = listOf("Lcom/ticktick/task/data/User;")
+    parameters = listOf("Lcom/ticktick/task/data/User;"),
+    filters = listOf(
+        methodCall(definingClass = "Lcom/ticktick/task/data/User;", name = "isPro"),
+        methodCall(definingClass = "Lcom/ticktick/task/data/User;", name = "isActiveTeamUser")
+    )
 )
 
 // LimitHelper.getLimits(ZZ) — returns Free/Pro/Team limits based on subscription
 // z11 ? getLimitsTeam() : z10 ? getLimitsPro() : getLimitsFree()
+// 8.3.0.1 replaced that dispatch with a DAO-backed limits builder in an obfuscated
+// class. It is still the only (Z,Z)-to-Limits method that allocates a Limits object.
 object GetLimitsFingerprint : Fingerprint(
-    definingClass = "Lcom/ticktick/task/helper/LimitHelper;",
-    name = "getLimits",
     returnType = "Lcom/ticktick/task/data/Limits;",
     parameters = listOf("Z", "Z"),
     filters = listOf(
-        methodCall(definingClass = "Lcom/ticktick/task/helper/LimitHelper;", name = "getLimitsTeam"),
-        methodCall(definingClass = "Lcom/ticktick/task/helper/LimitHelper;", name = "getLimitsPro"),
-        methodCall(definingClass = "Lcom/ticktick/task/helper/LimitHelper;", name = "getLimitsFree")
+        methodCall(definingClass = "Lcom/ticktick/task/data/Limits;", name = "<init>")
     )
 )
 

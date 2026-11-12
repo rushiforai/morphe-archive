@@ -120,7 +120,6 @@ val spoofSignatureVerificationPatch = bytecodePatch(
     """.trimIndent(),
     default = false,
 ) {
-    category("Signature")
 val packageNameOption by stringOption(
         key = "packageName",
         default = null,

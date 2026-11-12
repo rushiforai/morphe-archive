@@ -1,3 +1,9 @@
+# [1.9.27](https://github.com/quwi26/Quwis-Patches/compare/v1.9.26...v1.9.27) (2026-11-12)
+
+### Bug Fixes
+
+* **Lichess Puzzles:** Puzzles from Lichess opens the puzzle screen on chess.com 4.10.18 again. The button's listener keeps the activity and the navigation router in fields that are not public there, so the extension found neither and the tap ended with "Couldn't open Lichess puzzles"; they are read whatever their access now, and 4.10.23 is unchanged
+
 # [1.9.26](https://github.com/quwi26/Quwis-Patches/compare/v1.9.25...v1.9.26) (2026-11-09)
 
 ### Bug Fixes

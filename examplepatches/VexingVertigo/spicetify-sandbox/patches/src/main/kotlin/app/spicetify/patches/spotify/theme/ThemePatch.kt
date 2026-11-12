@@ -35,7 +35,7 @@ private val themeResourcesPatch = resourcePatch {
 @Suppress("unused")
 val themePatch = bytecodePatch(
     name = "Theme colors",
-    description = "Choose a theme, such as OLED, or your own colors in Spicetify settings. Requires Android 11 or later. " +
+    description = "NOT SUPPORTED ON 9.2.0.26 - only works on 9.1.80.2221. " + "Choose a theme, such as OLED, or your own colors in Spicetify settings. Requires Android 11 or later. " +
         "Some screens and hardcoded colors keep Spotify's colors.",
     default = false,
 ) {

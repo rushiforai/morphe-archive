@@ -290,17 +290,16 @@ function Test-Assets {
 }
 
 function Invoke-Gh {
-    # Output lines of a gh read; a non-zero exit throws with gh's own message. Standard error stays
-    # out of what it returns: a gh warning there would otherwise be published as a description.
+    # Output lines of a gh read, decoded as the UTF-8 gh writes; a non-zero exit throws with gh's own
+    # message. Standard error stays out of what it returns, or a gh warning would be published.
     param([string[]]$GhArgs)
-    $preference = $ErrorActionPreference
+    $preference = $ErrorActionPreference; $encoding = [Console]::OutputEncoding
     try {
-        $ErrorActionPreference = 'Continue'
-        $global:LASTEXITCODE = 0
-        $all = @(& gh @GhArgs 2>&1)
+        $ErrorActionPreference = 'Continue'; [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
+        $global:LASTEXITCODE = 0; $all = @(& gh @GhArgs 2>&1)
         $code = $LASTEXITCODE
     } finally {
-        $ErrorActionPreference = $preference
+        $ErrorActionPreference = $preference; [Console]::OutputEncoding = $encoding
     }
     $lines = @($all | Where-Object { $_ -isnot [System.Management.Automation.ErrorRecord] } | ForEach-Object { "$_" })
     $errors = @($all | Where-Object { $_ -is [System.Management.Automation.ErrorRecord] } | ForEach-Object { "$_" })

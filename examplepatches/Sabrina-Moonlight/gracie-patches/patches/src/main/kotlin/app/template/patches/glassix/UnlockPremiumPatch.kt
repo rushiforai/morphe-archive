@@ -7,6 +7,10 @@ import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.returnEarly
 import com.android.tools.smali.dexlib2.AccessFlags
+import app.template.patches.shared.cert.extractApkCertificatePatch
+import app.template.patches.shared.firebase.spoofFirebaseCertHashPatch
+import app.template.patches.shared.installer.spoofInstallSourcePatch
+import app.template.patches.shared.signature.spoofSignatureVerificationPatch
 
 private val GLASSIX = Compatibility(
     name = "Glassix: Glass Widgets & Theme",
@@ -31,12 +35,18 @@ private object IsRealBoughtFingerprint : Fingerprint(
 
 @Suppress("unused")
 val unlockPremiumPatch = bytecodePatch(
-    name = "Local Premium",
-    description = "Uses a local preference so premium widgets and no-ads stay available offline.",
+    name = "Unlock premium",
+    description = "Unlocks premium features.",
     default = true,
 ) {
     compatibleWith(GLASSIX)
 
+    dependsOn(
+        extractApkCertificatePatch,
+        spoofFirebaseCertHashPatch,
+        spoofInstallSourcePatch,
+        spoofSignatureVerificationPatch,
+    )
     execute {
         IsRealBoughtFingerprint.method.returnEarly(true)
     }

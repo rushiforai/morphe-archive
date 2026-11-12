@@ -9,15 +9,21 @@ package app.morphe.extension.youtube.patches.ask;
 
 import static app.morphe.extension.shared.StringRef.str;
 
+import android.app.Activity;
+import android.os.Build;
 import android.os.SystemClock;
+import android.view.View;
+import android.view.WindowInsets;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 
 import java.lang.ref.WeakReference;
 import java.util.List;
 import java.util.Set;
 
 import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.ResourceUtils;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.youtube.patches.VideoInformation;
 import app.morphe.extension.youtube.patches.utils.FlyoutUtils;
@@ -177,9 +183,10 @@ public final class AskFlyoutMenuPatch {
 
     /**
      * The selection id of the summarize suggestion of the opened panel, whose tap handler is run
-     * once it is created, or -1 if no suggestion is awaited.
+     * once it is created, or null if no suggestion is awaited. Selection ids can be negative.
      */
-    private static volatile long pendingSuggestionSelectionId = -1;
+    @Nullable
+    private static volatile Long pendingSuggestionSelectionId;
 
     /**
      * The menu bottom sheet or popup that shows the summarize item, to update the item once the live status
@@ -252,7 +259,7 @@ public final class AskFlyoutMenuPatch {
                 pendingWelcomeToken = null;
                 pendingSummarizeToken = null;
                 // The summarize suggestion has not been selected, and now is not.
-                pendingSuggestionSelectionId = -1;
+                pendingSuggestionSelectionId = null;
             }
             if (summarizeToken != null
                     && SystemClock.uptimeMillis() - pendingTime < OPENED_PANEL_TIMEOUT_MS) {
@@ -411,6 +418,11 @@ public final class AskFlyoutMenuPatch {
      */
     private static void updateMenuItem(String videoId, boolean isLive) {
         try {
+            // The menu closed, or the menu of another video opened. A row created for a closed menu
+            // is counted as a button of the next menu, whose buttons then do not match its rows.
+            if (!videoId.equals(FlyoutUtils.getFlyoutVideoId())) {
+                return;
+            }
             MenuAccess menu = menuRef.get();
             if (menu == null) {
                 return;
@@ -503,7 +515,7 @@ public final class AskFlyoutMenuPatch {
      */
     public static void onTapHandlerCreated(TapHandlerAccess tapHandler) {
         // A later Ask panel of the app can have a summarize suggestion with the same selection id.
-        if (pendingSuggestionSelectionId < 0
+        if (pendingSuggestionSelectionId == null
                 || SystemClock.uptimeMillis() - pendingTime >= OPENED_PANEL_TIMEOUT_MS) {
             return;
         }
@@ -511,19 +523,19 @@ public final class AskFlyoutMenuPatch {
         WeakReference<TapHandlerAccess> tapHandlerRef = new WeakReference<>(tapHandler);
         Utils.runOnMainThread(() -> {
             try {
-                final long selectionId = pendingSuggestionSelectionId;
+                Long selectionId = pendingSuggestionSelectionId;
                 TapHandlerAccess handler = tapHandlerRef.get();
-                if (selectionId < 0 || handler == null || !AskPanelCommand.selectsSuggestion(
+                if (selectionId == null || handler == null || !AskPanelCommand.selectsSuggestion(
                         handler.patch_getCommand().patch_toByteArray(), selectionId)) {
                     return;
                 }
 
                 synchronized (pendingLock) {
-                    if (pendingSuggestionSelectionId != selectionId) {
+                    if (!selectionId.equals(pendingSuggestionSelectionId)) {
                         // The welcome request was replaced first.
                         return;
                     }
-                    pendingSuggestionSelectionId = -1;
+                    pendingSuggestionSelectionId = null;
                     // The suggestion sends its own request, so the welcome is sent as is.
                     pendingWelcomeToken = null;
                     pendingSummarizeToken = null;
@@ -562,12 +574,12 @@ public final class AskFlyoutMenuPatch {
             Utils.runOnMainThread(() -> {
                 if (needsTemplate) {
                     if (panel == null) {
-                        Utils.showToastLong(str("morphe_ask_summarize_unavailable"));
+                        Utils.showSnackbarLong(str("morphe_ask_summarize_unavailable"));
                         return;
                     }
                     AskPanelCommand.saveTemplate(panel);
                     if (!AskPanelCommand.hasTemplate()) {
-                        Utils.showToastLong(str("morphe_ask_summarize_failed"));
+                        Utils.showSnackbarLong(str("morphe_ask_summarize_failed"));
                         return;
                     }
                 }
@@ -627,13 +639,13 @@ public final class AskFlyoutMenuPatch {
             CommandExecutorAccess commandExecutor = commandExecutorRef.get();
             if (commandExecutor == null) {
                 Logger.printDebug(() -> "No command executor");
-                Utils.showToastLong(str("morphe_ask_summarize_failed"));
+                Utils.showSnackbarLong(str("morphe_ask_summarize_failed"));
                 return;
             }
 
             AskPanelCommand.Panel panel = AskPanelCommand.build(videoId);
             if (panel == null) {
-                Utils.showToastLong(str("morphe_ask_summarize_failed"));
+                Utils.showSnackbarLong(str("morphe_ask_summarize_failed"));
                 return;
             }
 
@@ -653,9 +665,79 @@ public final class AskFlyoutMenuPatch {
             } finally {
                 isExecutingOwnCommand = false;
             }
+
+            AskPanelKeyboard.handleKeyboardInsets(Utils.getActivity());
         } catch (Exception ex) {
             Logger.printException(() -> "showAskPanel failure", ex);
-            Utils.showToastLong(str("morphe_ask_summarize_failed"));
+            Utils.showSnackbarLong(str("morphe_ask_summarize_failed"));
+        }
+    }
+}
+
+/**
+ * Keeps the text field of the Ask panel above the keyboard.
+ * <p>
+ * The Ask panel opened from a video menu is shown in the panel container of the app, not of the watch page.
+ * The app is drawn behind the keyboard and this container does not handle the keyboard insets,
+ * so the keyboard covers the text field at the bottom of the panel. While the keyboard shows,
+ * the bottom padding of the container is raised by the keyboard height, which moves the text field up.
+ */
+final class AskPanelKeyboard {
+
+    private static WeakReference<View> panelRef = new WeakReference<>(null);
+
+    /**
+     * The bottom padding of the panel container without the keyboard.
+     */
+    private static int panelPaddingBottom;
+
+    private AskPanelKeyboard() {
+    }
+
+    /**
+     * Handles the keyboard insets of the panel container of the activity, if not already handled.
+     */
+    static void handleKeyboardInsets(@Nullable Activity activity) {
+        // The keyboard insets are only known with Android 11 and newer.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+            return;
+        }
+
+        View panel = activity == null
+                ? null
+                : activity.findViewById(ResourceUtils.getIdIdentifier("app_engagement_panel"));
+        if (panel == null) {
+            Logger.printDebug(() -> "No engagement panel container");
+            return;
+        }
+        if (panel == panelRef.get()) {
+            return;
+        }
+
+        panelRef = new WeakReference<>(panel);
+        panelPaddingBottom = panel.getPaddingBottom();
+        // A layout pass follows every change of the window insets, such as the keyboard showing or hiding.
+        panel.getViewTreeObserver().addOnGlobalLayoutListener(() -> updatePadding(panel));
+    }
+
+    @RequiresApi(Build.VERSION_CODES.R)
+    private static void updatePadding(View panel) {
+        try {
+            WindowInsets insets = panel.getRootWindowInsets();
+            if (insets == null) {
+                return;
+            }
+
+            // The panel already keeps its content above the navigation bar, which the keyboard covers.
+            final int keyboardHeight = Math.max(0, insets.getInsets(WindowInsets.Type.ime()).bottom
+                    - insets.getInsets(WindowInsets.Type.navigationBars()).bottom);
+            final int paddingBottom = panelPaddingBottom + keyboardHeight;
+            if (panel.getPaddingBottom() != paddingBottom) {
+                panel.setPadding(panel.getPaddingLeft(), panel.getPaddingTop(),
+                        panel.getPaddingRight(), paddingBottom);
+            }
+        } catch (Exception ex) {
+            Logger.printException(() -> "updatePadding failure", ex);
         }
     }
 }

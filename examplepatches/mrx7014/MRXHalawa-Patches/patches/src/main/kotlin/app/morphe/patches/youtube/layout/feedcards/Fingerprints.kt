@@ -14,35 +14,10 @@ import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.opcode
 import app.morphe.patcher.string
+import app.morphe.patches.youtube.shared.EngagementPanelControllerFingerprint
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-
-/**
- * Runs the command of the watch next response for when the watch page is ready.
- *
- * @param uiReadyCommandMethod Method that runs the command, with the parameters (command, Map, watch next response).
- */
-internal class WatchNextUiReadyFingerprint(uiReadyCommandMethod: MethodReference) : Fingerprint(
-    returnType = "V",
-    parameters = listOf("L"),
-    filters = listOf(
-        fieldAccess(
-            opcode = Opcode.IGET_OBJECT,
-            type = uiReadyCommandMethod.parameterTypes[2].toString()
-        ),
-        string("com.google.android.libraries.youtube.innertube.endpoint.tag"),
-        string("sectionListController"),
-        fieldAccess(
-            opcode = Opcode.IGET_OBJECT,
-            type = uiReadyCommandMethod.definingClass
-        ),
-        methodCall(
-            reference = uiReadyCommandMethod,
-            location = MatchAfterWithin(2)
-        )
-    )
-)
 
 /**
  * toString of the spacing above and below a list item, which the lists add with an item decoration.
@@ -75,6 +50,24 @@ internal class DividerInfoLookupFingerprint(dividerInfoType: String) : Fingerpri
 )
 
 /**
+ * Sets the spacing above and below the view of a list item, which is looked up with the item of the view.
+ *
+ * @param dividerInfoLookupMethod Method of [DividerInfoLookupFingerprint].
+ */
+internal class DividerItemOffsetsFingerprint(dividerInfoLookupMethod: MethodReference) : Fingerprint(
+    returnType = "V",
+    parameters = listOf(
+        "Landroid/graphics/Rect;",
+        "Landroid/view/View;",
+        "Landroid/support/v7/widget/RecyclerView;",
+        "L"
+    ),
+    filters = listOf(
+        methodCall(reference = dividerInfoLookupMethod)
+    )
+)
+
+/**
  * List item of an element, which keeps the bytes of the element.
  */
 internal object ElementItemConstructorFingerprint : Fingerprint(
@@ -97,3 +90,36 @@ internal object ElementItemConstructorFingerprint : Fingerprint(
     )
 )
 
+
+/**
+ * Returns the engagement panel controller of a surface: the controller of the watch page,
+ * or the controller of the feed, search and Shorts, which shows its panels over the feed.
+ * The fourth match reads the provider of the controller of the feed.
+ */
+internal object EngagementPanelControllerOfSurfaceFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "L",
+    parameters = listOf("L"),
+    filters = listOf(
+        methodCall(
+            opcode = Opcode.INVOKE_VIRTUAL,
+            name = "contains",
+            parameters = listOf("Ljava/lang/Object;"),
+            returnType = "Z"
+        ),
+        opcode(Opcode.MOVE_RESULT, MatchAfterImmediately()),
+        opcode(Opcode.IF_EQZ, MatchAfterImmediately()),
+        fieldAccess(opcode = Opcode.IGET_OBJECT, location = MatchAfterImmediately()),
+        methodCall(opcode = Opcode.INVOKE_INTERFACE, location = MatchAfterImmediately())
+    )
+)
+
+/**
+ * Id of the panel that the engagement panel controller shows, or null.
+ */
+internal object EngagementPanelControllerShownPanelIdFingerprint : Fingerprint(
+    classFingerprint = EngagementPanelControllerFingerprint,
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "Ljava/lang/String;",
+    parameters = listOf()
+)

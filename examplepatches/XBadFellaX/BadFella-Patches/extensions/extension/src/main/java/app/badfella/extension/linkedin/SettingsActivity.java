@@ -16,6 +16,7 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Build;
 import android.os.Process;
 import android.text.Editable;
 import android.text.InputType;
@@ -152,7 +153,8 @@ public final class SettingsActivity extends Activity {
                 || Settings.isExpandPostsIncluded() || Settings.isSwipeTabsIncluded()
                 || Settings.isCopyTextIncluded() || Settings.isKeepFeedIncluded()
                 || Settings.isPostMenuIncluded() || Settings.isViewerTapToHideIncluded()
-                || Settings.isSwipeFeedsIncluded() || Settings.isHideTabsIncluded()) {
+                || Settings.isSwipeFeedsIncluded() || Settings.isHideTabsIncluded()
+                || Settings.isCopyPostTextIncluded() || Settings.isIconOnlyActionsIncluded()) {
             Category feed = new Category("Feed", IconDrawable.FEED);
             if (Settings.isDisableDoubleTapLikeIncluded()) {
                 feed.toggle(Settings.DISABLE_DOUBLE_TAP_LIKE, true, "Disable double-tap like",
@@ -166,11 +168,19 @@ public final class SettingsActivity extends Activity {
                 feed.toggle(Settings.SWIPE_TABS, true, "Swipe between tabs",
                         "Swipe sideways to go to the next or previous tab of the navigation bar.");
             }
+            if (Settings.isIconOnlyActionsIncluded()) {
+                feed.toggle(Settings.ICON_ONLY_ACTIONS, false, "Icon-only post actions",
+                        "Show Like, Comment, Repost and Send as icons under posts, without their labels.");
+            }
             if (Settings.isCopyTextIncluded()) {
                 feed.toggle(Settings.COPY_TEXT, true, "Copy text",
                         "Long press a post, comment, or any text to select and copy it, like on Reddit.");
                 feed.toggle(Settings.COPY_TEXT_LONG_SHEET, true, "Long posts in a sheet",
                         "Long posts open in a scrollable sheet with the whole text. Off: selected in place like short text.");
+            }
+            if (Settings.isCopyPostTextIncluded()) {
+                feed.toggle(Settings.COPY_POST_TEXT, true, "Copy full post text",
+                        "Long press a post's text to copy all of it, including the part behind \"...more\".");
             }
             if (Settings.isPostMenuIncluded()) {
                 feed.toggle(Settings.POST_MENU, true, "Post menu items",
@@ -234,11 +244,16 @@ public final class SettingsActivity extends Activity {
             categories.add(feed);
         }
 
-        if (Settings.isNavigationBarIncluded() || Settings.isGlassNavigationBarIncluded()) {
+        if (Settings.isNavigationBarIncluded() || Settings.isGlassNavigationBarIncluded()
+                || Settings.isAlwaysShowNavigationBarIncluded()) {
             Category navigation = new Category("Navigation bar", IconDrawable.MORE);
             if (Settings.isGlassNavigationBarIncluded()) {
                 navigation.toggle(Settings.GLASS_NAVIGATION_BAR, true, "Glass navigation bar",
                         "A floating, translucent navigation bar.");
+            }
+            if (Settings.isAlwaysShowNavigationBarIncluded()) {
+                navigation.toggle(Settings.ALWAYS_SHOW_NAVIGATION_BAR, false, "Always show navigation bar",
+                        "Keep the navigation bar on screen while you scroll.");
             }
             if (Settings.isNavigationBarIncluded()) {
                 navigation.toggle(Settings.HIDE_TAB_LABELS, false, "Hide tab labels",
@@ -278,6 +293,11 @@ public final class SettingsActivity extends Activity {
                 appearance.toggle(Settings.MATERIAL_YOU, true, "Material You",
                         "Your wallpaper's colors for accents, backgrounds, cards and borders. Restart LinkedIn to "
                                 + "apply. Older screens keep the colors chosen when patching.");
+                appearance.value("Accent color", new ValueRow() {
+                    public String currentValue() { return accentName(Settings.accentColor()); }
+                    public Runnable onClick() { return SettingsActivity.this::chooseAccent; }
+                    public boolean enabled() { return Settings.materialYou(); }
+                });
             }
             if (Settings.isAmoledBlackIncluded()) {
                 appearance.toggle(Settings.PITCH_BLACK, true, "Pitch black",
@@ -493,7 +513,7 @@ public final class SettingsActivity extends Activity {
         divider = dark ? 0xFF2A2A2A : 0xFFE3E5E8;
         textPrimary = dark ? 0xFFFFFFFF : 0xFF141414;
         textSecondary = dark ? 0xFFA6A6A6 : 0xFF5F6368;
-        accent = dark ? ACCENT_DARK : ACCENT_LIGHT;
+        accent = MaterialYou.settingsAccent(dark, dark ? ACCENT_DARK : ACCENT_LIGHT);
         int[] materialYou = MaterialYou.settingsColors(dark);
         if (materialYou != null) {
             background = materialYou[0];
@@ -873,6 +893,8 @@ public final class SettingsActivity extends Activity {
                 {"Expand posts", Settings.isExpandPostsIncluded()},
                 {"Disable double-tap like", Settings.isDisableDoubleTapLikeIncluded()},
                 {"Copy text", Settings.isCopyTextIncluded()},
+                {"Copy post text", Settings.isCopyPostTextIncluded()},
+                {"Icon-only post actions", Settings.isIconOnlyActionsIncluded()},
                 {"Keep feed on reopen", Settings.isKeepFeedIncluded()},
                 {"Post menu items", Settings.isPostMenuIncluded()},
                 {"Tap to hide in viewers", Settings.isViewerTapToHideIncluded()},
@@ -882,6 +904,7 @@ public final class SettingsActivity extends Activity {
                 {"Navigation bar", Settings.isNavigationBarIncluded()},
                 {"Customize navigation bar", Settings.isCustomizeNavigationIncluded()},
                 {"Swipe between tabs", Settings.isSwipeTabsIncluded()},
+                {"Always show navigation bar", Settings.isAlwaysShowNavigationBarIncluded()},
                 {"Glass navigation bar", Settings.isGlassNavigationBarIncluded()},
                 {"More tab", Settings.isMoreMenuIncluded()},
                 {"Anonymous profile viewing", Settings.isAnonymousProfileViewingIncluded()},
@@ -1189,6 +1212,82 @@ public final class SettingsActivity extends Activity {
     // endregion
 
     // region Download location
+
+    private static String accentName(int rgb) {
+        if (rgb < 0) {
+            return I18n.tr(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ? "Wallpaper" : "LinkedIn blue");
+        }
+        for (int i = 0; i < AccentPalette.PRESET_COLORS.length; i++) {
+            if (AccentPalette.PRESET_COLORS[i] == rgb) return I18n.tr(AccentPalette.PRESET_NAMES[i]);
+        }
+        return AccentPalette.format(rgb);
+    }
+
+    private void chooseAccent() {
+        int presets = AccentPalette.PRESET_COLORS.length;
+        String[] names = new String[presets + 2];
+        names[0] = accentName(-1);
+        for (int i = 0; i < presets; i++) names[i + 1] = I18n.tr(AccentPalette.PRESET_NAMES[i]);
+        names[presets + 1] = I18n.tr("Custom…");
+
+        int current = Settings.accentColor();
+        int checked = current < 0 ? 0 : presets + 1;
+        for (int i = 0; i < presets; i++) if (AccentPalette.PRESET_COLORS[i] == current) checked = i + 1;
+
+        new AlertDialog.Builder(this, dialogTheme())
+                .setTitle(I18n.tr("Accent color"))
+                .setSingleChoiceItems(names, checked, (dialog, which) -> {
+                    dialog.dismiss();
+                    if (which == 0) setAccent("");
+                    else if (which <= presets) setAccent(AccentPalette.format(AccentPalette.PRESET_COLORS[which - 1]));
+                    else editAccent();
+                })
+                .setNegativeButton(I18n.tr("Cancel"), null)
+                .show();
+    }
+
+    private void editAccent() {
+        EditText input = new EditText(this);
+        input.setSingleLine(true);
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+        int current = Settings.accentColor();
+        input.setText(current < 0 ? "" : AccentPalette.format(current));
+        input.setHint("#0A66C2");
+        input.setSelection(input.getText().length());
+
+        TextView help = text("A color as #RRGGBB. Light and dark shades are made from it.", 13, textSecondary,
+                false);
+        help.setPadding(0, dp(8), 0, 0);
+
+        LinearLayout box = new LinearLayout(this);
+        box.setOrientation(LinearLayout.VERTICAL);
+        box.setPadding(dp(24), dp(8), dp(24), 0);
+        box.addView(input);
+        box.addView(help);
+
+        AlertDialog dialog = new AlertDialog.Builder(this, dialogTheme())
+                .setTitle(I18n.tr("Accent color"))
+                .setView(box)
+                .setPositiveButton(I18n.tr("Save"), null)
+                .setNegativeButton(I18n.tr("Cancel"), null)
+                .create();
+        dialog.setOnShowListener(ignored -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            int rgb = AccentPalette.parse(input.getText().toString());
+            if (rgb < 0) {
+                input.setError(I18n.tr("Enter a color as #RRGGBB."));
+                return;
+            }
+            setAccent(AccentPalette.format(rgb));
+            dialog.dismiss();
+        }));
+        dialog.show();
+    }
+
+    private void setAccent(String value) {
+        Settings.setString(Settings.ACCENT_COLOR, value);
+        refresh();
+        showRestartBanner();
+    }
 
     private void chooseBaseDir() {
         String[] dirs = Settings.DOWNLOAD_BASE_DIRS;

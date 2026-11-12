@@ -34,6 +34,19 @@ final class ViewingUserAgentRules {
         }catch(IllegalArgumentException invalid){return false;}
     }
 
+    static boolean catboxImage(String url) {
+        try {
+            URI uri = URI.create(url);
+            return "files.catbox.moe".equalsIgnoreCase(uri.getHost())
+                    && uri.getPath() != null && uri.getPath().matches("(?i).*\\.(?:jpe?g|png|gif|webp|avif)$");
+        } catch (RuntimeException invalid) { return false; }
+    }
+
+    static String imageAgent(String agent) {
+        if (agent != null && agent.startsWith("Mozilla/")) return agent;
+        return "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36";
+    }
+
     static String[] headers(String[] original, String agent) {
         if (!valid(agent) || original == null || original.length % 2 != 0) return original;
         for (int i = 0; i < original.length; i += 2) {

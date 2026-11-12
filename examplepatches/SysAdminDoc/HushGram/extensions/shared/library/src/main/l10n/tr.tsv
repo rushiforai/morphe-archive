@@ -253,7 +253,8 @@ Turn on Tap to play to use this choice.	Bu seçimi kullanmak için Oynatmak içi
 Resume long videos	Uzun videolara kaldığın yerden devam et
 Videos and reels over two minutes pick up where you left off. Seek to start elsewhere. Live videos and ads start as usual.	İki dakikadan uzun videolar ve reels kaldığın yerden devam eder. Başka bir yerden başlatmak için çubuğu kaydır. Canlı videolar ve reklamlar normal başlar.
 Default playback quality	Varsayılan oynatma kalitesi
-Videos, reels and stories play at the quality below, starting with the next one you open.	Videolar, reels ve hikayeler, açacağın bir sonrakinden itibaren aşağıdaki kalitede oynatılır.
+# context: description of the Default playback quality switch on the Playback page, with the list of qualities below it. A video that keeps stalling because the connection is too slow for its quality switches to the next lower quality that video offers (#599)
+Videos, reels and stories play at the quality below, starting with the next one you open. When your connection can't keep up, a video drops to the next lower quality.	Videolar, reels ve hikayeler, açacağın bir sonrakinden itibaren aşağıdaki kalitede oynatılır. Bağlantın yetişemediğinde video bir alt kaliteye düşer.
 Playback quality	Oynatma kalitesi
 Auto	Otomatik
 Data saver	Veri tasarrufu
@@ -1374,6 +1375,9 @@ Takes the arrow off the end of a profile's row of buttons, along with the menu i
 # context: Layout: Glass tab bar's switch that stops the liquid pill shrinking as you scroll (#256)
 Keep the pill full size	Hapı tam boyutta tut
 Scrolling a list down leaves the liquid pill as it is, every tab in place. Restart Instagram after changing it.	Bir listeyi aşağı kaydırınca sıvı cam hap olduğu gibi kalır, her sekme yerinde durur. Değiştirdikten sonra Instagram'ı yeniden başlat.
+# context: a switch under Glass tab bar that makes the standard pill (the one without the liquid look) smaller while a list scrolls down, and its description. Liquid glass look and Hide the tab bar as you scroll are the names of two other switches on the same page (#638)
+Shrink the pill as you scroll	Kaydırırken hapı küçült
+With Liquid glass look off, scrolling a list down makes the pill smaller, and scrolling up or changing tab brings it back to full size. Hide the tab bar as you scroll takes over when it's on. Restart Instagram after changing it.	Sıvı cam görünümü kapalıyken bir listeyi aşağı kaydırınca hap küçülür, yukarı kaydırınca ya da sekme değiştirince tam boyutuna döner. Kaydırırken sekme çubuğunu gizle açıksa o geçerli olur. Değiştirdikten sonra Instagram'ı yeniden başlat.
 # context: Layout: Glass tab bar's switch that makes the liquid pill's rim bend and mirror what's behind it like glass (#369)
 Bend light at the edges	Kenarlarda ışığı kır
 The pill's rim bends what's behind it like real glass, so what passes under the edge shows upside down. Android 13 and newer. Restart Instagram after changing it.	Hapın kenarı arkasındakini gerçek cam gibi kırar, kenarın altından geçen her şey ters görünür. Android 13 ve sonrası. Değiştirdikten sonra Instagram'ı yeniden başlat.
@@ -1522,7 +1526,7 @@ Couldn't use that folder. Saves go where they did.	O klasör kullanılamadı. Ka
 Saves go to Movies and Pictures again.	Kayıtlar yine Movies ve Pictures'a gidiyor.
 %1$s didn't take this save, so it went to Movies and Pictures.	%1$s bu kaydı kabul etmedi, bu yüzden Movies ve Pictures klasörlerine gitti.
 Start reels with sound	Reel'leri sesli başlat
-A reel you open from the Reels tab or a post on Home plays with sound, and Home is muted again when you go back. Your phone's ringer and volume still count.	Reels sekmesinden veya Ana Sayfa'daki bir gönderiden açtığınız reel sesli oynar ve geri döndüğünüzde Ana Sayfa yeniden sessize alınır. Telefonunuzun zil modu ve ses düzeyi yine geçerlidir.
+A reel you open from the Reels tab, a profile or a post on Home plays with sound, and Home is muted again when you go back. Your phone's ringer and volume still count.	Reels sekmesinden, bir profilden veya Ana Sayfa'daki bir gönderiden açtığınız reel sesli oynar ve geri döndüğünüzde Ana Sayfa yeniden sessize alınır. Telefonunuzun zil modu ve ses düzeyi yine geçerlidir.
 Keep your place in Home	Ana sayfadaki yerini koru
 Coming back to Instagram leaves Home on the post you were on, however long you were away. Pull down to refresh still reloads it.	Instagram'a döndüğünde, ne kadar uzak kalmış olursan ol, Ana sayfa bulunduğun gönderide kalır. Yenilemek için aşağı çekmek yine de yeniden yükler.
 Filter the Stories tray by verified accounts	Hikaye sırasını doğrulanmış hesaplara göre filtrele
@@ -1590,7 +1594,7 @@ Previous page	Önceki sayfa
 Next page	Sonraki sayfa
 # context: Feed settings: the Page dots on a pill switch, right under Carousel arrows (#419). A pill is a small bar with round ends that holds the dots.
 Page dots on a pill	Hap üzerinde sayfa noktaları
-Moves a carousel post's page dots onto a round pill at the bottom of its photo or video, with the page you're on in blue.	Çoklu gönderinin sayfa noktalarını fotoğrafın veya videonun altındaki yuvarlak bir hapın üzerine taşır. Bulunduğun sayfa mavi görünür.
+Moves a carousel post's page dots onto a round pill at the bottom of its photo or video, with the page you're on in blue. Hold the pill and slide left or right to move through the pages.	Çoklu gönderinin sayfa noktalarını fotoğrafın veya videonun altındaki yuvarlak bir hapın üzerine taşır. Bulunduğun sayfa mavi görünür. Hapa basılı tutup sola veya sağa kaydırarak sayfa değiştirebilirsin.
 # context: Feed settings: the Hide page number switch, under Carousel arrows (#581). The number is the 3/5 in the corner of a carousel post.
 Hide page number	Sayfa numarasını gizle
 Takes the number like 3/5 off the corner of a carousel post's photo or video.	Karusel gönderisinin fotoğraf veya videosunun köşesindeki 3/5 gibi sayıyı kaldırır.
@@ -1668,6 +1672,12 @@ Stop videos looping	Videoları tekrarlama
 Feed videos and reels stop at their last frame instead of playing again. Reels still loop while auto scroll is on, so it can move on.	Akıştaki videolar ve reels videoları yeniden oynatılmak yerine son karelerinde durur. Otomatik kaydırma açıkken reels videoları bir sonrakine geçebilmesi için tekrarlanmaya devam eder.
 Not used while you've picked a folder. Saves go there.	Bir klasör seçiliyken kullanılmaz. Her şey o klasöre kaydedilir.
 All	Tümü
+# context: names of the groups the settings categories fall into, shown over each group on the list of categories and on the chips above it next to All (#642): privacy, what the app shows, media and storage, how the app looks, and App for HushGram's own updates, backup, pause and about
+Privacy	Gizlilik
+Content	İçerik
+Media and storage	Medya ve depolama
+Look	Görünüm
+App	Uygulama
 Posts	Gönderiler
 Nothing matches.	Eşleşen bir şey yok.
 Couldn't open that one.	Bu açılamadı.
@@ -1759,7 +1769,7 @@ Open a chat, tap the clock button next to the call buttons at the top, or long p
 Open a chat, tap the clock button next to the call buttons at the top, or long press the chat's name, and pick Export chat. The whole chat is saved as a text file in Downloads, HushGram folder, one line per message.	Bir sohbet aç, üstte arama düğmelerinin yanındaki saat düğmesine dokun ya da sohbetin adına uzun bas, sonra Sohbeti dışa aktar seçeneğini seç. Sohbetin tamamı İndirilenler içindeki HushGram klasörüne metin dosyası olarak kaydedilir, her mesaj bir satırdır.
 Instagram stopped loading older messages.	Instagram eski mesajları yüklemeyi bıraktı.
 Black settings page	Siyah ayarlar sayfası
-Black rows and dialogs, HushGram's name at the top, and each category on one line.	Siyah satırlar ve pencereler, üstte HushGram adı ve her kategori tek satırda.
+Black rows and dialogs, with HushGram's name at the top.	Siyah satırlar ve pencereler, üstte HushGram adıyla.
 Mark as read	Okundu olarak işaretle
 Nothing to mark as read	Okundu yapılacak bir şey yok
 Mark as read button in chats	Sohbetlerde Okundu olarak işaretle düğmesi
@@ -1976,6 +1986,9 @@ Leaves out the live broadcasts Instagram puts between reels in the Reels tab and
 # context: a switch on the Feed page; Watch again is the button on the card Instagram shows when a reel in the feed ends, next to Watch more reels
 Watch again in the feed	Akışta tekrar izle
 When a reel in your feed ends, Watch again plays it over right there instead of opening Reels.	Akışındaki bir reels bittiğinde Tekrar izle, Reels'i açmak yerine onu orada yeniden oynatır.
+# context: a switch on the Feed page under Watch again in the feed; Watch more reels is the big button on the card Instagram shows when a reel in the feed ends, it opens Reels
+Hide Watch more reels	Daha fazla reels izle'yi gizle
+Takes the Watch more reels button off the card a reel in your feed shows when it ends. Watch again stays.	Akışındaki bir reels bittiğinde çıkan karttan Daha fazla reels izle düğmesini kaldırır. Tekrar izle yerinde kalır.
 # context: a switch on the Playback page under Keep playing in the background; Android's own name for picture in picture
 Picture in picture for reels	Reels için pencere içinde pencere
 Leaving Instagram while a reel plays shrinks it into a small window over your other apps. Works in Reels and on reels opened from the feed, on Android 15 or newer.	Bir reel oynarken Instagram'dan çıkınca, diğer uygulamalarının üstünde küçük bir pencereye dönüşür. Reels'te ve akıştan açılan reels'lerde, Android 15 veya daha yenisinde çalışır.
@@ -2033,6 +2046,9 @@ Posts from your hidden accounts still show in Favorites. For you and Following l
 # context: switch next to Lock your messages; Saved is Instagram's page of your saved posts and collections (#597)
 Lock Saved	Kaydedilenler'i kilitle
 Saved and everything in it stay covered until your fingerprint, face or screen lock says it's you.	Parmak izin, yüzün veya ekran kilidin sen olduğunu doğrulayana kadar Kaydedilenler ve içindeki her şey kapalı kalır.
+# context: switch under Lock your messages; on, an unlock opens only the chat it was asked in, so the next chat, or going back to the inbox, asks for the fingerprint, face, screen lock or PIN again (#649)
+Ask for each chat	Her sohbette sor
+Every chat you open asks again, and so does your inbox when you go back to it. Off, one unlock opens everything until you leave Instagram.	Açtığın her sohbet yeniden sorar, gelen kutuna döndüğünde de sorar. Kapalıyken tek bir kilit açma, Instagram'dan çıkana kadar her şeyi açar.
 Saved is locked	Kaydedilenler kilitli
 Unlock Saved	Kaydedilenler'in kilidini aç
 # context: three-dot menu row on a reel or feed video with Stop videos looping on; makes only the video on screen play again and again (#610)

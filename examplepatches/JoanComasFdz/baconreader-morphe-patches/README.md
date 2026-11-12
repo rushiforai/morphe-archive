@@ -37,6 +37,12 @@ On Morphe Manager's home screen, tap **BaconReader Premium** (or **BaconReader**
 **Install → Update**. Morphe Manager patches its own copy of the APK you picked the first time and signs the result with
 the same key, so Android updates the app and keeps your login and settings: you don't need to keep the APK.
 
+Morphe Manager gets new patches when it starts (or with **Update** on the source, in **Sources**), but doesn't patch
+BaconReader again by itself: patch again to get them. Use **Patch**, not the install button next to **Open**: that one
+installs the copy Morphe Manager saved when you last patched, with the patches of then. The bottom of BaconReader's left
+menu shows the version of the patches installed, such as "Patches 1.8.2 (Morphe)". Watch it:
+[How to update](https://joancomasfdz.github.io/baconreader-morphe-patches/#update), in the user guide.
+
 Don't patch the installed BaconReader: it's patched already, and the patches look for the original code, so they fail.
 
 ### Troubleshooting

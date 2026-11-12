@@ -6,6 +6,7 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
@@ -18,6 +19,7 @@ import android.widget.*;
 /** User-visible streaming player. No WebView, login cookies or automatic retries. */
 public final class VideoViewerActivity extends HaiagaruComposeActivity {
     private VideoView video;
+    private PlaybackAudioFocus playbackFocus;
     private MediaController controls;
     private ViewerCornerControls toolbar;
     private FrameLayout mediaFrame;
@@ -43,6 +45,9 @@ public final class VideoViewerActivity extends HaiagaruComposeActivity {
     private float playbackSpeed = 1f;
     private float speedBeforeHold = 1f;
     private boolean holdSpeedActive;
+    private View playerRoot;
+    private static final int LANDSCAPE_IMMERSIVE_FLAGS = View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+            | View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
     private static final float[] PLAYBACK_SPEEDS = {0.5f, 0.75f, 1f, 1.25f, 1.5f, 1.75f, 2f};
 
     private static volatile Boolean installationStatus;
@@ -90,12 +95,15 @@ public final class VideoViewerActivity extends HaiagaruComposeActivity {
             muted = state.getBoolean("muted", false);
         }
         LinearLayout root = new LinearLayout(this);
+        playerRoot = root;
         root.setOrientation(LinearLayout.VERTICAL); root.setBackgroundColor(Color.BLACK);
         root.setOnApplyWindowInsetsListener((view, insets) -> {
-            view.setPadding(insets.getSystemWindowInsetLeft(), insets.getSystemWindowInsetTop(),
-                    insets.getSystemWindowInsetRight(), insets.getSystemWindowInsetBottom());
+            boolean landscape = FeatureSwitches.enabled("videoLandscapeImmersive", true) && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
+            view.setPadding(insets.getSystemWindowInsetLeft(), landscape ? 0 : insets.getSystemWindowInsetTop(),
+                    insets.getSystemWindowInsetRight(), landscape ? 0 : insets.getSystemWindowInsetBottom());
             return insets;
         });
+        updateImmersiveMode();
         Button back = overlayButton("戻る"); back.setOnClickListener(v -> finish());
         Button more = overlayButton("︙"); more.setContentDescription("動画メニュー");
         speedButton = overlayButton(speedLabel(playbackSpeed));
@@ -113,7 +121,13 @@ public final class VideoViewerActivity extends HaiagaruComposeActivity {
         more.setOnClickListener(this::showMenu);
         toolbar = new ViewerCornerControls(this, back, more);
         FrameLayout frame = new FrameLayout(this);mediaFrame=frame;
-        video = new VideoView(this);
+        playbackFocus=new PlaybackAudioFocus(this,()->{if(video!=null)video.pause();playWhenReady=false;});
+        playbackFocus.muted(muted);
+        video = new VideoView(this){
+            @Override public void start(){if(playbackFocus.play())super.start();}
+            @Override public void pause(){super.pause();playbackFocus.release();}
+        };
+        if(android.os.Build.VERSION.SDK_INT>=26)video.setAudioFocusRequest(android.media.AudioManager.AUDIOFOCUS_NONE);
         setVolumeControlStream(android.media.AudioManager.STREAM_MUSIC);
         touchControls = new VideoTouchControls(this);
         // Confirmed taps are handled by the detector, so a double tap cannot toggle controls twice.
@@ -208,11 +222,13 @@ public final class VideoViewerActivity extends HaiagaruComposeActivity {
             controls.show(0);
         });
         video.setOnCompletionListener(player -> {
+            playbackFocus.release();
             seeks.reset();
             playWhenReady = false; position = 0;
             setStatus("再生が終了しました。再生ボタンで最初から再生できます"); controls.show(0);
         });
         video.setOnErrorListener((player, what, extra) -> {
+            playbackFocus.release();
             seeks.reset();
             endHoldSpeed();
             prepared = false; mediaPlayer = null;
@@ -325,8 +341,14 @@ public final class VideoViewerActivity extends HaiagaruComposeActivity {
     private void refreshPlaybackActions(){if(controls instanceof HaiagaruMediaController)((HaiagaruMediaController)controls).refreshPlaybackActions();}
     private void applyMute(){
         float volume=muted?0f:1f;
+        // Silence before releasing focus; acquire it before making a playing video audible.
+        if(!muted){
+            playbackFocus.muted(false);
+            if(video!=null&&video.isPlaying()&&!playbackFocus.play())video.pause();
+        }
         if(mediaPlayer!=null)try{mediaPlayer.setVolume(volume,volume);}catch(IllegalStateException ignored){}
         if(gifFallback!=null)gifFallback.setVolume(volume);
+        if(muted)playbackFocus.muted(true);
         if(muteButton!=null){muteButton.setText(muted?"音声ON":"ミュート");muteButton.setContentDescription(muted?"ミュートを解除":"ミュートする");}
         refreshPlaybackActions();
     }
@@ -525,7 +547,7 @@ public final class VideoViewerActivity extends HaiagaruComposeActivity {
                     setRequestedOrientation(rotated ? ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
                             : ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED); return true;
                 case 5: VideoViewerSettings.show(this); return true;
-                case 6: VideoDownloads.confirm(this, url, this::saveVideo); return true;
+                case 6: VideoDownloads.request(this, url, this::saveVideo); return true;
                 default: return false;
             }
         });
@@ -554,8 +576,25 @@ public final class VideoViewerActivity extends HaiagaruComposeActivity {
             video.pause();
         }
     }
+    private void updateImmersiveMode() {
+        View decor = getWindow().getDecorView();
+        int flags = decor.getSystemUiVisibility();
+        boolean landscape = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
+        int next = landscape ? flags | LANDSCAPE_IMMERSIVE_FLAGS : flags & ~LANDSCAPE_IMMERSIVE_FLAGS;
+        if (next != flags) decor.setSystemUiVisibility(next);
+        if (playerRoot != null) playerRoot.requestApplyInsets();
+    }
+    @Override public void onConfigurationChanged(Configuration configuration) {
+        super.onConfigurationChanged(configuration);
+        updateImmersiveMode();
+    }
+    @Override public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) updateImmersiveMode();
+    }
     @Override protected void onResume() {
         super.onResume(); foreground = true;
+        updateImmersiveMode();
         if (video != null) gestures = new VideoViewerGestures(this);
         if (prepared && playWhenReady) video.start();
         if (gifFallback != null && playWhenReady) gifFallback.play();
@@ -585,6 +624,7 @@ public final class VideoViewerActivity extends HaiagaruComposeActivity {
         if (gestures != null) gestures.close();
         if (controls != null) controls.hide();
         if (video != null) video.stopPlayback();
+        if (playbackFocus != null) playbackFocus.release();
         mediaPlayer = null;
         super.onDestroy();
     }

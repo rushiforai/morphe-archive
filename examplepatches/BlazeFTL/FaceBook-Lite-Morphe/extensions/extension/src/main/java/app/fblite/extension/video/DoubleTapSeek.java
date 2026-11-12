@@ -260,7 +260,7 @@ final class DoubleTapSeek {
         View[] all = {left, right};
         for (View view : all) {
             view.setVisibility(View.GONE);
-            decor.addView(view, new FrameLayout.LayoutParams(1, 1, Gravity.TOP | Gravity.START));
+            decor.addView(view, new FrameLayout.LayoutParams(1, 1, Gravity.TOP | Gravity.LEFT));
         }
         owner = new WeakReference<>(activity);
         shown = false;

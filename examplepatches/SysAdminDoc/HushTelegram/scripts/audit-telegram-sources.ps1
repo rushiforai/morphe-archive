@@ -61,7 +61,9 @@ param(
     # GitHub allows ten code searches a minute.
     [double]$SearchDelaySeconds = 7,
     # How long to wait out a rate limit before trying again.
-    [int]$RateLimitWaitSeconds = 61
+    [int]$RateLimitWaitSeconds = 61,
+    # How long to wait after a 502, 503 or 504 before asking again.
+    [int]$ServerErrorWaitSeconds = 15
 )
 
 $ErrorActionPreference = 'Stop'
@@ -196,7 +198,7 @@ function Invoke-SourceRequest {
         One GET, or with -Body one JSON POST, answering Status and Content. A 4xx or 5xx answer comes
         back as its status with no content, since a repository that's gone is a finding and not a
         crash; only a request that never got an answer throws. A rate limit is waited out, three
-        times at most.
+        times at most, and a 502, 503 or 504 is asked again, four times at most.
     #>
     param([Parameter(Mandatory = $true)][string]$Uri, [string]$Auth = 'plain', [string]$Body)
 
@@ -252,6 +254,13 @@ function Invoke-SourceRequest {
             if ($limited -and $attempt -lt 4) {
                 Write-Step "rate limited on $([Uri]$Uri | ForEach-Object { $_.Host }), waiting $RateLimitWaitSeconds s"
                 Start-Sleep -Seconds $RateLimitWaitSeconds
+                continue
+            }
+            # Jman's catalog answered 503 "retry shortly" in bursts on 2026-11-12, with a 200 now and
+            # then between them, so a server that's briefly unavailable doesn't fail the census.
+            if ($status -in 502, 503, 504 -and $attempt -lt 5) {
+                Write-Step "$([Uri]$Uri | ForEach-Object { $_.Host }) answered $status, asking again in $ServerErrorWaitSeconds s"
+                Start-Sleep -Seconds $ServerErrorWaitSeconds
                 continue
             }
             return [pscustomobject]@{ Status = $status; Content = $null }
@@ -571,7 +580,8 @@ function Get-RegistryPatchPackages {
     <#
         The packages a patch in Jman's registry names. The catalog API lists {name, versions}
         records; the git snapshot it replaced mapped each package to its versions. A patch for any
-        app names none.
+        app names none. A bundle's own patches-list.json lists {packageName, name} records, where
+        name is the app's title, so packageName is read first.
     #>
     param($Patch)
     # Read straight off the property: Get-SourceProperty returns through the pipeline, which turns a
@@ -581,10 +591,42 @@ function Get-RegistryPatchPackages {
     if ($null -eq $property -or $null -eq $property.Value) { return }
     $compatible = $property.Value
     if ($compatible -is [array]) {
-        foreach ($record in $compatible) { $name = [string](Get-SourceProperty $record 'name'); if ($name) { $name } }
+        foreach ($record in $compatible) {
+            if ($record -is [string]) { $record; continue }
+            $name = [string](Get-SourceProperty $record 'packageName')
+            if (-not $name) { $name = [string](Get-SourceProperty $record 'name') }
+            if ($name) { $name }
+        }
     } else {
         foreach ($property in $compatible.PSObject.Properties) { $property.Name }
     }
+}
+
+function Read-RepositoryPatchList {
+    <#
+        The census packages' patch names in the patches-list.json a bundle's GitHub repository keeps
+        at the tag of the bundle's version, for a bundle whose patches Jman's catalog can't serve.
+        $null when the repository isn't on GitHub or has no list at that tag.
+    #>
+    param([string]$SourceKey, [string]$Version)
+    $key = Split-SourceKey $SourceKey
+    if ($key.Host -ne 'github.com' -or -not $Version) { return $null }
+    $bare = $Version -replace '^v', ''
+    foreach ($ref in @(@($Version, $bare, "v$bare") | Select-Object -Unique)) {
+        $what = "$($key.Path)'s patches-list.json at $ref"
+        $answer = Invoke-SourceRequest -Uri "https://raw.githubusercontent.com/$($key.Path)/$(Get-EncodedPath $ref)/patches-list.json"
+        if ($answer.Status -eq 404) { continue }
+        if ($answer.Status -ne 200) { throw "$what answered HTTP $($answer.Status)." }
+        $list = ConvertFrom-SourceJson -Text $answer.Content -What $what
+        $names = New-Object System.Collections.Generic.List[string]
+        foreach ($patch in (Get-JsonItems $list.patches)) {
+            if (@(Get-RegistryPatchPackages $patch | Where-Object { $packages -contains $_ }).Count -eq 0) { continue }
+            $name = [string](Get-SourceProperty $patch 'name')
+            if ($name -and -not $names.Contains($name)) { $names.Add($name) }
+        }
+        return [pscustomobject]@{ Ref = $ref; Features = @($names) }
+    }
+    return $null
 }
 
 Invoke-Source 'Jman''s bundle index' {
@@ -610,6 +652,7 @@ Invoke-Source 'Jman''s bundle index' {
         }
     }
     $seen = @{}
+    $fromRepository = New-Object System.Collections.Generic.List[string]
     foreach ($bundle in $byId.Values) {
         $source = Get-RegistrySource $bundle
         # A source's stable and dev bundles can both be latest. Add-Candidate merges the two.
@@ -635,30 +678,44 @@ Invoke-Source 'Jman''s bundle index' {
             continue
         }
         $features = New-Object System.Collections.Generic.List[string]
-        # A patch search answers in windows: offset pages through one, and next_cursor starts the next.
-        $offset = 0
-        $cursor = $null
-        for ($request = 1; ; $request++) {
-            if ($request -gt 50) { throw "Jman's patch list for bundle $id ran past 50 pages." }
-            $uri = "$base/bundles/$(Get-EncodedPath $id)/patches?include_unverified=true&limit=100&offset=$offset"
-            if ($cursor) { $uri += "&page_cursor=$([Uri]::EscapeDataString($cursor))" }
-            $page = Get-SourceJson -Uri $uri -What "Jman's patches for bundle $id"
-            $rows = @(Get-JsonItems (Get-SourceProperty $page 'data'))
-            foreach ($patch in $rows) {
-                if (@(Get-RegistryPatchPackages $patch | Where-Object { $packages -contains $_ }).Count -eq 0) { continue }
-                $name = [string](Get-SourceProperty $patch 'name')
-                if ($name -and -not $features.Contains($name)) { $features.Add($name) }
-            }
-            $offset += $rows.Count
-            if ($rows.Count -gt 0 -and $offset -lt [int](Get-SourceProperty $page 'total')) { continue }
-            $cursor = [string](Get-SourceProperty $page 'next_cursor')
-            if (-not $cursor) { break }
+        try {
+            # A patch search answers in windows: offset pages through one, and next_cursor starts the next.
             $offset = 0
+            $cursor = $null
+            for ($request = 1; ; $request++) {
+                if ($request -gt 50) { throw "Jman's patch list for bundle $id ran past 50 pages." }
+                $uri = "$base/bundles/$(Get-EncodedPath $id)/patches?include_unverified=true&limit=100&offset=$offset"
+                if ($cursor) { $uri += "&page_cursor=$([Uri]::EscapeDataString($cursor))" }
+                $page = Get-SourceJson -Uri $uri -What "Jman's patches for bundle $id"
+                $rows = @(Get-JsonItems (Get-SourceProperty $page 'data'))
+                foreach ($patch in $rows) {
+                    if (@(Get-RegistryPatchPackages $patch | Where-Object { $packages -contains $_ }).Count -eq 0) { continue }
+                    $name = [string](Get-SourceProperty $patch 'name')
+                    if ($name -and -not $features.Contains($name)) { $features.Add($name) }
+                }
+                $offset += $rows.Count
+                if ($rows.Count -gt 0 -and $offset -lt [int](Get-SourceProperty $page 'total')) { continue }
+                $cursor = [string](Get-SourceProperty $page 'next_cursor')
+                if (-not $cursor) { break }
+                $offset = 0
+            }
+        } catch {
+            # The catalog has answered 503 for one bundle's patches since 2026-11-10 (Proteus 2.2.10)
+            # while everything else in it reads. The bundle's repository publishes the same list, so a
+            # server failure reads it there at the bundle's tag; anything else still fails the reader.
+            $failure = $_.Exception.Message
+            if ($failure -notmatch 'answered HTTP 5\d\d') { throw }
+            $repositoryList = Read-RepositoryPatchList -SourceKey $source.Key -Version ([string](Get-SourceProperty $bundle 'version'))
+            if ($null -eq $repositoryList) { throw }
+            $features.Clear()
+            foreach ($name in $repositoryList.Features) { $features.Add($name) }
+            $fromRepository.Add("$($source.Key) at $($repositoryList.Ref) ($failure)")
         }
         Add-Candidate -Key $source.Key -Source 'Jman''s bundle index' -Packages $apps -Features @($features)
         $seen[$source.Key] = $true
     }
-    "$($seen.Count) Telegram bundles; HushTelegram " + $(if ($listed['jman-bundles']) { 'listed' } else { 'not listed' })
+    "$($seen.Count) Telegram bundles; HushTelegram " + $(if ($listed['jman-bundles']) { 'listed' } else { 'not listed' }) +
+        $(if ($fromRepository.Count -gt 0) { '; patch list read from the repository for ' + ($fromRepository -join '; ') } else { '' })
 }
 
 Invoke-Source 'Morphe Archive' {

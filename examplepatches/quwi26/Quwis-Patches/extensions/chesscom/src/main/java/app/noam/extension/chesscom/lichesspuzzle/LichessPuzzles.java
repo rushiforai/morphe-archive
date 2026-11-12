@@ -107,6 +107,8 @@ public final class LichessPuzzles {
     private static String puzzleDbField() { return ""; }
     private static String puzzleDbClear() { return ""; }
     private static String guestRepositoryClass() { return ""; }
+    /** The navigation interface the Puzzles tab's click calls, set by the patch. */
+    private static String routerClass() { return ""; }
     /** The path stats' userRating field, set by the patch. */
     private static String userRatingField() { return ""; }
 
@@ -215,34 +217,15 @@ public final class LichessPuzzles {
     /** Finds the listener's router and activity, builds the puzzle directions and navigates. */
     private static void navigateGuest(Object listener, String directionsType, String guestField) throws Exception {
         Class<?> directions = Class.forName("com.chess.navigationinterface.NavigationDirections");
+        java.util.List<Object> values = held(listener);
         Object activity = null;
-        Object router = null;
-        java.util.List<Object> values = new java.util.ArrayList<>();
-        for (java.lang.reflect.Field field : listener.getClass().getFields()) {
-            Object value = field.get(listener);
-            if (value != null) values.add(value);
-        }
-        for (Object value : new java.util.ArrayList<>(values)) {
-            for (java.lang.reflect.Field field : value.getClass().getFields()) {
-                Object held = field.get(value);
-                if (held != null) values.add(held);
+        for (Object value : values) {
+            if (value instanceof Activity) {
+                activity = value;
+                break;
             }
         }
-        for (Object value : values) {
-            if (value instanceof android.app.Activity) activity = value;
-        }
-        for (Object value : values) {
-            for (java.lang.reflect.Method method : value.getClass().getMethods()) {
-                Class<?>[] parameters = method.getParameterTypes();
-                if (parameters.length == 2 && parameters[1] == directions &&
-                    (activity == null || parameters[0].isAssignableFrom(activity.getClass())) &&
-                    method.getReturnType() == void.class) {
-                    router = value;
-                    break;
-                }
-            }
-            if (router != null) break;
-        }
+        Object router = routerIn(values, directions, activity);
         if (router == null || activity == null) throw new IllegalStateException("The puzzle router was not found");
         Class<?> mode = Class.forName("com.chess.navigationinterface.PathPuzzlesMode");
         Object guest = mode.getField(guestField).get(null);
@@ -262,6 +245,75 @@ public final class LichessPuzzles {
             }
         }
         throw new IllegalStateException("The puzzle navigation method was not found");
+    }
+
+    /**
+     * What the listener holds, and one level down. 4.10.18 keeps the router and the activity in the
+     * listener's own fields, and those are not public, so reading declared fields is what finds
+     * them; 4.10.23 keeps both in a holder the listener holds, which the second level covers.
+     */
+    private static java.util.List<Object> held(Object listener) {
+        java.util.List<Object> direct = new java.util.ArrayList<>();
+        fieldsOf(listener, direct);
+        java.util.List<Object> all = new java.util.ArrayList<>(direct);
+        for (Object value : direct) {
+            // The activity has no router inside it, and the platform classes' fields are none of
+            // this code's business.
+            if (value instanceof Activity) continue;
+            String type = value.getClass().getName();
+            if (type.startsWith("android.") || type.startsWith("java.") || type.startsWith("kotlin.")) continue;
+            fieldsOf(value, all);
+        }
+        return all;
+    }
+
+    /** Every non-static field of the object's class and its superclasses, whatever their access. */
+    private static void fieldsOf(Object owner, java.util.List<Object> values) {
+        for (Class<?> type = owner.getClass(); type != null && type != Object.class; type = type.getSuperclass()) {
+            for (Field field : type.getDeclaredFields()) {
+                if (Modifier.isStatic(field.getModifiers())) continue;
+                try {
+                    field.setAccessible(true);
+                    Object value = field.get(owner);
+                    if (value != null) values.add(value);
+                } catch (Throwable unreadable) {
+                    // A field this build keeps shut holds nothing this needs.
+                }
+            }
+        }
+    }
+
+    /** The router among the held objects: the one implementing the interface the click calls. */
+    private static Object routerIn(java.util.List<Object> values, Class<?> directions, Object activity) {
+        String type = routerClass();
+        if (!type.isEmpty()) {
+            for (Object value : values) {
+                if (implementsType(value.getClass(), type)) return value;
+            }
+        }
+        // Without the name (an older patch hook), a router is whatever takes the activity with
+        // NavigationDirections.
+        for (Object value : values) {
+            for (Method method : value.getClass().getMethods()) {
+                Class<?>[] parameters = method.getParameterTypes();
+                if (parameters.length == 2 && parameters[1] == directions &&
+                    (activity == null || parameters[0].isAssignableFrom(activity.getClass())) &&
+                    method.getReturnType() == void.class) {
+                    return value;
+                }
+            }
+        }
+        return null;
+    }
+
+    private static boolean implementsType(Class<?> type, String name) {
+        for (Class<?> current = type; current != null && current != Object.class; current = current.getSuperclass()) {
+            if (current.getName().equals(name)) return true;
+            for (Class<?> implemented : current.getInterfaces()) {
+                if (implemented.getName().equals(name)) return true;
+            }
+        }
+        return false;
     }
 
     /** True while the Lichess puzzle screen is in front. */
