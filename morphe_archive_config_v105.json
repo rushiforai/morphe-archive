@@ -4747,14 +4747,6 @@
                 "updatedAt": 1794291679018
             },
             {
-                "name": "kayo-morphe-patches",
-                "source": "https://raw.githubusercontent.com/AzizPatel786/kayo-morphe-patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 666,
-                "createdAt": 1794291682198,
-                "updatedAt": 1794291682198
-            },
-            {
                 "name": "bin0culars-patches",
                 "source": "https://raw.githubusercontent.com/bin0culars/bin0culars-patches/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -4955,14 +4947,6 @@
                 "updatedAt": 1794516546053
             },
             {
-                "name": "morphe-bilibili-danmaku",
-                "source": "https://raw.githubusercontent.com/RizkLee/morphe-bilibili-danmaku/master/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 694,
-                "createdAt": 1794516549775,
-                "updatedAt": 1794516549775
-            },
-            {
                 "name": "gracie-patches",
                 "source": "https://raw.githubusercontent.com/Sabrina-Moonlight/gracie-patches/master/patches-bundle.json",
                 "autoUpdate": true,
@@ -4985,6 +4969,118 @@
                 "sortOrder": 697,
                 "createdAt": 1794516554709,
                 "updatedAt": 1794516554709
+            },
+            {
+                "name": "gvoice-patches",
+                "source": "https://raw.githubusercontent.com/abegumbo-ui/gvoice-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 698,
+                "createdAt": 1794548192049,
+                "updatedAt": 1794548192049
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/avano/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 699,
+                "createdAt": 1794548195789,
+                "updatedAt": 1794548195789
+            },
+            {
+                "name": "helakuru-morphe",
+                "source": "https://raw.githubusercontent.com/bhashanaliyanage/helakuru-morphe/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 700,
+                "createdAt": 1794548196840,
+                "updatedAt": 1794548196840
+            },
+            {
+                "name": "instagram-notification-nudges",
+                "source": "https://raw.githubusercontent.com/brandonp2412/instagram-notification-nudges/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 701,
+                "createdAt": 1794548197387,
+                "updatedAt": 1794548197387
+            },
+            {
+                "name": "extended-youtube-playlists",
+                "source": "https://raw.githubusercontent.com/chocolavv/extended-youtube-playlists/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 702,
+                "createdAt": 1794548197979,
+                "updatedAt": 1794548197979
+            },
+            {
+                "name": "morphe-arcore-patches",
+                "source": "https://raw.githubusercontent.com/Hinatara/morphe-arcore-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 703,
+                "createdAt": 1794548203480,
+                "updatedAt": 1794548203480
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/hxmst/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 704,
+                "createdAt": 1794548204070,
+                "updatedAt": 1794548204070
+            },
+            {
+                "name": "Avito-Patches",
+                "source": "https://raw.githubusercontent.com/Nizarberyan/Avito-Patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 705,
+                "createdAt": 1794548212047,
+                "updatedAt": 1794548212047
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/Roboroads/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 706,
+                "createdAt": 1794548214222,
+                "updatedAt": 1794548214222
+            },
+            {
+                "name": "D-moniakPatches-dev",
+                "source": "https://raw.githubusercontent.com/SatanMerde/D-moniakPatches-dev/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 707,
+                "createdAt": 1794548215040,
+                "updatedAt": 1794548215040
+            },
+            {
+                "name": "lockstar-clock-patch",
+                "source": "https://raw.githubusercontent.com/sebsebseb9b/lockstar-clock-patch/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 708,
+                "createdAt": 1794548215571,
+                "updatedAt": 1794548215571
+            },
+            {
+                "name": "bugsmith-morphe-patches",
+                "source": "https://raw.githubusercontent.com/thebugsmith/bugsmith-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 709,
+                "createdAt": 1794548216390,
+                "updatedAt": 1794548216390
+            },
+            {
+                "name": "niagara-left-patches",
+                "source": "https://raw.githubusercontent.com/theodotdot/niagara-left-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 710,
+                "createdAt": 1794548217044,
+                "updatedAt": 1794548217044
+            },
+            {
+                "name": "cutlog",
+                "source": "https://raw.githubusercontent.com/uta-a/cutlog/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 711,
+                "createdAt": 1794548218511,
+                "updatedAt": 1794548218511
             }
         ]
     }
