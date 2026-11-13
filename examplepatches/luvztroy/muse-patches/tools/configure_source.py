@@ -8,7 +8,7 @@ a=p.parse_args()
 if not re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+',a.repository):p.error('Use OWNER/REPOSITORY, not a URL')
 if not re.fullmatch(r'[A-Za-z0-9_.-]+',a.branch):p.error('Use a simple branch name')
 root=Path(__file__).resolve().parents[1]
-version='1.2.6'; filename=f'muse-patches-{version}.mpp'
+version='1.2.7'; filename=f'muse-patches-{version}.mpp'
 source=root/'build/libs'/filename
 if not source.is_file():
     source=root/'dist'/filename

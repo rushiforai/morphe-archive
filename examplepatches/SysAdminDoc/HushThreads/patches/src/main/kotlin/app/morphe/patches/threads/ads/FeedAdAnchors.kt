@@ -24,56 +24,38 @@ internal val INJECTED_FIELD = "injected".hashCode()
 /**
  * The feed cache's merge of one fetched page, For You and Following alike: a suspend function
  * taking the page's items as its fifth parameter. The lambda it builds to save them keeps its
- * Kotlin name, and nothing else in the class builds it. 454 added a Function0 ahead of the Function3.
+ * Kotlin name, and nothing else in the class builds it. 454 added a Function0 ahead of the Function3,
+ * and 455 a Set after the page, which renamed the lambda from `$2$1` to `$2$2`.
  */
 internal object FeedPageMergeFingerprint : Fingerprint(
     definingClass = FEED_CACHE,
     returnType = "Ljava/lang/Object;",
     parameters = listOf(
         "L", "Ljava/lang/Integer;", "Ljava/lang/String;", "Ljava/lang/String;", "Ljava/util/List;",
-        "L", "Lkotlin/jvm/functions/Function0;", "Lkotlin/jvm/functions/Function3;", "Z",
+        "Ljava/util/Set;", "L", "Lkotlin/jvm/functions/Function0;", "Lkotlin/jvm/functions/Function3;", "Z",
     ),
     filters = listOf(
         methodCall(
-            definingClass = "Lcom/instagram/barcelona/feed/data/cache/BarcelonaFeedCache\$addAndSaveItemsFromFeedFetchSuccess\$2\$1;",
+            definingClass = "Lcom/instagram/barcelona/feed/data/cache/BarcelonaFeedCache\$addAndSaveItemsFromFeedFetchSuccess\$2\$2;",
             name = "<init>",
         ),
     ),
 )
 
-/**
- * For You's other cache, which Threads uses in place of the feed cache's handler when two of its
- * flags are on. Its pages go into the spool's model pool and never reach [FEED_CACHE]'s merge. The
- * name survives Redex.
- */
-internal const val SPOOL_FEED_CACHE = "Lcom/instagram/barcelona/feed/data/cache/BarcelonaSpoolFeedCacheHandler;"
+/** The merge's parameter holding its coroutine continuation, which every suspend write of [FEED_CACHE] ends on. */
+internal const val MERGE_CONTINUATION = 6
 
 /**
- * The spool cache's merge of one fetched For You page: a suspend function taking the page's items,
- * the same feed items [FeedPageMergeFingerprint]'s page holds, as its sixth parameter. It's the
- * one method of the class that takes a page with both callbacks, and it hands the page on to the
- * spool's model pool.
- */
-internal object SpoolFeedPageMergeFingerprint : Fingerprint(
-    definingClass = SPOOL_FEED_CACHE,
-    returnType = "Ljava/lang/Object;",
-    parameters = listOf(
-        "L", "L", "Ljava/lang/Integer;", "Ljava/lang/String;", "Ljava/lang/String;", "Ljava/util/List;",
-        "L", "Lkotlin/jvm/functions/Function0;", "Lkotlin/jvm/functions/Function3;",
-    ),
-    filters = listOf(
-        methodCall(definingClass = "Lcom/instagram/barcelona/spool/core/modelpool/BcnSpoolModelPoolImpl;"),
-    ),
-)
-
-/**
- * For You's local data source, the abstract class both For You handlers extend. Among its methods
- * is the insert of one feed item at a position in a page the cache already holds, which is how
- * Threads places an ad it got apart from a page fetch. The name survives Redex.
+ * For You's local data source, the abstract class For You's handler extends. Threads' insert of
+ * one feed item into a page the cache already holds, which is how it places an ad it got apart
+ * from a page fetch, lives in a class holding one. The name survives Redex.
  */
 internal const val FOR_YOU_LOCAL_SOURCE = "Lcom/instagram/barcelona/feed/data/cache/ForYouFeedLocalDataSource;"
 
-/** For You's handler over [FEED_CACHE], the one Threads uses unless the spool's flags are on. The name survives Redex. */
+/**
+ * For You's handler over [FEED_CACHE]. 455 dropped the spool cache that stood in for it on some
+ * accounts, so it's the only one. The name survives Redex.
+ */
 internal const val FEED_CACHE_HANDLER = "Lcom/instagram/barcelona/feed/data/cache/BarcelonaFeedCacheHandler;"
 
 /**

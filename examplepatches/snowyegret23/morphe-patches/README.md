@@ -2,7 +2,7 @@
 
 치지직을 보면서 채팅창을 내 화면에 맞게 조절하는 Android 패치 모음입니다. 채팅 폭을 드래그로 조절하고, 글자 크기와 배지·시각 표시, 플레이어 버튼을 바꿀 수 있습니다.
 
-**지원 앱: 치지직 3.16.0 · 3.15.2 · 3.15.0 · 3.14.10 · 3.14.0 / Android TV 1.3.0(실험적)** · [Morphe](https://morphe.software)에서 적용합니다.
+**지원 앱: 치지직 3.17.0 · 3.16.0 · 3.15.2 · 3.15.0 · 3.14.10 · 3.14.0 / Android TV 1.4.0 · 1.3.0(실험적)** · [Morphe](https://morphe.software)에서 적용합니다.
 
 ## 설치하기
 
@@ -14,7 +14,7 @@
 
 소스를 추가한 뒤에는 다음 순서로 설치합니다.
 
-1. APKMirror에서 [치지직 3.16.0](https://www.apkmirror.com/apk/naver-corp/치지직-chzzk-네이버-게임의-새-이름/치지직-chzzk-3-16-0-release/) · [3.15.2](https://www.apkmirror.com/apk/naver-corp/치지직-chzzk-네이버-게임의-새-이름/치지직-chzzk-3-15-2-release/) · [3.15.0](https://www.apkmirror.com/apk/naver-corp/치지직-chzzk-네이버-게임의-새-이름/치지직-chzzk-3-15-0-release/) · [3.14.10](https://www.apkmirror.com/apk/naver-corp/치지직-chzzk-네이버-게임의-새-이름/치지직-chzzk-3-14-10-release/) 또는 [3.14.0](https://www.apkmirror.com/apk/naver-corp/치지직-chzzk-네이버-게임의-새-이름/치지직-chzzk-3-14-0-release/)의 기기에 맞는 **APKM** 파일을 내려받아 선택합니다. 같은 패치 모음이 APK 버전에 맞춰 적용됩니다.
+1. APKMirror에서 [치지직 3.17.0](https://www.apkmirror.com/apk/naver-corp/치지직-chzzk-네이버-게임의-새-이름/치지직-chzzk-3-17-0-release/) · [3.16.0](https://www.apkmirror.com/apk/naver-corp/치지직-chzzk-네이버-게임의-새-이름/치지직-chzzk-3-16-0-release/) · [3.15.2](https://www.apkmirror.com/apk/naver-corp/치지직-chzzk-네이버-게임의-새-이름/치지직-chzzk-3-15-2-release/) · [3.15.0](https://www.apkmirror.com/apk/naver-corp/치지직-chzzk-네이버-게임의-새-이름/치지직-chzzk-3-15-0-release/) · [3.14.10](https://www.apkmirror.com/apk/naver-corp/치지직-chzzk-네이버-게임의-새-이름/치지직-chzzk-3-14-10-release/) 또는 [3.14.0](https://www.apkmirror.com/apk/naver-corp/치지직-chzzk-네이버-게임의-새-이름/치지직-chzzk-3-14-0-release/)의 기기에 맞는 **APKM** 파일을 내려받아 선택합니다. 같은 패치 모음이 APK 버전에 맞춰 적용됩니다.
 2. **S Chzzk Patches**의 기본 선택을 사용합니다. 앱 버전에 호환되는 패치가 선택됩니다.
 3. 패치 후 설치하면 원본과 별개인 **치지직 S**가 추가됩니다. 앱 이름·패키지 이름을 직접 지정하려면 전문가 모드에서 해당 패치 옵션을 바꾸세요.
 4. **설정 → Morphe** 또는 **방송 화면의 ⋯ → Morphe 설정**에서 채팅과 시청 옵션을 조절합니다.
@@ -25,7 +25,7 @@ Morphe의 APK 찾기 기능은 직접 다운로드 주소가 등록되지 않은
 
 ## 로컬 팔로잉과 추가 알림
 
-팔로잉 화면의 **로컬 팔로잉**에서 채널 주소나 ID로 채널을 추가합니다. 치지직 계정의 팔로우와 별도로 저장하며, **설정 → Morphe → 로컬 팔로잉**에서도 관리할 수 있습니다. 방송 상태는 목록에서 직접 새로고침할 수 있습니다.
+스트리머 채널 페이지의 **팔로우** 옆 **로컬 팔로우** 버튼으로 온라인·오프라인 채널을 바로 추가하거나 해제합니다. 팔로잉 화면의 **로컬 팔로잉**에서는 채널 주소나 ID로도 추가할 수 있습니다. 치지직 계정의 팔로우와 별도로 저장하며, **설정 → Morphe → 로컬 팔로잉**에서도 관리할 수 있습니다. 방송 상태는 목록에서 직접 새로고침할 수 있습니다.
 
 **Morphe → 팔로잉 추가 알림 설정**에서 추가 알림을 켠 뒤, 채널마다 방송 종료·제목 변경·카테고리 변경 알림을 선택하세요. 로컬 팔로잉의 방송 시작 알림은 **로컬 팔로잉 → 채널**에서 켤 수 있습니다. 기본은 모두 꺼져 있습니다. 계정 팔로잉은 앱에서 불러온 채널을 표시하며, 최근 연 채널과 로컬 팔로잉도 선택할 수 있습니다.
 
@@ -88,9 +88,9 @@ Morphe의 APK 찾기 기능은 직접 다운로드 주소가 등록되지 않은
 
 ## 지원 범위
 
-3.16.0 · 3.15.2 · 3.15.0 · 3.14.10 · 3.14.0을 함께 지원합니다. 모든 버전에서 휴대폰용 480–640dpi APKM과 태블릿 등에 사용하는 120–480dpi APKM에 적용할 수 있습니다. 120–480dpi 변형은 Android 12L 이상이 필요합니다.
+3.17.0 · 3.16.0 · 3.15.2 · 3.15.0 · 3.14.10 · 3.14.0을 함께 지원합니다. 모든 버전에서 휴대폰용 480–640dpi APKM과 태블릿 등에 사용하는 120–480dpi APKM에 적용할 수 있습니다. 120–480dpi 변형은 Android 12L 이상이 필요합니다.
 
-Android TV는 [치지직 TV 1.3.0 APKM](https://www.apkmirror.com/apk/naver-corp/치지직-chzzk-android-tv/치지직-chzzk-android-tv-1-3-0-release/)을 실험적으로 지원합니다. TV 앱의 **설정 → Morphe** 또는 리모컨의 **메뉴 버튼**으로 설정을 열고, 방향키와 확인 버튼으로 조절하세요.
+Android TV는 [치지직 TV 1.4.0 APKM](https://www.apkmirror.com/apk/naver-corp/치지직-chzzk-android-tv/치지직-chzzk-android-tv-1-4-0-release/)과 [1.3.0 APKM](https://www.apkmirror.com/apk/naver-corp/치지직-chzzk-android-tv/치지직-chzzk-android-tv-1-3-0-release/)을 실험적으로 지원합니다. TV 앱의 **설정 → Morphe** 또는 리모컨의 **메뉴 버튼**으로 설정을 열고, 방향키와 확인 버튼으로 조절하세요.
 
 TV에서는 채팅 폭·글자·이모티콘·줄 간격, 닉네임과 배지, 시각·접속 기기 표시, 메시지 필터, 최근 채팅, 소리 평준화·증폭, 시청자 수 표시와 설정 복사·붙여넣기를 지원합니다. 되감기와 실시간 따라잡기는 **Morphe → 플레이어**에서 실행합니다. 홈 프로모션 숨기기와 통나무 자동 수령은 모바일용입니다.
 

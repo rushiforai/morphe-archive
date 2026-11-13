@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Keys must match the settings of the extension: eyp_hidden_playlists_ + playlist id prefix. -->
+<morphe-add-on-preferences xmlns:android="http://schemas.android.com/apk/res/android">
+    <screen key="morphe_channel_screen">
+        <PreferenceScreen
+            android:key="eyp_hidden_playlists_screen"
+            android:title="@string/eyp_hidden_playlists_screen_title"
+            android:summary="@string/eyp_hidden_playlists_screen_summary">
+            <SwitchPreference
+                android:key="eyp_hidden_playlists"
+                android:title="@string/eyp_hidden_playlists_title"
+                android:summary="@string/eyp_hidden_playlists_summary" />
+            <SwitchPreference
+                android:key="eyp_hidden_playlists_tab"
+                android:title="@string/eyp_hidden_playlists_tab_title"
+                android:summary="@string/eyp_hidden_playlists_tab_summary" />
+            <PreferenceCategory android:title="@string/eyp_hidden_playlists_uploads">
+                <SwitchPreference android:key="eyp_hidden_playlists_uu" android:title="@string/eyp_hidden_playlists_all" />
+                <SwitchPreference android:key="eyp_hidden_playlists_uulf" android:title="@string/eyp_hidden_playlists_videos" />
+                <SwitchPreference android:key="eyp_hidden_playlists_uush" android:title="@string/eyp_hidden_playlists_shorts" />
+                <SwitchPreference android:key="eyp_hidden_playlists_uulv" android:title="@string/eyp_hidden_playlists_live" />
+            </PreferenceCategory>
+            <PreferenceCategory android:title="@string/eyp_hidden_playlists_popular">
+                <SwitchPreference android:key="eyp_hidden_playlists_pu" android:title="@string/eyp_hidden_playlists_all" />
+                <SwitchPreference android:key="eyp_hidden_playlists_uulp" android:title="@string/eyp_hidden_playlists_videos" />
+                <SwitchPreference android:key="eyp_hidden_playlists_uups" android:title="@string/eyp_hidden_playlists_shorts" />
+                <SwitchPreference android:key="eyp_hidden_playlists_uupv" android:title="@string/eyp_hidden_playlists_live" />
+            </PreferenceCategory>
+            <PreferenceCategory android:title="@string/eyp_hidden_playlists_members">
+                <SwitchPreference android:key="eyp_hidden_playlists_uumo" android:title="@string/eyp_hidden_playlists_all" />
+                <SwitchPreference android:key="eyp_hidden_playlists_uumf" android:title="@string/eyp_hidden_playlists_videos" />
+                <SwitchPreference android:key="eyp_hidden_playlists_uums" android:title="@string/eyp_hidden_playlists_shorts" />
+                <SwitchPreference android:key="eyp_hidden_playlists_uumv" android:title="@string/eyp_hidden_playlists_live" />
+            </PreferenceCategory>
+        </PreferenceScreen>
+    </screen>
+</morphe-add-on-preferences>

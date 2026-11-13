@@ -35,6 +35,7 @@ import app.morphe.extension.hushthreads.ads.FeedAds;
 import app.morphe.extension.hushthreads.ads.ShadowFeedAds;
 import app.morphe.extension.hushthreads.comments.CommentFilter;
 import app.morphe.extension.hushthreads.comments.CommentSettings;
+import app.morphe.extension.hushthreads.comments.SuggestedThreads;
 import app.morphe.extension.hushthreads.download.SavesForTests;
 import app.morphe.extension.hushthreads.feed.CopyText;
 import app.morphe.extension.hushthreads.feed.ImageQuality;
@@ -46,6 +47,7 @@ import app.morphe.extension.hushthreads.misc.Analytics;
 import app.morphe.extension.hushthreads.misc.ExternalBrowser;
 import app.morphe.extension.hushthreads.misc.LinkCleaner;
 import app.morphe.extension.hushthreads.misc.ScreenshotDetection;
+import app.morphe.extension.hushthreads.misc.SimRegion;
 import app.morphe.extension.hushthreads.profile.GhostPostBubbles;
 import app.morphe.extension.hushthreads.profile.InstagramButton;
 import app.morphe.extension.hushthreads.profile.ProfilePictureForTests;
@@ -111,8 +113,8 @@ public class PausedHooksTest {
             List<Object> page = Arrays.asList("a post", ShadowFeedAds.AD, "another post");
             return FeedAds.filter(page).size() != page.size();
         }));
-        // A feed page loses its suggestion card, a profile loses its carousel and its row, and
-        // Search loses its Follow suggestions carousel.
+        // A feed page loses its suggestion card, a profile loses its carousel and its row, Search
+        // loses its Follow suggestions carousel, and an opened post loses its suggested threads.
         probes.put(PatchFamily.HIDE_SUGGESTED_USERS, Arrays.asList(
                 () -> {
                     List<Object> page = Arrays.asList("a post", ShadowFeedAds.SUGGESTED, "another post");
@@ -120,7 +122,8 @@ public class PausedHooksTest {
                 },
                 () -> ProfileSuggestions.carousel(Collections.singletonList("an account")) == null,
                 () -> !ProfileSuggestions.showRow(),
-                () -> !SearchSuggestions.showCarousel()));
+                () -> !SearchSuggestions.showCarousel(),
+                () -> SuggestedThreads.relatedThreads(Collections.singletonList("a related thread")).isEmpty()));
         // Each of Threads' return checks, straight after its screens were hidden, keeps the feed.
         probes.put(PatchFamily.RETURN_REFRESH, Arrays.asList(
                 () -> {
@@ -173,6 +176,11 @@ public class PausedHooksTest {
         // A new picture in the photo library or a screenshot folder never reaches Threads' watchers.
         probes.put(PatchFamily.SCREENSHOT_DETECTION, Arrays.asList(
                 ScreenshotDetection::ignoresChange, ScreenshotDetection::ignoresScreenshotFile));
+        // A German SIM's country, network code and carrier id come back as the chosen region's.
+        probes.put(PatchFamily.SPOOF_SIM_REGION, Arrays.asList(
+                () -> !"de".equals(SimRegion.countryIso("de")),
+                () -> SimRegion.mccNumber(262) != 262,
+                () -> SimRegion.carrierId(1) != 1));
         // A post's menu offers Save.
         probes.put(PatchFamily.SAVE_MEDIA, Collections.singletonList(SavesForTests::menuOffersSave));
         // Threads' dark gray background comes back black.

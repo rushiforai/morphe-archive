@@ -58,18 +58,20 @@ public final class FeatureCatalogTest {
     }
 
     @Test
-    public void adsPageListsTheSmartChannelAndHomeAdsWithoutSections() {
+    public void adsPageListsTheSmartChannelHomeAndOpenChatAdsWithoutSections() {
         List<FeatureCatalog.Entry> entries = FeatureCatalog.installedEntriesForPage(
                 SettingsPage.ADS, allCatalogFeatureIds());
 
         assertFeatureIds(entries,
                 "linimal.smart-channel-ads",
-                "linimal.home-top-ad");
+                "linimal.home-top-ad",
+                "linimal.square-ads");
         for (FeatureCatalog.Entry entry : entries) {
             assertNull(entry.getFeature().name(), entry.getSection());
         }
         assertEquals("Smart Channel の広告を表示しない", entries.get(0).getTitle());
         assertEquals("ホーム内の広告を表示しない", entries.get(1).getTitle());
+        assertEquals("オープンチャットの広告を表示しない", entries.get(2).getTitle());
     }
 
     @Test

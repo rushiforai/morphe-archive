@@ -1,3 +1,9 @@
+## [1.6.0-dev.4](https://github.com/Nezumi-2711/morphe-patches/compare/v1.6.0-dev.3...v1.6.0-dev.4) (2026-11-13)
+
+### ✨ New Features
+
+* **zalo:** hide ads in Messages ([d1389fd](https://github.com/Nezumi-2711/morphe-patches/commit/d1389fd67e82cdc5ac3d9f54652a1ff0afa3d598))
+
 ## [1.6.0-dev.3](https://github.com/Nezumi-2711/morphe-patches/compare/v1.6.0-dev.2...v1.6.0-dev.3) (2026-11-11)
 
 ### 🐛 Bug Fixes

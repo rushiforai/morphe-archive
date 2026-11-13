@@ -2,6 +2,9 @@ package id.ikuradachi.patches.crunchyroll.telemetry
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.InstructionLocation
+import app.morphe.patcher.anyInstruction
+import app.morphe.patcher.fieldAccess
+import app.morphe.patcher.literal
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.newInstance
 import app.morphe.patcher.opcode
@@ -66,7 +69,10 @@ object DatadogSetupFingerprint : Fingerprint(
     returnType = "V",
     filters = listOf(
         string("environmentDomain"),
-        opcode(Opcode.IGET_BOOLEAN),
+        anyInstruction(
+            opcode(Opcode.IGET_BOOLEAN),
+            opcode(Opcode.MOVE_RESULT),
+        ),
         opcode(Opcode.IF_EQZ, InstructionLocation.MatchAfterWithin(1)),
         string("trackingConsent"),
         string("_dd.sdk_core.default"),
@@ -75,3 +81,64 @@ object DatadogSetupFingerprint : Fingerprint(
         string("Locale Fallback"),
     ),
 )
+
+/**
+ * Matches MuxStatsEventQueue.<init>(ClientSession) (obfuscated as uv0/f.<init>).
+ * Initializes 1000ms fixed-delay periodic timer for QoE beacon flushes during playback.
+ */
+object MuxEventQueue1000msTimerFingerprint : Fingerprint(
+    name = "<init>",
+    parameters = listOf("L"),
+    returnType = "V",
+    filters = listOf(
+        string("adbreakend"),
+        methodCall(definingClass = "Ljava/util/concurrent/ScheduledExecutorService;", name = "scheduleWithFixedDelay"),
+    ),
+)
+
+/**
+ * Matches Segment SegmentIntegration.shouldFlush().
+ * Gate evaluated every 30 seconds and on payload enqueue to initiate HTTP flushes.
+ */
+object SegmentShouldFlushFingerprint : Fingerprint(
+    definingClass = "Lcom/segment/analytics/SegmentIntegration;",
+    name = "shouldFlush",
+    accessFlags = listOf(AccessFlags.PRIVATE),
+    returnType = "Z",
+    filters = listOf(
+        methodCall(definingClass = "Lcom/segment/analytics/PayloadQueue;", name = "size"),
+        methodCall(definingClass = "Lcom/segment/analytics/internal/Utils;", name = "isConnected"),
+    ),
+)
+
+/**
+ * Matches Braze BrazeFlushPushDeliveryReceiver.onReceive(Context, Intent).
+ * AlarmManager-triggered receiver handling com.braze.FLUSH_PUSH_DELIVERY wakeups.
+ */
+object BrazeFlushReceiverFingerprint : Fingerprint(
+    definingClass = "Lcom/braze/BrazeFlushPushDeliveryReceiver;",
+    name = "onReceive",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    parameters = listOf("Landroid/content/Context;", "Landroid/content/Intent;"),
+    returnType = "V",
+    filters = listOf(
+        string("com.braze.FLUSH_PUSH_DELIVERY"),
+    ),
+)
+
+/**
+ * Matches Datadog DataUploadScheduler.start() (obfuscated as o90/e.b()).
+ * Starts continuous in-memory upload loop thread in ScheduledThreadPoolExecutor.
+ */
+object DatadogUploadSchedulerStartFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    parameters = emptyList(),
+    returnType = "V",
+    filters = listOf(
+        string(": data upload"),
+    ),
+    custom = { method, _ ->
+        method.name != "run"
+    },
+)
+

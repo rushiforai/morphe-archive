@@ -48,6 +48,14 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_SEARCH_SUGGESTIONS =
             new BooleanSetting("hushthreads_hide_search_suggestions", TRUE);
 
+    /**
+     * The suggested threads under an opened post's replies are kept off it
+     * ({@link app.morphe.extension.hushthreads.comments.SuggestedThreads}). The third switch of
+     * Hide suggested users, so it starts on like the others.
+     */
+    public static final BooleanSetting HIDE_SUGGESTED_THREADS =
+            new BooleanSetting("hushthreads_hide_suggested_threads", TRUE);
+
     /** Keep the current feed when returning to Threads within ten minutes. */
     public static final BooleanSetting BLOCK_RETURN_REFRESH =
             new BooleanSetting("hushthreads_block_return_refresh", FALSE);
@@ -106,6 +114,15 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting DISABLE_SCREENSHOT_DETECTION =
             new BooleanSetting("hushthreads_disable_screenshot_detection", FALSE);
+
+    /**
+     * Threads' reads of the SIM's and the network's country, network code and carrier answer the
+     * region picked in {@link app.morphe.extension.hushthreads.misc.SimRegions#REGION}
+     * ({@link app.morphe.extension.hushthreads.misc.SimRegion}). Threads keeps what it read for the
+     * rest of a start, so a change waits for a restart.
+     */
+    public static final BooleanSetting SPOOF_SIM_REGION =
+            new BooleanSetting("hushthreads_spoof_sim_region", FALSE, true);
 
     /**
      * Dark mode's background is pure black instead of Threads' dark gray. Threads builds its colors

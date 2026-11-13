@@ -180,7 +180,7 @@ internal fun BytecodePatchContext.addTvCustomization() {
             move-result v$register
         """.trimIndent())
     }
-    val layout = mutableClassDefBy("Ljv;").methods.single { it.name == "invoke" }
+    val layout = mutableClassDefBy(if (packageMetadata.versionName == "1.4.0") "Lhv;" else "Ljv;").methods.single { it.name == "invoke" }
     val layoutInstructions = layout.implementation!!.instructions
     val expandedWidth = layoutInstructions.withIndex().single {
         (it.value as? NarrowLiteralInstruction)?.narrowLiteral == 330f.toRawBits()
@@ -197,7 +197,7 @@ internal fun BytecodePatchContext.addTvCustomization() {
         invoke-static/range {v$widthRegister .. v$widthRegister}, $SETTINGS->chatWidth(F)F
         move-result v$widthRegister
     """.trimIndent())
-    val chatState = mutableClassDefBy("Luk;").methods.single { it.name == "invoke" }
+    val chatState = mutableClassDefBy(if (packageMetadata.versionName == "1.4.0") "Lsk;" else "Luk;").methods.single { it.name == "invoke" }
     val stateInstructions = chatState.implementation!!.instructions
     val wideState = stateInstructions.withIndex().single {
         (it.value as? NarrowLiteralInstruction)?.narrowLiteral == 330f.toRawBits()

@@ -2017,3 +2017,5 @@ Hide videos without a preferred dub	Скрывать видео без пред�
 Hides videos with no dub from Dub priority in Playback. Putting original on that list keeps every video, since each has its own audio. If a whole page would be hidden, one video stays so the feed keeps loading. Does nothing while the list is empty.	Скрывает видео без озвучки из списка «Приоритет озвучки» в разделе «Воспроизведение». Если добавить в список original, останутся все видео, ведь у каждого есть собственный звук. Если скрылась бы вся страница, одно видео остаётся, чтобы лента продолжала загружаться. Пока список пуст, ничего не делает.
 Preferred subtitles	Предпочитаемые субтитры
 Preferred dubs	Предпочитаемая озвучка
+Always open on Home	Всегда открывать на Главной
+PineDrama sometimes starts on Discover, like in the first days after an install. This starts it on Home instead.	Иногда PineDrama открывается на вкладке Обзор, например в первые дни после установки. С этим он открывается на Главной.

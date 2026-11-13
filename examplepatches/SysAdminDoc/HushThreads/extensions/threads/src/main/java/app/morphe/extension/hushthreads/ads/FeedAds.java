@@ -31,17 +31,12 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * method's page of items to {@link #filter} first and merges what comes back. Only selected,
  * enabled rules remove items, so unrelated feed items keep their original order.
  *
- * <p>When two of Threads' flags are on, For You is kept in its spool cache instead, whose own merge
- * puts each page into the spool's model pool without passing the one above. The patch hands that
- * page to {@link #spoolPage}, which applies the same rules and also counts the page as the spool's,
- * so an export shows which cache a phone's For You runs on.
- *
- * <p>For You's data source also writes feed items into either cache four more ways that pass
- * neither merge: the refresh's write, the paging flow's, an append to the page it holds, and a page
- * it rebuilds. Each handler's write hands its items to {@link #forYouWrite} or {@link #spoolWrite}
- * first, which apply the same rules and count the writes apart from the pages. Its writes of one
- * item (one it adds, puts after a post or swaps in) ask {@link #forYouItem} or {@link #spoolItem}
- * the same way, and an item the rules take out isn't written.
+ * <p>For You also writes feed items into the cache four more ways that pass no merge: the
+ * refresh's write, the paging flow's, an append to the page it holds, and a page it rebuilds. Each
+ * of the cache's writes hands its items to {@link #forYouWrite} first, which applies the same rules
+ * and counts the writes apart from the pages. Its writes of one item (one it adds, puts after a
+ * post or swaps in) ask {@link #forYouItem} the same way, and an item the rules take out isn't
+ * written.
  *
  * <p>An item is an ad when the post it carries is one: Threads' own check reads the post's
  * "injected" data, the block the server attaches to a sponsored post, and this asks that same check.
@@ -54,9 +49,9 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * <p>An opened post fetches its own ads to show among its replies, apart from the feed. Those come
  * through {@link #permalinkAds}, where every item is an ad.
  *
- * <p>Threads can also insert one item into a For You page a cache already holds, which is how it
- * places an ad it got on its own, and that passes neither merge. Each insert asks
- * {@link #insertedAd} first.
+ * <p>Threads can also insert one item into a For You page the cache already holds, which is how it
+ * places an ad it got on its own, and that passes no merge. The insert asks {@link #insertedAd}
+ * first.
  *
  * <p>The typed methods at the bottom have no body of their own here. Their answers are Threads'
  * obfuscated names, which change with every build, so the patch finds them by what they do and
@@ -96,15 +91,7 @@ public final class FeedAds {
      * HushThreads is paused or anything goes wrong. Never throws.
      */
     public static List<?> filter(List<?> items) {
-        return filter(items, PAGES, null, "feed page");
-    }
-
-    /**
-     * Injected at the start of the spool cache's merge, with For You's page it was given. The same
-     * as {@link #filter}, and each completed check also counts a spool page. Never throws.
-     */
-    public static List<?> spoolPage(List<?> items) {
-        return filter(items, PAGES, SPOOL_PAGES, "spool feed page");
+        return filter(items, PAGES, "feed page");
     }
 
     /**
@@ -113,12 +100,7 @@ public final class FeedAds {
      * resumed write passes no list. Never throws.
      */
     public static List<?> forYouWrite(List<?> items) {
-        return filter(items, FOR_YOU_WRITES, null, "For You cache write");
-    }
-
-    /** The same as {@link #forYouWrite} for the spool cache's writes, each also counted as the spool's. Never throws. */
-    public static List<?> spoolWrite(List<?> items) {
-        return filter(items, FOR_YOU_WRITES, SPOOL_WRITES, "spool cache write");
+        return filter(items, FOR_YOU_WRITES, "For You cache write");
     }
 
     /**
@@ -129,32 +111,24 @@ public final class FeedAds {
      * A resumed write passes no item, and that isn't a check. Never throws.
      */
     public static boolean forYouItem(Object item) {
-        return dropped(item, FOR_YOU_ITEMS, null, "For You item write");
-    }
-
-    /** The same as {@link #forYouItem} for the spool cache's writes, each also counted as the spool's. Never throws. */
-    public static boolean spoolItem(Object item) {
-        return dropped(item, FOR_YOU_ITEMS, SPOOL_ITEMS, "spool item write");
+        return dropped(item, FOR_YOU_ITEMS, "For You item write");
     }
 
     private static final String PAGES = "feed pages checked";
-    private static final String SPOOL_PAGES = "spool feed pages checked";
     private static final String FOR_YOU_WRITES = "For You cache writes checked";
-    private static final String SPOOL_WRITES = "spool cache writes checked";
     private static final String FOR_YOU_ITEMS = "For You item writes checked";
-    private static final String SPOOL_ITEMS = "spool item writes checked";
 
     /** One item through the page rules: whether they took it out. Kept on every failure, as a page is. */
-    private static boolean dropped(Object item, String checked, String spool, String hook) {
-        List<?> kept = filter(item == null ? null : Collections.singletonList(item), checked, spool, hook);
+    private static boolean dropped(Object item, String checked, String hook) {
+        List<?> kept = filter(item == null ? null : Collections.singletonList(item), checked, hook);
         return kept != null && kept.isEmpty();
     }
 
     /**
-     * Counts each completed check as {@code checked}, and also as {@code spool} when that isn't
-     * null. A failure is reported against {@code hook}, so the report names the write that threw.
+     * Counts each completed check as {@code checked}. A failure is reported against {@code hook}, so
+     * the report names the write that threw.
      */
-    private static List<?> filter(List<?> items, String checked, String spool, String hook) {
+    private static List<?> filter(List<?> items, String checked, String hook) {
         // The rule being asked when something throws. Null while walking the page itself, where a
         // failure belongs to every rule that was going to read it.
         Rule checking = null;
@@ -197,7 +171,6 @@ public final class FeedAds {
                 Rule rule = active.get(r);
                 // Count only completed checks, including pages the server sent without matches.
                 HookStatus.counted(rule.family, checked);
-                if (spool != null) HookStatus.counted(rule.family, spool);
                 HookStatus.counted(rule.family, "feed items checked", index);
                 if (removed[r] == 0) continue;
                 int count = removed[r];
@@ -239,9 +212,9 @@ public final class FeedAds {
     }
 
     /**
-     * Injected at the start of both For You caches' insert of one item into a page they already
-     * hold, the way Threads places an ad it got apart from a page fetch. Answers true for an ad with
-     * Hide ads on, and the patch then answers the insert's own "nothing went in" code. False when
+     * Injected in For You's insert of one item into a page the cache already holds, the way Threads
+     * places an ad it got apart from a page fetch. Answers true for an ad with Hide ads on, and the
+     * insert then goes the way it goes when there's no page, so nothing goes in. False when
      * the switch is off, HushThreads is paused, the item isn't an ad or anything goes wrong. Never
      * throws.
      */

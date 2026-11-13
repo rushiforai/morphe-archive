@@ -30,7 +30,6 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ThreeRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import org.junit.Assert.assertEquals
@@ -93,8 +92,7 @@ class ReturnRefreshFixtureTest {
             assertEquals(build.name, site.register, (warm[call] as RegisterRangeInstruction).startRegister)
             assertEquals(build.name, Opcode.MOVE_RESULT, warm[call + 1].opcode)
             assertEquals(build.name, site.register, (warm[call + 1] as OneRegisterInstruction).registerA)
-            assertEquals(build.name, Opcode.IPUT_BOOLEAN, warm[call + 2].opcode)
-            assertEquals(build.name, site.register, (warm[call + 2] as TwoRegisterInstruction).registerA)
+            assertTrue(build.name, warm[call + 2].storesWarmStart(site.register))
 
             val reset = context.method(fixture.reset)
             val resetCall = reset.indexOfCall(resetToFeed)
@@ -139,15 +137,16 @@ class ReturnRefreshFixtureTest {
             val warm = fixture(build).warm
             val site = warm.warmStartSite()
             val body = warm.implementation!!.instructions.toList()
-            val logged = body.indexOfFirst { it.getReference<StringReference>()?.string == TOO_SHORT }
-            fun answer(value: Int) = (logged downTo 0).first {
+            fun stores(index: Int) = warm.literalReads(index).filter { body[it].storesWarmStart(site.register) }
+            assertEquals("$build true", listOf(site.store), stores(warm.warmStartAnswer().compare + 2))
+            // 455's short log jumps back past the true, so its false is whichever earlier 0 the
+            // comparison sees. Every 0 in the answer's register that reaches a decision reaches only this one.
+            val falses = body.indices.filter {
                 body[it].opcode == Opcode.CONST_4 && (body[it] as OneRegisterInstruction).registerA == site.register &&
-                    (body[it] as NarrowLiteralInstruction).narrowLiteral == value
-            }
-            for ((label, index) in listOf("true" to answer(1), "false" to answer(0))) {
-                val stores = warm.literalReads(index).filter { body[it].opcode == Opcode.IPUT_BOOLEAN }
-                assertEquals("$build $label", listOf(site.store), stores)
-            }
+                    (body[it] as NarrowLiteralInstruction).narrowLiteral == 0
+            }.associateWith(::stores).filterValues { it.isNotEmpty() }
+            assertTrue("$build false", falses.isNotEmpty())
+            for ((index, reached) in falses) assertEquals("$build false at $index", listOf(site.store), reached)
         }
     }
 

@@ -5,6 +5,16 @@
 package app.morphe.gatecatalog
 
 import app.morphe.Fixtures
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10x
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21c
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21s
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction35c
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringReference
 import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -41,6 +51,31 @@ class GateCatalogFixturesTest {
                 assertTrue("$table stores a shared row again as ${builds[build]}'s own", rows.none { it in sharedSet })
             }
         }
+    }
+
+    @Test
+    fun `a static call's arguments line up with its parameters`() {
+        val get = ImmutableMethodReference("Lfixture/Settings;", "get", listOf("Ljava/lang/String;", "J"), "J")
+        val method = ImmutableMethod(
+            "Lfixture/Reader;", "read", emptyList(), "V",
+            AccessFlags.PUBLIC.value or AccessFlags.STATIC.value, null, null,
+            ImmutableMethodImplementation(
+                3,
+                listOf(
+                    ImmutableInstruction21c(Opcode.CONST_STRING, 0, ImmutableStringReference("key")),
+                    ImmutableInstruction21s(Opcode.CONST_WIDE_16, 1, 7),
+                    ImmutableInstruction35c(Opcode.INVOKE_STATIC, 3, 0, 1, 2, 0, 0, get),
+                    ImmutableInstruction10x(Opcode.RETURN_VOID),
+                ),
+                null, null,
+            ),
+        )
+        val calls = mutableListOf<GateCatalogGenerator.Call>()
+        GateCatalogGenerator.track(method) { calls += it; null }
+        val args = calls.single().args
+        assertEquals(2, args.size)
+        assertEquals("key", (args[0] as GateCatalogGenerator.Str).text)
+        assertEquals(7L, (args[1] as GateCatalogGenerator.Num).bits)
     }
 
     private fun source(className: String): String {

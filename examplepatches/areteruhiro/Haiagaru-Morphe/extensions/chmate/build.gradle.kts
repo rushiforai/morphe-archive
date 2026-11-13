@@ -74,43 +74,10 @@ val generateUpdateHistory = tasks.register("generateUpdateHistory") {
     outputs.file(output)
     doLast {
         val source = changelog.asFile.readText(Charsets.UTF_8)
-        val release = Regex("(?m)^# Haiagaru ").findAll(source).toList()
-        val rendered = buildString {
-            release.takeWhile { match ->
-                !source.substring(match.range.first).lineSequence().first()
-                    .startsWith("# Haiagaru 1.24.1 ")
-            }.forEachIndexed { index, match ->
-                val end = release.getOrNull(index + 1)?.range?.first ?: source.length
-                val section = source.substring(match.range.first, end)
-                val title = section.lineSequence().first().removePrefix("# ").trim()
-                if (index > 0) appendLine()
-                appendLine(title)
-                val lines = section.lines()
-                val main = lines.indexOfFirst { it.trim() == "## 主な変更" }
-                val mainItems = if (main < 0) emptyList() else lines.drop(main + 1)
-                    .takeWhile { !it.startsWith("## ") }
-                    .map { it.trim() }
-                    .filter { it.startsWith("- ") || it.startsWith("* ") }
-                if (mainItems.isNotEmpty()) {
-                    mainItems.forEach { appendLine(it) }
-                } else {
-                    val categories = setOf(
-                        "### ✨ New Features", "### 🛠 Improvements & Fixes",
-                        "### 🐛 Bug Fixes", "### 🔧 Improvements", "### 🚀 Updated App Support"
-                    )
-                    var category: String? = null
-                    lines.forEach { raw ->
-                        val line = raw.trim()
-                        if (line.startsWith("### ")) {
-                            category = line.takeIf { it in categories }
-                            if (category != null) appendLine(category)
-                        } else if (category != null && (line.startsWith("* ") || line.startsWith("- "))) {
-                            appendLine(line)
-                        }
-                    }
-                }
-            }
-        }.trim()
+        // Preserve version headings and the full user-facing notes. The same
+        // parser filters boilerplate in bundled and GitHub-fetched histories.
+        val baseline = Regex("(?m)^# Haiagaru 1\\.24\\.1 ").find(source)?.range?.first ?: source.length
+        val rendered = source.substring(0, baseline).trim()
         require(rendered.isNotBlank()) { "No release history found after 1.24.1" }
         val target = output.get().asFile
         target.parentFile.mkdirs()

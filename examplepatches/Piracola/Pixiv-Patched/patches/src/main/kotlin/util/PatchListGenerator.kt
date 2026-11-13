@@ -46,15 +46,13 @@ private fun generatePatchList(version: String, patches: Set<Patch<*>>) {
             description = patch.description,
             default = patch.default,
             category = patch.category,
-            // Map each Compatibility to a JsonCompatibility object with full metadata.
-            // Patches with null compatiblePackages are universal (apply to any app).
+            // Null means the patch is universal and applies to any app; the README generator keys on that.
             compatiblePackages = patch.compatibility?.map { compat ->
                 JsonCompatibility(
                     packageName = compat.packageName!!,
                     name = compat.name,
                     description = compat.description,
                     apkFileType = compat.apkFileType?.name,
-                    // Format as #RRGGBB string for readability; null if not set
                     appIconColor = compat.appIconColor?.let { "#%06X".format(it) },
                     signatures = compat.signatures,
                     formFactor = compat.formFactor?.name,

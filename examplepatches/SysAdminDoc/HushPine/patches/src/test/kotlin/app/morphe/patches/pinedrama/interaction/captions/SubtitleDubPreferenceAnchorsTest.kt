@@ -74,8 +74,8 @@ class SubtitleDubPreferenceAnchorsTest {
             val site = configSite(path)
             assertTrue("${path.name} registers", site.video < 16 && site.model < 16 && site.id < 16)
             assertTrue("${path.name} distinct registers", setOf(site.video, site.model, site.id).size == 3)
-            assertTrue("${path.name} v0 is scratch here", 0 !in setOf(site.video, site.model, site.id))
-            assertTrue("${path.name} v1 is scratch here", 1 !in setOf(site.video, site.model, site.id))
+            val (aid, owner) = configScratch(path, site)
+            assertTrue("${path.name} scratch v$aid v$owner", setOf(aid, owner, site.video, site.model, site.id).size == 5)
         }
     }
 

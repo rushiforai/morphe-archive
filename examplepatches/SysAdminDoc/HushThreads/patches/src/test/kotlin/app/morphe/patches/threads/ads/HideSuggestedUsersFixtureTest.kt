@@ -17,6 +17,8 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.patches.threads.comments.PERMALINK_REPOSITORY
+import app.morphe.patches.threads.comments.RepliesParseFingerprint
 import app.morphe.patches.threads.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.threads.misc.extension.parameterRegisterNumber
 import app.morphe.util.getReference
@@ -66,7 +68,7 @@ class HideSuggestedUsersFixtureTest {
             val cache = FixtureDex.classes(build, setOf(FEED_CACHE)).getValue(FEED_CACHE)
             val merge = cache.methods.single { method -> method.instructions().any {
                 it.getReference<MethodReference>()?.definingClass ==
-                    "Lcom/instagram/barcelona/feed/data/cache/BarcelonaFeedCache\$addAndSaveItemsFromFeedFetchSuccess\$2\$1;"
+                    "Lcom/instagram/barcelona/feed/data/cache/BarcelonaFeedCache\$addAndSaveItemsFromFeedFetchSuccess\$2\$2;"
             } }
             val media = merge.instructions().mapNotNull { it.getReference<MethodReference>() }.filter {
                 it.returnType == MEDIA && it.parameterTypes.isEmpty() && it.definingClass != MEDIA
@@ -89,18 +91,18 @@ class HideSuggestedUsersFixtureTest {
             // without those classes.
             val profile = ProfileSuggestionsFixture.classes(build)
             val search = SearchSuggestionsFixture.classes(build)
-            // For You's spool cache gets the same page filter, and both For You handlers' other writes
-            // do too, so the shared hook needs the spool, the feed cache's handler and their data source.
-            val forYou = FixtureDex.classes(build, setOf(SPOOL_FEED_CACHE, FEED_CACHE_HANDLER, FOR_YOU_LOCAL_SOURCE)).values
-            // Their one-item writes answer the build's Unit when done, and the hook reads its class's shape.
-            val done = FixtureDex.classes(build, forYou.flatMap { it.methods }.flatMap { it.instructions().zipWithNext() }
-                .filter { (load, ret) -> load.opcode == Opcode.SGET_OBJECT && ret.opcode == Opcode.RETURN_OBJECT }
-                .mapNotNull { (load, _) -> load.getReference<FieldReference>()?.takeIf { it.type == it.definingClass }?.definingClass }
-                .toSet()).values
+            // For You's other writes go to the feed cache's own methods, and its one-item writes answer
+            // the build's Unit when done, so the hook reads that class's shape.
+            val done = FixtureDex.classes(build, cache.methods.flatMap { it.instructions() }
+                .filter { it.opcode == Opcode.SGET_OBJECT }
+                .mapNotNull { load -> load.getReference<FieldReference>()?.takeIf { it.type == it.definingClass }?.definingClass }
+                .toSet() - FEED_CACHE).values
             // The row Threads builds after a follow comes from builders that name it by a prefix.
             val chaining = FixtureDex.classesWhere(build, { true }) { it.hasString(CHAINING_PREFIX) }
-            val classes = (anchors + cache + forYou + done + item + kinds + rawParsers + wrappers.values + profile + search +
-                chaining).distinctBy { it.type }
+            // An opened post's suggested threads are read in the parse of its page of replies.
+            val permalink = FixtureDex.classes(build, setOf(PERMALINK_REPOSITORY)).values
+            val classes = (anchors + cache + done + item + kinds + rawParsers + wrappers.values + profile + search +
+                chaining + permalink).distinctBy { it.type }
             return Vendor(build.name, classes, parser.type)
         }
 
@@ -110,9 +112,9 @@ class HideSuggestedUsersFixtureTest {
 
     private fun context(vendor: Vendor): BytecodePatchContext {
         FeedPageMergeFingerprint.clearMatch()
-        SpoolFeedPageMergeFingerprint.clearMatch()
         SuggestedModelFingerprint.clearMatch()
         SuggestedFeedParserFingerprint.clearMatch()
+        RepliesParseFingerprint.clearMatch()
         return PatchContexts.of(ExtensionDex.classes() + vendor.classes).also { feedPageFilterPatch.execute(it) }
     }
 
@@ -122,13 +124,13 @@ class HideSuggestedUsersFixtureTest {
             val context = context(vendor)
             val targets = context.suggestedTargets()
             // 450 added an item field ahead of the impression item, so the same store lands one name later.
-            // On 454 the kickstart slot and the wrapper's raw type are both A0L, each in its own class.
+            // 455 added one more ahead of both slots. The wrapper's raw type stays A0L, in its own class.
             assertEquals(
-                vendor.name, listOf("A0U", "A0L", "A0L", "A0r"),
+                vendor.name, listOf("A0V", "A0M", "A0L", "A0t"),
                 listOf(targets.suggestedSlot, targets.kickstartSlot, targets.rawType, targets.content).map { it.name },
             )
-            // The row built after a follow keeps its id in the item's own public field, A14 on 454.
-            assertEquals(vendor.name, targets.media.definingClass to "A14",
+            // The row built after a follow keeps its id in the item's own public field, A16 on 455 (A14 on 454).
+            assertEquals(vendor.name, targets.media.definingClass to "A16",
                 targets.chainingId.definingClass to targets.chainingId.name)
             hideSuggestedUsersPatch.execute(context)
             val stubs = context.mutableClassDefBy(FEED_ADS).methods
@@ -141,9 +143,9 @@ class HideSuggestedUsersFixtureTest {
                 it.getReference<MethodReference>()?.toString() == "$FEED_ADS->filter(Ljava/util/List;)Ljava/util/List;"
             }
             assertEquals(vendor.name, 1, calls)
-            // And For You's spool cache filters its page once, and each handler its four other writes.
-            assertEquals(vendor.name, 1, spoolCalls(context))
-            assertEquals(vendor.name, listOf(4, 4), writeCalls(context))
+            // And the feed cache filters For You's four other writes and asks before its four one-item writes.
+            assertEquals(vendor.name, 4, writeCalls(context))
+            assertEquals(vendor.name, 4, itemCalls(context))
             // And on profiles, the carousel and the row each ask once.
             val profileHooks = vendor.classes.flatMap { context.mutableClassDefBy(it.type).methods }
                 .flatMap { it.instructions() }.mapNotNull { it.getReference<MethodReference>()?.toString() }
@@ -151,6 +153,8 @@ class HideSuggestedUsersFixtureTest {
             assertEquals(vendor.name, 1, profileHooks.count { it == SHOW_ROW })
             // And Search's carousel asks once.
             assertEquals(vendor.name, 1, profileHooks.count { it == SHOW_SEARCH_CAROUSEL })
+            // And an opened post hands over its suggested threads once.
+            assertEquals(vendor.name, 1, profileHooks.count { it == RELATED_THREADS_CALL })
             val capture = context.mutableClassDefBy(targets.wrapper.definingClass).instanceFields.single {
                 it.name == targets.capturedRaw.name
             }
@@ -190,16 +194,20 @@ class HideSuggestedUsersFixtureTest {
                 AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "Z" && method.parameterTypes.size == 1 &&
                     method.instructions().mapNotNull { (it as? WideLiteralInstruction)?.wideLiteral }.toSet()
                         .containsAll(listOf(0x8669a9b0.toInt().toLong(), INJECTED_FIELD.toLong()))
-            } + FixtureDex.classes(build, setOf(MEDIA, FOR_YOU_LOCAL_SOURCE, FEED_CACHE_HANDLER)).values
+            } + FixtureDex.classes(build, setOf(MEDIA)).values + FixtureDex.classesWhere(build, { true }) { method ->
+                method.returnType == "Ljava/lang/Integer;" && method.parameterTypes.lastOrNull()?.toString() == "I" &&
+                    method.instructions().any { it.getReference<MethodReference>()?.let { call ->
+                        call.name == "add" && call.parameterTypes.map(CharSequence::toString) == listOf("I", "Ljava/lang/Object;")
+                    } == true }
+            }.filter { holder -> holder.fields.any { !AccessFlags.STATIC.isSet(it.accessFlags) && it.type == FOR_YOU_LOCAL_SOURCE } }
             val vendor = cards.copy(classes = (cards.classes + adClasses).distinctBy { it.type })
             val adsOnly = context(vendor)
             InjectedAdCheckFingerprint.clearMatch()
             hideAdsPatch.execute(adsOnly)
             assertEquals(vendor.name, 1, filterCalls(adsOnly))
-            assertEquals(vendor.name, 1, spoolCalls(adsOnly))
-            assertEquals(vendor.name, listOf(4, 4), writeCalls(adsOnly))
-            assertEquals(vendor.name, listOf(4, 4), itemCalls(adsOnly))
-            assertEquals(vendor.name, 2, insertCalls(adsOnly))
+            assertEquals(vendor.name, 4, writeCalls(adsOnly))
+            assertEquals(vendor.name, 4, itemCalls(adsOnly))
+            assertEquals(vendor.name, 1, insertCalls(adsOnly, vendor))
             assertEquals(vendor.name, 1, status(adsOnly, "hideAds"))
             assertEquals(vendor.name, 0, status(adsOnly, "hideSuggestedUsers"))
             assertTrue(vendor.name, stubSize(adsOnly, "isAd") > 2)
@@ -208,10 +216,9 @@ class HideSuggestedUsersFixtureTest {
             val suggestionsOnly = context(vendor)
             hideSuggestedUsersPatch.execute(suggestionsOnly)
             assertEquals(vendor.name, 1, filterCalls(suggestionsOnly))
-            assertEquals(vendor.name, 1, spoolCalls(suggestionsOnly))
-            assertEquals(vendor.name, listOf(4, 4), writeCalls(suggestionsOnly))
-            assertEquals(vendor.name, listOf(4, 4), itemCalls(suggestionsOnly))
-            assertEquals(vendor.name, 0, insertCalls(suggestionsOnly))
+            assertEquals(vendor.name, 4, writeCalls(suggestionsOnly))
+            assertEquals(vendor.name, 4, itemCalls(suggestionsOnly))
+            assertEquals(vendor.name, 0, insertCalls(suggestionsOnly, vendor))
             assertEquals(vendor.name, 0, status(suggestionsOnly, "hideAds"))
             assertEquals(vendor.name, 1, status(suggestionsOnly, "hideSuggestedUsers"))
             assertEquals(vendor.name, 2, stubSize(suggestionsOnly, "isAd"))
@@ -222,10 +229,9 @@ class HideSuggestedUsersFixtureTest {
             hideAdsPatch.execute(both)
             hideSuggestedUsersPatch.execute(both)
             assertEquals(vendor.name, 1, filterCalls(both))
-            assertEquals(vendor.name, 1, spoolCalls(both))
-            assertEquals(vendor.name, listOf(4, 4), writeCalls(both))
-            assertEquals(vendor.name, listOf(4, 4), itemCalls(both))
-            assertEquals(vendor.name, 2, insertCalls(both))
+            assertEquals(vendor.name, 4, writeCalls(both))
+            assertEquals(vendor.name, 4, itemCalls(both))
+            assertEquals(vendor.name, 1, insertCalls(both, vendor))
             assertEquals(vendor.name, 1, status(both, "hideAds"))
             assertEquals(vendor.name, 1, status(both, "hideSuggestedUsers"))
             assertTrue(vendor.name, stubSize(both, "isAd") > 2)
@@ -233,32 +239,21 @@ class HideSuggestedUsersFixtureTest {
         }
     }
 
-    private fun spoolCalls(context: BytecodePatchContext) = context.mutableClassDefBy(SPOOL_FEED_CACHE).methods
+    /** The feed cache's calls to the For You write filter. The shared hook writes them. */
+    private fun writeCalls(context: BytecodePatchContext) = context.mutableClassDefBy(FEED_CACHE).methods
         .flatMap { it.instructions() }.count {
-            it.getReference<MethodReference>()?.toString() == "$FEED_ADS->spoolPage(Ljava/util/List;)Ljava/util/List;"
+            it.getReference<MethodReference>()?.toString() == "$FEED_ADS->forYouWrite(Ljava/util/List;)Ljava/util/List;"
         }
 
-    /** The feed cache handler's calls to the For You write filter, then the spool's to its own. The shared hook writes them. */
-    private fun writeCalls(context: BytecodePatchContext) = listOf(
-        FEED_CACHE_HANDLER to "forYouWrite", SPOOL_FEED_CACHE to "spoolWrite",
-    ).map { (handler, entry) ->
-        context.mutableClassDefBy(handler).methods.flatMap { it.instructions() }.count {
-            it.getReference<MethodReference>()?.toString() == "$FEED_ADS->$entry(Ljava/util/List;)Ljava/util/List;"
+    /** The feed cache's asks before a one-item write. The shared hook writes them too. */
+    private fun itemCalls(context: BytecodePatchContext) = context.mutableClassDefBy(FEED_CACHE).methods
+        .flatMap { it.instructions() }.count {
+            it.getReference<MethodReference>()?.toString() == "$FEED_ADS->forYouItem(Ljava/lang/Object;)Z"
         }
-    }
 
-    /** The feed cache handler's asks before a one-item write, then the spool's. The shared hook writes them too. */
-    private fun itemCalls(context: BytecodePatchContext) = listOf(
-        FEED_CACHE_HANDLER to "forYouItem", SPOOL_FEED_CACHE to "spoolItem",
-    ).map { (handler, entry) ->
-        context.mutableClassDefBy(handler).methods.flatMap { it.instructions() }.count {
-            it.getReference<MethodReference>()?.toString() == "$FEED_ADS->$entry(Ljava/lang/Object;)Z"
-        }
-    }
-
-    /** Calls to the inserted-ad check across both For You handlers. Only Hide ads writes them. */
-    private fun insertCalls(context: BytecodePatchContext) = listOf(FEED_CACHE_HANDLER, SPOOL_FEED_CACHE)
-        .flatMap { context.mutableClassDefBy(it).methods }.flatMap { it.instructions() }.count {
+    /** Calls to the inserted-ad check anywhere in the vendor's classes. Only Hide ads writes them. */
+    private fun insertCalls(context: BytecodePatchContext, vendor: Vendor) = vendor.classes
+        .flatMap { context.mutableClassDefBy(it.type).methods }.flatMap { it.instructions() }.count {
             it.getReference<MethodReference>()?.toString() == "$FEED_ADS->insertedAd(Ljava/lang/Object;)Z"
         }
 

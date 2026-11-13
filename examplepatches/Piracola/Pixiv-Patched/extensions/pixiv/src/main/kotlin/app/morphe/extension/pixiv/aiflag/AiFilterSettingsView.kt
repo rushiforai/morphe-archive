@@ -33,7 +33,7 @@ object AiFilterSettingsView {
             val textPrimaryColor = if (isDark) 0xFFEEEEEE.toInt() else 0xFF1F2937.toInt()
             val textSecondaryColor = if (isDark) 0xFF9E9E9E.toInt() else 0xFF6B7280.toInt()
             val dividerColor = if (isDark) 0xFF2D2D2D.toInt() else 0xFFE5E7EB.toInt()
-            val accentColor = 0xFF0096FA.toInt() // Pixiv brand blue
+            val accentColor = 0xFF0096FA.toInt()
             val redColor = 0xFFDC2626.toInt()
 
             activity.window?.setSoftInputMode(
@@ -49,7 +49,6 @@ object AiFilterSettingsView {
                 )
             }
 
-            // Toolbar
             val toolbar = LinearLayout(activity).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
@@ -83,7 +82,6 @@ object AiFilterSettingsView {
 
             root.addView(toolbar)
 
-            // Scrollable content
             val scrollView = ScrollView(activity).apply {
                 isFillViewport = true
                 isSmoothScrollingEnabled = true
@@ -99,12 +97,10 @@ object AiFilterSettingsView {
                 setPadding(pad, pad, pad, pad * 2)
             }
 
-            // Section 1: Display Preferences Card
             content.addView(createSectionHeader(activity, Strings.aiDisplaySection, accentColor))
 
             val displayCard = createCard(activity, cardBgColor)
 
-            // Switch: Hide Completely
             val hideSwitchRow = createSwitchRow(
                 activity,
                 Strings.aiHideWorks,
@@ -119,7 +115,6 @@ object AiFilterSettingsView {
 
             displayCard.addView(createDivider(activity, dividerColor))
 
-            // Switch: Auto-Block Artists
             val autoBlockSwitchRow = createSwitchRow(
                 activity,
                 Strings.aiAutoBlock,
@@ -134,7 +129,6 @@ object AiFilterSettingsView {
 
             content.addView(displayCard)
 
-            // Section 2: Blocked Artists
             content.addView(createSectionHeader(activity, Strings.aiBlockedSection, accentColor))
 
             val blockedCard = createCard(activity, cardBgColor)
@@ -184,7 +178,6 @@ object AiFilterSettingsView {
             blockedCard.addView(blockedRow)
             content.addView(blockedCard)
 
-            // Section 3: Substring Tag Blocklist
             content.addView(createSectionHeader(activity, Strings.aiSubstringSection, accentColor))
             val subCard = createCard(activity, cardBgColor)
             val subFlow = FlowLayout(activity).apply {
@@ -212,7 +205,6 @@ object AiFilterSettingsView {
             refreshSubChips()
             content.addView(subCard)
 
-            // Section 4: Exact Tag Blocklist
             content.addView(createSectionHeader(activity, Strings.aiExactSection, accentColor))
             val exactCard = createCard(activity, cardBgColor)
             val exactFlow = FlowLayout(activity).apply {
@@ -240,7 +232,6 @@ object AiFilterSettingsView {
             refreshExactChips()
             content.addView(exactCard)
 
-            // Section 5: Whitelist
             content.addView(createSectionHeader(activity, Strings.aiWhitelistSection, accentColor))
             val whiteCard = createCard(activity, cardBgColor)
             val whiteFlow = FlowLayout(activity).apply {
@@ -269,7 +260,6 @@ object AiFilterSettingsView {
             content.addView(whiteCard)
 
 
-            // Reset Defaults Button
             val resetRow = LinearLayout(activity).apply {
                 gravity = Gravity.CENTER
                 val topP = dpToPx(activity, 20f).toInt()

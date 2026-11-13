@@ -160,8 +160,23 @@ val messageMenuPatch = bytecodePatch(
             } else {
                 patchLog.warning("Add Repeat to the message menu: ${shot.missing}. The patch goes on without the Screenshot button.")
             }
+            // So does Select all in chats.
+            val all = resolveSelectAll()
+            if (all.missing == null) {
+                all.apply(this)
+                enableCapability("selectAll")
+            } else {
+                patchLog.warning("Add Repeat to the message menu: ${all.missing}. The patch goes on without Select all in chats.")
+            }
         } else {
-            patchLog.warning("Add Repeat to the message menu: ${between.missing}. The patch goes on without the Select between button or Screenshot.")
+            patchLog.warning("Add Repeat to the message menu: ${between.missing}. The patch goes on without the Select between button, Screenshot or Select all in chats.")
+        }
+        val mediaAll = resolveSharedMediaSelectAll()
+        if (mediaAll.missing == null) {
+            mediaAll.apply(this)
+            enableCapability("sharedMediaSelectAll")
+        } else {
+            patchLog.warning("Add Repeat to the message menu: ${mediaAll.missing}. The patch goes on without Select all in shared media.")
         }
         val hide = resolveHideForMe()
         if (hide.missing == null) {

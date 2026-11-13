@@ -57,6 +57,9 @@ final class PatchStatusRequirements {
                 "linimal.patch.home-top-ad-module-gate",
                 "linimal.patch.home-top-ad-catalog-gate",
                 "linimal.patch.home-gcs-ad-module-gate"));
+        requirements.put("linimal.square-ads", ids(
+                "linimal.patch.square-ads-type-gate",
+                "linimal.patch.square-ads-embedded-gate"));
         requirements.put("linimal.home-recommendations",
                 ids("linimal.patch.home-contents-recommendation"));
         requirements.put("linimal.home-trending", ids("linimal.patch.home-matome-single-module"));

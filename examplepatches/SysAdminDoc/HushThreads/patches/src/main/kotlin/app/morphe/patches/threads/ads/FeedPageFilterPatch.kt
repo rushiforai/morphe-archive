@@ -15,6 +15,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.patches.threads.feed.writes
 import app.morphe.patches.threads.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.threads.misc.extension.parameterRegister
 import app.morphe.patches.threads.misc.extension.requireLocals
@@ -27,6 +28,7 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
@@ -37,7 +39,7 @@ internal const val FEED_ADS = "$EXTENSION_PACKAGE/ads/FeedAds;"
 // The shared hook fails for whichever feed patch was selected, so its messages name both.
 private const val PATCH = "Feed filter (Hide ads, Hide suggested users)"
 
-/** The pre-cache page boundaries (the feed cache's merge, the spool cache's, and For You's other writes, whole and one item), shared by independently selected feed patches. */
+/** The pre-cache page boundaries (the feed cache's merge and For You's other writes, whole and one item), shared by independently selected feed patches. */
 internal val feedPageFilterPatch = bytecodePatch {
     dependsOn(settingsPatch)
     dependsOn(threadsExtensionPatch)
@@ -75,30 +77,17 @@ internal val feedPageFilterPatch = bytecodePatch {
             """,
         )
 
-        // For You's spool cache merges its pages on its own, past the merge above, so its page gets
-        // the same filter first thing. It resumes the same way, from its own saved copy.
-        val spool = SpoolFeedPageMergeFingerprint.method
-        val spoolPage = spool.parameterRegister(5)
-        spool.addInstructions(
-            0,
-            """
-                invoke-static/range { $spoolPage .. $spoolPage }, $FEED_ADS->spoolPage(Ljava/util/List;)Ljava/util/List;
-                move-result-object $spoolPage
-            """,
-        )
-
-        // For You's data source writes feed items into either cache more ways than the merges (the
-        // refresh's write, the paging flow's, an append to the page it holds, a page it rebuilds),
-        // and none passes either filter above. Each handler's write takes its items first thing,
-        // before the feed cache handler's own code (some hand on to the feed cache, one builds a page
-        // and writes it to disk itself), and a resumed spool write is called again with no list.
-        forYouWrites(spool).forEach { (handler, write) ->
+        // For You writes feed items into the feed cache more ways than the merge (the refresh's
+        // write, the paging flow's, an append to the page it holds, a page it rebuilds), and none
+        // passes the filter above. 455 calls the cache's own writes straight from where it writes,
+        // with no handler between (454's handlers handed on to them), so each takes its items first
+        // thing. A resumed write is called again with the list it saved, already filtered.
+        forYouWrites(merge).forEach { write ->
             val items = write.parameterRegister(write.parameterTypes.indexOfFirst { it.toString() == LIST })
-            val entry = if (handler == SPOOL_FEED_CACHE) "spoolWrite" else "forYouWrite"
             write.addInstructions(
                 0,
                 """
-                    invoke-static/range { $items .. $items }, $FEED_ADS->$entry(Ljava/util/List;)Ljava/util/List;
+                    invoke-static/range { $items .. $items }, $FEED_ADS->forYouWrite(Ljava/util/List;)Ljava/util/List;
                     move-result-object $items
                 """,
             )
@@ -106,18 +95,16 @@ internal val feedPageFilterPatch = bytecodePatch {
 
         // It also writes one item at a time (one it adds, puts after a post or swaps in for one it
         // holds), which passes no filter either. Each such write asks first and, for an item a rule
-        // takes out, answers the Unit it answers when it's done, so nothing is written. A resumed
-        // spool write is called again with no item, which the ask keeps.
+        // takes out, answers the Unit it answers when it's done, so nothing is written.
         val itemWrites = forYouItemWrites(itemMedia.definingClass)
-        val done = doneAnswer(itemWrites.map { it.second })
-        itemWrites.forEach { (handler, write) ->
+        val done = doneAnswer(itemWrites)
+        itemWrites.forEach { write ->
             write.requireLocals(PATCH, 1)
             val item = write.parameterRegister(0)
-            val entry = if (handler == SPOOL_FEED_CACHE) "spoolItem" else "forYouItem"
             write.addInstructionsWithLabels(
                 0,
                 """
-                    invoke-static/range { $item .. $item }, $FEED_ADS->$entry(Ljava/lang/Object;)Z
+                    invoke-static/range { $item .. $item }, $FEED_ADS->forYouItem(Ljava/lang/Object;)Z
                     move-result v0
                     if-eqz v0, :write
                     sget-object v0, $done
@@ -132,25 +119,38 @@ internal val feedPageFilterPatch = bytecodePatch {
 private const val LIST = "Ljava/util/List;"
 
 /**
+ * The static fields of their own type that [method] hands back as it is: each loaded with
+ * sget-object into the register the next return-object returns, with nothing between that
+ * branches or writes that register. 455's writes unlock the cache between the load and the return.
+ */
+internal fun Method.selfTypedAnswers(): Set<String> {
+    val body = implementation!!.instructions.toList()
+    return body.indices.mapNotNull { index ->
+        val load = body[index]
+        val field = load.getReference<FieldReference>()?.takeIf { load.opcode == Opcode.SGET_OBJECT && it.type == it.definingClass }
+            ?: return@mapNotNull null
+        val register = (load as OneRegisterInstruction).registerA
+        val ret = (index + 1 until body.size).firstOrNull { body[it].opcode == Opcode.RETURN_OBJECT } ?: return@mapNotNull null
+        val between = body.subList(index + 1, ret)
+        field.toString().takeIf {
+            (body[ret] as OneRegisterInstruction).registerA == register &&
+                between.all { it.opcode.canContinue() && it !is OffsetInstruction && !it.writes(register) }
+        }
+    }.toSet()
+}
+
+/**
  * What every one of [writes] answers when it's done without suspending: Kotlin's Unit. Some builds
  * rename it (454's x86 build answers `LX/BZ8;->A00`, a class whose toString is "X.BZ8"), so it's
- * the one static field of its own type that each write loads straight into its return. The
- * coroutine's suspended marker is compared, never loaded and returned, and a write that returns
- * another call's answer has nothing of that shape there. Unit's class is a bare singleton (an
- * Object with that one static field, no instance fields and no interfaces). The marker's enum
- * isn't, and neither are stateless objects like EmptyList, which implement what they stand in for,
- * so a build whose writes all hand back some other shared field is refused rather than answering it.
+ * the one static field of its own type that each write hands back as it is. The coroutine's
+ * suspended marker is compared before it's returned, and a write that returns another call's
+ * answer has nothing of that shape there. Unit's class is a bare singleton (an Object with that
+ * one static field, no instance fields and no interfaces). The marker's enum isn't, and neither
+ * are stateless objects like EmptyList, which implement what they stand in for, so a build whose
+ * writes all hand back some other shared field is refused rather than answering it.
  */
 internal fun BytecodePatchContext.doneAnswer(writes: List<Method>): String {
-    val answers = writes.map { write ->
-        write.implementation!!.instructions.zipWithNext().mapNotNull { (load, ret) ->
-            val field = load.getReference<FieldReference>()?.takeIf { it.type == it.definingClass }
-            field?.takeIf {
-                load.opcode == Opcode.SGET_OBJECT && ret.opcode == Opcode.RETURN_OBJECT &&
-                    (load as OneRegisterInstruction).registerA == (ret as OneRegisterInstruction).registerA
-            }?.toString()
-        }.toSet()
-    }
+    val answers = writes.map { it.selfTypedAnswers() }
     val done = answers.reduce { shared, next -> shared intersect next }.singleOrNull()
         ?: throw PatchException("$PATCH: For You's one-item writes don't share one done answer: $answers")
     val type = done.substringBefore("->")
@@ -163,55 +163,35 @@ internal fun BytecodePatchContext.doneAnswer(writes: List<Method>): String {
     return done
 }
 
-/**
- * For You's writes of one feed item: each abstract method of [FOR_YOU_LOCAL_SOURCE] taking the
- * feed [item] first and answering an Object, as each For You handler implements it. The insert at
- * a position answers an Integer instead, and Hide ads hooks it on its own.
- */
-internal fun BytecodePatchContext.forYouItemWrites(item: String): List<Pair<String, MutableMethod>> {
-    val declared = classDefBy(FOR_YOU_LOCAL_SOURCE).methods.filter { method ->
-        AccessFlags.ABSTRACT.isSet(method.accessFlags) && method.returnType == "Ljava/lang/Object;" &&
-            method.parameterTypes.firstOrNull()?.toString() == item
-    }
-    if (declared.isEmpty()) throw PatchException("$PATCH: $FOR_YOU_LOCAL_SOURCE declares no writes of one $item")
-    return listOf(FEED_CACHE_HANDLER, SPOOL_FEED_CACHE).flatMap { handler ->
-        val classDef = mutableClassDefBy(handler)
-        if (classDef.superclass != FOR_YOU_LOCAL_SOURCE) {
-            throw PatchException("$PATCH: $handler no longer extends $FOR_YOU_LOCAL_SOURCE")
-        }
-        declared.map { declaration ->
-            handler to classDef.methods.filter { it.signature() == declaration.signature() && it.implementation != null }
-                .singleOrPatchException("$PATCH: $handler's ${declaration.signature()}")
-        }
-    }
+/** The feed cache's own suspend writes: its instance methods with a body that answer an Object. */
+private fun BytecodePatchContext.cacheWrites(): List<MutableMethod> = mutableClassDefBy(FEED_CACHE).methods.filter {
+    !AccessFlags.STATIC.isSet(it.accessFlags) && !AccessFlags.PRIVATE.isSet(it.accessFlags) &&
+        it.returnType == "Ljava/lang/Object;" && it.implementation != null
 }
 
-private fun Method.signature(): String = name + parameterTypes.joinToString("", "(", ")") + returnType
+/**
+ * For You's writes of one feed item: each of the feed cache's writes taking the feed [item] first.
+ * The insert at a position lives elsewhere and answers an Integer, and Hide ads hooks it on its own.
+ */
+internal fun BytecodePatchContext.forYouItemWrites(item: String): List<MutableMethod> =
+    cacheWrites().filter { it.parameterTypes.firstOrNull()?.toString() == item }
+        .ifEmpty { throw PatchException("$PATCH: $FEED_CACHE has no writes of one $item") }
 
 /**
- * For You's writes of feed items besides its page merge: each abstract method of
- * [FOR_YOU_LOCAL_SOURCE] taking one list, other than the merge the spool's [merge] implements, as
- * each For You handler implements it.
+ * For You's writes of feed items besides its page [merge]: each of the feed cache's writes taking
+ * one list and the continuation the merge takes (Redex sorts parameters, so it isn't always last),
+ * whose other parameters are only what a write of a page takes besides its items: the merge's page
+ * key, a count, a callback, flags. The cache's reads take a list too, beside their request type,
+ * offsets and a timestamp.
  */
-internal fun BytecodePatchContext.forYouWrites(merge: Method): List<Pair<String, MutableMethod>> {
-    val declared = classDefBy(FOR_YOU_LOCAL_SOURCE).methods.filter { method ->
-        AccessFlags.ABSTRACT.isSet(method.accessFlags) && method.parameterTypes.count { it.toString() == LIST } == 1
-    }
-    val (merges, writes) = declared.partition { it.signature() == merge.signature() }
-    if (merges.size != 1) {
-        throw PatchException("$PATCH: $FOR_YOU_LOCAL_SOURCE doesn't declare the spool's merge ${merge.signature()}")
-    }
-    if (writes.isEmpty()) throw PatchException("$PATCH: $FOR_YOU_LOCAL_SOURCE declares no list writes besides its merge")
-    return listOf(FEED_CACHE_HANDLER, SPOOL_FEED_CACHE).flatMap { handler ->
-        val classDef = mutableClassDefBy(handler)
-        if (classDef.superclass != FOR_YOU_LOCAL_SOURCE) {
-            throw PatchException("$PATCH: $handler no longer extends $FOR_YOU_LOCAL_SOURCE")
-        }
-        writes.map { declaration ->
-            handler to classDef.methods.filter { it.signature() == declaration.signature() && it.implementation != null }
-                .singleOrPatchException("$PATCH: $handler's ${declaration.signature()}")
-        }
-    }
+internal fun BytecodePatchContext.forYouWrites(merge: Method): List<MutableMethod> {
+    val continuation = merge.parameterTypes[MERGE_CONTINUATION].toString()
+    val besides = setOf(merge.parameterTypes[0].toString(), "Ljava/lang/Integer;", "Lkotlin/jvm/functions/Function0;", "Z")
+    return cacheWrites().filter { write ->
+        val types = write.parameterTypes.map { it.toString() }
+        types.count { it == LIST } == 1 && types.count { it == continuation } == 1 &&
+            types.all { it == LIST || it == continuation || it in besides }
+    }.ifEmpty { throw PatchException("$PATCH: $FEED_CACHE has no list writes besides its merge") }
 }
 
 /**

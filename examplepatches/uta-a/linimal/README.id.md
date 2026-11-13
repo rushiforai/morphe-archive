@@ -12,7 +12,7 @@ Linimal adalah proyek independen dan bukan proyek resmi LINE maupun Morphe.
 
 ## Fitur
 
-- **Sembunyikan iklan**: Smart Channel di daftar chat dan iklan di Beranda.
+- **Sembunyikan iklan**: Smart Channel di daftar chat, iklan di Beranda, dan iklan di OpenChat.
 - **Sembunyikan pintu masuk Agent i dan LINE AI**: di 9 tempat, termasuk Beranda, Wallet, kolom pencarian daftar chat, chat, menu + chat, penampil foto dan video, serta Pengaturan.
 - **Sembunyikan item yang tidak Anda gunakan**: tab bawah, ikon di bagian atas daftar chat, menu + chat, dan bagian-bagian di Beranda.
 - **Baca tanpa tanda dibaca**: baca chat yang dibuka dari menu tekan lama atau dari notifikasi sambil tetap belum dibaca. Setelah selesai, gunakan "Tandai semua sebagai dibaca" untuk menandainya sebagai dibaca.
@@ -81,6 +81,7 @@ Pengaturan tampilan yang menyembunyikan elemen layar berlaku setelah aplikasi di
 | --- | --- | --- | --- |
 | Iklan | Sembunyikan iklan Smart Channel | ON | Menyembunyikan Smart Channel di bagian atas daftar chat. |
 | Iklan | Sembunyikan iklan di Beranda | ON | Menyembunyikan slot iklan di Beranda dan kartu iklan di feed. |
+| Iklan | Sembunyikan iklan OpenChat | ON | Menyembunyikan iklan di chat, thread, dan catatan OpenChat. |
 | Agent i & LINE AI | Sembunyikan Agent i di atas Beranda | ON | |
 | Agent i & LINE AI | Sembunyikan Agent i di atas Wallet | ON | |
 | Agent i & LINE AI | Sembunyikan Agent i di kolom pencarian daftar chat | ON | Kolom pencarian melebar mengisi ruang tersebut. |

@@ -154,6 +154,16 @@ Forget the seen video.,Lupakan video yang telah dilihat.
 Forget the video @%2$s has seen.,Lupakan video yang telah dilihat @%2$s.
 Got it,Mengerti
 Hide profile shortcuts,Sembunyikan pintasan profil
+Hide profile tabs,Sembunyikan tab profil
+"Pick the tabs to hide from the strip above a profile's videos, such as Reposts or Liked videos. One tab always stays. Restart TikTok to apply this.","Pilih tab yang disembunyikan dari strip di atas video profil, misalnya Postingan ulang atau Video yang disukai. Satu tab selalu tetap ada. Mulai ulang TikTok agar berlaku."
+Private videos,Video pribadi
+Reposts,Postingan ulang
+Favorites,Favorit
+Music,Musik
+Effects,Efek
+Series,Serial
+Stickers,Stiker
+AI theater,Teater AI
 Hide profile shortcuts by name,Sembunyikan pintasan profil berdasarkan nama
 Hide the status bar in LIVE rooms,Sembunyikan bilah status di ruang LIVE
 How much of a video you watch before it's hidden next time. Zero counts it after a few seconds.,Berapa banyak video yang kamu tonton sebelum video itu disembunyikan lain kali. Nol menghitungnya setelah beberapa detik.
@@ -2329,7 +2339,7 @@ Some recording files remain. Try deleting them again.,Beberapa file rekaman masi
 "Collapsed","Diciutkan"
 This setting isn't available. Search for another setting.,Setelan ini tidak tersedia. Cari setelan lain.
 Hide the Hushfeed row,Sembunyikan baris Hushfeed
-"Take Hushfeed out of TikTok's Settings and privacy. To open these settings, press and hold For You at the top of the feed, or Home if Long-press Home for Hushfeed settings is on.","Keluarkan Hushfeed dari Pengaturan dan privasi TikTok. Untuk membuka pengaturan ini, tekan lama Untuk Kamu di bagian atas feed, atau Beranda jika Tekan lama Beranda untuk pengaturan Hushfeed aktif."
+"Take Hushfeed out of TikTok's Settings and privacy. To open these settings, press and hold For You at the top of the feed, or Home if Long-press Home for Hushfeed settings is on. If neither press can open them, the row stays.","Keluarkan Hushfeed dari Pengaturan dan privasi TikTok. Untuk membuka pengaturan ini, tekan lama Untuk Kamu di bagian atas feed, atau Beranda jika Tekan lama Beranda untuk pengaturan Hushfeed aktif. Jika keduanya tidak bisa membukanya, barisnya tetap ada."
 Open the search page,Buka halaman pencarian
 Search didn't open. Restart TikTok and try again.,"Pencarian tak terbuka. Mulai ulang TikTok, coba lagi."
 Fold the search into a button,Lipat pencarian jadi tombol
@@ -2586,6 +2596,12 @@ Bottom bar icons,Ikon bilah bawah
 "TikTok tests more than one set of icons for the bottom bar. Pick one here, or leave it to TikTok.","TikTok menguji beberapa set ikon untuk bilah bawah. Pilih salah satu di sini, atau biarkan TikTok yang memilih."
 New style 1,Gaya baru 1
 New style 2,Gaya baru 2
+Bottom bar height,Tinggi bilah bawah
+"Videos and the other tabs make room for the bar at its new height. With the tab names hidden, the icons fit the shorter bars best.","Video dan tab lainnya memberi ruang untuk bilah dengan tinggi barunya. Saat nama tab disembunyikan, ikon paling pas di bilah yang lebih pendek."
+Shorter,Sangat pendek
+Short,Pendek
+Tall,Tinggi
+Taller,Sangat tinggi
 Friends in the top tabs,Teman di tab atas
 "Friends moves up to the tabs at the top of the feed, next to Following, and Discover takes its spot in the bottom bar, the way TikTok lays it out in some countries. Your region and your feed stay as they are.","Teman pindah ke tab di bagian atas feed, di samping Mengikuti, dan Temukan mengambil tempatnya di bilah bawah, seperti tata letak TikTok di beberapa negara. Wilayah dan feed Anda tetap sama."
 Pin more chats,Sematkan lebih banyak obrolan

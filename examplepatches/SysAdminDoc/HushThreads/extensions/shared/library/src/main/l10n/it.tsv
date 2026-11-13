@@ -283,6 +283,9 @@ The name under the app's icon.	Il nome sotto l'icona dell'app.
 the new app name	il nuovo nome dell'app
 Hide screenshots from Threads	Nascondi gli screenshot a Threads
 Threads isn't told when you take a screenshot, so it can't log it or react to it.	Threads non viene avvisato quando fai uno screenshot, quindi non può registrarlo né reagire.
+Spoof SIM region	Falsifica regione SIM
+Threads sees your SIM and network as the region picked below. Meta can still go by your connection and your account. Restart Threads to see the change.	Threads vede la tua SIM e la tua rete come della regione scelta qui sotto. Meta può ancora basarsi sulla tua connessione e sul tuo account. Riavvia Threads per vedere la modifica.
+SIM region	Regione SIM
 Full size photos	Foto a dimensione piena
 Photos load at the largest size Threads has, not one picked for your screen. They look sharper and use more data.	Le foto si caricano alla dimensione più grande che Threads ha, non a una scelta per il tuo schermo. Sono più nitide e usano più dati.
 No swipe into Search	Niente scorrimento verso Cerca
@@ -342,6 +345,8 @@ Threads needs the Storage permission to save on Android 9. Turn it on in Threads
 Not saved: the download was too slow. Try a faster connection.	Non salvato: download troppo lento. Prova una rete più veloce.
 Hide follow suggestions in Search	Nascondi i suggerimenti da seguire in Cerca
 Takes the Follow suggestions row off the Search screen. Your searches and topics stay.	Toglie la riga dei suggerimenti da seguire dalla schermata Cerca. Le tue ricerche e gli argomenti restano.
+Hide suggested threads	Nascondi i thread suggeriti
+Takes the suggested threads off the bottom of a post you open. The post and its replies stay.	Toglie i thread suggeriti dal fondo di un post che apri. Il post e le sue risposte restano.
 # A save stopped because a proxy server on the phone's network (Wi-Fi or global proxy setting) asked for a user name and password: the toast. HushThreads never sends one for a download. Android 12 and later cut a toast after two lines, so it stays short.
 Not saved: the proxy wants a password. Try another network.	Non salvato: il proxy chiede una password. Prova un'altra rete.
 # The same, as an extra line under a carousel's 'Saved %1$d. Failed %2$d. Skipped %3$d.' summary. Android 12 and later cut a toast after two lines, so it stays short.

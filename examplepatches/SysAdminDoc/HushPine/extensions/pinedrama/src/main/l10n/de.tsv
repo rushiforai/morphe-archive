@@ -1858,3 +1858,5 @@ Hide videos without a preferred dub	Videos ohne bevorzugte Synchronfassung ausbl
 Hides videos with no dub from Dub priority in Playback. Putting original on that list keeps every video, since each has its own audio. If a whole page would be hidden, one video stays so the feed keeps loading. Does nothing while the list is empty.	Blendet Videos ohne eine Synchronfassung aus der Synchron-Reihenfolge unter Wiedergabe aus. Steht original auf der Liste, bleiben alle Videos, denn jedes hat seinen eigenen Ton. Würde eine ganze Seite verschwinden, bleibt ein Video, damit der Feed weiterlädt. Tut nichts, solange die Liste leer ist.
 Preferred subtitles	Bevorzugte Untertitel
 Preferred dubs	Bevorzugte Synchronfassungen
+Always open on Home	Immer auf der Startseite öffnen
+PineDrama sometimes starts on Discover, like in the first days after an install. This starts it on Home instead.	PineDrama startet manchmal auf Entdecken, etwa in den ersten Tagen nach der Installation. Damit startet es stattdessen auf der Startseite.

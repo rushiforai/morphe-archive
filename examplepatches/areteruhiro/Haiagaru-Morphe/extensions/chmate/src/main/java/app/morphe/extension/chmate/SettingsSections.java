@@ -234,11 +234,7 @@ final class SettingsSections {
         return result.toString();
     }
     static boolean matches(String labels,String query) {
-        String text=java.text.Normalizer.normalize(labels,java.text.Normalizer.Form.NFKC).toLowerCase(Locale.ROOT);
-        String normalized=java.text.Normalizer.normalize(query,java.text.Normalizer.Form.NFKC).trim().toLowerCase(Locale.ROOT);
-        if(normalized.isEmpty())return true;
-        for(String word:normalized.split("\\s+"))if(!text.contains(word))return false;
-        return true;
+        return SettingsSearchTerms.matches(labels,query);
     }
     void reveal(View target) {
         for(Category c:Category.values()){

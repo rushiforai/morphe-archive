@@ -201,11 +201,11 @@ public final class BuildDetails {
         return names.equals(sorted);
     }
 
-    /** The build the bundle declares: PineDrama 47.6.3. */
+    /** The build the bundle declares: PineDrama 47.7.3. */
     private static boolean validTarget(Map<String, String> facts) {
         String name = facts.get("target_package"), version = facts.get("target_version"), code = facts.get("target_version_code");
         if (name.equals("unknown")) return version.equals("unknown") && code.equals("unknown");
-        return (name + "/" + version + "=" + code).equals("com.ss.android.ttmd.video/47.6.3=2024706030");
+        return (name + "/" + version + "=" + code).equals("com.ss.android.ttmd.video/47.7.3=2024707030");
     }
 
     private static boolean matches(String value, String pattern, int max) {

@@ -311,6 +311,9 @@
     "Open external links directly": [
       "open_external_links"
     ],
+    "Open on Home": [
+      "open_on_home"
+    ],
     "Open the comments at full height": [
       "comments_full_height"
     ],
@@ -1816,6 +1819,12 @@
     "open_external_links": {
       "field": "OPEN_EXTERNAL_LINKS",
       "key": "open_external_links",
+      "type": "boolean",
+      "default": true
+    },
+    "open_on_home": {
+      "field": "OPEN_ON_HOME",
+      "key": "open_on_home",
       "type": "boolean",
       "default": true
     },

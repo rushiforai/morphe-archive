@@ -375,8 +375,8 @@ try {
         Where-Object { Test-Path -LiteralPath $_ -PathType Leaf })[0]
     if (-not $androidJar) { throw 'The walk fixture needs an installed Android SDK platform.' }
     $manifestPath = Join-Path $scratch 'AndroidManifest.xml'
-    # The catalog names 454 without pinning a code, so a stand-in fills in when no code is pinned.
-    $vendorCode = [string]@(@($target.PackageVersionCodes[$target.PackageVersion]) + '512408636' | Where-Object { $_ })[0]
+    # The catalog names 455 without pinning a code, so a stand-in fills in when no code is pinned.
+    $vendorCode = [string]@(@($target.PackageVersionCodes[$target.PackageVersion]) + '512508359' | Where-Object { $_ })[0]
     [IO.File]::WriteAllText($manifestPath, ('<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="{0}" android:versionName="{1}" android:versionCode="{2}"><application/></manifest>' -f
         $target.PackageName, $target.PackageVersion, $vendorCode))
     & $Aapt2 link -o $outputFile --manifest $manifestPath -I $androidJar

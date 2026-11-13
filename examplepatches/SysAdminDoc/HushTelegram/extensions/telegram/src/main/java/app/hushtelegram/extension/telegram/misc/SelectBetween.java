@@ -113,7 +113,7 @@ public final class SelectBetween {
         return plan;
     }
 
-    private static void fill(Plan plan, int[] ids, boolean[] selectable, Set<Integer> selected, int limit, int reserved, int from, int to) {
+    static void fill(Plan plan, int[] ids, boolean[] selectable, Set<Integer> selected, int limit, int reserved, int from, int to) {
         // [reserved] seats stay free for the tapped message, which Telegram selects after these.
         int room = limit - selected.size() - reserved;
         for (int i = from; i <= to; i++) {
@@ -127,16 +127,21 @@ public final class SelectBetween {
         if (plan.pick.isEmpty()) plan.outcome = Outcome.NOTHING;
     }
 
-    /** Asked as Telegram finishes the selection bar's buttons. Screenshot goes in here too. */
+    /** Asked as Telegram finishes the selection bar's buttons. Select all and Screenshot go in here too. */
     public static void addItem(Object chat) {
         HookStatus.invoked(FamilyNames.MESSAGE_MENU_REPEAT);
         try {
             boolean between = on();
+            boolean all = SelectAll.inChats();
             boolean screenshot = SelectionScreenshot.on();
-            if (!between && !screenshot) return;
+            if (!between && !all && !screenshot) return;
             Object menu = menu(chat);
             if (menu == null) return;
             int width = Math.round(48 * Utils.getContext().getResources().getDisplayMetrics().density);
+            if (all) {
+                addMenuItem(menu, SelectAll.ITEM, SelectAll.icon(), L10n.t("Select all"), width);
+                HookStatus.counted(FamilyNames.MESSAGE_MENU_REPEAT, "select all offered");
+            }
             if (between) {
                 addMenuItem(menu, ITEM, icon(), L10n.t("Select between"), width);
                 HookStatus.counted(FamilyNames.MESSAGE_MENU_REPEAT, "select between offered");
@@ -153,6 +158,7 @@ public final class SelectBetween {
     /** Asked first when a selection bar button is tapped. Returns what Telegram's own handler should see. */
     public static int clicked(Object chat, int id) {
         if (id == SelectionScreenshot.ITEM) return SelectionScreenshot.clicked(chat);
+        if (id == SelectAll.ITEM) return all(chat);
         if (id != ITEM) return id;
         try {
             if (!on()) return id;
@@ -196,6 +202,27 @@ public final class SelectBetween {
         // A tap on a message redraws after selecting it. The picks here come from a bar button, so nothing else would.
         if (!plan.pick.isEmpty()) refresh(chat);
         if (plan.outcome == Outcome.SELECTED || plan.outcome == Outcome.LIMIT) armed = new WeakReference<>(chat);
+    }
+
+    /** Select all's tap in a chat: every loaded message, newest first. Telegram's handler never sees it. */
+    private static int all(Object chat) {
+        try {
+            if (!SelectAll.inChats()) return TAKEN;
+            Snapshot snapshot = snapshot(chat);
+            if (snapshot == null) {
+                toast(L10n.t("Couldn't complete that action. Try again."));
+                return TAKEN;
+            }
+            Plan plan = SelectAll.plan(snapshot.ids, snapshot.selectable, selectedIds(chat), LIMIT);
+            apply(chat, snapshot, plan, false);
+            if (!plan.pick.isEmpty()) refresh(chat);
+            if (plan.outcome == Outcome.NOTHING) toast(L10n.t("Everything here is already selected"));
+            HookStatus.counted(FamilyNames.MESSAGE_MENU_REPEAT, "select all used");
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.MESSAGE_MENU_REPEAT, "select all", failure);
+            toast(L10n.t("Couldn't complete that action. Try again."));
+        }
+        return TAKEN;
     }
 
     private static void apply(Object chat, Snapshot snapshot, Plan plan, boolean said) {

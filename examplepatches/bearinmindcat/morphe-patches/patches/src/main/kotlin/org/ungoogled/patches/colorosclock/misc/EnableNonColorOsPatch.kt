@@ -17,6 +17,7 @@ import org.w3c.dom.Element
 import org.ungoogled.patches.coloros.exportDynamicReceivers
 import org.ungoogled.patches.coloros.treatRefusedComponentsAsMissing
 import org.ungoogled.patches.colorosclock.ColorOsClockConstants.COMPATIBILITY_COLOROS_CLOCK
+import org.ungoogled.patches.coloros.privateFrameworkClassesPatch
 
 internal const val COLOROS_CLOCK_EXTENSION = "extensions/colorosclock.mpe"
 
@@ -53,6 +54,13 @@ private object CanAccessCloudConfigFingerprint : Fingerprint(
 private object AlarmRingingNotificationFingerprint : Fingerprint(
     returnType = "Lkotlin/Pair;",
     strings = listOf("getAlarmRingingNotification"),
+)
+
+/** NotificationUtils' placeholder foreground notification for the alarm service, by its log text. */
+private object AlarmPlaceholderForegroundFingerprint : Fingerprint(
+    returnType = "V",
+    parameters = listOf("Landroid/content/Context;", "Landroid/app/Service;", "I"),
+    strings = listOf("startForegroundService with Default Notification"),
 )
 
 /** AlarmRingUtils' sound picker intent (Context, Uri, int, boolean, int), by ColorOS's picker action. */
@@ -101,22 +109,49 @@ private val widgetLayoutsPatch = resourcePatch {
     }
 }
 
-/** The alarm and timer screens open from the background through full-screen notifications (see Alerts). */
+private const val ALARM_SERVICE = "com.oplus.alarmclock.alert.AlarmService"
+
+/**
+ * The alarm and timer screens open from the background through full-screen notifications (see Alerts). The ringing
+ * alarm's service may also run as systemExempted, Android's foreground service type for alarm clocks (see
+ * Alerts.alarmForeground).
+ */
 private val manifestPatch = resourcePatch {
     execute {
         document("AndroidManifest.xml").use { manifest ->
-            val permission = "android.permission.USE_FULL_SCREEN_INTENT"
             val list = manifest.getElementsByTagName("uses-permission")
-            val declared = (0 until list.length).any { (list.item(it) as Element).getAttribute("android:name") == permission }
-            if (!declared) {
-                manifest.documentElement.insertBefore(
-                    manifest.createElement("uses-permission").apply { setAttribute("android:name", permission) },
-                    manifest.getElementsByTagName("application").item(0),
-                )
+            listOf("android.permission.USE_FULL_SCREEN_INTENT", "android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED")
+                .forEach { permission ->
+                    val declared = (0 until list.length).any { (list.item(it) as Element).getAttribute("android:name") == permission }
+                    if (!declared) {
+                        manifest.documentElement.insertBefore(
+                            manifest.createElement("uses-permission").apply { setAttribute("android:name", permission) },
+                            manifest.getElementsByTagName("application").item(0),
+                        )
+                    }
+                }
+            val services = manifest.getElementsByTagName("service")
+            val alarmService = (0 until services.length).map { services.item(it) as Element }
+                .firstOrNull { it.getAttribute("android:name") == ALARM_SERVICE }
+                ?: throw PatchException("$ALARM_SERVICE not declared in the manifest")
+            val types = alarmService.getAttribute("android:foregroundServiceType").split("|").filter { it.isNotBlank() }
+            if ("mediaPlayback" !in types) throw PatchException("$ALARM_SERVICE is not a mediaPlayback service: $types")
+            if ("systemExempted" !in types) {
+                alarmService.setAttribute("android:foregroundServiceType", (types + "systemExempted").joinToString("|"))
             }
         }
     }
 }
+
+/**
+ * On OPPO / OnePlus / realme phones and custom ROMs made for them (their oplus-fwk.jar), the phone's own ColorOS
+ * classes load before the extension's stand-ins and refuse an installed app (issue #155): the app uses private copies
+ * of its stand-ins instead (see privatizeFrameworkClasses). OplusTextClock stays: its widget layouts name it.
+ */
+// Measured against 16.19.8: 290 classes.
+private val privateClassesPatch = privateFrameworkClassesPatch(
+    "OnePlusClock", COLOROS_CLOCK_EXTENSION, minimum = 250, keep = setOf("Lcom/oplus/widget/OplusTextClock;"),
+)
 
 /**
  * Off ColorOS Clock dies at once on com.oplus.content.OplusFeatureConfigManager (a ColorOS framework class). The
@@ -128,6 +163,8 @@ private val manifestPatch = resourcePatch {
  * or MediaTek ("mt...": ColorOS's power-off alarm types); on any other phone it set only the status-bar indicator and
  * nothing rang. Every phone now takes the Qualcomm path. ColorOS opens the alarm and timer screens straight from the
  * background, which Android refuses a re-signed copy: they come up through full-screen notifications instead (Alerts).
+ * Its ringing service runs as systemExempted, not mediaPlayback, so an alarm right after a reboot's first unlock rings
+ * on Android 15+ (Alerts.alarmForeground).
  * Sounds are picked with ColorOS Settings' picker: Android's where it is missing (Ringtones).
  *
  * Widgets: the launcher draws them with the framework's views only, so the OnePlus red-hour layouts (ColorOS's
@@ -144,7 +181,7 @@ val enableNonColorOsPatch = bytecodePatch(
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_COLOROS_CLOCK)
-    dependsOn(manifestPatch, widgetLayoutsPatch)
+    dependsOn(privateClassesPatch, manifestPatch, widgetLayoutsPatch)
     extendWith(COLOROS_CLOCK_EXTENSION)
 
     execute {
@@ -250,6 +287,44 @@ val enableNonColorOsPatch = bytecodePatch(
                 content + 1,
                 "invoke-static {v$builder, p0, p1}, $ALERTS->alarmRinging(Landroid/app/Notification\$Builder;" +
                     "Landroid/content/Context;Landroid/os/Parcelable;)V",
+            )
+        }
+
+        // The ringing alarm's service goes foreground as systemExempted where Android allows it (Alerts): as
+        // mediaPlayback, Android 15+ refused it within the BOOT_COMPLETED allowance and the alarm crashed.
+        val alarmService = mutableClassDefBy("L${ALARM_SERVICE.replace('.', '/')};")
+        var ringingStarts = 0
+        alarmService.methods.forEach { method ->
+            val instructions = method.implementation?.instructions?.toList() ?: return@forEach
+            instructions.forEachIndexed { index, insn ->
+                val r = (insn as? ReferenceInstruction)?.reference as? MethodReference ?: return@forEachIndexed
+                if (insn.opcode != Opcode.INVOKE_VIRTUAL || r.name != "startForeground" ||
+                    r.parameterTypes.joinToString("") != "ILandroid/app/Notification;"
+                ) return@forEachIndexed
+                val call = insn as FiveRegisterInstruction
+                method.replaceInstruction(
+                    index,
+                    "invoke-static { v${call.registerC}, v${call.registerD}, v${call.registerE} }, " +
+                        "$ALERTS->alarmForeground(Landroid/app/Service;ILandroid/app/Notification;)V",
+                )
+                ringingStarts++
+            }
+        }
+        // Measured against 16.19.8: 1 (AlarmService.H, the ringing notification).
+        if (ringingStarts != 1) throw PatchException("expected 1 startForeground in $ALARM_SERVICE, found $ringingStarts")
+        AlarmPlaceholderForegroundFingerprint.method.apply {
+            val compat = implementation!!.instructions.withIndex().filter { (_, insn) ->
+                val r = (insn as? ReferenceInstruction)?.reference as? MethodReference
+                insn.opcode == Opcode.INVOKE_STATIC && r?.definingClass == "Landroidx/core/app/ServiceCompat;" &&
+                    r.name == "startForeground"
+            }
+            if (compat.size != 1) throw PatchException("expected 1 ServiceCompat.startForeground in the alarm placeholder, found ${compat.size}")
+            val (index, insn) = compat.single()
+            val call = insn as FiveRegisterInstruction
+            replaceInstruction(
+                index,
+                "invoke-static { v${call.registerC}, v${call.registerD}, v${call.registerE}, v${call.registerF} }, " +
+                    "$ALERTS->alarmForeground(Landroid/app/Service;ILandroid/app/Notification;I)V",
             )
         }
 

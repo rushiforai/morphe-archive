@@ -300,6 +300,7 @@
       "discover_bottom_tab",
       "friends_top_tab",
       "bottom_tab_icon_style",
+      "bottom_bar_height",
       "hide_tab_badges",
       "hide_bottom_tab_labels",
       "bottom_tab_name_home",
@@ -413,6 +414,7 @@
       "hide_profile_menu_minis_icons",
       "hidden_profile_shortcuts",
       "profile_shortcut_picks",
+      "profile_tab_picks",
       "hide_profile_thoughts",
       "enable_thoughts"
     ],
@@ -1091,6 +1093,12 @@
       "key": "blocked_words_in_stickers",
       "type": "boolean",
       "default": false
+    },
+    "bottom_bar_height": {
+      "field": "BOTTOM_BAR_HEIGHT",
+      "key": "bottom_bar_height",
+      "type": "string",
+      "default": "tiktok"
     },
     "bottom_navigation": {
       "field": "BOTTOM_NAVIGATION",
@@ -3607,6 +3615,12 @@
       "key": "profile_tab_opens_watch_history",
       "type": "boolean",
       "default": false
+    },
+    "profile_tab_picks": {
+      "field": "PROFILE_TAB_PICKS",
+      "key": "profile_tab_picks",
+      "type": "string",
+      "default": ""
     },
     "profile_tab_switches_accounts": {
       "field": "PROFILE_TAB_SWITCHES_ACCOUNTS",

@@ -280,19 +280,17 @@ internal const val COMMON_API = "Lcom/ss/android/ugc/aweme/net/CommonApi;"
 internal class ProxyFill(val fillAt: Int, val urlRegister: Int, val objectRegister: Int, val urlField: FieldReference)
 
 /**
- * The JS request helper's fill, or null when [method] isn't a static one-argument method returning
- * Object with this shape: one static `(Map, boolean)V` fill, then only field reads, then a
- * `doPost` on CommonApi taking `(String, ..., Map)` with that map. One of the field reads writes
+ * The JS request helper's fill, or null when [method] isn't a Callable body returning Object (a
+ * static one-argument method R8 moved the lambda to, or, as 47.7.3 leaves the second version, the
+ * Callable's own `call()`) with this shape: one static `(Map, boolean)V` fill, then only field
+ * reads, then a `doPost` on CommonApi taking `(String, ..., Map)` with that map. One of the field reads writes
  * the URL's register and nothing else between the fill and the call reads it, so that register is
  * free at the fill. R8 renames the helper's classes and the numbered methods the Callable lambdas
  * were moved to; the fill, CommonApi and the String field find them.
  */
 internal fun proxyFill(method: Method): ProxyFill? {
-    if (!AccessFlags.STATIC.isSet(method.accessFlags) || method.parameterTypes.size != 1 ||
-        method.returnType != "Ljava/lang/Object;"
-    ) {
-        return null
-    }
+    val parameters = if (AccessFlags.STATIC.isSet(method.accessFlags)) 1 else 0
+    if (method.parameterTypes.size != parameters || method.returnType != "Ljava/lang/Object;") return null
     val instructions = method.implementation?.instructions?.toList() ?: return null
     val fillAt = instructions.indices.filter { index ->
         val reference = instructions[index].getReference<MethodReference>() ?: return@filter false
@@ -367,7 +365,6 @@ private fun writes(instruction: Instruction, register: Int): Boolean {
 
 private object ProxyFillFingerprint : Fingerprint(
     returnType = "Ljava/lang/Object;",
-    parameters = listOf("L"),
     filters = listOf(
         methodCall(
             definingClass = COMMON_API,

@@ -8,6 +8,9 @@ Every Hushfeed release, newest first.
 
 * `Hide search result tabs` takes tabs you never use off the strip above search results. Tick Shop, LIVE, Places or any other tab TikTok shows you and it's gone from every search, while Top always stays. The checklist sits under `Hide TikTok Shop in search` in Hushfeed settings > Feed filter, and it shows each tab by name in your settings language.
 * `Delete watched offline videos` clears the offline videos you've already watched every time TikTok starts, so the next download fills their spots with new ones. A video counts as watched once it's been on screen. It starts off, sits with the offline rows in Hushfeed settings > Downloads, and shows how many unwatched videos you have left.
+* `Bottom bar height` makes TikTok's bottom bar shorter or taller, in five steps from Shorter to Taller. Videos and the other tabs make room for it at the new height. It sits under `Bottom bar icons` in Hushfeed settings > Feed tabs and takes hold after a restart.
+* `Hide profile tabs` takes tabs off the strip above a profile's videos. Tick Videos, Reposts, Liked videos, Favorites, AI theater, Shop or any of the others and they're gone from every profile you open, yours included, so you can keep just Favorites and Liked if that's all you swipe between. With Videos hidden a profile opens on the first tab left, and at least one tab always stays. The checklist sits under `Hide profile shortcuts` in Hushfeed settings > App and takes hold after a restart (#392, #399).
+* `Fix Spotify login` gets Add to Spotify past its sign-in. The Spotify app won't link a patched TikTok, so you now sign in on Spotify's own page inside TikTok and it links your account from there. It's on as soon as you patch it in, with no switch.
 * The settings screen now comes in Arabic, shown when TikTok runs in Arabic. It's a first pass, so corrections from Arabic speakers are welcome (D307).
 
 ### Bug Fixes
@@ -16,6 +19,10 @@ Every Hushfeed release, newest first.
 * `Fold long comments` folds comments that TikTok already cuts with its own "... more". Those used to stay at TikTok's six lines. Now our more opens TikTok's cut text, and TikTok's more opens the rest.
 * In Simplified Chinese, the Lab's Apply button said 申请, which reads as applying for something. It says 应用 now.
 * With a password on `Network proxy`, the small relay TikTok signs in through only connects to the domains TikTok uses. Another app on the phone could reach it while TikTok was open and send its own traffic through your proxy. Now it gets turned away.
+* `Hide the Hushfeed row` only takes the row out of Settings and privacy while holding For You or Home really opens Hushfeed settings. Hiding the feed tab strip or pointing For You at your watch history used to leave no way back in. Now the row stays until a long press works again (#244).
+* `Fill the screen with the video` leaves wide and square videos whole. On a tall phone it used to zoom them in until they covered the screen, so you only saw the middle of a landscape video. Tall videos still lose the black strip under them (#394).
+* `Foldable split comment view` puts comments beside the video after you unfold with TikTok open. TikTok rebuilt the feed for the wider screen but still reported the folded width, so comments kept opening over the video until a restart. Folding back now drops the side panel too (#398).
+* A translated comment could still land in the wrong row when you scrolled fast. TikTok fades a translation in a moment after it arrives, and if the row got reused for another comment in that moment, the old comment's text was written over the new one. The fade is now called off when the row moves on (#383).
 
 ## 0.82.0 (2026-11-12)
 

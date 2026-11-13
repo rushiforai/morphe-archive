@@ -130,6 +130,10 @@ public final class LinimalConfig {
         return isEnabled(LinimalFeature.HOME_TOP_AD);
     }
 
+    public boolean isSquareAdsSuppressionEnabled() {
+        return isEnabled(LinimalFeature.SQUARE_ADS);
+    }
+
     public boolean isAgentIHomeHeaderSuppressionEnabled() {
         return isEnabled(LinimalFeature.AGENT_I_HOME_HEADER);
     }

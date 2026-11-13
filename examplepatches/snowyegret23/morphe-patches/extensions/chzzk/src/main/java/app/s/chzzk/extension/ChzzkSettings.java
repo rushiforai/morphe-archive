@@ -841,6 +841,88 @@ public final class ChzzkSettings {
 
     public static void renderFollowingEntry(Object composer) {}
 
+    private static WeakReference<Object> profileModel = new WeakReference<>(null);
+
+    public static void captureProfileModel(Object model) { profileModel = new WeakReference<>(model); }
+    public static String[] profileChannel(Object model) { return null; }
+    public static void renderProfileFollow(Object composer) {}
+
+    public static Object profileFollowFactory() {
+        Object model = profileModel.get();
+        try {
+            Class<?> function = Class.forName("kotlin.jvm.functions.Function1");
+            return Proxy.newProxyInstance(function.getClassLoader(), new Class<?>[] {function}, (proxy, method, args) -> {
+                switch (method.getName()) {
+                    case "invoke":
+                        if (args[0] instanceof Context) return new ProfileFollowButton((Context) args[0], model);
+                        ((ProfileFollowButton) args[0]).bind(model);
+                        return kotlinUnit();
+                    case "hashCode": return System.identityHashCode(proxy);
+                    case "equals": return proxy == args[0];
+                    case "toString": return "Channel local follow button";
+                    default: throw new UnsupportedOperationException(method.getName());
+                }
+            });
+        } catch (ClassNotFoundException error) {
+            throw new IllegalStateException(error);
+        }
+    }
+
+    private static final class ProfileFollowButton extends LinearLayout {
+        private final TextView button;
+        private final Runnable listener = this::refresh;
+        private Object model;
+
+        ProfileFollowButton(Context context, Object model) {
+            super(context);
+            setLayoutParams(new android.view.ViewGroup.LayoutParams(dp(context, 110), dp(context, 34)));
+            setPadding(dp(context, 6), 0, 0, 0);
+            button = text(context, "로컬 팔로우", 13, TEXT);
+            button.setGravity(Gravity.CENTER);
+            button.setSingleLine(true);
+            button.setPadding(dp(context, 8), 0, dp(context, 8), 0);
+            addView(button, new LinearLayout.LayoutParams(dp(context, 104), dp(context, 34)));
+            button.setOnClickListener(view -> {
+                String[] channel = profileChannel(this.model);
+                if (channel == null || LocalFollowing.parseChannelId(channel[0]) == null) return;
+                LocalFollowing.setFollowing(channel[0], channel[1], channel[2], !LocalFollowing.isFollowing(channel[0]));
+                refresh();
+            });
+            bind(model);
+        }
+
+        void bind(Object model) {
+            this.model = model;
+            refresh();
+        }
+
+        private void refresh() {
+            String[] channel = profileChannel(model);
+            boolean available = channel != null && LocalFollowing.parseChannelId(channel[0]) != null;
+            setVisibility(available ? View.VISIBLE : View.GONE);
+            if (!available) return;
+            boolean following = LocalFollowing.isFollowing(channel[0]);
+            button.setText(following ? "로컬 팔로잉" : "로컬 팔로우");
+            button.setContentDescription(following ? "로컬 팔로우 해제" : "로컬 팔로우 추가");
+            button.setSelected(following);
+            button.setTextColor(following ? GREEN : TEXT);
+            GradientDrawable outline = background(getContext(), following ? 0xff11382e : android.graphics.Color.TRANSPARENT, 8);
+            outline.setStroke(dp(getContext(), 1), following ? GREEN : 0xff59616d);
+            button.setBackground(outline);
+        }
+
+        @Override protected void onAttachedToWindow() {
+            super.onAttachedToWindow();
+            LocalFollowing.addListener(listener);
+            refresh();
+        }
+
+        @Override protected void onDetachedFromWindow() {
+            LocalFollowing.removeListener(listener);
+            super.onDetachedFromWindow();
+        }
+    }
+
     public static Object followingEntryFactory() {
         try {
             Class<?> function = Class.forName("kotlin.jvm.functions.Function1");

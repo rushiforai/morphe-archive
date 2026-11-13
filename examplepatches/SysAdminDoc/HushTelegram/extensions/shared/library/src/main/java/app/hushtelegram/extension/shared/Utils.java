@@ -598,6 +598,12 @@ public class Utils {
         // Must initially set context to check the app language.
         context = appContext;
 
+        // Telegram 13.2.2's widget engine runs the application's onCreate in an isolated process,
+        // which has no storage or preferences of its own: deciding the pause there threw from
+        // getExternalFilesDir and killed that process on every start. Its hooks keep Telegram's
+        // own path, so settings stay unready.
+        if (Process.isIsolated()) return;
+
         // Before any hook reads a setting: whether this process runs with HushTelegram paused, and
         // the record that lets three crashed starts in a row turn safe mode on.
         HushTelegramPause.onProcessStart(appContext);

@@ -91,6 +91,7 @@ public class HushThreadsPreferenceFragmentTest {
         ROW_TITLES.put(PatchFamily.EXTERNAL_BROWSER, "Open links in your browser");
         ROW_TITLES.put(PatchFamily.DISABLE_ANALYTICS, "Stop analytics uploads");
         ROW_TITLES.put(PatchFamily.SCREENSHOT_DETECTION, "Hide screenshots from Threads");
+        ROW_TITLES.put(PatchFamily.SPOOF_SIM_REGION, "Spoof SIM region");
         ROW_TITLES.put(PatchFamily.SAVE_MEDIA, "Save photos and videos");
         ROW_TITLES.put(PatchFamily.PURE_BLACK, "Pure black dark mode");
         ROW_TITLES.put(PatchFamily.HIDE_INSTAGRAM_BUTTON, "Hide the Instagram button");
@@ -210,7 +211,8 @@ public class HushThreadsPreferenceFragmentTest {
                     expected.add("Feed");
                 }
                 if (build.contains(PatchFamily.SANITIZE_SHARING_LINKS) || build.contains(PatchFamily.EXTERNAL_BROWSER)
-                        || build.contains(PatchFamily.DISABLE_ANALYTICS) || build.contains(PatchFamily.SCREENSHOT_DETECTION)) {
+                        || build.contains(PatchFamily.DISABLE_ANALYTICS) || build.contains(PatchFamily.SCREENSHOT_DETECTION)
+                        || build.contains(PatchFamily.SPOOF_SIM_REGION)) {
                     expected.add("Privacy");
                 }
                 if (build.contains(PatchFamily.FILTER_COMMENTS)) expected.add("Comments");
@@ -250,6 +252,10 @@ public class HushThreadsPreferenceFragmentTest {
                     String.valueOf(page.findPreference(Settings.HIDE_SEARCH_SUGGESTIONS.key).getTitle()));
             assertEquals("Takes the Follow suggestions row off the Search screen. Your searches and topics stay.",
                     String.valueOf(page.findPreference(Settings.HIDE_SEARCH_SUGGESTIONS.key).getSummary()));
+            assertEquals("Hide suggested threads",
+                    String.valueOf(page.findPreference(Settings.HIDE_SUGGESTED_THREADS.key).getTitle()));
+            assertEquals("Takes the suggested threads off the bottom of a post you open. The post and its replies stay.",
+                    String.valueOf(page.findPreference(Settings.HIDE_SUGGESTED_THREADS.key).getSummary()));
             assertEquals("Keep feed position on return", String.valueOf(page.findPreference(Settings.BLOCK_RETURN_REFRESH.key).getTitle()));
             assertEquals("Returning to Threads within ten minutes keeps your place. Pull to refresh still works.",
                     String.valueOf(page.findPreference(Settings.BLOCK_RETURN_REFRESH.key).getSummary()));
@@ -278,6 +284,19 @@ public class HushThreadsPreferenceFragmentTest {
             assertEquals("Hide screenshots from Threads", String.valueOf(page.findPreference(Settings.DISABLE_SCREENSHOT_DETECTION.key).getTitle()));
             assertEquals("Threads isn't told when you take a screenshot, so it can't log it or react to it.",
                     String.valueOf(page.findPreference(Settings.DISABLE_SCREENSHOT_DETECTION.key).getSummary()));
+            // Threads keeps what it read of the SIM for a whole start, so the summary carries the restart line.
+            assertEquals("Spoof SIM region", String.valueOf(page.findPreference(Settings.SPOOF_SIM_REGION.key).getTitle()));
+            assertEquals("Threads sees your SIM and network as the region picked below. Meta can still go by your "
+                + "connection and your account. Restart Threads to see the change.",
+                    String.valueOf(page.findPreference(Settings.SPOOF_SIM_REGION.key).getSummary()));
+            // The region's row sits right under its switch, and names the country it starts on.
+            android.preference.ListPreference region = (android.preference.ListPreference) page.findPreference(
+                    app.morphe.extension.hushthreads.misc.SimRegions.REGION.key);
+            assertEquals("SIM region", String.valueOf(region.getTitle()));
+            assertEquals("us", region.getValue());
+            assertEquals(app.morphe.extension.shared.L10n.isolate("United States"), String.valueOf(region.getSummary()));
+            assertEquals(app.morphe.extension.hushthreads.misc.SimRegions.REGIONS.length, region.getEntries().length);
+            assertEquals("Cancel", String.valueOf(region.getNegativeButtonText()));
             assertEquals("Pure black dark mode", String.valueOf(page.findPreference(Settings.PURE_BLACK.key).getTitle()));
             assertEquals("Dark mode uses true black instead of dark gray. Turn on dark mode in Threads to see it. "
                 + "Restart Threads to see the change.",
@@ -309,16 +328,17 @@ public class HushThreadsPreferenceFragmentTest {
             assertEquals("Save", String.valueOf(((android.preference.EditTextPreference) page.findPreference(
                     app.morphe.extension.hushthreads.comments.CommentSettings.FILTER_COMMENT_PATTERNS.key)).getPositiveButtonText()));
             // The patches that were always in Manager's default selection ship their switches on,
-            // Search's half of Hide suggested users included.
+            // Search's and an opened post's parts of Hide suggested users included.
             for (BooleanSetting setting : Arrays.asList(Settings.HIDE_ADS, Settings.HIDE_SUGGESTED_USERS, Settings.HIDE_SEARCH_SUGGESTIONS,
-                    Settings.SANITIZE_SHARING_LINKS, Settings.OPEN_LINKS_EXTERNALLY, Settings.DISABLE_ANALYTICS)) {
+                    Settings.HIDE_SUGGESTED_THREADS, Settings.SANITIZE_SHARING_LINKS, Settings.OPEN_LINKS_EXTERNALLY, Settings.DISABLE_ANALYTICS)) {
                 assertTrue(setting.key, ((SwitchPreference) page.findPreference(setting.key)).isChecked());
             }
             // The ones that joined it later start off, so a default build looks like Threads, and so
             // do Hide the Instagram button, Hide ghost post bubbles, Disable swipe to Search, Show
             // exact post times and Full size profile pictures, which came after.
             for (BooleanSetting setting : Arrays.asList(Settings.BLOCK_RETURN_REFRESH, Settings.DISABLE_VIDEO_AUTOPLAY,
-                    Settings.MAX_IMAGE_QUALITY, Settings.DISABLE_SCREENSHOT_DETECTION, Settings.PURE_BLACK,
+                    Settings.MAX_IMAGE_QUALITY, Settings.DISABLE_SCREENSHOT_DETECTION, Settings.SPOOF_SIM_REGION,
+                    Settings.PURE_BLACK,
                     Settings.HIDE_INSTAGRAM_BUTTON, Settings.HIDE_GHOST_POST_BUBBLES, Settings.DISABLE_SWIPE_TO_SEARCH,
                     Settings.EXACT_POST_TIMES, Settings.FULL_SIZE_PROFILE_PICTURES)) {
                 assertFalse(setting.key, ((SwitchPreference) page.findPreference(setting.key)).isChecked());

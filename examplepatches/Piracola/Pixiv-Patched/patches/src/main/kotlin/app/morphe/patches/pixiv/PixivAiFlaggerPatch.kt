@@ -18,7 +18,6 @@ val pixivAiFlaggerPatch: BytecodePatch = bytecodePatch(
     extendWith("extensions/pixiv.mpe")
 
     execute {
-        // --- Hook 1: ThumbnailView.d (Feed and Search cards dimming / hide / badge) ---
         val thumbnailClass = mutableClassDefBy("Ljp/pxv/android/feature/commonlist/view/ThumbnailView;")
         val dMethod = thumbnailClass.methods.first {
             it.name == "d" && it.parameterTypes.size == 3
@@ -28,7 +27,6 @@ val pixivAiFlaggerPatch: BytecodePatch = bytecodePatch(
             "invoke-static/range {p0 .. p1}, Lapp/morphe/extension/pixiv/aiflag/AiUiHelper;->onThumbnailBound(Landroid/view/ViewGroup;Ljava/lang/Object;)V"
         )
 
-        // --- Hook 2: DetailBottomBarView.setWork (Single AI warning banner & [AI] title pill) ---
         val bottomBarClass = mutableClassDefBy("Ljp/pxv/android/feature/component/androidview/DetailBottomBarView;")
         val setWorkMethod = bottomBarClass.methods.first { it.name == "setWork" }
         setWorkMethod.addInstructions(
@@ -36,7 +34,6 @@ val pixivAiFlaggerPatch: BytecodePatch = bytecodePatch(
             "invoke-static/range {p0 .. p1}, Lapp/morphe/extension/pixiv/aiflag/AiUiHelper;->onDetailBottomBarBound(Landroid/view/View;Ljava/lang/Object;)V"
         )
 
-        // --- Hook 4: DetailImageViewHolder.bind (Inline AI banner) ---
         val detailImageHolderClass = mutableClassDefBy("Ljp/pxv/android/feature/illustviewer/detail/DetailImageViewHolder;")
         val holderBindMethod = detailImageHolderClass.methods.first { it.name == "bind" && it.parameterTypes.size == 1 }
         holderBindMethod.addInstructions(

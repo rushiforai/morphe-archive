@@ -1,3 +1,9 @@
+## [1.11.0](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/compare/v1.10.2...v1.11.0) (2026-11-12)
+
+### ✨ New Features
+
+* **leghefc:** add optional mandatory-update override for 13.2.3 ([c225571](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/c22557115deccb742d32f9ef37b6392f6ba811a4))
+
 ## [1.10.2](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/compare/v1.10.1...v1.10.2) (2026-11-12)
 
 ### 🐛 Bug Fixes

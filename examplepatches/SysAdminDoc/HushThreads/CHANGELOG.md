@@ -4,6 +4,10 @@ Changes in the source build, then released versions.
 
 ## Unreleased
 
+* New `Spoof SIM region` patch. Threads sees a SIM and network from the country you pick, with one of that country's real carriers, instead of your own. There are 69 countries to choose from. It starts off, so turn it on and pick one in HushThreads settings > Privacy. Meta can still go by your connection and your account, so it won't hide where you are by itself. Asked for in #25.
+* HushThreads now patches Threads 455.0.0.55.72 only, for all nine APKMirror variants across arm64-v8a, armeabi-v7a, x86_64 and x86. Update Threads to 455 before you patch. v0.0.17 is the last release for 454.0.0.54.79.
+* Hide ads and Hide suggested users follow the way Threads 455 stores For You. It dropped the spool cache and writes each page and each single post straight into the feed cache, and it now places an inserted ad from inside the page it's holding. Every one of those writes goes through the filters, and an inserted ad that's turned away leaves the page as it was.
+* Hide suggested users also takes the suggested threads off the bottom of a post you open. It has its own switch, `Hide suggested threads`, under the other two on the Feed page, and it starts on. The post and its replies stay. Asked for in #24.
 * New `Full size profile pictures` patch. When you open someone's profile picture on their profile, it shows full size in a viewer of its own instead of Threads' small circle. You can pinch to zoom, and with Save media on there's a Save button too. It's in Manager's default selection, but its switch under Appearance in HushThreads settings starts off. Asked for in #22.
 * The bundle is built on Morphe patcher 2.3.0 now, the one that comes with Morphe Manager 2.5.0 and Morphe Desktop 2.1.0. Update Manager to 2.5.0 or newer before you add the next release, since older Manager builds can't load it.
 * With `Show exact post times` on and a large font, a post's time stays in one piece. Under a long name it used to break after the month or the day, with "Nov" on one line and "5, 2:30 AM" on the next. Now the whole time moves under the name when it doesn't fit beside it.

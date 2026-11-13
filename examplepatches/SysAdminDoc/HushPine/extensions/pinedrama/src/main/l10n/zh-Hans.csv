@@ -1831,3 +1831,5 @@ Hide videos without a preferred dub,隐藏没有首选配音的视频
 "Hides videos with no dub from Dub priority in Playback. Putting original on that list keeps every video, since each has its own audio. If a whole page would be hidden, one video stays so the feed keeps loading. Does nothing while the list is empty.","隐藏没有“播放”中“配音优先顺序”所列配音的视频。把 original 放入列表会保留所有视频,因为每个视频都有自己的音频。如果整页都会被隐藏,会保留一个视频以便信息流继续加载。列表为空时不起作用."
 Preferred subtitles,首选字幕
 Preferred dubs,首选配音
+Always open on Home,始终在首页打开
+"PineDrama sometimes starts on Discover, like in the first days after an install. This starts it on Home instead.",PineDrama 有时会在“发现”页启动，比如安装后的头几天。开启后会改为在首页启动.

@@ -510,6 +510,23 @@ sol のレビューの指摘を受けて、注入の判定（wide 命令によ�
 
 生成 APK はリポジトリ外の `/Users/uta_a/morphe/line-linimal-preview-scroll.apk`。独立検証アプリは LINE 本体とは別 package・別保存先であり、LINE 内の確認は上の 2 行で別に行った。
 
+## オープンチャットの広告（2026-11-13）
+
+「広告」に初期 ON の「オープンチャットの広告を表示しない」を追加。LINE 26.16.0 の広告の種類を決める `s16.c.c` を設定 ON のときだけ `NONE` にして上部の広告（トーク、スレッドのトーク、スレッドホーム、ノート一覧・お知らせ一覧・ノート詳細）の枠を作らせず、埋め込み広告の入口 `xz5/c.a` を何もせず返す（`docs/analysis/square-ads.md`）。
+
+| 確認 | 結果 |
+| --- | --- |
+| Java 17 の全テスト、`buildAndroid` | Pass。patches 430 件、extension 399 件。Factory からの実装の特定、型の決定の呼び出しの一意性と override されないこと、enum の定数、埋め込み入口の形、register の条件、`ExternalLabel` が元の先頭命令を指すこと、既定 ON・再起動反映・patch 不在と保存失敗時の fail-open を含む |
+| Morphe Desktop 1.14.0 適用 | Pass |
+| embedded patch-status | 全 83 件 OK。`linimal.patch.square-ads-type-gate` と `linimal.patch.square-ads-embedded-gate` は `SquareAdsGuarded`、2/2 |
+| 全 15 DEX の `dexdump` と `d8 --min-api 28` | Pass |
+| 生成 DEX の注入位置 | `s16.c.c` の先頭が `invoke-static SquareAdsHooks` → `move-result v0` → `if-eqz v0` → `sget-object v0, Lz56/a;.NONE` → `return-object v0`、分岐先は元の `new-instance v0, Lt16/f;`。`xz5/c.a` の先頭が同じ hook → `if-eqz v0` → `return-void`、分岐先は元の `move-object/from16 v0, v16` |
+| XIG07 の LINE への上書き（MCP） | Pass。データを保持したまま上書き |
+| 設定画面 | 「広告」ページの 3 行目に表示。既存インストールでも初期値 ON。OFF・ON を切り替えられる |
+| 再起動後の起動 | ホームとトーク一覧が表示される。VerifyError のログ、crash の記録はいずれも 0 件 |
+
+オープンチャットの画面での広告の有無は、トーク「Linimal」以外を開かない約束のため利用者が確認する（未確認）。書き換えたクラスはオープンチャットを開くまで読み込まれないため、その時点の VerifyError の有無も利用者の確認に含まれる。生成 APK はリポジトリ外の `/Users/uta_a/morphe/line-linimal-square-ads.apk`。
+
 ## トークのプレビュー無効化（2026-11-12）
 
 「一般」に初期 OFF の「トークのプレビューを無効にする」を追加。LINE 26.16.0 の長押しの可否判定 `u42/f.a()` を設定 ON のときだけ false にして、従来の長押しメニューを開く（`docs/analysis/chat-scroll-preview.md`）。ON の間は「プレビューをスクロール可能にする」「プレビューの Premium の案内を表示しない」を操作不能にし、保存値は保つ。

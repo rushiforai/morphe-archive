@@ -3289,7 +3289,7 @@
   "checks": [
    {
     "id": "record-and-report",
-    "what": "A recording starts, PineDrama's gate reads during a few feed swipes are captured, and the report names the 47.6.3 target with at least one gate.",
+    "what": "A recording starts, PineDrama's gate reads during a few feed swipes are captured, and the report names the 47.7.3 target with at least one gate.",
     "steps": [
      {
       "open": "feed"
@@ -11430,5 +11430,44 @@
    }
   ],
   "notes": "Issue #4. Caption and dub lists depend on the viewer's language: an English account gets empty lists on almost every video, so check with the app set to another language. Subtitles are picked where the two caption configs are built; dubs where the audio decision and the audio switch read their language. The Drama tab's feed takes its own route, so the two hide rules run on both routes."
+ },
+ {
+  "name": "Open on Home",
+  "category": "Settings",
+  "default": true,
+  "kind": "runtime",
+  "source": [
+   "patches/src/main/kotlin/app/morphe/patches/pinedrama/misc/navigation/OpenOnHomePatch.kt",
+   "extensions/pinedrama/src/main/java/app/morphe/extension/pinedrama/navigation/OpenOnHome.java"
+  ],
+  "settings": [
+   {
+    "key": "open_on_home",
+    "default": true,
+    "type": "bool",
+    "row": "Always open on Home",
+    "restart": true
+   }
+  ],
+  "surface": "feed",
+  "checks": [
+   {
+    "id": "patch-applied",
+    "what": "SettingsStatus.openOnHomeEnabled is true, so the patch is in this APK and the extension loaded it.",
+    "steps": [
+     {
+      "probe": "fields",
+      "extras": {
+       "class": "app.morphe.extension.pinedrama.settings.SettingsStatus",
+       "names": "openOnHomeEnabled"
+      },
+      "expect": "\bopenOnHomeEnabled=true\b",
+      "waitMs": 1500
+     }
+    ],
+    "auto": true
+   }
+  ],
+  "notes": "Issue #6. PineDrama asks one reader which tab a start lands on (Drama, For You or Discover). A new install gets Discover for its first two days, and a server experiment sends signed-out starts there. OpenOnHome answers Drama where the reader says Discover, so the landing rule, the fallback tab name and the preloads all agree on Home. The natural check: a cold start from the icon lands on Home."
  }
 ]

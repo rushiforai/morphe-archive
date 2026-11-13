@@ -137,23 +137,23 @@ public class LandscapeEpisodesTest {
         final List<String> calls = new ArrayList<>();
         FakeAbility ability;
 
-        public FakeAbility Hz() {
+        public FakeAbility iA() {
             return ability;
         }
 
-        public void fr(boolean automatic) {
+        public void ns(boolean automatic) {
             calls.add("automatic=" + automatic);
         }
 
-        public void R3(List<?> episodes, boolean more) {
+        public void j4(List<?> episodes, boolean more) {
             calls.add("append " + episodes.size());
         }
 
-        public void Qc(List<?> episodes, boolean more) {
+        public void id(List<?> episodes, boolean more) {
             calls.add("prepend " + episodes.size());
         }
 
-        public void B3(Exception why) {
+        public void T3(Exception why) {
             calls.add("load ended");
         }
     }
@@ -248,7 +248,7 @@ public class LandscapeEpisodesTest {
             this.current = current;
         }
 
-        public Aweme LLLILZLLLI() {
+        public Aweme LLLIZZ() {
             return current;
         }
     }

@@ -10,10 +10,13 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.AudioTrack;
+import android.net.Uri;
 
 import org.junit.After;
 import org.junit.Before;
@@ -22,6 +25,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
+import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowLooper;
 import org.robolectric.shadows.ShadowToast;
@@ -38,6 +42,7 @@ import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.function.BooleanSupplier;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 
@@ -99,6 +104,7 @@ public class CallRecorderTest {
     private static final CallPeer ALEX = new CallPeer(CallPeer.PRIVATE, 7, "Alex Kim");
     private static final CallPeer BAND = new CallPeer(CallPeer.GROUP, -9, "Band practice");
     private static final long DAY_MS = 24L * 60 * 60 * 1000;
+    private static final Uri SAVED_AT = Uri.parse("content://media/external/audio/media/7");
 
     private CallPeer peer = CallPeer.NONE;
     private final List<Long> cleanedBefore = new ArrayList<>();
@@ -109,6 +115,9 @@ public class CallRecorderTest {
     private boolean failWrites;
     private boolean failSaves;
     private final List<FakeOutput> opened = new ArrayList<>();
+    private final List<CallRecordings.Format> formats = new ArrayList<>();
+    private boolean opusEncoder = true;
+    private BooleanSupplier realOpusEncoder;
     private final List<String> savedNames = new ArrayList<>();
     private final List<Boolean> savedFileThere = new ArrayList<>();
     private final List<AudioTrack> tracks = new ArrayList<>();
@@ -118,6 +127,8 @@ public class CallRecorderTest {
         realOutputs = CallRecorder.outputs;
         realSaver = CallRecorder.saver;
         realCleaner = CallRecorder.cleaner;
+        realOpusEncoder = CallRecorder.opusEncoder;
+        CallRecorder.opusEncoder = () -> opusEncoder;
         realReader = CallPeer.reader;
         realClock = CallRecorder.clock;
         realWall = CallRecorder.wall;
@@ -127,7 +138,8 @@ public class CallRecorderTest {
         CallRecorder.manual = true;
         CallRecorder.clock = () -> now;
         CallRecorder.wall = () -> wallNow;
-        CallRecorder.outputs = file -> {
+        CallRecorder.outputs = (file, format) -> {
+            formats.add(format);
             FakeOutput output = new FakeOutput(file);
             opened.add(output);
             return output;
@@ -136,7 +148,7 @@ public class CallRecorderTest {
             if (failSaves) throw new IOException("storage full");
             savedNames.add(name);
             savedFileThere.add(file.isFile());
-            return FOLDER;
+            return new CallRecordings.Saved(FOLDER, SAVED_AT, CallRecordings.MIME);
         };
         CallRecorder.cleaner = (Context context, long before) -> {
             if (failCleans) throw new IllegalStateException("MediaStore went away");
@@ -155,6 +167,8 @@ public class CallRecorderTest {
         Settings.RECORD_CALL_BUTTON.resetToDefault();
         Settings.RECORD_CALLS_WHICH.resetToDefault();
         Settings.RECORD_CALLS_KEEP_DAYS.resetToDefault();
+        Settings.RECORD_CALLS_NOTIFY.resetToDefault();
+        Settings.RECORD_CALLS_OPUS.resetToDefault();
         RecordChats.save(Collections.emptySet());
         RecordChats.forget();
     }
@@ -164,6 +178,7 @@ public class CallRecorderTest {
         CallRecorder.outputs = realOutputs;
         CallRecorder.saver = realSaver;
         CallRecorder.cleaner = realCleaner;
+        CallRecorder.opusEncoder = realOpusEncoder;
         CallPeer.reader = realReader;
         CallRecorder.clock = realClock;
         CallRecorder.wall = realWall;
@@ -638,5 +653,56 @@ public class CallRecorderTest {
         assertEquals("Call saved to " + L10n.isolate(FOLDER), hangUp());
         assertCounted(CallRecorder.SAVED, 1);
         assertTrue(report(), report().contains("old call recordings cleanup"));
+    }
+
+    @Test public void aSavedCallIsAnnouncedOnlyWhenTheSwitchAsks() {
+        Settings.RECORD_CALLS.save(true);
+        peer = ALEX;
+        AudioTrack track = track(CallMixer.RATE);
+        play(track, 101, 1000);
+        hangUp();
+        NotificationManager manager = RuntimeEnvironment.getApplication().getSystemService(NotificationManager.class);
+        assertEquals("off by default", 0, Shadows.shadowOf(manager).size());
+
+        Settings.RECORD_CALLS_NOTIFY.save(true);
+        now += 60_000;
+        wallNow += 60_000;
+        play(track, 101, 1000);
+        hangUp();
+        Notification shown = Shadows.shadowOf(manager).getNotification(CallSavedNotice.NOTIFICATION_ID);
+        assertEquals(savedNames.get(1), String.valueOf(shown.extras.getCharSequence(Notification.EXTRA_TEXT)));
+        assertEquals(SAVED_AT, Shadows.shadowOf(shown.contentIntent).getSavedIntent().getData());
+        assertCounted(CallRecorder.SAVED, 2);
+    }
+
+    @Test public void opusIsUsedWhenAskedForAndThePhoneCanWriteIt() {
+        Settings.RECORD_CALLS.save(true);
+        peer = ALEX;
+        AudioTrack track = track(CallMixer.RATE);
+        play(track, 101, 1000);
+        hangUp();
+        Settings.RECORD_CALLS_OPUS.save(true);
+        now += 60_000;
+        wallNow += 60_000;
+        play(track, 101, 1000);
+        hangUp();
+        // A phone without an Opus encoder still records, in AAC.
+        opusEncoder = false;
+        now += 60_000;
+        wallNow += 60_000;
+        play(track, 101, 1000);
+        hangUp();
+        assertEquals(Arrays.asList(CallRecordings.Format.AAC, CallRecordings.Format.OPUS, CallRecordings.Format.AAC), formats);
+        assertTrue(savedNames.get(0), savedNames.get(0).endsWith(".m4a"));
+        assertTrue(savedNames.get(1), savedNames.get(1).endsWith(".ogg"));
+        assertTrue(savedNames.get(1), savedNames.get(1).startsWith("Telegram call with Alex Kim "));
+        assertTrue(savedNames.get(2), savedNames.get(2).endsWith(".m4a"));
+        assertCounted(CallRecorder.SAVED, 3);
+    }
+
+    @Config(sdk = 28)
+    @Test public void android9StaysOnAacWhateverTheSwitchSays() {
+        Settings.RECORD_CALLS_OPUS.save(true);
+        assertEquals(CallRecordings.Format.AAC, CallRecorder.format());
     }
 }

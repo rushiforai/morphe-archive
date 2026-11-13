@@ -195,11 +195,11 @@ class RuntimeViewIdAnchorsTest {
     /** Each group handed another group's id on each declared build, by that build's name for it. */
     @Test
     fun `semantic owners reject an unrelated id for every group that needs one`() {
-        val dislike = "comment/CommentTools.java|DISLIKE_BUTTON_IDS|47.6.3:fhl"
-        val dislikeIcon = "comment/CommentTools.java|DISLIKE_ICON_IDS|47.6.3:gxd"
-        val captionText = "captions/CaptionStyle.java|TEXT_IDS|47.6.3:bxl"
+        val dislike = "comment/CommentTools.java|DISLIKE_BUTTON_IDS|47.7.3:fk1"
+        val dislikeIcon = "comment/CommentTools.java|DISLIKE_ICON_IDS|47.7.3:gzy"
+        val captionText = "captions/CaptionStyle.java|TEXT_IDS|47.7.3:bz9"
         val wrongNames = mapOf(
-            "47.6.3" to mapOf(dislike to "bxk", dislikeIcon to "bxk", captionText to "fhl"),
+            "47.7.3" to mapOf(dislike to "bz8", dislikeIcon to "bz8", captionText to "fk1"),
         )
         assertEquals(Fixtures.declaredVersions().toSet(), wrongNames.keys)
         for ((version, wrong) in wrongNames) {

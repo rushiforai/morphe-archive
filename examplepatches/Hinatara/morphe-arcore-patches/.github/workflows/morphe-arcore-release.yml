@@ -1,0 +1,117 @@
+# Release .mpp len GitHub Releases — de Morphe nhan source tu git.
+#
+# File nay KHONG day duoc qua API (GitHub tra 403 cho workflow files),
+# Le them bang tay: repo > Add file > Create new file >
+# ten file: .github/workflows/release.yml > dan noi dung file nay vao.
+#
+# Sau khi file nay co mat, moi push len main se chay workflow nay:
+# - semantic-release doc commit message (conventional commits) de tinh version
+# - build .mpp, tao GitHub Release kem file .mpp
+# - commit patches-bundle.json tro lai main — Morphe doc file nay de biet
+#   link tai .mpp moi nhat, nen source tu dong cap nhat.
+#
+# So voi template goc (MorpheApp/morphe-patches-template) co 3 cho sua:
+# 1. Cai Android SDK + Gradle 9.8.2 truc tiep (repo nay khong co
+#    gradle-wrapper.jar vi snapshot push chi nhan file text; neu Le
+#    upload them gradle-wrapper.jar tu template thi ./gradlew lai chay).
+# 2. Buoc verify dung `gradle` thay cho `./gradlew`.
+# 3. Buoc `chmod +x gradlew` sau Checkout: file day qua API bi mat quyen
+#    thuc thi nen gradle-semantic-release-plugin go ./gradlew bi loi
+#    EACCES (gap ngay 11/11/2026 o lan chay Release dau tien).
+#
+# Can them: Le upload gradle-wrapper.jar (lay tu
+# https://github.com/MorpheApp/morphe-patches-template/raw/main/gradle/wrapper/gradle-wrapper.jar)
+# len repo, duong dan gradle/wrapper/gradle-wrapper.jar — neu khong co file
+# nay thi ./gradlew se loi tiep du da chmod (khong tim thay jar).
+
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  release:
+    name: Release
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+      attestations: write
+    runs-on: ubuntu-latest
+    env:
+      JAVA_HOME: /usr/lib/jvm/temurin-21-jdk-amd64
+      ANDROID_HOME: ${{ github.workspace }}/android-sdk
+      ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      # semantic-release stores channel metadata in Git notes. actions/checkout
+      # fetch-depth: 0 fetches branches and tags, but not refs/notes/*.
+      - name: Fetch semantic-release notes
+        run: |
+          git fetch origin '+refs/notes/*:refs/notes/*' || true
+          git for-each-ref refs/notes --format='%(refname) %(objectname)'
+
+      - name: Make Gradle wrapper executable
+        # Files pushed via the GitHub API lose the executable bit,
+        # so gradle-semantic-release-plugin fails with
+        # "spawn ./gradlew EACCES" unless we restore it here.
+        run: chmod +x gradlew
+
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Install Android SDK (platform 36 + build-tools 36.0.0)
+        run: |
+          mkdir -p "$ANDROID_HOME/cmdline-tools"
+          curl -sL -o /tmp/cmdline-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-13114758_latest.zip
+          unzip -o -q /tmp/cmdline-tools.zip -d /tmp/cmdline-tools-tmp
+          mkdir -p "$ANDROID_HOME/cmdline-tools/latest"
+          cp -r /tmp/cmdline-tools-tmp/cmdline-tools/* "$ANDROID_HOME/cmdline-tools/latest/"
+          export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
+          yes | sdkmanager --licenses
+          sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+          ls "$ANDROID_HOME/platforms/android-36/android.jar" "$ANDROID_HOME/build-tools/36.0.0/aapt2"
+          printf 'sdk.dir=%s\n' "$ANDROID_HOME" > local.properties
+
+      - name: Install Gradle 9.8.2
+        # gradle-wrapper.jar is binary and is NOT in the repo
+        # (snapshot pushes only accept UTF-8 text files), so install
+        # Gradle directly instead of relying on ./gradlew.
+        run: |
+          curl -sL -o /tmp/gradle-9.8.2-bin.zip https://services.gradle.org/distributions/gradle-9.8.2-bin.zip
+          unzip -o -q /tmp/gradle-9.8.2-bin.zip -d /tmp
+          echo "/tmp/gradle-9.8.2/bin" >> "$GITHUB_PATH"
+          gradle --version
+
+      - name: Restore Gradle wrapper JAR
+        run: |
+          mkdir -p gradle/wrapper
+          curl -fL --retry 3 \
+            -o gradle/wrapper/gradle-wrapper.jar \
+            https://github.com/MorpheApp/morphe-patches-template/raw/main/gradle/wrapper/gradle-wrapper.jar
+          test -s gradle/wrapper/gradle-wrapper.jar
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      # Semantic release runs its own Gradle build command.
+      # Only dev and main branch will generate a release as specified by .releaserc
+      - name: Release
+        uses: cycjimmy/semantic-release-action@v8
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

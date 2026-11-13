@@ -232,6 +232,18 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushtelegram_reveal_spoilers", FALSE);
 
     /**
+     * Show all spoilers and Expand all quotes in a chat's menu at the top, for the messages it has loaded.
+     */
+    public static final BooleanSetting REVEAL_MENU =
+            new BooleanSetting("hushtelegram_reveal_menu", FALSE);
+
+    /**
+     * A chat search that lands inside a collapsed quote opens it, so the highlighted match shows.
+     */
+    public static final BooleanSetting SEARCH_OPENS_QUOTES =
+            new BooleanSetting("hushtelegram_search_opens_quotes", FALSE);
+
+    /**
      * The keyboard closes when a finger starts scrolling through a chat, not only during a search.
      */
     public static final BooleanSetting HIDE_KEYBOARD_ON_SCROLL =
@@ -427,6 +439,10 @@ public class Settings extends BaseSettings {
     /** A Screenshot button in the same bar that saves a picture of the selected messages as the chat shows them (#71). */
     public static final BooleanSetting SELECTION_SCREENSHOT =
             new BooleanSetting("hushtelegram_selection_screenshot", FALSE);
+
+    /** A Select all button in the same bar, in chats and in a chat's shared media, that selects everything loaded (#73). */
+    public static final BooleanSetting SELECT_ALL =
+            new BooleanSetting("hushtelegram_select_all", FALSE);
 
     public static final BooleanSetting PLAYBACK_POSITION =
             new BooleanSetting("hushtelegram_playback_position", FALSE);
@@ -968,6 +984,29 @@ public class Settings extends BaseSettings {
     /** Days a call recording is kept before the next saved one deletes it, 0 to keep them all (#72). */
     public static final IntegerSetting RECORD_CALLS_KEEP_DAYS =
             new IntegerSetting("hushtelegram_record_calls_keep_days", 0).withRange(0, 365);
+
+    /**
+     * A notification once each call recording is saved (#72): a tap plays it, and its buttons share
+     * it or send it to Saved Messages. Off by default.
+     */
+    public static final BooleanSetting RECORD_CALLS_NOTIFY =
+            new BooleanSetting("hushtelegram_record_calls_notify", FALSE);
+
+    /**
+     * Call recordings in Opus, in an .ogg about half the size, rather than AAC in an .m4a (#72).
+     * Android 10 and newer with an Opus encoder; AAC otherwise. Read as each recording starts. Off
+     * by default.
+     */
+    public static final BooleanSetting RECORD_CALLS_OPUS =
+            new BooleanSetting("hushtelegram_record_calls_opus", FALSE);
+
+    /**
+     * The folder picked for call recordings (#72), as the address Android's folder picker gave, or
+     * empty for the usual one. Telegram's lasting permission for it belongs to this phone, so it
+     * stays out of settings files.
+     */
+    public static final StringSetting RECORD_CALLS_FOLDER =
+            new StringSetting("hushtelegram_record_calls_folder", "", false, false);
 
     /** Link previews for unsent messages only; sent messages and received previews stay stock. */
     public static final BooleanSetting DISABLE_DRAFT_PREVIEWS =

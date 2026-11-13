@@ -1,0 +1,91 @@
+# Build .mpp tren GitHub Actions — KHONG CAN GitHub PAT.
+#
+# Ly do: Morphe plugin tai tu maven.pkg.github.com/MorpheApp/registry,
+# server nay tra 401 neu khong co token (da kiem tra truc tiep: curl
+# khong token -> 401). Tren may local / Colab thi token do phai la PAT
+# do nguoi dung tu tao. Tren GitHub Actions thi GitHub tu cap
+# GITHUB_TOKEN cho moi lan chay (secrets.GITHUB_TOKEN) — khong can tao
+# token, khong can nhap token vao dau ca. Template goc cua Morphe cung
+# dung chinh GITHUB_TOKEN nay trong .github/workflows/release.yml.
+#
+# Cach dung:
+#   1. Push toan bo noi dung thu muc arcore-patches/ nay len mot repo
+#      GitHub moi (private cung duoc).
+#   2. Vao repo > Actions > "Build .mpp (no PAT needed)" > Run workflow.
+#   3. Cho 5-15 phut, vao run do > Artifacts > tai morphe-arcore-mpp ve.
+# File .mpp nam trong artifact, duong dan: patches/build/libs/patches-*.mpp
+
+name: Build .mpp (no PAT needed)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  build:
+    name: Build .mpp
+    runs-on: ubuntu-latest
+    env:
+      JAVA_HOME: /usr/lib/jvm/temurin-21-jdk-amd64
+      ANDROID_HOME: ${{ github.workspace }}/android-sdk
+      ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Install Android SDK (platform 36 + build-tools 36.0.0)
+        run: |
+          mkdir -p "$ANDROID_HOME/cmdline-tools"
+          curl -sL -o /tmp/cmdline-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-13114758_latest.zip
+          unzip -o -q /tmp/cmdline-tools.zip -d /tmp/cmdline-tools-tmp
+          mkdir -p "$ANDROID_HOME/cmdline-tools/latest"
+          cp -r /tmp/cmdline-tools-tmp/cmdline-tools/* "$ANDROID_HOME/cmdline-tools/latest/"
+          export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
+          yes | sdkmanager --licenses
+          sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+          ls "$ANDROID_HOME/platforms/android-36/android.jar" "$ANDROID_HOME/build-tools/36.0.0/aapt2"
+          printf 'sdk.dir=%s\n' "$ANDROID_HOME" > local.properties
+
+      - name: Install Gradle 9.8.2
+        # gradle-wrapper.jar is binary and is NOT pushed to the repo
+        # (snapshot pushes only accept UTF-8 text files), so the
+        # workflow installs Gradle directly instead of using ./gradlew.
+        run: |
+          curl -sL -o /tmp/gradle-9.8.2-bin.zip https://services.gradle.org/distributions/gradle-9.8.2-bin.zip
+          unzip -o -q /tmp/gradle-9.8.2-bin.zip -d /tmp
+          echo "/tmp/gradle-9.8.2/bin" >> "$GITHUB_PATH"
+          gradle --version
+
+      - name: Build .mpp
+        env:
+          # Token tu dong cua GitHub Actions — KHONG PHAI PAT, khong can tao.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+        run: |
+          gradle buildAndroid --no-daemon --stacktrace 2>&1 | tee build.log
+          ls -lh patches/build/libs/*.mpp
+
+      - name: Upload .mpp artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: morphe-arcore-mpp
+          path: patches/build/libs/*.mpp
+          if-no-files-found: error
+
+      - name: Upload build log (khi build loi)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
+          if-no-files-found: ignore

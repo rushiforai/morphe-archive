@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.12.0",
+  "version": "1.14.0",
   "patches": [
     {
       "name": "Bypass Root Detection",
@@ -228,6 +228,32 @@
     },
     {
       "name": "Unlock Premium",
+      "description": "Unlocks the Zen Unlimited Pass: every plan week, the Zen Powered Music Mixes, the member Fitness Plans page and the Settings Unsubscribe entry, and hides the drawer's buy-product item. Billing is untouched.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.c10kforpink",
+          "name": "Couch to 10K",
+          "description": null,
+          "apkFileType": null,
+          "appIconColor": "#000000",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "117.19",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock Premium",
       "description": "Unlocks the Zen Unlimited Pass features: removes ads and enables workout stats, workouts, music, height/weight and achievement stats.",
       "default": true,
       "category": null,
@@ -379,6 +405,32 @@
           "targets": [
             {
               "version": "1.8.1",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock Premium",
+      "description": "Reports an active `premium` entitlement to Runna's JavaScript layer, clears the backend's client-side plan lock flags and subscription status, unlocking premium screens, all plan weeks and the plan footer without a Play purchase.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.runbuddy.prod",
+          "name": "Runna",
+          "description": null,
+          "apkFileType": "APKS",
+          "appIconColor": "#1B1B1B",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "8.61.0",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,

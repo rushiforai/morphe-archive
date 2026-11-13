@@ -14,14 +14,17 @@ package app.hushtelegram.extension.shared.settings;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
 import android.app.ActivityManager;
 import android.app.ApplicationExitInfo;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.os.Looper;
 
+import app.hushtelegram.extension.shared.SettingsContextRule;
 import app.hushtelegram.extension.shared.Utils;
 
 import org.junit.After;
@@ -32,6 +35,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowActivityManager;
+import org.robolectric.shadows.ShadowProcess;
 import org.robolectric.shadows.ShadowSystemClock;
 
 import java.io.File;
@@ -301,6 +305,34 @@ public class HushTelegramPauseTest {
         assertEquals(0, HushTelegramPause.parseCount("-4"));
         assertEquals(0, HushTelegramPause.parseCount(null));
         assertNull(HushTelegramPause.read(new File(context.getFilesDir(), "never-written")));
+    }
+
+    /**
+     * Telegram 13.2.2's widget engine runs the application's onCreate in an isolated process, where
+     * the storage calls throw. Starting there reads none of it and leaves the hooks on Telegram's path.
+     */
+    @Test public void anIsolatedProcessStartsWithoutStorageAndKeepsSettingsUnready() {
+        Context noStorage = new ContextWrapper(context) {
+            @Override public File getExternalFilesDir(String type) {
+                throw new NullPointerException("Attempt to get length of null array");
+            }
+
+            @Override public File getFilesDir() {
+                throw new NullPointerException("no data directory in an isolated process");
+            }
+        };
+        HushTelegramPause.resetForTests();
+        ShadowProcess.setIsolatedUid();
+        try {
+            SettingsContextRule.withoutContext(() -> {
+                Utils.setContext(noStorage);
+                assertSame(noStorage, Utils.getContext());
+                assertFalse(Utils.settingsReady());
+            });
+        } finally {
+            ShadowProcess.reset();
+        }
+        assertFalse(Setting.isPaused());
     }
 
     /** Android 9 and 10 keep no exit reasons, so there the handler's mark alone decides. */

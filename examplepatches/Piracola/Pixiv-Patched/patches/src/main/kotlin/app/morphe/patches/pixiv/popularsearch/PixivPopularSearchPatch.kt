@@ -19,13 +19,10 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
  * when the account is not premium, replaces the popular tab with a limited trial variant.
  *
  * Forcing that single boolean read to true makes the adapter build the regular fragments with the
- * popular sort parameters, which is what a premium account gets.
- *
- * Note that this only changes what the client asks for. Pixiv ranks and authorises the search on
- * the server, so a free account that requests `sort=popular_desc` is answered with the date order
- * and the popular tab ends up listing the same works as "Newest". Kept for reference; prefer
- * [pixivPopularSearchTrialPatch], which stays inside the data Pixiv actually serves to free
- * accounts. Enabling both is pointless: the faked flag wins and the trial branch is unreachable.
+ * popular sort parameters, which is what a premium account gets. On its own that only changes the
+ * request: Pixiv ranks on the server and answers a free account with the date order. Pixiv Search
+ * Ranking depends on this patch to get that request sent at all, and once the flag is faked the
+ * trial branch is unreachable.
  */
 val pixivPopularSearchPatch: BytecodePatch = bytecodePatch(
     name = "Pixiv Popular Search Unlock",

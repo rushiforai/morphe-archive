@@ -47,7 +47,7 @@ internal val fullResTargetFingerprint = fingerprint {
     }
 }
 
-/** True when the method names the type anywhere: a cast, an allocation or a signature of a call. */
+/** Named types, fields or methods: the viewer target is only recognisable by all three. */
 private fun Method.referencesType(type: String): Boolean =
     implementation?.instructions?.any { instruction ->
         when (val reference = (instruction as? ReferenceInstruction)?.reference) {

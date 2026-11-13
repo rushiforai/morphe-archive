@@ -11,5 +11,5 @@
     "gradle-semantic-release-plugin": "^1.10.3",
     "semantic-release": "^25.0.9"
   },
-  "packageManager": "pnpm@12.16.1"
+  "packageManager": "pnpm@12.18.0"
 }

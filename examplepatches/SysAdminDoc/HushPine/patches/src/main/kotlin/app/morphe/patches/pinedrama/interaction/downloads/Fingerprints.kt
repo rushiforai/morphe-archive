@@ -200,26 +200,21 @@ internal object CommentPhotoSaveFingerprint : Fingerprint(
 
 internal object StickerPreviewSourceFingerprint : Fingerprint(
     returnType = "V",
-    parameters = listOf(
-        "Ljava/lang/String;",
-        "Lcom/ss/android/ugc/aweme/im/common/model/StickerItem;",
-        "Landroid/view/View;",
-        "Z",
-        "Ljava/lang/String;",
-        "Ljava/util/Map;",
-        "Lkotlin/jvm/functions/Function0;",
-        "Lkotlin/jvm/functions/Function0;",
-        "Lkotlin/jvm/functions/Function0;",
-    ),
-    // The parameter list names StickerItem, which PineDrama does not rename, and no other method
-    // in any of the three builds shares it. The class was `LX/0UL9;` on 46.2.3 and is `LX/0WU6;`
-    // and `LX/0m0M;` on the two builds since, its own name `LJ` throughout, so what is left is
-    // that it calls the preview bind, by that bind's shape rather than by its name.
+    // The parameters start with a StickerItem, which PineDrama does not rename, between a String
+    // and the View. The class was `LX/0UL9;` on 46.2.3 and `LX/0WU6;` and `LX/0m0M;` on the two
+    // builds after, its own name `LJ` throughout, and on 47.7.3 it is `LX/0Hw6;->LJI` with a
+    // Function2 and a Long appended to the nine parameters it had. So only the leading three are
+    // held, and the rest is that it calls the preview bind, by that bind's shape rather than by
+    // its name.
     //
     // Instance, because the source hook reads the StickerItem out of p2 and a static method of
     // the same declared parameter list would have the View there.
     custom = { method, _ ->
         AccessFlags.STATIC.value and method.accessFlags == 0 &&
+            method.parameterTypes.size >= 3 &&
+            method.parameterTypes[0].toString() == "Ljava/lang/String;" &&
+            method.parameterTypes[1].toString() == "Lcom/ss/android/ugc/aweme/im/common/model/StickerItem;" &&
+            method.parameterTypes[2].toString() == "Landroid/view/View;" &&
             method.implementation?.instructions?.any { instruction ->
                 instruction.getReference<MethodReference>()?.isStickerPreviewBind() == true
             } == true

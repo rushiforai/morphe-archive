@@ -1855,3 +1855,5 @@ Hide videos without a preferred dub	Tercih edilen dublajı olmayan videoları gi
 Hides videos with no dub from Dub priority in Playback. Putting original on that list keeps every video, since each has its own audio. If a whole page would be hidden, one video stays so the feed keeps loading. Does nothing while the list is empty.	Oynatma bölümündeki Dublaj önceliği listesinden dublajı olmayan videoları gizler. Listeye original eklersen tüm videolar kalır, çünkü her birinin kendi sesi vardır. Bütün sayfa gizlenecekse, akış yüklenmeye devam etsin diye bir video kalır. Liste boşken hiçbir şey yapmaz.
 Preferred subtitles	Tercih edilen altyazılar
 Preferred dubs	Tercih edilen dublajlar
+Always open on Home	Her zaman Ana Sayfa'da aç
+PineDrama sometimes starts on Discover, like in the first days after an install. This starts it on Home instead.	PineDrama bazen Keşfet'te açılır, örneğin kurulumdan sonraki ilk günlerde. Bu, onu Ana Sayfa'da açar.

@@ -184,6 +184,32 @@ class HoldSpeedAnchorsTest {
         }
     }
 
+    /**
+     * The menu's lazy speed list, which the patch swaps for the user's speeds. 47.7.3 moved it from
+     * a static factory on a shared kotlin/jvm/internal lambda to an instance invoke() on a class of
+     * its own, the old lookup found nothing, and Playback speed failed at apply with every test green.
+     */
+    @Test
+    fun `each declared build's speed menu builds its speed list where the patch looks`() {
+        Fixtures.forEachDeclared { apk ->
+            val app = load(apk)
+            val basePackage = "Lcom/ss/android/ugc/aweme/share/base/model/BaseSharePackage;"
+            val menuClass = app.values.single { classDef ->
+                classDef.methods.any {
+                    it.parameterTypes == listOf(basePackage) && "is_highlight_fast_speed" in strings(it)
+                }
+            }
+            val owners = speedMenuListFactoryOwners(menuClass.methods.filter { it.name == "<init>" })
+            val factories = owners.flatMap { app[it]?.methods?.toList().orEmpty() }.filter(::isSpeedMenuListFactory)
+            assertTrue("${apk.name}: speed list factories in $owners", factories.isNotEmpty())
+            val bodies = factories.map { factory -> factory.implementation!!.instructions.map { it.opcode } }.distinct()
+            assertEquals("${apk.name}: speed list factory bodies ${factories.map { "${it.definingClass}->${it.name}" }}", 1, bodies.size)
+            assertTrue("${apk.name}: the factory returns the list", factories.all { factory ->
+                factory.implementation!!.instructions.any { it.opcode == Opcode.RETURN_OBJECT }
+            })
+        }
+    }
+
     @Test
     fun `each declared build carries the sites sliding the hold speed hooks`() {
         Fixtures.forEachDeclared { apk ->

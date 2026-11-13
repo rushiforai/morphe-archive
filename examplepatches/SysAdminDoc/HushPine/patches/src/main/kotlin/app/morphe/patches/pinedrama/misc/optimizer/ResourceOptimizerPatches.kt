@@ -103,10 +103,10 @@ private fun StripSummary.report(patchName: String) {
 }
 
 internal val p2pRelayProfiles = listOf(
-    // PineDrama 47.6.3 (APKMirror's bundle, read on 2026-11-02) ships no relay library in its base
-    // or any ABI split, as 47.5.3 didn't, so the strip has nothing to empty. Only on 47.6.3:
+    // PineDrama 47.7.3 (APKMirror's bundle, read on 2026-11-12) ships no relay library in its base
+    // or any ABI split, as 47.5.3 and 47.6.3 didn't, so the strip has nothing to empty. Only on 47.7.3:
     // another build without these files has renamed or moved them, and the strip must refuse it.
-    ResourceProfile("PineDrama 47.6.3", emptyList(), onlyVersion = "47.6.3"),
+    ResourceProfile("PineDrama 47.7.3", emptyList(), onlyVersion = "47.7.3"),
 )
 
 internal val languageInventories = listOf(
@@ -118,7 +118,7 @@ internal val languageInventories = listOf(
         ),
         pathManifestSha256 = "33aad0753feebf540e226b415eecfc59323d40f7b52dfc70a06bd278e7acc9a6",
         contentManifestSha256 = setOf(
-            "0e4e5b4cec1d32d1eda52a5dccad5f43fec8b553d6c5341ed7f812466d647540",
+            "fbc7dbe7f6424bdb0d5ed3001fceeb2e530d76f13730e003bd7b7b193a4d42fb",
         ),
     ),
 )

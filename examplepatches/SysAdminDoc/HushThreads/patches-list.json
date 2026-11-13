@@ -15,7 +15,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.barcelona": [
-          "454.0.0.54.79"
+          "455.0.0.55.72"
         ]
       },
       "compatibility": [
@@ -30,7 +30,7 @@
           ],
           "targets": [
             {
-              "version": "454.0.0.54.79",
+              "version": "455.0.0.55.72",
               "experimental": false,
               "versionCodes": null
             }
@@ -51,7 +51,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.barcelona": [
-          "454.0.0.54.79"
+          "455.0.0.55.72"
         ]
       },
       "compatibility": [
@@ -66,7 +66,7 @@
           ],
           "targets": [
             {
-              "version": "454.0.0.54.79",
+              "version": "455.0.0.55.72",
               "experimental": false,
               "versionCodes": null
             }
@@ -97,7 +97,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.barcelona": [
-          "454.0.0.54.79"
+          "455.0.0.55.72"
         ]
       },
       "compatibility": [
@@ -112,7 +112,7 @@
           ],
           "targets": [
             {
-              "version": "454.0.0.54.79",
+              "version": "455.0.0.55.72",
               "experimental": false,
               "versionCodes": null
             }
@@ -142,7 +142,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.barcelona": [
-          "454.0.0.54.79"
+          "455.0.0.55.72"
         ]
       },
       "compatibility": [
@@ -157,7 +157,7 @@
           ],
           "targets": [
             {
-              "version": "454.0.0.54.79",
+              "version": "455.0.0.55.72",
               "experimental": false,
               "versionCodes": null
             }
@@ -177,7 +177,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.barcelona": [
-          "454.0.0.54.79"
+          "455.0.0.55.72"
         ]
       },
       "compatibility": [
@@ -192,7 +192,7 @@
           ],
           "targets": [
             {
-              "version": "454.0.0.54.79",
+              "version": "455.0.0.55.72",
               "experimental": false,
               "versionCodes": null
             }
@@ -212,7 +212,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.barcelona": [
-          "454.0.0.54.79"
+          "455.0.0.55.72"
         ]
       },
       "compatibility": [
@@ -227,7 +227,7 @@
           ],
           "targets": [
             {
-              "version": "454.0.0.54.79",
+              "version": "455.0.0.55.72",
               "experimental": false,
               "versionCodes": null
             }
@@ -247,7 +247,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.barcelona": [
-          "454.0.0.54.79"
+          "455.0.0.55.72"
         ]
       },
       "compatibility": [
@@ -262,7 +262,7 @@
           ],
           "targets": [
             {
-              "version": "454.0.0.54.79",
+              "version": "455.0.0.55.72",
               "experimental": false,
               "versionCodes": null
             }
@@ -282,7 +282,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.barcelona": [
-          "454.0.0.54.79"
+          "455.0.0.55.72"
         ]
       },
       "compatibility": [
@@ -297,7 +297,7 @@
           ],
           "targets": [
             {
-              "version": "454.0.0.54.79",
+              "version": "455.0.0.55.72",
               "experimental": false,
               "versionCodes": null
             }
@@ -317,7 +317,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.barcelona": [
-          "454.0.0.54.79"
+          "455.0.0.55.72"
         ]
       },
       "compatibility": [
@@ -332,7 +332,7 @@
           ],
           "targets": [
             {
-              "version": "454.0.0.54.79",
+              "version": "455.0.0.55.72",
               "experimental": false,
               "versionCodes": null
             }
@@ -352,7 +352,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.barcelona": [
-          "454.0.0.54.79"
+          "455.0.0.55.72"
         ]
       },
       "compatibility": [
@@ -367,7 +367,7 @@
           ],
           "targets": [
             {
-              "version": "454.0.0.54.79",
+              "version": "455.0.0.55.72",
               "experimental": false,
               "versionCodes": null
             }
@@ -387,7 +387,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.barcelona": [
-          "454.0.0.54.79"
+          "455.0.0.55.72"
         ]
       },
       "compatibility": [
@@ -402,7 +402,7 @@
           ],
           "targets": [
             {
-              "version": "454.0.0.54.79",
+              "version": "455.0.0.55.72",
               "experimental": false,
               "versionCodes": null
             }
@@ -422,7 +422,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.barcelona": [
-          "454.0.0.54.79"
+          "455.0.0.55.72"
         ]
       },
       "compatibility": [
@@ -437,7 +437,7 @@
           ],
           "targets": [
             {
-              "version": "454.0.0.54.79",
+              "version": "455.0.0.55.72",
               "experimental": false,
               "versionCodes": null
             }
@@ -448,7 +448,7 @@
     },
     {
       "name": "Hide suggested users",
-      "description": "Removes the cards that suggest accounts to follow, in your feed and on profiles, and the Follow suggestions row in Search. Normal posts and reposts stay, and so does the rest of a profile or Search. Good if you only want posts in your feed. On by default. Its two switches are in HushThreads settings > Feed.",
+      "description": "Removes the cards that suggest accounts to follow, in your feed and on profiles, the Follow suggestions row in Search and the suggested threads under a post you open. Normal posts and reposts stay, and so do a post's replies and the rest of a profile or Search. Good if you only want posts in your feed. On by default. Its three switches are in HushThreads settings > Feed.",
       "category": "Feed",
       "use": true,
       "dependencies": [
@@ -457,7 +457,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.barcelona": [
-          "454.0.0.54.79"
+          "455.0.0.55.72"
         ]
       },
       "compatibility": [
@@ -472,7 +472,7 @@
           ],
           "targets": [
             {
-              "version": "454.0.0.54.79",
+              "version": "455.0.0.55.72",
               "experimental": false,
               "versionCodes": null
             }
@@ -492,7 +492,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.barcelona": [
-          "454.0.0.54.79"
+          "455.0.0.55.72"
         ]
       },
       "compatibility": [
@@ -507,7 +507,7 @@
           ],
           "targets": [
             {
-              "version": "454.0.0.54.79",
+              "version": "455.0.0.55.72",
               "experimental": false,
               "versionCodes": null
             }
@@ -527,7 +527,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.barcelona": [
-          "454.0.0.54.79"
+          "455.0.0.55.72"
         ]
       },
       "compatibility": [
@@ -542,7 +542,7 @@
           ],
           "targets": [
             {
-              "version": "454.0.0.54.79",
+              "version": "455.0.0.55.72",
               "experimental": false,
               "versionCodes": null
             }
@@ -562,7 +562,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.barcelona": [
-          "454.0.0.54.79"
+          "455.0.0.55.72"
         ]
       },
       "compatibility": [
@@ -577,7 +577,7 @@
           ],
           "targets": [
             {
-              "version": "454.0.0.54.79",
+              "version": "455.0.0.55.72",
               "experimental": false,
               "versionCodes": null
             }
@@ -597,7 +597,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.barcelona": [
-          "454.0.0.54.79"
+          "455.0.0.55.72"
         ]
       },
       "compatibility": [
@@ -612,7 +612,7 @@
           ],
           "targets": [
             {
-              "version": "454.0.0.54.79",
+              "version": "455.0.0.55.72",
               "experimental": false,
               "versionCodes": null
             }
@@ -632,7 +632,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.barcelona": [
-          "454.0.0.54.79"
+          "455.0.0.55.72"
         ]
       },
       "compatibility": [
@@ -647,7 +647,7 @@
           ],
           "targets": [
             {
-              "version": "454.0.0.54.79",
+              "version": "455.0.0.55.72",
               "experimental": false,
               "versionCodes": null
             }
@@ -668,7 +668,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.barcelona": [
-          "454.0.0.54.79"
+          "455.0.0.55.72"
         ]
       },
       "compatibility": [
@@ -683,7 +683,7 @@
           ],
           "targets": [
             {
-              "version": "454.0.0.54.79",
+              "version": "455.0.0.55.72",
               "experimental": false,
               "versionCodes": null
             }
@@ -704,7 +704,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.barcelona": [
-          "454.0.0.54.79"
+          "455.0.0.55.72"
         ]
       },
       "compatibility": [
@@ -719,7 +719,7 @@
           ],
           "targets": [
             {
-              "version": "454.0.0.54.79",
+              "version": "455.0.0.55.72",
               "experimental": false,
               "versionCodes": null
             }
@@ -739,7 +739,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.barcelona": [
-          "454.0.0.54.79"
+          "455.0.0.55.72"
         ]
       },
       "compatibility": [
@@ -754,7 +754,7 @@
           ],
           "targets": [
             {
-              "version": "454.0.0.54.79",
+              "version": "455.0.0.55.72",
               "experimental": false,
               "versionCodes": null
             }
@@ -774,7 +774,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.barcelona": [
-          "454.0.0.54.79"
+          "455.0.0.55.72"
         ]
       },
       "compatibility": [
@@ -789,7 +789,7 @@
           ],
           "targets": [
             {
-              "version": "454.0.0.54.79",
+              "version": "455.0.0.55.72",
               "experimental": false,
               "versionCodes": null
             }
@@ -809,7 +809,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.barcelona": [
-          "454.0.0.54.79"
+          "455.0.0.55.72"
         ]
       },
       "compatibility": [
@@ -824,7 +824,7 @@
           ],
           "targets": [
             {
-              "version": "454.0.0.54.79",
+              "version": "455.0.0.55.72",
               "experimental": false,
               "versionCodes": null
             }
@@ -844,7 +844,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.barcelona": [
-          "454.0.0.54.79"
+          "455.0.0.55.72"
         ]
       },
       "compatibility": [
@@ -859,7 +859,42 @@
           ],
           "targets": [
             {
-              "version": "454.0.0.54.79",
+              "version": "455.0.0.55.72",
+              "experimental": false,
+              "versionCodes": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Spoof SIM region",
+      "description": "Threads sees a SIM and network from a country you pick, with one of that country's real carriers, instead of your own. Meta can still go by your connection and your account. Starts off. Turn it on in HushThreads settings > Privacy.",
+      "category": "Privacy",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "HushThreads settings"
+      ],
+      "compatiblePackages": {
+        "com.instagram.barcelona": [
+          "455.0.0.55.72"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Threads",
+          "packageName": "com.instagram.barcelona",
+          "description": null,
+          "appIconColor": 0,
+          "signatures": [
+            "5367570bad488d8da6a0fab78d9766a1a4c23c3c70fac0ad2e91c8f0bd58b432",
+            "8f38da6b4dc34b1900353bde4630043198cbe3ef7214151f86679cd000c90500"
+          ],
+          "targets": [
+            {
+              "version": "455.0.0.55.72",
               "experimental": false,
               "versionCodes": null
             }
@@ -880,7 +915,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.barcelona": [
-          "454.0.0.54.79"
+          "455.0.0.55.72"
         ]
       },
       "compatibility": [
@@ -895,7 +930,7 @@
           ],
           "targets": [
             {
-              "version": "454.0.0.54.79",
+              "version": "455.0.0.55.72",
               "experimental": false,
               "versionCodes": null
             }

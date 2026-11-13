@@ -5,8 +5,9 @@
  * Found by reading 449 and 448 and by a method trace of 449 on an emulator (2026-10-02), and
  * carried to 450 by reading its reshaped PostVideo and playback effect (2026-10-06). The Instagram
  * post, trend preview and ad card calls and PostVideo's default mask were read from 450 (2026-10-10),
- * their shortened PostVideo forwarder from 451 (2026-10-13), and 454's forwarder, which pins the
- * play flag to false, from 454 (2026-11-02).
+ * their shortened PostVideo forwarder from 451 (2026-10-13), 454's forwarder, which pins the
+ * play flag to false, from 454 (2026-11-02), and the lambda 455's PostVideo hands the flag to from
+ * 455 (2026-11-12).
  */
 package app.morphe.patches.threads.feed.autoplay
 
@@ -37,8 +38,10 @@ import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ThreeRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 private const val PATCH = "Disable video autoplay"
 internal const val VIDEO_AUTOPLAY = "$EXTENSION_PACKAGE/feed/VideoAutoplay;"
@@ -48,6 +51,9 @@ internal const val POST_VIDEO = "com.instagram.barcelona.feed.post.video.PostVid
 
 /** The same note for the effect that starts and releases a post video's player. */
 internal const val PLAYBACK_EFFECT = "com.instagram.video.player.compose.VideoPlaybackEffect (VideoPlaybackEffect.kt:"
+
+/** And for Instagram's video player composable, which runs that effect. Since 455 PostVideo reaches it through a lambda. */
+internal const val VIDEO_PLAYER = "com.instagram.video.player.compose.IgComposeVideoPlayer (IgComposeVideoPlayer.kt:"
 
 /** Notes in the feed post composables that put a video in a post: one on its own, and one in a carousel. */
 internal const val POST_SINGLE_MEDIA = "com.instagram.barcelona.feed.post.ui.PostSingleMedia"
@@ -72,7 +78,9 @@ internal val VIDEO_CALLERS = listOf(POST_SINGLE_MEDIA, POST_CAROUSEL, INLINE_IG_
  * A video in a post is Threads' PostVideo composable. One of its booleans says whether this is the
  * video Threads picked to play; PostVideo plays it only when that's true and the player is ready,
  * hands the answer to VideoPlaybackEffect, which starts or releases the player, and only builds the
- * player's surface for the picked video. The posts in a feed, a profile or a thread pass that flag
+ * player's surface for the picked video. Since 455 it hands the flag to a lambda instead, which
+ * composes Instagram's video player with a 1 to play by only when the flag is true, and the player
+ * hands that to the effect. The posts in a feed, a profile or a thread pass that flag
  * from PostSingleMedia and PostCarousel, and the hook sits on it at those calls. So does an
  * Instagram post shown in a thread. Trend previews and ad cards call PostVideo themselves too, but
  * leave the flag to PostVideo's default, which plays: Compose's default mask has the flag's bit set,
@@ -106,7 +114,7 @@ val disableVideoAutoplayPatch = bytecodePatch(
         requireStatusMethod("disableVideoAutoplay")
         val effect = composable(PLAYBACK_EFFECT, "the video playback effect").also { it.requirePlaybackEffect() }
         val postVideo = composable(POST_VIDEO, "PostVideo")
-        val shape = postVideo.playTest(effect)
+        val shape = playTest(postVideo, effect)
         val default = postVideo.playDefault(shape)
         val targets = playTargets(postVideo, shape.parameter, default)
         val skip = prefetchSkip()
@@ -305,57 +313,266 @@ internal fun Method.holdsNote(note: String): Boolean = implementation?.instructi
 
 /**
  * The effect takes the composer, the player's state and the video, then Compose's ints (450 adds a
- * volume float among them), and ends on its booleans: two in 450, where 449 and 448 had three.
- * Whether to play is the first boolean, and its index comes back.
+ * volume float among them, 455 a String ahead of it), and ends on its booleans: two in 450, where
+ * 449 and 448 had three. Whether to play is the first boolean, and its index comes back.
  */
 internal fun Method.requirePlaybackEffect(): Int {
     val types = parameterTypes.map { it.toString() }
     val play = types.indexOf("Z")
     val middle = if (play > 3) types.subList(3, play) else emptyList()
     if (!AccessFlags.STATIC.isSet(accessFlags) || returnType != "V" || types.take(3).any { !it.startsWith("L") } ||
-        "I" !in middle || middle.any { it != "I" && it != "F" } || types.drop(play).any { it != "Z" } || types.size - play !in 2..3
+        "I" !in middle || middle.any { it != "I" && it != "F" && it != "Ljava/lang/String;" } ||
+        types.drop(play).any { it != "Z" } || types.size - play !in 2..3
     ) throw PatchException("$PATCH: the video playback effect $definingClass->$name${types.joinToString("", "(", ")")}$returnType has another shape")
     return play
 }
 
 /**
  * Which of PostVideo's parameters says whether its video plays: the fourth boolean in 450, which
- * dropped one ahead of it, and the fifth in 454, which adds one back. It's the boolean PostVideo tests last before its
- * one call to the effect, on a branch whose false side writes a 0 as the effect's play argument
- * before the call, and every write to that argument between the test and the call must be a 0 or a
- * 1, with a 1 among them. The tested register has to hold that one boolean on every path to the
- * test, as it arrived or through one move, or the default Compose gives it when a caller leaves it
- * out.
+ * dropped one ahead of it, and the fifth since 454, which adds one back. Up to 454 it's the boolean
+ * PostVideo tests last before its one call to the effect, on a branch whose false side writes a 0
+ * as the effect's play argument before the call, and every write to that argument between the test
+ * and the call must be a 0 or a 1, with a 1 among them. The tested register has to hold that one
+ * boolean on every path to the test, as it arrived or through one move, or the default Compose
+ * gives it when a caller leaves it out. 455 makes the same test in a lambda ([lambdaPlayTest]).
  */
-internal fun Method.playParameter(effect: Method): Int = playTest(effect).parameter
+internal fun BytecodePatchContext.playParameter(postVideo: Method, effect: Method): Int = playTest(postVideo, effect).parameter
 
-/** PostVideo's test of its play flag at [test], the flag's [parameter] index, and the [call] to the effect it sets [argument] for. */
-internal data class PlayTest(val test: Int, val call: Int, val argument: Int, val parameter: Int)
+/**
+ * Where PostVideo's play flag decides whether its video plays: the [test] of the flag in [method]
+ * and the [call] whose play [argument] follows it. Up to 454 that's PostVideo and its call to the
+ * effect, since 455 the lambda PostVideo builds and its call to the video player. [parameter] is
+ * the flag's index among PostVideo's parameters, and PostVideo reads it from [register] at [read].
+ */
+internal data class PlayTest(
+    val method: Method,
+    val test: Int,
+    val call: Int,
+    val argument: Int,
+    val parameter: Int,
+    val read: Int,
+    val register: Int,
+)
 
-internal fun Method.playTest(effect: Method): PlayTest {
-    if (!AccessFlags.STATIC.isSet(accessFlags)) throw PatchException("$PATCH: PostVideo $definingClass->$name isn't static")
-    val types = parameterTypes.map { it.toString() }
+internal fun BytecodePatchContext.playTest(postVideo: Method, effect: Method): PlayTest {
+    if (!AccessFlags.STATIC.isSet(postVideo.accessFlags)) {
+        throw PatchException("$PATCH: PostVideo ${postVideo.definingClass}->${postVideo.name} isn't static")
+    }
+    if (postVideo.implementation!!.instructions.any { it.calls(effect) }) return postVideo.effectPlayTest(effect)
+    return lambdaPlayTest(postVideo, composable(VIDEO_PLAYER, "IgComposeVideoPlayer"), effect)
+}
+
+/**
+ * The boolean parameter of static [this] that [register] holds when the instruction at [at] runs,
+ * the same one on every path, as it arrived or through one move, or null. A 0 or 1 written along
+ * the way is the default Compose gives it when a caller leaves it out.
+ */
+private fun Method.heldBoolean(at: Int, register: Int): Int? {
+    val body = implementation!!.instructions.toList()
+    val first = implementation!!.registerCount - parameterRegisters()
+    // Each boolean parameter, by the register it arrives in.
+    val booleans = parameterTypes.indices.filter { parameterTypes[it].toString() == "Z" }.associateBy { first + registerOffset(it) }
+    val writes = reaching(at, setOf(register))
+    val sources = writes.writes.mapNotNull { write ->
+        val instruction = body[write]
+        if (instruction is NarrowLiteralInstruction && instruction.narrowLiteral in 0..1) return@mapNotNull null
+        val source = (instruction as? TwoRegisterInstruction)?.registerB?.takeIf { instruction.opcode.isMove() } ?: return null
+        val arrived = reaching(write, setOf(source))
+        if (arrived.writes.isNotEmpty() || !arrived.fromEntry) return null
+        booleans[source] ?: return null
+    }
+    val own = if (writes.fromEntry) listOf(booleans[register] ?: return null) else emptyList()
+    return (sources + own).distinct().singleOrNull()
+}
+
+/**
+ * 455's PostVideo no longer calls the effect. It builds a lambda, handing it the play flag, and the
+ * lambda tests the flag, which it keeps in a field, before composing Instagram's video player: the
+ * player plays by a 1 only on the flag's true side. The player hands its own boolean to the effect,
+ * or Compose's default for it when the lambda's default mask asks, which it mustn't. So the flag is
+ * followed from the lambda's test to its field, to the constructor parameter stored there, and to
+ * what PostVideo passes for it.
+ */
+private fun BytecodePatchContext.lambdaPlayTest(postVideo: Method, player: Method, effect: Method): PlayTest {
+    if (!AccessFlags.STATIC.isSet(player.accessFlags)) {
+        throw PatchException("$PATCH: the video player ${player.definingClass}->${player.name} isn't static")
+    }
+    val playerBody = player.implementation!!.instructions.toList()
+    val effectCall = playerBody.indices.filter { playerBody[it].calls(effect) }
+        .singleOrPatchException("$PATCH: the video player's call to the video playback effect")
+    val effectPlay = playerBody[effectCall].argumentRegister(effect.registerOffset(effect.requirePlaybackEffect()))!!
+    val defaults = mutableListOf<PlayerDefault>()
+    val playerPlay = handedBoolean(player, effectCall, effectPlay, defaults)
+        ?: throw PatchException("$PATCH: the video player doesn't hand the playback effect one of its booleans unchanged")
+
+    val postBody = postVideo.implementation!!.instructions.toList()
+    fun Method.composesPlayer() = implementation?.instructions?.any { it.calls(player) } == true
+    val lambda = postBody.filter { it.opcode == Opcode.NEW_INSTANCE }
+        .mapNotNull { it.getReference<TypeReference>()?.type }.distinct()
+        .filter { type -> runCatching { classDefBy(type) }.getOrNull()?.methods?.any { it.composesPlayer() } == true }
+        .singleOrPatchException("$PATCH: the lambda PostVideo composes the video player through")
+    val lambdaClass = mutableClassDefBy(lambda)
+    val host = lambdaClass.methods.filter { it.composesPlayer() }.singleOrPatchException("$PATCH: the lambda's method composing the video player")
+    val body = host.implementation!!.instructions.toList()
+    val call = body.indices.filter { body[it].calls(player) }.singleOrPatchException("$PATCH: the lambda's call to the video player")
+    val argument = body[call].argumentRegister(player.registerOffset(playerPlay))!!
+    // A default mask with the flag's bit set would have the player drop the lambda's flag for its default.
+    for (default in defaults) {
+        val mask = host.constantAt(call, body[call].argumentRegister(player.registerOffset(default.mask))!!)
+            ?: throw PatchException("$PATCH: the lambda's default mask for the video player isn't one constant")
+        if (mask and default.bit != 0) throw PatchException("$PATCH: the lambda leaves the video player's play flag to its default")
+    }
+    val arrived = host.reaching(call, setOf(argument))
+    val literals = arrived.writes.map { body[it] }
+    if (arrived.fromEntry || literals.any { it !is NarrowLiteralInstruction || it.opcode !in CONSTANTS || it.narrowLiteral !in 0..1 }) {
+        throw PatchException("$PATCH: the lambda's play argument to the video player isn't set from the boolean it tests")
+    }
+    val address = body.runningFold(0) { at, instruction -> at + instruction.codeUnits }
+    // Where a branch at [at] goes when its boolean is false. On 455 that's past the call, which a goto comes back to.
+    fun falseSide(at: Int): Int? = when (body[at].opcode) {
+        Opcode.IF_EQZ -> address.indexOf(address[at] + (body[at] as OffsetInstruction).codeOffset).takeIf { it >= 0 }
+        Opcode.IF_NEZ -> at + 1
+        else -> null
+    }
+    // The lambda's own boolean field that [register] holds at [at], read on every path from the lambda itself.
+    fun field(at: Int, register: Int): FieldReference? {
+        val (read, _) = host.origin(at, register)?.takeIf { it.first >= 0 } ?: return null
+        val get = body[read].takeIf { it.opcode == Opcode.IGET_BOOLEAN } as? TwoRegisterInstruction ?: return null
+        val (from, self) = host.origin(read, get.registerB) { it.isObjectMove() } ?: return null
+        return (get as Instruction).getReference<FieldReference>()?.takeIf { from < 0 && host.isThis(self) && it.definingClass == lambda }
+    }
+    var flag: FieldReference? = null
+    val test = (call - 1 downTo 0).firstOrNull { at ->
+        val side = falseSide(at) ?: return@firstOrNull false
+        (body[side] as? OneRegisterInstruction)?.registerA == argument && body[side].opcode.setsRegister() &&
+            field(at, (body[at] as OneRegisterInstruction).registerA).also { flag = it } != null
+    } ?: throw PatchException("$PATCH: the video player's lambda never tests one of its booleans before the player")
+    if ((body[falseSide(test)!!] as? NarrowLiteralInstruction)?.narrowLiteral != 0 ||
+        literals.none { (it as NarrowLiteralInstruction).narrowLiteral == 1 }
+    ) throw PatchException("$PATCH: the lambda's play argument to the video player doesn't follow the boolean it tests")
+
+    // The constructor PostVideo calls stores one of its booleans in the field, and nothing else writes it.
+    val stores = lambdaClass.methods.flatMap { method ->
+        (method.implementation?.instructions?.toList() ?: emptyList()).withIndex().filter { (_, instruction) ->
+            instruction.opcode == Opcode.IPUT_BOOLEAN && instruction.getReference<FieldReference>()?.let {
+                it.definingClass == flag!!.definingClass && it.name == flag!!.name
+            } == true
+        }.map { method to it.index }
+    }
+    val (init, store) = stores.singleOrPatchException("$PATCH: the lambda's store of its play flag")
+    val stored = init.implementation!!.instructions.elementAt(store) as TwoRegisterInstruction
+    val (storedAt, value) = init.origin(store, stored.registerA) ?: throw PatchException("$PATCH: the lambda's play flag differs by path")
+    val index = init.parameterIndex(value)?.takeIf { parameter ->
+        init.name == "<init>" && storedAt < 0 && init.parameterTypes[parameter].toString() == "Z" &&
+            init.origin(store, stored.registerB) { it.isObjectMove() }?.let { (from, self) -> from < 0 && init.isThis(self) } == true
+    } ?: throw PatchException("$PATCH: the lambda's constructor doesn't keep one of its booleans as the play flag")
+    val construct = postBody.indices.filter {
+        (postBody[it].opcode == Opcode.INVOKE_DIRECT || postBody[it].opcode == Opcode.INVOKE_DIRECT_RANGE) &&
+            postBody[it].getReference<MethodReference>()?.let { called ->
+                called.definingClass == lambda && called.name == init.name &&
+                    called.parameterTypes.map(CharSequence::toString) == init.parameterTypes.map(CharSequence::toString)
+            } == true
+    }.singleOrPatchException("$PATCH: PostVideo's construction of the video player's lambda")
+
+    // Back through PostVideo's copies of the flag to where it reads it.
+    var read = construct
+    var register = postBody[construct].argumentRegister(1 + init.registerOffset(index))!!
+    while (true) {
+        val writes = postVideo.reaching(read, setOf(register))
+        val write = writes.writes.singleOrNull()?.takeUnless { writes.fromEntry } ?: break
+        if (!postBody[write].opcode.isMove()) break
+        read = write
+        register = (postBody[write] as TwoRegisterInstruction).registerB
+    }
+    val parameter = postVideo.heldBoolean(read, register)
+        ?: throw PatchException("$PATCH: PostVideo doesn't hand the video player's lambda one of its booleans")
+    return PlayTest(host, test, call, argument, parameter, read, register)
+}
+
+/** Compose's default for one of the video player's booleans: the [bit] of its int parameter [mask] swaps it for [value]. */
+private data class PlayerDefault(val mask: Int, val bit: Int, val value: Int)
+
+/**
+ * The boolean parameter of [player] it hands on in [register] at [at], the same one on every path,
+ * through moves and through Compose's default merges, which go into [defaults]. Null when paths
+ * disagree or a copy loops back on itself. 455's player sets each boolean to `merge(mask & bit, flag)`,
+ * the flag while the bit is clear, and both that merge and the path skipping it start from one move,
+ * so [following] holds only the copies on the current path, never every one already followed.
+ */
+private fun BytecodePatchContext.handedBoolean(
+    player: Method,
+    at: Int,
+    register: Int,
+    defaults: MutableList<PlayerDefault>,
+    following: MutableSet<Pair<Int, Int>> = mutableSetOf(),
+): Int? {
+    if (!following.add(at to register)) return null
+    try {
+        return handedBooleanFrom(player, at, register, defaults, following)
+    } finally {
+        following.remove(at to register)
+    }
+}
+
+private fun BytecodePatchContext.handedBooleanFrom(
+    player: Method,
+    at: Int,
+    register: Int,
+    defaults: MutableList<PlayerDefault>,
+    following: MutableSet<Pair<Int, Int>>,
+): Int? {
+    val body = player.implementation!!.instructions.toList()
+    val reaching = player.reaching(at, setOf(register))
+    val sources = mutableSetOf<Int>()
+    if (reaching.fromEntry) sources += player.parameterIndex(register)?.takeIf { player.parameterTypes[it].toString() == "Z" } ?: return null
+    for (write in reaching.writes) {
+        val instruction = body[write]
+        sources += when {
+            instruction.opcode.isMove() -> handedBoolean(player, write, (instruction as TwoRegisterInstruction).registerB, defaults, following)
+            instruction.opcode == Opcode.MOVE_RESULT -> {
+                val merge = body.getOrNull(write - 1) ?: return null
+                val value = defaultMerge(merge) ?: return null
+                val (tested, _) = player.origin(write - 1, merge.argumentRegister(0)!!)?.takeIf { it.first >= 0 } ?: return null
+                val and = body[tested].takeIf { it.opcode == Opcode.AND_INT_LIT8 || it.opcode == Opcode.AND_INT_LIT16 } ?: return null
+                val bit = (and as NarrowLiteralInstruction).narrowLiteral.takeIf { it.countOneBits() == 1 } ?: return null
+                val (from, masked) = player.origin(tested, (and as TwoRegisterInstruction).registerB) ?: return null
+                val mask = player.parameterIndex(masked)?.takeIf { from < 0 && player.parameterTypes[it].toString() == "I" } ?: return null
+                defaults += PlayerDefault(mask, bit, value)
+                handedBoolean(player, write - 1, merge.argumentRegister(1)!!, defaults, following)
+            }
+            else -> null
+        } ?: return null
+    }
+    return sources.singleOrNull()
+}
+
+/**
+ * The 0 or 1 a call to Compose's default merge answers in place of its boolean, or null when [call]
+ * isn't one: a static `(IZ)Z` that returns the boolean while the int is 0 and its own constant otherwise.
+ */
+private fun BytecodePatchContext.defaultMerge(call: Instruction): Int? {
+    val called = call.getReference<MethodReference>()?.takeIf {
+        call.opcode == Opcode.INVOKE_STATIC && it.returnType == "Z" && it.parameterTypes.map(CharSequence::toString) == listOf("I", "Z")
+    } ?: return null
+    val merge = runCatching { classDefBy(called.definingClass) }.getOrNull()?.methods?.singleOrNull {
+        it.name == called.name && it.returnType == "Z" && it.parameterTypes.map(CharSequence::toString) == listOf("I", "Z")
+    }?.implementation ?: return null
+    val body = merge.instructions.toList()
+    if (merge.registerCount != 2 || body.size != 3) return null
+    val (test, value, answer) = body
+    val returnsFlag = test.opcode == Opcode.IF_EQZ && (test as OneRegisterInstruction).registerA == 0 &&
+        (test as OffsetInstruction).codeOffset == test.codeUnits + value.codeUnits &&
+        value.opcode == Opcode.CONST_4 && (value as OneRegisterInstruction).registerA == 1 &&
+        answer.opcode == Opcode.RETURN && (answer as OneRegisterInstruction).registerA == 1
+    if (!returnsFlag) return null
+    return (value as NarrowLiteralInstruction).narrowLiteral.takeIf { it in 0..1 }
+}
+
+/** Up to 454: PostVideo tests the flag itself, before its one call to the effect. */
+private fun Method.effectPlayTest(effect: Method): PlayTest {
     val body = implementation!!.instructions.toList()
     val call = body.indices.filter { body[it].calls(effect) }.singleOrPatchException("$PATCH: PostVideo's call to the video playback effect")
     val playArgument = body[call].argumentRegister(effect.registerOffset(effect.requirePlaybackEffect()))!!
-    val first = implementation!!.registerCount - parameterRegisters()
-    // Each boolean parameter, by the register it arrives in.
-    val booleans = types.indices.filter { types[it] == "Z" }.associateBy { first + registerOffset(it) }
-    // The boolean [register] holds when the instruction at [at] runs, the same one on every path.
-    fun held(at: Int, register: Int): Int? {
-        val writes = reaching(at, setOf(register))
-        val sources = writes.writes.mapNotNull { write ->
-            val instruction = body[write]
-            // Compose's default for the parameter, set when a caller leaves it out.
-            if (instruction is NarrowLiteralInstruction && instruction.narrowLiteral in 0..1) return@mapNotNull null
-            val source = (instruction as? TwoRegisterInstruction)?.registerB?.takeIf { instruction.opcode.isMove() } ?: return null
-            val arrived = reaching(write, setOf(source))
-            if (arrived.writes.isNotEmpty() || !arrived.fromEntry) return null
-            booleans[source] ?: return null
-        }
-        val own = if (writes.fromEntry) listOf(booleans[register] ?: return null) else emptyList()
-        return (sources + own).distinct().singleOrNull()
-    }
     val address = body.runningFold(0) { at, instruction -> at + instruction.codeUnits }
     // Where a branch at [at] goes when its boolean is false, if that's between it and the call.
     fun falseSide(at: Int): Int? = when (body[at].opcode) {
@@ -367,7 +584,7 @@ internal fun Method.playTest(effect: Method): PlayTest {
     val test = (call - 1 downTo 0).firstOrNull { at ->
         val side = falseSide(at) ?: return@firstOrNull false
         (body[side] as? OneRegisterInstruction)?.registerA == playArgument && body[side].opcode.setsRegister() &&
-            held(at, (body[at] as OneRegisterInstruction).registerA).also { play = it } != null
+            heldBoolean(at, (body[at] as OneRegisterInstruction).registerA).also { play = it } != null
     } ?: throw PatchException("$PATCH: PostVideo never tests one of its booleans before the playback effect")
     val writes = (test + 1 until call).map { body[it] }.filter { (it as? OneRegisterInstruction)?.registerA == playArgument && it.opcode.setsRegister() }
     if (writes.any { it !is NarrowLiteralInstruction || it.narrowLiteral !in 0..1 }) {
@@ -376,18 +593,17 @@ internal fun Method.playTest(effect: Method): PlayTest {
     if ((body[falseSide(test)!!] as NarrowLiteralInstruction).narrowLiteral != 0 || writes.none { (it as NarrowLiteralInstruction).narrowLiteral == 1 }) {
         throw PatchException("$PATCH: PostVideo's play argument to the playback effect doesn't follow the boolean it tests")
     }
-    return PlayTest(test, call, playArgument, play!!)
+    return PlayTest(this, test, call, playArgument, play!!, test, (body[test] as OneRegisterInstruction).registerA)
 }
 
 /**
  * Where PostVideo sets its play flag to Compose's default: the 0 or 1 it writes into the register
- * it tests, behind an if-eqz on one bit of an int parameter, the caller's default mask. Null when
- * PostVideo has no default for the flag, so every caller passes its own.
+ * it reads the flag from, behind an if-eqz on one bit of an int parameter, the caller's default
+ * mask. Null when PostVideo has no default for the flag, so every caller passes its own.
  */
 internal fun Method.playDefault(shape: PlayTest): PlayDefault? {
     val body = implementation!!.instructions.toList()
-    val tested = (body[shape.test] as OneRegisterInstruction).registerA
-    val write = reaching(shape.test, setOf(tested)).writes.filter { body[it] is NarrowLiteralInstruction }.ifEmpty { return null }
+    val write = reaching(shape.read, setOf(shape.register)).writes.filter { body[it] is NarrowLiteralInstruction }.ifEmpty { return null }
         .singleOrPatchException("$PATCH: PostVideo's default for its play flag")
     val address = body.runningFold(0) { at, instruction -> at + instruction.codeUnits }
     val guard = body.getOrNull(write - 1)
@@ -421,7 +637,7 @@ internal fun Method.playDefault(shape: PlayTest): PlayDefault? {
  * path, followed back through moves: its index and the register it wrote, or -1 and the register
  * as the method got it. Null when paths disagree.
  */
-private fun Method.origin(at: Int, register: Int): Pair<Int, Int>? {
+private fun Method.origin(at: Int, register: Int, follows: (Opcode) -> Boolean = { it.isMove() }): Pair<Int, Int>? {
     val body = implementation!!.instructions.toList()
     var index = at
     var held = register
@@ -429,7 +645,7 @@ private fun Method.origin(at: Int, register: Int): Pair<Int, Int>? {
         val reaching = reaching(index, setOf(held))
         if (reaching.writes.isEmpty()) return if (reaching.fromEntry) -1 to held else null
         val write = reaching.writes.singleOrNull()?.takeUnless { reaching.fromEntry } ?: return null
-        if (!body[write].opcode.isMove()) return write to held
+        if (!follows(body[write].opcode)) return write to held
         index = write
         held = (body[write] as TwoRegisterInstruction).registerB
     }
@@ -492,9 +708,21 @@ private val CONSTANTS = setOf(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST, Opc
 
 private fun Opcode.isMove() = this == Opcode.MOVE || this == Opcode.MOVE_FROM16 || this == Opcode.MOVE_16
 
+private fun Opcode.isObjectMove() = this == Opcode.MOVE_OBJECT || this == Opcode.MOVE_OBJECT_FROM16 || this == Opcode.MOVE_OBJECT_16
+
 /** Registers the parameters take, `this` included. */
 private fun Method.parameterRegisters(): Int =
     (if (AccessFlags.STATIC.isSet(accessFlags)) 0 else 1) + parameterTypes.sumOf { if (it.isWide()) 2 else 1 }
+
+/** Whether [register] is the one `this` arrives in. */
+private fun Method.isThis(register: Int): Boolean =
+    !AccessFlags.STATIC.isSet(accessFlags) && register == implementation!!.registerCount - parameterRegisters()
+
+/** The parameter that arrives in [register], or null. */
+private fun Method.parameterIndex(register: Int): Int? {
+    val first = implementation!!.registerCount - parameterRegisters() + if (AccessFlags.STATIC.isSet(accessFlags)) 0 else 1
+    return parameterTypes.indices.singleOrNull { first + registerOffset(it) == register }
+}
 
 /** How far into a static call's arguments the [index]th parameter sits, counting wide ones twice. */
 private fun Method.registerOffset(index: Int): Int = parameterTypes.take(index).sumOf { if (it.isWide()) 2 else 1 }

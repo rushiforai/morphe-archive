@@ -146,7 +146,7 @@ internal fun BytecodePatchContext.addFollowingNetworkHooks() {
         return-object p0
     """)
 
-    if (packageMetadata.versionName != "1.3.0") return
+    if (packageMetadata.versionName !in setOf("1.3.0", "1.4.0")) return
     val activityType = "Lcom/navercorp/game/android/community/tv/ui/TvActivity;"
     val overlayActivity = "Lcom/navercorp/game/android/community/tv/component/activity/OverlayPlayerActivity;"
     val overlayBase = "Lcom/navercorp/game/android/community/core/feature/feature/overlayplayer/component/OverlayPlayerViewModelBase;"

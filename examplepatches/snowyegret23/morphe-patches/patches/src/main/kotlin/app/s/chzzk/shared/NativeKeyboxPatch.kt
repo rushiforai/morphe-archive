@@ -7,7 +7,7 @@ private data class KeyboxLibrary(val sha256: String, val offset: Int, val return
 
 internal val nativeKeyboxPatch = resourcePatch {
     execute {
-        if (packageMetadata.versionName !in setOf("3.16.0", "1.3.0")) return@execute
+        if (packageMetadata.versionName !in setOf("3.16.0", "3.17.0", "1.3.0", "1.4.0")) return@execute
         val libraries = mapOf(
             "arm64-v8a" to KeyboxLibrary(
                 "8ba589b0409164e0e89fa27d285e73a3e0f2b410a164d925fdbc7482af56543c", 0x111c,

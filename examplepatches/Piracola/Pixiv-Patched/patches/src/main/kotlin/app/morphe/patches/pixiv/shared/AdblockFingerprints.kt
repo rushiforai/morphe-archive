@@ -11,7 +11,7 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 private const val OVERLAY_AD_VIEW = "Ljp/pxv/android/feature/advertisement/view/OverlayAppLovinView;"
 private const val INTERSTITIAL_AD = "Lcom/applovin/mediation/ads/MaxInterstitialAd;"
 
-/** True when the method creates one of Pixiv's overlay ad views, or touches the given ad class. */
+/** Named types only: a cast, an allocation or a call signature. Fields are invisible to it. */
 private fun Method.referencesType(type: String): Boolean =
     implementation?.instructions?.any { instruction ->
         (instruction as? ReferenceInstruction)?.reference.let { it is TypeReference && it.type == type }

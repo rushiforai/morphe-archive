@@ -72,6 +72,8 @@ public final class XSettings {
     // Playback with the screen off: a pause right after the screen turns off is undone; the lowest quality while off.
     public static final BooleanSetting KEEP_PLAYING_SCREEN_OFF = new BooleanSetting("yx_keep_playing_screen_off", true);
     public static final BooleanSetting AUDIO_ONLY = new BooleanSetting("yx_audio_only", FALSE);
+    /** An "Audio only" row at the top of the video quality sheet. */
+    public static final BooleanSetting AUDIO_ONLY_ROW = new BooleanSetting("yx_audio_only_row", true);
     public static final BooleanSetting AUDIO_ONLY_SCREEN_OFF = new BooleanSetting("yx_audio_only_screen_off", FALSE);
 
     /** Like and dislike counts: count, percent, or both. */

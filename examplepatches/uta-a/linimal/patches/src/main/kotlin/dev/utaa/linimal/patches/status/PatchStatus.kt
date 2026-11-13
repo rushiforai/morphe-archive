@@ -15,6 +15,7 @@ enum class FeatureId(val value: String) {
     AMOLED_THEME("linimal.amoled-theme"),
     SMART_CHANNEL_ADS("linimal.smart-channel-ads"),
     HOME_TOP_AD("linimal.home-top-ad"),
+    SQUARE_ADS("linimal.square-ads"),
     AGENT_I_HOME_HEADER("linimal.agent-i-home-header"),
     AGENT_I_CHAT_INFORMATION("linimal.agent-i-chat-information"),
     AGENT_I_WALLET_HEADER("linimal.agent-i-wallet-header"),
@@ -146,6 +147,8 @@ enum class PatchId(val value: String, val featureId: FeatureId) {
         "linimal.patch.home-gcs-ad-module-gate",
         FeatureId.HOME_TOP_AD,
     ),
+    SQUARE_ADS_TYPE_GATE("linimal.patch.square-ads-type-gate", FeatureId.SQUARE_ADS),
+    SQUARE_ADS_EMBEDDED_GATE("linimal.patch.square-ads-embedded-gate", FeatureId.SQUARE_ADS),
     EXTERNAL_BROWSER_CHAT_TEXT_LINK(
         "linimal.patch.external-browser-chat-text-link",
         FeatureId.EXTERNAL_BROWSER,

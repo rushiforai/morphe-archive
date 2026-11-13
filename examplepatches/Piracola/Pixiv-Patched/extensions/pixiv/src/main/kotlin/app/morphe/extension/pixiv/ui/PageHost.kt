@@ -19,19 +19,6 @@ import android.widget.Toast
 
 /**
  * The one full-screen window every patched page lives in.
- *
- * The pages were separate dialogs before - one window each - and that is what made the transitions
- * unreliable: a window has already laid out and drawn its content by the time a `post` callback
- * from the caller runs, so the first frame the user saw was always the finished screen, with the
- * slide only starting afterwards. A window also cannot be clicked through, so a small picker dialog
- * could not be dismissed by tapping around it, and every page switch had to fake an activity
- * transition on a window that was being created and destroyed at the same time.
- *
- * Here the window is created once per visit and keeps a stack of plain views. Pushing sets the
- * incoming page's offset synchronously, in the same call that adds it, so the frame that first
- * contains it is already the slid-in start; popping slides the top page out and drops it. BACK is
- * handled once, at the host. The picker is a scrim plus a card inside the same window, which makes
- * tapping outside it work and gives the card a real shadow.
  */
 object PageHost {
 

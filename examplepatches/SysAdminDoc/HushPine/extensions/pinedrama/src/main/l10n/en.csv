@@ -178,6 +178,7 @@ Also hide videos whose text stickers match a blocked caption word. Text stickers
 "Also on a block list, so still hidden: %1$s","Also on a block list, so still hidden: %1$s"
 Also replaces the saved region and country code PineDrama sends with every request. Signing in still sends your real region. Your IP address and your account's own rules still apply.,Also replaces the saved region and country code PineDrama sends with every request. Signing in still sends your real region. Your IP address and your account's own rules still apply.
 Also turns on PineDrama's own Auto scroll for videos opened from search. Restart PineDrama to apply this.,Also turns on PineDrama's own Auto scroll for videos opened from search. Restart PineDrama to apply this.
+Always open on Home,Always open on Home
 "Always play the video's own audio, never an AI dub.","Always play the video's own audio, never an AI dub."
 Always show publish date,Always show publish date
 Always show the publish date in video author information. Restart PineDrama to apply this.,Always show the publish date in video author information. Restart PineDrama to apply this.
@@ -1046,6 +1047,7 @@ PineDrama read it,PineDrama read it
 PineDrama sees an empty contact list instead of yours. Find Friends and People you may know can no longer use your contacts.,PineDrama sees an empty contact list instead of yours. Find Friends and People you may know can no longer use your contacts.
 "PineDrama sees an empty list of apps instead of the apps on your phone. Checks for one specific app, such as when PineDrama opens an app you tap, still work.","PineDrama sees an empty list of apps instead of the apps on your phone. Checks for one specific app, such as when PineDrama opens an app you tap, still work."
 PineDrama slips the videos it saved for offline viewing back into the feed when it can't load enough new ones. This takes them all out. Your offline list stays as it is.,PineDrama slips the videos it saved for offline viewing back into the feed when it can't load enough new ones. This takes them all out. Your offline list stays as it is.
+"PineDrama sometimes starts on Discover, like in the first days after an install. This starts it on Home instead.","PineDrama sometimes starts on Discover, like in the first days after an install. This starts it on Home instead."
 PineDrama sometimes tests a change that empties the Favorites tab on your profile. This keeps the tab and your saved videos.,PineDrama sometimes tests a change that empties the Favorites tab on your profile. This keeps the tab and your saved videos.
 PineDrama sometimes tests your phone's speed in a background process that can use a lot of memory. This stops that test from starting. One already running ends when PineDrama restarts.,PineDrama sometimes tests your phone's speed in a background process that can use a lot of memory. This stops that test from starting. One already running ends when PineDrama restarts.
 PineDrama starts as a new phone after the restart. Tap again to cancel.,PineDrama starts as a new phone after the restart. Tap again to cancel.

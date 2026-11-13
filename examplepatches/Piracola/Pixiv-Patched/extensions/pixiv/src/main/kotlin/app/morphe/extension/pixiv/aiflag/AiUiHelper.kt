@@ -32,15 +32,13 @@ object AiUiHelper {
     /** Reflex safety stop while walking up to the RecyclerView; deeper than any Pixiv item layout. */
     private const val ITEM_ROOT_MAX_DEPTH = 8
 
-    // Empirical values for the detail screen: toolbar (~56dp) + status bar (~32dp)
-    // + banner (~34dp) plus breathing margins. Tuned by eye on 6.202.1 - re-check visually before editing.
+    // Toolbar 56dp + status bar 32dp + banner 34dp plus margins, measured on 6.202.1 and only
+    // tuned by eye since: re-check the banner position on screen before changing either value.
     private const val DETAIL_HEADER_SPACE_DP = 102f
-    // Empirical: offset from the top of the padded header area down to the banner.
     private const val DETAIL_BANNER_TOP_OFFSET_DP = 58f
 
     private val resIds = ConcurrentHashMap<String, Int>()
 
-    /** Visibility and height an item had before "hide completely" collapsed it. */
     private class ItemOriginalState(val visibility: Int, val height: Int)
 
     // Original item state, so "hide completely" can collapse an item and restore it on recycle.
@@ -76,7 +74,6 @@ object AiUiHelper {
                 hideBadge(thumbnailView)
             }
         } catch (_: Throwable) {
-            // Safety: never crash view binding
         }
     }
 
@@ -100,14 +97,12 @@ object AiUiHelper {
                 return
             }
 
-            // Dedicated header area above the image.
             val headerSpace = dpToPx(context, DETAIL_HEADER_SPACE_DP).toInt()
             if (itemView.paddingTop != headerSpace) {
                 itemView.setPadding(0, headerSpace, 0, 0)
                 itemView.clipToPadding = false
             }
 
-            // Position the banner within the header gap, safely below the toolbar icons.
             val bannerOffsetFromTop = -headerSpace + dpToPx(context, DETAIL_BANNER_TOP_OFFSET_DP).toInt()
 
             var banner = itemView.findViewWithTag<View>(TAG_DETAIL_AI_BANNER)
@@ -145,7 +140,6 @@ object AiUiHelper {
             val padV = dpToPx(context, 6f).toInt()
             setPadding(padH, padV, padH + dpToPx(context, 2f).toInt(), padV)
 
-            // Deep obsidian-crimson frosted glass gradient
             val bg = GradientDrawable(
                 GradientDrawable.Orientation.LEFT_RIGHT,
                 intArrayOf(
@@ -156,7 +150,7 @@ object AiUiHelper {
             ).apply {
                 shape = GradientDrawable.RECTANGLE
                 cornerRadius = dpToPx(context, 24f)
-                setStroke(dpToPx(context, 1.2f).toInt(), 0x99FB7185.toInt()) // luminous rose accent border
+                setStroke(dpToPx(context, 1.2f).toInt(), 0x99FB7185.toInt())
             }
             background = bg
 
@@ -165,7 +159,6 @@ object AiUiHelper {
             }
         }
 
-        // Circular luminous icon badge
         val iconBadge = TextView(context).apply {
             text = "✦"
             textSize = 10.5f
@@ -190,7 +183,6 @@ object AiUiHelper {
         }
         banner.addView(iconBadge)
 
-        // Main typography with clean styling
         val textView = TextView(context).apply {
             text = "AI-Generated Work"
             textSize = 11.5f
@@ -244,7 +236,6 @@ object AiUiHelper {
                 }
             }
 
-            // 1. Maintain title pill metadata in bottom bar
             val resId = idOf(context, "title_text_view")
             val titleView = if (resId != 0) {
                 view.findViewById<TextView>(resId)

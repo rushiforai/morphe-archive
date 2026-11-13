@@ -1,9 +1,11 @@
 package com.facebook.aura.settings.internal.mcdebug;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.widget.Toast;
@@ -15,6 +17,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function0;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -28,6 +32,22 @@ public final class AuraMCDebugJsonBridge {
 
     private AuraMCDebugJsonBridge() {}
 
+    public static final class SettingsAction implements Function0<Unit> {
+        private final Context context;
+        private final Function0<Unit> openInternalSettings;
+
+        public SettingsAction(Context context, Function0<Unit> openInternalSettings) {
+            this.context = context;
+            this.openInternalSettings = openInternalSettings;
+        }
+
+        @Override
+        public Unit invoke() {
+            showActions(context, openInternalSettings);
+            return Unit.INSTANCE;
+        }
+    }
+
     private static Activity findActivity(Context context) {
         Context current = context;
         while (current instanceof ContextWrapper) {
@@ -39,6 +59,25 @@ public final class AuraMCDebugJsonBridge {
 
     private static File overrideFile(Context context) {
         return new File(new File(context.getFilesDir(), "mobileconfig"), "mc_overrides.json");
+    }
+
+    public static void showActions(Context context, final Function0<Unit> openInternalSettings) {
+        new AlertDialog.Builder(context)
+            .setTitle("Internal settings")
+            .setItems(new String[] {"Open internal settings", "Export modified flags", "Import flags"},
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (which == 0) {
+                            openInternalSettings.invoke();
+                        } else if (which == 1) {
+                            exportOverrides(context);
+                        } else if (which == 2) {
+                            importOverrides(context);
+                        }
+                    }
+                })
+            .show();
     }
 
     public static void exportOverrides(Context context) {
@@ -84,7 +123,7 @@ public final class AuraMCDebugJsonBridge {
                 Toast.makeText(activity, "muse_overrides.json exported", Toast.LENGTH_LONG).show();
             } else {
                 copyToOverrideFile(resolver.openInputStream(uri), overrideFile(activity));
-                Toast.makeText(activity, "Mobile Config overrides imported", Toast.LENGTH_LONG).show();
+                Toast.makeText(activity, "Overrides imported. Restart Muse to apply.", Toast.LENGTH_LONG).show();
             }
         } catch (Exception error) {
             String message = error.getMessage() == null ? error.getClass().getSimpleName() : error.getMessage();

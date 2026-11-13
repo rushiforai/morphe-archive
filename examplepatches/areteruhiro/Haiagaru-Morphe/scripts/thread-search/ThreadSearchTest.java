@@ -2,6 +2,11 @@ package app.morphe.extension.chmate;
 import java.util.regex.*;
 public class ThreadSearchTest{
  static int count;static boolean search(Object r,String q){return ThreadSearchText.reset(Pattern.compile(q).matcher(""),r).find();}static void check(boolean ok,String message){if(!ok)throw new AssertionError(message);count++;}
+ // Match the native literal compiler: fuzzy character classes, quoted characters, OR per word.
+ static String nativeQuery(String input){StringBuilder out=new StringBuilder();for(String word:input.split("[ 　]+")){if(out.length()>0)out.append('|');for(char c:word.toCharArray()){
+  if(c=='(')out.append("[(（]");else if(c==')')out.append("[)）]");else if(c=='-')out.append("[-－ー]");
+  else if(c>='a'&&c<='z'||c>='A'&&c<='Z')out.append('[').append(Character.toLowerCase(c)).append(Character.toUpperCase(c)).append(']');else out.append(Pattern.quote(String.valueOf(c)));
+ }}return out.toString();}
  public static void main(String[] args)throws Exception{
  for(String name:new String[]{"o.processAdDisplayErrorPostbackForUserError","o.BouncyCastleSocketAdapterCompanion","o.KeJ11"}){
   Object r=Class.forName(name).getConstructor().newInstance();String[] fields=name.endsWith("KeJ11")?new String[]{"h","n","p","g"}:name.contains("Bouncy")?new String[]{"d","m","t","j"}:new String[]{"c","n","q","h"};
@@ -15,8 +20,18 @@ public class ThreadSearchTest{
    ThreadSearchOptions.mask=2;check(search(r,Pattern.quote(literal)),"literal wacchoi including closing parenthesis: "+literal);
    ThreadSearchOptions.mask=0;check(!search(r,Pattern.quote(literal)),"wacchoi OFF excludes header: "+literal);
   }
+  ThreadSearchOptions.mask=2;
+  for(String literal:new String[]{"(ﾜｯﾁｮｲ abcd-EF12)","(ﾜｯﾁｮｲ abcd","(ﾜｯﾁｮｲ abcd-","(ﾜｯﾁｮｲ abcd-EF12","-EF12)"}){
+   String nativeRegex=nativeQuery(literal);check(search(r,nativeRegex),"native input matches target: "+literal);
+   r.getClass().getField(fields[1]).set(r,"名前 (ﾜｯﾁｮｲ zzzz-9999)");
+   check(!search(r,nativeRegex),"shared Wacchoi label cannot match unrelated ID: "+literal);
+   r.getClass().getField(fields[1]).set(r,"名前 (ﾜｯﾁｮｲ abcd-EF12)");
+  }
+  check(search(r,nativeQuery("本文 関係ない")),"ordinary native OR search preserved");
+  check(search(r,nativeQuery("(ﾜｯﾁｮｲ abcd AND 本文")),"explicit AND is not a literal search term");
   ThreadSearchOptions.mask=2;r.getClass().getField(fields[1]).set(r,"名前 (ﾜｯﾁｮｲ abcd-EF12 [192.0.2.1])");
   check(search(r,"abcd-EF12")&&!search(r,"192.0.2.1"),"wacchoi projection does not expose header IP");
+  check(search(r,nativeQuery("(ﾜｯﾁｮｲ abcd")),"Wacchoi prefix remains searchable before an IP suffix");
   r.getClass().getField(fields[1]).set(r,values[1]);
   ThreadSearchOptions.mask=0;r.getClass().getField(fields[0]).set(r,"本文にID:A.Af1CYTqとabcd-EF12と名前を引用");check(search(r,"A.Af1CYTq")&&search(r,"abcd-EF12")&&search(r,"名前"),"body quotes still match");r.getClass().getField(fields[0]).set(r,values[0]);
   ThreadSearchOptions.mask=7;Matcher reused=Pattern.compile("名前 AND 本文").matcher("");reused=ThreadSearchText.reset(reused,r);check(reused.find(),"AND first row");r.getClass().getField(fields[0]).set(r,"違う内容");reused=ThreadSearchText.reset(reused,r);check(!reused.find(),"no matcher row leak");r.getClass().getField(fields[0]).set(r,values[0]);

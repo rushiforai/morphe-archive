@@ -25,8 +25,9 @@ import app.morphe.extension.shared.settings.preference.QuickSetups;
  * button and Hide ghost post bubbles, which some people tap; Full size profile pictures, which
  * changes what tapping a profile picture does; Tap to play videos and Keep feed
  * position on return, which change how the feed behaves rather than what's in it; Show the date
- * and time, which changes how every post's time reads; and Open links in your browser, which
- * changes how every link opens. Back to defaults puts every switch a
+ * and time, which changes how every post's time reads; Open links in your browser, which
+ * changes how every link opens; and Spoof SIM region, which tells Threads the phone's SIM is
+ * another country's. Back to defaults puts every switch a
  * settings file carries back the way it started.
  */
 final class QuickSetupKeys {
@@ -34,7 +35,8 @@ final class QuickSetupKeys {
     static final List<BooleanSetting> QUIET = Collections.unmodifiableList(Arrays.asList(
             Settings.HIDE_ADS,
             Settings.HIDE_SUGGESTED_USERS,
-            Settings.HIDE_SEARCH_SUGGESTIONS));
+            Settings.HIDE_SEARCH_SUGGESTIONS,
+            Settings.HIDE_SUGGESTED_THREADS));
 
     /** Less sent about you: usage reports, tracking in shared links and screenshots. */
     static final List<BooleanSetting> PRIVACY = Collections.unmodifiableList(Arrays.asList(

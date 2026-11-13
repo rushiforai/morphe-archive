@@ -58,6 +58,7 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                 || SettingsStatus.refreshRateEnabled
                 || SettingsStatus.launcherShortcutsEnabled
                 || SettingsStatus.firstLaunchSetupEnabled
+                || SettingsStatus.openOnHomeEnabled
                 || SettingsStatus.screenCaptureEnabled
                 || SettingsStatus.storeIdentityEnabled
                 || SettingsStatus.passkeySignInEnabled
@@ -270,7 +271,7 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
         if (SettingsStatus.screenCaptureEnabled
                 || SettingsStatus.refreshRateEnabled
                 || SettingsStatus.launcherShortcutsEnabled || SettingsStatus.firstLaunchSetupEnabled
-                || SettingsStatus.storeIdentityEnabled || SettingsStatus.passkeySignInEnabled
+                || SettingsStatus.openOnHomeEnabled || SettingsStatus.storeIdentityEnabled || SettingsStatus.passkeySignInEnabled
                 || SettingsStatus.appLanguageEnabled) {
             addPreference(new SectionHeadingPreference(context, "System"));
         }
@@ -297,6 +298,15 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                             + "the icon still opens the app, and a shortcut you pinned yourself "
                             + "stays where you put it.",
                     Settings.HIDE_LAUNCHER_SHORTCUTS
+            ));
+        }
+        if (SettingsStatus.openOnHomeEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Always open on Home",
+                    "PineDrama sometimes starts on Discover, like in the first days after an install. "
+                            + "This starts it on Home instead.",
+                    Settings.OPEN_ON_HOME
             ));
         }
         addPreference(new TogglePreference(

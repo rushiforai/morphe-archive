@@ -55,6 +55,47 @@ class GpsJoyStickPolicyTest {
         }
     }
 
+    private fun splashCallback(p: GpsPolicy, registers: Int = 3, flags: Int = 1, params: List<String> = listOf("Z"), owner: String = p.splash) =
+        MutableMethod(ImmutableMethod(owner,"a",params.map { ImmutableMethodParameter(it,emptySet(),null) },"V",flags,emptySet(),emptySet(),
+            ImmutableMethodImplementation(registers,listOf(ImmutableInstruction10x(Opcode.RETURN_VOID)),emptyList(),emptyList())))
+
+    @Test fun splashCallbackForcesAdFreeBeforeAnyOtherCodeAndKeepsOriginalBody() {
+        for(p in listOf(gpsPlay534,gpsUnlocked534)) {
+            val m=splashCallback(p);val before=m.implementation!!.instructions.toList()
+            enableGpsSplashAdFree(m,p)
+            val code=m.implementation!!.instructions.toList()
+            assertEquals(Opcode.CONST_4,code[0].opcode)
+            // registerCount 3 with this+boolean parameters: p1 is v2.
+            assertEquals(2,(code[0] as OneRegisterInstruction).registerA)
+            assertEquals(1,(code[0] as NarrowLiteralInstruction).narrowLiteral)
+            assertEquals(before,code.drop(1))
+            assertEquals(3,m.implementation!!.registerCount)
+            assertTrue(code.take(1).none { it is ReferenceInstruction })
+        }
+    }
+
+    @Test fun splashCallbackWrongOwnerShapeOrRegistersFailsBeforeMutation() {
+        for(p in listOf(gpsPlay534,gpsUnlocked534)) {
+            for(m in listOf(splashCallback(p,4),splashCallback(p,3,9),splashCallback(p,3,1,listOf("I")),splashCallback(p,3,1,emptyList()),
+                splashCallback(p,3,1,listOf("Z"),"Lunsupported/Owner;"))) {
+                val before=m.implementation!!.instructions.toList()
+                assertThrows(IllegalArgumentException::class.java){enableGpsSplashAdFree(m,p)}
+                assertEquals(before,m.implementation!!.instructions.toList())
+            }
+        }
+    }
+
+    @Test fun everyPolicyPinsTheSplashCallbackWithDistinctVariantHashes() {
+        for(p in listOf(gpsPlay534,gpsUnlocked534)) {
+            assertEquals("Lse/a;",p.splash);assertEquals(p.splashPin,p.pins[p.splash])
+            assertEquals(4,p.pins.size)
+        }
+        assertNotEquals(gpsPlay534.splashPin,gpsUnlocked534.splashPin)
+        val modified = gpsPlay534.pins + (gpsPlay534.splash to "modified")
+        assertThrows(IllegalArgumentException::class.java) { selectGpsPolicy(modified) }
+        assertThrows(IllegalArgumentException::class.java) { selectGpsPolicy(gpsPlay534.pins - gpsPlay534.splash) }
+    }
+
     @Test fun wrongVersionOwnerOrStaticRegisterShapeFailsBeforeMutation() {
         for(p in listOf(gpsPlay534,gpsUnlocked534)) {
             for(m in listOf(method(p,13),method(p,14,1),method(p.copy(tierOwner="Lunsupported/Owner;")))) {

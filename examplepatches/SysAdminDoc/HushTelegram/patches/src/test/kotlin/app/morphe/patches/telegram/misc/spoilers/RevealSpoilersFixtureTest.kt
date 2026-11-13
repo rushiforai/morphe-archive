@@ -44,7 +44,6 @@ import app.morphe.util.names.origType
 import app.morphe.util.names.tgClassDefByOrNull
 import app.morphe.util.names.tgMutableClassDefBy
 
-private const val TEXT_BLOCKS = "Lorg/telegram/messenger/MessageObject\$TextLayoutBlocks;"
 private const val SEND_PARAMS = "Lorg/telegram/messenger/SendMessagesHelper\$SendMessageParams;"
 private const val CORE = "(Landroid/view/View;Landroid/text/Layout;IILandroid/text/Spanned;Ljava/util/Stack;Ljava/util/List;Ljava/util/ArrayList;)V"
 
@@ -58,7 +57,11 @@ class RevealSpoilersFixtureTest {
             val changed = (site.media.map { key(it.method) } + key(site.textCovers)).toSet()
             val old = (site.media.map { it.method } + site.textCovers).associate { key(it) to ImmutableMethod.of(it) }
             val untouched = hostState(build, context, changed)
-            assertEquals(emptyList<String>(), PatchLogCapture.warnings { revealSpoilersPatch.execute(context) })
+            // These hosts leave out the text block class the chat's menu and search hits read, so
+            // only those two step aside (ChatRevealFixtureTest covers them).
+            val warned = PatchLogCapture.warnings { revealSpoilersPatch.execute(context) }
+            assertEquals("$name: $warned", 1, warned.size)
+            assertTrue("$name: $warned", warned.single().endsWith("goes on without Show all spoilers, Expand all quotes or quotes opening on search hits."))
 
             // Text: six instructions in front, and Telegram's own path after them.
             val before = old.getValue(key(site.textCovers)).controlBody()
@@ -114,8 +117,10 @@ class RevealSpoilersFixtureTest {
             assertEquals(HAS_MEDIA_SPOILERS, stub("stockMediaCovered")[1].controlRef())
             assertEquals(listOf("$MESSAGE_OBJECT->needDrawBluredPreview()Z", "$MESSAGE_OBJECT->isHiddenSensitive()Z"),
                 stub("keptCovered").filter { it.opcode == Opcode.INVOKE_VIRTUAL }.map { it.controlRef() })
-            val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "revealSpoilers" }.controlBody()
-            assertEquals(1L, (status.first() as WideLiteralInstruction).wideLiteral)
+            fun flag(name: String) = (context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == name }.controlBody().first() as WideLiteralInstruction).wideLiteral
+            assertEquals(1L, flag("revealSpoilers"))
+            assertEquals("$name: no chat menu", 0L, flag("chatRevealMenu"))
+            assertEquals("$name: no search hits", 0L, flag("searchHitQuotes"))
         }
     }
 

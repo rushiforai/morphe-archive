@@ -280,7 +280,9 @@ public class PausedHooksTest {
         // Spoiler text and media only the sender covered come back uncovered.
         probes.put(PatchFamily.REVEAL_SPOILERS, Arrays.asList(
                 app.hushtelegram.extension.telegram.misc.SpoilersForTests::textUncovered,
-                app.hushtelegram.extension.telegram.misc.SpoilersForTests::mediaUncovered));
+                app.hushtelegram.extension.telegram.misc.SpoilersForTests::mediaUncovered,
+                app.hushtelegram.extension.telegram.misc.ChatRevealForTests::menuActive,
+                app.hushtelegram.extension.telegram.misc.ChatRevealForTests::searchActive));
         // A drag closes the keyboard.
         probes.put(PatchFamily.HIDE_KEYBOARD_ON_SCROLL, Collections.singletonList(
                 () -> app.hushtelegram.extension.telegram.misc.ScrollKeyboardForTests.dragCloses()));

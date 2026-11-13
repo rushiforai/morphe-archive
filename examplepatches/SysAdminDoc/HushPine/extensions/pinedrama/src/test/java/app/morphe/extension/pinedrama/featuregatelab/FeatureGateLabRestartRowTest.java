@@ -117,7 +117,7 @@ public class FeatureGateLabRestartRowTest {
             settle();
 
             assertTrue(lab.runLabChangeForTests(() -> {
-                FeatureGateLabUndo.applyPreset("47.6.3", "comment_emoji", catalog);
+                FeatureGateLabUndo.applyPreset("47.7.3", "comment_emoji", catalog);
                 return "";
             }));
             settle();
@@ -167,12 +167,12 @@ public class FeatureGateLabRestartRowTest {
         return (TextView) row;
     }
 
-    /** The shipped 47.6.3 entry the comment emoji preset writes, as FeatureGateTypedPresetsTest reads it. */
+    /** The shipped 47.7.3 entry the comment emoji preset writes, as FeatureGateTypedPresetsTest reads it. */
     private static Map<String, FeatureGateCatalog.Entry> presetCatalog() throws Exception {
-        BuildNames.setRunningBuildForTests("47.6.3");
+        BuildNames.setRunningBuildForTests("47.7.3");
         Map<String, FeatureGateCatalog.Entry> catalog = new LinkedHashMap<>();
         Map<String, String> types = new LinkedHashMap<>();
-        for (FeatureGateCatalog.Entry entry : FeatureGateCatalog.readStaticCatalog("47.6.3")) {
+        for (FeatureGateCatalog.Entry entry : FeatureGateCatalog.readStaticCatalog("47.7.3")) {
             if (entry.manager.equals("abmock") && entry.key.equals("tt_cmt_new_emoji")) {
                 catalog.put(entry.identity(), entry);
                 types.put(entry.key, entry.type);

@@ -67,11 +67,14 @@ jobs:
           unzip -l "$mpp" | grep -q ' classes.dex$' || { echo "classes.dex missing from $mpp"; exit 1; }
           url="https://github.com/${{ github.repository }}/releases/download/v$version/patches-$version.mpp"
           unzip -z "$mpp" | grep -q "$(cat morphe-signing.pub)" || { echo "$mpp is not signed with morphe-signing.pub"; exit 1; }
+          # The sync writes this release's entry at the top of CHANGELOG.md.
+          awk '/^## /{n++} n==1' CHANGELOG.md > notes.md
+          grep -q "^## \[$version\]" notes.md || { echo "CHANGELOG.md has no entry for $version"; exit 1; }
           jq -n --arg version "$version" --arg url "$url" --arg created "$(date -u +%Y-%m-%dT%H:%M:%S)" --arg key "$(cat morphe-signing.pub)" \
-            '{created_at: $created, description: "", download_url: $url, signature_download_url: "", version: $version, public_key: $key}' \
+            --rawfile notes notes.md \
+            '{created_at: $created, description: $notes, download_url: $url, signature_download_url: "", version: $version, public_key: $key}' \
             > patches-bundle.json
-          gh release create "v$version" "$mpp" patches-bundle.json --title "v$version" --target "$GITHUB_SHA" \
-            --notes "Built from this repository at ${GITHUB_SHA::7}. Add to Morphe: github.com/${{ github.repository }}"
+          gh release create "v$version" "$mpp" patches-bundle.json --title "v$version" --target "$GITHUB_SHA" --notes-file notes.md
         env:
           GH_TOKEN: ${{ github.token }}
 

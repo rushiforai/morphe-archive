@@ -123,13 +123,30 @@ internal fun Method.warmStartSite(): WarmStartSite {
     val body = implementation!!.instructions.toList()
     val answer = warmStartAnswer()
     val register = answer.register
-    val store = (answer.storeFrom until body.size).firstOrNull {
-        body[it].opcode == Opcode.IPUT_BOOLEAN && (body[it] as TwoRegisterInstruction).registerA == register
-    } ?: throw PatchException("$PATCH: the warm-start answer v$register is never stored")
+    val store = (answer.storeFrom until body.size).firstOrNull { body[it].storesWarmStart(register) }
+        ?: throw PatchException("$PATCH: the warm-start answer v$register is never stored")
     if ((answer.storeFrom until store).any { body[it].writes(register) }) {
         throw PatchException("$PATCH: the warm-start answer v$register is overwritten before it is stored")
     }
     return WarmStartSite(register, store)
+}
+
+/**
+ * Whether [this] stores the warm-start answer in [register] into the decision: an iput-boolean up to
+ * 454, and from 455 the decision's constructor, which takes it as a boolean argument.
+ */
+internal fun Instruction.storesWarmStart(register: Int): Boolean = when (opcode) {
+    Opcode.IPUT_BOOLEAN -> (this as TwoRegisterInstruction).registerA == register
+    Opcode.INVOKE_DIRECT -> {
+        val constructor = getReference<MethodReference>()
+        val invoke = this as FiveRegisterInstruction
+        val arguments = listOf(invoke.registerC, invoke.registerD, invoke.registerE, invoke.registerF, invoke.registerG)
+            .take(invoke.registerCount).drop(1)
+        val types = constructor?.parameterTypes?.map { it.toString() }.orEmpty()
+        constructor?.name == "<init>" && types.none { it == "J" || it == "D" } && types.size == arguments.size &&
+            arguments.indices.any { arguments[it] == register && types[it] == "Z" }
+    }
+    else -> false
 }
 
 /**

@@ -16,6 +16,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstructio
 import com.android.tools.smali.dexlib2.iface.instruction.ThreeRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
@@ -55,10 +56,11 @@ internal fun BytecodePatchContext.addFollowingEntryHooks() {
     """.trimIndent())
     settings.methods.remove(original)
     settings.methods.add(render)
-    if (packageMetadata.versionName == "1.3.0") {
+    if (packageMetadata.versionName in setOf("1.3.0", "1.4.0")) {
         addTvFollowingEntry()
         return
     }
+    addProfileFollowEntry()
     val candidates = mutableListOf<String>()
     classDefForEach { owner ->
         if (owner.type.startsWith(FOLLOWING)) {
@@ -105,6 +107,94 @@ private fun Instruction.registers(): List<Int> = when (this) {
     is TwoRegisterInstruction -> listOf(registerA, registerB)
     is OneRegisterInstruction -> listOf(registerA)
     else -> emptyList()
+}
+
+private fun BytecodePatchContext.addProfileFollowEntry() {
+    val channel = "Lcom/navercorp/game/android/community/data/core/entity/channel/StreamingChannelDetail;"
+    val model = "Lcom/navercorp/game/android/community/app/ui/home/channel/ChannelViewModel;"
+    val screen = mutableClassDefBy("Lcom/navercorp/game/android/community/app/ui/home/channel/ChannelScreenKt;")
+        .methods.single {
+            it.parameterTypeNames == listOf("Landroidx/compose/ui/Modifier;", model, COMPOSER, "I")
+        }
+    val instructions = screen.implementation!!.instructions.toList()
+    val infoCast = instructions.indexOfFirst {
+        (it.opcode == Opcode.CHECK_CAST && it.getReference<TypeReference>()?.type == channel) ||
+            it.getReference<MethodReference>()?.returnType == channel
+    }
+    check(infoCast >= 0)
+    val infoField = instructions.take(infoCast).mapNotNull { it.getReference<FieldReference>() }
+        .last { it.definingClass == model && it.type == "Landroidx/lifecycle/MutableLiveData;" }
+    val getters = listOf("channelId", "channelName", "channelImageUrl").map { field ->
+        classDefBy(channel).methods.single { method ->
+            method.parameterTypes.isEmpty() && method.returnType == "Ljava/lang/String;" &&
+                method.implementation?.instructions?.count() == 2 &&
+                method.implementation?.instructions?.any {
+                    it.getReference<FieldReference>()?.let { ref -> ref.definingClass == channel && ref.name == field } == true
+                } == true
+        }
+    }
+    val settings = mutableClassDefBy(SETTINGS)
+    val bodies = mapOf(
+        "profileChannel" to """
+            if-eqz p0, :missing
+            check-cast p0, $model
+            iget-object p0, p0, ${infoField.smaliReference}
+            invoke-virtual {p0}, Landroidx/lifecycle/LiveData;->getValue()Ljava/lang/Object;
+            move-result-object p0
+            if-eqz p0, :missing
+            check-cast p0, $channel
+            const/4 v0, 0x3
+            new-array v0, v0, [Ljava/lang/String;
+            ${getters.mapIndexed { index, getter -> """
+                invoke-virtual {p0}, ${getter.smaliReference}
+                move-result-object v2
+                const/4 v1, $index
+                aput-object v2, v0, v1
+            """.trimIndent() }.joinToString("\n")}
+            return-object v0
+            :missing
+            const/4 v0, 0x0
+            return-object v0
+        """,
+        "renderProfileFollow" to """
+            invoke-static {}, $SETTINGS->profileFollowFactory()Ljava/lang/Object;
+            move-result-object v0
+            check-cast v0, $FUNCTION
+            const/4 v1, 0x0
+            move-object v2, v0
+            move-object v3, p0
+            check-cast v3, $COMPOSER
+            const/4 v4, 0x0
+            const/4 v5, 0x2
+            invoke-static/range {v0 .. v5}, ${classDefBy("Landroidx/compose/ui/viewinterop/AndroidView_androidKt;").methods.single {
+                it.returnType == "V" && it.parameterTypeNames == listOf(FUNCTION, "Landroidx/compose/ui/Modifier;", FUNCTION, COMPOSER, "I", "I")
+            }.smaliReference}
+            return-void
+        """,
+    )
+    for ((name, body) in bodies) {
+        val original = settings.methods.single { it.name == name }
+        val bridge = MutableMethod(ImmutableMethod(SETTINGS, name, original.parameters,
+            original.returnType, original.accessFlags, original.annotations, original.hiddenApiRestrictions,
+            ImmutableMethodImplementation(7, emptyList(), emptyList(), emptyList())))
+        bridge.addInstructions(0, body.trimIndent())
+        settings.methods.remove(original)
+        settings.methods.add(bridge)
+    }
+    val buttons = instructions.withIndex().filter {
+        it.value.getReference<MethodReference>()?.let { ref ->
+            ref.definingClass == "Lcom/navercorp/game/android/community/ui/common/ui/channel/button/ChannelMotionButtonScreenKt;" &&
+                ref.name == "a" && ref.parameterTypeNames.size == 9 && ref.parameterTypeNames[6] == COMPOSER
+        } == true
+    }
+    check(buttons.isNotEmpty())
+    for ((index, instruction) in buttons.reversed()) {
+        val composer = instruction.registers()[6]
+        screen.addInstructions(index + 1,
+            "invoke-static/range {v$composer .. v$composer}, $SETTINGS->renderProfileFollow(Ljava/lang/Object;)V")
+    }
+    screen.addInstructions(0,
+        "invoke-static/range {p1 .. p1}, $SETTINGS->captureProfileModel(Ljava/lang/Object;)V")
 }
 
 private fun BytecodePatchContext.addTvFollowingEntry() {

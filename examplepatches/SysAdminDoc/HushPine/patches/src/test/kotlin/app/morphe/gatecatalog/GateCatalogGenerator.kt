@@ -569,7 +569,7 @@ object GateCatalogGenerator {
                         val raw = registersOf(instruction)
                         val args = ArrayList<Value?>()
                         var r = 0
-                        if (!opcode.name.startsWith("INVOKE_STATIC")) args += raw.getOrNull(r++)?.let { registers[it] }
+                        if (opcode != Opcode.INVOKE_STATIC && opcode != Opcode.INVOKE_STATIC_RANGE) args += raw.getOrNull(r++)?.let { registers[it] }
                         for (parameter in reference.parameterTypes) {
                             args += raw.getOrNull(r)?.let { registers[it] }
                             r += if (parameter.toString() == "J" || parameter.toString() == "D") 2 else 1

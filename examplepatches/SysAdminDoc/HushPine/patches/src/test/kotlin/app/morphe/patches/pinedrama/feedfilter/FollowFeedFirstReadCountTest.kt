@@ -25,21 +25,21 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * The Following request's count (#226): TikTok's helper calls FollowFeedApiV2.followFeedGet and
- * followFeedPost with the count held in a register it filled with the literal 20, and the hook
- * hands the cursor, level and count to the extension just before each call.
+ * The Following request's count (#226): TikTok's helper calls FollowFeedApiV2.followFeedPost with
+ * the count held in a register it filled with the literal 20, and the hook hands the cursor, level
+ * and count to the extension just before the call. 47.7.3 dropped followFeedGet.
  */
 class FollowFeedFirstReadCountTest {
     private val api = "Lcom/ss/android/ugc/aweme/follow/api/FollowFeedApiV2;"
     private val extension = "Lapp/morphe/extension/pinedrama/feedfilter/FollowingLatestFirst;"
 
     @Test
-    fun `every retained fixture has one helper that sets the count to 20 and the hook reaches both calls`() {
+    fun `every retained fixture has one helper that sets the count to 20 and the hook reaches the call`() {
         val apks = Fixtures.apks()
         assertTrue("fixtures: ${apks.map { it.name }}", apks.containsAll(Fixtures.declared()))
         apks.forEach { apk ->
-            val helpers = load(apk).values.flatMap { it.methods }.filter { it.callsBoth() }
-            assertEquals("${apk.name}: helpers calling both requests ${helpers.map { it.name }}", 1, helpers.size)
+            val helpers = load(apk).values.flatMap { it.methods }.filter { it.callsPost() }
+            assertEquals("${apk.name}: helpers calling the request ${helpers.map { it.name }}", 1, helpers.size)
             val method = MutableMethod(helpers.single())
             method.raiseFollowFeedFirstReadCount()
 
@@ -49,7 +49,7 @@ class FollowFeedFirstReadCountTest {
                     it is MethodReference && it.definingClass == extension && it.name == "requestCount"
                 }
             }
-            assertEquals("${apk.name}: hooks", 2, hooks.size)
+            assertEquals("${apk.name}: hooks", 1, hooks.size)
             hooks.forEach { (index, hook) ->
                 val range = hook as RegisterRangeInstruction
                 assertEquals("${apk.name}: cursor, level and count", 4, range.registerCount)
@@ -71,16 +71,16 @@ class FollowFeedFirstReadCountTest {
         assertTrue(error.message!!, error.message!!.contains("not the literal 20"))
     }
 
-    private fun Method.callsBoth(): Boolean {
+    private fun Method.callsPost(): Boolean {
         val names = implementation?.instructions
             ?.mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }
             ?.filter { it.definingClass == api }
             ?.map { it.name }
             .orEmpty()
-        return "followFeedGet" in names && "followFeedPost" in names
+        return "followFeedPost" in names
     }
 
-    /** A helper shaped like PineDrama's: the count register v7 is filled, then GET and POST are called. */
+    /** A helper shaped like PineDrama's: the count register v7 is filled, then the POST is called. */
     private fun helperSource(literal: Int): Method {
         fun call(name: String) = ImmutableInstruction3rc(
             Opcode.INVOKE_INTERFACE_RANGE,
@@ -100,7 +100,6 @@ class FollowFeedFirstReadCountTest {
                 8,
                 listOf(
                     ImmutableInstruction21s(Opcode.CONST_16, 7, literal),
-                    call("followFeedGet"),
                     call("followFeedPost"),
                     ImmutableInstruction10x(Opcode.RETURN_VOID),
                 ),

@@ -8,6 +8,7 @@ import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
+import android.os.Build;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,12 +16,14 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 /**
- * The phone's AAC encoder writing a mono .m4a, fed from the recorder's one thread. Every wait on
- * the encoder is bounded, so a codec that stops answering ends the recording as a failure rather
- * than holding the thread.
+ * The phone's AAC encoder writing a mono .m4a, or its Opus encoder writing a mono .ogg, fed from
+ * the recorder's one thread. Every wait on the encoder is bounded, so a codec that stops answering
+ * ends the recording as a failure rather than holding the thread.
  */
 final class CallAac implements CallRecorder.Output {
     private static final int BIT_RATE = 64_000;
+    /** Opus keeps a voice clear at half AAC's rate, which is the point of choosing it. */
+    static final int OPUS_BIT_RATE = 32_000;
     private static final long WAIT_US = 10_000;
     /** About ten seconds of waits before the encoder counts as stuck. */
     private static final int PATIENCE = 1_000;
@@ -34,22 +37,35 @@ final class CallAac implements CallRecorder.Output {
     private boolean wrote;
     private long samples;
 
-    CallAac(File file) throws IOException {
+    CallAac(File file, CallRecordings.Format kind) throws IOException {
         this.file = file;
-        MediaFormat format = MediaFormat.createAudioFormat(MediaFormat.MIMETYPE_AUDIO_AAC, CallMixer.RATE, 1);
-        format.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC);
-        format.setInteger(MediaFormat.KEY_BIT_RATE, BIT_RATE);
+        boolean opus = kind == CallRecordings.Format.OPUS;
+        if (opus && Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) throw new IOException("Opus files need Android 10");
+        MediaFormat format = encoding(kind);
         format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 16 * 1024);
-        MediaCodec encoder = MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_AUDIO_AAC);
+        MediaCodec encoder = MediaCodec.createEncoderByType(kind.codec);
         try {
             encoder.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
             encoder.start();
-            muxer = new MediaMuxer(file.getPath(), MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+            muxer = new MediaMuxer(file.getPath(), opus
+                    ? MediaMuxer.OutputFormat.MUXER_OUTPUT_OGG : MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
         } catch (IOException | RuntimeException failure) {
             encoder.release();
             throw failure;
         }
         codec = encoder;
+    }
+
+    /** What the encoder is asked for: mono call audio at the mixer's rate, AAC-LC or Opus. */
+    static MediaFormat encoding(CallRecordings.Format kind) {
+        MediaFormat format = MediaFormat.createAudioFormat(kind.codec, CallMixer.RATE, 1);
+        if (kind == CallRecordings.Format.OPUS) {
+            format.setInteger(MediaFormat.KEY_BIT_RATE, OPUS_BIT_RATE);
+        } else {
+            format.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC);
+            format.setInteger(MediaFormat.KEY_BIT_RATE, BIT_RATE);
+        }
+        return format;
     }
 
     @Override public void write(short[] pcm, int count) throws IOException {

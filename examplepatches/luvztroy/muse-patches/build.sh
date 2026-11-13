@@ -16,27 +16,27 @@ fetch json-20240303.jar https://repo.maven.apache.org/maven2/org/json/json/20240
 if [[ ! -x .tools/kotlin/kotlinc/bin/kotlinc ]]; then unzip -q .tools/kotlin-compiler-2.4.21.zip -d .tools/kotlin; fi
 RUNTIME="$PWD/.tools/morphe-desktop-1.19.0-all.jar"
 javac --release 11 -cp "$RUNTIME" -d build/tools tools/Assemble.java
-for group in mcdebug trust trust14 trust15 trust15_9 jsonhooks jsonhooks14 jsonhooks15 jsonhooks15_9; do
+for group in mcdebug trust trust14 trust15 trust15_9 trust16 jsonhooks jsonhooks14 jsonhooks15 jsonhooks15_9 jsonhooks16; do
   java -cp "$RUNTIME:build/tools" Assemble "src/replacements/$group" "build/resources/muse/$group.dex"
 done
-javac --release 11 -cp .tools/android-4.1.1.4.jar:.tools/json-20240303.jar -d build/jsonbridge/classes tools/jsonbridge/src/com/facebook/aura/settings/internal/mcdebug/AuraMCDebugJsonBridge.java
+javac --release 11 -cp "$RUNTIME":.tools/android-4.1.1.4.jar:.tools/json-20240303.jar -d build/jsonbridge/classes tools/jsonbridge/src/com/facebook/aura/settings/internal/mcdebug/AuraMCDebugJsonBridge.java
 jar --create --file build/jsonbridge/bridge.jar -C build/jsonbridge/classes .
-java -cp .tools/r8-9.1.31.jar com.android.tools.r8.D8 --release --min-api 29 --lib .tools/android-4.1.1.4.jar --lib .tools/json-20240303.jar --lib "${JAVA_HOME:-/usr/lib/jvm/java-21-openjdk-amd64}" --output build/jsonbridge/dex build/jsonbridge/bridge.jar
+java -cp .tools/r8-9.1.31.jar com.android.tools.r8.D8 --release --min-api 29 --lib .tools/android-4.1.1.4.jar --lib .tools/json-20240303.jar --lib "$RUNTIME" --lib "${JAVA_HOME:-/usr/lib/jvm/java-21-openjdk-amd64}" --output build/jsonbridge/dex build/jsonbridge/bridge.jar
 cp build/jsonbridge/dex/classes.dex build/resources/muse/jsonbridge.dex
 .tools/kotlin/kotlinc/bin/kotlinc src/main/kotlin -classpath "$RUNTIME" -jvm-target 11 -Xlambdas=class -d build/classes
 cat > build/MANIFEST.MF <<'EOF'
 Manifest-Version: 1.0
 Name: luvztroy patches
 Description: Clone, MC Debug, Mobile Config import/export and local trust
-Version: 1.2.6
+Version: 1.2.7
 Patcher-Version: 2.0.0
 Author: luvztroy custom patches
 License: GPL-3.0-only
 
 EOF
-jar --create --file build/libs/muse-patches-1.2.6.mpp --manifest build/MANIFEST.MF -C build/classes . -C build/resources . -C . LICENSE -C . NOTICE
+jar --create --file build/libs/muse-patches-1.2.7.mpp --manifest build/MANIFEST.MF -C build/classes . -C build/resources . -C . LICENSE -C . NOTICE
 jar --create --file build/patch-classes.jar -C build/classes .
 java -cp .tools/r8-9.1.31.jar com.android.tools.r8.D8 --release --min-api 26 --lib .tools/android-4.1.1.4.jar --lib "${JAVA_HOME:-/usr/lib/jvm/java-21-openjdk-amd64}" --classpath "$RUNTIME" --output build/dex build/patch-classes.jar
-jar --update --file build/libs/muse-patches-1.2.6.mpp -C build/dex classes.dex
-java -jar "$RUNTIME" list-patches --patches build/libs/muse-patches-1.2.6.mpp -p -v
-sha256sum build/libs/muse-patches-1.2.6.mpp
+jar --update --file build/libs/muse-patches-1.2.7.mpp -C build/dex classes.dex
+java -jar "$RUNTIME" list-patches --patches build/libs/muse-patches-1.2.7.mpp -p -v
+sha256sum build/libs/muse-patches-1.2.7.mpp

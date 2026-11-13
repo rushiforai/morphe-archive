@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="eyp_hidden_playlists_screen_title">Hidden playlists</string>
+    <string name="eyp_hidden_playlists_screen_summary">Playlists YouTube builds for every channel but never lists</string>
+    <string name="eyp_hidden_playlists_title">Show hidden playlists</string>
+    <string name="eyp_hidden_playlists_summary">First in the Playlists tab of a channel</string>
+    <string name="eyp_hidden_playlists_tab_title">Add Playlists tab</string>
+    <string name="eyp_hidden_playlists_tab_summary">To channels that have none</string>
+    <string name="eyp_hidden_playlists_uploads">Uploads</string>
+    <string name="eyp_hidden_playlists_popular">Popular</string>
+    <string name="eyp_hidden_playlists_members">Members only</string>
+    <string name="eyp_hidden_playlists_all">All</string>
+    <string name="eyp_hidden_playlists_videos">Videos</string>
+    <string name="eyp_hidden_playlists_shorts">Shorts</string>
+    <string name="eyp_hidden_playlists_live">Live streams</string>
+</resources>

@@ -7,15 +7,14 @@ import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21t
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction35c
 import id.ikuradachi.patches.crunchyroll.shared.Constants.COMPATIBILITY_CRUNCHYROLL
 
 @Suppress("unused")
 val disableTelemetryPatch = bytecodePatch(
     name = "Disable telemetry",
-    description = "Blocks Segment and Mux events, disables Firebase Analytics after consent updates, denies automatic Crashlytics uploads and selects disabled Datadog setup. SDK initialization, queued Segment events, local metadata, Firebase collection before consent updates, local crash recording and explicit report submission remain; independent Braze and Singular behavior is unchanged.",
-    default = false,
+    description = "Blocks Segment and Mux events, disables periodic telemetry loops and flush timers (Mux 1000ms playback poll, Segment 30s flush, Braze push flush alarms, Datadog upload thread), disables Firebase Analytics after consent updates, denies automatic Crashlytics uploads and selects disabled Datadog setup.",
+    default = true,
 ) {
     compatibleWith(COMPATIBILITY_CRUNCHYROLL)
 
@@ -64,7 +63,7 @@ val disableTelemetryPatch = bytecodePatch(
             val implementation = requireNotNull(match.method.implementation)
             val instructions = implementation.instructions
             val condition = match.instructionMatches[1]
-            val register = condition.getInstruction<TwoRegisterInstruction>().registerA
+            val register = condition.getInstruction<OneRegisterInstruction>().registerA
             val branch = instructions[match.instructionMatches[2].index] as BuilderInstruction21t
             val target = branch.target.location.index
             val targetOpcodes = instructions.drop(target).take(6).map { it.opcode }
@@ -74,11 +73,34 @@ val disableTelemetryPatch = bytecodePatch(
             ) || targetOpcodes.take(5) == listOf(
                 Opcode.CONST_16, Opcode.NEW_INSTANCE,
                 Opcode.INVOKE_DIRECT, Opcode.MOVE_OBJECT, Opcode.SPUT_OBJECT,
+            ) || targetOpcodes.take(4) == listOf(
+                Opcode.NEW_INSTANCE, Opcode.INVOKE_DIRECT,
+                Opcode.MOVE_OBJECT, Opcode.SPUT_OBJECT,
             )
             check(
                 implementation.registerCount in setOf(38, 63) && register in 0..15 && branch.registerA == register && validBranch,
             ) { "Unexpected Datadog disabled branch" }
             match.method.replaceInstruction(condition.index, "const/4 v$register, 0x0")
         }
+
+        // Target 12: Mux 1000ms fixed delay scheduled polling loop
+        val muxMatch = MuxEventQueue1000msTimerFingerprint.matchAll(1..1).single()
+        val scheduleCall = muxMatch.instructionMatches.last()
+        muxMatch.method.addInstruction(scheduleCall.index, "return-void")
+
+        // Target 13: Segment 30-second recurring flush gate (force false)
+        SegmentShouldFlushFingerprint.matchAll(1..1).single().method.addInstructions(
+            0,
+            """
+                const/4 v0, 0x0
+                return v0
+            """.trimIndent(),
+        )
+
+        // Target 14: Braze AlarmManager-scheduled push delivery flush receiver
+        BrazeFlushReceiverFingerprint.matchAll(1..1).single().method.addInstruction(0, "return-void")
+
+        // Target 15: Datadog continuous in-memory upload thread starter
+        DatadogUploadSchedulerStartFingerprint.matchAll(1..1).single().method.addInstruction(0, "return-void")
     }
 }

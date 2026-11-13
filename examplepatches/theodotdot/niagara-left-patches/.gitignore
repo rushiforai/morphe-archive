@@ -1,0 +1,20 @@
+### Gradle
+.gradle
+**/build/
+local.properties
+
+### Signing key, never commit
+morphe-signing.key
+
+### Test APKs
+*.apk
+*.apkm
+*.xapk
+
+### IDE
+.idea/
+*.iml
+.vscode/
+
+### Patcher workspace
+morphe-temporary-files/

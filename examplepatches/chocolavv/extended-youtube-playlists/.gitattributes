@@ -1,0 +1,10 @@
+# Text files use LF in the repo and in every working copy, whatever core.autocrlf says:
+# the build runs on Linux, and a CRLF script or .env breaks there.
+* text=auto eol=lf
+
+# Windows scripts need CRLF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+*.jar binary
+*.png binary

@@ -1146,7 +1146,7 @@ Couldn't save the call recording.	Arama kaydı kaydedilemedi.
 # context: a switch on the Privacy page under Record calls (#39), off by default. Turned on, it puts a round record button on Telegram's call screen, right under the minimize arrow in the top left corner.
 Record button on calls	Aramalarda kayıt düğmesi
 # context: that switch's summary. "Record calls" is the name of the switch above it, which records every call. A tap on the button records only the call on screen, or, with Record calls on, skips recording that one call.
-A button on the call screen records just that call, or stops recording it when Record calls is on.	Arama ekranındaki bir düğme yalnızca o aramayı kaydeder ya da Aramaları kaydet açıkken o aramanın kaydını durdurur.
+A button on the call and voice chat screens records just that call, or stops recording it when Record calls is on.	Arama ve sesli sohbet ekranındaki bir düğme yalnızca o aramayı kaydeder ya da Aramaları kaydet açıkken o aramanın kaydını durdurur.
 # context: a short toast shown when the record button on the call screen is tapped and the call starts recording.
 Recording this call	Bu arama kaydediliyor
 # context: a short toast shown when the record button on the call screen is tapped again and the call stops recording. What was already recorded is still saved.
@@ -1628,6 +1628,8 @@ Don't notify contacts	Kişilere bildirim gönderme
 When you sign up a phone number that's new to Telegram, people who have it saved aren't told you joined. Accounts that already exist aren't affected.	Telegram'da yeni olan bir telefon numarasıyla kaydolduğunda, onu kayıtlı tutan kişilere katıldığın bildirilmez. Zaten var olan hesaplar etkilenmez.
 # context: Lowercase noun phrase naming the Don't notify contacts switch (#71) in the patch status list
 quiet sign-up	sessiz kayıt
+# context: Lowercase noun phrase naming the Delete account row (#71) in the patch status list
+account deletion	hesap silme
 # context: Lowercase noun phrase naming Proxy order (#71) in the patch status list
 proxy order	proxy sırası
 # context: Title of the Proxy order row on the Chat list page and of its editor dialog (#71). It sets the order of the proxies on Telegram's own proxy screen
@@ -1855,5 +1857,52 @@ Recordings stay until you delete them.	Kayıtlar siz silene kadar kalır.
 Recordings older than %1$d day are deleted when the next one is saved.	%1$d günden eski kayıtlar bir sonraki kaydedildiğinde silinir.
 Recordings older than %1$d days are deleted when the next one is saved.	%1$d günden eski kayıtlar bir sonraki kaydedildiğinde silinir.
 Until you delete them	Siz silene kadar
+Recordings folder	Kayıt klasörü
+Recordings go to %1$s. The usual folder is %2$s.	Kayıtlar %1$s klasörüne gider. Olağan klasör %2$s.
+Choose another folder	Başka klasör seç
+Use the usual folder	Olağan klasörü kullan
+Couldn't use that folder. Pick another one.	Bu klasör kullanılamıyor. Başka birini seç.
+This phone has no folder picker.	Bu telefonda klasör seçici yok.
+Internal storage	Dahili depolama
+Save recordings as Opus	Kayıtları Opus olarak kaydet
+Files about half the size, ending in .ogg. Some older players can't open them.	Dosyalar yaklaşık yarı boyutta olur ve .ogg ile biter. Bazı eski oynatıcılar bunları açamaz.
+Notify when a call is saved	Arama kaydedilince bildir
+A tap on the notification plays the recording. Its buttons share it or send it to your Saved Messages.	Bildirime dokunmak kaydı oynatır. Düğmeleri kaydı paylaşır veya Kayıtlı Mesajlar'a gönderir.
+Call recordings	Arama kayıtları
+Call recording saved	Arama kaydı kaydedildi
+Share	Paylaş
 %1$d day	%1$d gün
 %1$d days	%1$d gün
+# context: Delete account (#71). A row on the Privacy page, the dialog it opens (the name is the account's, and the button is the row's title again) and the toasts after Telegram answers. The day count is how long Telegram waits before deleting an account that has a cloud password.
+Delete account	Hesabı sil
+Deletes the account you're using now, with its messages and contacts. If it has a cloud password, Telegram waits a week first.	Şu an kullandığın hesabı mesajları ve kişileriyle birlikte siler. Bulut şifresi varsa Telegram önce bir hafta bekler.
+Delete this account?	Bu hesap silinsin mi?
+Telegram deletes %1$s with all its messages and contacts. This can't be undone.	Telegram %1$s hesabını tüm mesajları ve kişileriyle birlikte siler. Bu geri alınamaz.
+Account deleted.	Hesap silindi.
+Telegram deletes the account in %1$d day.	Telegram hesabı %1$d gün içinde silecek.
+Telegram deletes the account in %1$d days.	Telegram hesabı %1$d gün içinde silecek.
+Telegram didn't delete the account.	Telegram hesabı silmedi.
+# context: Show all spoilers and quotes (#71). Two items in a chat's menu at the top (the three dots), the toasts they show, and two switches on the Reveal spoilers page. The summary names the two menu items, so use the same words for them there. A collapsed quote is a long quote Telegram shows folded, with a button to expand it.
+Show all spoilers	Tüm spoilerları göster
+Expand all quotes	Tüm alıntıları genişlet
+Couldn't update the messages here.	Buradaki mesajlar güncellenemedi.
+No hidden spoilers in the loaded messages.	Yüklenen mesajlarda gizli spoiler yok.
+No collapsed quotes in the loaded messages.	Yüklenen mesajlarda daraltılmış alıntı yok.
+Show all spoilers and quotes	Tüm spoilerları ve alıntıları göster
+A chat's menu at the top gets Show all spoilers and Expand all quotes, for the messages loaded so far.	Bir sohbetin üstteki menüsüne, şimdiye kadar yüklenen mesajlar için Tüm spoilerları göster ve Tüm alıntıları genişlet eklenir.
+Open quotes on search hits	Arama sonuçlarında alıntıları aç
+When a chat search lands on a match inside a collapsed quote, the quote opens so the highlighted match stays in view.	Sohbet araması daraltılmış bir alıntının içindeki bir eşleşmeye denk geldiğinde, vurgulanan eşleşme görünür kalsın diye alıntı açılır.
+# context: Lowercase noun phrase naming the Show all spoilers and quotes switch (#71) in the patch status list
+spoiler and quote items in the chat menu	sohbet menüsünde spoiler ve alıntı öğeleri
+# context: Lowercase noun phrase naming the Open quotes on search hits switch (#71) in the patch status list
+quotes opened on search hits	arama sonuçlarında açılan alıntılar
+# context: Label of the Select all button (#73) in the bar that shows while messages are selected, and of its switch.
+Select all	Tümünü seç
+# context: Toast from Select all when every loaded message is already selected.
+Everything here is already selected	Buradaki her şey zaten seçili
+# context: Summary of the Select all switch (#73). The bar is the one that appears at the top of a chat, or of a chat's shared media, while messages are selected.
+Adds a Select all button to the bar that shows while you pick messages, in chats and in a chat's shared media. It selects everything loaded, newest first, up to Telegram's limit of 100.	Mesaj seçerken beliren çubuğa, sohbetlerde ve bir sohbetin paylaşılan medyasında Tümünü seç düğmesi ekler. Yüklenen her şeyi en yeniden başlayarak, Telegram'ın 100 sınırına kadar seçer.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the Select all button in chats.
+selecting every loaded message in a chat	bir sohbette yüklenen tüm mesajları seçme
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the Select all button in a chat's shared media.
+selecting everything in shared media	paylaşılan medyada her şeyi seçme

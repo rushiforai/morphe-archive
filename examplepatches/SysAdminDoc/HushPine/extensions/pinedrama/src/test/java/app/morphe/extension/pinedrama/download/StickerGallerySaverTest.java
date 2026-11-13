@@ -343,6 +343,26 @@ public class StickerGallerySaverTest {
         assertTrue(report, report.contains("sticker saves") && report.contains("1 missing"));
     }
 
+    /**
+     * PineDrama 47.7.3 keeps four labels in fields of the TextView class its action button
+     * extends, so the largest like-typed set on the row is labels, not actions.
+     */
+    @Test public void moreLabelsThanActionsStillPutsTheSaveButtonWithTheActions() {
+        android.content.Context context = RuntimeEnvironment.getApplication();
+        app.morphe.extension.shared.Utils.setContext(context);
+        LabelledStickerSheet sheet = new LabelledStickerSheet(context);
+
+        PreviewModel preview = new PreviewModel();
+        StickerGallerySaver.registerStickerSource(preview, sticker("https://example.invalid/sticker.png"));
+        StickerGallerySaver.attachSaveImageButton(sheet, preview);
+
+        assertEquals("the Save media button went with the labels", 3, sheet.actions.getChildCount());
+        assertSame(sheet.share, sheet.actions.getChildAt(0));
+        assertSame(sheet.favorite, sheet.actions.getChildAt(1));
+        assertEquals("morphe_save_media", sheet.actions.getChildAt(2).getTag());
+        assertEquals(3, sheet.labels.getChildCount());
+    }
+
     /** PineDrama's action button: a TextView subclass with a name that changes every build. */
     private static final class RenamedEveryBuild extends android.widget.TextView {
         RenamedEveryBuild(android.content.Context context) { super(context); }
@@ -372,6 +392,36 @@ public class StickerGallerySaverTest {
             addView(caption);
             addView(actions);
             addView(close);
+        }
+    }
+
+    /** The 47.7.3 row: three labels of the base TextView class, then the two actions. */
+    private static final class LabelledStickerSheet extends android.widget.LinearLayout {
+        final android.widget.TextView title;
+        final android.widget.TextView author;
+        final android.widget.TextView count;
+        final RenamedEveryBuild favorite;
+        final RenamedEveryBuild share;
+        final android.widget.LinearLayout labels;
+        final android.widget.LinearLayout actions;
+
+        LabelledStickerSheet(android.content.Context context) {
+            super(context);
+            setOrientation(VERTICAL);
+            title = new android.widget.TextView(context);
+            author = new android.widget.TextView(context);
+            count = new android.widget.TextView(context);
+            share = new RenamedEveryBuild(context);
+            favorite = new RenamedEveryBuild(context);
+            labels = new android.widget.LinearLayout(context);
+            labels.addView(title);
+            labels.addView(author);
+            labels.addView(count);
+            actions = new android.widget.LinearLayout(context);
+            actions.addView(share);
+            actions.addView(favorite);
+            addView(labels);
+            addView(actions);
         }
     }
 

@@ -30,7 +30,9 @@ jobs:
           distribution: temurin
           java-version: '21'
       - name: Verify version, metadata and immutable release sources
-        run: python3 porting/tests/VerifyReleaseBaseline.py
+        run: |
+          python3 porting/tests/VerifyReleaseBaseline.py
+          python3 porting/revisions/v2.0.1-release/test_release.py
       - name: Verify helper source ownership before release
         run: python3 porting/tests/VerifyCanonicalHelpers.py
       - name: Make Gradle dependency downloads resilient
@@ -50,6 +52,8 @@ jobs:
         run: |
           if grep -Fq "version = 2.0.0" gradle.properties; then
             NICOID_OFFICIAL_RELEASE_APPROVED=VERIFY bash .github/scripts/stage-v2.0.0-mpp.sh
+          elif grep -Fq "version = 2.0.1" gradle.properties; then
+            NICOID_OFFICIAL_RELEASE_APPROVED=VERIFY bash .github/scripts/stage-v2.0.1-mpp.sh
           else
             python3 porting/revisions/v1.11.1/verify-mpp.py 1.11.1
           fi

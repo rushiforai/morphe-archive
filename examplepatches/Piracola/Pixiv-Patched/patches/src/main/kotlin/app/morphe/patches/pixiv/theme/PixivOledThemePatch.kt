@@ -14,7 +14,6 @@ val pixivOledThemePatch: ResourcePatch = resourcePatch(
     compatibleWith(PixivConstants.PIXIV)
 
     execute {
-        // Override color definitions in res/values/colors.xml
         try {
             document("res/values/colors.xml").use { doc ->
                 val colorNodes = doc.getElementsByTagName("color")

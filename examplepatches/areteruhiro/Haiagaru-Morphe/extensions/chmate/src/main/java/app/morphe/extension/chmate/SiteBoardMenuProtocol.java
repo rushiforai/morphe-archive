@@ -5,7 +5,7 @@ import java.io.IOException;import java.util.*;import org.json.*;import org.jsoup
 /** Public board menus only; no posts or executable site code are retained. */
 final class SiteBoardMenuProtocol {
  static final String[] KINDS={"edge","kenmo","bakusai","futaba","animanch"};
- static String title(String kind){return kind.equals("edge")?"エッヂ":kind.equals("kenmo")?"けんも板":kind.equals("bakusai")?"爆サイ":kind.equals("futaba")?"ふたば":"あにまん";}
+ static String title(String kind){return kind.equals("edge")?"エッヂ":kind.equals("kenmo")?"オルグ板":kind.equals("bakusai")?"爆サイ":kind.equals("futaba")?"ふたば":"あにまん";}
  static String home(String kind){return kind.equals("edge")?"https://bbs.eddibb.cc/liveedge/":kind.equals("kenmo")?"https://kenmo.org/":kind.equals("bakusai")?"https://bakusai.com/":kind.equals("futaba")?"https://www.2chan.net/":AnimanchProtocol.ORIGIN+"/";}
  static final String[] REGIONS={"hokkaido","hokubukyusyu","hokuriku","kansai","kitakanto","kitatohoku","koshinetstu","minamikanto","minamitohoku","nanbukyusyu","okinawa","sanin","sanyo","shikoku","tokai"};
  static final String[] REGION_NAMES={"北海道","北部九州","北陸","関西","北関東","北東北","甲信越","南関東","南東北","南部九州","沖縄","山陰","山陽","四国","東海"};

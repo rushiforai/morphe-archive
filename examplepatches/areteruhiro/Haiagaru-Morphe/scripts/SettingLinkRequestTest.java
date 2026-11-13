@@ -21,6 +21,8 @@ public final class SettingLinkRequestTest {
   }
   ok(Boolean.TRUE.equals(SettingLinkRequest.parse("Haiagaru.設定.スレ内検索にIDを含める.オン").value),"Japanese ON alias");
   ok(Boolean.FALSE.equals(SettingLinkRequest.parse("Haiagaru.設定.スレ内検索にIDを含める.オフ").value),"Japanese OFF alias");
+  ok(SettingLinkRequest.alias("使用する：けんも板の閲覧・板一覧").equals(SettingLinkRequest.normalize("使用する：オルグ板の閲覧・板一覧")),"renamed Org setting accepts its old qualified label");
+  ok(SettingLinkRequest.alias("けんも板の閲覧・板一覧").equals("オルグ板の閲覧・板一覧"),"old history-toggle label alias");
   System.out.println("PASS "+n+" settings link parser/round-trip/invalid-input checks");
  }
 }

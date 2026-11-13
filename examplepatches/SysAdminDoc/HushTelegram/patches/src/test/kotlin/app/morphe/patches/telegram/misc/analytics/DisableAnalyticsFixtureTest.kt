@@ -63,7 +63,7 @@ class DisableAnalyticsFixtureTest {
                     it.origRef() == SAVE_APP_LOG }
             }
             val context = PatchContexts.of(ExtensionDex.classes() + (appLogClasses + metricsClass + ghostModeHosts(build) + instantLockHosts(build) +
-                quietSignUpHosts(build)).distinctBy { it.type })
+                quietSignUpHosts(build) + deleteAccountHosts(build)).distinctBy { it.type })
             val warnings = PatchLogCapture.warnings { disableAnalyticsPatch.execute(context) }
             assertEquals("$where: the patch log", emptyList<String>(), warnings)
 

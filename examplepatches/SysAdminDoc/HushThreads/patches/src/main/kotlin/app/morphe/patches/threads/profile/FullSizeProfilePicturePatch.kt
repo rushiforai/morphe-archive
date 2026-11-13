@@ -129,12 +129,18 @@ internal fun Instruction.isFocusedPictureNote(): Boolean =
     (opcode == Opcode.CONST_STRING || opcode == Opcode.CONST_STRING_JUMBO) &&
         getReference<StringReference>()?.string?.startsWith(FOCUSED_PICTURE_NOTE) == true
 
-/** A static call answering the account's session from one argument and an int: how Compose code reads it. */
+/**
+ * A static call answering the account's session from one object argument and an int: how Compose
+ * code reads it. 455's second ARMv7 build reads it through a helper taking the object alone.
+ */
 private fun Instruction.readsSession(): MethodReference? {
     if (opcode != Opcode.INVOKE_STATIC && opcode != Opcode.INVOKE_STATIC_RANGE) return null
     val call = getReference<MethodReference>() ?: return null
     val parameters = call.parameterTypes.map { it.toString() }
-    return call.takeIf { it.returnType == USER_SESSION && parameters.size == 2 && parameters[1] == "I" }
+    return call.takeIf {
+        it.returnType == USER_SESSION && parameters.firstOrNull()?.startsWith("L") == true &&
+            (parameters.size == 1 || parameters.size == 2 && parameters[1] == "I")
+    }
 }
 
 /** Threads' enlarged profile picture: the one static, void method outside the extension carrying its note. */
@@ -216,13 +222,13 @@ internal fun BytecodePatchContext.profileModel(picture: FocusedPicture): () -> U
         return-object p0
     """)
 
+    // The int, where the read takes one, is the one Threads' own read passes: 1.
+    val read = if (session.parameterTypes.size == 2) "const/4 v0, 0x1\ninvoke-static { p0, v0 }, $session" else "invoke-static { p0 }, $session"
     return {
-        // The int is the one Threads' own read passes: 1.
         writeStub(PROFILE_MODEL, "session", 2, """
             if-eqz p0, :none
             check-cast p0, $composerType
-            const/4 v0, 0x1
-            invoke-static { p0, v0 }, $session
+            $read
             move-result-object p0
             return-object p0
             :none

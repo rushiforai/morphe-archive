@@ -17,6 +17,7 @@ internal val TITANIUM_VERSIONS = listOf(
     "156.0.8078.79",
     "157.0.8103.38",
     "157.0.8103.50",
+    "157.0.8103.78",
 )
 
 internal fun titaniumCompatibility() = Compatibility(

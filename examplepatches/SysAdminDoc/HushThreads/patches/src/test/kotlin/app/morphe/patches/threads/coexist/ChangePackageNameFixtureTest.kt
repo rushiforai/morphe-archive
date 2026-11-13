@@ -8,9 +8,11 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.shared.compat.AppCompatibilities.THREADS_PACKAGE
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -18,7 +20,9 @@ import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
@@ -59,18 +63,23 @@ class ChangePackageNameFixtureTest {
 
     /**
      * The check hands the name it was given to the extension. Yes answers yes; anything else carries
-     * on into Threads' own comparison, kept whole.
+     * on into Threads' own comparison, kept whole. On the x86 builds the check asks Redex's table of
+     * outlined strings for the debug name, and a check whose index finds another string is refused.
      */
     @Test
     fun `each declared build's copy passes Threads' own package check`() {
         for (build in Fixtures.declaredBuilds()) {
+            val (signature, outlined) = CHECKS.entries.single { build.name.contains("-${it.key}.") }.value
             val checkClasses = checkClasses(build)
-            val stock = checkClasses.flatMap { it.methods }.single { it.isOwnPackageCheck() }
+            val stock = checkClasses.flatMap { it.methods }.single { "${it.definingClass}->${it.name}" == signature }
             val stockCode = stock.implementation!!.instructions.map { it.opcode }.filter { it != Opcode.NOP }
+            val strings = stock.implementation!!.instructions.mapNotNull { it.loadedString() }
+            assertTrue(build.name, THREADS_PACKAGE in strings)
+            assertEquals(build.name, outlined == null, "$THREADS_PACKAGE.debug" in strings)
             val context = PatchContexts.of(ExtensionDex.classes() + checkClasses)
-            assertEquals(build.name, "${stock.definingClass}->${stock.name}", context.countCopyAsThreads())
+            assertEquals(build.name, signature, context.countCopyAsThreads())
 
-            val body = context.mutableClassDefBy(stock.definingClass).methods.single { it.isOwnPackageCheck() }
+            val body = context.mutableClassDefBy(stock.definingClass).methods.single { it.name == stock.name && it.parameterTypes == stock.parameterTypes }
                 .implementation!!.instructions.toList()
             assertEquals(build.name, OWN_PACKAGE_CALL, (body[0] as ReferenceInstruction).reference.toString())
             val name = body[0] as FiveRegisterInstruction
@@ -79,6 +88,14 @@ class ChangePackageNameFixtureTest {
             assertEquals(build.name, 5, (body[2] as BuilderOffsetInstruction).target.location.index)
             assertEquals(build.name, 1, (body[3] as NarrowLiteralInstruction).narrowLiteral)
             assertEquals(build.name, stockCode, body.drop(5).map { it.opcode }.filter { it != Opcode.NOP })
+
+            if (outlined == null) continue
+            val elsewhere = PatchContexts.of(ExtensionDex.classes() + checkClasses)
+            val check = elsewhere.mutableClassDefBy(stock.definingClass).methods.single { it.name == stock.name && it.parameterTypes == stock.parameterTypes }
+            val index = check.implementation!!.instructions.indexOfFirst { it.opcode == Opcode.CONST_16 && (it as NarrowLiteralInstruction).narrowLiteral == outlined }
+            check.replaceInstruction(index, "const/16 v${(check.implementation!!.instructions.elementAt(index) as OneRegisterInstruction).registerA}, ${outlined + 1}")
+            val refused = assertThrows(build.name, PatchException::class.java) { elsewhere.countCopyAsThreads() }
+            assertTrue(refused.message, refused.message!!.contains("found 0"))
         }
     }
 
@@ -95,9 +112,20 @@ class ChangePackageNameFixtureTest {
         FixtureDex.classesWhere(build, { true }) { it.loadsOwnName() }
     }
 
-    /** The class holding Threads' check for its own package. */
+    /**
+     * The classes holding a static (String)boolean that loads Threads' release package, and the
+     * classes of the static (I)String tables those call, where Redex keeps outlined strings.
+     */
     private fun checkClasses(build: File): List<ClassDef> = checkCache.getOrPut(build) {
-        FixtureDex.classesWhere(build, { true }) { it.isOwnPackageCheck() }
+        fun Method.comparesOwnName() = AccessFlags.STATIC.isSet(accessFlags) && returnType == "Z" &&
+            parameterTypes.map { it.toString() } == listOf("Ljava/lang/String;") &&
+            implementation?.instructions?.any { it.loadedString() == THREADS_PACKAGE } == true
+        val holders = FixtureDex.classesWhere(build, { true }) { it.comparesOwnName() }
+        val tables = holders.flatMap { it.methods }.filter { it.comparesOwnName() }.flatMap { it.implementation!!.instructions }
+            .mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }
+            .filter { it.returnType == "Ljava/lang/String;" && it.parameterTypes.map { type -> type.toString() } == listOf("I") }
+            .map { it.definingClass }.toSet()
+        (holders + FixtureDex.classes(build, tables).values).distinctBy { it.type }
     }
 
     private fun ownSites(build: File): List<String> = classes(build).map { it.type }
@@ -121,6 +149,18 @@ class ChangePackageNameFixtureTest {
             "liteprovider.BarcelonaLiteContentProvider", "liteprovider.usdid.UsdidValuesProvider",
             "provider.AccessLibraryContentProvider", "provider.phoneid", "securefileprovider",
         ).map { "$THREADS_PACKAGE.$it" }.toSet()
+
+        /**
+         * Threads' check for its own package on each build, read off by hand, and the index it hands
+         * Redex's table of outlined strings for the debug name where it does.
+         */
+        val CHECKS = mapOf(
+            "512508344" to ("LX/122;->A0P" to null), "512508348" to ("LX/122;->A0P" to null),
+            "512508358" to ("LX/128;->A0Q" to null), "512508359" to ("LX/167;->A0Q" to null),
+            "512508360" to ("LX/11X;->A0Q" to 13), "512508368" to ("LX/11V;->A0Q" to null),
+            "512508369" to ("LX/122;->A0P" to null), "512508370" to ("LX/122;->A0Q" to 10),
+            "512508371" to ("LX/122;->A0P" to null),
+        )
 
         val cache = HashMap<File, List<ClassDef>>()
         val checkCache = HashMap<File, List<ClassDef>>()

@@ -321,6 +321,9 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
                 feed.addPreference(toggle(context, Settings.HIDE_SEARCH_SUGGESTIONS,
                         L10n.t("Hide follow suggestions in Search"),
                         L10n.t("Takes the Follow suggestions row off the Search screen. Your searches and topics stay.")));
+                feed.addPreference(toggle(context, Settings.HIDE_SUGGESTED_THREADS,
+                        L10n.t("Hide suggested threads"),
+                        L10n.t("Takes the suggested threads off the bottom of a post you open. The post and its replies stay.")));
             }
             if (build.contains(PatchFamily.RETURN_REFRESH)) {
                 feed.addPreference(toggle(context, Settings.BLOCK_RETURN_REFRESH,
@@ -348,7 +351,8 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
         }
 
         if (build.contains(PatchFamily.SANITIZE_SHARING_LINKS) || build.contains(PatchFamily.EXTERNAL_BROWSER)
-                || build.contains(PatchFamily.DISABLE_ANALYTICS) || build.contains(PatchFamily.SCREENSHOT_DETECTION)) {
+                || build.contains(PatchFamily.DISABLE_ANALYTICS) || build.contains(PatchFamily.SCREENSHOT_DETECTION)
+                || build.contains(PatchFamily.SPOOF_SIM_REGION)) {
             PreferenceCategory privacy = category(screen, L10n.t("Privacy"));
             if (build.contains(PatchFamily.SANITIZE_SHARING_LINKS)) {
                 privacy.addPreference(toggle(context, Settings.SANITIZE_SHARING_LINKS,
@@ -388,6 +392,12 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
                 privacy.addPreference(toggle(context, Settings.DISABLE_SCREENSHOT_DETECTION,
                         L10n.t("Hide screenshots from Threads"),
                         L10n.t("Threads isn't told when you take a screenshot, so it can't log it or react to it.")));
+            }
+            if (build.contains(PatchFamily.SPOOF_SIM_REGION)) {
+                privacy.addPreference(toggle(context, Settings.SPOOF_SIM_REGION, L10n.t("Spoof SIM region"),
+                        L10n.t("Threads sees your SIM and network as the region picked below. Meta can still go by "
+                            + "your connection and your account. Restart Threads to see the change.")));
+                privacy.addPreference(SimRegionRows.regionRow(context));
             }
         }
 
@@ -1134,6 +1144,7 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
         else if (setting == Settings.HIDE_COMMENT_LINKS) icon = SettingsIcons.LINKS;
         else if (setting == Settings.HIDE_SUGGESTED_USERS) icon = SettingsIcons.PERSON;
         else if (setting == Settings.HIDE_SEARCH_SUGGESTIONS) icon = SettingsIcons.SEARCH;
+        else if (setting == Settings.HIDE_SUGGESTED_THREADS) icon = SettingsIcons.FEED;
         else if (setting == Settings.BLOCK_RETURN_REFRESH) icon = SettingsIcons.BOOKMARK;
         else if (setting == Settings.RETURN_REFRESH_NO_LIMIT) icon = SettingsIcons.CLOCK;
         else if (setting == Settings.DISABLE_VIDEO_AUTOPLAY || setting == Settings.DOWNLOAD_COMPATIBLE) icon = SettingsIcons.PLAY;
@@ -1143,6 +1154,7 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
         else if (setting == Settings.OPEN_LINKS_EXTERNALLY) icon = SettingsIcons.OPENING;
         else if (setting == Settings.DISABLE_ANALYTICS) icon = SettingsIcons.ANALYTICS;
         else if (setting == Settings.DISABLE_SCREENSHOT_DETECTION) icon = SettingsIcons.SCREENSHOT;
+        else if (setting == Settings.SPOOF_SIM_REGION) icon = SettingsIcons.SIM_CARD;
         else if (setting == Settings.SAVE_MEDIA) icon = SettingsIcons.DOWNLOADS;
         else if (setting == Settings.PURE_BLACK) icon = SettingsIcons.MOON;
         else if (setting == Settings.HIDE_INSTAGRAM_BUTTON) icon = SettingsIcons.CAMERA;

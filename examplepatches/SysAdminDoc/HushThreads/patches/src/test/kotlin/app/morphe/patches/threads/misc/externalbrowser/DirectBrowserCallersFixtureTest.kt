@@ -44,7 +44,8 @@ import java.io.File
 private const val FACTORY_NOTE = "BrowserLiteIntent.OPEN_WITH_URL"
 private const val FACTORY_MODULE_NOTE = "TrackingInfo.ARG_MODULE_NAME"
 private const val AD_NOTE = "AdClickHandler.openWebLink missing webUri for AD_DESTINATION_WEB"
-private const val IMMERSIVE_NOTE = "com.instagram.barcelona.inappbrowser.compose.ImmersiveBrowserScreen (ImmersiveBrowserScreen.kt:97)"
+// ImmersiveBrowserScreen.kt:97 up to 454.
+private const val IMMERSIVE_NOTE = "com.instagram.barcelona.inappbrowser.compose.ImmersiveBrowserScreen (ImmersiveBrowserScreen.kt:96)"
 // What the lead form logs when its link fails to open, in the method that hands the link on.
 private const val LEAD_NOTE = "LeadGen LeadFormLinkLauncher: link launch failed"
 /** What the stock builds this test reads name the parts it needs, per version code. */
@@ -53,32 +54,23 @@ private data class BuildNames(
     val parser: String,
 )
 
-private val arm64Names = BuildNames(
-    web = "LX/13x;->A0H:LX/13x;",
-    parser = "LX/139;->A04(Ljava/lang/String;)Landroid/net/Uri;",
-)
+private fun names(web: String, parser: String) =
+    BuildNames(web = "LX/$web;->A0H:LX/$web;", parser = "LX/$parser;->A04(Ljava/lang/String;)Landroid/net/Uri;")
 
-private val x86Names = BuildNames(
-    web = "LX/14f;->A0H:LX/14f;",
-    parser = "LX/137;->A04(Ljava/lang/String;)Landroid/net/Uri;",
-)
+private val arm64Names = names("1h7", "128")
 
-private val armv7Names = BuildNames(
-    web = "LX/14h;->A0H:LX/14h;",
-    parser = "LX/135;->A04(Ljava/lang/String;)Landroid/net/Uri;",
-)
-
-// The three arm64-v8a densities and x86_64 share their names; x86 and armeabi-v7a each have their
-// own. The 2026-11-03 armeabi-v7a and x86 variants differ from 635 and 622 only in the version code.
+// The arm64-v8a 640, 480-640 and 160-480 builds and x86_64 share their names. The rest each have
+// their own, the 359 arm64-v8a build included.
 private val builds = mapOf(
-    "512408621" to arm64Names,
-    "512408622" to x86Names,
-    "512408625" to arm64Names,
-    "512408635" to armv7Names,
-    "512408636" to arm64Names,
-    "512408645" to armv7Names,
-    "512408647" to x86Names,
-    "512408648" to arm64Names,
+    "512508344" to arm64Names,
+    "512508348" to arm64Names,
+    "512508358" to names("1g1", "130"),
+    "512508359" to names("1fX", "12W"),
+    "512508360" to names("1f7", "121"),
+    "512508368" to names("1g8", "125"),
+    "512508369" to arm64Names,
+    "512508370" to names("1g1", "126"),
+    "512508371" to arm64Names,
 )
 
 private fun buildNames(build: File): BuildNames =

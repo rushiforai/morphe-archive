@@ -158,10 +158,11 @@ class PureBlackFixtureTest {
             val fixture = fixture(build)
             val context = context(fixture)
             val constructor = context.mutableClassDefBy(fixture.scheme).methods.single { it.name == "<init>" }
+            val (sixth, eleventh) = fixture.backgroundFields()
             val index = constructor.body().indexOfFirst { it.opcode == Opcode.IPUT_WIDE &&
-                it.getReference<FieldReference>()?.name == "A04" }
+                it.getReference<FieldReference>()?.name == eleventh }
             val store = constructor.body()[index] as TwoRegisterInstruction
-            constructor.replaceInstruction(index, "iput-wide v${store.registerA}, v${store.registerB}, ${fixture.scheme}->A0Q:J")
+            constructor.replaceInstruction(index, "iput-wide v${store.registerA}, v${store.registerB}, ${fixture.scheme}->$sixth:J")
             val error = assertThrows(build.name, PatchException::class.java) { pureBlackPatch.execute(context) }
             assertTrue(error.message.orEmpty(), error.message.orEmpty().contains("copies a known dark background"))
         }
@@ -172,7 +173,7 @@ class PureBlackFixtureTest {
         for (build in Fixtures.declaredBuilds()) {
             val fixture = fixture(build)
             val context = context(fixture)
-            val index = fixture.backgroundReads("A04").single()
+            val index = fixture.backgroundReads(fixture.backgroundFields()[1]).single()
             val register = (fixture.theme.body()[index] as TwoRegisterInstruction).registerA
             context.mutableMethod(fixture.theme).addInstructions(index + 1, "const/4 v${register + 1}, 0x0")
             val error = assertThrows(build.name, PatchException::class.java) { pureBlackPatch.execute(context) }
@@ -186,7 +187,7 @@ class PureBlackFixtureTest {
             val fixture = fixture(build)
             val context = context(fixture)
             val theme = context.mutableMethod(fixture.theme)
-            val index = fixture.backgroundReads("A04").single()
+            val index = fixture.backgroundReads(fixture.backgroundFields()[1]).single()
             val register = (theme.body()[index] as TwoRegisterInstruction).registerA
             theme.addInstructionsWithLabels(index, """
                 const-wide/16 v$register, 0x0
@@ -286,9 +287,28 @@ class PureBlackFixtureTest {
     /** 451's independently traced Bds background, copied into its inherited color palette. */
     private fun Fixture.backgroundReads(name: String? = null) = theme.body().withIndex().filter { (_, instruction) ->
         instruction.opcode == Opcode.IGET_WIDE && instruction.getReference<FieldReference>()?.let {
-            it.definingClass == scheme && it.name in setOf("A04", "A0O", "A0Q") && (name == null || it.name == name)
+            it.definingClass == scheme && it.name in backgroundFields() && (name == null || it.name == name)
         } == true
     }.map { it.index }
+
+    /**
+     * The scheme fields its constructor stores slots 6 and 11 in, the two #101010 backgrounds traced
+     * by hand on 451, in slot order. Their names move between builds (455 renamed slot 6's), so
+     * they're read off the constructor.
+     */
+    private fun Fixture.backgroundFields(): List<String> {
+        val constructor = classes.single { it.type == scheme }.methods.single { it.name == "<init>" }
+        val body = constructor.body()
+        val first = constructor.implementation!!.registerCount - 2 * constructor.parameterTypes.size
+        val wideMoves = setOf(Opcode.MOVE_WIDE, Opcode.MOVE_WIDE_FROM16, Opcode.MOVE_WIDE_16)
+        val stores = body.indices.filter { body[it].opcode == Opcode.IPUT_WIDE }.associate { at ->
+            val stored = (body[at] as TwoRegisterInstruction).registerA
+            val copied = body.getOrNull(at - 1)?.takeIf { it.opcode in wideMoves && (it as TwoRegisterInstruction).registerA == stored }
+            val source = (copied as TwoRegisterInstruction?)?.registerB ?: stored
+            (source - first) / 2 to body[at].getReference<FieldReference>()!!.name
+        }
+        return listOf(stores.getValue(6), stores.getValue(11))
+    }
 
     private fun fixture(build: File): Fixture = fixtures.getOrPut(build) {
         val themeClasses = FixtureDex.classesWhere(build, { true }) { it.holdsNote(BDS_THEME) }

@@ -70,6 +70,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean spoofSimRegion() {
+        return false;
+    }
+
     public static boolean pureBlack() {
         return false;
     }

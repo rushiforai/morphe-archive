@@ -16,6 +16,7 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.telegram.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.telegram.misc.extension.enableCapability
 import app.morphe.patches.telegram.misc.extension.enableStatus
 import app.morphe.patches.telegram.misc.extension.requireLocals
 import app.morphe.patches.telegram.misc.extension.requireStatusMethod
@@ -47,13 +48,13 @@ import app.morphe.util.names.tgMutableClassDefByOrNull
 internal const val SPOILERS = "$EXTENSION_PACKAGE/misc/Spoilers;"
 internal const val MESSAGE_OBJECT = "Lorg/telegram/messenger/MessageObject;"
 internal const val HAS_MEDIA_SPOILERS = "$MESSAGE_OBJECT->hasMediaSpoilers()Z"
-private const val TEXT_BLOCKS = "Lorg/telegram/messenger/MessageObject\$TextLayoutBlocks;"
-private const val SPOILERS_REVEALED = "$MESSAGE_OBJECT->isSpoilersRevealed:Z"
+internal const val TEXT_BLOCKS = "Lorg/telegram/messenger/MessageObject\$TextLayoutBlocks;"
+internal const val SPOILERS_REVEALED = "$MESSAGE_OBJECT->isSpoilersRevealed:Z"
 private const val SEND_PARAMS = "Lorg/telegram/messenger/SendMessagesHelper\$SendMessageParams;"
 private const val SEND_SPOILER = "$SEND_PARAMS->hasMediaSpoilers:Z"
 private const val BLURRED = "$MESSAGE_OBJECT->needDrawBluredPreview()Z"
 private const val SENSITIVE = "$MESSAGE_OBJECT->isHiddenSensitive()Z"
-private val ADD = listOf("Landroid/view/View;", "Landroid/text/Layout;", "I", "I", "Ljava/util/Stack;", "Ljava/util/List;")
+internal val ADD = listOf("Landroid/view/View;", "Landroid/text/Layout;", "I", "I", "Ljava/util/Stack;", "Ljava/util/List;")
 private val ADD_CORE = listOf("Landroid/view/View;", "Landroid/text/Layout;", "I", "I", "Landroid/text/Spanned;", "Ljava/util/Stack;",
     "Ljava/util/List;", "Ljava/util/ArrayList;")
 
@@ -121,7 +122,15 @@ val revealSpoilersPatch = bytecodePatch(
         site.insertText(site.textCovers)
         site.media.forEach { it.replace(it.method) }
         enableStatus("revealSpoilers")
+        applyChatReveal()
     }
+}
+
+/** The chat's menu items and quotes opening on search hits, each recorded only when it went in. */
+internal fun BytecodePatchContext.applyChatReveal() {
+    val parts = insertChatReveal()
+    if (parts.menu) enableCapability("chatRevealMenu")
+    if (parts.searchHits) enableCapability("searchHitQuotes")
 }
 
 /** One media check at instruction [index] of [method], a place that draws a message. */

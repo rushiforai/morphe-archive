@@ -24,7 +24,9 @@ import app.morphe.util.RegisterLiveness
 import app.morphe.util.addInstruction
 import app.morphe.util.addInstructions
 import app.morphe.util.addInstructionsAtControlFlowLabel
+import app.morphe.util.getFreeRegisterProvider
 import app.morphe.util.getReference
+import app.morphe.util.numberOfParameterRegisters
 import app.morphe.util.namedRegisters
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -179,14 +181,11 @@ val commenterDetailsPatch = bytecodePatch(
             commentTimeSites().sortedByDescending { it.writeIndex }.forEach { site ->
                 addInstructions(
                     site.writeIndex + 1,
-                    callThroughLocals(
-                        WHAT,
-                        "invoke-static",
-                        "$COMMENTER_DETAILS->onCommentTime(Ljava/lang/Object;$TEXT_VIEW)V",
-                        false,
-                        objectIn("v${site.commentRegister}"),
-                        objectIn("v${site.viewRegister}"),
-                    ),
+                    """
+                        invoke-virtual {p0}, $COMMENT_CELL->$getter()$COMMENT_MODEL
+                        move-result-object v${site.commentRegister}
+                        invoke-static {v${site.commentRegister}, v${site.viewRegister}}, $COMMENTER_DETAILS->onCommentTime(Ljava/lang/Object;$TEXT_VIEW)V
+                    """,
                 )
             }
         }
@@ -201,7 +200,7 @@ internal data class ReplyLabelSite(val callIndex: Int, val textRegister: Int, va
 
 /**
  * Where one time view gets the comment's time: the setText at [writeIndex], on [viewRegister],
- * with [commentRegister] still holding the comment the time was read from.
+ * with [commentRegister] free after it to read the comment into.
  */
 internal data class TimeSite(val writeIndex: Int, val commentRegister: Int, val viewRegister: Int)
 
@@ -349,13 +348,12 @@ internal fun Method.replyLabelSite(): ReplyLabelSite {
 }
 
 /**
- * Each place the cell writes a comment's time: `comment.getCreateTime()` read from a register
- * that a call answering a Comment just filled, then the first `TextView.setText(CharSequence)`
- * after it. The hook runs right after that write and reads the comment from the same register,
- * so nothing between the comment's load and the write may write the register, nothing outside
- * that stretch may jump into it, and the write has to fall through to the hook. A jump straight
- * to the instruction after the write skips the hook, which is the cell's own path for a missing
- * time view.
+ * Each place the cell writes a comment's time: `comment.getCreateTime()`, then the first
+ * `TextView.setText(CharSequence)` after it. The hook runs right after that write and reads the
+ * comment through the cell's getter into a register the code writes before it reads again, since
+ * 47.7.3 reuses the comment's own register before the write. The write has to fall through to the
+ * hook, and `this` has to stay the cell. A jump straight to the instruction after the write skips
+ * the hook, which is the cell's own path for a missing time view.
  */
 internal fun Method.commentTimeSites(): List<TimeSite> {
     val instructions = implementation?.instructions?.toList()
@@ -364,37 +362,21 @@ internal fun Method.commentTimeSites(): List<TimeSite> {
         instructions[it].opcode == Opcode.INVOKE_VIRTUAL && instructions[it].calls(COMMENT_MODEL, "getCreateTime")
     }
     if (reads.isEmpty()) throw PatchException("$WHAT: the time row never reads a comment's time.")
+    val self = implementation!!.registerCount - numberOfParameterRegisters
+    if (instructions.any { writes(it, self) }) throw PatchException("$WHAT: the time row writes over this.")
+    if (self > 15) throw PatchException("$WHAT: this, v$self, doesn't fit a short invoke.")
     val flow = ControlFlow.of(this)
 
     return reads.map { read ->
-        val comment = (instructions[read] as FiveRegisterInstruction).registerC
         val write = (read + 1 until instructions.size).firstOrNull { instructions[it].isTextWrite() }
             ?: throw PatchException("$WHAT: the comment time read at $read is never written.")
         val view = (instructions[write] as FiveRegisterInstruction).registerC
-
-        val load = (read - 1 downTo 0).firstOrNull { writes(instructions[it], comment) }
-            ?: throw PatchException("$WHAT: the comment at $read comes from nowhere.")
-        val source = instructions.getOrNull(load - 1)?.getReference<MethodReference>()
-        if (instructions[load].opcode != Opcode.MOVE_RESULT_OBJECT || source?.returnType != COMMENT_MODEL) {
-            throw PatchException("$WHAT: the comment at $read isn't one a call just answered.")
-        }
-        if ((load + 1..write).any { writes(instructions[it], comment) }) {
-            throw PatchException("$WHAT: the comment's register is written before its time is shown at $write.")
-        }
-        instructions.indices.forEach { from ->
-            if (from in load..write) return@forEach
-            (flow.normal[from] + flow.exceptional[from]).forEach { to ->
-                if (to in load + 1..write) {
-                    throw PatchException("$WHAT: instruction $from jumps into the comment time write at $to.")
-                }
-            }
-        }
         if (flow.normal[write] != listOf(write + 1)) {
             throw PatchException("$WHAT: the comment time write at $write doesn't fall through to the hook.")
         }
-        if (comment > 15 || view > 15) {
-            throw PatchException("$WHAT: v$comment or v$view doesn't fit a short invoke.")
-        }
+        if (view > 15) throw PatchException("$WHAT: v$view doesn't fit a short invoke.")
+        val comment = runCatching { getFreeRegisterProvider(write + 1, 1, view, self).getFreeRegister4Bit() }
+            .getOrElse { throw PatchException("$WHAT: no register is free after the time write at $write.", it) }
         TimeSite(write, comment, view)
     }
 }

@@ -92,6 +92,8 @@ public final class SettingsStatus {
     public static boolean hideTranslateBar() { return false; }
     public static boolean exactNumbers() { return false; }
     public static boolean revealSpoilers() { return false; }
+    public static boolean chatRevealMenu() { return false; }
+    public static boolean searchHitQuotes() { return false; }
     public static boolean hideKeyboardOnScroll() { return false; }
     public static boolean keepVideosMuted() { return false; }
     public static boolean videoEitherLandscape() { return false; }
@@ -123,6 +125,8 @@ public final class SettingsStatus {
     public static boolean playbackPosition() { return false; }
     public static boolean selectBetween() { return false; }
     public static boolean selectionScreenshot() { return false; }
+    public static boolean selectAll() { return false; }
+    public static boolean sharedMediaSelectAll() { return false; }
     public static boolean hideForMe() { return false; }
     public static boolean silenceNonContacts() { return false; }
     public static boolean disableArchivePull() { return false; }
@@ -236,6 +240,7 @@ public final class SettingsStatus {
     public static boolean powerOff() { return false; }
     public static boolean instantLock() { return false; }
     public static boolean quietSignUp() { return false; }
+    public static boolean deleteAccount() { return false; }
     public static boolean suppressScreenshotNotification() { return false; }
     public static boolean unlockPremium() { return false; }
     public static boolean bypassChannelRestrictions() { return false; }

@@ -32,6 +32,7 @@ import app.morphe.util.classDefForEachReferencing
 import app.morphe.util.findMutableMethodOf
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.builder.BuilderInstruction
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
@@ -238,8 +239,8 @@ private fun BytecodePatchContext.applyFeedHoldNux() {
 }
 
 /**
- * 586's Android 9 build has no check to hook: the player's setup reads the tip's flag under the
- * class's lock and skips the tip when it's set. Right after that read, a yes from the extension
+ * 586's Android 9 build and both 587 builds have no check to hook: the player's setup reads the
+ * tip's flag under the class's lock and skips the tip when it's set. Right after that read, a yes from the extension
  * reads as set too, so the tip is skipped the same way and its timer is neither read nor saved.
  */
 private fun BytecodePatchContext.applyInlinedHoldNux(holder: ClassDef) {
@@ -254,6 +255,11 @@ private fun BytecodePatchContext.applyInlinedHoldNux(holder: ClassDef) {
             "Hide the 2x popups leaves that tip alone in this build",
     )
     val mutable = mutableClassDefBy(method.definingClass).findMutableMethodOf(method)
+    // A branch onto the read's own check would go past the extension and show the tip.
+    if ((mutable.getInstruction(read + 1) as BuilderInstruction).location.labels.isNotEmpty()) return patchLog.warning(
+        "$PATCH: ${method.definingClass}->${method.name} has a jump onto its 2x tip flag's check. " +
+            "Hide the 2x popups leaves that tip alone in this build",
+    )
     val flag = mutable.getInstruction<OneRegisterInstruction>(read).registerA
     mutable.addInstructionsWithLabels(
         read + 1,
@@ -396,7 +402,12 @@ internal class ReelHoldAnchors(
     val edgeCheck: EdgeCheck,
     val dispatch: Method,
     val speedUpPaths: List<Method>,
-    val holdSpeed: Method,
+    /**
+     * The hold speed's getter (587 armeabi-v7a: a static one taking the config's answer); on 587
+     * arm64-v8a, which inlined it, null and [inlinedSpeeds] instead.
+     */
+    val holdSpeed: Method?,
+    val inlinedSpeeds: List<HoldSpeedRead>,
     val setter: Method,
     val speedGetter: Method,
 )
@@ -480,14 +491,24 @@ internal fun BytecodePatchContext.findReelHoldAnchors(): ReelHoldAnchors {
     val setterKey = "${player.type}->${setter.name}(F)V"
     val configClass = classDefByOrNull(config) ?: refuseGuard("this build has no $config")
     val configAnswers = configClass.methods.filter { it.parameterTypes.isEmpty() }.map { it.returnType }.toSet()
-    val speedReads = SPEED_UP_COMPONENTS.flatMap { classDefByStrings(it, StringComparisonType.EQUALS) }.distinctBy { it.type }
-        .flatMap { component -> component.methods.flatMap { holdSpeedReads(it, setterKey, configAnswers) } }
-        .distinctBy { it.toString() }
-    val speedRead = speedReads.singleOrNull()
-        ?: refuseGuard("expected the speed-ups to set the speed from one read of the config, found ${speedReads.map { it.toString() }}")
-    val holdSpeed = classDefByOrNull(speedRead.definingClass)?.methods?.singleOrNull { isMethod(it, speedRead) }
-        ?: refuseGuard("the hold speed $speedRead has no body in this build")
-    if (holdSpeed.implementation!!.instructions.none { it.opcode == Opcode.RETURN_WIDE }) refuseGuard("the hold speed never returns")
+    val speedUpComponents = SPEED_UP_COMPONENTS.flatMap { classDefByStrings(it, StringComparisonType.EQUALS) }.distinctBy { it.type }
+    val speedReads = speedUpComponents.flatMap { component -> component.methods.flatMap { holdSpeedReads(it, setterKey, configAnswers) } }
+    val speedKey = speedReads.map { it.key }.toSet().singleOrNull()
+        ?: refuseGuard("expected the speed-ups to set the speed from one read of the config, found ${speedReads.map { it.key }.toSet()}")
+    val speedRead = speedReads.first().getter
+    val holdSpeed = speedRead?.let { read ->
+        classDefByOrNull(read.definingClass)?.methods?.singleOrNull { isMethod(it, read) }
+            ?: refuseGuard("the hold speed $read has no body in this build")
+    }
+    if (holdSpeed != null && holdSpeed.implementation!!.instructions.none { it.opcode == Opcode.RETURN_WIDE }) {
+        refuseGuard("the hold speed never returns")
+    }
+    // 587's arm64 build inlined the getter, so every read of the same config value in the speed-ups' components,
+    // the compares included, takes the extension's answer where the getter's returns did.
+    val inlinedSpeeds = if (holdSpeed != null) emptyList() else {
+        speedUpComponents.flatMap { component -> component.methods.flatMap { inlinedConfigReads(it, configAnswers) } }
+            .filter { it.key == speedKey }
+    }
 
     // The player's speed getter, which the release listeners compare with the speed to put back.
     val getterCalls = listenerMethods.values.flatten().flatMap { speedGettersCalled(it, player.type) }
@@ -506,7 +527,7 @@ internal fun BytecodePatchContext.findReelHoldAnchors(): ReelHoldAnchors {
     val dispatch = touchDispatches(activity).singleOrNull()
         ?: refuseGuard("expected $FRAGMENT_ACTIVITY to declare one dispatchTouchEvent($MOTION_EVENT)Z")
     return ReelHoldAnchors(config, speedUpFlag, releaseFlag, handlerPlans + listenerPlans + builderPlans, edgeCheck, dispatch,
-        speedUpPaths, holdSpeed, setter, speedGetter)
+        speedUpPaths, holdSpeed, inlinedSpeeds, setter, speedGetter)
 }
 
 /**
@@ -514,7 +535,7 @@ internal fun BytecodePatchContext.findReelHoldAnchors(): ReelHoldAnchors {
  * which the range form names whatever its number; the branch that follows reads it as Facebook's.
  * Here for the long-press handlers' and the overlay's flags, and before each of the edge check's
  * answers going out (its returns, or 583's Boolean.valueOf of it), the same, and before each of the
- * hold speed's returns, for its register pair. Where the edge check has its press and view in hand
+ * hold speed's returns, for its register pair (587 arm64: after each read inlined in its place). Where the edge check has its press and view in hand
  * (first thing in a check of its own), both. The release listeners' flags and the rest are
  * [applyReelLiftGuard]'s.
  */
@@ -544,18 +565,36 @@ internal fun BytecodePatchContext.applyReelHoldAnchors(anchors: ReelHoldAnchors)
             "invoke-static { v${check.press}, v${check.view} }, $EDGE_TOUCH"
         },
     )
-    val speed = mutableClassDefBy(anchors.holdSpeed.definingClass).findMutableMethodOf(anchors.holdSpeed)
-    speed.implementation!!.instructions.withIndex().filter { it.value.opcode == Opcode.RETURN_WIDE }.map { it.index }
-        .asReversed().forEach { index ->
-            val register = speed.getInstruction<OneRegisterInstruction>(index).registerA
+    val holdSpeed = anchors.holdSpeed
+    if (holdSpeed != null) {
+        val speed = mutableClassDefBy(holdSpeed.definingClass).findMutableMethodOf(holdSpeed)
+        speed.implementation!!.instructions.withIndex().filter { it.value.opcode == Opcode.RETURN_WIDE }.map { it.index }
+            .asReversed().forEach { index ->
+                val register = speed.getInstruction<OneRegisterInstruction>(index).registerA
+                speed.addInstructionsAtControlFlowLabel(
+                    index,
+                    """
+                        invoke-static/range { v$register .. v${register + 1} }, $HOLD_SPEED
+                        move-result-wide v$register
+                    """,
+                )
+            }
+    }
+    // 587 arm64's inlined reads: straight after each move-result-wide taking the double, the same,
+    // for its pair. A branch landing after a read lands on the call, with a double in that pair too.
+    anchors.inlinedSpeeds.groupBy { it.method }.forEach { (method, reads) ->
+        val speed = mutableClassDefBy(method.definingClass).findMutableMethodOf(method)
+        reads.map { it.taken }.sortedDescending().forEach { taken ->
+            val register = speed.getInstruction<OneRegisterInstruction>(taken).registerA
             speed.addInstructionsAtControlFlowLabel(
-                index,
+                taken + 1,
                 """
                     invoke-static/range { v$register .. v${register + 1} }, $HOLD_SPEED
                     move-result-wide v$register
                 """,
             )
         }
+    }
 }
 
 /**

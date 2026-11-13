@@ -172,6 +172,16 @@ class HaiagaruSettingsActivity : HaiagaruComposeActivity() {
                     if (query.isBlank()) {
                         item {
                             SettingsHomeCard {
+                                SettingsHomeAction(if (english) "Haiagaru update history" else "Haiagaru更新履歴") {
+                                    UpdateHistory.show(this@HaiagaruSettingsActivity)
+                                }
+                                SettingsHomeAction(if (english) "See all added features" else "追加された機能をすべて見る") {
+                                    UpdateHistory.showAllFeatures(this@HaiagaruSettingsActivity)
+                                }
+                            }
+                        }
+                        item {
+                            SettingsHomeCard {
                                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                     SettingsHomeAction(if (english) "Share settings" else "設定を共有", Modifier.weight(1f)) { SettingsProfiles.share(this@HaiagaruSettingsActivity) }
                                     SettingsHomeAction(if (english) "Load settings" else "設定を読み込む", Modifier.weight(1f)) { SettingsProfiles.open(this@HaiagaruSettingsActivity) }
@@ -189,7 +199,9 @@ class HaiagaruSettingsActivity : HaiagaruComposeActivity() {
                             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)) }
                         items(groups, key = { it.id }) { group ->
-                            SettingsHomeCard(onClick = { selected = groups.indexOf(group) }, padded = false) {
+                            SettingsHomeCard(onClick = {
+                                selected = groups.indexOf(group)
+                            }, padded = false) {
                                 ListItem(headlineContent = { Text(group.title(english), style = MaterialTheme.typography.titleMedium) },
                                     supportingContent = { Text(if (english) group.enSummary else group.summary, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis) },
                                     leadingContent = { Box(Modifier.size(36.dp), contentAlignment = Alignment.Center) {

@@ -47,7 +47,6 @@ object NovelCopyHelper {
     private const val MENU_ID_COPY_AUTHOR = 0x7f09a0c2
     private const val MENU_ID_DOWNLOAD = 0x7f09a0c3
 
-    /** Readable copy on the novel surfaces. Navigation rows are skipped, see [isPlainText]. */
     private val SELECTABLE_ID_NAMES = listOf(
         "caption_text_view",
         "caption",
@@ -68,8 +67,6 @@ object NovelCopyHelper {
      * text stays clean, then restored.
      */
     private const val EXTRACT_BODY_JS = """(function(){try{var sels=['#novel-text-container','#novel-text','.novel-text','[data-testid=novel-text]','main'];var root=null;for(var i=0;i<sels.length;i++){var n=document.querySelector(sels[i]);if(n&&n.innerText&&n.innerText.length>200){root=n;break;}}if(!root){root=document.body;}var rts=root.querySelectorAll('rt,rp');for(var j=0;j<rts.length;j++){rts[j].setAttribute('data-morphe-prev',rts[j].style.display);rts[j].style.display='none';}var t=root.innerText||root.textContent||'';for(var k=0;k<rts.length;k++){rts[k].style.display=rts[k].getAttribute('data-morphe-prev')||'';}t=t.replace(/\n{3,}/g,'\n\n').replace(/[ \t]+\n/g,'\n').trim();return t;}catch(e){return '';}})()"""
-
-    // ---------------------------------------------------------------- hooks
 
     /** NovelTextActivity.onCreate, NovelSeriesDetailActivity.onCreate */
     @JvmStatic
@@ -141,8 +138,6 @@ object NovelCopyHelper {
             Log.w(TAG, "selection injection failed", t)
         }
     }
-
-    // ---------------------------------------------------------------- menu actions
 
     private fun requestFullText(activity: Activity) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
@@ -253,8 +248,6 @@ object NovelCopyHelper {
         manager.setPrimaryClip(ClipData.newPlainText("Pixiv", text))
         toast(activity, Strings.novelCopied)
     }
-
-    // ---------------------------------------------------------------- view helpers
 
     private fun schedulePass(root: View?, delay: Long) {
         if (root == null) return

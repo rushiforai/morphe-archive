@@ -38,25 +38,25 @@
 # names a group to read off the new build's live view tree again. An owner shared by two groups
 # (VideoDiggAssem holds the like button and its count) shows both ids are still its own, not
 # which is which, so two names swapped between such groups pass; read those pairs off the tree.
-inbox/InboxFilter.java|LIST_IDS|47.6.3:g7q|app|com.ss.android.ugc.aweme.inbox.BaseInboxFragment|at:2
-inbox/InboxFilter.java|SYSTEM_ROW_IDS|47.6.3:l32|app|layout:com.ss.android.ugc.aweme.inbox.lego.PreloadInboxTask|tag:MultiSelectConstraintLayout
-inbox/InboxFilter.java|CHAT_ROW_IDS|47.6.3:lub|app|com.by.andInflater.im_item_session_inbox_single_chat_cell|on:MultiSelectConstraintLayout
-inbox/InboxFilter.java|MESSAGE_REQUESTS_IDS|47.6.3:opp|app|com.by.andInflater.im_item_session_inbox_message_request_cell|at:11
-inbox/InboxFilter.java|SAY_HI_ROW_IDS|47.6.3:hrx|app|layout:com.ss.android.ugc.aweme.im.chatlist.impl.feature.maf.ui.MafChatListWidgetV2|tag:MultiSelectConstraintLayout
-inbox/InboxFilter.java|SYSTEM_ROW_TITLE_IDS|47.6.3:aul|app|layout:com.ss.android.ugc.aweme.inbox.lego.PreloadInboxTask|tag:TuxTextView#5
-inbox/InboxFilter.java|USER_ROW_TITLE_IDS|47.6.3:pgh|app|com.by.andInflater.im_item_session_inbox_single_chat_cell|on:TuxTextView#1
-inbox/InboxFilter.java|SUGGESTED_HEADER_IDS|47.6.3:ihl|app|com.ss.android.ugc.aweme.relation.usercard.impl.cell.TitleAreaCell|on:View#1
-inbox/InboxFilter.java|SUGGESTED_TITLE_IDS|47.6.3:kki|app|class-method:setDarkMode+setPreviousPage|on:TuxTextView
-inbox/InboxFilter.java|SUGGESTED_REMOVE_IDS|47.6.3:ddi|app|com.ss.android.ugc.aweme.relation.usercard.impl.cell.BaseSquareRecUserCell|on:TuxIconView
-inbox/InboxFilter.java|HEADER_ADD_PEOPLE_IDS|47.6.3:d3x|app|com.ss.android.ugc.aweme.inbox.v2.InboxFragmentV2|on:TuxIconView#1
-inbox/InboxFilter.java|HEADER_SEARCH_IDS|47.6.3:ftu|app|com.ss.android.ugc.aweme.inbox.v2.InboxFragmentV2|on:TuxIconView#2
-inbox/InboxFilter.java|HEADER_ACTIVITY_STATUS_IDS|47.6.3:g7s|app|layout:com.ss.android.ugc.aweme.inbox.lego.PreloadInboxTask|tag:LinearLayout#2
-blockauthor/FeedVisibility.java|HOME_TAB_RESOURCE_NAMES|47.6.3:hs7|app|com.ss.android.ugc.aweme.homepage.ui.view.tab.bottom.hometab.HomeTabProtocol|-
-blockauthor/FeedVisibility.java|INBOX_TAB_RESOURCE_NAMES|47.6.3:hs8|app|com.ss.android.ugc.aweme.notification.view.NotificationTabProtocol|-
-blockauthor/FeedVisibility.java|PROFILE_TAB_RESOURCE_NAMES|47.6.3:hs9|app|com.ss.android.ugc.profile.platform.framework.aweme.profile.ui.profiletab.ProfileTabProtocol|-
-blockauthor/FeedVisibility.java|COMMENT_SHEET_RESOURCE_NAMES|47.6.3:idd|app|layout:com.ss.android.ugc.aweme.commentv2.commentpage.commonvideo.DefaultCommentPageContainerFragment|tag:LinearLayout#1
-blockauthor/FeedVisibility.java|COMMENT_TITLE_RESOURCE_NAMES|47.6.3:m6k|app|com.ss.android.ugc.aweme.commentv2.actionbar.CommentPageActionBarAssem|on:TuxTextView#1
-comment/CommentTools.java|DISLIKE_BUTTON_IDS|47.6.3:fhl|app|class-method:setHateVisibility|to:RelativeLayout$LayoutParams
-comment/CommentTools.java|DISLIKE_ICON_IDS|47.6.3:gxd|app|class-method:setHateVisibility|on:TuxIconView#4
-captions/CaptionStyle.java|TEXT_IDS|47.6.3:bxl|app|layout-method-string:caption_balancer|at:3
-captions/CaptionStyle.java|BACKGROUND_IDS|47.6.3:bxh|app|layout-method-string:caption_balancer|tag:ConstraintLayout
+inbox/InboxFilter.java|LIST_IDS|47.7.3:g_9|app|com.ss.android.ugc.aweme.inbox.BaseInboxFragment|at:2
+inbox/InboxFilter.java|SYSTEM_ROW_IDS|47.7.3:l8a|app|layout:com.ss.android.ugc.aweme.inbox.lego.PreloadInboxTask|tag:MultiSelectConstraintLayout
+inbox/InboxFilter.java|CHAT_ROW_IDS|47.7.3:m07|app|com.by.andInflater.im_item_session_inbox_single_chat_cell|on:MultiSelectConstraintLayout
+inbox/InboxFilter.java|MESSAGE_REQUESTS_IDS|47.7.3:p03|app|com.by.andInflater.im_item_session_inbox_message_request_cell|at:11
+inbox/InboxFilter.java|SAY_HI_ROW_IDS|47.7.3:huh|app|layout:com.ss.android.ugc.aweme.im.chatlist.impl.feature.maf.ui.MafChatListWidgetV2|tag:MultiSelectConstraintLayout
+inbox/InboxFilter.java|SYSTEM_ROW_TITLE_IDS|47.7.3:aw4|app|layout:com.ss.android.ugc.aweme.inbox.lego.PreloadInboxTask|tag:TuxTextView#5
+inbox/InboxFilter.java|USER_ROW_TITLE_IDS|47.7.3:pqx|app|com.by.andInflater.im_item_session_inbox_single_chat_cell|on:TuxTextView#1
+inbox/InboxFilter.java|SUGGESTED_HEADER_IDS|47.7.3:ikb|app|com.ss.android.ugc.aweme.relation.usercard.impl.cell.TitleAreaCell|on:View#1
+inbox/InboxFilter.java|SUGGESTED_TITLE_IDS|47.7.3:kpo|app|class-method:setDarkMode+setPreviousPage|on:TuxTextView
+inbox/InboxFilter.java|SUGGESTED_REMOVE_IDS|47.7.3:dff|app|com.ss.android.ugc.aweme.relation.usercard.impl.cell.BaseSquareRecUserCell|on:TuxIconView
+inbox/InboxFilter.java|HEADER_ADD_PEOPLE_IDS|47.7.3:d5y|app|com.ss.android.ugc.aweme.inbox.v2.InboxFragmentV2|on:TuxIconView#1
+inbox/InboxFilter.java|HEADER_SEARCH_IDS|47.7.3:fwa|app|com.ss.android.ugc.aweme.inbox.v2.InboxFragmentV2|on:TuxIconView#2
+inbox/InboxFilter.java|HEADER_ACTIVITY_STATUS_IDS|47.7.3:g_a|app|layout:com.ss.android.ugc.aweme.inbox.lego.PreloadInboxTask|tag:LinearLayout#2
+blockauthor/FeedVisibility.java|HOME_TAB_RESOURCE_NAMES|47.7.3:hur|app|com.ss.android.ugc.aweme.homepage.ui.view.tab.bottom.hometab.HomeTabProtocol|-
+blockauthor/FeedVisibility.java|INBOX_TAB_RESOURCE_NAMES|47.7.3:hus|app|com.ss.android.ugc.aweme.notification.view.NotificationTabProtocol|-
+blockauthor/FeedVisibility.java|PROFILE_TAB_RESOURCE_NAMES|47.7.3:hut|app|com.ss.android.ugc.profile.platform.framework.aweme.profile.ui.profiletab.ProfileTabProtocol|-
+blockauthor/FeedVisibility.java|COMMENT_SHEET_RESOURCE_NAMES|47.7.3:ig0|app|layout:com.ss.android.ugc.aweme.commentv2.commentpage.commonvideo.DefaultCommentPageContainerFragment|tag:LinearLayout#1
+blockauthor/FeedVisibility.java|COMMENT_TITLE_RESOURCE_NAMES|47.7.3:mbq|app|com.ss.android.ugc.aweme.commentv2.actionbar.CommentPageActionBarAssem|on:TuxTextView#1
+comment/CommentTools.java|DISLIKE_BUTTON_IDS|47.7.3:fk1|app|class-method:setHateVisibility|to:RelativeLayout$LayoutParams
+comment/CommentTools.java|DISLIKE_ICON_IDS|47.7.3:gzy|app|class-method:setHateVisibility|on:TuxIconView#4
+captions/CaptionStyle.java|TEXT_IDS|47.7.3:bz9|app|layout-method-string:caption_balancer|at:3
+captions/CaptionStyle.java|BACKGROUND_IDS|47.7.3:bz5|app|layout-method-string:caption_balancer|tag:ConstraintLayout

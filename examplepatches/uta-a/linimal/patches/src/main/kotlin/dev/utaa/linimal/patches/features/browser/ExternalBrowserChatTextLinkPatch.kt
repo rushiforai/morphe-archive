@@ -21,7 +21,7 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableFieldReference
-import dev.utaa.linimal.patches.features.ads.smartChannelAdsPatch
+import dev.utaa.linimal.patches.features.ads.squareAdsPatch
 import dev.utaa.linimal.patches.shared.Constants
 import dev.utaa.linimal.patches.status.PatchId
 import dev.utaa.linimal.patches.status.recordFeatureStatus
@@ -254,7 +254,7 @@ val externalBrowserChatTextLinkPatch = bytecodePatch(
             PatchAvailability.UNAVAILABLE
         }
     }
-    dependsOn(smartChannelAdsPatch)
+    dependsOn(squareAdsPatch)
 
     execute {
         val targetMatches = externalBrowserTargetFingerprint.matchAllOrNull().orEmpty()

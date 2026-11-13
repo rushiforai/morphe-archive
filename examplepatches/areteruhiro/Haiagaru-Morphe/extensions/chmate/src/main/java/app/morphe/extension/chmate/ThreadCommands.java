@@ -120,7 +120,7 @@ public final class ThreadCommands {
     private static String serviceName(String profile) {
         switch (profile) {
             case "5ch": return "5ch"; case "edge": return "エッヂ"; case "open2ch": return "おーぷん2ch";
-            case "kenmo": return "けんも板";
+            case "kenmo": return "オルグ板";
             case "shitaraba": return "したらば"; case "afternoontea": return "AfternoonTea"; default: return "カスタム";
         }
     }

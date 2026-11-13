@@ -11,6 +11,7 @@ import app.morphe.patches.pinedrama.feedfilter.countColdStartFeedItemListStores
 import app.morphe.patches.pinedrama.feedfilter.isCommentTopBarCanShow
 import app.morphe.patches.pinedrama.feedfilter.isTakoSearchEntranceInflater
 import app.morphe.patches.pinedrama.feedfilter.takoSearchEntranceVariants
+import app.morphe.patches.pinedrama.interaction.downloads.StickerPreviewSourceFingerprint
 import app.morphe.patches.pinedrama.interaction.downloads.drawsCommentImageWatermark
 import app.morphe.patches.pinedrama.interaction.searchsuggestions.isSearchRewardsAccessor
 import app.morphe.patches.pinedrama.interaction.speed.playerManagerSpeedBoundary
@@ -80,8 +81,10 @@ class PineDramaPatchAnchorsMatchFixturesTest {
 
     /**
      * Issue #23. The Save media button finds the sticker sheet's actions by the sheet's shape:
-     * exactly one set of two or more fields sharing a TextView-descended type. The type itself is
-     * renamed on every build (0GSy, 1AWY, 1D84, 0CNa, 02Lg), which is what broke the old lookup.
+     * sets of two or more fields sharing a TextView-descended type, the narrowest class winning
+     * when one set's class extends another's. The type is renamed on every build (0GSy, 1AWY,
+     * 1D84, 0CNa, 02Lg, 02uW), which is what broke the old lookup. 47.7.3 also keeps four labels
+     * in TuxTextView fields, so the set picked must be the one the row's action binder takes.
      */
     @Test
     fun `sticker sheet keeps one group of like typed action fields on every retained fixture`() {
@@ -113,10 +116,37 @@ class PineDramaPatchAnchorsMatchFixturesTest {
                     }
             }
             assertEquals("${apk.name}: sticker preview row", 1, rows.size)
-            val groups = rows.single().fields
+            val row = rows.single()
+            val groups = row.fields
                 .filter { !AccessFlags.STATIC.isSet(it.accessFlags) && descendsFrom(it.type, "Landroid/widget/TextView;") }
                 .groupBy { it.type }.filterValues { it.size >= 2 }
-            assertEquals("${apk.name}: like typed action fields ${groups.keys}", 1, groups.size)
+            val narrowest = groups.keys.filter { type -> groups.keys.none { it != type && descendsFrom(it, type) } }
+            assertEquals("${apk.name}: like typed action fields ${groups.keys}", 1, narrowest.size)
+            assertTrue("${apk.name}: ${narrowest.single()} is not what the row binds its actions with",
+                row.methods.any { method ->
+                    !AccessFlags.STATIC.isSet(method.accessFlags) &&
+                        method.parameterTypes.firstOrNull()?.toString() == narrowest.single()
+                })
+        }
+    }
+
+    /**
+     * The Downloads patch ties each sticker preview to its StickerItem in the one method that
+     * calls the preview bind with the sticker in p2. 47.7.3 appended a Function2 and a Long to
+     * that method's parameters, the old whole-list fingerprint stopped matching, and the patch
+     * failed at apply with every test green, since nothing here held the fingerprint to a build.
+     */
+    @Test
+    fun `sticker preview source fingerprint takes one method on every retained fixture`() {
+        for (apk in fixtures()) {
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
+            val taken = container.dexEntryNames.asSequence()
+                .flatMap { container.getEntry(it)!!.dexFile.classes.asSequence() }
+                .flatMap { classDef -> classDef.methods.asSequence().filter { StickerPreviewSourceFingerprint.takes(it, classDef) } }
+                .toList()
+            assertEquals("${apk.name}: sticker preview source ${taken.map { "${it.definingClass}->${it.name}" }}", 1, taken.size)
+            assertEquals("${apk.name}: the sticker the hook reads from p2",
+                "Lcom/ss/android/ugc/aweme/im/common/model/StickerItem;", taken.single().parameterTypes[1].toString())
         }
     }
 

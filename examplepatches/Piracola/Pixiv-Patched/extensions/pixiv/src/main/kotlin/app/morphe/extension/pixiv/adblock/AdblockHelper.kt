@@ -118,7 +118,6 @@ object AdblockHelper {
                 hideSponsoredCard(item)
                 return
             }
-            // If item is a RecyclerView.ViewHolder, access its itemView field
             val clazz = item.javaClass
             val itemViewField = try {
                 clazz.getField("itemView")

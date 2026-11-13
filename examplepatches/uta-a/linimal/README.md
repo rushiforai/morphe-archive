@@ -12,7 +12,7 @@ Linimal is an independent project and is not an official project of LINE or Morp
 
 ## Features
 
-- **Hide ads**: the Smart Channel in the chat list and ads on Home.
+- **Hide ads**: the Smart Channel in the chat list, ads on Home, and ads in OpenChat.
 - **Hide Agent i and LINE AI entry points**: in 9 places, including Home, Wallet, the chat list search bar, chats, the chat + menu, the photo and video viewer, and Settings.
 - **Hide things you don't use**: bottom tabs, icons at the top of the chat list, the chat + menu, and sections on Home.
 - **Read without receipt**: read chats opened from the long-press menu or from notifications while keeping them unread. When you're done, use "Mark all as read" to mark them as read.
@@ -81,6 +81,7 @@ Display settings that hide parts of the screen take effect after the app restart
 | --- | --- | --- | --- |
 | Ads | Hide Smart Channel ads | ON | Hides the Smart Channel at the top of the chat list. |
 | Ads | Hide ads on Home | ON | Hides ad slots on Home and ad cards in the feed. |
+| Ads | Hide OpenChat ads | ON | Hides ads in OpenChat chats, threads, and notes. |
 | Agent i & LINE AI | Hide Agent i at the top of Home | ON | |
 | Agent i & LINE AI | Hide Agent i at the top of Wallet | ON | |
 | Agent i & LINE AI | Hide Agent i in the chat list search bar | ON | The search bar widens to fill the space. |

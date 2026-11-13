@@ -133,8 +133,9 @@ class ObfuscatedIdentityTest {
 
         /**
          * Names that match a shape above and are nobody's invention: the patch category, framework
-         * members compared by name, and file extensions.
+         * members compared by name, file extensions, and two carriers Spoof SIM region answers with
+         * (AIS in Thailand, CSL in Hong Kong).
          */
-        val REAL_NAMES = setOf("Ads", "get", "put", "run", "id", "raw", "mp3", "mp4", "m4a", "m4v")
+        val REAL_NAMES = setOf("Ads", "get", "put", "run", "id", "raw", "mp3", "mp4", "m4a", "m4v", "AIS", "CSL")
     }
 }

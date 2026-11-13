@@ -366,7 +366,6 @@ object PatchedSettings {
             setPadding(dp(context, 4f), dp(context, 16f), dp(context, 4f), dp(context, 8f))
         }
 
-    /** One group of rows, drawn as the same rounded card the AI filter page uses. */
     private fun card(context: Context, palette: Palette): LinearLayout =
         LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
@@ -554,15 +553,6 @@ object PatchedSettings {
         }
     }
 
-    /**
-     * The picker used to be a window of its own, which is why tapping around it did nothing: with a
-     * `WRAP_CONTENT` window the touches outside never reach it, and there is nothing behind it to
-     * dim. It is now a scrim and a card inside the page's own window, so the scrim takes every tap
-     * that misses the card, and the card's elevation draws a real shadow over it.
-     *
-     * The card changes its own contents in place: the presets first, then - behind the last row - a
-     * number field, because the count somebody wants is rarely one of the round ones.
-     */
     private fun showBookmarkThresholdPicker(
         context: Context,
         palette: Palette,

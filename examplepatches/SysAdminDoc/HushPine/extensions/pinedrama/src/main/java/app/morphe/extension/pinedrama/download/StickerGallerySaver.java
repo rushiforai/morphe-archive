@@ -1433,10 +1433,11 @@ public final class StickerGallerySaver {
      *
      * <p>PineDrama's button is a TextView subclass whose name changes with every build: X.0GSy on
      * 46.2.3, X.02Lg on 47.0.3, where X.0GSy is an unrelated class. Naming it is what left
-     * 47.0.3 with no Save media button (issue #23). What holds on all five retained builds is
-     * that the row keeps its two actions in fields of one shared type, while its caption is the
-     * only field of its own type. So the actions are the largest set of attached TextView fields
-     * declared with the same type, and a lone TextView is never one of them.
+     * 47.0.3 with no Save media button (issue #23). What holds on every build since is that the
+     * row keeps its actions in fields of one shared type, and a lone TextView is never one of
+     * them. 47.7.3 also keeps four labels in fields of TuxTextView, the class its action button
+     * extends, so when one like-typed set's class extends another's, the narrower class is the
+     * actions. Otherwise the largest set wins.
      */
     static List<View> findActionButtons(View sheetView) {
         java.util.Map<Class<?>, List<View>> byType = new java.util.LinkedHashMap<>();
@@ -1458,8 +1459,17 @@ public final class StickerGallerySaver {
             }
         }
         List<View> actions = Collections.emptyList();
-        for (List<View> sameType : byType.values()) {
-            if (sameType.size() >= 2 && sameType.size() > actions.size()) actions = sameType;
+        Class<?> actionType = null;
+        for (java.util.Map.Entry<Class<?>, List<View>> group : byType.entrySet()) {
+            List<View> sameType = group.getValue();
+            if (sameType.size() < 2) continue;
+            Class<?> type = group.getKey();
+            boolean narrower = actionType != null && actionType.isAssignableFrom(type);
+            boolean wider = actionType != null && type.isAssignableFrom(actionType);
+            if (narrower || (!wider && sameType.size() > actions.size())) {
+                actions = sameType;
+                actionType = type;
+            }
         }
         return actions;
     }

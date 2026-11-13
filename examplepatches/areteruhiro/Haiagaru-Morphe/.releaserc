@@ -69,7 +69,8 @@
           ]
         },
         "writerOpts": {
-          "headerPartial": "# Haiagaru {{version}} ({{date}})\n\n## 主な変更\n\n今回の変更内容は、以下のカテゴリ別リリース項目をご覧ください。\n\n## 追加ファイル\n\nImage NG・画像取得専用VPNをパッチ時に選ぶ場合は、Assetsの `haiagaru-image-ng.zip` ／ `haiagaru-image-vpn-v2.zip` を展開せず指定してください。これらのパッチを使わない場合、追加ファイルは不要です。\n\n## 謝辞\n\nご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。\n\n- yujirox 様\n- ﾜｯﾁｮｲ 8f01-uDul 様\n- toya0717 様\n- MUMEI 様\n- タケヨシキ 様\n- 無名 様\n\n今回のご報告・動作確認・連携へのご協力にも感謝します。\n\n- ｵｲｺﾗﾐﾈｵ 様\n- Red Frame X 様\n- ﾜｯﾁｮｲ 3f3c-gNc7 様\n- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）\n- rikunode 様（226／242のDroid＋ツールバー対応）\n\n## 開発継続へのご支援のお願い\n\n開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。\n\n- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO) Send to (areteruhiro@gmail.com)\n- [PayPay](https://qr.paypay.ne.jp/p2p01_FSEj08sDQx0enogO)\n\n皆様からのご報告・検証・ご支援が開発の励みになっています。\n"
+          "headerPartial": "# Haiagaru {{version}} ({{date}})\n\n- 最適化\n",
+          "mainTemplate": "{{> header}}\n"
         }
       }
     ],

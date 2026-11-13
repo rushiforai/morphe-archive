@@ -1,3 +1,16 @@
+## [1.3.8](https://github.com/ZoomSass/Mighty-Morphing/compare/v1.3.7...v1.3.8) (2026-11-13)
+
+### 🐛 Bug Fixes
+
+* Modern UI note now says v1.3.7. ([14708cb](https://github.com/ZoomSass/Mighty-Morphing/commit/14708cb3a7f6e055b43fc59eeb3a666dc2a0fec6))
+
+## [1.3.7](https://github.com/ZoomSass/Mighty-Morphing/compare/v1.3.6...v1.3.7) (2026-11-13)
+
+### 🐛 Bug Fixes
+
+* AMOLED black now appears in settings. ([2fa67cb](https://github.com/ZoomSass/Mighty-Morphing/commit/2fa67cbce1015cbd87068e72f53f0d7b7d397d24))
+* Loads replies that stay hidden when Reddit will not open them. Based on the Patcheddit fix. ([7a96b8d](https://github.com/ZoomSass/Mighty-Morphing/commit/7a96b8df2430fe5fe0f6b1f3b249464cf6aebf16))
+
 ## [1.3.6](https://github.com/ZoomSass/Mighty-Morphing/compare/v1.3.5...v1.3.6) (2026-11-09)
 
 ### 🐛 Bug Fixes

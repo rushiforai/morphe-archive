@@ -159,6 +159,26 @@ Forget the seen video.	ลืมวิดีโอที่ดูแล้ว
 Forget the video @%2$s has seen.	ลืมวิดีโอที่ @%2$s ได้ดูแล้ว
 Got it	รับทราบ
 Hide profile shortcuts	ซ่อนทางลัดในโปรไฟล์
+# context: Title of the checklist that hides tabs from the strip above a profile's videos
+Hide profile tabs	ซ่อนแท็บในโปรไฟล์
+# context: Note under that title. Reposts and Liked videos are two of the checklist's rows, and the checklist never takes away every tab
+Pick the tabs to hide from the strip above a profile's videos, such as Reposts or Liked videos. One tab always stays. Restart TikTok to apply this.	เลือกแท็บที่จะซ่อนจากแถบเหนือวิดีโอของโปรไฟล์ เช่น รีโพสต์ หรือ วิดีโอที่ถูกใจ จะเหลือแท็บไว้อย่างน้อยหนึ่งแท็บเสมอ รีสตาร์ท TikTok เพื่อนำการเปลี่ยนแปลงนี้ไปใช้
+# context: Checklist row for the profile tab with the account's private videos (lock icon)
+Private videos	วิดีโอส่วนตัว
+# context: Checklist row for the profile tab with the videos the account reposted
+Reposts	รีโพสต์
+# context: Checklist row for the profile tab with the account's saved videos (bookmark icon)
+Favorites	รายการโปรด
+# context: Checklist row for the profile tab with the account's sounds
+Music	เพลง
+# context: Checklist row for the profile tab with the account's camera effects
+Effects	เอฟเฟกต์
+# context: Checklist row for the profile tab with the account's paid series and short dramas
+Series	ซีรีส์
+# context: Checklist row for the profile tab with the account's stickers
+Stickers	สติกเกอร์
+# context: Checklist row for the profile tab TikTok calls AI theater, with the account's AI-made videos
+AI theater	โรงละคร AI
 Hide profile shortcuts by name	ซ่อนทางลัดในโปรไฟล์ตามชื่อ
 Hide the status bar in LIVE rooms	ซ่อนแถบสถานะในห้อง LIVE
 How much of a video you watch before it's hidden next time. Zero counts it after a few seconds.	สัดส่วนของวิดีโอที่คุณรับชมก่อนที่จะถูกซ่อนในครั้งต่อไป หากตั้งเป็นศูนย์จะนับหลังจากผ่านไปไม่กี่วินาที
@@ -2368,7 +2388,7 @@ Expanded	ขยายแล้ว
 Collapsed	ยุบแล้ว
 This setting isn't available. Search for another setting.	การตั้งค่านี้ไม่พร้อมใช้งาน ค้นหาการตั้งค่าอื่น
 Hide the Hushfeed row	ซ่อนแถว Hushfeed
-Take Hushfeed out of TikTok's Settings and privacy. To open these settings, press and hold For You at the top of the feed, or Home if Long-press Home for Hushfeed settings is on.	นำ Hushfeed ออกจากการตั้งค่าและความเป็นส่วนตัวของ TikTok ในการเปิดการตั้งค่าเหล่านี้ ให้กดค้างที่ "สำหรับคุณ" ที่ด้านบนของฟีด หรือ "หน้าหลัก" หากเปิดใช้ "กดปุ่มหน้าแรกค้างไว้เพื่อเข้าสู่การตั้งค่า Hushfeed"
+Take Hushfeed out of TikTok's Settings and privacy. To open these settings, press and hold For You at the top of the feed, or Home if Long-press Home for Hushfeed settings is on. If neither press can open them, the row stays.	นำ Hushfeed ออกจากการตั้งค่าและความเป็นส่วนตัวของ TikTok ในการเปิดการตั้งค่าเหล่านี้ ให้กดค้างที่ "สำหรับคุณ" ที่ด้านบนของฟีด หรือ "หน้าหลัก" หากเปิดใช้ "กดปุ่มหน้าแรกค้างไว้เพื่อเข้าสู่การตั้งค่า Hushfeed" หากเปิดไม่ได้ทั้งสองแบบ แถวนี้จะยังอยู่
 Open the search page	เปิดหน้าค้นหา
 Search didn't open. Restart TikTok and try again.	ไม่สามารถเปิดการค้นหาได้ รีสตาร์ท TikTok แล้วลองอีกครั้ง
 Fold the search into a button	ยุบการค้นหาเป็นปุ่ม
@@ -2671,6 +2691,18 @@ TikTok tests more than one set of icons for the bottom bar. Pick one here, or le
 New style 1	รูปแบบใหม่ 1
 # context: Choice value for the bottom bar's icons, TikTok's other newer icon set
 New style 2	รูปแบบใหม่ 2
+# context: Row title of the Feed tabs choice that sets how tall the bottom bar is
+Bottom bar height	ความสูงของแถบด้านล่าง
+# context: Note under that choice
+Videos and the other tabs make room for the bar at its new height. With the tab names hidden, the icons fit the shorter bars best.	วิดีโอและแท็บอื่น ๆ จะเว้นที่ให้แถบตามความสูงใหม่ เมื่อซ่อนชื่อแท็บไว้ ไอคอนจะพอดีกับแถบที่เตี้ยกว่าได้ดีที่สุด
+# context: Choice value for the bottom bar's height, the lowest of the five
+Shorter	เตี้ยมาก
+# context: Choice value for the bottom bar's height, a little lower than TikTok's
+Short	เตี้ย
+# context: Choice value for the bottom bar's height, a little higher than TikTok's
+Tall	สูง
+# context: Choice value for the bottom bar's height, the highest of the five
+Taller	สูงมาก
 # context: Row title of the Feed tabs switch that adds Friends to the row of tabs along the top of the feed
 Friends in the top tabs	เพื่อนในแท็บด้านบน
 # context: Summary under that switch; Friends and Following are TikTok's tab names

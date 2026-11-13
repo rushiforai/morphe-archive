@@ -20,12 +20,14 @@ import java.util.Set;
 import dev.utaa.linimal.extension.features.readwithoutreceipt.ReadWithoutReceiptHooks;
 import dev.utaa.linimal.extension.features.PreviewDisableHooks;
 import dev.utaa.linimal.extension.features.PreviewScrollHooks;
+import dev.utaa.linimal.extension.features.SquareAdsHooks;
 
 public final class LinimalConfigTest {
     /** 現在の既定値で ON になる機能です。alias は置き換え先と同じ値になります。 */
     private static final Set<LinimalFeature> DEFAULT_ON_FEATURES = EnumSet.of(
             LinimalFeature.SMART_CHANNEL_ADS,
             LinimalFeature.HOME_TOP_AD,
+            LinimalFeature.SQUARE_ADS,
             LinimalFeature.AGENT_I_HOME_HEADER,
             LinimalFeature.AGENT_I_CHAT_INFORMATION,
             LinimalFeature.AGENT_I_WALLET_HEADER,
@@ -84,6 +86,7 @@ public final class LinimalConfigTest {
             LinimalFeature.PREMIUM_PREVIEW_PROMOTION,
             LinimalFeature.PREVIEW_SCROLL,
             LinimalFeature.PREVIEW_DISABLE,
+            LinimalFeature.SQUARE_ADS,
             LinimalFeature.AMOLED_THEME,
             LinimalFeature.READ_RECEIPT_READERS_ICONS,
             LinimalFeature.READ_RECEIPT_READERS_TAP,
@@ -118,6 +121,8 @@ public final class LinimalConfigTest {
         assertTrue(PreviewScrollHooks.allowScroll(true));
         assertFalse(config.isPreviewDisableEnabled());
         assertFalse(PreviewDisableHooks.shouldDisablePreview());
+        assertFalse(config.isSquareAdsSuppressionEnabled());
+        assertFalse(SquareAdsHooks.shouldSuppressAds());
         assertFalse(config.isHomeFeedPostCardsSuppressionEnabled());
         assertFalse(config.isHomeFeaturedCollectionsSuppressionEnabled());
         assertFalse(config.isNotificationReadWithoutReceiptEnabled());
@@ -890,6 +895,55 @@ public final class LinimalConfigTest {
             shared.set(null, config);
             assertFalse(PreviewDisableHooks.shouldDisablePreview());
             assertEquals(true, backend.values.get("linimal.preview.disable"));
+        } finally {
+            shared.set(null, previous);
+        }
+    }
+
+    @Test
+    public void squareAdsAreHiddenByDefaultAndToggleAfterRestart() throws Exception {
+        java.lang.reflect.Field shared = LinimalConfig.class.getDeclaredField("shared");
+        shared.setAccessible(true);
+        LinimalConfig previous = (LinimalConfig) shared.get(null);
+        try {
+            InMemoryBackend backend = new InMemoryBackend();
+            LinimalConfig config = configFor(backend);
+            shared.set(null, config);
+            assertTrue(config.isSquareAdsSuppressionEnabled());
+            assertTrue(SquareAdsHooks.shouldSuppressAds());
+
+            config.setSuppressionEnabled(LinimalFeature.SQUARE_ADS, false);
+            assertEquals(false, backend.values.get("linimal.ads.square"));
+            assertTrue(config.isRestartPending(LinimalFeature.SQUARE_ADS));
+            assertTrue(SquareAdsHooks.shouldSuppressAds());
+            config = config.restartForTesting();
+            shared.set(null, config);
+            assertFalse(SquareAdsHooks.shouldSuppressAds());
+
+            // patch が当たっていない APK では、保存値に関係なく公式の判定を使います。
+            backend.values.put("linimal.ads.square", true);
+            config = configFor(backend, availableFeatures(LinimalFeature.SMART_CHANNEL_ADS));
+            shared.set(null, config);
+            assertFalse(SquareAdsHooks.shouldSuppressAds());
+        } finally {
+            shared.set(null, previous);
+        }
+    }
+
+    @Test
+    public void squareAdsPreserveOfficialBehaviorAfterStorageFailure() throws Exception {
+        java.lang.reflect.Field shared = LinimalConfig.class.getDeclaredField("shared");
+        shared.setAccessible(true);
+        LinimalConfig previous = (LinimalConfig) shared.get(null);
+        try {
+            FailingWriteBackend backend = new FailingWriteBackend();
+            backend.values.put(LinimalConfigSchema.SCHEMA_VERSION_KEY, LinimalConfigSchema.CURRENT_VERSION);
+            LinimalConfig config = configFor(backend);
+            shared.set(null, config);
+            assertTrue(SquareAdsHooks.shouldSuppressAds());
+            config.setSuppressionEnabled(LinimalFeature.SQUARE_ADS, false);
+            assertEquals(LinimalConfigHealth.ERROR, config.getRuntimeHealth());
+            assertFalse(SquareAdsHooks.shouldSuppressAds());
         } finally {
             shared.set(null, previous);
         }

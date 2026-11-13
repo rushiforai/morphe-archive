@@ -17,6 +17,7 @@ public final class LinimalDefaults {
         switch (feature) {
             case SMART_CHANNEL_ADS:
             case HOME_TOP_AD:
+            case SQUARE_ADS:
             case AGENT_I_HOME_HEADER:
             case AGENT_I_CHAT_INFORMATION:
             case AGENT_I_WALLET_HEADER:

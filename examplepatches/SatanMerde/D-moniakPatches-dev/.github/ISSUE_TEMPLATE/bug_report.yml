@@ -1,0 +1,89 @@
+name: "🐛 Signalement de bug / Bug report"
+description: "Signaler un problème, un dysfonctionnement ou un crash lié à un patch."
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### 🐞 Signalement d'un bug / Bug report
+        Merci de prendre le temps de signaler ce problème. Avant de soumettre, veuillez vérifier qu'un ticket similaire n'est pas déjà ouvert dans les [Issues existantes](https://github.com/SatanMerde/D-moniakPatches/issues?q=is%3Aissue).
+
+  - type: input
+    id: app-name
+    attributes:
+      label: "Jeu ou Application concernée / Target Game or App"
+      description: "Indiquez le nom du jeu ou de l'application (ex. Hungry Shark World)."
+      placeholder: "ex: Hungry Shark World"
+    validations:
+      required: true
+
+  - type: input
+    id: app-version
+    attributes:
+      label: "Version du jeu / App Version"
+      description: "La version exacte de l'application patchée."
+      placeholder: "ex: 5.6.0"
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: patches-applied
+    attributes:
+      label: "Patch(s) appliqué(s) / Applied Patches"
+      description: "Cochez les patchs que vous avez activés dans Morphe."
+      options:
+        - label: "Free Shopping"
+        - label: "Bypass Rewarded Ads"
+        - label: "Autre / Other"
+
+  - type: input
+    id: morphe-version
+    attributes:
+      label: "Version de Morphe Manager / Morphe Version"
+      description: "La version de Morphe Manager utilisée."
+      placeholder: "ex: 1.0.0"
+    validations:
+      required: false
+
+  - type: textarea
+    id: description
+    attributes:
+      label: "Description détaillée du bug / Bug Description"
+      description: "Décrivez précisément le problème rencontré et le comportement attendu."
+      placeholder: "Lorsque je clique sur..., le jeu freeze / ne crédite pas l'article..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction-steps
+    attributes:
+      label: "Étapes pour reproduire / Steps to Reproduce"
+      description: "Détaillez les étapes successives pour reproduire le bug."
+      value: |
+        1. Lancer le jeu patché
+        2. Aller dans...
+        3. Cliquer sur...
+        4. Constater l'erreur
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs-screenshots
+    attributes:
+      label: "Logs, Captures d'écran ou Vidéos / Logs or Screenshots"
+      description: "Collez ici des logs (logcat) ou glissez-déposez des captures d'écran / vidéos du problème."
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: "Checklist de vérification"
+      options:
+        - label: "J'ai vérifié qu'un signalement identique n'existe pas déjà."
+          required: true
+        - label: "J'utilise la dernière version disponible des patchs sur le repo."
+          required: true
+        - label: "Toutes les informations nécessaires ont été fournies."
+          required: true

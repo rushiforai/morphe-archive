@@ -262,8 +262,50 @@ public final class ThreadListThumbnail {
 
     private static List<String> fiveChOpeningImages(Context context,ThreadListThumbnailRules.Board board,String id,int limit)throws IOException{
         String address=board.threadUrl(id);
-        byte[] html=fetch(context,address,2*1024*1024,false);
+        String dat=board.openingDatUrl(id);
+        if(dat!=null){
+            String opening=EdgeOpeningDat.body((first,last)->ThumbnailRequestPacing.fetch(context,dat,
+                    gate->fetchOpeningDat(dat,first,last,gate)));
+            return ThreadListThumbnailRules.openingTextMedia(opening,address,limit);
+        }
+        byte[] html=ThumbnailRequestPacing.fetch(context,address+"1",gate->fetchOpeningHtml(address+"1",id,gate));
         return ThreadListThumbnailRules.firstFiveChImages(new String(html,java.nio.charset.StandardCharsets.UTF_8),address,limit);
+    }
+
+    private static byte[] fetchOpeningHtml(String address,String id,ThumbnailRequestPacing.Gate gate)throws IOException{
+        HttpURLConnection connection=(HttpURLConnection)URI.create(address).toURL().openConnection();
+        connection.setInstanceFollowRedirects(false);connection.setConnectTimeout(6000);connection.setReadTimeout(10000);
+        connection.setRequestProperty("User-Agent","Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/120 Mobile Safari/537.36");
+        try{
+            int status=connection.getResponseCode();
+            if(gate!=null)gate.check(status,connection.getHeaderField("Retry-After"));
+            if(status!=200)throw new IOException("HTTP "+status);
+            try(InputStream input=new java.io.FilterInputStream(connection.getInputStream()){
+                @Override public void close()throws IOException{connection.disconnect();super.close();}
+            }){
+                String html=OpeningPostHtml.read(input,connection.getContentType(),address,"five",id,unused->false);
+                connection.disconnect();return html.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+            }
+        }finally{connection.disconnect();}
+    }
+
+    private static EdgeOpeningDat.Part fetchOpeningDat(String address,int first,int last,ThumbnailRequestPacing.Gate gate)throws IOException{
+        HttpURLConnection connection=(HttpURLConnection)URI.create(address).toURL().openConnection();
+        connection.setInstanceFollowRedirects(false);connection.setConnectTimeout(6000);connection.setReadTimeout(10000);
+        connection.setRequestProperty("User-Agent","Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/120 Mobile Safari/537.36");
+        connection.setRequestProperty("Range","bytes="+first+"-"+last);
+        connection.setRequestProperty("Accept-Encoding","identity");
+        try{
+            int status=connection.getResponseCode();
+            if(gate!=null)gate.check(status,connection.getHeaderField("Retry-After"));
+            if(status!=200&&status!=206)throw new IOException("HTTP "+status);
+            int cap=status==200?EdgeOpeningDat.MAX_BYTES+1:last-first+2;
+            try(InputStream input=connection.getInputStream()){
+                EdgeOpeningDat.Part part=new EdgeOpeningDat.Part(status,connection.getHeaderField("Content-Range"),
+                        connection.getContentType(),EdgeOpeningDat.read(input,cap));
+                connection.disconnect();return part;
+            }
+        }finally{connection.disconnect();}
     }
 
     /** No redirect or non-HTTPS fallback: only explicitly selected public sources. */

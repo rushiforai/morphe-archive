@@ -16,9 +16,14 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.threads.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.threads.misc.settings.EXTENSION_ROOT
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.SwitchPayload
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import org.w3c.dom.Attr
 import org.w3c.dom.Document
@@ -134,6 +139,38 @@ internal fun Instruction.loadedString(): String? {
     if (opcode != Opcode.CONST_STRING && opcode != Opcode.CONST_STRING_JUMBO) return null
     return ((this as? ReferenceInstruction)?.reference as? StringReference)?.string
 }
+
+/**
+ * The string the call at [at] in [body] fetches from Redex's table of outlined strings, or null.
+ * The caller writes the index as a constant just before the call, and the table is a static
+ * (I)String that switches on it first thing, each case loading one literal and returning it.
+ */
+internal fun BytecodePatchContext.outlinedString(body: List<Instruction>, at: Int): String? {
+    val call = body[at]
+    if (call.opcode != Opcode.INVOKE_STATIC) return null
+    val target = (call as ReferenceInstruction).reference as? MethodReference ?: return null
+    if (target.returnType != "Ljava/lang/String;" || target.parameterTypes.map { it.toString() } != listOf("I")) return null
+    val index = body.getOrNull(at - 1)?.takeIf {
+        it.opcode in INDEX_CONSTANTS && (it as OneRegisterInstruction).registerA == (call as FiveRegisterInstruction).registerC
+    }?.let { (it as NarrowLiteralInstruction).narrowLiteral } ?: return null
+    val table = classDefByOrNull(target.definingClass)?.methods?.firstOrNull {
+        it.name == target.name && it.returnType == target.returnType && it.parameterTypes.map { type -> type.toString() } == listOf("I")
+    } ?: return null
+    val implementation = table.implementation ?: return null
+    val code = implementation.instructions.toList()
+    val switch = code.firstOrNull()?.takeIf { it.opcode == Opcode.PACKED_SWITCH || it.opcode == Opcode.SPARSE_SWITCH } ?: return null
+    if ((switch as OneRegisterInstruction).registerA != implementation.registerCount - 1) return null
+    // The switch is at address 0, so its payload's and its cases' offsets are addresses.
+    val addresses = code.runningFold(0) { address, instruction -> address + instruction.codeUnits }
+    val payload = code.getOrNull(addresses.indexOf((switch as OffsetInstruction).codeOffset)) as? SwitchPayload ?: return null
+    val case = payload.switchElements.singleOrNull { it.key == index } ?: return null
+    val loads = addresses.indexOf(case.offset).takeIf { it >= 0 } ?: return null
+    val returns = code.getOrNull(loads + 1)?.takeIf { it.opcode == Opcode.RETURN_OBJECT } ?: return null
+    if ((returns as OneRegisterInstruction).registerA != (code[loads] as? OneRegisterInstruction)?.registerA) return null
+    return code[loads].loadedString()
+}
+
+private val INDEX_CONSTANTS = setOf(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST)
 
 /**
  * Hands every literal this method loads that [routes] picks to [call], a static method taking and

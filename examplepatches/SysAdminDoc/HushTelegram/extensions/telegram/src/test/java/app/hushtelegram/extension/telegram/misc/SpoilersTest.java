@@ -43,6 +43,7 @@ public class SpoilersTest {
         SettingReadsForTests.mend(Settings.REVEAL_SPOILERS);
         Settings.REVEAL_SPOILERS.resetToDefault();
         HookStatus.clear();
+        Spoilers.resetForTests();
     }
 
     /** [text] with a spoiler over each of [covered]. */
@@ -92,6 +93,30 @@ public class SpoilersTest {
         assertTrue(Spoilers.covered(true, MESSAGE, message -> message == MESSAGE));
         // Uncovered media stays uncovered without asking.
         assertFalse(Spoilers.covered(false, MESSAGE, message -> { throw new AssertionError("not asked"); }));
+    }
+
+    @Test public void mediaShowAllSpoilersPickedStaysUncoveredWithTheSwitchOff() {
+        Object picked = new Object();
+        Spoilers.show(picked);
+        Spoilers.show(null);
+        assertTrue(Spoilers.shown(picked));
+        assertFalse(Spoilers.covered(true, picked, message -> false));
+        assertTrue("view-once and sensitive media keep the blur", Spoilers.covered(true, picked, message -> true));
+        assertTrue("other messages keep theirs", Spoilers.covered(true, MESSAGE, message -> false));
+        for (HushTelegramPause.Reason reason : HushTelegramPause.Reason.values()) {
+            if (reason == HushTelegramPause.Reason.NONE) continue;
+            PauseForTests.pause(reason);
+            assertTrue(reason.name(), Spoilers.covered(true, picked, message -> false));
+            PauseForTests.resume();
+        }
+    }
+
+    @Test public void textIsUncoverableWhenNoSpoilerIsOverACodeWhateverTheSwitchSays() {
+        assertFalse(Settings.REVEAL_SPOILERS.get());
+        assertTrue(Spoilers.uncoverable(text("the ending is sad", "sad"), SPOILER));
+        assertFalse(Spoilers.uncoverable(text("Login code: 52814", "52814"), SPOILER));
+        assertFalse(Spoilers.uncoverable(text("nothing hidden"), SPOILER));
+        assertFalse(Spoilers.uncoverable(null, SPOILER));
     }
 
     @Test public void unpatchedStubsFindNothingToUncover() {

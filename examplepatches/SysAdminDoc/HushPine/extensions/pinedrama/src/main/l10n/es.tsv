@@ -1855,3 +1855,5 @@ Hide videos without a preferred dub	Ocultar videos sin un doblaje preferido
 Hides videos with no dub from Dub priority in Playback. Putting original on that list keeps every video, since each has its own audio. If a whole page would be hidden, one video stays so the feed keeps loading. Does nothing while the list is empty.	Oculta los videos sin un doblaje de Prioridad de doblaje en Reproducción. Si pones original en esa lista, se quedan todos los videos, porque cada uno tiene su propio audio. Si se ocultara una página entera, queda un video para que el feed siga cargando. No hace nada mientras la lista esté vacía.
 Preferred subtitles	Subtítulos preferidos
 Preferred dubs	Doblajes preferidos
+Always open on Home	Abrir siempre en Inicio
+PineDrama sometimes starts on Discover, like in the first days after an install. This starts it on Home instead.	PineDrama a veces se abre en Descubrir, por ejemplo en los primeros días tras instalarlo. Con esto se abre en Inicio.

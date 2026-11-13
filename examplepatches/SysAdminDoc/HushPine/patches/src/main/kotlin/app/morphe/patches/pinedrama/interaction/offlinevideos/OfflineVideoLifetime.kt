@@ -13,6 +13,7 @@ import app.morphe.patches.pinedrama.shared.guardAtEntry
 import app.morphe.patches.pinedrama.shared.requireLocals
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Format
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
@@ -118,6 +119,9 @@ internal fun MutableMethod.keepThroughAutoAdjust(patch: String) {
     )
 }
 
+/** goto (10t, 20t, 30t) and if (21t, 22t). */
+private val BRANCH_FORMATS = setOf(Format.Format10t, Format.Format20t, Format.Format30t, Format.Format21t, Format.Format22t)
+
 /**
  * The index of the `return` that answers yes to the default-on clean-up: the first one after the
  * log line, with at most the log call between. Fails closed on any other shape.
@@ -137,7 +141,7 @@ internal fun MutableMethod.defaultEnableCleanupReturnIndex(patch: String): Int {
         .firstOrNull { instructions[it].opcode == Opcode.RETURN }
         ?: throw PatchException("$patch: no return within three instructions of the clean-up line in $definingClass->$name.")
     val between = instructions.subList(logIndex + 1, returnIndex)
-    if (between.any { it.opcode.name.startsWith("IF_") || it.opcode.name.startsWith("GOTO") || it.opcode == Opcode.THROW }) {
+    if (between.any { it.opcode.format in BRANCH_FORMATS || it.opcode == Opcode.THROW }) {
         throw PatchException("$patch: a branch sits between the clean-up line and its return in $definingClass->$name.")
     }
     return returnIndex

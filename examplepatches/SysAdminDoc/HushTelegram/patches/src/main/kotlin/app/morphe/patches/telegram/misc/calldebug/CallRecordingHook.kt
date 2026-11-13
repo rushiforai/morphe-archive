@@ -23,6 +23,7 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
@@ -31,6 +32,7 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import app.morphe.util.names.origDefiningClass
 import app.morphe.util.names.origInterfaces
 import app.morphe.util.names.origName
+import app.morphe.util.names.origParameterTypes
 import app.morphe.util.names.origReturnType
 import app.morphe.util.names.origType
 import app.morphe.util.names.tgClassDefByOrNull
@@ -52,6 +54,12 @@ internal const val CALL_STATE_LISTENER = "Lorg/telegram/messenger/voip/VoIPServi
 internal const val PHONE_CALL = "Lorg/telegram/tgnet/tl/TL_phone\$PhoneCall;"
 /** VoIPFragment logs this, so it's how the call screen is found once R8 has renamed it. */
 internal const val CALL_SCREEN_STRING = "self-muted"
+internal const val CHAT_CALL = "Lorg/telegram/messenger/ChatObject\$Call;"
+internal const val LINEAR_LAYOUT = "Landroid/widget/LinearLayout;"
+private const val LAYOUT_PARAMS = "Landroid/view/ViewGroup\$LayoutParams;"
+/** Gravity.TOP | Gravity.RIGHT, where the voice chat screen pins its row of buttons. */
+private const val TOP_RIGHT = 53
+private val STATIC_CALLS = setOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE)
 private val TRACK_WRITE_CALLS = setOf(Opcode.INVOKE_VIRTUAL, Opcode.INVOKE_VIRTUAL_RANGE)
 private val RECORDED_CALLS = setOf(Opcode.INVOKE_DIRECT, Opcode.INVOKE_DIRECT_RANGE)
 private val SWITCHES = setOf(Opcode.PACKED_SWITCH, Opcode.SPARSE_SWITCH)
@@ -261,6 +269,91 @@ private fun BytecodePatchContext.callRecordButtonHook(): CallRecordButtonHook {
         missingCallAudio("the call screen's record button doesn't assemble: ${refused.message}")
     }
     return hook
+}
+
+/**
+ * Where the voice chat and live stream screen gets its record button: in GroupCallActivity's
+ * constructor, right before the row of top right buttons, a LinearLayout made there, joins the
+ * screen pinned to its top right corner. [row] holds that row.
+ */
+internal class VoiceChatRecordButtonHook(val method: MutableMethod, val index: Int, val row: Int) {
+    val code get() = "invoke-static/range {v$row .. v$row}, $CALL_RECORD_BUTTON->attachRow($VIEW)V"
+}
+
+/** The voice chat button's hook, or why that screen can't take one. Nothing is edited here. */
+internal class VoiceChatRecordButtonPlan(val hook: VoiceChatRecordButtonHook?, val missing: String?)
+
+internal fun BytecodePatchContext.resolveVoiceChatRecordButton(): VoiceChatRecordButtonPlan = try {
+    VoiceChatRecordButtonPlan(voiceChatRecordButtonHook(), null)
+} catch (why: CallAudioMissing) {
+    VoiceChatRecordButtonPlan(null, why.message.orEmpty())
+}
+
+/** Adds the voice chat button's hook, already assembled on a copy. Answers whether there was one. */
+internal fun applyVoiceChatRecordButton(plan: VoiceChatRecordButtonPlan): Boolean {
+    val hook = plan.hook ?: return false
+    hook.method.addInstructionsAtControlFlowLabel(hook.index, hook.code)
+    return true
+}
+
+private fun BytecodePatchContext.voiceChatRecordButtonHook(): VoiceChatRecordButtonHook {
+    val screens = classDefsMentioning(Mention.type(LINEAR_LAYOUT)).filter { classDef ->
+        CALL_STATE_LISTENER in classDef.origInterfaces && classDef.methods.any { it.buildsVoiceChat() }
+    }
+    if (screens.size != 1) missingCallAudio("the voice chat screen is ${screens.size} classes")
+    val build = tgMutableClassDefBy(screens.single()).methods.singleOrNull { it.buildsVoiceChat() }
+        ?: missingCallAudio("the voice chat screen is built in more than one way")
+    val body = build.body()
+    val adds = body.indices.filter { body.addsTopRightRow(it) }
+    if (adds.size != 1) missingCallAudio("the voice chat screen pins ${adds.size} rows of buttons top right")
+    val index = adds.single()
+    val hook = VoiceChatRecordButtonHook(build, index, body[index].namedRegisters()[1])
+    try {
+        MutableMethod(ImmutableMethod.of(build)).addInstructionsAtControlFlowLabel(index, hook.code)
+    } catch (refused: Exception) {
+        missingCallAudio("the voice chat screen's record button doesn't assemble: ${refused.message}")
+    }
+    return hook
+}
+
+/** GroupCallActivity's constructor, the one that takes the call it shows. */
+private fun Method.buildsVoiceChat() = name == "<init>" && CHAT_CALL in origParameterTypes
+
+/**
+ * Whether [at] adds a row of buttons made in this method to another view, pinned top right: a
+ * LinearLayout turned horizontal or vertical there and given views of its own before it's added.
+ */
+private fun List<Instruction>.addsTopRightRow(at: Int): Boolean {
+    val add = this[at]
+    if (add.opcode != Opcode.INVOKE_VIRTUAL || add.call()?.let { call ->
+            call.origName == "addView" && call.origReturnType == "V" &&
+                call.parameterTypes.map { it.toString() } == listOf(VIEW, LAYOUT_PARAMS)
+        } != true) return false
+    val (_, row, params) = add.namedRegisters()
+    val made = lastWrite(at, row) ?: return false
+    if (this[made].opcode != Opcode.NEW_INSTANCE || (this[made] as ReferenceInstruction).reference.toString() != LINEAR_LAYOUT) return false
+    val built = subList(made + 1, at)
+    if (built.none { it.call()?.origName == "setOrientation" && it.namedRegisters().firstOrNull() == row }) return false
+    if (built.none { it.addsOneOf(row) }) return false
+    // The params come from a helper handed the gravity, as LayoutHelper.createFrame is.
+    val result = lastWrite(at, params)?.takeIf { this[it].opcode == Opcode.MOVE_RESULT_OBJECT } ?: return false
+    val helper = this.getOrNull(result - 1)?.takeIf { it.opcode in STATIC_CALLS } ?: return false
+    return helper.namedRegisters().any { register ->
+        lastWrite(result - 1, register)?.let { (this[it] as? NarrowLiteralInstruction)?.narrowLiteral } == TOP_RIGHT
+    }
+}
+
+private fun Instruction.addsOneOf(row: Int) = opcode == Opcode.INVOKE_VIRTUAL && call()?.origName == "addView" &&
+    namedRegisters().firstOrNull() == row
+
+/** The closest instruction before [at] that writes [register], in straight-line order. */
+private fun List<Instruction>.lastWrite(at: Int, register: Int): Int? =
+    (at - 1 downTo 0).firstOrNull { this[it].writes(register) }
+
+private fun Instruction.writes(register: Int): Boolean {
+    if (!opcode.setsRegister()) return false
+    val destination = namedRegisters().firstOrNull() ?: return false
+    return destination == register || opcode.setsWideRegister() && destination + 1 == register
 }
 
 private fun Method.showsCallScreen() = AccessFlags.STATIC.isSet(accessFlags) && returnType == "V" &&

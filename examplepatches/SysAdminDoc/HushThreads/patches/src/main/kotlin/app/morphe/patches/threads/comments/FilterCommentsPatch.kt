@@ -188,8 +188,15 @@ val filterCommentsPatch = bytecodePatch(
  * replies, with the `move-result-object` that follows it one past it: the answer's one no-argument
  * call answering a List whose entries are read as [THREAD], not the related threads beside it.
  */
-internal fun Method.replyListSite(): Int {
-    val body = implementation?.instructions?.toList() ?: throw PatchException("$PATCH: $definingClass->$name has no body")
+internal fun Method.replyListSite(): Int = responseListSite(THREAD, PATCH, "reply list")
+
+/**
+ * The answer's one no-argument call answering a List whose entries the parse reads as [cast], with
+ * the `move-result-object` that follows it one past it. [patch] and [what] name the patch and the
+ * list in its refusals.
+ */
+internal fun Method.responseListSite(cast: String, patch: String, what: String): Int {
+    val body = implementation?.instructions?.toList() ?: throw PatchException("$patch: $definingClass->$name has no body")
     val sites = body.indices.filter { index ->
         val reference = body[index].getReference<MethodReference>() ?: return@filter false
         body[index].opcode in setOf(Opcode.INVOKE_INTERFACE, Opcode.INVOKE_INTERFACE_RANGE) &&
@@ -197,16 +204,16 @@ internal fun Method.replyListSite(): Int {
             reference.parameterTypes.isEmpty() &&
             reference.returnType == LIST &&
             body.getOrNull(index + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT &&
-            body.iterationCast(index + 1) == THREAD
+            body.iterationCast(index + 1) == cast
     }
-    val site = sites.singleOrPatchException("$PATCH: the opened post's reply list in $definingClass->$name")
+    val site = sites.singleOrPatchException("$patch: the opened post's $what in $definingClass->$name")
     // The hook goes in front of the instruction after the move-result-object. A branch or handler
-    // landing there would skip it and hand Threads the unfiltered list, so that build is refused.
+    // landing there would skip it and hand Threads the list untouched, so that build is refused.
     val flow = ControlFlow.of(this)
     val entered = flow.normal.indices.any { from ->
         (from != site + 1 && site + 2 in flow.normal[from]) || site + 2 in flow.exceptional[from]
     }
-    if (entered) throw PatchException("$PATCH: a branch in $definingClass->$name lands right after the reply list")
+    if (entered) throw PatchException("$patch: a branch in $definingClass->$name lands right after the $what")
     return site
 }
 

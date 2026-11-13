@@ -69,7 +69,7 @@ class FullScreenEpisodesAnchorsTest {
 
             val logic = classes.getValue(LANDSCAPE_LOAD_LOGIC)
             val listAndFlag = listOf("Ljava/util/List;", "Z")
-            for (name in listOf("Qc", "R3")) {
+            for (name in listOf("id", "j4")) {
                 assertTrue(
                     "$apk: viewer $name(List, boolean)",
                     logic.methods.any {
@@ -79,15 +79,15 @@ class FullScreenEpisodesAnchorsTest {
                 )
             }
             assertTrue(
-                "$apk: viewer fr(boolean) marks a load as automatic",
+                "$apk: viewer ns(boolean) marks a load as automatic",
                 logic.methods.any {
-                    it.name == "fr" && it.returnType == "V" && it.parameterTypes.map { p -> p.toString() } == listOf("Z")
+                    it.name == "ns" && it.returnType == "V" && it.parameterTypes.map { p -> p.toString() } == listOf("Z")
                 },
             )
             assertTrue(
-                "$apk: viewer B3(Exception) ends a load",
+                "$apk: viewer T3(Exception) ends a load",
                 logic.methods.any {
-                    it.name == "B3" && it.returnType == "V" &&
+                    it.name == "T3" && it.returnType == "V" &&
                         it.parameterTypes.map { p -> p.toString() } == listOf("Ljava/lang/Exception;")
                 },
             )
@@ -95,25 +95,25 @@ class FullScreenEpisodesAnchorsTest {
             // The merge helper takes (a, b) and builds b + a, so which of these appends only shows
             // by following the arguments through it. Getting this backwards puts new episodes in
             // front of the list, where the pager shifts to stay put and swiping runs out at the end.
-            val prepend = logic.methods.single { it.name == "Qc" && it.parameterTypes.size == 2 }
-            val appendEntry = logic.methods.single { it.name == "R3" && it.parameterTypes.size == 2 }
+            val prepend = logic.methods.single { it.name == "id" && it.parameterTypes.size == 2 }
+            val appendEntry = logic.methods.single { it.name == "j4" && it.parameterTypes.size == 2 }
             val appendTarget = appendEntry.implementation!!.instructions
                 .firstNotNullOf { it.getReference<MethodReference>() }
             val append = logic.methods.single {
                 it.name == appendTarget.name &&
                     it.parameterTypes.map { p -> p.toString() } == appendTarget.parameterTypes.map { p -> p.toString() }
             }
-            assertTrue("$apk: Qc puts new episodes in front", newEpisodesGoFirst(container, prepend))
-            assertFalse("$apk: R3 puts new episodes behind", newEpisodesGoFirst(container, append))
+            assertTrue("$apk: id puts new episodes in front", newEpisodesGoFirst(container, prepend))
+            assertFalse("$apk: j4 puts new episodes behind", newEpisodesGoFirst(container, append))
 
             assertTrue(
-                "$apk: viewer Hz() returns the pager ability",
-                logic.methods.any { it.name == "Hz" && it.parameterTypes.isEmpty() && it.returnType == pagerAbility },
+                "$apk: viewer iA() returns the pager ability",
+                logic.methods.any { it.name == "iA" && it.parameterTypes.isEmpty() && it.returnType == pagerAbility },
             )
             assertTrue(
                 "$apk: pager ability's current video",
                 classes.getValue(pagerAbility).methods.any {
-                    it.name == "LLLILZLLLI" && it.parameterTypes.isEmpty() && it.returnType == aweme
+                    it.name == "LLLIZZ" && it.parameterTypes.isEmpty() && it.returnType == aweme
                 },
             )
 

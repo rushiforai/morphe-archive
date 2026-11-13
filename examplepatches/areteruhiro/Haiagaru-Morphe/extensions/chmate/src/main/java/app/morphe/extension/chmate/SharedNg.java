@@ -21,7 +21,7 @@ final class SharedNg {
     private static volatile List<SharedNgRules.Rule> rules=Collections.emptyList();
     private static volatile Set<String> exceptions=Collections.emptySet();
     private static volatile boolean enabled,busy;
-    private static volatile int threshold=1;
+    private static volatile int threshold=SharedNgDefaults.DEFAULT_THRESHOLD;
     private static volatile long nextSync;
     private static volatile String status="未同期";
     private static final java.util.concurrent.atomic.AtomicBoolean syncQueued=new java.util.concurrent.atomic.AtomicBoolean();
@@ -37,7 +37,7 @@ final class SharedNg {
         try{loadCache();}catch(FileNotFoundException absent){/* First launch has no cache. */}catch(Exception e){status="キャッシュを読み込めません";}
         if(rules.isEmpty())prefs().edit().putLong("cursor",0).apply();flushReports();sync(false);
     });}
-    static void reload(){if(context==null)return;SharedPreferences p=prefs();SharedNgLocalEdits.reload(p);enabled=p.getBoolean("enabled",false);threshold=p.getInt("threshold",1);if(threshold<1)threshold=1;exceptions=new HashSet<>(p.getStringSet("exceptions",Collections.emptySet()));new android.os.Handler(android.os.Looper.getMainLooper()).post(ProgrammableNgController::sharedNgChanged);}
+    static void reload(){if(context==null)return;SharedPreferences p=prefs();SharedNgDefaults.migrate(p);SharedNgLocalEdits.reload(p);enabled=p.getBoolean("enabled",false);threshold=p.getInt("threshold",SharedNgDefaults.DEFAULT_THRESHOLD);if(threshold<1)threshold=SharedNgDefaults.DEFAULT_THRESHOLD;exceptions=new HashSet<>(p.getStringSet("exceptions",Collections.emptySet()));new android.os.Handler(android.os.Looper.getMainLooper()).post(ProgrammableNgController::sharedNgChanged);}
     static SharedNgRules.Rule originalRule(SharedNgRules.Rule fallback){for(SharedNgRules.Rule rule:rules)if(rule.id.equals(fallback.id))return rule;return fallback;}
     static boolean enabled(){return enabled;}
     static void showResponseExclusions(Activity activity, ProgrammableNgScript.Input input) {
@@ -297,7 +297,7 @@ final class SharedNg {
         LinearLayout voteRow=new LinearLayout(a);voteRow.setGravity(android.view.Gravity.CENTER_VERTICAL);
         EditText votes=new EditText(a);votes.setSingleLine(true);votes.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);votes.setText(Integer.toString(threshold));votes.setContentDescription("共有NGに必要な報告数");voteRow.addView(votes,new LinearLayout.LayoutParams(0,-2,1));
         Button saveVotes=new Button(a);saveVotes.setText("保存");voteRow.addView(saveVotes);box.addView(voteRow);
-        TextView voteHelp=new TextView(a);voteHelp.setText("1以上の整数で指定します。審査済みの共有NGのうち、この報告数以上の条件を適用します。");box.addView(voteHelp);
+        TextView voteHelp=new TextView(a);voteHelp.setText("初期値は2です。1以上の整数で指定します。審査済みの共有NGのうち、この報告数以上の条件を適用します。");box.addView(voteHelp);
         saveVotes.setOnClickListener(v->{try{int number=SharedNgRules.reportThreshold(votes.getText().toString());prefs().edit().putInt("threshold",number).apply();reload();votes.setText(Integer.toString(number));Toast.makeText(a,"必要な報告数を保存しました",Toast.LENGTH_SHORT).show();}catch(IllegalArgumentException invalid){votes.setError(invalid.getMessage());}});
 
         String[] kinds={"id","wacchoi","prefix","suffix","keyword","name","trip","reporter"};String[] kindLabels={"ID","ワッチョイ全文","ワッチョイ上4桁","ワッチョイ下4桁","NGワード","NGName","トリップ","エッヂの記者ID（スレ一覧）"};

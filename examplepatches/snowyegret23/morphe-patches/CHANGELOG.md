@@ -1,3 +1,9 @@
+## [1.4.9](https://github.com/snowyegret23/morphe-patches/compare/v1.4.8...v1.4.9) (2026-11-13)
+
+### ✨ New Features
+
+* support new CHZZK versions and channel local follows ([c5fe6e0](https://github.com/snowyegret23/morphe-patches/commit/c5fe6e0a39a70c5815d32732bb10ef901d639e98)), closes [#13](https://github.com/snowyegret23/morphe-patches/issues/13) [#14](https://github.com/snowyegret23/morphe-patches/issues/14)
+
 ## [1.4.8](https://github.com/snowyegret23/morphe-patches/compare/v1.4.7...v1.4.8) (2026-11-03)
 
 ### ✨ New Features

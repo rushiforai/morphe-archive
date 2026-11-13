@@ -77,11 +77,13 @@ val disableCallDebugPatch = bytecodePatch(
             controlHook(CALL_RECORDER, engine.played, CALL_RECORDER_PLAYED, "V")
         }
         controlHook(CALL_RECORD_BUTTON, "attach", listOf(VIEW), "V")
+        controlHook(CALL_RECORD_BUTTON, "attachRow", listOf(VIEW), "V")
         // Every gate, original return and borrowed register is checked before the first edit.
         val hooks = resolveCallDebugHooks()
         // Call recording is an extra: an engine that can't be tapped is left out with a warning.
         val audio = resolveCallAudio()
         val button = resolveCallRecordButton()
+        val voiceChat = resolveVoiceChatRecordButton()
         for ((target, hook) in hooks) {
             hook.method.addInstructionsAtControlFlowLabel(hook.index, hook.code,
                 ExternalLabel("hush_done", hook.method.getInstruction(hook.finish)))
@@ -97,10 +99,15 @@ val disableCallDebugPatch = bytecodePatch(
         }
         if (audio.taps.isNotEmpty()) {
             enableCapability("callRecording")
-            // The call screen's record button only makes sense with audio to record.
-            if (applyCallRecordButton(button)) enableCapability("callRecordButton")
+            // The record buttons only make sense with audio to record. One switch covers both screens.
+            val onCalls = applyCallRecordButton(button)
+            val onVoiceChats = applyVoiceChatRecordButton(voiceChat)
+            if (onCalls || onVoiceChats) enableCapability("callRecordButton")
             button.missing?.let { why ->
                 patchLog.warning("$PATCH: $why. The patch goes on without the record button on the call screen.")
+            }
+            voiceChat.missing?.let { why ->
+                patchLog.warning("$PATCH: $why. The patch goes on without the record button on voice chats and live streams.")
             }
         }
         enableStatus("disableCallDebug")

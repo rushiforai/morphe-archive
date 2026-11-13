@@ -8,6 +8,7 @@ import app.s.chzzk.common.utils.parameterTypeNames
 import app.s.chzzk.common.utils.rewrite
 import app.s.chzzk.common.utils.smaliReference
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
@@ -46,15 +47,18 @@ internal fun BytecodePatchContext.addSettingsEntry() {
         return-void
     """.trimIndent())
     screen.methods.add(entry)
-    val listOwner = if (packageMetadata.versionName in listOf("3.15.0", "3.15.2", "3.16.0")) "Lx0;" else "Lu0;"
+    val latest = packageMetadata.versionName == "3.17.0"
+    val listOwner = if (latest) "Ld1;" else if (packageMetadata.versionName in listOf("3.15.0", "3.15.2", "3.16.0")) "Lx0;" else "Lu0;"
     val list = mutableClassDefBy(listOwner).methods.single { method ->
         method.implementation?.instructions?.any {
-            it.getReference<StringReference>()?.string == "시청 환경 설정"
+            if (latest) (it as? NarrowLiteralInstruction)?.narrowLiteral == 0x7f120ff9
+            else it.getReference<StringReference>()?.string == "시청 환경 설정"
         } == true
     }
     val instructions = list.implementation!!.instructions
     val heading = instructions.indexOfFirst {
-        it.getReference<StringReference>()?.string == "시청 환경 설정"
+        if (latest) (it as? NarrowLiteralInstruction)?.narrowLiteral == 0x7f120ff9
+            else it.getReference<StringReference>()?.string == "시청 환경 설정"
     }
     val call = instructions.drop(heading + 1).first {
         it.getReference<MethodReference>()?.let { ref -> ref.definingClass == screen.type && ref.name == "a" } == true

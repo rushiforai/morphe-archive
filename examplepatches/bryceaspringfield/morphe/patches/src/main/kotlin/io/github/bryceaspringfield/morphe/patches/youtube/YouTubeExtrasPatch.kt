@@ -26,6 +26,7 @@ private const val MORPHE_LITHO_FILTER = "Lapp/morphe/extension/shared/patches/co
 private const val MORPHE_SETTINGS_FRAGMENT =
     "Lapp/morphe/extension/youtube/settings/preference/YouTubePreferenceFragment;"
 
+private const val MORPHE_REMEMBER_QUALITY = "Lapp/morphe/extension/youtube/patches/playback/quality/RememberVideoQualityPatch;"
 private const val MORPHE_VIDEO_INFORMATION = "Lapp/morphe/extension/youtube/patches/VideoInformation;"
 
 private const val MORPHE_RYD_ICON_COUNT =
@@ -141,6 +142,12 @@ internal val youtubeExtrasBasePatch = bytecodePatch {
             it.name == "setVideoId" && it.parameterTypes.map { p -> p.toString() } == listOf("Ljava/lang/String;")
         }?.addInstruction(0, "invoke-static { p0 }, $EXTENSION/AutoLike;->onVideo(Ljava/lang/String;)V")
             ?: logger.warning("Morphe's VideoInformation.setVideoId is missing, so Like every video is off.")
+
+        // A resolution picked in a quality menu turns the Audio only row's mode off.
+        mutableClassDefByOrNull(MORPHE_REMEMBER_QUALITY)?.methods?.firstOrNull {
+            it.name == "userChangedQuality" && it.parameterTypes.map { p -> p.toString() } == listOf("I") && it.implementation != null
+        }?.addInstruction(0, "invoke-static {}, $EXTENSION/QualityAudioRow;->resolutionPicked()V")
+            ?: logger.warning("Morphe's userChangedQuality is missing, so a resolution pick leaves Audio only on.")
 
         // Each title Morphe's Litho text hook returns passes through the DeArrow icon tap and the suggestion pencil.
         mutableClassDefByOrNull(MORPHE_ORIGINAL_TITLES)?.methods?.firstOrNull {

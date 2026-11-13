@@ -10,8 +10,8 @@ import android.content.Context;
  * Resource names written for one build of PineDrama.
  *
  * <p>PineDrama's build shortens most resource names to two or three characters and hands the same
- * short names out again on every build, mostly to other views. A name written {@code "47.6.3:d2v"}
- * is 47.6.3's name and resolves on 47.6.3 alone, so a build the bundle doesn't declare never finds
+ * short names out again on every build, mostly to other views. A name written {@code "47.7.3:d2v"}
+ * is 47.7.3's name and resolves on 47.7.3 alone, so a build the bundle doesn't declare never finds
  * the wrong view under it. A name with no build in front is a real name, the same on every build.
  */
 public final class BuildNames {

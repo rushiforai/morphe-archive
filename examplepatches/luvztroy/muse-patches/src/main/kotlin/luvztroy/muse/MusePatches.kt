@@ -14,18 +14,22 @@ import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction11x
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21c
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction31c
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21t
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction22x
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction22t
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction3rc
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction35c
 import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.value.StringEncodedValue
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringReference
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableTypeReference
 import com.android.tools.smali.dexlib2.immutable.value.ImmutableStringEncodedValue
 import org.w3c.dom.Element
 import java.security.MessageDigest
@@ -68,7 +72,8 @@ private fun requireInput(metadata: PackageMetadata) {
         metadata.versionName == "13.0.0.4.159" && metadata.versionCode == "1061801514" ||
         metadata.versionName == "14.0.0.4.149" && metadata.versionCode == "1061901406" ||
         metadata.versionName == "15.0.0.3.156" && metadata.versionCode == "1062001464" ||
-        metadata.versionName == "15.0.0.9.156" && metadata.versionCode == "1062001524"
+        metadata.versionName == "15.0.0.9.156" && metadata.versionCode == "1062001524" ||
+        metadata.versionName == "16.0.0.2.159" && metadata.versionCode == "1062101702"
     )) {
         throw PatchException("Requires a supported original Muse APK.")
     }
@@ -79,7 +84,8 @@ private val museCompatibility = Compatibility(
         AppTarget(version = "13.0.0.4.159", versionCode = 1061801514, minSdk = 29),
         AppTarget(version = "14.0.0.4.149", versionCode = 1061901406, minSdk = 29),
         AppTarget(version = "15.0.0.3.156", versionCode = 1062001464, minSdk = 29),
-        AppTarget(version = "15.0.0.9.156", versionCode = 1062001524, minSdk = 29)
+        AppTarget(version = "15.0.0.9.156", versionCode = 1062001524, minSdk = 29),
+        AppTarget(version = "16.0.0.2.159", versionCode = 1062101702, minSdk = 29)
     )
 )
 private fun BytecodePatchContext.method(type: String, id: String): MutableMethod =
@@ -114,6 +120,7 @@ private val validateMuse = bytecodePatch {
     execute {
         requireInput(packageMetadata)
         val guardFile = when (packageMetadata.versionName) {
+            "16.0.0.2.159" -> "guards-16.0.0.2.159.tsv"
             "15.0.0.9.156" -> "guards-15.0.0.9.156.tsv"
             "15.0.0.3.156" -> "guards-15.tsv"
             "14.0.0.4.149" -> "guards-14.tsv"
@@ -201,12 +208,15 @@ private val cloneResources = resourcePatch {
     }
 }
 
+val museLocalTrust = buildMuseLocalTrust()
+
 val museClone = bytecodePatch(
     name = "Side-by-side clone",
     description = "Change package and app name; fix standalone install.",
     default = true
 ) {
     compatibleWith(museCompatibility)
+    dependsOn(museLocalTrust)
     packageNameOption()
     appNameOption()
     dependsOn(cloneResources)
@@ -239,7 +249,7 @@ val museClone = bytecodePatch(
                 }
             }
         }
-        val expectedFields = if (packageMetadata.versionName in setOf("15.0.0.3.156", "15.0.0.9.156")) 4 else 3
+        val expectedFields = if (packageMetadata.versionName in setOf("15.0.0.3.156", "15.0.0.9.156", "16.0.0.2.159")) 4 else 3
         if (fields != expectedFields || strings == 0) throw PatchException("Unexpected identity occurrences: $strings strings, $fields fields")
         println("Changed $strings identity strings and $fields fields.")
     }
@@ -270,6 +280,32 @@ private fun BytecodePatchContext.replaceBodies(group: String, allowNewMethods: S
     }
 }
 
+private fun BytecodePatchContext.wireMuse16JsonActions() {
+    val screen = method("Lcom/facebook/aura/settings/HatchSettingsScreenKt\$InternalSettingsSection\$1\$1\$1\$1;",
+        "invoke(LX/0pL;LX/4KG;I)V")
+    val implementation = screen.implementation ?: throw PatchException("Missing Internal Settings callback")
+    val callbackLoad = implementation.instructions.indices.single {
+        ref(implementation.instructions[it]) == "Lcom/facebook/aura/settings/HatchSettingsScreenKt\$InternalSettingsSection\$1\$1\$1\$1;->\$onInternalSettingsClick:Lkotlin/jvm/functions/Function0;"
+    }
+    val callbackPass = implementation.instructions.indices.single { index ->
+        index > callbackLoad && implementation.instructions[index].opcode == Opcode.MOVE_OBJECT_FROM16 &&
+            (implementation.instructions[index] as? TwoRegisterInstruction)?.let { it.registerA == 34 && it.registerB == 0 } == true
+    }
+    implementation.replaceInstruction(callbackPass, BuilderInstruction22x(Opcode.MOVE_OBJECT_FROM16, 34, 47))
+    val activityGetter = ImmutableMethodReference("LX/005;", "A0I", listOf("LX/4KG;"), "Landroidx/activity/ComponentActivity;")
+    val actionType = "Lcom/facebook/aura/settings/internal/mcdebug/AuraMCDebugJsonBridge\$SettingsAction;"
+    val constructor = ImmutableMethodReference(actionType, "<init>",
+        listOf("Landroid/content/Context;", "Lkotlin/jvm/functions/Function0;"), "V")
+    val injected = listOf(
+        BuilderInstruction22x(Opcode.MOVE_OBJECT_FROM16, 49, 0),
+        BuilderInstruction35c(Opcode.INVOKE_STATIC, 1, 1, 0, 0, 0, 0, activityGetter),
+        BuilderInstruction11x(Opcode.MOVE_RESULT_OBJECT, 48),
+        BuilderInstruction21c(Opcode.NEW_INSTANCE, 47, ImmutableTypeReference(actionType)),
+        BuilderInstruction3rc(Opcode.INVOKE_DIRECT_RANGE, 3, 47, constructor)
+    )
+    injected.forEachIndexed { offset, instruction -> implementation.addInstruction(callbackLoad + 1 + offset, instruction) }
+}
+
 val museMcDebug = bytecodePatch(
     name = "Enable MC Debug",
     description = "Enable internal settings.",
@@ -290,27 +326,31 @@ val museJsonFlags = bytecodePatch(
     extendWith("muse/jsonbridge.dex")
     execute {
         val group = when (packageMetadata.versionName) {
+            "16.0.0.2.159" -> "jsonhooks16"
             "15.0.0.9.156" -> "jsonhooks15_9"
             "15.0.0.3.156" -> "jsonhooks15"
             "14.0.0.4.149" -> "jsonhooks14"
             else -> "jsonhooks"
         }
         replaceBodies(group, setOf("Lcom/facebook/aura/main/AuraMainActivity;->onActivityResult(IILandroid/content/Intent;)V"))
+        if (packageMetadata.versionName == "16.0.0.2.159") wireMuse16JsonActions()
     }
 }
 
-val museLocalTrust = bytecodePatch(
+private fun buildMuseLocalTrust() = bytecodePatch(
     name = "Local trust",
     description = "Relax local caller checks. Reduces caller protection.",
     default = true
 ) {
     compatibleWith(museCompatibility)
-    dependsOn(museMcDebug)
+    dependsOn(validateMuse)
     execute {
         val is14 = packageMetadata.versionName == "14.0.0.4.149"
         val is15 = packageMetadata.versionName == "15.0.0.3.156"
         val is159 = packageMetadata.versionName == "15.0.0.9.156"
+        val is16 = packageMetadata.versionName == "16.0.0.2.159"
         replaceBodies(when {
+            is16 -> "trust16"
             is159 -> "trust15_9"
             is15 -> "trust15"
             is14 -> "trust14"
@@ -431,6 +471,17 @@ val museLocalTrust = bytecodePatch(
             val query = wi.instructions.indices.single { ref(wi.instructions[it]) == "Landroid/content/Context;->getContentResolver()Landroid/content/ContentResolver;" }
             if (query <= ownerBranchIndex) throw PatchException("WhatsApp query moved before provider check")
             wi.replaceInstruction(ownerBranchIndex, BuilderInstruction30t(Opcode.GOTO_32, wi.newLabelForIndex(query)))
+        } else if (is16) {
+            val serviceMethod = method("LX/DFM;", "A01(Landroid/content/Context;Ljava/lang/String;)Z")
+            val serviceImpl = serviceMethod.implementation ?: throw PatchException("Missing Muse 16 service trust method")
+            val serviceStrings = serviceImpl.instructions.mapNotNull {
+                ((it as? ReferenceInstruction)?.reference as? StringReference)?.string
+            }.toSet()
+            if (!setOf("com.facebook.services", "com.facebook.services.dev").all { it in serviceStrings } ||
+                serviceImpl.instructions.none { ref(it)?.contains("getApplicationInfo") == true } ||
+                serviceImpl.instructions.none { ref(it)?.contains("ApplicationInfo;->enabled") == true }) {
+                throw PatchException("Muse 16 service trust replacement lost its allowlist or enabled check")
+            }
         } else {
             val cpz = method("LX/CPz;", "ABD(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;LX/COo;)Ljava/util/ArrayList;")
             val cpzIns = cpz.implementation!!.instructions

@@ -282,6 +282,9 @@ The name under the app's icon.	Uygulama simgesinin altındaki ad.
 the new app name	yeni uygulama adı
 Hide screenshots from Threads	Ekran görüntülerini Threads'ten gizle
 Threads isn't told when you take a screenshot, so it can't log it or react to it.	Ekran görüntüsü aldığında Threads'e haber verilmez, bu yüzden onu kaydedemez ya da ona tepki veremez.
+Spoof SIM region	SIM bölgesini taklit et
+Threads sees your SIM and network as the region picked below. Meta can still go by your connection and your account. Restart Threads to see the change.	Threads, SIM'ini ve ağını aşağıda seçilen bölgeye aitmiş gibi görür. Meta yine de bağlantına ve hesabına bakabilir. Değişikliği görmek için Threads'i yeniden başlat.
+SIM region	SIM bölgesi
 Full size photos	Tam boyutlu fotoğraflar
 Photos load at the largest size Threads has, not one picked for your screen. They look sharper and use more data.	Fotoğraflar ekranına göre seçilen bir boyutta değil, Threads'te bulunan en büyük boyutta yüklenir. Daha net görünür ve daha fazla veri kullanır.
 No swipe into Search	Aramaya kaydırma yok
@@ -341,6 +344,8 @@ Threads needs the Storage permission to save on Android 9. Turn it on in Threads
 Not saved: the download was too slow. Try a faster connection.	Kaydedilmedi: İndirme çok yavaştı. Daha hızlı bir bağlantı dene.
 Hide follow suggestions in Search	Aramada takip önerilerini gizle
 Takes the Follow suggestions row off the Search screen. Your searches and topics stay.	Takip önerileri satırını Arama ekranından kaldırır. Aramalarınız ve konularınız kalır.
+Hide suggested threads	Önerilen thread'leri gizle
+Takes the suggested threads off the bottom of a post you open. The post and its replies stay.	Açtığınız bir gönderinin altındaki önerilen thread'leri kaldırır. Gönderi ve yanıtları kalır.
 # A save stopped because a proxy server on the phone's network (Wi-Fi or global proxy setting) asked for a user name and password: the toast. HushThreads never sends one for a download. Android 12 and later cut a toast after two lines, so it stays short.
 Not saved: the proxy wants a password. Try another network.	Kaydedilmedi: Proxy parola istiyor. Başka bir ağ dene.
 # The same, as an extra line under a carousel's 'Saved %1$d. Failed %2$d. Skipped %3$d.' summary. Android 12 and later cut a toast after two lines, so it stays short.

@@ -8,7 +8,6 @@ import android.net.Uri;
 import android.graphics.Typeface;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
-import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
 import android.text.style.StyleSpan;
 import android.text.style.URLSpan;
@@ -17,6 +16,8 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.CheckBox;
+import android.view.View;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -37,24 +38,51 @@ final class UpdateHistory {
         version.setTextSize(18);
         version.setTypeface(null, Typeface.BOLD);
         content.addView(version);
-
-        TextView settingsHeading = new TextView(context);
-        settingsHeading.setText("機能のオン・オフ");
-        styleHeading(settingsHeading, context);
-        content.addView(settingsHeading);
-        addFeatureSettings(content, activity);
+        Button allFeatures = new Button(context);
+        allFeatures.setText("追加された機能をすべて見る");
+        content.addView(allFeatures);
 
         TextView historyHeading = new TextView(context);
         historyHeading.setText("リリース履歴");
         styleHeading(historyHeading, context);
         content.addView(historyHeading);
-        TextView history = new TextView(context);
-        history.setText(formatHistory(context, readBundledHistory(context)));
-        history.setTextIsSelectable(true);
-        history.setTextSize(14);
-        history.setLineSpacing(Math.round(2 * context.getResources().getDisplayMetrics().density), 1f);
-        history.setMovementMethod(LinkMovementMethod.getInstance());
+        TextView status = new TextView(context);
+        status.setText("アプリに同梱された更新履歴を表示しています。バージョンをタップすると詳細を開閉できます。");
+        content.addView(status);
+        CheckBox development = new CheckBox(context);
+        development.setText("開発版（dev）の履歴も表示する");
+        content.addView(development);
+        LinearLayout history = new LinearLayout(context);
+        history.setOrientation(LinearLayout.VERTICAL);
         content.addView(history);
+        String[] source = {readBundledHistory(context)};
+        allFeatures.setOnClickListener(view -> showAllFeatures(activity,source[0]));
+        Runnable render = () -> renderReleases(history, activity, source[0], development.isChecked());
+        development.setOnCheckedChangeListener((button,on) -> render.run());
+        render.run();
+
+        Button fetch = new Button(context);
+        fetch.setText("GitHubから最新の更新履歴を取得");
+        fetch.setOnClickListener(view -> {
+            fetch.setEnabled(false);status.setText("GitHubから更新履歴を取得しています…");
+            new Thread(() -> {
+                try {
+                    String latest = fetchHistory();
+                    if (ReleaseHistoryText.parse(latest).isEmpty()) throw new java.io.IOException("更新履歴の形式を読み取れません");
+                    activity.runOnUiThread(() -> {
+                        if(activity.isFinishing()||activity.isDestroyed())return;
+                        source[0]=latest;render.run();fetch.setEnabled(true);
+                        status.setText("GitHubの最新の更新履歴です。新しいバージョンから表示しています。");
+                    });
+                } catch(Exception error) {
+                    activity.runOnUiThread(() -> {
+                        if(activity.isFinishing()||activity.isDestroyed())return;
+                        fetch.setEnabled(true);status.setText("GitHubから取得できませんでした。表示中の更新履歴はそのまま利用できます。");
+                    });
+                }
+            },"Haiagaru-release-history").start();
+        });
+        content.addView(fetch);
 
         Button releases = new Button(context);
         releases.setText("GitHubで更新履歴を開く");
@@ -67,6 +95,81 @@ final class UpdateHistory {
         scroll.addView(content);
         new HaiagaruDialog.Builder(activity).setTitle("更新履歴")
                 .setView(scroll).setPositiveButton("閉じる", null).show();
+    }
+
+    static void showAllFeatures(Activity activity) {
+        showAllFeatures(activity,readBundledHistory(SettingsTabUi.context(activity)));
+    }
+
+    private static void showAllFeatures(Activity activity,String source) {
+        Context context=SettingsTabUi.context(activity);
+        LinearLayout body=new LinearLayout(context);body.setOrientation(LinearLayout.VERTICAL);
+        int pad=Math.round(16*context.getResources().getDisplayMetrics().density);body.setPadding(pad,pad,pad,pad);
+        TextView help=new TextView(context);help.setText("追加された機能を目的別にまとめています。スイッチは変更すると自動保存され、通常の設定画面にも反映されます。詳しい説明は下にあります。");body.addView(help);
+        for(String category:new String[]{"アプリ・通信","表示・検索","画像・動画","NG・文字列置換","履歴・投稿"}) {
+            section(body,activity,category);
+            for(ReleaseFeatureOptions.Option option:ReleaseFeatureOptions.Option.values()) {
+                if(!category.equals(option.category()))continue;
+                addFeatureSetting(body,activity,option);
+                TextView explanation=new TextView(context);explanation.setText(option.description());explanation.setTextSize(13);
+                explanation.setPadding(0,0,0,pad/2);body.addView(explanation);
+            }
+        }
+        section(body,activity,"追加機能の詳しい説明（1.24.1以降）");
+        TextView descriptions=new TextView(context);descriptions.setText(formatHistory(context,ReleaseHistoryText.addedFeatures(source)));
+        descriptions.setTextSize(14);descriptions.setTextIsSelectable(true);descriptions.setMovementMethod(LinkMovementMethod.getInstance());body.addView(descriptions);
+        ScrollView scroll=new ScrollView(context);scroll.addView(body);
+        new HaiagaruDialog.Builder(activity).setTitle("追加機能一覧").setView(scroll).setPositiveButton("閉じる",null).show();
+    }
+
+    private static void renderReleases(LinearLayout content, Activity activity, String source, boolean includeDevelopment) {
+        Context context = SettingsTabUi.context(activity);
+        content.removeAllViews();boolean first=true;
+        java.util.List<ReleaseHistoryText.Release> visible = new java.util.ArrayList<>();
+        for (ReleaseHistoryText.Release release : ReleaseHistoryText.parse(source))
+            if (!release.development || includeDevelopment) visible.add(release);
+        for(ReleaseHistoryText.Release release:visible) {
+            Button heading=new Button(context);
+            heading.setAllCaps(false);
+            String title=release.version+"  ·  "+release.date+(release.development?"  開発版":"  安定版");
+            TextView details=new TextView(context);
+            details.setText(formatHistory(context,ReleaseHistoryText.displayNotes(release)));
+            details.setTextSize(14);details.setTextIsSelectable(true);
+            details.setLineSpacing(3*context.getResources().getDisplayMetrics().density,1f);
+            details.setMovementMethod(LinkMovementMethod.getInstance());
+            details.setPadding(0,8,0,24);
+            LinearLayout body = new LinearLayout(context);
+            body.setOrientation(LinearLayout.VERTICAL);
+            java.util.List<ReleaseFeatureOptions.Option> options = ReleaseFeatureOptions.forRelease(release, visible);
+            if (!options.isEmpty()) {
+                section(body, activity, "機能の設定");
+                for (ReleaseFeatureOptions.Option option : options) addFeatureSetting(body, activity, option);
+            }
+            section(body, activity, "更新内容");
+            body.addView(details);
+            body.setVisibility(first?View.VISIBLE:View.GONE);
+            heading.setText((first?"▼ ":"▶ ")+title);
+            heading.setOnClickListener(view -> {
+                boolean show=body.getVisibility()!=View.VISIBLE;
+                body.setVisibility(show?View.VISIBLE:View.GONE);heading.setText((show?"▼ ":"▶ ")+title);
+            });
+            content.addView(heading);content.addView(body);first=false;
+        }
+        if(first){TextView empty=new TextView(context);empty.setText("表示できる安定版の履歴がありません。開発版を表示するか、GitHubから取得してください。");content.addView(empty);}
+    }
+
+    private static String fetchHistory() throws java.io.IOException {
+        java.net.HttpURLConnection connection=(java.net.HttpURLConnection)new java.net.URL(
+                "https://raw.githubusercontent.com/areteruhiro/Haiagaru-Morphe/master/CHANGELOG.md").openConnection();
+        connection.setConnectTimeout(8000);connection.setReadTimeout(15000);connection.setInstanceFollowRedirects(false);
+        try {
+            if(connection.getResponseCode()!=200)throw new java.io.IOException("GitHubの応答を取得できません");
+            try(InputStream input=connection.getInputStream();ByteArrayOutputStream output=new ByteArrayOutputStream()) {
+                byte[] buffer=new byte[8192];int count;
+                while((count=input.read(buffer))!=-1){if(output.size()+count>4*1024*1024)throw new java.io.IOException("更新履歴が取得上限を超えました");output.write(buffer,0,count);}
+                return output.toString(StandardCharsets.UTF_8.name());
+            }
+        } finally {connection.disconnect();}
     }
 
     private static void styleHeading(TextView heading, Context context) {
@@ -83,7 +186,8 @@ final class UpdateHistory {
         for (String raw : markdown.split("\\r?\\n")) {
             String line = raw.trim();
             if (line.isEmpty()) {
-                if (output.length() > 0 && output.charAt(output.length() - 1) != '\n') output.append('\n');
+                int length=output.length();
+                if (length > 0 && (length < 2 || output.charAt(length - 2) != '\n')) output.append('\n');
                 continue;
             }
             int start = output.length();
@@ -96,20 +200,14 @@ final class UpdateHistory {
                 int end = output.length() - 1;
                 output.setSpan(new StyleSpan(Typeface.BOLD), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                 output.setSpan(new RelativeSizeSpan(heading == 1 ? 1.35f : 1.12f), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                output.setSpan(new ForegroundColorSpan(heading == 1 ? 0xff263b65 : 0xff405577), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             } else {
                 boolean bullet = line.startsWith("* ") || line.startsWith("- ");
                 if (bullet) output.append("• ");
                 SpannableStringBuilder body = formatInline(bullet ? line.substring(2) : line);
-                int bodyStart = output.length();
                 output.append(body);
-                for (Object span : body.getSpans(0, body.length(), Object.class)) {
-                    int from = body.getSpanStart(span), to = body.getSpanEnd(span);
-                    output.setSpan(span, bodyStart + from, bodyStart + to, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                }
                 output.append('\n');
                 int end = output.length() - 1;
-                if (bullet) output.setSpan(new android.text.style.LeadingMarginSpan.Standard(0, 2 * density), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                if (bullet) output.setSpan(new android.text.style.LeadingMarginSpan.Standard(0, 16 * density), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
         }
         while (output.length() > 0 && output.charAt(output.length() - 1) == '\n') output.delete(output.length() - 1, output.length());
@@ -136,66 +234,79 @@ final class UpdateHistory {
         return result;
     }
 
-    private static void addFeatureSettings(LinearLayout content, Activity activity) {
+    private static void addFeatureSetting(LinearLayout content, Activity activity, ReleaseFeatureOptions.Option option) {
         SharedPreferences main = SettingsProfiles.prefs(activity);
-        section(content, activity, "アプリ・通信");
-        toggle(content, activity, FeatureSwitches.prefs(activity), "設定文字列をタップして設定を開く",
-                "settingsOptionLinksEnabled", true, null);
-        toggle(content, activity, main, "外部板をサイト別にまとめる",
-                ExternalBoardGroups.KEY, false, null);
-        SiteBoardGateway gateway = SiteBoardGateway.get(activity);
-        for (String kind : SiteBoardMenuProtocol.KINDS) {
-            LiveSettings.Toggle site = new LiveSettings.Toggle(activity);
-            site.setText(SiteBoardMenuProtocol.title(kind) + "の閲覧・板一覧");
-            site.setChecked(gateway.siteEnabled(kind));
-            site.setOnCheckedChangeListener((view, on) ->
-                    gateway.prefs.edit().putBoolean(SiteBoardGateway.siteFlag(kind), on).apply());
-            content.addView(site);
+        switch (option) {
+            case SETTINGS_LINKS:
+                toggle(content, activity, FeatureSwitches.prefs(activity), "設定文字列をタップして設定を開く",
+                        "settingsOptionLinksEnabled", true, null); break;
+            case SITE_GROUPS:
+                toggle(content, activity, main, "外部板をサイト別にまとめる",
+                        ExternalBoardGroups.KEY, false, null); break;
+            case EDGE: addSite(content, activity, "edge"); break;
+            case ORG: addSite(content, activity, "kenmo"); break;
+            case BAKUSAI: addSite(content, activity, "bakusai"); break;
+            case FUTABA: addSite(content, activity, "futaba"); break;
+            case ANIMAN: addSite(content, activity, "animanch"); break;
+            case REPORTER_SEARCH:
+                toggle(content, activity, FeatureSwitches.prefs(activity), "記者ID・スレ名の期間指定検索",
+                        "reporterSearchEnabled", true, null); break;
+            case REPORTER_MENU:
+                toggle(content, activity, FeatureSwitches.prefs(activity), "エッヂ・オルグ板の記者IDをレスメニューに表示",
+                        EdgeReporterOptions.MENU, true, null); break;
+            case REPORTER_BOARD:
+                toggle(content, activity, FeatureSwitches.prefs(activity), "エッヂ・オルグ板の記者IDをスレ一覧に表示",
+                        EdgeReporterOptions.BOARD, true, null); break;
+            case THREAD_THUMBNAILS:
+                toggle(content, activity, ThreadListThumbnailSettings.prefs(activity),
+                        "スレ一覧に画像・動画サムネイルを表示", ThreadListThumbnailSettings.ENABLE,
+                        false, ThreadListThumbnail::refresh); break;
+            case VIDEO_THUMBNAILS:
+                toggle(content, activity, FeatureSwitches.prefs(activity), "動画からサムネイルを生成",
+                        "videoFrameThumbnailsEnabled", true, null); break;
+            case VIDEO_IMMERSIVE:
+                toggle(content, activity, FeatureSwitches.prefs(activity), "専用動画ビューアの横画面で没入表示",
+                        "videoLandscapeImmersive", true, null); break;
+            case IMAGE_NG:
+                toggle(content, activity, RegisteredImageNg.prefs(activity),
+                        "登録画像に一致するレスをあぼーん", RegisteredImageNg.ENABLE, false,
+                        RegisteredImageNg::settingsChanged); break;
+            case COPY_PASTE_NG:
+                toggle(content, activity, main, "コピペ省略されたレスを透明あぼーん",
+                        ChainAboneVisibility.COPY_PASTE_KEY, false, null); break;
+            case REPLACE_TXT:
+                toggle(content, activity, StringReplacement.prefs(activity),
+                        "ReplaceTxtによる文字列置換（正規表現対応）", "enabled", false,
+                        () -> StringReplacement.setEnabled(activity,
+                                StringReplacement.prefs(activity).getBoolean("enabled", false))); break;
+            case HISTORY_TARGETS:
+                toggle(content, activity, RefreshTargets.prefs(activity),
+                        "履歴ポップアップの対象タブ", RefreshTargetHistory.VISIBLE_KEY, false, null); break;
+            case WATCH_AFTER_POSTING:
+                toggle(content, activity, RefreshTargets.prefs(activity),
+                        "投稿後の自動監視", "watchAfterPosting", false, null); break;
+            case DELETE_READ:
+                toggle(content, activity, main, "既読スレ削除を更新ボタン長押しで開く",
+                        DeleteReadThreads.LONG_PRESS_KEY, true, null); break;
+            case IP_WIFI: addIpNetwork(content, activity, main, "IP表示スレへの投稿前確認（Wi-Fi）", 1); break;
+            case IP_MOBILE: addIpNetwork(content, activity, main, "IP表示スレへの投稿前確認（モバイル回線）", 2); break;
+            case IMAGE_NG_SETTINGS:
+                Button images = new Button(activity);
+                images.setText("登録画像・判定レベル・一致枚数を設定");
+                images.setOnClickListener(view -> activity.startActivity(
+                        new Intent(activity, RegisteredImageNgSettingsActivity.class)));
+                content.addView(images); break;
         }
+    }
 
-        section(content, activity, "表示・検索");
-        toggle(content, activity, FeatureSwitches.prefs(activity), "記者ID・スレ名の期間指定検索",
-                "reporterSearchEnabled", true, null);
-        toggle(content, activity, FeatureSwitches.prefs(activity), "エッヂ・kenmo.orgの記者IDをレスメニューに表示",
-                EdgeReporterOptions.MENU, true, null);
-        toggle(content, activity, FeatureSwitches.prefs(activity), "エッヂ・kenmo.orgの記者IDをスレ一覧に表示",
-                EdgeReporterOptions.BOARD, true, null);
-
-        section(content, activity, "画像・動画");
-        toggle(content, activity, ThreadListThumbnailSettings.prefs(activity),
-                "スレ一覧に画像・動画サムネイルを表示", ThreadListThumbnailSettings.ENABLE,
-                false, ThreadListThumbnail::refresh);
-        toggle(content, activity, FeatureSwitches.prefs(activity), "動画からサムネイルを生成",
-                "videoFrameThumbnailsEnabled", true, null);
-        toggle(content, activity, FeatureSwitches.prefs(activity), "専用動画ビューアの横画面で没入表示",
-                "videoLandscapeImmersive", true, null);
-
-        section(content, activity, "NG・文字列置換");
-        toggle(content, activity, RegisteredImageNg.prefs(activity),
-                "登録画像に一致するレスをあぼーん", RegisteredImageNg.ENABLE, false,
-                RegisteredImageNg::settingsChanged);
-        toggle(content, activity, main, "コピペ省略されたレスを透明あぼーん",
-                ChainAboneVisibility.COPY_PASTE_KEY, false, null);
-        toggle(content, activity, StringReplacement.prefs(activity),
-                "ReplaceTxtによる文字列置換（正規表現対応）", "enabled", false,
-                () -> StringReplacement.setEnabled(activity,
-                        StringReplacement.prefs(activity).getBoolean("enabled", false)));
-
-        section(content, activity, "履歴・投稿");
-        toggle(content, activity, RefreshTargets.prefs(activity),
-                "履歴ポップアップの対象タブ", RefreshTargetHistory.VISIBLE_KEY, false, null);
-        toggle(content, activity, RefreshTargets.prefs(activity),
-                "投稿後の自動監視", "watchAfterPosting", false, null);
-        toggle(content, activity, main, "既読スレ削除を更新ボタン長押しで開く",
-                DeleteReadThreads.LONG_PRESS_KEY, true, null);
-        addIpNetwork(content, activity, main, "IP表示スレへの投稿前確認（Wi-Fi）", 1);
-        addIpNetwork(content, activity, main, "IP表示スレへの投稿前確認（モバイル回線）", 2);
-
-        Button images = new Button(activity);
-        images.setText("登録画像・判定レベル・一致枚数を設定");
-        images.setOnClickListener(view -> activity.startActivity(
-                new Intent(activity, RegisteredImageNgSettingsActivity.class)));
-        content.addView(images);
+    private static void addSite(LinearLayout content, Activity activity, String kind) {
+        SiteBoardGateway gateway = SiteBoardGateway.get(activity);
+        LiveSettings.Toggle site = new LiveSettings.Toggle(activity);
+        site.setText(SiteBoardMenuProtocol.title(kind) + "の閲覧・板一覧");
+        String key=SiteBoardGateway.siteFlag(kind);
+        bindToggle(site,gateway.prefs,key,()->gateway.siteEnabled(kind),
+                on->gateway.prefs.edit().putBoolean(key,on).apply());
+        content.addView(site);
     }
 
     private static void section(LinearLayout content, Activity activity, String title) {
@@ -212,8 +323,7 @@ final class UpdateHistory {
                                String label, String key, boolean initial, Runnable effect) {
         LiveSettings.Toggle toggle = new LiveSettings.Toggle(activity);
         toggle.setText(label);
-        toggle.setChecked(prefs.getBoolean(key, initial));
-        toggle.setOnCheckedChangeListener((view, on) -> {
+        bindToggle(toggle,prefs,key,()->prefs.getBoolean(key,initial),on -> {
             prefs.edit().putBoolean(key, on).apply();
             if (effect != null) effect.run();
             if (prefs == SettingsProfiles.prefs(activity)) SettingsEffects.changed(activity, key, on);
@@ -225,12 +335,29 @@ final class UpdateHistory {
                                      String label, int bit) {
         LiveSettings.Toggle toggle = new LiveSettings.Toggle(activity);
         toggle.setText(label);
-        toggle.setChecked((prefs.getInt(PostingIpWarning.KEY, 0) & bit) != 0);
-        toggle.setOnCheckedChangeListener((view, on) -> {
+        bindToggle(toggle,prefs,PostingIpWarning.KEY,()->(prefs.getInt(PostingIpWarning.KEY,0)&bit)!=0,on -> {
             int flags = prefs.getInt(PostingIpWarning.KEY, 0);
             prefs.edit().putInt(PostingIpWarning.KEY, on ? flags | bit : flags & ~bit).apply();
         });
         content.addView(toggle);
+    }
+
+    private static void bindToggle(LiveSettings.Toggle toggle,SharedPreferences prefs,String key,
+                                   java.util.function.BooleanSupplier read,java.util.function.Consumer<Boolean> write) {
+        boolean[] updating={false};
+        Runnable refresh=()->{
+            updating[0]=true;
+            try{toggle.setChecked(read.getAsBoolean());}finally{updating[0]=false;}
+        };
+        refresh.run();
+        toggle.setOnCheckedChangeListener((view,on)->{if(!updating[0])write.accept(on);});
+        SharedPreferences.OnSharedPreferenceChangeListener listener=(changed,name)->{
+            if(name==null||key.equals(name))refresh.run();
+        };
+        toggle.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener(){
+            public void onViewAttachedToWindow(View view){prefs.registerOnSharedPreferenceChangeListener(listener);refresh.run();}
+            public void onViewDetachedFromWindow(View view){prefs.unregisterOnSharedPreferenceChangeListener(listener);}
+        });
     }
 
     static String readBundledHistory(Context context) {

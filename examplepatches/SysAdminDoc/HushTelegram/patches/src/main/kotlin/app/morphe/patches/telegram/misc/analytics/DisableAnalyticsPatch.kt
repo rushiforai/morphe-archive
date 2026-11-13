@@ -26,6 +26,7 @@ import app.morphe.patches.telegram.misc.extension.telegramExtensionPatch
 import app.morphe.patches.telegram.misc.extension.writeStub
 import app.morphe.patches.telegram.misc.localcontrols.Mention
 import app.morphe.patches.telegram.misc.localcontrols.controlHook
+import app.morphe.patches.telegram.misc.localcontrols.controlShape
 import app.morphe.patches.telegram.misc.localcontrols.forEachClassMentioning
 import app.morphe.patches.telegram.misc.localcontrols.requireReachable
 import app.morphe.patches.telegram.misc.settings.settingsPatch
@@ -53,6 +54,8 @@ import app.morphe.util.names.origParameterTypes
 import app.morphe.util.names.origReturnType
 import app.morphe.util.names.origString
 import app.morphe.util.names.origType
+import app.morphe.util.names.origDescriptor
+import app.morphe.util.names.tgClassDefByOrNull
 import app.morphe.util.names.tgMutableClassDefBy
 
 private const val PATCH = "Disable analytics"
@@ -78,6 +81,18 @@ private const val CONNECTIONS_SEND =
  */
 internal const val ACCOUNT_GUARD = "$EXTENSION_PACKAGE/misc/AccountGuard;"
 internal const val ACCOUNT_GUARD_DROP = "$ACCOUNT_GUARD->drop(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Z"
+
+/**
+ * Delete account (#71): account.deleteAccount, built and sent the way a held read goes out, with
+ * Telegram's request callback for the answer and its error's text for a refusal.
+ */
+internal const val DELETE_ACCOUNT = "$EXTENSION_PACKAGE/misc/DeleteAccount;"
+internal const val DELETE_ACCOUNT_REQUEST = "Lorg/telegram/tgnet/tl/TL_account\$deleteAccount;"
+internal const val DELETE_REASON = "$DELETE_ACCOUNT_REQUEST->reason:Ljava/lang/String;"
+internal const val REQUEST_CALLBACK = "Lorg/telegram/tgnet/RequestDelegate;"
+internal const val REQUEST_ERROR = "Lorg/telegram/tgnet/TLRPC\$TL_error;"
+private const val REQUEST_ERROR_TEXT = "$REQUEST_ERROR->text:Ljava/lang/String;"
+private const val CALLBACK_RUN = "run(Lorg/telegram/tgnet/TLObject;$REQUEST_ERROR)V"
 
 /** A channel's batch of read metrics: how long each post stayed on screen as you scrolled. */
 internal const val REPORT_READ_METRICS = "Lorg/telegram/tgnet/TLRPC\$TL_messages_reportReadMetrics;"
@@ -141,6 +156,11 @@ val disableAnalyticsPatch = bytecodePatch(
         controlHook(GHOST_MODE, "drop", listOf("Ljava/lang/Object;", "Ljava/lang/Object;"), "Z")
         controlHook(GHOST_MODE, "sendRequest", listOf("I", "Ljava/lang/Object;", "Ljava/lang/Object;"), "Z")
         controlHook(ACCOUNT_GUARD, "drop", listOf("Ljava/lang/Object;", "Ljava/lang/Object;", "Ljava/lang/Object;"), "Z")
+        requireStatusMethod("deleteAccount")
+        controlHook(DELETE_ACCOUNT, "request", listOf("Ljava/lang/String;"), "Ljava/lang/Object;")
+        controlHook(DELETE_ACCOUNT, "requestDelegate", emptyList(), "Ljava/lang/Class;")
+        controlHook(DELETE_ACCOUNT, "sendRequest", listOf("I", "Ljava/lang/Object;", "Ljava/lang/Object;"), "Z")
+        controlHook(DELETE_ACCOUNT, "errorText", listOf("Ljava/lang/Object;"), "Ljava/lang/String;")
 
         val metrics = SendReadMetricsFingerprint.methodOrNull
         val metricsMissing = metrics?.skipReadMetricsWhen("$ANALYTICS->skipReadMetrics(Ljava/util/List;)Z", dryRun = true)
@@ -220,6 +240,9 @@ val disableAnalyticsPatch = bytecodePatch(
             enableCapability("quietSignUp")
         }
 
+        // And Delete account, which needs only the request and the send.
+        if (writeDeleteAccount()) enableCapability("deleteAccount")
+
         enableStatus("disableAnalytics")
     }
 }
@@ -245,6 +268,53 @@ private fun BytecodePatchContext.writeHeldReadSend() {
     } catch (unreachable: PatchException) {
         patchLog.warning("$PATCH: ${unreachable.message}. Ghost mode keeps held reads on the phone.")
     }
+}
+
+/**
+ * Gives Delete account its request, callback type, send and error text (#71). The request is the
+ * old account.deleteAccount, a reason and nothing else, which Telegram 13.2 still sends from its
+ * sign-in screen. False, with a warning, for a build that moved any of it.
+ */
+private fun BytecodePatchContext.writeDeleteAccount(): Boolean = try {
+    // The extension answers with a Proxy that knows only the callback's one method.
+    val callback = tgClassDefByOrNull(REQUEST_CALLBACK)
+    controlShape(callback != null && AccessFlags.PUBLIC.isSet(callback.accessFlags) &&
+        AccessFlags.INTERFACE.isSet(callback.accessFlags) &&
+        callback.methods.map { "${it.origName}${it.origDescriptor}" } == listOf(CALLBACK_RUN),
+        "Telegram's request callback changed")
+    for ((reference, static) in listOf(CONNECTIONS_INSTANCE to true, CONNECTIONS_SEND to false,
+        "$DELETE_ACCOUNT_REQUEST-><init>()V" to false, DELETE_REASON to false, REQUEST_ERROR_TEXT to false)) {
+        requireReachable(reference, static)
+    }
+    writeStub(DELETE_ACCOUNT, "request", 2, """
+        new-instance v0, $DELETE_ACCOUNT_REQUEST
+        invoke-direct { v0 }, $DELETE_ACCOUNT_REQUEST-><init>()V
+        iput-object p0, v0, $DELETE_REASON
+        return-object v0
+    """)
+    writeStub(DELETE_ACCOUNT, "requestDelegate", 1, """
+        const-class v0, $REQUEST_CALLBACK
+        return-object v0
+    """)
+    writeStub(DELETE_ACCOUNT, "sendRequest", 5, """
+        invoke-static { p0 }, $CONNECTIONS_INSTANCE
+        move-result-object v0
+        check-cast p1, Lorg/telegram/tgnet/TLObject;
+        check-cast p2, $REQUEST_CALLBACK
+        const/4 v1, 0x0
+        invoke-virtual { v0, p1, p2, v1 }, $CONNECTIONS_SEND
+        const/4 v0, 0x1
+        return v0
+    """)
+    writeStub(DELETE_ACCOUNT, "errorText", 1, """
+        check-cast p0, $REQUEST_ERROR
+        iget-object p0, p0, $REQUEST_ERROR_TEXT
+        return-object p0
+    """)
+    true
+} catch (unfit: PatchException) {
+    patchLog.warning("$PATCH: ${unfit.message}. The patch goes on without Delete account.")
+    false
 }
 
 /** The reports Telegram sends about how the app is used. */

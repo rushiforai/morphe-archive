@@ -1831,3 +1831,5 @@ Hide videos without a preferred dub,Sembunyikan video tanpa sulih suara pilihan
 "Hides videos with no dub from Dub priority in Playback. Putting original on that list keeps every video, since each has its own audio. If a whole page would be hidden, one video stays so the feed keeps loading. Does nothing while the list is empty.","Menyembunyikan video tanpa sulih suara dari Prioritas sulih suara di Pemutaran. Menaruh original di daftar itu mempertahankan semua video, karena tiap video punya audio sendiri. Jika seluruh halaman akan tersembunyi, satu video tetap ada agar feed terus dimuat. Tidak berpengaruh selama daftar kosong."
 Preferred subtitles,Subtitel pilihan
 Preferred dubs,Sulih suara pilihan
+Always open on Home,Selalu buka di Beranda
+"PineDrama sometimes starts on Discover, like in the first days after an install. This starts it on Home instead.","PineDrama kadang terbuka di Jelajahi, misalnya pada hari-hari pertama setelah dipasang. Ini membukanya di Beranda."

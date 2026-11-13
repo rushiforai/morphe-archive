@@ -42,7 +42,7 @@ import java.util.WeakHashMap;
  * content, which keeps recycled views correct: a hidden row that gets reused for
  * something else is shown again on the next pass.
  *
- * Resource ids are PineDrama 47.6.3's own. Its resource table isn't TikTok's, and a name that exists
+ * Resource ids are PineDrama 47.7.3's own. Its resource table isn't TikTok's, and a name that exists
  * in both is a different view in each.
  * <pre>
  *   hrp   bottom navigation, the Inbox tab (looked up by FeedVisibility)
@@ -65,19 +65,19 @@ import java.util.WeakHashMap;
  * classes and layouts that load them.
  */
 public final class InboxFilter {
-    private static final String[] LIST_IDS = {"47.6.3:g7q"};
-    private static final String[] SYSTEM_ROW_IDS = {"47.6.3:l32"};
-    private static final String[] CHAT_ROW_IDS = {"47.6.3:lub"};
-    private static final String[] MESSAGE_REQUESTS_IDS = {"47.6.3:opp"};
-    private static final String[] SAY_HI_ROW_IDS = {"47.6.3:hrx"};
-    private static final String[] SYSTEM_ROW_TITLE_IDS = {"47.6.3:aul"};
-    private static final String[] USER_ROW_TITLE_IDS = {"47.6.3:pgh"};
-    private static final String[] SUGGESTED_HEADER_IDS = {"47.6.3:ihl"};
-    private static final String[] SUGGESTED_TITLE_IDS = {"47.6.3:kki"};
-    private static final String[] SUGGESTED_REMOVE_IDS = {"47.6.3:ddi"};
-    private static final String[] HEADER_ADD_PEOPLE_IDS = {"47.6.3:d3x"};
-    private static final String[] HEADER_SEARCH_IDS = {"47.6.3:ftu"};
-    private static final String[] HEADER_ACTIVITY_STATUS_IDS = {"47.6.3:g7s"};
+    private static final String[] LIST_IDS = {"47.7.3:g_9"};
+    private static final String[] SYSTEM_ROW_IDS = {"47.7.3:l8a"};
+    private static final String[] CHAT_ROW_IDS = {"47.7.3:m07"};
+    private static final String[] MESSAGE_REQUESTS_IDS = {"47.7.3:p03"};
+    private static final String[] SAY_HI_ROW_IDS = {"47.7.3:huh"};
+    private static final String[] SYSTEM_ROW_TITLE_IDS = {"47.7.3:aw4"};
+    private static final String[] USER_ROW_TITLE_IDS = {"47.7.3:pqx"};
+    private static final String[] SUGGESTED_HEADER_IDS = {"47.7.3:ikb"};
+    private static final String[] SUGGESTED_TITLE_IDS = {"47.7.3:kpo"};
+    private static final String[] SUGGESTED_REMOVE_IDS = {"47.7.3:dff"};
+    private static final String[] HEADER_ADD_PEOPLE_IDS = {"47.7.3:d5y"};
+    private static final String[] HEADER_SEARCH_IDS = {"47.7.3:fwa"};
+    private static final String[] HEADER_ACTIVITY_STATUS_IDS = {"47.7.3:g_a"};
 
     /** One dismissal at a time, so bulk clearing does not hammer PineDrama's API. */
     private static final long DISMISS_INTERVAL_MS = 300L;

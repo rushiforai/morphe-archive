@@ -64,6 +64,13 @@ final class SiteBoardGateway {
                 return response;
             });
         }
+        default Response getOpeningThumbnail(Context context,SiteBoardProtocol.Board board,String id)throws IOException{
+            Response response=getThumbnail(context,board.threadUrl(id));
+            if(response.status!=200)return response;
+            String html=OpeningPostHtml.read(new ByteArrayInputStream(response.bytes),response.type,board.threadUrl(id),
+                    board.kind,id,prefix->openingHasMedia(board,id,prefix));
+            return new Response(200,html.getBytes("UTF-8"),"text/html; charset=UTF-8",null,response.retryAfter);
+        }
     }
     static final class Response {
         final int status;final byte[] bytes;final String type,location,retryAfter;
@@ -301,8 +308,7 @@ final class SiteBoardGateway {
     }
     synchronized Pattern sitePattern(String kind)throws IOException{
         Pattern cached=sitePatterns.get(kind);if(cached!=null)return cached;
-        if(kind.equals("edge")){Pattern result=Pattern.compile("https://bbs\\.eddibb\\.cc/liveedge/");sitePatterns.put(kind,result);return result;}
-        if(kind.equals("kenmo")){Pattern result=Pattern.compile("https://(?:kenmo\\.org|00c\\.org)/[A-Za-z0-9_-]+/");sitePatterns.put(kind,result);return result;}
+        Pattern direct=SiteBoardPatterns.direct(kind);if(direct!=null){sitePatterns.put(kind,direct);return direct;}
         reservePort();StringBuilder aliases=new StringBuilder(SiteBoardCatalog.prefix(kind)+"[a-f0-9]{32}");for(Map.Entry<String,SiteBoardProtocol.Board> row:boards.entrySet())if(row.getKey().length()==33&&row.getValue().kind.equals(kind))aliases.append('|').append(Pattern.quote(row.getKey()));Pattern result=Pattern.compile(Pattern.quote(origin())+"/(?:"+aliases+")/");sitePatterns.put(kind,result);return result;
     }
     synchronized String registrationUrl(String key)throws IOException{
@@ -442,7 +448,7 @@ final class SiteBoardGateway {
         if(limit<=0)return Collections.emptyList();
         SiteBoardProtocol.Board board=boards.get(key);
         if(board==null||!boardEnabled(key)||!(board.kind.equals("futaba")||board.kind.equals("animanch")))return Collections.emptyList();
-        Response response=transport.getThumbnail(thumbnailContext,board.threadUrl(id));
+        Response response=transport.getOpeningThumbnail(thumbnailContext,board,id);
         if(response.status!=200)throw new IOException("HTTP "+response.status);
         SiteBoardProtocol.ThreadPage thread=SiteBoardProtocol.thread(board,id,response.text());
         if(thread.entries.isEmpty())return Collections.emptyList();
@@ -460,6 +466,12 @@ final class SiteBoardGateway {
         for(String url:ThreadListThumbnailRules.openingTextMedia(entry.body,threadUrl,limit)){
             if(found.add(url)&&found.size()>=limit)return;
         }
+    }
+    private static boolean openingHasMedia(SiteBoardProtocol.Board board,String id,String html)throws IOException{
+        SiteBoardProtocol.ThreadPage page=SiteBoardProtocol.thread(board,id,html);
+        if(page.entries.isEmpty())return false;
+        Set<String> media=new LinkedHashSet<>();collectOpeningMedia(media,page.entries.get(0),board.threadUrl(id),1);
+        return !media.isEmpty();
     }
     /** Site transport enforces the same origin and authentication rules as native DAT images. */
     byte[] openingImageBytes(Context context,String url)throws IOException{
@@ -605,10 +617,16 @@ final class SiteBoardGateway {
             return getThumbnail(null,url);
         }
         @Override public Response getThumbnail(Context context,String url)throws IOException{
+            return getPreview(context,url,null,null);
+        }
+        @Override public Response getOpeningThumbnail(Context context,SiteBoardProtocol.Board board,String id)throws IOException{
+            return getPreview(context,board.threadUrl(id),board,id);
+        }
+        private Response getPreview(Context context,String url,SiteBoardProtocol.Board opening,String id)throws IOException{
             for(int hop=0;hop<4;hop++){
                 String addressForHop=url;
                 Response r=ThumbnailRequestPacing.fetch(context,addressForHop,gate->{
-                    Response response=request(addressForHop,null,null,null);
+                    Response response=request(addressForHop,null,null,null,null,opening,id);
                     if(gate!=null)gate.check(response.status,response.retryAfter);
                     return response;
                 });
@@ -631,6 +649,9 @@ final class SiteBoardGateway {
             return request(address,body,contentType,referer,null);
         }
         private Response request(String address,byte[] body,String contentType,String referer,String overrideUa)throws IOException{
+            return request(address,body,contentType,referer,overrideUa,null,null);
+        }
+        private Response request(String address,byte[] body,String contentType,String referer,String overrideUa,SiteBoardProtocol.Board opening,String id)throws IOException{
             URI uri=URI.create(address);String host=uri.getHost();boolean boardMenu="bbs-menu.pages.dev".equals(host)&&body==null&&uri.getRawQuery()==null&&(uri.getPath().matches("/bakusai_bbsmenu/[a-z]+_bbsmenu\\.json")||uri.getPath().equals("/animanch_bbsmenu/bbsmenu.json"));
             if(!"https".equals(uri.getScheme())||uri.getPort()!=-1||uri.getUserInfo()!=null||!(boardMenu||"bakusai.com".equals(host)||"img2.bakusai.com".equals(host)||"bbs.animanch.com".equals(host)||host!=null&&host.matches("[a-z0-9-]+\\.2chan\\.net")))throw new IOException("未対応の接続先です");
             HttpURLConnection c=(HttpURLConnection)uri.toURL().openConnection();c.setInstanceFollowRedirects(false);c.setConnectTimeout(8000);c.setReadTimeout(15000);
@@ -644,6 +665,14 @@ final class SiteBoardGateway {
                 if(host.endsWith(".2chan.net")||host.equals("bakusai.com"))sessionCookies.receive(uri,c.getHeaderFields());
                 if(useCookies)for(Map.Entry<String,List<String>> h:c.getHeaderFields().entrySet())if("Set-Cookie".equalsIgnoreCase(h.getKey()))for(String value:h.getValue())CookieManager.getInstance().setCookie(address,value);
                 InputStream stream=status<400?c.getInputStream():c.getErrorStream();ByteArrayOutputStream data=new ByteArrayOutputStream();
+                if(stream!=null&&status==200&&opening!=null)try(InputStream in=new FilterInputStream(stream){
+                    @Override public void close()throws IOException{c.disconnect();super.close();}
+                }){
+                    String retryAfter=c.getHeaderField("Retry-After");
+                    String html=OpeningPostHtml.read(in,type,address,opening.kind,id,prefix->openingHasMedia(opening,id,prefix));
+                    c.disconnect();
+                    return new Response(status,html.getBytes("UTF-8"),"text/html; charset=UTF-8",null,retryAfter);
+                }
                 if(stream!=null)try(InputStream in=stream){byte[] buffer=new byte[8192];int n;while((n=in.read(buffer))!=-1){if(data.size()+n>12*1024*1024)throw new IOException("取得上限を超えました");data.write(buffer,0,n);}}
                 return new Response(status,data.toByteArray(),type,c.getHeaderField("Location"),c.getHeaderField("Retry-After"));
             }finally{c.disconnect();}

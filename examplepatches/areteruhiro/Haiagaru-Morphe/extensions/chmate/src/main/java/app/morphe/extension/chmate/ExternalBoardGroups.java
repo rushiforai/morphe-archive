@@ -1,7 +1,6 @@
 package app.morphe.extension.chmate;
 
 import java.lang.reflect.*;
-import java.net.URLDecoder;
 import java.util.*;
 import android.util.Log;
 
@@ -12,13 +11,12 @@ public final class ExternalBoardGroups {
  private static String host(Object row,boolean modern)throws Exception{return (String)field(row,modern?"f":"server");}
  private static Object repair(Object row,boolean modern)throws Exception{
   Object stored=field(row,modern?"a":"categories");List<String> categories=stored instanceof String[]?Arrays.asList((String[])stored):(List<String>)stored;
-  if(categories==null)return row;
-  boolean invalid=false;LinkedHashSet<String> clean=new LinkedHashSet<>();
-  for(String s:categories){if(BbsMenuHtml.scriptCategory(s))invalid=true;else if(s!=null&&!s.isEmpty())clean.add(s);}
-  if(!invalid)return row;
-  String server=host(row,modern);if(clean.isEmpty())clean.add(BbsMenuHtml.siteTitle(server));
-  Object bid=field(row,modern?"c":"bid");String title=(String)field(row,modern?"h":"title");
-  if(BbsMenuHtml.siteTitle(server).equals("エッヂ")&&URLDecoder.decode(bid.toString(),"UTF-8").endsWith("/liveedge"))title="エッヂ";
+  String server=host(row,modern);Object bid=field(row,modern?"c":"bid");
+  if(bid==null)return row;
+  List<String> clean=BbsMenuHtml.repairCategories(server,bid.toString(),categories);
+  if(clean==categories)return row;
+  String title=(String)field(row,modern?"h":"title");
+  if(BbsMenuHtml.edgeBoard(server,bid.toString()))title="エッヂ";
   Class<?> type=row.getClass();
   if(modern){
    Field extra=NativeFields.find(type,"d");

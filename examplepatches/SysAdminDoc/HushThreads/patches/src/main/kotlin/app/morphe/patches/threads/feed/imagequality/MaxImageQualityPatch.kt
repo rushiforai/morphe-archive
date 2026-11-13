@@ -11,6 +11,7 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.patches.threads.feed.reaching
 import app.morphe.patches.threads.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.threads.misc.extension.enableStatus
 import app.morphe.patches.threads.misc.extension.parameterRegister
@@ -44,6 +45,11 @@ internal const val EXTENDED_IMAGE_URL = "Lcom/instagram/model/mediasize/Extended
 /** The chooser's parameters: which shapes count, the sizes the server sent, and the width to aim for. */
 internal val CHOOSER_PARAMETERS = listOf("Ljava/lang/Integer;", "Ljava/util/List;", "I")
 
+/** 455's generic chooser: the shape, the sizes, a getter for each size's width and one for its height, and the width. */
+internal val GENERIC_CHOOSER_PARAMETERS = listOf(
+    "Ljava/lang/Integer;", "Ljava/util/List;", "Lkotlin/jvm/functions/Function1;", "Lkotlin/jvm/functions/Function1;", "I",
+)
+
 /** The chooser aims a twentieth past its target: target + target / 20. */
 private const val TWENTIETH = 20
 
@@ -60,7 +66,9 @@ private const val TWENTIETH = 20
  *
  * The chooser is found by its kept types and what it does with them (each size's width and height,
  * the distance from its target, and the fallback call to itself), and the patch refuses rather than
- * guessing when there isn't exactly one, or when the width it aims at isn't the parameter.
+ * guessing when there isn't exactly one, or when the width it aims at isn't the parameter. Since 455
+ * the chooser hands its shape, its sizes and its width to a generic chooser that also serves another
+ * caller, so the hook stays on the photo chooser's entry and the generic one has to do the aiming.
  */
 @Suppress("unused")
 val maxImageQualityPatch = bytecodePatch(
@@ -97,6 +105,10 @@ private fun MethodReference.signature() = "$definingClass->$name(${parameterType
 internal fun Method.isSizeChooserShape(): Boolean =
     AccessFlags.STATIC.isSet(accessFlags) && returnType == EXTENDED_IMAGE_URL &&
         parameterTypes.map { it.toString() } == CHOOSER_PARAMETERS
+
+/** Whether [this] has the generic chooser's signature: an instance method answering one of the sizes it's handed. */
+internal fun MethodReference.isGenericChooserShape(): Boolean =
+    returnType == "Ljava/lang/Object;" && parameterTypes.map { it.toString() } == GENERIC_CHOOSER_PARAMETERS
 
 /** The registers an invoke passes, in order. */
 private fun Instruction.arguments(): List<Int> = when (this) {
@@ -141,6 +153,66 @@ internal fun Method.targetReads(): List<Int> {
     return reads
 }
 
+/**
+ * Throws unless [this] is the generic chooser 455 moved the work into: it measures with Math.abs,
+ * aims a twentieth past its width parameter, adds the two, and falls back by calling itself once.
+ */
+internal fun Method.requireGenericChooser() {
+    val body = implementation?.instructions?.toList() ?: throw PatchException("$PATCH: ${signature()} has no body")
+    if (body.none { it.methodReference()?.signature() == "Ljava/lang/Math;->abs(I)I" }) {
+        throw PatchException("$PATCH: the generic chooser ${signature()} never calls Math.abs")
+    }
+    val width = parameterRegisterNumber(4)
+    val twentieths = body.indices.filter { index ->
+        val instruction = body[index]
+        instruction.opcode == Opcode.DIV_INT_LIT8 && (instruction as TwoRegisterInstruction).registerB == width &&
+            (instruction as NarrowLiteralInstruction).narrowLiteral == TWENTIETH
+    }
+    val twentieth = twentieths.singleOrNull()
+        ?: throw PatchException("$PATCH: expected one twentieth of the width in ${signature()}, found ${twentieths.size}")
+    val part = (body[twentieth] as TwoRegisterInstruction).registerA
+    val sum = body.getOrNull(twentieth + 1)
+    val adds = when (sum?.opcode) {
+        Opcode.ADD_INT_2ADDR -> (sum as TwoRegisterInstruction).let { it.registerA == part && it.registerB == width }
+        Opcode.ADD_INT -> (sum as ThreeRegisterInstruction).let { setOf(it.registerB, it.registerC) == setOf(part, width) }
+        else -> false
+    }
+    if (!adds) throw PatchException("$PATCH: the generic chooser ${signature()} doesn't add its width to the twentieth")
+    val fallbacks = body.count { it.methodReference()?.signature() == signature() }
+    if (fallbacks != 1) throw PatchException("$PATCH: expected one fallback call in ${signature()}, found $fallbacks")
+}
+
+/**
+ * Where the photo chooser reads its target width. Up to 454 it did the work itself ([targetReads]).
+ * From 455 it calls the generic chooser once and hands it the width as the last argument, as it
+ * arrived or through one move, and reads it nowhere else.
+ */
+internal fun BytecodePatchContext.chooserReads(chooser: Method): List<Int> {
+    val body = chooser.implementation?.instructions?.toList() ?: throw PatchException("$PATCH: ${chooser.signature()} has no body")
+    val handoffs = body.indices.filter { body[it].methodReference()?.isGenericChooserShape() == true }
+    if (handoffs.isEmpty()) return chooser.targetReads()
+    val handoff = handoffs.singleOrNull()
+        ?: throw PatchException("$PATCH: ${chooser.signature()} calls a generic chooser ${handoffs.size} times")
+    val generic = body[handoff].methodReference()!!
+    val genericMethod = classDefByOrNull(generic.definingClass)?.methods?.singleOrNull { it.signature() == generic.signature() }
+        ?: throw PatchException("$PATCH: Threads carries no ${generic.signature()}")
+    genericMethod.requireGenericChooser()
+    val width = chooser.parameterRegisterNumber(2)
+    val handed = body[handoff].arguments().last()
+    val reads = if (handed == width) listOf(handoff) else {
+        val writes = chooser.reaching(handoff, setOf(handed))
+        val move = writes.writes.singleOrNull()?.takeIf {
+            !writes.fromEntry && body[it].opcode in MOVES && (body[it] as TwoRegisterInstruction).registerB == width
+        } ?: throw PatchException("$PATCH: ${chooser.signature()} doesn't hand its own width to ${generic.signature()}")
+        listOf(move)
+    }
+    val elsewhere = body.indices.filter { it !in reads && width in body[it].registersRead() }
+    if (elsewhere.isNotEmpty()) throw PatchException("$PATCH: ${chooser.signature()} reads its target width at $elsewhere too")
+    return reads
+}
+
+private val MOVES = setOf(Opcode.MOVE, Opcode.MOVE_FROM16, Opcode.MOVE_16)
+
 /** The registers [this] reads, as far as a chooser of ints and objects goes. */
 private fun Instruction.registersRead(): Set<Int> = when (this) {
     is FiveRegisterInstruction, is RegisterRangeInstruction -> arguments().toSet()
@@ -159,7 +231,7 @@ internal fun BytecodePatchContext.sizeChooser(): Method {
     }
     val chooser = found.singleOrNull()
         ?: throw PatchException("$PATCH: expected one photo size chooser, found ${found.map { it.signature() }}")
-    val reads = chooser.targetReads()
+    val reads = chooserReads(chooser)
     // The width the hook replaces is the parameter itself wherever Threads reads it.
     chooser.requireParameterIntact(PATCH, 2, reads)
     return chooser

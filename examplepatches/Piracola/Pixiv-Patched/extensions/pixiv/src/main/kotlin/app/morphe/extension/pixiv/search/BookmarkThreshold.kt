@@ -55,7 +55,6 @@ object BookmarkThreshold {
         1200, 1400, 1600, 1800, 2000
     )
 
-    /** Zero turns the filter off; anything above this is treated as this. */
     const val MAX_FLOOR = 999_999
 
     /** The endpoints whose items carry a bookmark count, and where those items sit in the payload. */
@@ -67,19 +66,15 @@ object BookmarkThreshold {
     private const val PREFS_NAME = "pixiv_search_ranking_prefs"
     private const val KEY_FLOOR = "bookmark_floor"
 
-    /** Only the connection matters for the warm-up, so it asks for the host root, not for a page. */
     private const val API_ORIGIN = "https://app-api.pixiv.net/"
 
     /** How long all borrowing may take, counted from the moment the first page arrives. */
     private const val FILL_BUDGET_MS = 1000L
 
-    /** How many borrowed pages may be in flight at once. */
     private const val MAX_PARALLEL_PAGES = 4
 
-    /** Below this there is no point starting another request. */
     private const val MIN_PAGE_BUDGET_MS = 220L
 
-    /** How often the batch is checked for a page that has come back. */
     private const val POLL_MILLIS = 20L
 
     /** Keeps the empty-page toast from repeating while the app pages through a barren search. */
@@ -108,7 +103,6 @@ object BookmarkThreshold {
         }
     }
 
-    /** Whether the fill connection has been opened; see [warmUp]. */
     private val warm = AtomicBoolean(false)
 
     @Volatile
@@ -412,14 +406,12 @@ object BookmarkThreshold {
             prefetched = startFill(request, next.toString(), itemsKey, searchKey(url))
         }
 
-        /** Drops a prefetch that the page turned out not to need. */
         private fun dropPrefetched() {
             val fill = prefetched ?: return
             prefetched = null
             runCatching { fill.call.cancel() }
         }
 
-        /** Everything that says which search a page belongs to; only the offset varies between pages. */
         private fun searchKey(url: okhttp3.HttpUrl): String =
             url.newBuilder().removeAllQueryParameters("offset").build().toString()
 
@@ -436,7 +428,6 @@ object BookmarkThreshold {
             return Fill(call, future, target.queryParameter("offset")?.toIntOrNull(), search)
         }
 
-        /** Reads one page, or gives up: a refused request or a foreign payload is not an error. */
         private fun readPage(call: Call, itemsKey: String): Page? {
             topUpCall.set(true)
             try {

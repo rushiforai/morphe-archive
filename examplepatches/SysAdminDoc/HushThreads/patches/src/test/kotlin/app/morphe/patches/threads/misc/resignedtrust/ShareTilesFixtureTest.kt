@@ -34,46 +34,76 @@ class ShareTilesFixtureTest {
         "openRefused(ZLandroid/content/Context;Landroid/content/Intent;)V"
 
     /**
-     * Read off 512408636: Instagram's feed and reel thread, Facebook's reel, WhatsApp's status and
-     * the app tiles. The x86 and armeabi-v7a builds split them over different lambdas, five in all.
+     * Read off 512508359 and 512508358: Instagram's feed and reel thread, Facebook's reel, WhatsApp's
+     * status and the app tiles. The builds split them over different lambdas, five in all, and the
+     * ARMv7 builds and the first x86 one launch the four app tiles through a static helper.
      */
     private val launchesReadByHand = 5
 
     @Test
     fun `each declared build hands every tile launch's answer to the extension`() {
-        val markers = SHARE_TILE_ACTIONS + MESSENGER
+        val markers = SHARE_TILE_ACTIONS + MESSENGER + FACEBOOK_SHARE_ALIAS
         for (build in Fixtures.declaredBuilds()) {
-            val classes = FixtureDex.classesWhere(build, { dex -> markers.any { it in dex.stringSection } }) { method ->
+            val lambdas = FixtureDex.classesWhere(build, { dex -> markers.any { it in dex.stringSection } }) { method ->
                 method.instructions().any { it.string() in markers }
             }
-            val context = PatchContexts.of(ExtensionDex.classes() + classes)
+            // The static helpers a launch may have been outlined into.
+            val helpers = lambdas.flatMap { it.methods }.flatMap { it.instructions() }.filter { it.isOutlinedCall() }
+                .map { it.called().definingClass }.toSet() - lambdas.map { it.type }.toSet()
+            val context = PatchContexts.of(ExtensionDex.classes() + lambdas + FixtureDex.classes(build, helpers).values)
             val tiles = with(context) { shareTiles() }
-            assertTrue("${build.name}: Messenger's tile", tiles.lambdas.any { lambda -> lambda.instructions().any { it.string() == MESSENGER } })
+            assertTrue("${build.name}: Messenger's tile", tiles.lambdas.any { lambda ->
+                lambda.instructions().any { it.string() == MESSENGER || it.string() == FACEBOOK_SHARE_ALIAS }
+            })
+            val twins = tiles.outlined.associate { it.toString() to with(context) { answeringTwin(it) } }
+            for ((helper, twin) in twins) {
+                val owner = context.mutableClassDefBy(twin.definingClass).methods
+                val stock = owner.single { it.toReference() == helper }.instructions()
+                val copy = owner.single { it.toReference() == twin.toString() }.instructions()
+                assertEquals("$helper still drops the answer", Opcode.RETURN_VOID, stock.last().opcode)
+                assertEquals(stock.dropLast(1).map { it.opcode }, copy.dropLast(2).map { it.opcode })
+                val launch = copy[copy.size - 3] as FiveRegisterInstruction
+                assertEquals(tiles.launcher.toString(), launch.called().toString())
+                assertEquals(Opcode.MOVE_RESULT, copy[copy.size - 2].opcode)
+                assertEquals(launch.registerC, (copy[copy.size - 2] as OneRegisterInstruction).registerA)
+                assertEquals(Opcode.RETURN, copy.last().opcode)
+                assertEquals(launch.registerC, (copy.last() as OneRegisterInstruction).registerA)
+            }
             var launched = 0
             for (lambda in tiles.lambdas) {
                 val method = with(context) { mutableTile(lambda) }
                 // A switch payload's alignment nop comes and goes when code ahead of it moves.
                 val stock = method.instructions().filterNot { it.opcode == Opcode.NOP }
-                val launches = stock.indices.filter { stock[it].isLaunch() }
+                val launches = stock.indices.filter { stock[it].isLaunch() || stock[it].isOutlinedCall() && stock[it].called().toString() in twins }
                 assertTrue("${build.name}: ${lambda.definingClass} launches", launches.isNotEmpty())
                 launched += launches.size
 
-                method.openRefusedShareTiles(tiles.launcher)
+                method.openRefusedShareTiles(tiles.launcher, tiles.outlined.associateWith { twins.getValue(it.toString()) })
 
                 val body = method.instructions().filterNot { it.opcode == Opcode.NOP }
                 assertEquals("${build.name}: nothing else moved", stock.size + launches.size * 2, body.size)
                 launches.forEachIndexed { done, stockAt ->
                     val at = stockAt + done * 2
+                    val before = stock[stockAt] as FiveRegisterInstruction
                     val launch = body[at] as FiveRegisterInstruction
+                    // The launcher takes the context and intent after itself, the helper's twin takes them alone.
+                    val (handed, intent) = if (before.opcode == Opcode.INVOKE_STATIC) {
+                        assertEquals("${build.name}: launch $done", twins.getValue(before.called().toString()).toString(), launch.called().toString())
+                        assertEquals("${build.name}: launch $done", listOf(before.registerC, before.registerD), listOf(launch.registerC, launch.registerD))
+                        launch.registerC to launch.registerD
+                    } else {
+                        assertEquals("${build.name}: launch $done", before.called().toString(), launch.called().toString())
+                        launch.registerD to launch.registerE
+                    }
                     assertEquals("${build.name}: launch $done", Opcode.MOVE_RESULT, body[at + 1].opcode)
                     val answer = (body[at + 1] as OneRegisterInstruction).registerA
                     val call = body[at + 2]
                     assertEquals("${build.name}: launch $done", openRefused, (call as ReferenceInstruction).reference.toString())
                     call as FiveRegisterInstruction
                     assertEquals("${build.name}: the answer", answer, call.registerC)
-                    assertEquals("${build.name}: the context", launch.registerD, call.registerD)
-                    assertEquals("${build.name}: the intent", launch.registerE, call.registerE)
-                    assertFalse("${build.name}: the answer took the context or intent", answer == launch.registerD || answer == launch.registerE)
+                    assertEquals("${build.name}: the context", handed, call.registerD)
+                    assertEquals("${build.name}: the intent", intent, call.registerE)
+                    assertFalse("${build.name}: the answer took the context or intent", answer == handed || answer == intent)
                     assertEquals("${build.name}: the code after it", stock[stockAt + 1].kind(), body[at + 3].kind())
                 }
             }
@@ -171,6 +201,18 @@ class ShareTilesFixtureTest {
         return called.returnType == "Z" && called.definingClass.startsWith("LX/") &&
             called.parameterTypes.map(CharSequence::toString) == listOf("Landroid/content/Context;", "Landroid/content/Intent;")
     }
+
+    /** A static call taking a context and an intent and answering nothing. */
+    private fun Instruction.isOutlinedCall(): Boolean {
+        if (opcode != Opcode.INVOKE_STATIC) return false
+        val called = called()
+        return called.returnType == "V" &&
+            called.parameterTypes.map(CharSequence::toString) == listOf("Landroid/content/Context;", "Landroid/content/Intent;")
+    }
+
+    private fun Instruction.called() = (this as ReferenceInstruction).reference as MethodReference
+
+    private fun Method.toReference() = "$definingClass->$name(${parameterTypes.joinToString("")})$returnType"
 
     /** A goto widens when the code it jumps over grows, and is still the same goto. */
     private fun Instruction.kind(): Opcode = if (opcode == Opcode.GOTO_16 || opcode == Opcode.GOTO_32) Opcode.GOTO else opcode

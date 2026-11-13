@@ -314,6 +314,9 @@ class SaveMediaFixtureTest {
     private fun Instruction.isCopyLinkCheck(copyLink: String) =
         opcode == Opcode.INSTANCE_OF && getReference<TypeReference>()?.type == copyLink
 
+    private fun Instruction.makesOwnType() =
+        opcode == Opcode.INVOKE_STATIC && method()?.let { it.definingClass == it.returnType } == true
+
     private data class Expected(val menu: String, val media: String, val controller: String, val dismiss: String)
 
     private data class Fixture(val classes: Collection<ClassDef>, val menu: Method, val copyLink: String, val click: String)
@@ -332,9 +335,11 @@ class SaveMediaFixtureTest {
         val writer = found.flatMap { it.methods }.single { it.writesLinkedPosts() }
         val linkedPosts = writer.linkedPostFields().map { it.definingClass }.toSet()
         val read = FixtureDex.classes(build, menu.body().flatMap { it.types() }.toSet() + FUNCTION0 + MODEL + linkedPosts)
-        // Copy link's click is the first object its case makes.
+        // Copy link's click is the first object its case makes, there or through the click's own
+        // static factory, as some 455 builds do.
         val check = menu.body().indexOfFirst { it.isCopyLinkCheck(copyLink) }
-        val click = menu.body().drop(check).first { it.opcode == Opcode.NEW_INSTANCE }.getReference<TypeReference>()!!.type
+        val click = menu.body().drop(check).first { it.opcode == Opcode.NEW_INSTANCE || it.makesOwnType() }
+            .let { it.getReference<TypeReference>()?.type ?: it.method()!!.returnType }
         val clickTypes = read.getValue(click).methods.flatMap { m -> m.body().flatMap { it.types() } }.toSet() - read.keys
         val interfaces = linkedPosts.flatMap { read.getValue(it).interfaces }.toSet() - read.keys
         val more = FixtureDex.classes(build, clickTypes + interfaces)
@@ -399,14 +404,15 @@ class SaveMediaFixtureTest {
 
         /** Read off each build by hand: the menu lambda, its post and controller, and how Copy link's click closes the menu. */
         val EXPECTED = mapOf(
-            "454.0.0.54.79-512408621" to Expected("LX/Sas;", "LX/Sas;->A0G:$MEDIA", "LX/Sas;->A0D:LX/75U;", "LX/75U;->A19()V"),
-            "454.0.0.54.79-512408622" to Expected("LX/Qyp;", "LX/Qyp;->A0G:$MEDIA", "LX/Qyp;->A0D:LX/69p;", "LX/69p;->A19()V"),
-            "454.0.0.54.79-512408625" to Expected("LX/Sas;", "LX/Sas;->A0G:$MEDIA", "LX/Sas;->A0D:LX/75U;", "LX/75U;->A19()V"),
-            "454.0.0.54.79-512408635" to Expected("LX/Rau;", "LX/Rau;->A0G:$MEDIA", "LX/Rau;->A0D:LX/6DB;", "LX/6DB;->A19()V"),
-            "454.0.0.54.79-512408636" to Expected("LX/Sas;", "LX/Sas;->A0G:$MEDIA", "LX/Sas;->A0D:LX/75U;", "LX/75U;->A19()V"),
-            "454.0.0.54.79-512408645" to Expected("LX/Rau;", "LX/Rau;->A0G:$MEDIA", "LX/Rau;->A0D:LX/6DB;", "LX/6DB;->A19()V"),
-            "454.0.0.54.79-512408647" to Expected("LX/Qyp;", "LX/Qyp;->A0G:$MEDIA", "LX/Qyp;->A0D:LX/69p;", "LX/69p;->A19()V"),
-            "454.0.0.54.79-512408648" to Expected("LX/Sas;", "LX/Sas;->A0G:$MEDIA", "LX/Sas;->A0D:LX/75U;", "LX/75U;->A19()V"),
+            "455.0.0.55.72-512508344" to Expected("LX/Qrm;", "LX/Qrm;->A0C:$MEDIA", "LX/Qrm;->A09:LX/9Q2;", "LX/9Q2;->A1S()V"),
+            "455.0.0.55.72-512508348" to Expected("LX/Qrm;", "LX/Qrm;->A0C:$MEDIA", "LX/Qrm;->A09:LX/9Q2;", "LX/9Q2;->A1S()V"),
+            "455.0.0.55.72-512508358" to Expected("LX/Pvu;", "LX/Pvu;->A0C:$MEDIA", "LX/Pvu;->A09:LX/9H0;", "LX/9H0;->A1U()V"),
+            "455.0.0.55.72-512508359" to Expected("LX/Vvl;", "LX/Vvl;->A0C:$MEDIA", "LX/Vvl;->A09:LX/AUe;", "LX/AUe;->A1R()V"),
+            "455.0.0.55.72-512508360" to Expected("LX/LzG;", "LX/LzG;->A0C:$MEDIA", "LX/LzG;->A09:LX/69w;", "LX/69w;->A1R()V"),
+            "455.0.0.55.72-512508368" to Expected("LX/Rjn;", "LX/Rjn;->A0C:$MEDIA", "LX/Rjn;->A09:LX/9K0;", "LX/9K0;->A1S()V"),
+            "455.0.0.55.72-512508369" to Expected("LX/Qrm;", "LX/Qrm;->A0C:$MEDIA", "LX/Qrm;->A09:LX/9Q2;", "LX/9Q2;->A1S()V"),
+            "455.0.0.55.72-512508370" to Expected("LX/blo;", "LX/blo;->A0C:$MEDIA", "LX/blo;->A09:LX/97s;", "LX/97s;->A1S()V"),
+            "455.0.0.55.72-512508371" to Expected("LX/Qrm;", "LX/Qrm;->A0C:$MEDIA", "LX/Qrm;->A09:LX/9Q2;", "LX/9Q2;->A1S()V"),
         )
     }
 }

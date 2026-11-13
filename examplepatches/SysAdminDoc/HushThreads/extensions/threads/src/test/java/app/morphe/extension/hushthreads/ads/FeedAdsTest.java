@@ -112,64 +112,21 @@ public class FeedAdsTest {
                 HookStatus.report());
     }
 
-    @Test
-    public void spoolPagesGetTheSameRulesAndCountAsTheSpoolsToo() {
-        ShadowFeedAds.Status.suggestions = true;
-        List<Object> page = Arrays.asList("followed", ShadowFeedAds.AD, ShadowFeedAds.SUGGESTED, "recommended");
-        assertEquals(Arrays.asList("followed", "recommended"), FeedAds.spoolPage(page));
-        List<Object> plain = Collections.singletonList("ordinary");
-        assertSame(plain, FeedAds.spoolPage(plain));
-        assertSame(plain, FeedAds.filter(plain));
-        assertNull(FeedAds.spoolPage(null));
-        assertEquals(Arrays.asList(
-                "Hide ads: invoked 4, 0 found, 0 missing. Counted: feed pages checked 3,"
-                        + " spool feed pages checked 2, feed items checked 6, ad posts taken out 1",
-                "Hide suggested users: invoked 4, 0 found, 0 missing. Counted: feed pages checked 3,"
-                        + " spool feed pages checked 2, feed items checked 6, suggestion cards taken out 1"),
-                HookStatus.report());
-    }
-
-    /** With the switch off, paused, without settings or with the check broken, a spool page stays whole and uncounted. */
-    @Test
-    public void spoolPagesStayWholeWhenHideAdsCannotAnswer() throws Exception {
-        List<Object> page = Arrays.asList("first", ShadowFeedAds.AD);
-        Settings.HIDE_ADS.save(false);
-        assertSame(page, FeedAds.spoolPage(page));
-        Settings.HIDE_ADS.save(true);
-        SettingsContextRule.withoutContext(() -> assertSame(page, FeedAds.spoolPage(page)));
-        java.lang.reflect.Method pause = Setting.class.getDeclaredMethod("setPausedForProcess", boolean.class);
-        pause.setAccessible(true);
-        try {
-            pause.invoke(null, true);
-            assertSame(page, FeedAds.spoolPage(page));
-        } finally {
-            pause.invoke(null, false);
-        }
-        List<Object> broken = Arrays.asList(ShadowFeedAds.AD, ShadowFeedAds.BROKEN, "first");
-        assertSame(broken, FeedAds.spoolPage(broken));
-        String report = HookStatus.report().toString();
-        assertTrue(report, !report.contains("Counted:"));
-        assertTrue(report, report.contains("'spool feed page' hook (it threw java.lang.IllegalStateException)"));
-        assertTrue(report, !report.contains("'feed page' hook"));
-    }
-
-    /** For You's other writes into either cache get the same rules, counted as writes rather than pages. */
+    /** For You's other writes into the cache get the same rules, counted as writes rather than pages. */
     @Test
     public void forYouWritesGetTheSameRulesAndCountApartFromPages() {
         ShadowFeedAds.Status.suggestions = true;
         List<Object> write = Arrays.asList(ShadowFeedAds.SUGGESTED, "followed", ShadowFeedAds.AD);
-        assertEquals(Collections.singletonList("followed"), FeedAds.spoolWrite(write));
         assertEquals(Collections.singletonList("followed"), FeedAds.forYouWrite(write));
         List<Object> plain = Collections.singletonList("ordinary");
-        assertSame(plain, FeedAds.spoolWrite(plain));
+        assertSame(plain, FeedAds.forYouWrite(plain));
         // A resumed write passes no list, and that isn't a check.
         assertNull(FeedAds.forYouWrite(null));
-        assertNull(FeedAds.spoolWrite(null));
         assertEquals(Arrays.asList(
-                "Hide ads: invoked 5, 0 found, 0 missing. Counted: For You cache writes checked 3,"
-                        + " spool cache writes checked 2, feed items checked 7, ad posts taken out 2",
-                "Hide suggested users: invoked 5, 0 found, 0 missing. Counted: For You cache writes checked 3,"
-                        + " spool cache writes checked 2, feed items checked 7, suggestion cards taken out 2"),
+                "Hide ads: invoked 3, 0 found, 0 missing. Counted: For You cache writes checked 2,"
+                        + " feed items checked 4, ad posts taken out 1",
+                "Hide suggested users: invoked 3, 0 found, 0 missing. Counted: For You cache writes checked 2,"
+                        + " feed items checked 4, suggestion cards taken out 1"),
                 HookStatus.report());
     }
 
@@ -179,47 +136,38 @@ public class FeedAdsTest {
         List<Object> write = Arrays.asList("first", ShadowFeedAds.AD);
         Settings.HIDE_ADS.save(false);
         assertSame(write, FeedAds.forYouWrite(write));
-        assertSame(write, FeedAds.spoolWrite(write));
         Settings.HIDE_ADS.save(true);
         SettingsContextRule.withoutContext(() -> assertSame(write, FeedAds.forYouWrite(write)));
         java.lang.reflect.Method pause = Setting.class.getDeclaredMethod("setPausedForProcess", boolean.class);
         pause.setAccessible(true);
         try {
             pause.invoke(null, true);
-            assertSame(write, FeedAds.spoolWrite(write));
+            assertSame(write, FeedAds.forYouWrite(write));
         } finally {
             pause.invoke(null, false);
         }
         List<Object> broken = Arrays.asList(ShadowFeedAds.AD, ShadowFeedAds.BROKEN, "first");
-        // The report names only the first miss, so the list of every miss, read after each
-        // write, says which write threw under which name.
         assertSame(broken, FeedAds.forYouWrite(broken));
-        String misses = HookStatus.missing().toString();
-        assertTrue(misses, misses.contains("'For You cache write' hook (it threw java.lang.IllegalStateException)"));
-        assertTrue(misses, !misses.contains("'spool cache write' hook"));
-        assertSame(broken, FeedAds.spoolWrite(broken));
-        misses = HookStatus.missing().toString();
-        assertTrue(misses, misses.contains("'spool cache write' hook (it threw java.lang.IllegalStateException)"));
-        assertTrue(misses, !misses.contains("'feed page' hook"));
         String report = HookStatus.report().toString();
         assertTrue(report, !report.contains("Counted:"));
+        assertTrue(report, report.contains("'For You cache write' hook (it threw java.lang.IllegalStateException)"));
+        assertTrue(report, !report.contains("'feed page' hook"));
     }
 
     /** For You's writes of one item get the same rules, and an item they take out isn't written. */
     @Test
     public void forYouItemWritesGetTheSameRulesAndCountApart() {
         ShadowFeedAds.Status.suggestions = true;
-        assertTrue(FeedAds.spoolItem(ShadowFeedAds.SUGGESTED));
+        assertTrue(FeedAds.forYouItem(ShadowFeedAds.SUGGESTED));
         assertTrue(FeedAds.forYouItem(ShadowFeedAds.AD));
         assertFalse(FeedAds.forYouItem("followed"));
         // A resumed write passes no item, and that isn't a check.
         assertFalse(FeedAds.forYouItem(null));
-        assertFalse(FeedAds.spoolItem(null));
         assertEquals(Arrays.asList(
-                "Hide ads: invoked 5, 0 found, 0 missing. Counted: For You item writes checked 3,"
-                        + " spool item writes checked 1, feed items checked 3, ad posts taken out 1",
-                "Hide suggested users: invoked 5, 0 found, 0 missing. Counted: For You item writes checked 3,"
-                        + " spool item writes checked 1, feed items checked 3, suggestion cards taken out 1"),
+                "Hide ads: invoked 4, 0 found, 0 missing. Counted: For You item writes checked 3,"
+                        + " feed items checked 3, ad posts taken out 1",
+                "Hide suggested users: invoked 4, 0 found, 0 missing. Counted: For You item writes checked 3,"
+                        + " feed items checked 3, suggestion cards taken out 1"),
                 HookStatus.report());
     }
 
@@ -228,27 +176,21 @@ public class FeedAdsTest {
     public void forYouItemWritesGoAheadWhenHideAdsCannotAnswer() throws Exception {
         Settings.HIDE_ADS.save(false);
         assertFalse(FeedAds.forYouItem(ShadowFeedAds.AD));
-        assertFalse(FeedAds.spoolItem(ShadowFeedAds.AD));
         Settings.HIDE_ADS.save(true);
         SettingsContextRule.withoutContext(() -> assertFalse(FeedAds.forYouItem(ShadowFeedAds.AD)));
         java.lang.reflect.Method pause = Setting.class.getDeclaredMethod("setPausedForProcess", boolean.class);
         pause.setAccessible(true);
         try {
             pause.invoke(null, true);
-            assertFalse(FeedAds.spoolItem(ShadowFeedAds.AD));
+            assertFalse(FeedAds.forYouItem(ShadowFeedAds.AD));
         } finally {
             pause.invoke(null, false);
         }
         assertFalse(FeedAds.forYouItem(ShadowFeedAds.BROKEN));
-        String misses = HookStatus.missing().toString();
-        assertTrue(misses, misses.contains("'For You item write' hook (it threw java.lang.IllegalStateException)"));
-        assertTrue(misses, !misses.contains("'spool item write' hook"));
-        assertFalse(FeedAds.spoolItem(ShadowFeedAds.BROKEN));
-        misses = HookStatus.missing().toString();
-        assertTrue(misses, misses.contains("'spool item write' hook (it threw java.lang.IllegalStateException)"));
-        assertTrue(misses, !misses.contains("'feed page' hook"));
         String report = HookStatus.report().toString();
         assertTrue(report, !report.contains("Counted:"));
+        assertTrue(report, report.contains("'For You item write' hook (it threw java.lang.IllegalStateException)"));
+        assertTrue(report, !report.contains("'feed page' hook"));
     }
 
     /** An ad Threads inserts into a page it holds stays out. Anything else goes in. */

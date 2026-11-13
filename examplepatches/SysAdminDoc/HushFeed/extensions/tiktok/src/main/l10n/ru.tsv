@@ -201,6 +201,26 @@ Forget the seen video.	Забыть просмотренное видео.
 Forget the video @%2$s has seen.	Забыть видео, просмотренное аккаунтом @%2$s.
 Got it	Понятно
 Hide profile shortcuts	Скрыть ярлыки профиля
+# context: Title of the checklist that hides tabs from the strip above a profile's videos
+Hide profile tabs	Скрыть вкладки профиля
+# context: Note under that title. Reposts and Liked videos are two of the checklist's rows, and the checklist never takes away every tab
+Pick the tabs to hide from the strip above a profile's videos, such as Reposts or Liked videos. One tab always stays. Restart TikTok to apply this.	Выберите вкладки, которые нужно скрыть над видео профиля, например Репосты или Понравившиеся видео. Одна вкладка остаётся всегда. Перезапустите TikTok, чтобы это применить.
+# context: Checklist row for the profile tab with the account's private videos (lock icon)
+Private videos	Личные видео
+# context: Checklist row for the profile tab with the videos the account reposted
+Reposts	Репосты
+# context: Checklist row for the profile tab with the account's saved videos (bookmark icon)
+Favorites	Избранное
+# context: Checklist row for the profile tab with the account's sounds
+Music	Музыка
+# context: Checklist row for the profile tab with the account's camera effects
+Effects	Эффекты
+# context: Checklist row for the profile tab with the account's paid series and short dramas
+Series	Сериалы
+# context: Checklist row for the profile tab with the account's stickers
+Stickers	Стикеры
+# context: Checklist row for the profile tab TikTok calls AI theater, with the account's AI-made videos
+AI theater	ИИ-театр
 Hide profile shortcuts by name	Скрыть ярлыки профиля по названию
 Hide the status bar in LIVE rooms	Скрывать строку состояния в LIVE-трансляциях
 How much of a video you watch before it's hidden next time. Zero counts it after a few seconds.	Какую часть видео нужно посмотреть, чтобы оно в следующий раз считалось просмотренным. При значении «0» оно засчитывается уже через несколько секунд.
@@ -2545,7 +2565,7 @@ Expanded	Развернуто
 Collapsed	Свернуто
 This setting isn't available. Search for another setting.	Эта настройка недоступна. Найдите другую настройку.
 Hide the Hushfeed row	Скрыть строку Hushfeed
-Take Hushfeed out of TikTok's Settings and privacy. To open these settings, press and hold For You at the top of the feed, or Home if Long-press Home for Hushfeed settings is on.	Убирает Hushfeed из раздела «Настройки и конфиденциальность» TikTok. Чтобы открыть эти настройки, удерживайте «Рекомендации» вверху ленты или «Главная», если включено «Долгое нажатие на Главная открывает настройки Hushfeed».
+Take Hushfeed out of TikTok's Settings and privacy. To open these settings, press and hold For You at the top of the feed, or Home if Long-press Home for Hushfeed settings is on. If neither press can open them, the row stays.	Убирает Hushfeed из раздела «Настройки и конфиденциальность» TikTok. Чтобы открыть эти настройки, удерживайте «Рекомендации» вверху ленты или «Главная», если включено «Долгое нажатие на Главная открывает настройки Hushfeed». Если ни то, ни другое не может их открыть, строка остаётся.
 Open the search page	Открыть страницу поиска
 Search didn't open. Restart TikTok and try again.	Поиск не открылся. Перезапустите TikTok.
 Fold the search into a button	Свернуть поиск в кнопку
@@ -2848,6 +2868,18 @@ TikTok tests more than one set of icons for the bottom bar. Pick one here, or le
 New style 1	Новый стиль 1
 # context: Choice value for the bottom bar's icons, TikTok's other newer icon set
 New style 2	Новый стиль 2
+# context: Row title of the Feed tabs choice that sets how tall the bottom bar is
+Bottom bar height	Высота нижней панели
+# context: Note under that choice
+Videos and the other tabs make room for the bar at its new height. With the tab names hidden, the icons fit the shorter bars best.	Видео и другие вкладки освобождают место для панели новой высоты. Если названия вкладок скрыты, значки лучше всего помещаются на более низких панелях.
+# context: Choice value for the bottom bar's height, the lowest of the five
+Shorter	Очень низкая
+# context: Choice value for the bottom bar's height, a little lower than TikTok's
+Short	Низкая
+# context: Choice value for the bottom bar's height, a little higher than TikTok's
+Tall	Высокая
+# context: Choice value for the bottom bar's height, the highest of the five
+Taller	Очень высокая
 # context: Row title of the Feed tabs switch that adds Friends to the row of tabs along the top of the feed
 Friends in the top tabs	«Друзья» во вкладках сверху
 # context: Summary under that switch; Friends and Following are TikTok's tab names

@@ -576,6 +576,8 @@ public final class NativeToolTabs {
             categoryHost.setVisibility(selected==null?View.GONE:View.VISIBLE);
             if(selected==null){
                 for(int i=0;i<ids.length;i++){final String id=ids[i];Button button=new Button(activity);button.setText(labels[i]);button.setOnClickListener(v->show(id));body.addView(button,new LinearLayout.LayoutParams(-1,-2));}
+                Button updates=new Button(activity);updates.setText("Haiagaru更新履歴");updates.setOnClickListener(v->UpdateHistory.show(activity));body.addView(updates);
+                Button features=new Button(activity);features.setText("追加された機能をすべて見る");features.setOnClickListener(v->UpdateHistory.showAllFeatures(activity));body.addView(features);
                 Button share=new Button(activity);share.setText("設定を共有（.haiagaru）");share.setOnClickListener(v->SettingsProfiles.share(activity));body.addView(share);
                 Button load=new Button(activity);load.setText("設定ファイルを読み込む");load.setOnClickListener(v->{try{fragment.getClass().getMethod("openSettingsFile").invoke(fragment);}catch(Exception error){android.util.Log.e("Haiagaru","Settings picker unavailable",error);Toast.makeText(activity,"ファイル選択画面を開けませんでした",Toast.LENGTH_LONG).show();}});body.addView(load);
                 TextView help=new TextView(activity);help.setText("追加先はオンでホーム側、オフでスレ側のタブ列です。開いているタブは自動では移動しません。");body.addView(help);

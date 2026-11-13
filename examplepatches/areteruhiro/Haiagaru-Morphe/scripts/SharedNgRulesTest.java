@@ -4,6 +4,8 @@ public final class SharedNgRulesTest {
  static void check(boolean value,String label){if(!value)throw new AssertionError(label);checks++;}
  static SharedNgRules.Rule rule(String kind,String value,String period,int votes){return new SharedNgRules.Rule("a".repeat(64),"5ch/poverty",kind,value,period,votes,false);}
  public static void main(String[] args){
+  check(!rule("id","abc123","",1).matches("https://greta.5ch.io/poverty/","abc123","","","",2),"default two excludes one report");
+  check(rule("id","abc123","",2).matches("https://greta.5ch.io/poverty/","abc123","","","",2),"default two includes two reports");
   check(SharedNgRules.board("https://greta.5ch.io/poverty/").equals("5ch/all"),"server independence");
   check(SharedNgRules.board("https://greta.5ch.net/poverty/").equals("5ch/all"),"5ch domains");
   check(!SharedNgRules.board("https://5ch.io.evil.test/poverty/").equals("5ch/all"),"no suffix confusion");

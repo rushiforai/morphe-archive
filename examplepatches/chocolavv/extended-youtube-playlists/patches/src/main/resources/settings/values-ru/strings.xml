@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="eyp_hidden_playlists_screen_title">Скрытые плейлисты</string>
+    <string name="eyp_hidden_playlists_screen_summary">Плейлисты, которые YouTube собирает для каждого канала, но не показывает</string>
+    <string name="eyp_hidden_playlists_title">Показывать скрытые плейлисты</string>
+    <string name="eyp_hidden_playlists_summary">Первыми во вкладке «Плейлисты» канала</string>
+    <string name="eyp_hidden_playlists_tab_title">Добавлять вкладку «Плейлисты»</string>
+    <string name="eyp_hidden_playlists_tab_summary">Каналам, у которых её нет</string>
+    <string name="eyp_hidden_playlists_uploads">Загрузки</string>
+    <string name="eyp_hidden_playlists_popular">Популярное</string>
+    <string name="eyp_hidden_playlists_members">Только для спонсоров</string>
+    <string name="eyp_hidden_playlists_all">Все</string>
+    <string name="eyp_hidden_playlists_videos">Видео</string>
+    <string name="eyp_hidden_playlists_shorts">Shorts</string>
+    <string name="eyp_hidden_playlists_live">Трансляции</string>
+</resources>

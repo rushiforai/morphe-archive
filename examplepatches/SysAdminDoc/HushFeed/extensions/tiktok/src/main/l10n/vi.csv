@@ -776,6 +776,16 @@ Hide picture comments,Ẩn bình luận bằng hình ảnh
 Hide playlist videos,Ẩn video trong danh sách phát
 "Hide posts only a creator's subscribers can watch, the ones with a lock, on the feed and on profiles.",Ẩn các bài đăng có biểu tượng khóa (chỉ dành riêng cho người đăng ký kênh của nhà sáng tạo) trên bảng tin và trên trang cá nhân.
 Hide profile shortcuts,Ẩn lối tắt trang cá nhân
+Hide profile tabs,Ẩn thẻ trang cá nhân
+"Pick the tabs to hide from the strip above a profile's videos, such as Reposts or Liked videos. One tab always stays. Restart TikTok to apply this.","Chọn các thẻ cần ẩn khỏi dải phía trên video của trang cá nhân, chẳng hạn Đăng lại hoặc Video đã thích. Luôn giữ lại một thẻ. Khởi động lại TikTok để áp dụng."
+Private videos,Video riêng tư
+Reposts,Đăng lại
+Favorites,Yêu thích
+Music,Âm nhạc
+Effects,Hiệu ứng
+Series,Phim bộ
+Stickers,Nhãn dán
+AI theater,Rạp AI
 Hide profile shortcuts by name,Ẩn lối tắt trang cá nhân theo tên
 Hide profile views,Ẩn lượt xem trang cá nhân
 Hide promotional music,Ẩn nhạc quảng cáo
@@ -1934,7 +1944,7 @@ Swiping a message sideways no longer starts a reply to it. Taps and long presses
 "Swiping right on the For You feed no longer opens TikTok's side menu, with Your orders, TikTok Minis and more.","Vuốt sang phải trên bảng tin Dành cho bạn sẽ không còn mở menu bên của TikTok (chứa các mục Đơn hàng của bạn, TikTok Minis, v.v.)."
 System,Hệ thống
 Tag saved videos with their details,Gắn nhãn thông tin chi tiết vào video đã lưu
-"Take Hushfeed out of TikTok's Settings and privacy. To open these settings, press and hold For You at the top of the feed, or Home if Long-press Home for Hushfeed settings is on.","Gỡ mục Hushfeed khỏi phần Cài đặt và quyền riêng tư của TikTok. Để mở các cài đặt này, hãy nhấn giữ chữ Dành cho bạn ở đầu bảng tin hoặc nhấn giữ nút Trang chủ (Home) nếu đã bật tính năng Nhấn giữ nút Trang chủ để vào cài đặt Hushfeed."
+"Take Hushfeed out of TikTok's Settings and privacy. To open these settings, press and hold For You at the top of the feed, or Home if Long-press Home for Hushfeed settings is on. If neither press can open them, the row stays.","Gỡ mục Hushfeed khỏi phần Cài đặt và quyền riêng tư của TikTok. Để mở các cài đặt này, hãy nhấn giữ chữ Dành cho bạn ở đầu bảng tin hoặc nhấn giữ nút Trang chủ (Home) nếu đã bật tính năng Nhấn giữ nút Trang chủ để vào cài đặt Hushfeed. Nếu cả hai cách đều không mở được, mục này vẫn hiển thị."
 "Take the Add comment bar off videos you open from a profile, a hashtag, a sound or search, so the video fills the screen down to the bottom. The comment button on the right still opens comments.","Gỡ thanh Thêm bình luận khỏi các video mở từ trang cá nhân, hashtag, âm thanh hoặc tìm kiếm để video lấp đầy màn hình xuống tận đáy. Nút bình luận ở bên phải vẫn mở phần bình luận bình thường."
 "Take the pulsing LIVE ring off profile pictures on the feed, in comments and on profiles. Tapping the picture of a creator who's live opens their profile instead of the LIVE.","Gỡ vòng viền LIVE nhấp nháy khỏi ảnh đại diện trên bảng tin, trong bình luận và trên trang cá nhân. Chạm vào ảnh đại diện của nhà sáng tạo đang phát trực tiếp sẽ mở trang cá nhân của họ thay vì tham gia buổi LIVE."
 Remove rings on the feed,Xóa vòng viền trên bảng tin
@@ -2584,6 +2594,12 @@ Bottom bar icons,Biểu tượng thanh dưới
 "TikTok tests more than one set of icons for the bottom bar. Pick one here, or leave it to TikTok.",TikTok đang thử nhiều bộ biểu tượng cho thanh dưới. Chọn một bộ ở đây hoặc để TikTok quyết định.
 New style 1,Kiểu mới 1
 New style 2,Kiểu mới 2
+Bottom bar height,Chiều cao thanh dưới
+"Videos and the other tabs make room for the bar at its new height. With the tab names hidden, the icons fit the shorter bars best.","Video và các thẻ khác chừa chỗ cho thanh theo chiều cao mới. Khi ẩn tên thẻ, biểu tượng vừa nhất với các thanh thấp hơn."
+Shorter,Rất thấp
+Short,Thấp
+Tall,Cao
+Taller,Rất cao
 Friends in the top tabs,Bạn bè ở các thẻ trên cùng
 "Friends moves up to the tabs at the top of the feed, next to Following, and Discover takes its spot in the bottom bar, the way TikTok lays it out in some countries. Your region and your feed stay as they are.","Bạn bè chuyển lên các thẻ ở đầu bảng tin, cạnh Đang theo dõi, và Khám phá thay chỗ nó ở thanh dưới cùng, giống cách TikTok sắp xếp ở một số quốc gia. Khu vực và bảng tin của bạn vẫn giữ nguyên."
 Pin more chats,Ghim thêm cuộc trò chuyện

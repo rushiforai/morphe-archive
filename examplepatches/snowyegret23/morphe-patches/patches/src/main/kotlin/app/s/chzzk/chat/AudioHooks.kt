@@ -4,9 +4,11 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.s.chzzk.common.utils.localRegisterCount
+import app.s.chzzk.common.utils.getReference
 import app.s.chzzk.common.utils.parameterTypeNames
 import app.s.chzzk.common.utils.rewrite
 import app.s.chzzk.common.utils.smaliReference
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 
 private const val AUDIO = "Lapp/s/chzzk/extension/AudioEffects;"
 private const val PROCESSOR = "Lcom/naver/prismplayer/media3/common/audio/AudioProcessor;"
@@ -14,7 +16,7 @@ private const val FORMAT = "Lcom/naver/prismplayer/media3/common/audio/AudioProc
 private const val SINK = "Lcom/naver/prismplayer/media3/exoplayer/audio/DefaultAudioSink;"
 
 internal fun BytecodePatchContext.addAudioHooks() {
-    val renamed = packageMetadata.versionName in setOf("3.16.0", "1.3.0")
+    val renamed = packageMetadata.versionName in setOf("3.16.0", "3.17.0", "1.3.0", "1.4.0")
     val expected = if (renamed) setOf(
         "a()Z", "b()Z", "c()Ljava/nio/ByteBuffer;", "e($FORMAT)$FORMAT", "f(Ljava/nio/ByteBuffer;)V",
         "flush()V", "g(Lcom/naver/prismplayer/media3/common/audio/AudioProcessor${'$'}StreamMetadata;)V",
@@ -63,7 +65,12 @@ internal fun BytecodePatchContext.addAudioHooks() {
         return-object v0
     """)
     val format = "Lcom/naver/prismplayer/media3/common/Format;"
-    val mime = classDefBy(format).fields.single { it.name == "n" && it.type == "Ljava/lang/String;" }
+    val configure = sink.methods.single {
+        it.returnType == "V" && it.parameterTypeNames == listOf(format, "I", "[I")
+    }
+    val mime = configure.implementation!!.instructions.mapNotNull { it.getReference<FieldReference>() }
+        .filter { it.definingClass == format && it.type == "Ljava/lang/String;" }
+        .distinctBy { it.smaliReference }.single()
     val formatSupport = sink.methods.single { it.name == (if (renamed) "z" else "y") && it.parameterTypeNames == listOf(format) }
     check(formatSupport.localRegisterCount >= 2)
     formatSupport.addInstructionsWithLabels(0, """

@@ -21,6 +21,9 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10x
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21c
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21t
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringReference
 import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
@@ -133,6 +136,27 @@ class AutoAdjustKeepAnchorsTest {
         val before = bare.implementation!!.instructions.toList()
         assertThrows(PatchException::class.java) { bare.keepThroughDefaultEnableCleanup("Custom offline videos limit") }
         assertEquals(before, bare.implementation!!.instructions.toList())
+    }
+
+    @Test
+    fun `a branch between the clean-up line and its return is refused`() {
+        val branched = MutableMethod(
+            ImmutableMethod(
+                "Lfixture/State;", "state", emptyList(), "Z",
+                AccessFlags.PUBLIC.value or AccessFlags.STATIC.value, null, null,
+                ImmutableMethodImplementation(
+                    2,
+                    listOf(
+                        ImmutableInstruction21c(Opcode.CONST_STRING, 0, ImmutableStringReference(DEFAULT_ENABLE_CLEANUP_LOG)),
+                        ImmutableInstruction21t(Opcode.IF_EQZ, 1, 3),
+                        ImmutableInstruction11x(Opcode.RETURN, 1),
+                        ImmutableInstruction11x(Opcode.RETURN, 1),
+                    ),
+                    null, null,
+                ),
+            ),
+        )
+        assertThrows(PatchException::class.java) { branched.defaultEnableCleanupReturnIndex("Custom offline videos limit") }
     }
 
     private fun taken(apk: File, fingerprint: Fingerprint): List<Pair<ClassDef, Method>> {

@@ -186,19 +186,16 @@ internal object FollowFeedListGetItemsFingerprint : Fingerprint(
 private const val FOLLOW_FEED_API_DESCRIPTOR = "Lcom/ss/android/ugc/aweme/follow/api/FollowFeedApiV2;"
 
 /**
- * The static helper that calls the Following feed API, GET or POST, with a count it writes as the
- * literal 20 ([raiseFollowFeedFirstReadCount]). R8 names the class and method; the API interface
- * keeps its real name and its two request methods, which one method calls both of.
+ * The static helper that calls the Following feed API with a count it writes as the literal 20
+ * ([raiseFollowFeedFirstReadCount]). R8 names the class and method; the API interface keeps its
+ * real name. 47.7.3 dropped the GET request, so the POST is the helper's one call to it.
  */
 internal object FollowFeedRequestFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     custom = { method, _ ->
-        val calls = method.implementation?.instructions
+        method.implementation?.instructions
             ?.mapNotNull { it.getReference<MethodReference>() }
-            ?.filter { it.definingClass == FOLLOW_FEED_API_DESCRIPTOR }
-            ?.map { it.name }
-            ?: emptyList()
-        "followFeedGet" in calls && "followFeedPost" in calls
+            ?.any { it.definingClass == FOLLOW_FEED_API_DESCRIPTOR && it.name == "followFeedPost" } == true
     },
 )
 

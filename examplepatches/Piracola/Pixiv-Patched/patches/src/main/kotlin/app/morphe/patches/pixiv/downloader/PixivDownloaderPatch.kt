@@ -17,7 +17,6 @@ val pixivDownloaderPatch: BytecodePatch = bytecodePatch(
     extendWith("extensions/pixiv.mpe")
 
     execute {
-        // Hook DetailBottomBarView.setWork to inject the Save button
         val bottomBarClass = mutableClassDefBy("Ljp/pxv/android/feature/component/androidview/DetailBottomBarView;")
         val setWorkMethod = bottomBarClass.methods.first { it.name == "setWork" }
         setWorkMethod.addInstructions(

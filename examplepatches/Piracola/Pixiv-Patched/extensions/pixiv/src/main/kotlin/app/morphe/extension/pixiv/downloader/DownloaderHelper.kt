@@ -123,7 +123,6 @@ object DownloaderHelper {
         val location: String
     )
 
-    /** Token of the most recent bottom bar binding, see [onDetailBottomBarBound]. */
     @Volatile
     private var currentBindingToken: Any? = null
 
@@ -142,10 +141,8 @@ object DownloaderHelper {
             val bindingToken = Any()
             currentBindingToken = bindingToken
 
-            // 1. Clean up any broken button previously injected into this bar
             cleanupBrokenBottomBarButton(view)
 
-            // 2. Inject download button into top toolbar (or fallback to bar right edge)
             view.post {
                 try {
                     injectToolbarDownloadButton(view, work, bindingToken)
@@ -241,7 +238,7 @@ object DownloaderHelper {
                     val radius = dpToPx(context, 6f)
                     val bg = GradientDrawable().apply {
                         shape = GradientDrawable.RECTANGLE
-                        setColor(0xFF0096FA.toInt()) // Pixiv Blue
+                        setColor(0xFF0096FA.toInt())
                         cornerRadius = radius
                     }
                     background = bg
@@ -296,7 +293,6 @@ object DownloaderHelper {
         val toolbarResId = context.resources.getIdentifier("tool_bar", "id", context.packageName)
         if (toolbarResId == 0) return null
 
-        // 1. Walk up view parent hierarchy
         var current: ViewParent? = view.parent
         while (current != null) {
             if (current is ViewGroup) {
@@ -306,11 +302,9 @@ object DownloaderHelper {
             current = current.parent
         }
 
-        // 2. Fallback to rootView
         val rootTb = view.rootView?.findViewById<ViewGroup>(toolbarResId)
         if (rootTb != null) return rootTb
 
-        // 3. Fallback to unwrapped Activity
         val act = getActivity(context)
         return act?.findViewById(toolbarResId)
     }
@@ -366,7 +360,6 @@ object DownloaderHelper {
             setPadding(padH, padTop, padH, 0)
         }
 
-        // Top control bar
         val controlRow = LinearLayout(act).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
@@ -403,7 +396,6 @@ object DownloaderHelper {
         controlRow.addView(countText)
         root.addView(controlRow)
 
-        // Divider
         val divider = View(act).apply {
             setBackgroundColor(0x33888888.toInt())
             layoutParams = LinearLayout.LayoutParams(
@@ -415,7 +407,6 @@ object DownloaderHelper {
         }
         root.addView(divider)
 
-        // Scrollable photo grid
         val displayMetrics = act.resources.displayMetrics
         val maxGridHeight = (displayMetrics.heightPixels * 0.52f).toInt()
         val scrollView = ScrollView(act).apply {
@@ -529,7 +520,6 @@ object DownloaderHelper {
                     isFocusable = true
                 }
 
-                // Thumbnail ImageView
                 val thumbView = ImageView(act).apply {
                     layoutParams = FrameLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
@@ -547,7 +537,6 @@ object DownloaderHelper {
                 cell.addView(thumbView)
                 thumbCells.add(ThumbCell(rowIndex, page.thumbnailUrl, thumbView))
 
-                // Selection Border & Blue Tint Overlay
                 val borderOverlay = View(act).apply {
                     layoutParams = FrameLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
@@ -564,7 +553,6 @@ object DownloaderHelper {
                 }
                 cell.addView(borderOverlay)
 
-                // Checkmark Badge in top-right corner
                 val badgeView = ImageView(act).apply {
                     val bSize = dpToPx(act, 26f).toInt()
                     val bMargin = dpToPx(act, 5f).toInt()
@@ -590,7 +578,6 @@ object DownloaderHelper {
                 rowLayout.addView(cell)
             }
 
-            // Fill remaining columns in incomplete rows with invisible dummy views
             val remaining = numColumns - rowPages.size
             for (i in 0 until remaining) {
                 val dummy = View(act).apply {
@@ -724,7 +711,6 @@ object DownloaderHelper {
         }
     }
 
-    /** Decodes [diskFile] when it is already cached on disk, otherwise fetches and persists it. */
     private fun obtainThumbnail(url: String, diskFile: File, targetPx: Int): Bitmap? {
         if (diskFile.exists() && diskFile.length() > 0) {
             val fromDisk = decodeSampledFile(diskFile, targetPx)
@@ -945,10 +931,6 @@ object DownloaderHelper {
         return cleaned.ifBlank { fallback }
     }
 
-    // ---------------------------------------------------------------------------------------
-    // Model extraction (Pixiv 6.202.1: Le97 / Lra4 / Lya7 / Lva7 / Lii5 / Lud7)
-    // ---------------------------------------------------------------------------------------
-
     /**
      * Lce7 is the shared interface of Le97 (illust) and Lmb7 (novel). The novel type stores an
      * `Lad7` object in field `u` while the illust stores a `List` there, so the field type is a
@@ -1137,10 +1119,6 @@ object DownloaderHelper {
         }
     }
 
-    // ---------------------------------------------------------------------------------------
-    // UI helpers
-    // ---------------------------------------------------------------------------------------
-
     private fun createDownloadIconDrawable(context: Context): Drawable {
         val sizePx = dpToPx(context, 24f).toInt().coerceAtLeast(48)
         val bitmap = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
@@ -1162,10 +1140,8 @@ object DownloaderHelper {
         val wingOffset = sizePx * 0.18f
         val wingH = sizePx * 0.15f
 
-        // Downward arrow stem
         canvas.drawLine(cx, arrowTop, cx, arrowBottom, paint)
 
-        // Arrowhead chevron
         val arrowPath = Path().apply {
             moveTo(cx - wingOffset, arrowBottom - wingH)
             lineTo(cx, arrowBottom)
@@ -1173,7 +1149,6 @@ object DownloaderHelper {
         }
         canvas.drawPath(arrowPath, paint)
 
-        // Bottom tray bracket
         val trayLeft = sizePx * 0.20f
         val trayRight = sizePx * 0.80f
         val trayBottom = sizePx * 0.80f
@@ -1189,10 +1164,6 @@ object DownloaderHelper {
 
         return BitmapDrawable(context.resources, bitmap)
     }
-
-    // ---------------------------------------------------------------------------------------
-    // Storage
-    // ---------------------------------------------------------------------------------------
 
     /**
      * Returns a human readable location on success, null on failure.

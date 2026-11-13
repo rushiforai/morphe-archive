@@ -134,12 +134,15 @@ internal const val THREADS_DEBUG_PACKAGE = "$THREADS_PACKAGE.debug"
  * asks the extension first, which answers yes only for the running copy's own package.
  *
  * The check is the one static method taking a String and answering a boolean that loads both of
- * Threads' package names. Answers its signature, for the log.
+ * Threads' package names. On 455's x86 builds it asks Redex's table of outlined strings for the
+ * debug one, so it's found by either name. Answers its signature, for the log.
  */
 internal fun BytecodePatchContext.countCopyAsThreads(): String {
-    val checks = classDefByStrings(THREADS_DEBUG_PACKAGE, StringComparisonType.EQUALS)
+    val checks = listOf(THREADS_PACKAGE, THREADS_DEBUG_PACKAGE)
+        .flatMap { classDefByStrings(it, StringComparisonType.EQUALS) }
+        .distinctBy { it.type }
         .filterNot { it.type.startsWith(EXTENSION_ROOT) }
-        .flatMap { classDef -> classDef.methods.filter { it.isOwnPackageCheck() } }
+        .flatMap { classDef -> classDef.methods.filter { isOwnPackageCheck(it) } }
     val check = checks.singleOrNull()
         ?: throw PatchException("$CHANGE_PACKAGE_NAME: expected one check of Threads' own package, found ${checks.size}")
     val method = mutableClassDefBy(check.definingClass).findMutableMethodOf(check)
@@ -158,10 +161,11 @@ internal fun BytecodePatchContext.countCopyAsThreads(): String {
     return "${check.definingClass}->${check.name}"
 }
 
-/** A static (String)boolean that loads Threads' release and debug package names. */
-internal fun Method.isOwnPackageCheck(): Boolean {
-    if (!AccessFlags.STATIC.isSet(accessFlags) || returnType != "Z") return false
-    if (parameterTypes.map { it.toString() } != listOf("Ljava/lang/String;")) return false
-    val loaded = implementation?.instructions?.mapNotNull { it.loadedString() }?.toSet() ?: return false
+/** A static (String)boolean that loads Threads' release and debug package names, as literals or from Redex's table. */
+internal fun BytecodePatchContext.isOwnPackageCheck(method: Method): Boolean {
+    if (!AccessFlags.STATIC.isSet(method.accessFlags) || method.returnType != "Z") return false
+    if (method.parameterTypes.map { it.toString() } != listOf("Ljava/lang/String;")) return false
+    val body = method.implementation?.instructions?.toList() ?: return false
+    val loaded = body.indices.mapNotNull { body[it].loadedString() ?: outlinedString(body, it) }.toSet()
     return THREADS_PACKAGE in loaded && THREADS_DEBUG_PACKAGE in loaded
 }

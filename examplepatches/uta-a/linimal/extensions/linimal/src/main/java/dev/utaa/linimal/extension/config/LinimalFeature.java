@@ -36,6 +36,7 @@ public enum LinimalFeature {
 
     SMART_CHANNEL_ADS("linimal.smart-channel-ads"),
     HOME_TOP_AD("linimal.home-top-ad"),
+    SQUARE_ADS("linimal.square-ads"),
     AGENT_I_HOME_HEADER("linimal.agent-i-home-header"),
     AGENT_I_CHAT_INFORMATION("linimal.agent-i-chat-information"),
     AGENT_I_WALLET_HEADER("linimal.agent-i-wallet-header"),

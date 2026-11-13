@@ -6,6 +6,7 @@ package app.hushtelegram.extension.telegram.misc;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -19,9 +20,12 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Environment;
+import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -51,10 +55,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import app.hushtelegram.extension.shared.SettingsContextRule;
+import app.hushtelegram.extension.telegram.settings.Settings;
+
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 30)
 public class CallRecordingsTest {
     @Rule public final TemporaryFolder temp = new TemporaryFolder();
+    @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
 
     private static final byte[] AUDIO = {0, 0, 0, 24, 'f', 't', 'y', 'p', 'M', '4', 'A', ' '};
     private static final String NAME = "Telegram call 2026-10-30 21-15.m4a";
@@ -63,6 +71,10 @@ public class CallRecordingsTest {
 
     @Before public void setUp() {
         recordings = Robolectric.setupContentProvider(Recordings.class, MediaStore.AUTHORITY);
+    }
+
+    @After public void tearDown() {
+        Settings.RECORD_CALLS_FOLDER.resetToDefault();
     }
 
     private static Context context() {
@@ -101,7 +113,10 @@ public class CallRecordingsTest {
     @Test public void android11AndOlderSaveToMusicHiddenUntilTheCopyIsWhole() throws IOException {
         ByteArrayOutputStream body = bodyOf(1);
         assertEquals("Music/Telegram calls", CallRecordings.folder());
-        assertEquals("Music/Telegram calls", CallRecordings.save(context(), finished(), NAME));
+        CallRecordings.Saved saved = CallRecordings.save(context(), finished(), NAME);
+        assertEquals("Music/Telegram calls", saved.folder);
+        assertEquals(recordings.uriFor(1), saved.uri);
+        assertEquals("audio/mp4", saved.mime);
 
         ContentValues row = recordings.row(1);
         assertEquals(NAME, row.getAsString(MediaStore.MediaColumns.DISPLAY_NAME));
@@ -116,7 +131,7 @@ public class CallRecordingsTest {
     @Test public void android12AndNewerSaveToRecordings() throws IOException {
         bodyOf(1);
         assertEquals("Recordings/Telegram calls", CallRecordings.folder());
-        assertEquals("Recordings/Telegram calls", CallRecordings.save(context(), finished(), NAME));
+        assertEquals("Recordings/Telegram calls", CallRecordings.save(context(), finished(), NAME).folder);
         assertEquals("Recordings/Telegram calls/", recordings.row(1).getAsString(MediaStore.MediaColumns.RELATIVE_PATH));
     }
 
@@ -169,7 +184,9 @@ public class CallRecordingsTest {
         Shadows.shadowOf(RuntimeEnvironment.getApplication()).grantPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE);
         @SuppressWarnings("deprecation")
         File music = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC), CallRecordings.FOLDER);
-        assertEquals("Music/Telegram calls", CallRecordings.save(context(), finished(), NAME));
+        CallRecordings.Saved saved = CallRecordings.save(context(), finished(), NAME);
+        assertEquals("Music/Telegram calls", saved.folder);
+        assertNull("a plain file has no address to share", saved.uri);
         CallRecordings.save(context(), finished(), NAME);
         File first = new File(music, NAME);
         File second = new File(music, "Telegram call 2026-10-30 21-15 (2).m4a");
@@ -338,5 +355,147 @@ public class CallRecordingsTest {
         @Override public String getType(Uri uri) {
             return "audio/mp4";
         }
+    }
+
+    private static final String DOCUMENTS = "com.android.externalstorage.documents";
+    private static final Uri PICKED = DocumentsContract.buildTreeDocumentUri(DOCUMENTS, "primary:Recordings/Calls");
+
+    private Folder pick() {
+        Folder folder = Robolectric.setupContentProvider(Folder.class, DOCUMENTS);
+        assertTrue(Settings.RECORD_CALLS_FOLDER.saveCommitted(PICKED.toString()));
+        return folder;
+    }
+
+    private static Uri inPicked(String name) {
+        return DocumentsContract.buildDocumentUriUsingTree(PICKED, "primary:Recordings/Calls/" + name);
+    }
+
+    @Test public void aPickedFolderTakesTheRecordingAndIsNamedByItsPath() throws IOException {
+        Folder folder = pick();
+        ByteArrayOutputStream body = new ByteArrayOutputStream();
+        Shadows.shadowOf(context().getContentResolver()).registerOutputStream(inPicked(NAME), body);
+
+        CallRecordings.Saved saved = CallRecordings.save(context(), finished(), NAME);
+        assertEquals("Recordings/Calls", saved.folder);
+        assertEquals("Recordings/Calls", CallRecordings.shown());
+        assertEquals(inPicked(NAME), saved.uri);
+        assertEquals("audio/mp4", saved.mime);
+        assertEquals(Arrays.asList(NAME + " as audio/mp4 in primary:Recordings/Calls"), folder.made);
+        assertArrayEquals(AUDIO, body.toByteArray());
+        assertTrue("nothing went to MediaStore", recordings.rows.isEmpty());
+    }
+
+    @Test public void aPickedFolderTelegramLostLeavesTheRecordingInTheUsualOne() throws IOException {
+        pick().refuses = true;
+        bodyOf(1);
+        CallRecordings.Saved saved = CallRecordings.save(context(), finished(), NAME);
+        assertEquals("Music/Telegram calls", saved.folder);
+        assertEquals(recordings.uriFor(1), saved.uri);
+    }
+
+    @Test public void aCopyThatFailsInThePickedFolderTakesItsFileWithIt() throws IOException {
+        Folder folder = pick();
+        Shadows.shadowOf(context().getContentResolver()).registerOutputStream(inPicked(NAME), new OutputStream() {
+            @Override public void write(int b) throws IOException {
+                throw new IOException("card pulled");
+            }
+        });
+        bodyOf(1);
+        CallRecordings.Saved saved = CallRecordings.save(context(), finished(), NAME);
+        assertEquals(Arrays.asList("primary:Recordings/Calls/" + NAME), folder.deleted);
+        assertEquals(recordings.uriFor(1), saved.uri);
+    }
+
+    @Test public void cleanupReachesThePickedFolderToo() {
+        recordings.listing = new ArrayList<>();
+        Folder folder = pick();
+        folder.listing.add(new Object[]{"primary:Recordings/Calls/a", "Telegram call 2026-01-01 10-00.m4a", "audio/mp4", BEFORE - 1_000});
+        folder.listing.add(new Object[]{"primary:Recordings/Calls/b", "Telegram call 2026-11-10 10-00.m4a", "audio/mp4", BEFORE});
+        folder.listing.add(new Object[]{"primary:Recordings/Calls/c", "Voice memo.m4a", "audio/mp4", BEFORE - 1_000});
+        folder.listing.add(new Object[]{"primary:Recordings/Calls/d", "Telegram call 2026-01-02 10-00",
+                DocumentsContract.Document.MIME_TYPE_DIR, BEFORE - 1_000});
+        folder.listing.add(new Object[]{"primary:Recordings/Calls/e", "Telegram call 2026-01-03 10-00.ogg", "audio/ogg", null});
+        folder.listing.add(new Object[]{"primary:Recordings/Calls/f", "Telegram call with Alex 2026-01-04 10-00.ogg", "audio/ogg", BEFORE - 1_000});
+
+        assertEquals(2, CallRecordings.clean(context(), BEFORE));
+        assertEquals(Arrays.asList("primary:Recordings/Calls/a", "primary:Recordings/Calls/f"), folder.deleted);
+    }
+
+    @Test public void aPickedFolderIsNamedTheWayThePickerShowsIt() {
+        assertEquals("Music", CallRecordings.label(DocumentsContract.buildTreeDocumentUri(DOCUMENTS, "1234-ABCD:Music")));
+        assertEquals("Internal storage", CallRecordings.label(DocumentsContract.buildTreeDocumentUri(DOCUMENTS, "primary:")));
+        assertEquals("1234-ABCD", CallRecordings.label(DocumentsContract.buildTreeDocumentUri(DOCUMENTS, "1234-ABCD:")));
+        assertTrue(Settings.RECORD_CALLS_FOLDER.saveCommitted(DocumentsContract.buildDocumentUri(DOCUMENTS, "primary:Music").toString()));
+        assertNull("a single document isn't a folder", CallRecordings.chosen());
+        assertEquals(CallRecordings.folder(), CallRecordings.shown());
+    }
+
+    /** A picked folder's documents app, as much of it as saving into the folder and cleaning it touch. */
+    public static final class Folder extends ContentProvider {
+        final List<String> made = new ArrayList<>();
+        final List<String> deleted = new ArrayList<>();
+        final List<Object[]> listing = new ArrayList<>();
+        /** As when the folder was deleted or Telegram's data cleared, taking its permission. */
+        boolean refuses;
+
+        @Override public boolean onCreate() {
+            return true;
+        }
+
+        @SuppressWarnings("deprecation")
+        @Override public Bundle call(String method, String arg, Bundle extras) {
+            if (refuses) throw new SecurityException("no permission for the folder");
+            // DocumentsContract's own names for these, which the SDK keeps hidden.
+            Uri target = extras.getParcelable("uri");
+            String id = DocumentsContract.getDocumentId(target);
+            Bundle out = new Bundle();
+            if ("android:createDocument".equals(method)) {
+                String name = extras.getString(DocumentsContract.Document.COLUMN_DISPLAY_NAME);
+                made.add(name + " as " + extras.getString(DocumentsContract.Document.COLUMN_MIME_TYPE) + " in " + id);
+                out.putParcelable("uri", DocumentsContract.buildDocumentUriUsingTree(target, id + "/" + name));
+            } else if ("android:deleteDocument".equals(method)) {
+                deleted.add(id);
+            } else {
+                throw new AssertionError("unexpected " + method);
+            }
+            return out;
+        }
+
+        @Override public Cursor query(Uri uri, String[] projection, String selection,
+                String[] selectionArgs, String sortOrder) {
+            if (refuses) throw new SecurityException("no permission for the folder");
+            assertEquals(DocumentsContract.buildChildDocumentsUriUsingTree(PICKED, "primary:Recordings/Calls"), uri);
+            MatrixCursor cursor = new MatrixCursor(projection);
+            for (Object[] row : listing) cursor.addRow(row);
+            return cursor;
+        }
+
+        @Override public Uri insert(Uri uri, ContentValues values) {
+            throw new AssertionError("a folder's documents are made through createDocument");
+        }
+
+        @Override public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+            throw new AssertionError("nothing in a picked folder is updated");
+        }
+
+        @Override public int delete(Uri uri, String selection, String[] selectionArgs) {
+            throw new AssertionError("a folder's documents go through deleteDocument");
+        }
+
+        @Override public String getType(Uri uri) {
+            return "audio/mp4";
+        }
+    }
+
+    @Test public void anOpusRecordingIsAnOggInMediaStore() throws IOException {
+        bodyOf(1);
+        long began = new GregorianCalendar(2026, Calendar.OCTOBER, 30, 21, 15).getTimeInMillis();
+        String name = CallRecordings.name(began, "Alex Kim", CallRecordings.Format.OPUS);
+        assertEquals("Telegram call with Alex Kim 2026-10-30 21-15.ogg", name);
+        CallRecordings.Saved saved = CallRecordings.save(context(), finished(), name);
+        assertEquals("audio/ogg", saved.mime);
+        assertEquals("audio/ogg", recordings.row(1).getAsString(MediaStore.MediaColumns.MIME_TYPE));
+        assertEquals(CallRecordings.Format.AAC, CallRecordings.Format.of(NAME));
+        assertEquals(CallRecordings.Format.OPUS, CallRecordings.Format.of(name));
     }
 }

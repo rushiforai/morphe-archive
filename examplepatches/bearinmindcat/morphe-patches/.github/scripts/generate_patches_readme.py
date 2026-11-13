@@ -138,6 +138,10 @@ APP_RENAMES = {
         '<img src="docs/icons/samsung-photo-editor.png" width="20" height="20" align="top"> Samsung Photo Editor',
         '<img src="docs/icons/samsung-photo-editor.png" width="20" height="20" align="top"> Samsung Photo Editor',
     ),
+    "com.samsung.app.newtrim": (
+        '<img src="docs/icons/samsung-editor-lite.png" width="20" height="20" align="top"> Samsung Editor Lite',
+        '<img src="docs/icons/samsung-editor-lite.png" width="20" height="20" align="top"> Samsung Editor Lite',
+    ),
     "com.samsung.android.calendar": (
         '<img src="docs/icons/samsung-calendar.png" width="20" height="20" align="top"> Samsung Calendar',
         '<img src="docs/icons/samsung-calendar.png" width="20" height="20" align="top"> Samsung Calendar',
@@ -181,6 +185,10 @@ APP_RENAMES = {
     "com.sec.app.screenrecorder": (
         '<img src="docs/icons/samsung-screen-recorder.png" width="20" height="20" align="top"> Samsung Screen Recorder',
         '<img src="docs/icons/samsung-screen-recorder.png" width="20" height="20" align="top"> Samsung Screen Recorder',
+    ),
+    "com.samsung.android.app.galaxyfinder": (
+        '<img src="docs/icons/samsung-finder.png" width="20" height="20" align="top"> Samsung Finder',
+        '<img src="docs/icons/samsung-finder.png" width="20" height="20" align="top"> Samsung Finder',
     ),
     "com.samsung.android.app.smartcapture": (
         '<img src="docs/icons/samsung-capture.png" width="20" height="20" align="top"> Samsung Capture',

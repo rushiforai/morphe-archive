@@ -18,22 +18,21 @@ val pixivNovelCopyPatch: BytecodePatch = bytecodePatch(
     extendWith("extensions/pixiv.mpe")
 
     execute {
-        // --- Reader: selectable toolbar title, extra menu items, menu click handler ---
         val readerClass = mutableClassDefBy("Ljp/pxv/android/feature/novelviewer/noveltext/NovelTextActivity;")
 
-        // onCreate has 35 registers, so p0 lives above the 4-bit range of a plain invoke.
+        // p0 sits above the 4-bit range of a plain invoke here, so the call has to be /range.
         readerClass.methods.first { it.name == "onCreate" && it.parameterTypes.size == 1 }
             .addInstructions(0, "invoke-static/range {p0 .. p0}, $HELPER->onScreenCreated(Landroid/app/Activity;)V")
 
         readerClass.methods.first { it.name == "onCreateOptionsMenu" && it.returnType == "Z" }
             .addInstructions(0, "invoke-static {p1}, $HELPER->onCreateOptionsMenu(Landroid/view/Menu;)V")
 
-        // u(activity, item) is the body behind the toolbar's OnMenuItemClickListener. Unknown ids
-        // fall through to super and return false, so handling the click first is enough.
+        // u(activity, item) is the body behind the toolbar's OnMenuItemClickListener; super only
+        // runs when the reader's view model is missing, so handling the click first is enough.
         readerClass.methods.first { it.name == "u" && it.parameterTypes.size == 2 && it.returnType == "Z" }
             .addInstructions(0, "invoke-static {p0, p1}, $HELPER->onMenuItemClicked(Landroid/app/Activity;Landroid/view/MenuItem;)V")
 
-        // --- Novels and illustrations share this caption view. b(String) installs
+        // Novels and illustrations share this caption view. b(String) installs
         // LinkMovementMethod and only then sets the text, silently dropping the
         // textIsSelectable="true" the layout declares. The hook has to run after that call,
         // so it goes right before the method returns.
@@ -49,13 +48,11 @@ val pixivNovelCopyPatch: BytecodePatch = bytecodePatch(
             )
         }
 
-        // --- Novel body: a WebView running pixiv's own page, the only place selection is a web concern ---
         // Pixiv's in-app web views share one compiled client whose name changes with every release,
         // so the fingerprint picks the page-finished handler that knows the novel reader screen.
         novelReaderPageFinishedFingerprint.method
             .addInstructions(0, "invoke-static {p1}, $HELPER->onPageFinished(Landroid/webkit/WebView;)V")
 
-        // --- Series detail: its own 22 registers also need the wider invoke ---
         mutableClassDefBy("Ljp/pxv/android/feature/novelseriesdetail/NovelSeriesDetailActivity;")
             .methods.first { it.name == "onCreate" && it.parameterTypes.size == 1 }
             .addInstructions(0, "invoke-static/range {p0 .. p0}, $HELPER->onScreenCreated(Landroid/app/Activity;)V")

@@ -519,16 +519,18 @@ internal fun BytecodePatchContext.suggestedTargets(): SuggestedTargets {
 /**
  * Server cards, plus the row Threads builds after a follow, told apart by its [CHAINING_PREFIX] id.
  * Raw type checks refuse the vendor's generic SUGGESTED_USERS fallback. The same
- * switch keeps the Suggested for you accounts off profiles, see [profileSuggestionTargets], and a
+ * switch keeps the Suggested for you accounts off profiles, see [profileSuggestionTargets], a
  * second switch of its own takes Search's Follow suggestions carousel away, see
- * [searchSuggestionTargets].
+ * [searchSuggestionTargets], and a third keeps the suggested threads off an opened post, see
+ * [relatedThreadsRead].
  */
 @Suppress("unused")
 val hideSuggestedUsersPatch = bytecodePatch(
     name = PATCH,
-    description = "Removes the cards that suggest accounts to follow, in your feed and on profiles, and the Follow " +
-        "suggestions row in Search. Normal posts and reposts stay, and so does the rest of a profile or Search. " +
-        "Good if you only want posts in your feed. On by default. Its two switches are in HushThreads settings > Feed.",
+    description = "Removes the cards that suggest accounts to follow, in your feed and on profiles, the Follow " +
+        "suggestions row in Search and the suggested threads under a post you open. Normal posts and reposts stay, " +
+        "and so do a post's replies and the rest of a profile or Search. Good if you only want posts in your feed. " +
+        "On by default. Its three switches are in HushThreads settings > Feed.",
     default = true,
 ) {
     category("Feed")
@@ -542,6 +544,7 @@ val hideSuggestedUsersPatch = bytecodePatch(
         // Found before anything changes, so a profile or Search that no longer matches refuses the whole patch cleanly.
         val profile = profileSuggestionTargets()
         val search = searchSuggestionTargets()
+        val related = relatedThreadsRead()
         val owner = targets.media.definingClass
         val media = targets.media
         val kind = targets.kind
@@ -608,6 +611,7 @@ val hideSuggestedUsersPatch = bytecodePatch(
         """)
         hookProfileSuggestions(profile)
         hookSearchSuggestions(search)
+        hookRelatedThreads(related)
         enableStatus("hideSuggestedUsers")
     }
 }

@@ -146,6 +146,9 @@ public final class FeatureCatalog {
             new Entry(LinimalFeature.HOME_TOP_AD, SettingsPage.ADS,
                     "ホーム内の広告を表示しない",
                     "ホーム画面内にある Performance Ad とフィード広告を表示しません。"),
+            new Entry(LinimalFeature.SQUARE_ADS, SettingsPage.ADS,
+                    "オープンチャットの広告を表示しない",
+                    "オープンチャットのトーク、スレッド、ノートにある広告を表示しません。"),
 
             new Entry(LinimalFeature.AGENT_I_HOME_HEADER, SettingsPage.AGENT_I,
                     SettingsSection.AGENT_I_SCREEN_HEADERS,

@@ -18,7 +18,7 @@ body:
     attributes:
       label: HushThreads and Threads versions
       description: Long-press the Threads icon and tap HushThreads, or open Threads' App info page and tap Additional settings in the app. Copy the version line under the HushThreads title. If the screen opens on category pages, open About and copy the Version line.
-      placeholder: Version 0.0.17 for Threads 454.0.0.54.79
+      placeholder: Version 0.0.17 for Threads 455.0.0.55.72
     validations:
       required: true
   - type: input
@@ -94,6 +94,7 @@ body:
         - Remove the advertising ID
         - Restore screens on re-signed builds
         - Sanitize sharing links
+        - Spoof SIM region
         - Save photos and videos
         - Show exact post times
         - Trust user-added certificates

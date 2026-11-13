@@ -15,7 +15,7 @@ final class L10nTranslationsRu {
     }
 
     static Map<String, String> build() {
-        Map<String, String> table = new HashMap<>(3988);
+        Map<String, String> table = new HashMap<>(3992);
         fill0(table);
         fill1(table);
         fill2(table);
@@ -610,6 +610,8 @@ final class L10nTranslationsRu {
                 "Также подменяет сохранённый регион и код страны, которые PineDrama отправляет с каждым запросом. При входе по-прежнему отправляется ваш настоящий регион. IP-адрес и собственные правила вашего аккаунта продолжают действовать.");
         table.put("Also turns on PineDrama's own Auto scroll for videos opened from search. Restart PineDrama to apply this.",
                 "Также включает собственную автопрокрутку PineDrama для видео, открытых из поиска. Перезапустите PineDrama, чтобы применить.");
+        table.put("Always open on Home",
+                "Всегда открывать на Главной");
         table.put("Always play the video's own audio, never an AI dub.",
                 "Всегда воспроизводит собственный звук видео, а не озвучку ИИ.");
         table.put("Always show publish date",
@@ -664,11 +666,11 @@ final class L10nTranslationsRu {
                 "Применяется к загрузке и видео, и фото.");
         table.put("Apply",
                 "Применить");
-        table.put("Apply enables these overrides. Undo last Lab change puts your previous rules back until you change anything else in the Lab.",
-                "«Применить» включает эти переопределения. «Отменить последнее изменение Lab» вернёт ваши прежние правила, пока вы не измените что-то ещё в Lab.");
     }
 
     private static void fill5(Map<String, String> table) {
+        table.put("Apply enables these overrides. Undo last Lab change puts your previous rules back until you change anything else in the Lab.",
+                "«Применить» включает эти переопределения. «Отменить последнее изменение Lab» вернёт ваши прежние правила, пока вы не измените что-то ещё в Lab.");
         table.put("Apply overrides",
                 "Применять переопределения");
         table.put("Apply saves these overrides. Turn on overrides in the Lab to use them. Turning them on is a Lab change too, so after that Undo turns them off rather than putting your previous rules back.",
@@ -787,11 +789,11 @@ final class L10nTranslationsRu {
                 "Камера и микрофон используются");
         table.put("Camera in use",
                 "Камера используется");
-        table.put("Can't check yet: %1$s",
-                "Пока нельзя проверить: %1$s");
     }
 
     private static void fill6(Map<String, String> table) {
+        table.put("Can't check yet: %1$s",
+                "Пока нельзя проверить: %1$s");
         table.put("Can't retry those photos. Save the post again.",
                 "Эти фото нельзя повторить. Сохраните публикацию снова.");
         table.put("Can't send a password to proxy %1$s. Use another.",
@@ -910,11 +912,11 @@ final class L10nTranslationsRu {
                 "Продолжать поддерживаемые видео с того места, где вы остановились, когда вы пролистываете назад к ним.");
         table.put("Controls",
                 "Элементы управления");
-        table.put("Copy a quick report or save the full report as a file.",
-                "Скопируйте краткий отчёт или сохраните полный отчёт в файл.");
     }
 
     private static void fill7(Map<String, String> table) {
+        table.put("Copy a quick report or save the full report as a file.",
+                "Скопируйте краткий отчёт или сохраните полный отчёт в файл.");
         table.put("Copy build details",
                 "Копировать сведения о сборке");
         table.put("Copy comments without username",
@@ -1033,11 +1035,11 @@ final class L10nTranslationsRu {
                 "Не удалось отменить последнее изменение. Попробуйте снова.");
         table.put("Couldn't write the details file. Save the post again.",
                 "Файл данных не записан. Сохраните публикацию снова.");
-        table.put("Country and network preferences",
-                "Настройки страны и сети");
     }
 
     private static void fill8(Map<String, String> table) {
+        table.put("Country and network preferences",
+                "Настройки страны и сети");
         table.put("Country code",
                 "Код страны");
         table.put("Country filters",
@@ -1156,11 +1158,11 @@ final class L10nTranslationsRu {
                 "Драма и сериалы");
         table.put("Dramas",
                 "Дорамы");
-        table.put("Draw a larger handle and a slightly thicker line on the progress bar, so it's easier to see where you are.",
-                "Рисовать ползунок крупнее, а полосу прогресса чуть толще, чтобы было легче видеть, где вы сейчас.");
     }
 
     private static void fill9(Map<String, String> table) {
+        table.put("Draw a larger handle and a slightly thicker line on the progress bar, so it's easier to see where you are.",
+                "Рисовать ползунок крупнее, а полосу прогресса чуть толще, чтобы было легче видеть, где вы сейчас.");
         table.put("Dub priority",
                 "Приоритет озвучки");
         table.put("Dubs",
@@ -1279,11 +1281,11 @@ final class L10nTranslationsRu {
                 "Изменения полей не сохранены");
         table.put("Files",
                 "Файлы");
-        table.put("Fill the screen with the video",
-                "Заполнять экран видео");
     }
 
     private static void fill10(Map<String, String> table) {
+        table.put("Fill the screen with the video",
+                "Заполнять экран видео");
         table.put("Filter PineDrama's offline videos",
                 "Фильтровать офлайн-видео PineDrama");
         table.put("Filter bottom tabs",
@@ -1402,11 +1404,11 @@ final class L10nTranslationsRu {
                 "Полный отчёт сохранён в %1$s");
         table.put("Full-width progress bar",
                 "Полоса прогресса во всю ширину");
-        table.put("GIF",
-                "GIF");
     }
 
     private static void fill11(Map<String, String> table) {
+        table.put("GIF",
+                "GIF");
         table.put("Galaxy Store",
                 "Galaxy Store");
         table.put("Gate data unavailable",
@@ -1525,11 +1527,11 @@ final class L10nTranslationsRu {
                 "Скрывать фотопубликации");
         table.put("Hide photo posts from the feed.",
                 "Скрывать фотопубликации из ленты.");
-        table.put("Hide playlist videos",
-                "Скрывать видео из плейлистов");
     }
 
     private static void fill12(Map<String, String> table) {
+        table.put("Hide playlist videos",
+                "Скрывать видео из плейлистов");
         table.put("Hide posts only a creator's subscribers can watch, the ones with a lock, on the feed and on profiles.",
                 "Скрывать публикации с замком, которые могут смотреть только платные подписчики автора, в ленте и в профилях.");
         table.put("Hide profile shortcuts",
@@ -1648,11 +1650,11 @@ final class L10nTranslationsRu {
                 "Скрывать этого автора на этом телефоне");
         table.put("Hide unpersonalized feed videos",
                 "Скрывать неперсонализированные видео в ленте");
-        table.put("Hide unverified content notices",
-                "Скрывать пометки о непроверенном контенте");
     }
 
     private static void fill13(Map<String, String> table) {
+        table.put("Hide unverified content notices",
+                "Скрывать пометки о непроверенном контенте");
         table.put("Hide verified accounts",
                 "Скрывать верифицированные аккаунты");
         table.put("Hide verified creators' LIVEs",
@@ -1771,11 +1773,11 @@ final class L10nTranslationsRu {
                 "Оставлять Рекомендации при свайпе вниз");
         table.put("Keep a paused video paused",
                 "Оставлять видео на паузе");
-        table.put("Keep a streak going",
-                "Поддерживать серию");
     }
 
     private static void fill14(Map<String, String> table) {
+        table.put("Keep a streak going",
+                "Поддерживать серию");
         table.put("Keep going",
                 "Продолжить");
         table.put("Keep long press from quick sharing",
@@ -1894,11 +1896,11 @@ final class L10nTranslationsRu {
                 "Длительность и просмотры на лайк");
         table.put("Less than a minute left",
                 "Осталось меньше минуты");
-        table.put("Let screenshots, screen recording and Circle to Search work on PineDrama again. Restart PineDrama to apply this.",
-                "Снова разрешить скриншоты, запись экрана и Circle to Search в PineDrama. Перезапустите PineDrama, чтобы это применить.");
     }
 
     private static void fill15(Map<String, String> table) {
+        table.put("Let screenshots, screen recording and Circle to Search work on PineDrama again. Restart PineDrama to apply this.",
+                "Снова разрешить скриншоты, запись экрана и Circle to Search в PineDrama. Перезапустите PineDrama, чтобы это применить.");
         table.put("Let the Offline videos menu use your own limit instead of PineDrama's fixed one. Restart PineDrama to apply this.",
                 "Разрешить меню «Офлайн-видео» использовать ваш собственный лимит вместо фиксированного лимита PineDrama. Перезапустите PineDrama, чтобы это применить.");
         table.put("Let the last video finish",
@@ -2017,11 +2019,11 @@ final class L10nTranslationsRu {
                 "Цвета пузырей сообщений, архив Входящих и отправка в большее число чатов");
         table.put("Messages, profiles and search still work.",
                 "Сообщения, профили и поиск по-прежнему работают.");
-        table.put("Microphone in use",
-                "Микрофон используется");
     }
 
     private static void fill16(Map<String, String> table) {
+        table.put("Microphone in use",
+                "Микрофон используется");
         table.put("Mini dramas",
                 "Мини-драмы");
         table.put("Minimum",
@@ -2140,11 +2142,11 @@ final class L10nTranslationsRu {
                 "Пока нет записи. Начните её, воспользуйтесь функцией, затем вернитесь сюда.");
         table.put("No reviewed presets for PineDrama %1$s yet",
                 "Для PineDrama %1$s пока нет проверенных предустановок");
-        table.put("No rule matches this text.",
-                "Ни одно правило не подходит к этому тексту.");
     }
 
     private static void fill17(Map<String, String> table) {
+        table.put("No rule matches this text.",
+                "Ни одно правило не подходит к этому тексту.");
         table.put("No rules yet, so nothing would match.",
                 "Правил пока нет, поэтому ничего не совпадёт.");
         table.put("No seen videos recorded yet.",
@@ -2263,11 +2265,11 @@ final class L10nTranslationsRu {
                 "Только из этих стран");
         table.put("Only tabs PineDrama has loaded on this device are shown here. This doesn't force unavailable tabs to appear.",
                 "Здесь показаны только вкладки, которые PineDrama загрузил на этом устройстве. Это не заставляет появляться недоступные вкладки.");
-        table.put("Only the first %1$s characters of the sample were checked.",
-                "Проверены только первые %1$s символов примера.");
     }
 
     private static void fill18(Map<String, String> table) {
+        table.put("Only the first %1$s characters of the sample were checked.",
+                "Проверены только первые %1$s символов примера.");
         table.put("Only these caption languages",
                 "Только эти языки субтитров");
         table.put("Open",
@@ -2386,11 +2388,11 @@ final class L10nTranslationsRu {
                 "Выберите файл .ttf или .otf размером до %1$s МБ.");
         table.put("Pick a folder on internal storage, not an SD card",
                 "Выберите папку во внутренней памяти, не на SD-карте");
-        table.put("Pick all",
-                "Выбрать все");
     }
 
     private static void fill19(Map<String, String> table) {
+        table.put("Pick all",
+                "Выбрать все");
         table.put("Pick for saving",
                 "Выбрать для сохранения");
         table.put("Pick the shortcuts to remove from under a profile's bio, if PineDrama shows any there. Restart PineDrama to apply this.",
@@ -2439,6 +2441,8 @@ final class L10nTranslationsRu {
                 "PineDrama видит пустой список приложений вместо приложений на вашем телефоне. Проверки одного конкретного приложения, например когда PineDrama открывает приложение, на которое вы нажали, продолжают работать.");
         table.put("PineDrama slips the videos it saved for offline viewing back into the feed when it can't load enough new ones. This takes them all out. Your offline list stays as it is.",
                 "Когда PineDrama не может загрузить достаточно новых видео, он подмешивает в ленту видео, сохранённые для офлайн-просмотра. Эта настройка убирает их все. Ваш офлайн-список остаётся как есть.");
+        table.put("PineDrama sometimes starts on Discover, like in the first days after an install. This starts it on Home instead.",
+                "Иногда PineDrama открывается на вкладке Обзор, например в первые дни после установки. С этим он открывается на Главной.");
         table.put("PineDrama sometimes tests a change that empties the Favorites tab on your profile. This keeps the tab and your saved videos.",
                 "Иногда PineDrama проверяет изменение, из-за которого вкладка «Избранное» в вашем профиле пустеет. Эта настройка сохраняет вкладку и ваши сохранённые видео.");
         table.put("PineDrama sometimes tests your phone's speed in a background process that can use a lot of memory. This stops that test from starting. One already running ends when PineDrama restarts.",
@@ -2507,13 +2511,13 @@ final class L10nTranslationsRu {
                 "Предустановка не подходит. Ничего не изменено.");
         table.put("Preset saved. Turn on overrides to use it.",
                 "Предустановка сохранена. Включите переопределения.");
+    }
+
+    private static void fill20(Map<String, String> table) {
         table.put("Press and hold a profile picture to save the full size original to your photo destination.",
                 "Нажмите и удерживайте фото профиля, чтобы сохранить оригинал в полном размере в папку для фото.");
         table.put("Preview shortened. Save report keeps the full report.",
                 "Превью сокращено. «Сохранить отчёт» сохраняет отчёт полностью.");
-    }
-
-    private static void fill20(Map<String, String> table) {
         table.put("Preview with a made-up post:",
                 "Предпросмотр на выдуманной публикации:");
         table.put("Privacy",
@@ -2630,13 +2634,13 @@ final class L10nTranslationsRu {
                 "Удалить");
         table.put("Remove %1$s",
                 "Удалить %1$s");
+    }
+
+    private static void fill21(Map<String, String> table) {
         table.put("Remove all overrides",
                 "Удалить все переопределения");
         table.put("Remove feed ads",
                 "Убирать рекламу из ленты");
-    }
-
-    private static void fill21(Map<String, String> table) {
         table.put("Remove feed ads, creator commission posts, paid partnerships, and branded content.",
                 "Убирать рекламу из ленты, публикации с комиссией автора, платные партнёрства и брендированный контент.");
         table.put("Remove the imported font",
@@ -2753,13 +2757,13 @@ final class L10nTranslationsRu {
                 "SOCKS5");
         table.put("STEM",
                 "STEM");
+    }
+
+    private static void fill22(Map<String, String> table) {
         table.put("Same as profile grids",
                 "Как в сетках профиля");
         table.put("Sample caption to test",
                 "Пример подписи для проверки");
-    }
-
-    private static void fill22(Map<String, String> table) {
         table.put("Sample category to test",
                 "Пример категории для проверки");
         table.put("Save",
@@ -2876,13 +2880,13 @@ final class L10nTranslationsRu {
                 "Сохранено в %1$s с субтитрами: %2$s из %3$s");
         table.put("Saved one original photo",
                 "Сохранено одно оригинальное фото");
+    }
+
+    private static void fill23(Map<String, String> table) {
         table.put("Saved one video",
                 "Сохранено одно видео");
         table.put("Saved photos, covers and stickers that don't move are the exact files PineDrama sent, not a new JPEG or PNG. Some galleries and computers can't open HEIF or WebP.",
                 "Сохранённые фото, обложки и неподвижные стикеры остаются ровно теми файлами, которые прислал PineDrama, а не новыми JPEG или PNG. Некоторые галереи и компьютеры не открывают HEIF или WebP.");
-    }
-
-    private static void fill23(Map<String, String> table) {
         table.put("Saved the photos as a video in %1$s",
                 "Фото сохранены как видео в %1$s");
         table.put("Saved to %1$s, but without sound",
@@ -2999,13 +3003,13 @@ final class L10nTranslationsRu {
                 "Просмотрено в этом сеансе");
         table.put("Seen videos",
                 "Просмотренные видео");
+    }
+
+    private static void fill24(Map<String, String> table) {
         table.put("Seen videos cleared. You can undo until PineDrama closes.",
                 "Просмотренные видео очищены. Вы можете отменить это, пока PineDrama не закрыт.");
         table.put("Seen videos put back",
                 "Просмотренные видео возвращены");
-    }
-
-    private static void fill24(Map<String, String> table) {
         table.put("Seen videos put back: %1$s of %2$s",
                 "Восстановлено просмотренных видео: %1$s из %2$s");
         table.put("Select",
@@ -3122,13 +3126,13 @@ final class L10nTranslationsRu {
                 "Показывать, сколько отфильтровано");
         table.put("Show last report",
                 "Показать последний отчёт");
+    }
+
+    private static void fill25(Map<String, String> table) {
         table.put("Show only LIVEs from creators with this many followers.",
                 "Показывать только трансляции авторов с таким количеством подписчиков.");
         table.put("Show only LIVEs with this many people watching.",
                 "Показывать только трансляции с таким количеством зрителей.");
-    }
-
-    private static void fill25(Map<String, String> table) {
         table.put("Show only videos with this many comments.",
                 "Показывать только видео с таким количеством комментариев.");
         table.put("Show only videos with this many favorites.",
@@ -3245,13 +3249,13 @@ final class L10nTranslationsRu {
                 "ID звуков, которые нужно скрыть, через запятую. Удалите один, чтобы разблокировать его.");
         table.put("Sound format",
                 "Формат звука");
+    }
+
+    private static void fill26(Map<String, String> table) {
         table.put("Sound link copied",
                 "Ссылка на звук скопирована");
         table.put("Sound on",
                 "Звук включён");
-    }
-
-    private static void fill26(Map<String, String> table) {
         table.put("Sound position",
                 "Позиция в звуке");
         table.put("Sound saved to %1$s",
@@ -3368,13 +3372,13 @@ final class L10nTranslationsRu {
                 "Ожидание приложения для файлов остановлено. Оно ещё не сообщило, сохранён ли экспорт.");
         table.put("Stopped waiting for the file app. Nothing was changed.",
                 "Ожидание приложения для файлов остановлено. Ничего не изменено.");
+    }
+
+    private static void fill27(Map<String, String> table) {
         table.put("Stopped waiting for the file app. Nothing was exported.",
                 "Ожидание приложения для файлов остановлено. Ничего не экспортировано.");
         table.put("Stopped waiting for the file app. Nothing was imported.",
                 "Ожидание приложения для файлов остановлено. Ничего не импортировано.");
-    }
-
-    private static void fill27(Map<String, String> table) {
         table.put("Stopping after this file",
                 "Остановка после этого файла");
         table.put("Stops PineDrama from reading your phone's motion and compass sensors. Apps can use them to recognize your phone.",
@@ -3491,13 +3495,13 @@ final class L10nTranslationsRu {
                 "Это %1$d минута сегодня");
         table.put("That is %1$d videos today",
                 "Это %1$d видео сегодня");
+    }
+
+    private static void fill28(Map<String, String> table) {
         table.put("That is %1$d videos today|few",
                 "Это %1$d видео сегодня");
         table.put("That is %1$d videos today|many",
                 "Это %1$d видео сегодня");
-    }
-
-    private static void fill28(Map<String, String> table) {
         table.put("That is %1$d videos today|one",
                 "Это %1$d видео сегодня");
         table.put("That is one minute today",
@@ -3614,13 +3618,13 @@ final class L10nTranslationsRu {
                 "Последнее всё ещё ждёт Wi-Fi");
         table.put("The last one is still waiting to start",
                 "Последнее всё ещё ожидает начала");
+    }
+
+    private static void fill29(Map<String, String> table) {
         table.put("The last report is still being saved",
                 "Последний отчёт всё ещё сохраняется");
         table.put("The message didn't go through. It tries again at %1$s.",
                 "Сообщение не было отправлено. Попытка повторится в %1$s.");
-    }
-
-    private static void fill29(Map<String, String> table) {
         table.put("The network proxy from that file is off. Check its address before you turn it on",
                 "Сетевой прокси из этого файла выключен. Проверьте его адрес, прежде чем включать");
         table.put("The override changes no fields. Edit the field values, or reset the override.",
@@ -3737,13 +3741,13 @@ final class L10nTranslationsRu {
                 "Эта история недоступна для сохранения");
         table.put("This value is required",
                 "Это значение обязательно");
+    }
+
+    private static void fill30(Map<String, String> table) {
         table.put("This video has no cover to save",
                 "У этого видео нет обложки для сохранения");
         table.put("This video has no link to copy",
                 "У этого видео нет ссылки для копирования");
-    }
-
-    private static void fill30(Map<String, String> table) {
         table.put("This video has no original sound to save",
                 "У видео нет оригинального звука для сохранения");
         table.put("This video has no sound of its own",
@@ -3860,13 +3864,13 @@ final class L10nTranslationsRu {
                 "Отключает службу уведомлений PineDrama: ничего из того, что она отправляет, не попадёт в шторку уведомлений, и она не сможет будить телефон. О новых сообщениях вы узнаете, только открыв PineDrama. Уведомления, скрытые при включённой настройке, не возвращаются. Постоянные, например управление медиа, остаются.");
         table.put("Turns off at %1$s",
                 "Выключится в %1$s");
+    }
+
+    private static void fill31(Map<String, String> table) {
         table.put("Two at once",
                 "Два одновременно");
         table.put("Two letters, like us, gb or jp.",
                 "Две буквы, например us, gb или jp.");
-    }
-
-    private static void fill31(Map<String, String> table) {
         table.put("Type",
                 "Тип");
         table.put("Type a website name to use instead of tiktok.com in links you share or copy, like vxtiktok.com. Leave empty to share PineDrama's own links. Only PineDrama links change, and only the website name.",
@@ -3983,13 +3987,13 @@ final class L10nTranslationsRu {
                 "Видео с %1$s субтитрами сохранено в %2$s");
         table.put("Videos can't be saved to the folder in that file, so your video folder was kept",
                 "Видео нельзя сохранить в папку из этого файла, поэтому ваша папка для видео осталась прежней");
+    }
+
+    private static void fill32(Map<String, String> table) {
         table.put("Videos in search results show their cover and play when you open them. The feed and the videos you open play as usual.",
                 "Видео в результатах поиска показывают обложку и запускаются, когда вы их открываете. Лента и открытые вами видео воспроизводятся как обычно.");
         table.put("Views range",
                 "Диапазон просмотров");
-    }
-
-    private static void fill32(Map<String, String> table) {
         table.put("Visual search",
                 "Визуальный поиск");
         table.put("Wait a day to loosen the budget",
@@ -4106,13 +4110,13 @@ final class L10nTranslationsRu {
                 "Числовой код вашего оператора, например 310260.");
         table.put("Your seen history changed before the import finished. Choose the file again.",
                 "История просмотров изменилась до завершения импорта. Выберите файл заново.");
+    }
+
+    private static void fill33(Map<String, String> table) {
         table.put("Your settings",
                 "Твои настройки");
         table.put("Zero means no limit. Counts the videos HushPine advanced past for you, not the ones you swiped yourself, and starts again when the feed is rebuilt or you change this number.",
                 "Ноль означает отсутствие лимита. Считает видео, которые HushPine пролистал за вас, а не те, что вы пролистали сами, и начинает заново, когда лента перестраивается или вы меняете это число.");
-    }
-
-    private static void fill33(Map<String, String> table) {
         table.put("Zero means the way out of the hold is always there. Any other number is how many times a day it works. Once they're used up, the hold stays until the day starts over. Ignored while the budget is locked, which removes the way out.",
                 "Ноль означает, что выход из блокировки всегда доступен. Любое другое число показывает, сколько раз в день он работает. Когда они закончатся, блокировка остаётся до начала нового дня. Игнорируется, пока лимит заблокирован, так как при этом выхода нет.");
         table.put("Zero shows the notice and leaves the feed alone. Anything else covers the feed for that many minutes once a budget is reached. Messages, profiles and search keep working, and nothing in the feed is thrown away.",

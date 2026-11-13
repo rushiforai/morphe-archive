@@ -16,14 +16,14 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.patches.threads.feed.reaching
 import app.morphe.patches.threads.misc.extension.enableStatus
-import app.morphe.patches.threads.misc.extension.parameterRegister
-import app.morphe.patches.threads.misc.extension.requireLocals
 import app.morphe.patches.threads.misc.extension.requireStatusMethod
 import app.morphe.patches.threads.misc.extension.threadsExtensionPatch
 import app.morphe.patches.threads.misc.extension.writeStub
 import app.morphe.patches.threads.misc.settings.settingsPatch
 import app.morphe.util.ControlFlow
+import app.morphe.util.RegisterLiveness
 import app.morphe.util.getReference
 import app.morphe.util.singleOrPatchException
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -31,9 +31,11 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 private const val PATCH = "Hide ads"
 
@@ -73,8 +75,8 @@ internal const val FEED_ITEM_TYPE = "feedItemType"
  * cache. [permalinkAdsPatch] hands that list to the extension too.
  *
  * Threads can also put an ad into a For You page it already holds, one item at a position, which
- * passes neither cache's merge. Both For You handlers' inserts ask the extension first, and an ad
- * gets the feed cache's own "no page" answer instead of going in (454, 2026-11-05).
+ * passes no merge. The insert asks the extension first, and an ad goes the way the insert goes
+ * when the cache holds no page, instead of going in (454, 2026-11-05; 455 inlined the insert).
  */
 @Suppress("unused")
 val hideAdsPatch = bytecodePatch(
@@ -145,83 +147,82 @@ val hideAdsPatch = bytecodePatch(
     }
 }
 
-/** The insert's result code, and the code it answers in place of a [FeedAds] ad. */
-private const val INSERT_RESULT = "Ljava/lang/Integer;"
+/** The insert's result code. */
+internal const val INSERT_RESULT = "Ljava/lang/Integer;"
 
 /**
- * For You's insert of one feed item at a position in a page the cache already holds: the one
- * method of [FOR_YOU_LOCAL_SOURCE] taking an object and an int and answering an Integer code.
- * Threads places an ad through it apart from any page fetch, so the ad never meets the merges'
- * filter. Both handlers' inserts ask [FeedAds] first and, for an ad, answer the feed cache
- * handler's own code for having no page to put it in, which tells the caller nothing went in.
- * Threads logs every code but success as an insert that didn't happen and moves on (it retries
- * only one other code), so the ad reads as one Threads itself declined, never as one to try again.
+ * Whether [method] is For You's insert of one feed item at a position in a page the cache already
+ * holds, as 455 inlines it: a method answering an Integer code, its last parameter the int
+ * position, that casts the For You data source it's given to the feed cache's handler.
+ */
+internal fun isAdInsert(method: Method): Boolean = method.returnType == INSERT_RESULT &&
+    method.parameterTypes.lastOrNull()?.toString() == "I" &&
+    method.implementation?.instructions?.any {
+        it.opcode == Opcode.CHECK_CAST && it.getReference<TypeReference>()?.type == FEED_CACHE_HANDLER
+    } == true
+
+/**
+ * For You's insert of one feed item at a position in a page the cache already holds. Threads
+ * places an ad through it apart from any page fetch, so the ad never meets the merge's filter. 455
+ * moved it out of the handler into a class holding the data source, which reads the item off its
+ * argument, takes the cache's first page and, for none, goes to its own code for having no page.
+ * Right before that check the insert asks [FeedAds], and an ad goes the no-page way, which tells
+ * the caller nothing went in. Threads logs every code but success as an insert that didn't happen
+ * and moves on (it retries only one other code), so the ad reads as one Threads itself declined,
+ * never as one to try again.
  */
 private fun BytecodePatchContext.hookAdInserts(item: String) {
-    val declared = classDefBy(FOR_YOU_LOCAL_SOURCE).methods.filter {
-        it.returnType == INSERT_RESULT && it.parameterTypes.size == 2 && it.parameterTypes[1] == "I" &&
-            it.parameterTypes[0].startsWith("L")
-    }.singleOrPatchException("$PATCH: For You's insert of one item at a position")
-    if (declared.parameterTypes[0].toString() != item) {
-        throw PatchException("$PATCH: For You's insert takes ${declared.parameterTypes[0]}, not the feed item $item")
+    val inserts = mutableListOf<String>()
+    classDefForEach { classDef ->
+        if (classDef.fields.none { !AccessFlags.STATIC.isSet(it.accessFlags) && it.type == FOR_YOU_LOCAL_SOURCE }) return@classDefForEach
+        classDef.methods.filter { isAdInsert(it) }.mapTo(inserts) { it.toString() }
     }
-    val inserts = listOf(FEED_CACHE_HANDLER, SPOOL_FEED_CACHE).map { handler ->
-        val classDef = mutableClassDefBy(handler)
-        if (classDef.superclass != FOR_YOU_LOCAL_SOURCE) {
-            throw PatchException("$PATCH: $handler no longer extends $FOR_YOU_LOCAL_SOURCE")
-        }
-        classDef.methods.filter {
-            it.name == declared.name && it.returnType == INSERT_RESULT &&
-                it.parameterTypes.map(CharSequence::toString) == declared.parameterTypes.map(CharSequence::toString)
-        }.singleOrPatchException("$PATCH: $handler's insert ${declared.name}")
+    val found = inserts.singleOrPatchException("$PATCH: For You's insert of one item at a position")
+    val insert = mutableClassDefBy(found.substringBefore("->")).methods.single { it.toString() == found }
+    val (check, noPage) = insert.noPageCheck()
+    val reads = insert.implementation!!.instructions.withIndex().filter { (_, instruction) ->
+        instruction.opcode == Opcode.IGET_OBJECT && instruction.getReference<FieldReference>()?.type == item
     }
-    val (feed, spool) = inserts
-    val noPage = feed.noPageCode()
-    // The spool's insert hands the item to a coroutine and always answers that it went in.
-    val inserted = spool.implementation!!.instructions.mapNotNull { instruction ->
-        instruction.getReference<FieldReference>()?.takeIf { instruction.opcode == Opcode.SGET_OBJECT && it.type == INSERT_RESULT }
-    }.distinctBy { it.toString() }.singleOrPatchException("$PATCH: the spool insert's one answer")
-    if (noPage.toString() == inserted.toString()) {
-        throw PatchException("$PATCH: the feed cache's no-page answer $noPage is the spool's success answer")
+    val read = reads.singleOrNull() ?: throw PatchException("$PATCH: the insert reads the feed item $item ${reads.size} times")
+    val held = (read.value as TwoRegisterInstruction).registerA
+    val reaching = insert.reaching(check, setOf(held))
+    if (reaching.fromEntry || reaching.writes != setOf(read.index)) {
+        throw PatchException("$PATCH: the insert's item register v$held doesn't hold the item at its page check")
     }
-    inserts.forEach { insert ->
-        insert.requireLocals(PATCH, 1)
-        val held = insert.parameterRegister(0)
-        insert.addInstructionsWithLabels(
-            0,
-            """
-                invoke-static/range { $held .. $held }, $FEED_ADS->insertedAd(Ljava/lang/Object;)Z
-                move-result v0
-                if-eqz v0, :insert
-                sget-object v0, $noPage
-                return-object v0
-            """,
-            ExternalLabel("insert", insert.getInstruction(0)),
-        )
-    }
+    // A register the ask can borrow: read on neither way on from it.
+    val liveness = RegisterLiveness.of(insert)
+    val free = (0 until minOf(16, insert.implementation!!.registerCount)).firstOrNull {
+        it != held && it !in liveness.liveInto(check) && it !in liveness.liveInto(noPage)
+    } ?: throw PatchException("$PATCH: the insert has no register free at its page check")
+    insert.addInstructionsWithLabels(
+        check,
+        """
+            invoke-static/range { v$held .. v$held }, $FEED_ADS->insertedAd(Ljava/lang/Object;)Z
+            move-result v$free
+            if-nez v$free, :no_page
+        """,
+        ExternalLabel("no_page", insert.getInstruction(noPage)),
+    )
 }
 
 /**
- * The code the feed cache handler's insert answers when the cache holds no page: the static
- * Integer it reads and returns where its `if-eqz` on the page it just cast jumps.
+ * The insert's check for a page to put the item in, and where it goes for none: the `check-cast`
+ * of the page right before an `if-eqz` on it, which jumps to a read of a static Integer code.
  */
-private fun Method.noPageCode(): FieldReference {
+private fun Method.noPageCheck(): Pair<Int, Int> {
     val flow = ControlFlow.of(this)
     val body = flow.instructions
-    val codes = body.indices.filter { index ->
+    val checks = body.indices.filter { index ->
         index + 1 < body.size && body[index].opcode == Opcode.CHECK_CAST && body[index + 1].opcode == Opcode.IF_EQZ &&
             (body[index] as OneRegisterInstruction).registerA == (body[index + 1] as OneRegisterInstruction).registerA
     }.mapNotNull { index ->
         val target = flow.normal[index + 1].singleOrNull { it != index + 2 } ?: return@mapNotNull null
         val read = body[target]
-        val code = read.getReference<FieldReference>()?.takeIf { read.opcode == Opcode.SGET_OBJECT && it.type == INSERT_RESULT }
-        val returned = body.getOrNull(target + 1)
-        code?.takeIf {
-            returned?.opcode == Opcode.RETURN_OBJECT &&
-                (returned as OneRegisterInstruction).registerA == (read as OneRegisterInstruction).registerA
+        (index to target).takeIf {
+            read.opcode == Opcode.SGET_OBJECT && read.getReference<FieldReference>()?.type == INSERT_RESULT
         }
     }
-    return codes.singleOrPatchException("$PATCH: $definingClass->$name's answer for having no page")
+    return checks.singleOrPatchException("$PATCH: $definingClass->$name's check for having no page")
 }
 
 private fun Method.strings(): Set<String> =

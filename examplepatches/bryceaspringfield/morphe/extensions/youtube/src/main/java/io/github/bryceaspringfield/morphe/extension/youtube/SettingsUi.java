@@ -125,6 +125,7 @@ public final class SettingsUi {
             PreferenceCategory playback = category(ctx, screen, "cat_playback");
             toggle(ctx, playback, XSettings.KEEP_PLAYING_SCREEN_OFF, "keep_playing", "keep_playing_summary");
             toggle(ctx, playback, XSettings.AUDIO_ONLY, "audio_only", "audio_only_summary");
+            toggle(ctx, playback, XSettings.AUDIO_ONLY_ROW, "audio_only_row", "audio_only_row_summary");
             toggle(ctx, playback, XSettings.AUDIO_ONLY_SCREEN_OFF, "audio_only_off", "audio_only_off_summary");
 
             PreferenceCategory layout = category(ctx, screen, "cat_layout");

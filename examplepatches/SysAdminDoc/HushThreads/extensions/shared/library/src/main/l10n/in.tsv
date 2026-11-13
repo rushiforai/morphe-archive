@@ -282,6 +282,9 @@ The name under the app's icon.	Nama di bawah ikon aplikasi.
 the new app name	nama aplikasi baru
 Hide screenshots from Threads	Sembunyikan tangkapan layar dari Threads
 Threads isn't told when you take a screenshot, so it can't log it or react to it.	Threads tidak diberi tahu saat kamu mengambil tangkapan layar, jadi tidak bisa mencatat atau menanggapinya.
+Spoof SIM region	Palsukan wilayah SIM
+Threads sees your SIM and network as the region picked below. Meta can still go by your connection and your account. Restart Threads to see the change.	Threads melihat SIM dan jaringan Anda sebagai wilayah yang dipilih di bawah. Meta masih bisa berpatokan pada koneksi dan akun Anda. Mulai ulang Threads untuk melihat perubahannya.
+SIM region	Wilayah SIM
 Full size photos	Foto ukuran penuh
 Photos load at the largest size Threads has, not one picked for your screen. They look sharper and use more data.	Foto dimuat dalam ukuran terbesar yang dimiliki Threads, bukan ukuran yang dipilih untuk layarmu. Foto terlihat lebih tajam dan memakai lebih banyak data.
 No swipe into Search	Tanpa geser ke Pencarian
@@ -341,6 +344,8 @@ Threads needs the Storage permission to save on Android 9. Turn it on in Threads
 Not saved: the download was too slow. Try a faster connection.	Tidak disimpan: unduhan terlalu lambat. Coba koneksi lebih cepat.
 Hide follow suggestions in Search	Sembunyikan saran ikuti di Pencarian
 Takes the Follow suggestions row off the Search screen. Your searches and topics stay.	Menghapus baris Saran ikuti dari layar Pencarian. Pencarian dan topik Anda tetap ada.
+Hide suggested threads	Sembunyikan utas yang disarankan
+Takes the suggested threads off the bottom of a post you open. The post and its replies stay.	Menghapus utas yang disarankan dari bagian bawah postingan yang Anda buka. Postingan dan balasannya tetap ada.
 # A save stopped because a proxy server on the phone's network (Wi-Fi or global proxy setting) asked for a user name and password: the toast. HushThreads never sends one for a download. Android 12 and later cut a toast after two lines, so it stays short.
 Not saved: the proxy wants a password. Try another network.	Tidak disimpan: proxy butuh kata sandi. Coba jaringan lain.
 # The same, as an extra line under a carousel's 'Saved %1$d. Failed %2$d. Skipped %3$d.' summary. Android 12 and later cut a toast after two lines, so it stays short.

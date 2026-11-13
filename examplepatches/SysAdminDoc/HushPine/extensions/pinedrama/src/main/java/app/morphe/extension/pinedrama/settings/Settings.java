@@ -278,6 +278,12 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting SKIP_FIRST_LAUNCH_SETUP =
             new BooleanSetting("skip_first_launch_setup", TRUE);
     /**
+     * A start lands on Home where PineDrama would pick Discover (issue #6). PineDrama works the
+     * landing tab out once per start, so a change shows after a restart.
+     */
+    public static final BooleanSetting OPEN_ON_HOME =
+            new BooleanSetting("open_on_home", TRUE, true);
+    /**
      * Whether {@link #HIDE_LAUNCHER_SHORTCUTS} has taken the launcher shortcuts away and not yet
      * put them back. No row of its own: it is how turning that switch back off knows there is
      * something to ask PineDrama to rebuild, rather than asking on behalf of somebody who never

@@ -21,7 +21,6 @@ object SearchRankingHelper {
     private const val POPULAR_SORT = "popular_desc"
 
 
-    /** One searchable media type: where it is searched, where its preview lives, where its items sit. */
     private class Target(val searchPath: String, val previewPath: String, val itemsKey: String)
 
     private val TARGETS = listOf(
@@ -42,11 +41,9 @@ object SearchRankingHelper {
     )
 
     /**
-     * Called from the patched `OkHttpClient.<init>(Builder)`. Every OkHttpClient the app builds goes
-     * through that constructor, so the interceptor is installed once and every client carries it.
-     *
-     * It is installed regardless of the current mode and decides per request, so switching the mode
-     * in the Pixiv-Patched page takes effect without restarting the app.
+     * Installed from the patched `OkHttpClient.<init>(Builder)`, so every client the app builds
+     * carries it. It is installed regardless of the current mode and decides per request, so
+     * switching the mode in the Pixiv-Patched page takes effect without restarting the app.
      */
     @JvmStatic
     fun install(builder: OkHttpClient.Builder) {

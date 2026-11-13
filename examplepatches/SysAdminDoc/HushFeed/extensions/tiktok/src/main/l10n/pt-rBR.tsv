@@ -156,6 +156,26 @@ Forget the seen video.	Esquecer o vídeo visto.
 Forget the video @%2$s has seen.	Esquecer o vídeo que @%2$s viu.
 Got it	Entendi
 Hide profile shortcuts	Ocultar atalhos do perfil
+# context: Title of the checklist that hides tabs from the strip above a profile's videos
+Hide profile tabs	Ocultar abas do perfil
+# context: Note under that title. Reposts and Liked videos are two of the checklist's rows, and the checklist never takes away every tab
+Pick the tabs to hide from the strip above a profile's videos, such as Reposts or Liked videos. One tab always stays. Restart TikTok to apply this.	Escolha as abas a ocultar na faixa acima dos vídeos de um perfil, como Republicações ou Vídeos curtidos. Uma aba sempre fica. Reinicie o TikTok para aplicar.
+# context: Checklist row for the profile tab with the account's private videos (lock icon)
+Private videos	Vídeos privados
+# context: Checklist row for the profile tab with the videos the account reposted
+Reposts	Republicações
+# context: Checklist row for the profile tab with the account's saved videos (bookmark icon)
+Favorites	Favoritos
+# context: Checklist row for the profile tab with the account's sounds
+Music	Música
+# context: Checklist row for the profile tab with the account's camera effects
+Effects	Efeitos
+# context: Checklist row for the profile tab with the account's paid series and short dramas
+Series	Séries
+# context: Checklist row for the profile tab with the account's stickers
+Stickers	Figurinhas
+# context: Checklist row for the profile tab TikTok calls AI theater, with the account's AI-made videos
+AI theater	Teatro de IA
 Hide profile shortcuts by name	Ocultar atalhos do perfil pelo nome
 Hide the status bar in LIVE rooms	Ocultar a barra de status nas LIVEs
 How much of a video you watch before it's hidden next time. Zero counts it after a few seconds.	Quanto de um vídeo você assiste antes que ele seja ocultado na próxima vez. Com zero, conta depois de alguns segundos.
@@ -2365,7 +2385,7 @@ Expanded	Expandido
 Collapsed	Recolhido
 This setting isn't available. Search for another setting.	Esta configuração não está disponível. Procure outra configuração.
 Hide the Hushfeed row	Ocultar a linha do Hushfeed
-Take Hushfeed out of TikTok's Settings and privacy. To open these settings, press and hold For You at the top of the feed, or Home if Long-press Home for Hushfeed settings is on.	Tira o Hushfeed de Configurações e privacidade do TikTok. Para abrir estas configurações, toque e segure Para você no topo do feed, ou Início se Toque e segure Início para abrir as configurações do Hushfeed estiver ligado.
+Take Hushfeed out of TikTok's Settings and privacy. To open these settings, press and hold For You at the top of the feed, or Home if Long-press Home for Hushfeed settings is on. If neither press can open them, the row stays.	Tira o Hushfeed de Configurações e privacidade do TikTok. Para abrir estas configurações, toque e segure Para você no topo do feed, ou Início se Toque e segure Início para abrir as configurações do Hushfeed estiver ligado. Se nenhum dos dois conseguir abri-las, a linha continua.
 Open the search page	Abrir a página de busca
 Search didn't open. Restart TikTok and try again.	A busca não abriu. Reinicie o TikTok e tente de novo.
 Fold the search into a button	Recolher a busca em um botão
@@ -2668,6 +2688,18 @@ TikTok tests more than one set of icons for the bottom bar. Pick one here, or le
 New style 1	Novo estilo 1
 # context: Choice value for the bottom bar's icons, TikTok's other newer icon set
 New style 2	Novo estilo 2
+# context: Row title of the Feed tabs choice that sets how tall the bottom bar is
+Bottom bar height	Altura da barra inferior
+# context: Note under that choice
+Videos and the other tabs make room for the bar at its new height. With the tab names hidden, the icons fit the shorter bars best.	Os vídeos e as outras abas abrem espaço para a barra na nova altura. Com os nomes das abas ocultos, os ícones cabem melhor nas barras mais baixas.
+# context: Choice value for the bottom bar's height, the lowest of the five
+Shorter	Muito baixa
+# context: Choice value for the bottom bar's height, a little lower than TikTok's
+Short	Baixa
+# context: Choice value for the bottom bar's height, a little higher than TikTok's
+Tall	Alta
+# context: Choice value for the bottom bar's height, the highest of the five
+Taller	Muito alta
 # context: Row title of the Feed tabs switch that adds Friends to the row of tabs along the top of the feed
 Friends in the top tabs	Amigos nas abas de cima
 # context: Summary under that switch; Friends and Following are TikTok's tab names

@@ -1,3 +1,28 @@
+## 2.0.1 (2026-11-13)
+
+### ✨ New Features
+
+* **nicoid:** Add customizable gesture controls to local playlist folders and video lists
+* **nicoid:** Add a long-press menu for Niconico Live broadcasts to select normal or popup playback
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Fix missing thumbnails for user broadcasts in Niconico Live watch history ([#117](https://github.com/chikuwadon/nicoid-re-patches/issues/117))
+* **nicoid:** Fix gesture traces not appearing in Niconico Live lists when enabled
+* **nicoid:** Fix media controls remaining after closing a video or ending playback
+* **nicoid:** Fix missing background colors in uploader information panels when using light mode
+* **nicoid:** Fix incorrect scroll-position restoration caused by overlapping tab navigation and loading operations
+* **nicoid:** Fix potential stalls when receiving live comments under abnormal network conditions
+
+### 🔧 Improvements
+
+* **nicoid:** Increase the in-memory tab cache to 12 screens to reduce unnecessary reloading while preserving fresh data loading on app startup
+* **nicoid:** Improve tab navigation and scroll-position restoration with immediate list display and smoother transitions
+* **nicoid:** Shorten success and error notifications when posting Niconico Live comments
+* **nicoid:** Improve Niconico Live history thumbnail retrieval and reduce unnecessary image loading delays
+* **nicoid:** Refine the central playback button with a thinner outline
+* **nicoid:** Update the Niconico Live sidebar description
+
 ## 2.0.0 (2026-11-12)
 
 ### ✨ New Features
@@ -18,7 +43,7 @@
 * **nicoid:** Add Niconico Live settings for startup navigation, broadcast time display, floating refresh button, program tap behavior, and exit confirmation.
 * **nicoid:** Add an option to show or hide Niconico Live in the sidebar and support opening it through customizable gestures.
 * **nicoid:** Add options to position the multiple-tab bar at the top or bottom and adjust its height from 28 to 64 dp.
-* **nicoid:** Add an option to recognize horizontal-only gestures independently of vertical-only gesture recognition.
+* **nicoid:** Add an option to recognize horizontal-only gestures independently of vertical-only gesture recognition ([#115](https://github.com/chikuwadon/nicoid-re-patches/issues/115))
 * **nicoid:** Add an option to enable or disable rounded thumbnails across video lists, video information screens, playback screens, and Niconico Live.
 * **nicoid:** Add three exit confirmation modes: No Confirmation, Dialog, and Press Back Twice.
 * **nicoid:** Add manual drag-and-drop reordering to local playlists, with a persistent Custom Order sorting option.
@@ -88,7 +113,7 @@
 * **nicoid:** Add Niconico Live settings for startup navigation, broadcast time display, floating refresh button, program tap behavior, and exit confirmation.
 * **nicoid:** Add an option to show or hide Niconico Live in the sidebar and support opening it through customizable gestures.
 * **nicoid:** Add options to position the multiple-tab bar at the top or bottom and adjust its height from 28 to 64 dp.
-* **nicoid:** Add an option to recognize horizontal-only gestures independently of vertical-only gesture recognition.
+* **nicoid:** Add an option to recognize horizontal-only gestures independently of vertical-only gesture recognition ([#115](https://github.com/chikuwadon/nicoid-re-patches/issues/115))
 * **nicoid:** Add an option to enable or disable rounded thumbnails across video lists, video information screens, playback screens, and Niconico Live.
 * **nicoid:** Add three exit confirmation modes: No Confirmation, Dialog, and Press Back Twice.
 * **nicoid:** Add manual drag-and-drop reordering to local playlists, with a persistent Custom Order sorting option.

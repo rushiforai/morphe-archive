@@ -63,7 +63,7 @@ val chatCustomizationPatch = bytecodePatch(
     dependsOn(localFeaturesResources)
 
     execute {
-        if (packageMetadata.versionName == "1.3.0") {
+        if (packageMetadata.versionName in setOf("1.3.0", "1.4.0")) {
             addTvCustomization()
             return@execute
         }
@@ -183,6 +183,7 @@ val chatCustomizationPatch = bytecodePatch(
             "3.15.0" -> setOf("Lvx0;", "Lmm0;")
             "3.15.2" -> setOf("Lvx0;", "Lnm0;")
             "3.16.0" -> setOf("La01;", "Lvn0;")
+            "3.17.0" -> setOf("Lz21;", "Leq0;")
             else -> error("Unsupported CHZZK version: ${packageMetadata.versionName}")
         }
         var widthMethods = 0

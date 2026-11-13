@@ -24,13 +24,10 @@ val pixivAdblockerPatch: BytecodePatch = bytecodePatch(
     extendWith("extensions/pixiv.mpe")
 
     execute {
-        // --- Hook 1: collapse the bottom banner frame where it is built ---
-        // The banner binder is the per-screen class that inflates the four overlay ad views into a
-        // frame, sizes it to feature_advertisement_ad_frame_overlay_height (50dp) plus 8dp top and
-        // bottom margins, and adds it to the screen's ad FrameLayout. Its class name is obfuscated,
-        // so the fingerprint finds it by the ad view classes it builds. The frame has to be collapsed
-        // at construction: the companion collector only toggles the four children between VISIBLE and
-        // GONE, which would leave that 66dp opaque container behind.
+        // The frame is sized from feature_advertisement_ad_frame_overlay_height (50dp) plus 8dp top
+        // and bottom margin and keeps its own opaque background, so hiding only the ad views inside
+        // it would leave that strip on screen. The binder's class name is obfuscated, so the
+        // fingerprint finds it by the ad view classes it builds.
         val bannerBinderCtor = bannerBinderConstructorFingerprint.method
         val ctorInstructions = bannerBinderCtor.implementation?.instructions
             ?: error("banner binder constructor has no body")
@@ -52,15 +49,13 @@ val pixivAdblockerPatch: BytecodePatch = bytecodePatch(
             "invoke-static {$frameRegister}, Lapp/morphe/extension/pixiv/adblock/AdblockHelper;->collapseOverlayFrame(Landroid/view/View;)V"
         )
 
-        // --- Hook 2: never let the binder show the frame again ---
         // The show callback only sets the frame to VISIBLE. Returning early keeps it collapsed for
         // the whole screen lifetime; the hider callback stays untouched.
         val showFrameMethod = bannerShowFingerprint.method
         showFrameMethod.addInstructions(0, "return-void")
 
-        // --- Hook 3: neutralize the overlay ad view constructors (secondary safeguard) ---
-        // Hook 1 already removes the frame these views live in, but hiding them at construction also
-        // covers a future screen that builds one of them outside that container.
+        // The frame is collapsed at construction above; hiding these views as they are built also
+        // covers a screen that builds one outside that frame.
         val bannerOverlayClasses = listOf(
             "Ljp/pxv/android/feature/advertisement/view/OverlayAppLovinView;",
             "Ljp/pxv/android/feature/advertisement/view/OverlayADGAutoRotationView;",
@@ -86,7 +81,6 @@ val pixivAdblockerPatch: BytecodePatch = bytecodePatch(
             }
         }
 
-        // --- Hook 4: AppLovin interstitial load -> return early ---
         // The interstitial manager builds the MaxInterstitialAd, registers the listener, publishes
         // the ready state and calls loadAd(). Returning before that means no interstitial exists, so
         // none can be displayed later either. The fingerprint requires creating the ad object *and*
@@ -94,7 +88,6 @@ val pixivAdblockerPatch: BytecodePatch = bytecodePatch(
         val interstitialLoadMethod = interstitialLoadFingerprint.method
         interstitialLoadMethod.addInstructions(0, "return-void")
 
-        // --- Hook 5: hide sponsored works and promotional cards in feeds and detail screen ---
         // RectangleAdViewHolder.show() is a bare return-void stub, so it is not listed here; injecting
         // into it would only append dead instructions after that return.
         val sponsoredClasses = listOf(
@@ -116,7 +109,6 @@ val pixivAdblockerPatch: BytecodePatch = bytecodePatch(
     }
 }
 
-/** Formats an absolute dex register the way smali spells it: N for locals, pN for parameters. */
 private fun registerName(method: Method, absolute: Int): String {
     val implementation = method.implementation ?: return "v$absolute"
     val parameterRegisters =

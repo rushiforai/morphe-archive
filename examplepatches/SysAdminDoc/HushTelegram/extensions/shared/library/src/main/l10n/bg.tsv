@@ -1142,7 +1142,7 @@ Couldn't save the call recording.	Записът на обаждането не 
 # context: a switch on the Privacy page under Record calls (#39), off by default. Turned on, it puts a round record button on Telegram's call screen, right under the minimize arrow in the top left corner.
 Record button on calls	Бутон за записване при обаждания
 # context: that switch's summary. "Record calls" is the name of the switch above it, which records every call. A tap on the button records only the call on screen, or, with Record calls on, skips recording that one call.
-A button on the call screen records just that call, or stops recording it when Record calls is on.	Бутон на екрана на обаждането записва само това обаждане или спира записа му, когато „Записване на обажданията“ е включено.
+A button on the call and voice chat screens records just that call, or stops recording it when Record calls is on.	Бутон на екрана на обаждането и на гласовия чат записва само това обаждане или спира записа му, когато „Записване на обажданията“ е включено.
 # context: a short toast shown when the record button on the call screen is tapped and the call starts recording.
 Recording this call	Това обаждане се записва
 # context: a short toast shown when the record button on the call screen is tapped again and the call stops recording. What was already recorded is still saved.
@@ -1624,6 +1624,8 @@ Don't notify contacts	Без известие до контактите
 When you sign up a phone number that's new to Telegram, people who have it saved aren't told you joined. Accounts that already exist aren't affected.	Когато регистрираш телефонен номер, който е нов за Telegram, хората, които са го запазили, не получават известие, че си се присъединил. Вече съществуващите акаунти не се засягат.
 # context: Lowercase noun phrase naming the Don't notify contacts switch (#71) in the patch status list
 quiet sign-up	тиха регистрация
+# context: Lowercase noun phrase naming the Delete account row (#71) in the patch status list
+account deletion	изтриване на профил
 # context: Lowercase noun phrase naming Proxy order (#71) in the patch status list
 proxy order	ред на проксита
 # context: Title of the Proxy order row on the Chat list page and of its editor dialog (#71). It sets the order of the proxies on Telegram's own proxy screen
@@ -1851,5 +1853,52 @@ Recordings stay until you delete them.	Записите остават, дока
 Recordings older than %1$d day are deleted when the next one is saved.	Записите, по-стари от %1$d ден, се изтриват при запазване на следващия.
 Recordings older than %1$d days are deleted when the next one is saved.	Записите, по-стари от %1$d дни, се изтриват при запазване на следващия.
 Until you delete them	Докато не ги изтриете
+Recordings folder	Папка за записите
+Recordings go to %1$s. The usual folder is %2$s.	Записите отиват в %1$s. Обичайната папка е %2$s.
+Choose another folder	Избор на друга папка
+Use the usual folder	Обичайната папка
+Couldn't use that folder. Pick another one.	Тази папка не може да се използва. Изберете друга.
+This phone has no folder picker.	Този телефон няма избирач на папки.
+Internal storage	Вътрешно хранилище
+Save recordings as Opus	Записи във формат Opus
+Files about half the size, ending in .ogg. Some older players can't open them.	Файлове с около половината размер, с окончание .ogg. Някои по-стари плейъри не могат да ги отворят.
+Notify when a call is saved	Известие при запазен разговор
+A tap on the notification plays the recording. Its buttons share it or send it to your Saved Messages.	Докосване на известието пуска записа. Бутоните му го споделят или го изпращат в Запазени съобщения.
+Call recordings	Записи на разговори
+Call recording saved	Записът на разговора е запазен
+Share	Споделяне
 %1$d day	%1$d ден
 %1$d days	%1$d дни
+# context: Delete account (#71). A row on the Privacy page, the dialog it opens (the name is the account's, and the button is the row's title again) and the toasts after Telegram answers. The day count is how long Telegram waits before deleting an account that has a cloud password.
+Delete account	Изтриване на профила
+Deletes the account you're using now, with its messages and contacts. If it has a cloud password, Telegram waits a week first.	Изтрива профила, който използвате в момента, заедно със съобщенията и контактите му. Ако има облачна парола, Telegram изчаква една седмица преди това.
+Delete this account?	Да се изтрие ли този профил?
+Telegram deletes %1$s with all its messages and contacts. This can't be undone.	Telegram изтрива %1$s заедно с всички съобщения и контакти. Това не може да бъде отменено.
+Account deleted.	Профилът е изтрит.
+Telegram deletes the account in %1$d day.	Telegram ще изтрие профила след %1$d ден.
+Telegram deletes the account in %1$d days.	Telegram ще изтрие профила след %1$d дни.
+Telegram didn't delete the account.	Telegram не изтри профила.
+# context: Show all spoilers and quotes (#71). Two items in a chat's menu at the top (the three dots), the toasts they show, and two switches on the Reveal spoilers page. The summary names the two menu items, so use the same words for them there. A collapsed quote is a long quote Telegram shows folded, with a button to expand it.
+Show all spoilers	Показване на всички спойлери
+Expand all quotes	Разгъване на всички цитати
+Couldn't update the messages here.	Съобщенията тук не можаха да бъдат обновени.
+No hidden spoilers in the loaded messages.	Няма скрити спойлери в заредените съобщения.
+No collapsed quotes in the loaded messages.	Няма свити цитати в заредените съобщения.
+Show all spoilers and quotes	Показване на всички спойлери и цитати
+A chat's menu at the top gets Show all spoilers and Expand all quotes, for the messages loaded so far.	Менюто в горната част на чата получава „Показване на всички спойлери“ и „Разгъване на всички цитати“ за заредените досега съобщения.
+Open quotes on search hits	Разгъване на цитати при резултати от търсене
+When a chat search lands on a match inside a collapsed quote, the quote opens so the highlighted match stays in view.	Когато търсенето в чата попадне на съвпадение в свит цитат, цитатът се разгъва, така че маркираното съвпадение остава видимо.
+# context: Lowercase noun phrase naming the Show all spoilers and quotes switch (#71) in the patch status list
+spoiler and quote items in the chat menu	елементи за спойлери и цитати в менюто на чата
+# context: Lowercase noun phrase naming the Open quotes on search hits switch (#71) in the patch status list
+quotes opened on search hits	цитати, разгънати при резултати от търсене
+# context: Label of the Select all button (#73) in the bar that shows while messages are selected, and of its switch.
+Select all	Избери всички
+# context: Toast from Select all when every loaded message is already selected.
+Everything here is already selected	Всичко тук вече е избрано
+# context: Summary of the Select all switch (#73). The bar is the one that appears at the top of a chat, or of a chat's shared media, while messages are selected.
+Adds a Select all button to the bar that shows while you pick messages, in chats and in a chat's shared media. It selects everything loaded, newest first, up to Telegram's limit of 100.	Добавя бутон Избери всички към лентата, която се показва, докато избираш съобщения, в чатовете и в споделените медии на чата. Избира всичко заредено, от най-новото, до лимита на Telegram от 100.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the Select all button in chats.
+selecting every loaded message in a chat	избирането на всички заредени съобщения в чат
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the Select all button in a chat's shared media.
+selecting everything in shared media	избирането на всичко в споделените медии

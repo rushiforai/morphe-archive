@@ -106,7 +106,7 @@ internal fun BytecodePatchContext.addAccountFollowingHooks() {
         return-object v0
     """)
 
-    val listType = if (packageMetadata.versionName == "1.3.0") {
+    val listType = if (packageMetadata.versionName in setOf("1.3.0", "1.4.0")) {
         "${ACCOUNT_COMMUNITY}data/tv/entity/TvFollowingChannelList;"
     } else {
         "${ACCOUNT_COMMUNITY}data/mobile/entity/following/FollowingChannelList;"

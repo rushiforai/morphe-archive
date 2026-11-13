@@ -38,18 +38,18 @@ public final class LandscapeEpisodes {
     static final String SERIES_MODEL =
             "com.ss.android.ugc.aweme.series.innerfeed.viewmodel.SeriesInnerFeedViewModel";
     /** The viewer's own append and prepend, which skip what it already has by video id. */
-    private static final String APPEND = "R3";
-    private static final String PREPEND = "Qc";
+    private static final String APPEND = "j4";
+    private static final String PREPEND = "id";
     /**
      * Tells the viewer a load started by itself rather than by a pull past the last page. After a
      * pull its append moves on a page, so left unset every load would skip an episode.
      */
-    private static final String SET_AUTOMATIC = "fr";
+    private static final String SET_AUTOMATIC = "ns";
     /** Takes down the spinner a pull started when there's nothing to load. */
-    private static final String LOAD_ENDED = "B3";
+    private static final String LOAD_ENDED = "T3";
     /** The viewer's pager ability, and that ability's current video. */
-    private static final String PAGER_ABILITY = "Hz";
-    private static final String CURRENT_ITEM = "LLLILZLLLI";
+    private static final String PAGER_ABILITY = "iA";
+    private static final String CURRENT_ITEM = "LLLIZZ";
     /** The modes the series model's {@code request} takes for its next and previous pages. */
     private static final int MODE_NEXT = 4;
     private static final int MODE_PREVIOUS = 2;

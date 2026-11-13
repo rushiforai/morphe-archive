@@ -66,6 +66,36 @@ internal fun Method.speedSelectionWrites(): List<FieldReference> =
         .filter { it.definingClass == definingClass }
 
 /**
+ * The classes the speed menu's constructors may build its lazy Float-list lambda from. Up to
+ * 47.6.3 it came out of a shared `kotlin/jvm/internal` lambda class through an int-switch factory
+ * (`(I)` returning its own type). 47.7.3 gives it a Function0 class of its own (`LX/0dTq;`) and
+ * builds it with a plain constructor, so every class constructed there counts as well. Most of
+ * those are framework or unrelated app classes, and [isSpeedMenuListFactory] is what tells them
+ * apart, not the obfuscated package the build put the lambda in.
+ */
+internal fun speedMenuListFactoryOwners(menuConstructors: List<Method>): List<String> =
+    menuConstructors.flatMap { method ->
+        method.implementationOrPatchException("Playback speed").instructions
+            .mapNotNull { it.getReference<MethodReference>() }
+    }.filter {
+        (it.parameterTypes == listOf("I") && it.returnType == it.definingClass &&
+            it.definingClass.startsWith("Lkotlin/jvm/internal/")) ||
+            it.name == "<init>"
+    }.map { it.definingClass }.distinct()
+
+private val SPEED_MENU_LIST = listOf(0.5f, 1f, 1.5f, 2f, 3f).map { it.toRawBits() }
+
+/**
+ * A body that answers the speed menu's Float list: it returns an object and loads every built-in
+ * speed. Static on the shared lambda class of 46.x to 47.6.3, the instance invoke() of 47.7.3's
+ * own class.
+ */
+internal fun isSpeedMenuListFactory(method: Method): Boolean =
+    method.returnType == "Ljava/lang/Object;" &&
+        method.implementation?.instructions?.filterIsInstance<NarrowLiteralInstruction>()
+            ?.map { it.narrowLiteral }?.containsAll(SPEED_MENU_LIST) == true
+
+/**
  * The body of the bridge that hands a speed to the player of the video on screen: what the
  * first-frame bridge does once it has picked a speed, with the speed passed in (p1) and the
  * controller (p0) in place of the first frame's own. The two free registers are v0 and v1, since
@@ -371,19 +401,11 @@ val playbackSpeedPatch = bytecodePatch(
 
         // Resolve the menu's lazy Float-list factory from its own constructor references.
         val menuClass = mutableClassDefBy(PlaybackSpeedMenuFingerprint.method.definingClass)
-        val factoryOwners = menuClass.methods.filter { it.name == "<init>" }.flatMap { method ->
-            method.implementationOrPatchException("Playback speed").instructions
-                .mapNotNull { it.getReference<MethodReference>() }
-        }.filter {
-            it.parameterTypes == listOf("I") && it.returnType == it.definingClass &&
-                it.definingClass.startsWith("Lkotlin/jvm/internal/")
-        }.map { it.definingClass }.distinct()
-        val expected = listOf(0.5f, 1f, 1.5f, 2f, 3f).map { it.toRawBits() }
-        val factories = factoryOwners.flatMap { mutableClassDefBy(it).methods }.filter { method ->
-            method.returnType == "Ljava/lang/Object;" && AccessFlags.STATIC.isSet(method.accessFlags) &&
-                method.implementation?.instructions?.filterIsInstance<NarrowLiteralInstruction>()
-                    ?.map { it.narrowLiteral }?.containsAll(expected) == true
-        }
+        val factoryOwners = speedMenuListFactoryOwners(menuClass.methods.filter { it.name == "<init>" })
+        // Framework classes the constructors build are not in the app, so they have no class here.
+        val factories = factoryOwners.mapNotNull { classDefByOrNull(it) }
+            .filter { owner -> owner.methods.any(::isSpeedMenuListFactory) }
+            .flatMap { mutableClassDefBy(it.type).methods }.filter(::isSpeedMenuListFactory)
         // 46.9.3 carries this body twice on one lambda class, invoke$328 and invoke$851, with
         // identical instructions: R8 outlined the same lambda once per call site. Both hand back
         // the same speed list and the menu reaches one of them, so refusing on the count would

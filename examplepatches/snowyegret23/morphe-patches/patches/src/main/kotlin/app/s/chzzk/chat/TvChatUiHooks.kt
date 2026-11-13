@@ -62,11 +62,11 @@ internal fun BytecodePatchContext.addTvChatUiHooks() {
         invoke-direct/range {v0 .. v19}, ${constructor.smaliReference}
         move-object/from16 v1, p0
         check-cast v1, $BUILDER
-        invoke-virtual {v1, v0}, $BUILDER->j($SPAN)I
+        invoke-virtual {v1, v0}, $BUILDER->${if (packageMetadata.versionName == "1.4.0") "k" else "j"}($SPAN)I
         move-result v0
         move-object/from16 v2, p1
-        invoke-virtual {v1, v2}, $BUILDER->e(Ljava/lang/String;)V
-        invoke-virtual {v1, v0}, $BUILDER->g(I)V
+        invoke-virtual {v1, v2}, $BUILDER->${if (packageMetadata.versionName == "1.4.0") "f" else "e"}(Ljava/lang/String;)V
+        invoke-virtual {v1, v0}, $BUILDER->${if (packageMetadata.versionName == "1.4.0") "h" else "g"}(I)V
         return-void
     """)
     val icon = "${COMMUNITY}core/ui/ui/text/util/InlineTextContentIconBox;"

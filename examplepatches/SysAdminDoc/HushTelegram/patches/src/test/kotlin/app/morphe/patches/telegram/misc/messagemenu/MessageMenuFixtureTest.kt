@@ -62,6 +62,7 @@ class MessageMenuFixtureTest {
     private fun signature(m: Method) = "${m.definingClass}->${m.name}(${m.parameterTypes.joinToString("")})${m.returnType}"
 
     internal fun hosts(build: File): List<ClassDef> = baseHosts(build).let { it + selectBetweenHosts(build, it) }.let { it + hideForMeHosts(build, it) }
+        .let { it + sharedMediaSelectAllHosts(build, it) }
 
     private fun baseHosts(build: File): List<ClassDef> {
         val found = FixtureDex.classesWhere(build, { true }) { m ->

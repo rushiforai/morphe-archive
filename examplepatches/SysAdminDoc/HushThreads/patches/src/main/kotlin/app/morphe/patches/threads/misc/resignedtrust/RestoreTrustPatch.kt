@@ -14,10 +14,12 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.threads.misc.extension.threadsExtensionPatch
 import app.morphe.patches.threads.misc.extension.enableStatus
 import app.morphe.patches.threads.misc.extension.requireLocals
+import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
@@ -25,7 +27,9 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.threads.misc.settings.EXTENSION_ROOT
 import app.morphe.patches.threads.misc.settings.settingsPatch
+import app.morphe.util.cloneMutable
 import app.morphe.util.getFreeRegisterProvider
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
@@ -33,6 +37,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
 
 private const val PATCH = "Restore screens on re-signed builds"
 
@@ -80,7 +85,8 @@ val restoreTrustPatch = bytecodePatch(
         // FBNS's own check (#6) is fbnsSignersPatch, which every build carries through the settings patch.
         val tiles = shareTiles()
         method.answerOriginalSigners(packageInfo, signers)
-        tiles.lambdas.forEach { mutableTile(it).openRefusedShareTiles(tiles.launcher) }
+        val twins = tiles.outlined.associateWith { answeringTwin(it) }
+        tiles.lambdas.forEach { mutableTile(it).openRefusedShareTiles(tiles.launcher, twins) }
 
         enableStatus("restoreTrust")
     }
@@ -97,16 +103,27 @@ internal val SHARE_TILE_ACTIONS = listOf(
 /** Messenger's package, which its tile names when it builds the intent. */
 internal const val MESSENGER = "com.facebook.orca"
 
-/** The share sheet's tiles: the lambdas that start the apps, and the launcher every one of them goes through. */
-internal class ShareTiles(val launcher: MethodReference, val lambdas: List<Method>)
+/**
+ * Facebook's share entry, which the lambda holding Messenger's tile names on 455's first arm64 build,
+ * where Redex moved Messenger's package name into its table of outlined strings.
+ */
+internal const val FACEBOOK_SHARE_ALIAS = "com.facebook.composer.shareintent.ImplicitShareIntentHandlerDefaultAlias"
+
+/**
+ * The share sheet's tiles: the lambdas that start the apps, the launcher every one of them goes
+ * through, and the static helpers Redex outlined some of those launches into.
+ */
+internal class ShareTiles(val launcher: MethodReference, val lambdas: List<Method>, val outlined: List<MethodReference> = emptyList())
 
 /**
  * Finds the share sheet's tiles. 453 kept them in one suspend lambda. 454 (2026-11-02) spreads them
  * over two or three, and on its x86 and armeabi-v7a builds Messenger's tile reads its other strings
  * from Redex's table of outlined strings. The tiles for Instagram, Facebook and WhatsApp still name
  * their share actions, and all the tiles launch through one launcher, so the launcher is read off
- * them. Messenger's tile is then the one lambda naming Messenger that hands that launcher an intent
- * and drops the answer.
+ * them. On 455's ARMv7 builds and its first x86 build those four launch through a static helper
+ * Redex outlined, which calls the launcher and drops its answer. Messenger's tile is then the one
+ * lambda naming Messenger, or Facebook's share entry where Messenger's name is outlined, that hands
+ * that launcher an intent and drops the answer.
  */
 internal fun BytecodePatchContext.shareTiles(): ShareTiles {
     val named = mutableListOf<Method>()
@@ -115,24 +132,61 @@ internal fun BytecodePatchContext.shareTiles(): ShareTiles {
         for (method in classDef.methods) {
             if (!method.isLambdaBody()) continue
             val strings = method.strings()
-            if (MESSENGER in strings || SHARE_TILE_ACTIONS.any { it in strings }) named += method
+            if (strings.namesMessenger() || SHARE_TILE_ACTIONS.any { it in strings }) named += method
         }
     }
     val apps = named.filter { method -> SHARE_TILE_ACTIONS.any { it in method.strings() } }
     SHARE_TILE_ACTIONS.firstOrNull { action -> apps.none { action in it.strings() } }?.let {
         throw PatchException("$PATCH: no share tile starts $it")
     }
-    val launchers = apps.flatMap { method -> method.body().filter { it.isTileLaunch() } }
-        .map { (it as ReferenceInstruction).reference as MethodReference }.distinct()
+    val calls = apps.flatMap { method -> method.body() }
+    val outlined = calls.filter { it.isOutlinedLaunch() }.map { it.calledMethod() }.distinct()
+        .mapNotNull { helper -> outlinedLauncher(helper)?.let { helper to it } }
+    val launchers = (calls.filter { it.isTileLaunch() }.map { it.calledMethod() } + outlined.map { it.second }).distinct()
     val launcher = launchers.singleOrNull()
         ?: throw PatchException("$PATCH: the tiles for Instagram, Facebook and WhatsApp use ${launchers.size} launchers")
     val messenger = named.filter { method ->
         val body = method.body()
-        MESSENGER in method.strings() &&
+        method.strings().namesMessenger() &&
             body.indices.any { body[it].launches(launcher) && body.getOrNull(it + 1)?.opcode != Opcode.MOVE_RESULT }
     }
     if (messenger.size != 1) throw PatchException("$PATCH: ${messenger.size} lambdas look like Messenger's tile")
-    return ShareTiles(launcher, (apps + messenger).distinct())
+    return ShareTiles(launcher, (apps + messenger).distinct(), outlined.map { it.first })
+}
+
+private fun List<String>.namesMessenger() = MESSENGER in this || FACEBOOK_SHARE_ALIAS in this
+
+/**
+ * The launcher [helper] calls, when it is one Redex outlined from the tiles: static, it hands its
+ * context and intent to the launcher as its last act and drops the answer, launching nothing else.
+ */
+private fun BytecodePatchContext.outlinedLauncher(helper: MethodReference): MethodReference? {
+    val method = classDefByOrNull(helper.definingClass)?.methods?.singleOrNull { it.matches(helper) } ?: return null
+    val body = method.body()
+    val launch = body.getOrNull(body.size - 2) ?: return null
+    if (!AccessFlags.STATIC.isSet(method.accessFlags) || body.last().opcode != Opcode.RETURN_VOID ||
+        !launch.isTileLaunch() || body.count { it.isTileLaunch() } != 1
+    ) return null
+    val context = method.implementation!!.registerCount - 2
+    launch as FiveRegisterInstruction
+    return launch.calledMethod().takeIf { launch.registerD == context && launch.registerE == context + 1 && launch.registerC < context }
+}
+
+/**
+ * Adds beside the outlined [helper] a copy that hands back the launcher's answer instead of dropping
+ * it, and answers the copy. The helper itself stays as it was, since the rest of Threads calls it too.
+ */
+internal fun BytecodePatchContext.answeringTwin(helper: MethodReference): MethodReference {
+    val owner = mutableClassDefBy(helper.definingClass)
+    val name = "${helper.name}Answer"
+    if (owner.methods.any { it.name == name }) throw PatchException("$PATCH: ${helper.definingClass} already has a $name")
+    val twin = owner.methods.single { it.matches(helper) }.cloneMutable(name = name, returnType = "Z")
+    val end = twin.instructions.size - 1
+    val launcher = twin.getInstruction<FiveRegisterInstruction>(end - 1).registerC
+    twin.replaceInstruction(end, "move-result v$launcher")
+    twin.addInstruction(end + 1, "return v$launcher")
+    owner.methods.add(twin)
+    return ImmutableMethodReference(helper.definingClass, name, helper.parameterTypes, "Z")
 }
 
 /** The editable copy of [tile]. */
@@ -146,23 +200,31 @@ internal fun BytecodePatchContext.mutableTile(tile: Method): MutableMethod =
  * Threads' launcher starts an app only if it carries Meta's signature and answers false otherwise,
  * and every tile drops that answer, so a tap on a patched Messenger does nothing (#16). Each launch
  * hands its answer to the extension along with the context and intent it was given, using a register
- * nothing reads again. The launcher's check itself stays, since the rest of Threads relies on it.
+ * nothing reads again. A launch through an outlined helper calls the helper's answering twin from
+ * [twins] instead. The launcher's check itself stays, since the rest of Threads relies on it.
  */
-internal fun MutableMethod.openRefusedShareTiles(launcher: MethodReference) {
+internal fun MutableMethod.openRefusedShareTiles(launcher: MethodReference, twins: Map<MethodReference, MethodReference> = emptyMap()) {
     val body = instructions.toList()
-    val launches = body.indices.filter { body[it].launches(launcher) }
+    // Keyed by descriptor: references read from a dex and ones built here hash their parameters differently.
+    val twinOf = twins.entries.associate { (helper, twin) -> helper.toString() to twin }
+    val launches = body.indices.filter {
+        body[it].launches(launcher) || body[it].opcode == Opcode.INVOKE_STATIC && body[it].calledMethod().toString() in twinOf
+    }
     if (launches.isEmpty()) throw PatchException("$PATCH: $definingClass->$name has no launch")
     for (at in launches.asReversed()) {
         val call = body[at] as FiveRegisterInstruction
         if (body[at + 1].opcode == Opcode.MOVE_RESULT) {
             throw PatchException("$PATCH: the launch at $at in $definingClass->$name already reads its answer")
         }
-        val free = getFreeRegisterProvider(at + 1, 1, call.registerD, call.registerE).getFreeRegister4Bit()
+        // The launcher takes the context and intent after itself, an outlined helper takes them alone.
+        val (context, intent) = if (call.opcode == Opcode.INVOKE_STATIC) call.registerC to call.registerD else call.registerD to call.registerE
+        twinOf[call.calledMethod().toString()]?.let { replaceInstruction(at, "invoke-static { v$context, v$intent }, $it") }
+        val free = getFreeRegisterProvider(at + 1, 1, context, intent).getFreeRegister4Bit()
         addInstructions(
             at + 1,
             """
                 move-result v$free
-                invoke-static { v$free, v${call.registerD}, v${call.registerE} }, $OPEN_REFUSED_TILE
+                invoke-static { v$free, v$context, v$intent }, $OPEN_REFUSED_TILE
             """,
         )
     }
@@ -175,6 +237,19 @@ private fun Instruction.isTileLaunch(): Boolean {
     return called.returnType == "Z" &&
         called.parameterTypes.map(CharSequence::toString) == listOf("Landroid/content/Context;", "Landroid/content/Intent;")
 }
+
+/** A call to a static helper taking a context and an intent and answering nothing, which may be an outlined launch. */
+private fun Instruction.isOutlinedLaunch(): Boolean {
+    if (opcode != Opcode.INVOKE_STATIC) return false
+    val called = calledMethod()
+    return called.returnType == "V" &&
+        called.parameterTypes.map(CharSequence::toString) == listOf("Landroid/content/Context;", "Landroid/content/Intent;")
+}
+
+private fun Instruction.calledMethod() = (this as ReferenceInstruction).reference as MethodReference
+
+private fun Method.matches(reference: MethodReference) = name == reference.name && returnType == reference.returnType &&
+    parameterTypes.map(CharSequence::toString) == reference.parameterTypes.map(CharSequence::toString)
 
 private fun Instruction.launches(launcher: MethodReference) =
     opcode == Opcode.INVOKE_VIRTUAL && (this as ReferenceInstruction).reference == launcher

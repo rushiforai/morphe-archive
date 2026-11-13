@@ -1031,7 +1031,7 @@ internal const val FOLLOW_FEED_LIST_DESCRIPTOR = "Lcom/ss/android/ugc/aweme/foll
 
 /**
  * Latest first on Following (#226): TikTok writes the Following request's count as the literal 20
- * in the helper that calls the API. Right before each call (GET and POST) the extension may swap in
+ * in the helper that calls the API. Right before the call (POST, the only one since 47.7.3) the extension may swap in
  * a larger count for the first read of a list, so the posts that decide slot 0 arrive together. The
  * count is the fourth argument after the receiver: the follow request index, the cursor (a
  * long), the level, then the count, so the cursor through the count are four consecutive registers
@@ -1045,8 +1045,8 @@ internal fun MutableMethod.raiseFollowFeedFirstReadCount() {
                 (it.name == "followFeedGet" || it.name == "followFeedPost")
         } == true
     }
-    if (calls.size != 2) {
-        throw PatchException("Following first read: ${calls.size} Following API calls, expected 2")
+    if (calls.size != 1) {
+        throw PatchException("Following first read: ${calls.size} Following API calls, expected the POST alone")
     }
     calls.asReversed().forEach { (index, call) ->
         val range = call as? RegisterRangeInstruction

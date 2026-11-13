@@ -21,6 +21,7 @@ import android.view.WindowInsets;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ToggleButton;
 
 import androidx.annotation.Nullable;
@@ -40,6 +41,9 @@ import app.hushtelegram.extension.telegram.settings.Settings;
  *
  * <p>While the call records, the button shows how long the recording is so far, and a pause
  * button beside it leaves out what's said until it's tapped again, keeping one file (#72).
+ *
+ * <p>Voice chats and live streams get the same two buttons at the front of the row of buttons
+ * in their screen's top right corner, where they move and fade with that row (#72).
  */
 public final class CallRecordButton {
     private CallRecordButton() {}
@@ -56,11 +60,31 @@ public final class CallRecordButton {
             FrameLayout frame = (FrameLayout) screen;
             ImageView back = minimize(frame);
             int size = back != null ? back.getLayoutParams().width : dp(frame.getContext(), SIZE_DP);
-            frame.addView(new Dot(frame.getContext(), back), new FrameLayout.LayoutParams(size, size, Gravity.TOP | Gravity.LEFT));
-            frame.addView(new Pause(frame.getContext(), back), new FrameLayout.LayoutParams(size, size, Gravity.TOP | Gravity.LEFT));
+            frame.addView(new Dot(frame.getContext(), back, false), new FrameLayout.LayoutParams(size, size, Gravity.TOP | Gravity.LEFT));
+            frame.addView(new Pause(frame.getContext(), back, false), new FrameLayout.LayoutParams(size, size, Gravity.TOP | Gravity.LEFT));
             HookStatus.counted(FAMILY, back != null ? "call record button shown" : "call record button shown, no minimize arrow");
         } catch (Throwable failure) {
             HookStatus.threw(FAMILY, "call record button", failure);
+        }
+    }
+
+    /**
+     * Called with the voice chat or live stream screen's row of top right buttons, right before
+     * Telegram puts the row on the screen. The two buttons go first in it, as big as its others.
+     */
+    public static void attachRow(@Nullable View row) {
+        HookStatus.invoked(FAMILY);
+        try {
+            if (!(row instanceof LinearLayout) || !on() || find((ViewGroup) row) != null) return;
+            LinearLayout buttons = (LinearLayout) row;
+            View first = buttons.getChildCount() > 0 ? buttons.getChildAt(0) : null;
+            ViewGroup.LayoutParams like = first != null ? first.getLayoutParams() : null;
+            int size = like != null && like.width > 0 ? like.width : dp(buttons.getContext(), 48);
+            buttons.addView(new Dot(buttons.getContext(), null, true), 0, new LinearLayout.LayoutParams(size, size));
+            buttons.addView(new Pause(buttons.getContext(), null, true), 1, new LinearLayout.LayoutParams(size, size));
+            HookStatus.counted(FAMILY, "voice chat record button shown");
+        } catch (Throwable failure) {
+            HookStatus.threw(FAMILY, "voice chat record button", failure);
         }
     }
 
@@ -152,15 +176,18 @@ public final class CallRecordButton {
         };
         private String shown = "";
         @Nullable private final View back;
+        /** In a row of buttons, which places it, rather than over the call screen. */
+        private final boolean inRow;
         private final ViewTreeObserver.OnPreDrawListener follow = () -> {
             follow();
             return true;
         };
         private boolean recording;
 
-        Dot(Context context, @Nullable View back) {
+        Dot(Context context, @Nullable View back, boolean inRow) {
             super(context);
             this.back = back;
+            this.inRow = inRow;
             ring.setStyle(Paint.Style.STROKE);
             ring.setStrokeWidth(dp(context, 2));
             ring.setColor(Color.WHITE);
@@ -209,7 +236,7 @@ public final class CallRecordButton {
                     setTranslationX(back.getLeft() - getLeft());
                     setTranslationY(back.getBottom() - getTop());
                     setAlpha(back.getAlpha());
-                } else {
+                } else if (!inRow) {
                     WindowInsets insets = getRootWindowInsets();
                     setTranslationY(insets != null ? insets.getSystemWindowInsetTop() : 0);
                 }
@@ -260,15 +287,17 @@ public final class CallRecordButton {
         private final Paint fill = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final Path triangle = new Path();
         @Nullable private final View back;
+        private final boolean inRow;
         private final ViewTreeObserver.OnPreDrawListener follow = () -> {
             follow();
             return true;
         };
         private boolean paused;
 
-        Pause(Context context, @Nullable View back) {
+        Pause(Context context, @Nullable View back, boolean inRow) {
             super(context);
             this.back = back;
+            this.inRow = inRow;
             fill.setColor(Color.WHITE);
             setBackground(new RippleDrawable(ColorStateList.valueOf(0x4DFFFFFF), null, new ShapeDrawable(new OvalShape())));
             setVisibility(GONE);
@@ -307,7 +336,7 @@ public final class CallRecordButton {
                     setTranslationX(back.getLeft() + width - getLeft());
                     setTranslationY(back.getBottom() - getTop());
                     setAlpha(back.getAlpha());
-                } else {
+                } else if (!inRow) {
                     WindowInsets insets = getRootWindowInsets();
                     setTranslationX(width);
                     setTranslationY(insets != null ? insets.getSystemWindowInsetTop() : 0);

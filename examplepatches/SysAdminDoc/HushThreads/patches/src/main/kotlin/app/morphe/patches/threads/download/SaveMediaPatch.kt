@@ -339,14 +339,7 @@ internal fun BytecodePatchContext.saveRowSite(): SaveRowSite {
     val iconArguments = iconArgs.drop(2).map { menu.literalAt(iconAt, it, "icon flag") }
 
     // Copy link's click, which names the controller and how the menu closes.
-    val newAt = menu.reaching(clickAt, setOf(clickArgs[2])).writes.filter { body[it].opcode == Opcode.NEW_INSTANCE }
-        .singleOrNull() ?: throw PatchException("$PATCH: Copy link's click isn't one new object")
-    val click = body[newAt].getReference<TypeReference>()!!.type
-    val constructAt = (newAt + 1 until skipAt).firstOrNull { at ->
-        body[at].opcode.let { it == Opcode.INVOKE_DIRECT || it == Opcode.INVOKE_DIRECT_RANGE } &&
-            body[at].method()?.let { it.definingClass == click && it.name == "<init>" } == true
-    } ?: throw PatchException("$PATCH: Copy link's click is never constructed")
-    val constructor = body[constructAt].method()!!
+    val (click, constructor, caseAt) = copyLinkClick(menu, clickAt, clickArgs[2], skipAt)
     val constructorParams = constructor.parameterTypes.map { it.toString() }
     val clickClass = classDefByOrNull(click) ?: throw PatchException("$PATCH: Threads carries no $click")
     val intFields = clickClass.fields.filter { !AccessFlags.STATIC.isSet(it.accessFlags) && it.type == "I" }
@@ -357,7 +350,7 @@ internal fun BytecodePatchContext.saveRowSite(): SaveRowSite {
     if (constructorParams.count { it == "I" } != 1 || intFields.size != 1 || objectFields.size != 1 || !controllerCapture) {
         throw PatchException("$PATCH: Copy link's click isn't a merged lambda over one object: ${constructor.signature()}")
     }
-    val which = menu.literalAt(constructAt, body[constructAt].arguments()[1 + constructorParams.indexOf("I")], "click case")
+    val which = caseAt(constructorParams.indexOf("I"))
     val (controllerType, dismiss) = clickCase(click, intFields.single().name, objectFields.single().name, which)
 
     val fields = classDefBy(menu.definingClass).fields.filter { !AccessFlags.STATIC.isSet(it.accessFlags) }
@@ -370,6 +363,54 @@ internal fun BytecodePatchContext.saveRowSite(): SaveRowSite {
     listOf(site.row, site.role, site.clickModifier, site.style, site.icon, site.dismiss).forEach { requirePublic(it) }
     listOf(site.base, site.media, site.activity, site.controller).forEach { requirePublic(it) }
     return site
+}
+
+/**
+ * Copy link's click as the menu makes it for the click call at [clickAt], held in [register]: its
+ * type, its constructor, and the literal the menu passes as constructor parameter n. Most builds
+ * construct it in the menu before [skipAt]. Some 455 builds call a static factory of the click's own
+ * instead, which constructs it from its parameters, remembers it and hands it back.
+ */
+private fun BytecodePatchContext.copyLinkClick(
+    menu: Method, clickAt: Int, register: Int, skipAt: Int,
+): Triple<String, MethodReference, (Int) -> Int> {
+    val body = menu.body()
+    val writes = menu.reaching(clickAt, setOf(register)).writes
+    writes.filter { body[it].opcode == Opcode.NEW_INSTANCE }.singleOrNull()?.let { newAt ->
+        val click = body[newAt].getReference<TypeReference>()!!.type
+        val constructAt = (newAt + 1 until skipAt).firstOrNull { at ->
+            body[at].opcode.let { it == Opcode.INVOKE_DIRECT || it == Opcode.INVOKE_DIRECT_RANGE } &&
+                body[at].method()?.let { it.definingClass == click && it.name == "<init>" } == true
+        } ?: throw PatchException("$PATCH: Copy link's click is never constructed")
+        val constructor = body[constructAt].method()!!
+        return Triple(click, constructor) { n -> menu.literalAt(constructAt, body[constructAt].arguments()[1 + n], "click case") }
+    }
+    val factoryAt = writes.filter { body[it].opcode == Opcode.MOVE_RESULT_OBJECT && body[it - 1].isStaticCall() }.map { it - 1 }
+        .singleOrNull() ?: throw PatchException("$PATCH: Copy link's click isn't one new object")
+    val made = body[factoryAt].method()!!
+    val click = made.returnType
+    val factory = classDefByOrNull(click)?.methods?.singleOrNull {
+        it.name == made.name && it.parameterTypes.map { p -> p.toString() } == made.parameterTypes.map { p -> p.toString() } && it.returnType == click
+    } ?: throw PatchException("$PATCH: Copy link's click comes from ${made.definingClass}->${made.name}, not a factory of its own")
+    // new-instance, <init> from the parameters, perhaps the composer remembering it, return-object.
+    val code = factory.body().filter { it.opcode != Opcode.NOP }
+    val held = (code.firstOrNull() as? OneRegisterInstruction)?.registerA
+    val init = code.getOrNull(1)
+    val remembers = code.size == 4 && code[2].opcode.let { it == Opcode.INVOKE_INTERFACE || it == Opcode.INVOKE_VIRTUAL } &&
+        code[2].arguments().drop(1) == listOf(held)
+    if (made.definingClass != click || code.size !in 3..4 || code[0].opcode != Opcode.NEW_INSTANCE ||
+        code[0].getReference<TypeReference>()?.type != click || init == null ||
+        init.opcode.let { it != Opcode.INVOKE_DIRECT && it != Opcode.INVOKE_DIRECT_RANGE } ||
+        init.method()?.let { it.definingClass == click && it.name == "<init>" } != true || init.arguments().firstOrNull() != held ||
+        (code.size == 4 && !remembers) || code.last().opcode != Opcode.RETURN_OBJECT || (code.last() as OneRegisterInstruction).registerA != held
+    ) throw PatchException("$PATCH: Copy link's click factory ${factory.signature()} doesn't just make the click and hand it back")
+    val first = factory.implementation!!.registerCount - factory.parameterTypes.sumOf { width(it.toString()) }
+    val passed = body[factoryAt].arguments()
+    return Triple(click, init.method()!!) { n ->
+        val word = init.arguments()[1 + n] - first
+        if (word !in passed.indices) throw PatchException("$PATCH: Copy link's click factory doesn't take its case from the menu")
+        menu.literalAt(factoryAt, passed[word], "click case")
+    }
 }
 
 /**

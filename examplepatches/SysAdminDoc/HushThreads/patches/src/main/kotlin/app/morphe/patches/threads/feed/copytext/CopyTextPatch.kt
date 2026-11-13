@@ -19,7 +19,6 @@ import app.morphe.patches.threads.ads.sourceOrNull
 import app.morphe.patches.threads.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.threads.misc.extension.freeLocalsAt
 import app.morphe.patches.threads.misc.extension.localRegisterCount
-import app.morphe.patches.threads.misc.extension.parameterRegister
 import app.morphe.patches.threads.misc.extension.parameterRegisterNumber
 import app.morphe.patches.threads.misc.extension.requireParameterIntact
 import app.morphe.patches.threads.misc.extension.threadsExtensionPatch
@@ -36,6 +35,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import java.util.EnumSet
 
 private const val PATCH = "Copy text on long press"
@@ -89,7 +89,20 @@ internal class LongPressOverride(
 }
 
 /** PostText, [method], and its boolean [parameter] that turns text selection on, copied at [copy] and tested at [check]. */
-internal class SelectionFlag(val method: MutableMethod, val parameter: Int, val copy: Int, val check: Int)
+internal class SelectionFlag(val method: MutableMethod, val parameter: Int, val copy: Int, val check: Int) {
+    /**
+     * The hook put first thing in [method]. `move-result` names 8 bits, and some 455 builds hold the
+     * flag in v262, so a flag above v255 comes back through v0, which nothing holds yet at entry.
+     */
+    fun hook(): String {
+        val flag = method.parameterRegisterNumber(parameter)
+        val answer = if (flag > 255) "move-result v0\nmove/16 v$flag, v0" else "move-result v$flag"
+        return """
+            invoke-static/range { v$flag .. v$flag }, $SELECTION
+            $answer
+        """
+    }
+}
 
 /**
  * Gives an opened post's long press back its Copy text sheet, and keeps Threads' word selection
@@ -126,14 +139,7 @@ internal val copyTextPatch = bytecodePatch {
             )
         }
 
-        val flag = selection.method.parameterRegister(selection.parameter)
-        selection.method.addInstructions(
-            0,
-            """
-                invoke-static/range { $flag .. $flag }, $SELECTION
-                move-result $flag
-            """,
-        )
+        selection.method.addInstructions(0, selection.hook())
     }
 }
 
@@ -194,7 +200,7 @@ private fun MutableMethod.overrideAt(guard: Int): LongPressOverride {
     } ?: throw PatchException("$PATCH: the override check at $guard in ${method.signature()} doesn't read only the " +
         "lambda's own override")
     val action = method.overrideAction(flow, guard)!!
-    if (action.definingClass != flow.instructions[read].getReference<FieldReference>()!!.type) {
+    if (!method.readsOwnAs(read, action.definingClass)) {
         throw PatchException("$PATCH: the override check at $guard in ${method.signature()} reads $action from " +
             "another type than the override it read at $read")
     }
@@ -237,10 +243,28 @@ private fun Method.overrideAction(flow: ControlFlow, guard: Int): FieldReference
     return null
 }
 
-/** Whether the lambda's class reads a field of its own of [type] anywhere in this method. */
-private fun Method.ownsFieldOf(type: String): Boolean = implementation!!.instructions.any { instruction ->
-    instruction.opcode == Opcode.IGET_OBJECT &&
-        instruction.getReference<FieldReference>()?.let { it.definingClass == definingClass && it.type == type } == true
+/** Whether the lambda's class reads a field of its own as [type] anywhere in this method. */
+private fun Method.ownsFieldOf(type: String): Boolean {
+    val body = body()
+    return body.indices.any { readsOwnAs(body, it, type) }
+}
+
+/**
+ * Whether [at] reads a field of the lambda's own class as [type]: a field of that type, or, in a
+ * lambda class 455 merged for several lambdas, an `Object` field cast to it right after.
+ */
+private fun Method.readsOwnAs(at: Int, type: String) = readsOwnAs(body(), at, type)
+
+private fun Method.readsOwnAs(body: List<Instruction>, at: Int, type: String): Boolean {
+    val read = body[at]
+    if (read.opcode != Opcode.IGET_OBJECT) return false
+    val field = read.getReference<FieldReference>() ?: return false
+    if (field.definingClass != definingClass) return false
+    if (field.type == type) return true
+    val cast = body.getOrNull(at + 1) ?: return false
+    return field.type == "Ljava/lang/Object;" && cast.opcode == Opcode.CHECK_CAST &&
+        (cast as OneRegisterInstruction).registerA == (read as TwoRegisterInstruction).registerA &&
+        cast.getReference<TypeReference>()?.type == type
 }
 
 /**

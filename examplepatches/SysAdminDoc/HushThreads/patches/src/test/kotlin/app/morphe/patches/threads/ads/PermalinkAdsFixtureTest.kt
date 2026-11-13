@@ -42,16 +42,17 @@ import java.io.File
 class PermalinkAdsFixtureTest {
     private val feedAds = "$EXTENSION_PACKAGE/ads/FeedAds;"
     private val useCase = "Lcom/instagram/barcelona/permalink/adsusecase/PermalinkAdsUseCase;"
-    /** The result type each 454 build makes, by version code. */
+    /** The result type each 455 build makes, by version code. */
     private val adResults = mapOf(
-        "512408621" to "LX/4Zu;",
-        "512408622" to "LX/4Yv;",
-        "512408625" to "LX/4Zu;",
-        "512408635" to "LX/4ZY;",
-        "512408636" to "LX/4Zu;",
-        "512408645" to "LX/4ZY;",
-        "512408647" to "LX/4Yv;",
-        "512408648" to "LX/4Zu;",
+        "512508344" to "LX/4YJ;",
+        "512508348" to "LX/4YJ;",
+        "512508358" to "LX/4WL;",
+        "512508359" to "LX/4WG;",
+        "512508360" to "LX/4XD;",
+        "512508368" to "LX/4XE;",
+        "512508369" to "LX/4YJ;",
+        "512508370" to "LX/4XH;",
+        "512508371" to "LX/4YJ;",
     )
 
     @Test
@@ -65,10 +66,10 @@ class PermalinkAdsFixtureTest {
             val body = stock.single().instructions()
             val at = stock.single().permalinkAdResult()
 
-            // Read off each 454 build apart from the patch: the loop adds each ad it reads to v6, the
-            // size of what the server sent is read at 115 and 116, and the result is made at 117 and 118.
+            // Read off each 455 build apart from the patch: the loop adds each ad it reads to v6, the
+            // size of what the server sent is read at 122 and 123, and the result is made at 124 and 125.
             val expectedResult = adResults.entries.single { build.name.contains("-${it.key}.") }.value
-            assertEquals(where, 117, at.index)
+            assertEquals(where, 124, at.index)
             assertEquals(where, 6, at.list)
             assertEquals(where, expectedResult, at.result)
             assertTrue("$where: the loop adds each ad to v${at.list}", body.any {

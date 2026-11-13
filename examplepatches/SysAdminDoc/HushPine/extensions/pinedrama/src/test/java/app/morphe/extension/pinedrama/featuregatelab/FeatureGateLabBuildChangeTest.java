@@ -29,17 +29,17 @@ import org.robolectric.annotation.Config;
  * the catalogs say its gate is still the same gate.
  *
  * <p>The bundle declares only the newest build, so the build a user moves from is no longer in
- * the catalog: 47.4.3, which 47.6.3 replaced, stands for it here. The gates below are 47.6.3's:
+ * the catalog: 47.4.3, an older build, stands for it here. The gates below are 47.7.3's:
  * 28_max_limit_count_daily, low_memory_kill_monitor, AWEDanmakuSupportMask and the
  * lynxview_command_blacklist read (a String[] model) are in its catalog; comment_cell_badge_dedup
  * isn't; and the SettingsManager read drama_innerfeed_lynxcard_delete_card_on_error_config has a
- * model class R8 renamed (X.1AM on 47.6.3).
+ * model class R8 renames every build.
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 28)
 public class FeatureGateLabBuildChangeTest {
     private static final String DROPPED = "47.4.3";
-    private static final String DECLARED = "47.6.3";
+    private static final String DECLARED = "47.7.3";
 
     @Rule public final SettingsContextRule settings = new SettingsContextRule();
 
@@ -99,7 +99,7 @@ public class FeatureGateLabBuildChangeTest {
         assertTrue(enabled("player_config", "AWEDanmakuSupportMask", "BOOLEAN"));
         assertTrue("a SettingsManager read whose model keeps its name",
                 enabled("settings_manager", "lynxview_command_blacklist", "OBJECT"));
-        assertFalse("a gate 47.6.3 doesn't have", enabled("abmock", "comment_cell_badge_dedup", "BOOLEAN"));
+        assertFalse("a gate 47.7.3 doesn't have", enabled("abmock", "comment_cell_badge_dedup", "BOOLEAN"));
         assertFalse("a SettingsManager model R8 renamed",
                 enabled("settings_manager", "drama_innerfeed_lynxcard_delete_card_on_error_config", "OBJECT"));
         assertFalse("a type the catalog doesn't carry", enabled("abmock", "28_max_limit_count_daily", "LONG"));
@@ -150,7 +150,7 @@ public class FeatureGateLabBuildChangeTest {
         BuildNames.setRunningBuildForTests(DECLARED);
         FeatureGateLabRuntime.reloadRules();
         assertFalse(Utils.isMainProcess());
-        assertEquals("a rule stored for 47.4.3 applied in a 47.6.3 process that hadn't checked it",
+        assertEquals("a rule stored for 47.4.3 applied in a 47.7.3 process that hadn't checked it",
                 5, FeatureGateLabRuntime.overrideInt("28_max_limit_count_daily", 5));
         assertFalse(FeatureGateLabRuntime.overrideBoolean("comment_cell_badge_dedup", false));
 
@@ -208,7 +208,7 @@ public class FeatureGateLabBuildChangeTest {
         assertTrue(enabled("player_config", "AWEDanmakuSupportMask", "BOOLEAN"));
         assertTrue("a SettingsManager read whose model keeps its name",
                 enabled("settings_manager", "lynxview_command_blacklist", "OBJECT"));
-        assertFalse("a gate 47.6.3 doesn't have", enabled("abmock", "comment_cell_badge_dedup", "BOOLEAN"));
+        assertFalse("a gate 47.7.3 doesn't have", enabled("abmock", "comment_cell_badge_dedup", "BOOLEAN"));
         assertFalse("a SettingsManager model R8 renamed",
                 enabled("settings_manager", "drama_innerfeed_lynxcard_delete_card_on_error_config", "OBJECT"));
         assertFalse(enabled("abmock", "comment_cell_bind_dedup", "BOOLEAN"));

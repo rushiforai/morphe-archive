@@ -284,6 +284,9 @@ The name under the app's icon.	應用程式圖示下方顯示的名稱。
 the new app name	新的應用程式名稱
 Hide screenshots from Threads	不讓 Threads 偵測螢幕截圖
 Threads isn't told when you take a screenshot, so it can't log it or react to it.	截圖時不會通知 Threads，因此它無法記錄或回應截圖。
+Spoof SIM region	偽裝 SIM 卡地區
+Threads sees your SIM and network as the region picked below. Meta can still go by your connection and your account. Restart Threads to see the change.	Threads 會把你的 SIM 卡和網路視為下方所選的地區。Meta 仍可能依你的連線和帳號判斷。重新啟動 Threads 以查看變更。
+SIM region	SIM 卡地區
 Full size photos	完整尺寸相片
 Photos load at the largest size Threads has, not one picked for your screen. They look sharper and use more data.	相片會以 Threads 提供的最大尺寸載入，而非依螢幕選擇的尺寸。畫面會更清晰，但會使用更多流量。
 No swipe into Search	禁止滑動進入搜尋
@@ -343,6 +346,8 @@ Threads needs the Storage permission to save on Android 9. Turn it on in Threads
 Not saved: the download was too slow. Try a faster connection.	未儲存：下載速度太慢。請嘗試較快的連線。
 Hide follow suggestions in Search	隱藏搜尋中的追蹤建議
 Takes the Follow suggestions row off the Search screen. Your searches and topics stay.	移除搜尋畫面中的「追蹤建議」列。你的搜尋與主題不受影響。
+Hide suggested threads	隱藏推薦貼文串
+Takes the suggested threads off the bottom of a post you open. The post and its replies stay.	移除你開啟的貼文底部的推薦貼文串。貼文與回覆不受影響。
 # A save stopped because a proxy server on the phone's network (Wi-Fi or global proxy setting) asked for a user name and password: the toast. HushThreads never sends one for a download. Android 12 and later cut a toast after two lines, so it stays short.
 Not saved: the proxy wants a password. Try another network.	未儲存：代理伺服器要求密碼。請嘗試其他網路。
 # The same, as an extra line under a carousel's 'Saved %1$d. Failed %2$d. Skipped %3$d.' summary. Android 12 and later cut a toast after two lines, so it stays short.

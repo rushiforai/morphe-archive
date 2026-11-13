@@ -407,7 +407,7 @@ public final class ModernUi {
 
     private static void commitAccent(Context context, String accent) {
         SharedPreferences.Editor editor = getPrefs(context).edit().putString(KEY_ACCENT, accent);
-        if (!ACCENT_AMOLED.equalsIgnoreCase(accent)) editor.putBoolean(KEY_AMOLED, false);
+        editor.putBoolean(KEY_AMOLED, ACCENT_AMOLED.equalsIgnoreCase(accent));
         editor.commit();
         forgetTheme();
     }
@@ -512,11 +512,13 @@ public final class ModernUi {
         float density = activity.getResources().getDisplayMetrics().density;
         String[] styles = {
                 ACCENT_BLUE, ACCENT_TEAL, ACCENT_PURPLE, ACCENT_CORAL,
-                ACCENT_MINT, ACCENT_GOLD, ACCENT_AMBER, ACCENT_BLACK
+                ACCENT_MINT, ACCENT_GOLD, ACCENT_AMBER, ACCENT_BLACK,
+                ACCENT_MONET, ACCENT_AMOLED
         };
         int[] colors = {
                 COLOR_BLUE, COLOR_TEAL, COLOR_PURPLE, COLOR_CORAL,
-                COLOR_MINT, COLOR_GOLD, COLOR_AMBER, 0xFF141618
+                COLOR_MINT, COLOR_GOLD, COLOR_AMBER, 0xFF141618,
+                0xFF8AB4F8, 0xFF000000
         };
         final String[] chosen = { getMaterialAccent(activity) };
         LinearLayout page = MorpheDialog.page(activity, "Theme", null);
@@ -589,10 +591,20 @@ public final class ModernUi {
 
         AlertDialog[] shown = new AlertDialog[1];
         View[] dots = new View[styles.length];
-        LinearLayout row = new LinearLayout(activity);
-        row.setOrientation(LinearLayout.HORIZONTAL);
+        LinearLayout swatches = new LinearLayout(activity);
+        swatches.setOrientation(LinearLayout.VERTICAL);
         int dot = Math.round(28 * density);
+        int perRow = 5;
+        LinearLayout row = null;
         for (int i = 0; i < styles.length; i++) {
+            if (i % perRow == 0) {
+                row = new LinearLayout(activity);
+                row.setOrientation(LinearLayout.HORIZONTAL);
+                LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                if (i > 0) rowParams.topMargin = Math.round(8 * density);
+                swatches.addView(row, rowParams);
+            }
             View swatch = new View(activity);
             int index = i;
             swatch.setOnClickListener(v -> {
@@ -602,12 +614,12 @@ public final class ModernUi {
                 if (changed != null) changed.run();
             });
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(dot, dot);
-            params.leftMargin = i == 0 ? 0 : Math.round(8 * density);
+            params.leftMargin = i % perRow == 0 ? 0 : Math.round(8 * density);
             params.topMargin = Math.round(14 * density);
             row.addView(swatch, params);
             dots[i] = swatch;
         }
-        page.addView(row);
+        page.addView(swatches);
         Runnable paint = () -> paintThemeSample(shown[0], heading, mockNote, caption, sample, name, about, chip, tab, other, post, title, meta, thumb, dots, styles, colors, chosen[0]);
         TextView close = MorpheDialog.action(activity, "Close", MorpheDialog.SUB);
         close.setOnClickListener(v -> {
@@ -732,7 +744,9 @@ public final class ModernUi {
             GradientDrawable circle = new GradientDrawable();
             circle.setShape(GradientDrawable.OVAL);
             circle.setColor(colors[i]);
-            if (colors[i] == 0xFF141618) circle.setStroke(Math.max(1, Math.round(density)), 0xFF94A3B8);
+            if (colors[i] == 0xFF141618 || colors[i] == 0xFF000000) {
+                circle.setStroke(Math.max(1, Math.round(density)), 0xFF94A3B8);
+            }
             if (styles[i].equalsIgnoreCase(chosen)) circle.setStroke(Math.round(2 * density), 0xFFF8FAFC);
             dots[i].setBackground(circle);
         }

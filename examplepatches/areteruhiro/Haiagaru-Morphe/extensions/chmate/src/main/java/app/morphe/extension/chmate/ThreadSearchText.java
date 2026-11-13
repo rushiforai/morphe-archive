@@ -5,6 +5,7 @@ import java.util.regex.*;
 public final class ThreadSearchText {
     private static final java.util.Map<Matcher,Pattern> SOURCES=java.util.Collections.synchronizedMap(new java.util.WeakHashMap<>());
     private static final java.util.Map<Matcher,CharSequence> HIGHLIGHTS=java.util.Collections.synchronizedMap(new java.util.WeakHashMap<>());
+    private static final java.util.Map<Pattern,java.util.List<Pattern>> SLIP_TERMS=java.util.Collections.synchronizedMap(new java.util.WeakHashMap<>());
     private static final Pattern HEADER_DATE=Pattern.compile("(?<![0-9/])(?:20[0-9]{2}/)?[0-9]{1,2}/[0-9]{1,2}(?:[（(][日月火水木金土][）)])?(?:[ \\t]+[0-9]{1,2}:[0-9]{2}(?::[0-9]{2}(?:\\.[0-9]+)?)?)?");
     public static Matcher resetHighlight(Matcher matcher, CharSequence text) {
         HIGHLIGHTS.put(matcher,text);
@@ -41,12 +42,11 @@ public final class ThreadSearchText {
             Matcher matcher=WACCHOI.matcher(source);while(matcher.find()){
                 result.append(matcher.group()).append('\n');
                 int end=matcher.end();
-                if(end<source.length()&&(source.charAt(end)==')'||source.charAt(end)=='）')){
-                    int begin=Math.max(source.lastIndexOf('(',matcher.start()),source.lastIndexOf('（',matcher.start()));
-                    String prefix=begin<0?"":source.substring(begin,matcher.start());
-                    if(begin<0||prefix.length()>80||prefix.indexOf('\n')>=0||prefix.indexOf(')')>=0||prefix.indexOf('）')>=0||prefix.indexOf('[')>=0)begin=matcher.start();
-                    result.append(source,begin,end+1).append('\n');
-                }
+                boolean closing=end<source.length()&&(source.charAt(end)==')'||source.charAt(end)=='）');
+                int begin=Math.max(source.lastIndexOf('(',matcher.start()),source.lastIndexOf('（',matcher.start()));
+                String prefix=begin<0?"":source.substring(begin,matcher.start());
+                if(begin<0||prefix.length()>80||prefix.indexOf('\n')>=0||prefix.indexOf(')')>=0||prefix.indexOf('）')>=0||prefix.indexOf('[')>=0)begin=matcher.start();
+                if(begin<matcher.start()||closing)result.append(source,begin,closing?end+1:end).append('\n');
             }
         }
         if(ThreadSearchOptions.enabled(ThreadSearchOptions.ID)){
@@ -60,6 +60,12 @@ public final class ThreadSearchText {
     public static Matcher reset(Matcher original,Object response){
         Pattern source=SOURCES.get(original);if(source==null)source=original.pattern();
         String query=source.pattern();String body=text(response);
+        java.util.List<Pattern> slipTerms = nativeSlipTerms(source);
+        if (slipTerms != null) {
+            boolean match = true;
+            for (Pattern term : slipTerms) if (!term.matcher(body).find()) { match = false; break; }
+            Matcher result=Pattern.compile(match?"":"(?!)").matcher(body);SOURCES.put(result,source);return result;
+        }
         // Native regex remains the fallback. Plain multiword searches use AND across fields.
         if(query.indexOf(' ')>=0&&query.matches("[\\p{L}\\p{N}_:./+ -]+")){
             String[] terms=query.trim().split("(?i)\\s+(?:AND\\s+)?");boolean match=true;
@@ -68,6 +74,45 @@ public final class ThreadSearchText {
             Matcher result=Pattern.compile(match?"":"(?!)").matcher(body);SOURCES.put(result,source);return result;
         }
         Matcher result=source.matcher(body);return result;
+    }
+    /** Native literal search expands each character and joins space-separated words with OR.
+     * A Wacchoi header label alone must never make every other Wacchoi pass the filter. */
+    private static java.util.List<Pattern> nativeSlipTerms(Pattern source) {
+        java.util.List<Pattern> cached = SLIP_TERMS.get(source);
+        if (cached == null) {
+            cached = parseNativeSlipTerms(source);
+            if (cached == null) cached = java.util.Collections.emptyList();
+            SLIP_TERMS.put(source, cached);
+        }
+        return cached.isEmpty() ? null : cached;
+    }
+    private static java.util.List<Pattern> parseNativeSlipTerms(Pattern source) {
+        String regex = source.pattern();
+        java.util.List<Pattern> terms = new java.util.ArrayList<>();
+        int start = 0;
+        for (int i = 0; i < regex.length();) {
+            if (regex.startsWith("\\Q", i)) {
+                int end = regex.indexOf("\\E", i + 2);
+                if (end < 0) return null;
+                i = end + 2;
+            } else if (regex.charAt(i) == '[') {
+                int end = regex.indexOf(']', i + 1);
+                if (end < 0 || regex.substring(i + 1, end).indexOf('[') >= 0) return null;
+                i = end + 1;
+            } else if (regex.charAt(i) == '|') {
+                if (i == start) return null;
+                terms.add(Pattern.compile(regex.substring(start, i), source.flags()));
+                start = ++i;
+            } else return null; // Do not reinterpret user regular expressions.
+        }
+        if (terms.isEmpty() || start == regex.length()) return null;
+        terms.add(Pattern.compile(regex.substring(start), source.flags()));
+        boolean slipLabel=false;
+        for (Pattern term : terms) for (String label : new String[]{"(ﾜｯﾁｮｲ", "（ﾜｯﾁｮｲ", "ﾜｯﾁｮｲ"})
+            if (term.matcher(label).matches()) slipLabel=true;
+        if(!slipLabel)return null;
+        terms.removeIf(value -> value.matcher("AND").matches());
+        return terms;
     }
     private ThreadSearchText(){}
 }

@@ -17,6 +17,7 @@ import app.morphe.extension.tiktok.settings.preference.ChoicePreference;
 import app.morphe.extension.tiktok.settings.preference.ImportedFontPreference;
 import app.morphe.extension.tiktok.settings.preference.InputTextPreference;
 import app.morphe.extension.tiktok.settings.preference.ProfileShortcutChecklistPreference;
+import app.morphe.extension.tiktok.settings.preference.ProfileTabChecklistPreference;
 import app.morphe.extension.tiktok.settings.preference.LocalProfileCountsPreference;
 import app.morphe.extension.tiktok.settings.preference.SectionHeadingPreference;
 import app.morphe.extension.tiktok.settings.preference.TogglePreference;
@@ -319,6 +320,9 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                             + "such as TikTok Studio or Your orders. Restart TikTok to apply this.",
                     Settings.HIDDEN_PROFILE_SHORTCUTS
             ));
+            if (SettingsStatus.profileTabsEnabled) {
+                addPreference(new ProfileTabChecklistPreference(context));
+            }
             if (SettingsStatus.profileThoughtsEnabled) {
                 addPreference(new TogglePreference(
                         context,
@@ -477,7 +481,7 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                 "Hide the Hushfeed row",
                 "Take Hushfeed out of TikTok's Settings and privacy. To open these settings, press "
                         + "and hold For You at the top of the feed, or Home if Long-press Home for "
-                        + "Hushfeed settings is on.",
+                        + "Hushfeed settings is on. If neither press can open them, the row stays.",
                 Settings.HIDE_SETTINGS_ROW
         ));
         // Shown from the same start of TikTok's main screen as the settings row, so every bundle has it.

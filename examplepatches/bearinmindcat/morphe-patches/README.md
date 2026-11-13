@@ -14,7 +14,7 @@ Select the app you want to patch inside Morphe Manager, follow all instructions 
 ## Patches
 
 <!-- PATCHES_START -->
-> **[v2.9.4](https://github.com/bearinmindcat/morphe-patches/releases/tag/v2.9.4)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;186 patches total
+> **[v2.9.6](https://github.com/bearinmindcat/morphe-patches/releases/tag/v2.9.6)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;189 patches total
 <details>
 <summary><img src="docs/icons/pin-google.png" width="20" height="20" align="top"> Google Maps&nbsp;&nbsp;-&gt;&nbsp;&nbsp;<img src="docs/icons/pin-ungoogled.png" width="20" height="20" align="top"> Ungoogled Maps&nbsp;&nbsp;•&nbsp;&nbsp;32 patches</summary>
 <br>
@@ -115,7 +115,7 @@ Select the app you want to patch inside Morphe Manager, follow all instructions 
 
 | Patch | Description | Options |
 |----------|----------------|-----------|
-| [Alert distances](#alert-distances) | How early each alert is announced. | • Police<br>• Hazards<br>• Crashes<br>• Traffic jams<br>• Speed cameras on streets<br>• Speed cameras on highways<br>• Speed cameras on freeways<br>• Blocked lanes<br>• Least distance between two alerts |
+| [Alert distances](#alert-distances) | How early each alert is announced. | • Police<br>• Speed cameras<br>• Hazards<br>• Crashes<br>• Traffic jams<br>• Enforcement zones on streets<br>• Enforcement zones on highways<br>• Enforcement zones on freeways<br>• Blocked lanes<br>• Least distance between two alerts |
 | [All moods](#all-moods) | Unlocks every mood, beta ones too. |  |
 | [Average speed zone bar](#average-speed-zone-bar) | Bar with progress and your average speed in an average speed zone, Android Auto too. Off until switched on. | • Position |
 | [Bigger alert pins](#bigger-alert-pins) | Bigger alert pins on the map. | • Pin size (%) |
@@ -272,7 +272,7 @@ Select the app you want to patch inside Morphe Manager, follow all instructions 
 </details>
 
 <details>
-<summary>📱 Samsung Apps&nbsp;&nbsp;•&nbsp;&nbsp;28 apps&nbsp;&nbsp;•&nbsp;&nbsp;53 patches</summary>
+<summary>📱 Samsung Apps&nbsp;&nbsp;•&nbsp;&nbsp;30 apps&nbsp;&nbsp;•&nbsp;&nbsp;55 patches</summary>
 <br>
 <blockquote>
 
@@ -338,6 +338,18 @@ Select the app you want to patch inside Morphe Manager, follow all instructions 
 </details>
 
 <details>
+<summary><img src="docs/icons/samsung-editor-lite.png" width="20" height="20" align="top"> Samsung Editor Lite&nbsp;&nbsp;-&gt;&nbsp;&nbsp;<img src="docs/icons/samsung-editor-lite.png" width="20" height="20" align="top"> Samsung Editor Lite&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported version(s):** 4.0.85.20 — needs Android 14 or newer
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable non-One UI ROM support](#enable-non-one-ui-rom-support) | Makes Samsung Editor Lite usable on non-One UI ROMs. |  |
+
+</details>
+
+<details>
 <summary><img src="docs/icons/samsung-email.png" width="20" height="20" align="top"> Samsung Email&nbsp;&nbsp;-&gt;&nbsp;&nbsp;<img src="docs/icons/samsung-email.png" width="20" height="20" align="top"> Samsung Email&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
@@ -346,6 +358,18 @@ Select the app you want to patch inside Morphe Manager, follow all instructions 
 | Patch | Description | Options |
 |----------|----------------|-----------|
 | [Enable non-One UI ROM support](#enable-non-one-ui-rom-support) | Makes Samsung Email usable on non-One UI ROMs. |  |
+
+</details>
+
+<details>
+<summary><img src="docs/icons/samsung-finder.png" width="20" height="20" align="top"> Samsung Finder&nbsp;&nbsp;-&gt;&nbsp;&nbsp;<img src="docs/icons/samsung-finder.png" width="20" height="20" align="top"> Samsung Finder&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported version(s):** 10.2.13.0 — needs Android 10 or newer
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable non-One UI ROM support](#enable-non-one-ui-rom-support) | Makes Samsung Finder installable and usable on non-One UI ROMs. |  |
 
 </details>
 
@@ -995,7 +1019,7 @@ Select the app you want to patch inside Morphe Manager, follow all instructions 
 </details>
 
 <details>
-<summary>📱 ColorOS Apps&nbsp;&nbsp;•&nbsp;&nbsp;12 apps&nbsp;&nbsp;•&nbsp;&nbsp;14 patches</summary>
+<summary>📱 ColorOS Apps&nbsp;&nbsp;•&nbsp;&nbsp;12 apps&nbsp;&nbsp;•&nbsp;&nbsp;15 patches</summary>
 <br>
 <blockquote>
 
@@ -1012,12 +1036,13 @@ Select the app you want to patch inside Morphe Manager, follow all instructions 
 </details>
 
 <details>
-<summary><img src="docs/icons/coloros-camera.png" width="20" height="20" align="top"> OnePlus Camera&nbsp;&nbsp;-&gt;&nbsp;&nbsp;<img src="docs/icons/coloros-camera.png" width="20" height="20" align="top"> OnePlus Camera&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<summary><img src="docs/icons/coloros-camera.png" width="20" height="20" align="top"> OnePlus Camera&nbsp;&nbsp;-&gt;&nbsp;&nbsp;<img src="docs/icons/coloros-camera.png" width="20" height="20" align="top"> OnePlus Camera&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
 
 | Patch | Description | Options |
 |----------|----------------|-----------|
 | [No background running](#no-background-running) | Stops the camera's processing service once photos are saved. Root (mount) install only. |  |
+| [Open photos in your gallery app](#open-photos-in-your-gallery-app) | Opens photos in your gallery app when OPPO's gallery is disabled or removed. Root (mount) install only. |  |
 | [Remove telemetry](#remove-telemetry) | Stops usage statistics and automatic log reports to OPPO. Root (mount) install only. |  |
 
 </details>

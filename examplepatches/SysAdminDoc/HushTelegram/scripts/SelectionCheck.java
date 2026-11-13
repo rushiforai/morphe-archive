@@ -60,6 +60,8 @@ public final class SelectionCheck {
     private static final String PUSH_SIGN_UP = "Lorg/telegram/messenger/PushListenerController;->sendRegistrationToServer(ILjava/lang/String;)V";
     private static final String ATTACH_NAME = "Lorg/telegram/messenger/FileLoader;->getAttachFileName(Lorg/telegram/tgnet/TLObject;)Ljava/lang/String;";
     private static final String REMOVE_FILTER = "Lorg/telegram/messenger/MessagesController;->removeFilter(Lorg/telegram/messenger/MessagesController$DialogFilter;)V";
+    private static final String DELETE_REQUEST = "Lorg/telegram/tgnet/tl/TL_account$deleteAccount;";
+    private static final String SEND_REQUEST = CONNECTIONS + "->sendRequest(Lorg/telegram/tgnet/TLObject;Lorg/telegram/tgnet/RequestDelegate;I)I";
 
     static final class Expected {
         boolean settings, links, api, maps, icon, push;
@@ -506,6 +508,8 @@ public final class SelectionCheck {
         hook(calls, flags, "lyrics", "misc/Lyrics", "anchor", "menu");
         hook(calls, flags, "songDates", "misc/SongDates", "saving", "author");
         hook(calls, flags, "chatPreviewButtons", "misc/ChatPreview", "menu");
+        hook(calls, flags, "chatRevealMenu", "misc/ChatReveal", "headerMenu", "headerClick");
+        hook(calls, flags, "searchHitQuotes", "misc/ChatReveal", "searchHit");
         for (String[] bridge : List.of(
                 new String[]{"nativeTokenPresence", names.method("Lorg/telegram/messenger/SharedConfig;->hushTelegramTokenPresence()I")},
                 new String[]{"nativeAccountCounts", names.method("Lorg/telegram/messenger/UserConfig;->hushTelegramAccountCounts()I")})) {
@@ -546,6 +550,19 @@ public final class SelectionCheck {
         boolean deleteLinked = removes == 1 && delete.get(delete.size() - 1).getOpcode() == Opcode.RETURN_VOID;
         require(deleteLinked == Boolean.TRUE.equals(flags.get("chatTypeFolders")));
         if (deleteLinked) method(types, removeFilter);
+        // Delete account has no hook either: one stub builds account.deleteAccount and another sends it.
+        List<Instruction> request = instructions(method(types, OWN + "telegram/misc/DeleteAccount;->request(Ljava/lang/String;)Ljava/lang/Object;"));
+        boolean requestLinked = !request.isEmpty() && request.get(0).getOpcode() == Opcode.NEW_INSTANCE
+                && request.get(0) instanceof ReferenceInstruction built
+                && built.getReference().toString().equals(names.type(DELETE_REQUEST));
+        String sendRequest = names.method(SEND_REQUEST);
+        long sends = instructions(method(types, OWN + "telegram/misc/DeleteAccount;->sendRequest(ILjava/lang/Object;Ljava/lang/Object;)Z"))
+                .stream().filter(instruction -> instruction.getOpcode() == Opcode.INVOKE_VIRTUAL
+                        && instruction instanceof ReferenceInstruction call
+                        && call.getReference().toString().equals(sendRequest)).count();
+        require(requestLinked == (sends == 1));
+        require(requestLinked == Boolean.TRUE.equals(flags.get("deleteAccount")));
+        if (requestLinked) method(types, sendRequest);
     }
 
     private static int apiChanges(Map<String, ClassDef> before, Map<String, ClassDef> after, Expected expected, Names names) {

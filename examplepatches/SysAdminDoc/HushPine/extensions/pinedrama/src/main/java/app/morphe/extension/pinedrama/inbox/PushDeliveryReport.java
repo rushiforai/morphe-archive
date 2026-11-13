@@ -76,7 +76,7 @@ public final class PushDeliveryReport implements LogBufferManager.ReportSection 
         nativeProfile = 1;
         install();
         try {
-            HookStatus.bound("Push delivery diagnostics", "global 47.6.3 native anchors");
+            HookStatus.bound("Push delivery diagnostics", "global 47.7.3 native anchors");
             HookStatus.runsWhilePaused("Push delivery diagnostics");
         } catch (RuntimeException | LinkageError failure) { unavailable(Problem.PROFILE_REGISTRATION); }
     }

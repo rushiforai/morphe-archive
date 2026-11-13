@@ -33,8 +33,8 @@ import java.util.WeakHashMap;
  * every screen.
  *
  * The bottom navigation tabs carry their selected state, so the Home tab being selected
- * is a reliable and cheap signal. On PineDrama 47.6.3 the bottom navigation ids are hs7 Home,
- * hs8 Inbox and hs9 Profile.
+ * is a reliable and cheap signal. On PineDrama 47.7.3 the bottom navigation ids are hur Home,
+ * hus Inbox and hut Profile.
  *
  * <p>Selected is not enough on its own. A creator's profile opened from the feed by the name
  * or the avatar is a page of the same horizontal pager as the feed, and the pager scrolls the
@@ -43,12 +43,12 @@ import java.util.WeakHashMap;
  * {@link View#isShown} does not check: it reads visibility flags up the tree and nothing else.
  */
 public final class FeedVisibility {
-    private static final String[] HOME_TAB_RESOURCE_NAMES = {"47.6.3:hs7"};
+    private static final String[] HOME_TAB_RESOURCE_NAMES = {"47.7.3:hur"};
     /** Read off the live bottom bar (#156). */
-    private static final String[] INBOX_TAB_RESOURCE_NAMES = {"47.6.3:hs8"};
-    private static final String[] PROFILE_TAB_RESOURCE_NAMES = {"47.6.3:hs9"};
-    private static final String[] COMMENT_SHEET_RESOURCE_NAMES = {"47.6.3:idd"};
-    private static final String[] COMMENT_TITLE_RESOURCE_NAMES = {"47.6.3:m6k"};
+    private static final String[] INBOX_TAB_RESOURCE_NAMES = {"47.7.3:hus"};
+    private static final String[] PROFILE_TAB_RESOURCE_NAMES = {"47.7.3:hut"};
+    private static final String[] COMMENT_SHEET_RESOURCE_NAMES = {"47.7.3:ig0"};
+    private static final String[] COMMENT_TITLE_RESOURCE_NAMES = {"47.7.3:mbq"};
     // Built once: the sheet check runs on every layout pass of the feed's window.
     private static final String COMMENT_SHEET_DIAGNOSTIC_NAME =
             "sheet (" + joinResourceNames(COMMENT_SHEET_RESOURCE_NAMES) + ")";

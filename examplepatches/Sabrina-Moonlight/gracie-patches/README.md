@@ -22,7 +22,7 @@ https://github.com/Sabrina-Moonlight/gracie-patches
 ## 🌷 Available patches
 
 <!-- PATCHES_START -->
-> **[v1.0.90](https://github.com/Sabrina-Moonlight/gracie-patches/releases/tag/v1.0.90)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;16 patches total
+> **[v1.0.93](https://github.com/Sabrina-Moonlight/gracie-patches/releases/tag/v1.0.93)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;14 patches total
 <details open>
 <summary>🌸 Quick Settings&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -72,23 +72,6 @@ https://github.com/Sabrina-Moonlight/gracie-patches
 |----------|----------------|-----------|
 | [Hide ads](#hide-ads) | Hides ads. |  |
 | [Unlock premium](#unlock-premium) | Unlocks premium content. |  |
-
-</details>
-
-<details open>
-<summary>🌸 Sound Assistant&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**Package name:** `com.samsung.android.soundassistant`
-
-**🌻 Supported versions:**
-
-| 8.5.00.2 |
-| :---: |
-
-| 🌷&nbsp;Patch | 💐&nbsp;Description | 🪻&nbsp;Options |
-|----------|----------------|-----------|
-| [Keep sound during ads](#keep-sound-during-ads) | Prevents media from pausing when ads play. |  |
 
 </details>
 
@@ -190,7 +173,7 @@ https://github.com/Sabrina-Moonlight/gracie-patches
 </details>
 
 <details open>
-<summary>🌸 Kids doctor games&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<summary>🌸 Kids doctor games&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 **Package name:** `com.bimiboo.kids.doctor.games`
@@ -203,7 +186,6 @@ https://github.com/Sabrina-Moonlight/gracie-patches
 | 🌷&nbsp;Patch | 💐&nbsp;Description | 🪻&nbsp;Options |
 |----------|----------------|-----------|
 | [Unlock subscription](#unlock-subscription) | Unlocks the full subscription. |  |
-| [Unlock subscription (IL2CPP native)](#unlock-subscription-il2cpp-native) | Forces Unity IL2CPP access getters (HasThisAppPurchase, IsOwnedSharedActive, offline grants, IsFullAccess, IsActive) to true in lib/arm64-v8a/libil2cpp.so. Required together with Unlock subscription (Java / SharedSub). |  |
 
 </details>
 

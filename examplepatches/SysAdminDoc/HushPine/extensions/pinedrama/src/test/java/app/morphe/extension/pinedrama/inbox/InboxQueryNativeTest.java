@@ -82,12 +82,12 @@ public class InboxQueryNativeTest {
 
     @Test public void initialFallbackSeedUsesPrimaryAndOrderedExtraStubsDespiteEmptyDifferCache() {
         Surface surface = new Surface(false);
-        surface.adapter.LLIIIJ.LJ = false;
+        surface.adapter.LLIIIZ.LJ = false;
         surface.diff.LJIIJJI = Collections.emptyList();
-        surface.stub.LLFFF = Arrays.asList(surface.header, surface.alpha, surface.beta);
+        surface.stub.LLFZ = Arrays.asList(surface.header, surface.alpha, surface.beta);
         Object extraFooter = new Object();
-        surface.adapter.LJLLLL.add(new NativeStub(surface.state, surface.adapter, Collections.singletonList(surface.footer)));
-        surface.adapter.LJLLLL.add(new NativeStub(surface.state, surface.adapter, Collections.singletonList(extraFooter)));
+        surface.adapter.LJLZ.add(new NativeStub(surface.state, surface.adapter, Collections.singletonList(surface.footer)));
+        surface.adapter.LJLZ.add(new NativeStub(surface.state, surface.adapter, Collections.singletonList(extraFooter)));
 
         assertTrue(InboxQueryNative.query(surface.owner(), "alpha", MATCH));
         assertIdentity(surface.owner().query.rendered(), surface.header, surface.alpha, surface.beta, surface.footer, extraFooter);
@@ -99,16 +99,16 @@ public class InboxQueryNativeTest {
 
     @Test public void nullConfigSelectsStubAggregateWhileCacheModeIgnoresUnavailableFallbackValues() {
         Surface fallback = new Surface(false);
-        fallback.adapter.LLIIIJ = null;
+        fallback.adapter.LLIIIZ = null;
         fallback.diff.LJIIJJI = Collections.emptyList();
         assertTrue(InboxQueryNative.query(fallback.owner(), "alpha", MATCH));
         assertIdentity(fallback.owner().query.rendered(), fallback.header, fallback.alpha, fallback.beta, fallback.footer);
 
         Surface cached = new Surface(false);
-        cached.adapter.LJLLL = null;
-        cached.adapter.LJLLLL = null;
-        cached.adapter.LLIIIZ = Object.class;
-        cached.adapter.LLD = null;
+        cached.adapter.LJLLLLLL = null;
+        cached.adapter.LJLZ = null;
+        cached.adapter.LLIIJLIL = Object.class;
+        cached.adapter.LLFF = null;
         assertTrue(InboxQueryNative.query(cached.owner(), "alpha", MATCH));
         assertIdentity(cached.owner().query.rendered(), cached.header, cached.alpha, cached.beta, cached.footer);
     }
@@ -122,11 +122,11 @@ public class InboxQueryNativeTest {
         boolean[] appended = {true, false, false, true, false, true};
         for (int i = 0; i < states.length; i++) {
             Surface surface = new Surface(false);
-            surface.adapter.LLIIIJ.LJ = false;
+            surface.adapter.LLIIIZ.LJ = false;
             surface.diff.LJIIJJI = Collections.emptyList();
-            surface.adapter.LLIIIZ = Object.class;
+            surface.adapter.LLIIJLIL = Object.class;
             NativeLoading loading = new NativeLoading(states[i]);
-            surface.adapter.LLD = loading;
+            surface.adapter.LLFF = loading;
             assertTrue("native branch " + i, InboxQueryNative.query(surface.owner(), "alpha", MATCH));
             if (appended[i]) assertIdentity(surface.owner().query.rendered(), surface.header,
                     surface.alpha, surface.beta, surface.footer, loading);
@@ -138,11 +138,11 @@ public class InboxQueryNativeTest {
     @Test public void unsupportedFallbackSchemaRefusesBeforeAnyPublicationOrEmptyBasisAcceptance() {
         for (int malformed = 0; malformed < 3; malformed++) {
             Surface surface = new Surface(false);
-            surface.adapter.LLIIIJ.LJ = false;
+            surface.adapter.LLIIIZ.LJ = false;
             surface.diff.LJIIJJI = Collections.emptyList();
-            if (malformed == 0) surface.adapter.LJLLLL = null;
-            if (malformed == 1) surface.adapter.LJLLLL.add(new Object());
-            if (malformed == 2) { surface.adapter.LLIIIZ = Object.class; surface.adapter.LLD = null; }
+            if (malformed == 0) surface.adapter.LJLZ = null;
+            if (malformed == 1) surface.adapter.LJLZ.add(new Object());
+            if (malformed == 2) { surface.adapter.LLIIJLIL = Object.class; surface.adapter.LLFF = null; }
             assertFalse(InboxQueryNative.query(surface.owner(), "alpha", MATCH));
             assertNull(surface.state.published);
             assertTrue(surface.diff.pending.isEmpty());
@@ -155,9 +155,9 @@ public class InboxQueryNativeTest {
     @Test public void seedRequiresTheBackingBodyAsAnIdentityContiguousSegment() {
         for (boolean equalReplacement : new boolean[]{false, true}) {
             Surface surface = new Surface(false);
-            surface.adapter.LLIIIJ.LJ = false;
+            surface.adapter.LLIIIZ.LJ = false;
             surface.diff.LJIIJJI = Collections.emptyList();
-            surface.stub.LLFFF = equalReplacement
+            surface.stub.LLFZ = equalReplacement
                     ? Arrays.asList(surface.header, new Notice("alpha"), surface.beta, surface.footer)
                     : Arrays.asList(surface.header, surface.alpha, surface.footer, surface.beta);
             assertFalse(InboxQueryNative.query(surface.owner(), "alpha", MATCH));
@@ -169,10 +169,10 @@ public class InboxQueryNativeTest {
 
     @Test public void emptyBackingDoesNotDiscardNonemptyFallbackHeadersAndSeedIsBounded() {
         Surface surface = new Surface(false);
-        surface.adapter.LLIIIJ.LJ = false;
+        surface.adapter.LLIIIZ.LJ = false;
         surface.diff.LJIIJJI = Collections.emptyList();
         surface.state.LJ.clear();
-        surface.stub.LLFFF = Arrays.asList(surface.header, surface.footer);
+        surface.stub.LLFZ = Arrays.asList(surface.header, surface.footer);
         assertTrue(InboxQueryNative.query(surface.owner(), "alpha", MATCH));
         assertIdentity(surface.owner().query.rendered(), surface.header, surface.footer);
         assertTrue(surface.state.published.isEmpty());
@@ -194,8 +194,8 @@ public class InboxQueryNativeTest {
         assertEquals(6, surface.state.mask);
         assertNull(surface.state.completion);
         assertFalse(InboxFilter.allowLoadedRequest(surface.vm));
-        assertFalse(InboxFilter.allowLoadedRequest(surface.fragment.LJLLI));
-        assertFalse(InboxFilter.allowLoadedRequest(surface.adapter.LJZL));
+        assertFalse(InboxFilter.allowLoadedRequest(surface.fragment.LJLLJ));
+        assertFalse(InboxFilter.allowLoadedRequest(surface.adapter.LLD));
         InboxFilter.onLoadedIndexedCallback(new Closure(surface.fragment), surface.fragment.helper,
                 surface.state.LJ, new Pair<>(1, 2));
         assertEquals("the callback waits for the actual accepted diff", 0, surface.fragment.helper.calls);
@@ -752,14 +752,14 @@ public class InboxQueryNativeTest {
         final NativeFragment fragment = new NativeFragment(root, list, spring);
         final Notice alpha = new Notice("alpha"), beta = new Notice("beta");
         final Object header = new Object(), footer = new Object(), vm = new Object();
-        final NativeWidget widget = new NativeWidget(fragment.LJLLI);
+        final NativeWidget widget = new NativeWidget(fragment.LJLLJ);
         final TextView row = new TextView(activity);
         final NativeHolder holder = new NativeHolder(this);
         Surface(boolean secondWindow) {
-            state.surface = this; adapter.stub = adapter.LJLLL = stub;
+            state.surface = this; adapter.stub = adapter.LJLLLLLL = stub;
             state.LJ.addAll(Arrays.asList(alpha, beta));
             diff.LJIIJJI = aggregate(state.LJ);
-            stub.LLFFF = aggregate(state.LJ);
+            stub.LLFZ = aggregate(state.LJ);
             list.addView(row);
             spring.requestTarget = vm;
             spring.addView(new View(activity));
@@ -838,16 +838,16 @@ public class InboxQueryNativeTest {
         Pending(Object metadata, List<?> models, Runnable completion) { this.metadata = metadata; this.models = models; this.completion = completion; }
     }
     public static final class NativeAdapter {
-        public final NativeDiff LLIIII;
-        public final Object LJZL = new Object();
-        public NativeConfig LLIIIJ = new NativeConfig();
-        public NativeStub LJLLL;
-        public List<Object> LJLLLL = new ArrayList<>();
-        public Class<?> LLIIIZ;
-        public NativeLoading LLD;
+        public final NativeDiff LLIIIJ;
+        public final Object LLD = new Object();
+        public NativeConfig LLIIIZ = new NativeConfig();
+        public NativeStub LJLLLLLL;
+        public List<Object> LJLZ = new ArrayList<>();
+        public Class<?> LLIIJLIL;
+        public NativeLoading LLFF;
         NativeStub stub;
-        NativeAdapter(NativeDiff diff) { LLIIII = diff; }
-        public NativeStub LLIIIILZ() { return stub; }
+        NativeAdapter(NativeDiff diff) { LLIIIJ = diff; }
+        public NativeStub LLIIJLIL() { return stub; }
     }
     public static final class NativeList extends FrameLayout {
         NativeState state;
@@ -876,11 +876,11 @@ public class InboxQueryNativeTest {
         public int findLastVisibleItemPosition() { return 1; }
     }
     public static final class NativeStub {
-        public final NativeAdapter LJLJLJ;
-        public List<?> LLFFF = Collections.emptyList();
+        public final NativeAdapter LJLL;
+        public List<?> LLFZ = Collections.emptyList();
         final NativeState state;
-        NativeStub(NativeState state, NativeAdapter adapter) { this.state = state; LJLJLJ = adapter; }
-        NativeStub(NativeState state, NativeAdapter adapter, List<?> models) { this(state, adapter); LLFFF = models; }
+        NativeStub(NativeState state, NativeAdapter adapter) { this.state = state; LJLL = adapter; }
+        NativeStub(NativeState state, NativeAdapter adapter, List<?> models) { this(state, adapter); LLFZ = models; }
         public NativeState LJIILLIIL() { return state; }
     }
     public static final class NativeConfig { public boolean LJ = true; }
@@ -900,8 +900,8 @@ public class InboxQueryNativeTest {
         NativeLoadingModel(NativeLoadingState state) { LIZIZ = state; }
     }
     public static final class NativeLoading {
-        public final NativeLoadingModel LJLJLJ;
-        NativeLoading(NativeLoadingState state) { LJLJLJ = new NativeLoadingModel(state); }
+        public final NativeLoadingModel LJLL;
+        NativeLoading(NativeLoadingState state) { LJLL = new NativeLoadingModel(state); }
     }
     private static InboxRenderedModels.Schema renderedSchema() throws ReflectiveOperationException {
         return new InboxRenderedModels.Schema(NativeAdapter.class, NativeDiff.class, NativeConfig.class,
@@ -912,14 +912,14 @@ public class InboxQueryNativeTest {
         final View root;
         final NativeList list;
         final NativeSpring spring;
-        public final Object LJLLI = new Object();
+        public final Object LJLLJ = new Object();
         final NativeIndices helper = new NativeIndices();
         boolean indicesEnabled = true;
         int helperAccesses, gateReads;
         NativeFragment(View root, NativeList list, NativeSpring spring) { this.root = root; this.list = list; this.spring = spring; }
         public View getView() { return root; }
-        public NativeList JN() { return list; }
-        public NativeSpring GN() { return spring; }
+        public NativeList mO() { return list; }
+        public NativeSpring lO() { return spring; }
         public NativeIndices dM() { helperAccesses++; return helper; }
         public boolean hushLoadedInboxIndicesEnabled() { gateReads++; return indicesEnabled; }
         void nativeIndexed(List<?> models, Pair<Integer, Integer> pair) {

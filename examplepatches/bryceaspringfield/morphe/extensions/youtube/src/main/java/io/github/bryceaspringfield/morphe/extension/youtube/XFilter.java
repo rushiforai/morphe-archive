@@ -37,6 +37,9 @@ public final class XFilter extends Filter {
 
     private final StringFilterGroup comments = new StringFilterGroup(null, "comment_thread.e");
 
+    /** The video quality sheet's content: the extension adds its Audio only row to the sheet's window. */
+    private final StringFilterGroup qualitySheet = new StringFilterGroup(null, "quick_quality_sheet_content.e");
+
     /** The red progress bar of a watched video's thumbnail (a brand gradient under the lockup's thumbnail). */
     private final StringFilterGroup progressBar = new StringFilterGroup(null, "brand_linear_gradient_container.e");
 
@@ -47,8 +50,9 @@ public final class XFilter extends Filter {
 
     public XFilter() {
         XSettings.load();
-        addPathCallbacks(feedItems, comments, progressBar);
+        addPathCallbacks(feedItems, comments, progressBar, qualitySheet);
         SaveChooser.register();
+        QualityAudioRow.register();
         NavTapFix.register();
         if (!"off".equals(XSettings.AUTO_WATCHED.get())) AccountHistory.refresh();
         SuggestedCard.register();
@@ -62,6 +66,10 @@ public final class XFilter extends Filter {
                               CharSequence path, byte[] buffer, BufferAsciiStrings asciiStrings,
                               StringFilterGroup matchedGroup, FilterContentType contentType, int contentIndex) {
         // Only the item's own top-level component, whose buffer holds the whole item.
+        if (matchedGroup == qualitySheet) {
+            QualityAudioRow.sheetOpened();
+            return false;
+        }
         if (matchedGroup == progressBar) {
             String p = path.toString();
             // Home and the videos under the player only: History's first menu token removes the video from the
@@ -92,6 +100,7 @@ public final class XFilter extends Filter {
                 if (XSettings.DEBUG.get()) Logger.printDebug(() -> "YouTube Extras: " + place + " " + card + " HIDDEN by Morphe keyword " + kw);
                 return true;
             }
+            if (XSettings.DEBUG.get()) Logger.printDebug(() -> "YouTube Extras: card text " + card.videoId + " [" + card.text.replace('\n', '|') + "]");
         }
         // Mark watched videos is its own option: it applies on Home and under the player whatever the filters' places.
         boolean filters = applies(place);

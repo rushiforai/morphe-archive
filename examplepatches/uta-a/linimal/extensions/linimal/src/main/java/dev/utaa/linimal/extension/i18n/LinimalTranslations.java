@@ -67,6 +67,8 @@ final class LinimalTranslations {
             {"ホーム内の広告を表示しない", "Hide ads on Home"},
             {"ホーム画面内にある Performance Ad とフィード広告を表示しません。",
                     "Hides Performance Ads and feed ads on the Home screen."},
+            {"オープンチャットの広告を表示しない", "Hide OpenChat ads"},
+            {"オープンチャットのトーク、スレッド、ノートにある広告を表示しません。", "Hides ads in OpenChat chats, threads, and notes."},
 
             // Agent i・LINE AI
             {"ホーム上部の Agent i を表示しない", "Hide Agent i at the top of Home"},
@@ -289,6 +291,8 @@ final class LinimalTranslations {
             {"チャット一覧の Smart Channel にある広告を表示しません。", "不顯示聊天列表 Smart Channel 中的廣告。"},
             {"ホーム内の広告を表示しない", "不顯示主頁中的廣告"},
             {"ホーム画面内にある Performance Ad とフィード広告を表示しません。", "不顯示主頁中的 Performance Ad 與動態廣告。"},
+            {"オープンチャットの広告を表示しない", "不顯示社群廣告"},
+            {"オープンチャットのトーク、スレッド、ノートにある広告を表示しません。", "不顯示社群聊天、討論串與記事本中的廣告。"},
 
             {"ホーム上部の Agent i を表示しない", "不顯示主頁上方的 Agent i"},
             {"ホーム画面上部にある Agent i の入口を表示しません。", "不顯示主頁上方的 Agent i 入口。"},
@@ -487,6 +491,8 @@ final class LinimalTranslations {
             {"チャット一覧の Smart Channel にある広告を表示しません。", "ซ่อนโฆษณาใน Smart Channel ที่ด้านบนของรายการแชท"},
             {"ホーム内の広告を表示しない", "ซ่อนโฆษณาในหน้าหลัก"},
             {"ホーム画面内にある Performance Ad とフィード広告を表示しません。", "ซ่อน Performance Ad และโฆษณาในฟีดบนหน้าหลัก"},
+            {"オープンチャットの広告を表示しない", "ซ่อนโฆษณาใน OpenChat"},
+            {"オープンチャットのトーク、スレッド、ノートにある広告を表示しません。", "ซ่อนโฆษณาในแชท เธรด และโน้ตของ OpenChat"},
 
             {"ホーム上部の Agent i を表示しない", "ซ่อน Agent i ด้านบนหน้าหลัก"},
             {"ホーム画面上部にある Agent i の入口を表示しません。", "ซ่อนทางเข้า Agent i ที่ด้านบนของหน้าหลัก"},
@@ -685,6 +691,8 @@ final class LinimalTranslations {
             {"チャット一覧の Smart Channel にある広告を表示しません。", "Menyembunyikan iklan di Smart Channel pada daftar chat."},
             {"ホーム内の広告を表示しない", "Sembunyikan iklan di Beranda"},
             {"ホーム画面内にある Performance Ad とフィード広告を表示しません。", "Menyembunyikan Performance Ad dan iklan feed di layar Beranda."},
+            {"オープンチャットの広告を表示しない", "Sembunyikan iklan OpenChat"},
+            {"オープンチャットのトーク、スレッド、ノートにある広告を表示しません。", "Menyembunyikan iklan di chat, thread, dan catatan OpenChat."},
 
             {"ホーム上部の Agent i を表示しない", "Sembunyikan Agent i di atas Beranda"},
             {"ホーム画面上部にある Agent i の入口を表示しません。", "Menyembunyikan pintu masuk Agent i di bagian atas layar Beranda."},

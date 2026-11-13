@@ -44,13 +44,13 @@ class RootSignalAnchorsTest {
         Fixtures.forEachDeclared { apk ->
             val found = find(apk)
             val expected = mapOf(
-                RootSignal.STATUS to "classes6.dex:LX/F2P;->LJIJJLI()Z",
-                RootSignal.PACKAGES to "classes18.dex:LX/cw7;->LJ(Landroid/content/Context;)$MAP",
-                RootSignal.PATHS to "classes18.dex:LX/cw7;->LJFF()$MAP",
-                RootSignal.WHICH_SU to "classes18.dex:LX/cw7;->LJIILIIL()$MAP",
-                RootSignal.SU_COMMAND to "classes18.dex:LX/cw7;->LJI()$MAP",
+                RootSignal.STATUS to "classes4.dex:LX/05jA;->LJIJJLI()Z",
+                RootSignal.PACKAGES to "classes14.dex:LX/0SYx;->LJ(Landroid/content/Context;)$MAP",
+                RootSignal.PATHS to "classes14.dex:LX/0SYx;->LJFF()$MAP",
+                RootSignal.WHICH_SU to "classes14.dex:LX/0SYx;->LJIILIIL()$MAP",
+                RootSignal.SU_COMMAND to "classes14.dex:LX/0SYx;->LJI()$MAP",
             )
-            assertEquals("47.6.3", Fixtures.versionOf(apk))
+            assertEquals("47.7.3", Fixtures.versionOf(apk))
             assertEquals(expected, found.targets.mapValues { (_, target) -> "${target.dex}:${signature(target.method)}" })
             assertEquals(1, found.targets.filterKeys { it != RootSignal.STATUS }.values.map { it.owner.type }.toSet().size)
             for ((signal, target) in found.targets) {
@@ -144,7 +144,7 @@ class RootSignalAnchorsTest {
         Fixtures.forEachDeclared { apk ->
             val found = find(apk)
             val code = found.collector.implementation!!.instructions.toList()
-            assertEquals("LX/cw2;->LIZ(${STRING}Lkotlin/jvm/internal/AtS84S1100000_17;)LX/cvZ;", signature(found.collector))
+            assertEquals("LX/0pa7;->LIZ(${STRING}Lkotlin/jvm/internal/AtS58S1100000_19_I1;)LX/0h39;", signature(found.collector))
             for ((key, signal) in mapOf("root_packages" to RootSignal.PACKAGES, "root_paths" to RootSignal.PATHS,
                 "which_su" to RootSignal.WHICH_SU, "su_command" to RootSignal.SU_COMMAND, "is_root" to RootSignal.STATUS)) {
                 assertTrue(strings(found.collector).contains(key))

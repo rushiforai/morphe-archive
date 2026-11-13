@@ -26,6 +26,7 @@ def method(classes,cls,name,desc=None):
     assert len(matches)==1,(cls,name,desc)
     return matches[0]
 def ops(m):return [(i.get_name(),i.get_output()) for i in m.get_instructions()]
+def opcodes(m):return [i.get_name() for i in m.get_instructions()]
 def text(m):return '\n'.join(i.get_output() for i in m.get_instructions())
 def idx(m):return list(m.get_instructions_idx())
 def caught_types(path,cls_name,method_name):
@@ -68,16 +69,36 @@ if version=='15.0.0.9.156':
     original_gate=text(method(original,'Lcom/facebook/aura/utils/HatchUtil;','isInternalSettingsEnabled'))
     check('Original MC Debug gate checks the leak-prevention key','isLeakPreventionHashCorrect' in original_gate)
     check('Shared leak-prevention hash verifier remains unchanged',ops(method(original,'Lcom/facebook/aura/utils/HatchLeakPreventionUtil;','isLeakPreventionHashCorrect'))==ops(method(patched,'Lcom/facebook/aura/utils/HatchLeakPreventionUtil;','isLeakPreventionHashCorrect')))
-json_menu=method(patched,'Lcom/facebook/aura/settings/internal/mcdebug/AuraMCDebugScreenKt$OptionsMenu$1$1$1;','invoke','(Lcom/facebook/aura/vds/compose/contextmenu/AuraContextMenuItem;)V')
-result_desc='(LX/365;I)LX/75C;' if version=='15.0.0.9.156' else ('(LX/5Ng;I)LX/HDM;' if version=='15.0.0.3.156' else ('(LX/2yV;I)LX/1dG;' if version=='14.0.0.4.149' else '(LX/2Os;I)LX/9IF;'))
-json_result=method(patched,'Lcom/facebook/aura/settings/internal/mcdebug/AuraMCDebugScreenKt$OptionsMenu$1$2;','invoke',result_desc)
-json_activity=method(patched,'Lcom/facebook/aura/main/AuraMainActivity;','onActivityResult','(IILandroid/content/Intent;)V')
-check('Mobile Config import/export actions wired',all(s in text(json_menu) for s in ['exportOverrides','importOverrides']))
-check('Mobile Config import/export menu options exposed',all(s in text(json_result) for s in ['Export modified flags','Import flags']))
-check('Mobile Config document picker result wired','AuraMCDebugJsonBridge' in text(json_activity))
+if version=='16.0.0.2.159':
+    settings_callback=method(patched,'Lcom/facebook/aura/settings/HatchSettingsScreenKt$InternalSettingsSection$1$1$1$1;','invoke','(LX/0pL;LX/4KG;I)V')
+    check('Internal Settings card wraps its existing callback in the chooser','AuraMCDebugJsonBridge$SettingsAction;-><init>' in text(settings_callback) and '->$onInternalSettingsClick' in text(settings_callback))
+    action=method(patched,'Lcom/facebook/aura/settings/internal/mcdebug/AuraMCDebugJsonBridge$SettingsAction;','invoke','()Lkotlin/Unit;')
+    check('Settings chooser delegates to the JSON bridge','AuraMCDebugJsonBridge;->showActions' in text(action))
+    chooser=method(patched,'Lcom/facebook/aura/settings/internal/mcdebug/AuraMCDebugJsonBridge;','showActions')
+    check('Chooser exposes Internal Settings, export, and import actions',all(s in text(chooser) for s in ['Open internal settings','Export modified flags','Import flags']))
+    listener=method(patched,'Lcom/facebook/aura/settings/internal/mcdebug/AuraMCDebugJsonBridge$1;','onClick','(Landroid/content/DialogInterface;I)V')
+    check('Chooser invokes the original Internal Settings callback','Lkotlin/jvm/functions/Function0;->invoke' in text(listener))
+    json_activity=method(patched,'Lcom/facebook/aura/main/AuraMainActivity;','onActivityResult','(IILandroid/content/Intent;)V')
+    check('Muse 16 picker results are forwarded before the superclass callback','AuraMCDebugJsonBridge' in text(json_activity) and 'AppCompatActivity;->onActivityResult' in text(json_activity))
+    bridge=method(patched,'Lcom/facebook/aura/settings/internal/mcdebug/AuraMCDebugJsonBridge;','onActivityResult')
+    picker=text(method(patched,'Lcom/facebook/aura/settings/internal/mcdebug/AuraMCDebugJsonBridge;','exportOverrides'))+text(method(patched,'Lcom/facebook/aura/settings/internal/mcdebug/AuraMCDebugJsonBridge;','importOverrides'))
+    storage=text(method(patched,'Lcom/facebook/aura/settings/internal/mcdebug/AuraMCDebugJsonBridge;','overrideFile'))
+    check('Bridge contains both document-picker actions and private override path',all(s in picker+storage for s in ['CREATE_DOCUMENT','OPEN_DOCUMENT','getFilesDir','mobileconfig','mc_overrides.json']))
+    import_path=text(method(patched,'Lcom/facebook/aura/settings/internal/mcdebug/AuraMCDebugJsonBridge;','copyToOverrideFile'))+text(method(patched,'Lcom/facebook/aura/settings/internal/mcdebug/AuraMCDebugJsonBridge;','extractOverrides'))
+    check('Import validates and atomically replaces JSON, with restart notice',all(s in import_path for s in ['.tmp','.bak','renameTo','manifest_version','backup']) and 'Restart Muse to apply' in text(bridge))
+    check('Employee-gated long-press navigation remains unchanged',opcodes(method(original,'Lcom/facebook/aura/tabs/AuraFixedNavBarKt;','employeeLongClickForTabIndex'))==opcodes(method(patched,'Lcom/facebook/aura/tabs/AuraFixedNavBarKt;','employeeLongClickForTabIndex')))
+    check('Existing Activity picker launcher remains unchanged',opcodes(method(original,'Lcom/facebook/aura/main/AuraMainActivity;','startActivityForResult','(Landroid/content/Intent;ILandroid/os/Bundle;)V'))==opcodes(method(patched,'Lcom/facebook/aura/main/AuraMainActivity;','startActivityForResult','(Landroid/content/Intent;ILandroid/os/Bundle;)V')))
+else:
+    json_menu=method(patched,'Lcom/facebook/aura/settings/internal/mcdebug/AuraMCDebugScreenKt$OptionsMenu$1$1$1;','invoke','(Lcom/facebook/aura/vds/compose/contextmenu/AuraContextMenuItem;)V')
+    result_desc='(LX/365;I)LX/75C;' if version=='15.0.0.9.156' else ('(LX/5Ng;I)LX/HDM;' if version=='15.0.0.3.156' else ('(LX/2yV;I)LX/1dG;' if version=='14.0.0.4.149' else '(LX/2Os;I)LX/9IF;'))
+    json_result=method(patched,'Lcom/facebook/aura/settings/internal/mcdebug/AuraMCDebugScreenKt$OptionsMenu$1$2;','invoke',result_desc)
+    json_activity=method(patched,'Lcom/facebook/aura/main/AuraMainActivity;','onActivityResult','(IILandroid/content/Intent;)V')
+    check('Mobile Config import/export actions wired',all(s in text(json_menu) for s in ['exportOverrides','importOverrides']))
+    check('Mobile Config import/export menu options exposed',all(s in text(json_result) for s in ['Export modified flags','Import flags']))
+    check('Mobile Config document picker result wired','AuraMCDebugJsonBridge' in text(json_activity))
 if not a.trust:
-    guard_name='guards-15.0.0.9.156.tsv' if version=='15.0.0.9.156' else ('guards-15.tsv' if version=='15.0.0.3.156' else ('guards-14.tsv' if version=='14.0.0.4.149' else 'guards.tsv'))
-    trust_classes={'LX/AOc;','LX/AOC;','LX/Ezu;','LX/CZ3;','LX/AO7;','LX/AO8;','LX/CWm;','LX/CWl;','LX/DEW;','LX/DGu;','LX/DEh;','LX/DEi;','LX/DEk;','LX/DHj;','LX/DpF;','LX/D2w;','LX/Cev;','LX/D3w;','LX/D3y;','LX/D3f;','LX/D3U;','LX/CeC;','Lcom/facebook/aura/login/nativeflow/NativeLoginAccountResolver;'}
+    guard_name='guards-16.0.0.2.159.tsv' if version=='16.0.0.2.159' else ('guards-15.0.0.9.156.tsv' if version=='15.0.0.9.156' else ('guards-15.tsv' if version=='15.0.0.3.156' else ('guards-14.tsv' if version=='14.0.0.4.149' else 'guards.tsv')))
+    trust_classes={'LX/AOc;','LX/AOC;','LX/Ezu;','LX/CZ3;','LX/AO7;','LX/AO8;','LX/CWm;','LX/CWl;','LX/DEW;','LX/DGu;','LX/DEh;','LX/DEi;','LX/DEk;','LX/DHj;','LX/DpF;','LX/D2w;','LX/Cev;','LX/D3w;','LX/D3y;','LX/D3f;','LX/D3U;','LX/CeC;','Lcom/facebook/aura/login/nativeflow/NativeLoginAccountResolver;','LX/DF1;','LX/DFM;','LX/DFN;'}
     guards=Path(__file__).resolve().parents[1]/'src/main/resources/muse'/guard_name
     for row in guards.read_text().splitlines():
         cls,signature,*_=row.split('\t')
@@ -202,6 +223,25 @@ elif version=='15.0.0.3.156':
     seq=idx(wa);byoff=dict(seq);gotos=[(off,ins) for off,ins in seq if ins.get_name().startswith('goto')]
     check('WhatsApp local owner check bypass reaches actual resolver',any('getContentResolver()' in byoff[off+ins.get_ref_off()*2].get_output() for off,ins in gotos))
     check('WhatsApp response, expiry and token fields retained',all(s in text(wa) for s in ['response_code','wire_version','expiration_ts','restricted_token','currentTimeMillis']))
+elif version=='16.0.0.2.159':
+    service=text(method(patched,'LX/DFM;','A01','(Landroid/content/Context;Ljava/lang/String;)Z'))
+    check('Local trust is limited to the two Facebook Services packages and enabled state',all(s in service for s in ['com.facebook.services','com.facebook.services.dev','getApplicationInfo','->enabled']) and not any(s in service for s in ['MessageDigest','->signatures','requestedPermissions','DF1;->A02']))
+    check('Local trust retains safe failure handling',[x for x in caught_types(a.patched,'LX/DFM;','A01') if x in ['Landroid/content/pm/PackageManager$NameNotFoundException;','Ljava/lang/RuntimeException;']]==['Landroid/content/pm/PackageManager$NameNotFoundException;','Ljava/lang/RuntimeException;'])
+    sensitive={'LX/DF1;','LX/DFM;','LX/DFN;','LX/DEu;','LX/DFB;','LX/DEv;','LX/DGv;','LX/DGz;','LX/DGt;','LX/DGx;','LX/DGu;','Lcom/facebook/aura/login/nativeflow/NativeLoginAccountResolver;'}
+    retained=True
+    for cls in sensitive:
+        for old in original[cls].get_methods():
+            if old.get_code() is None or (cls=='LX/DFM;' and old.get_name()=='A01' and old.get_descriptor().replace(' ','')=='(Landroid/content/Context;Ljava/lang/String;)Z'):
+                continue
+            new=method(patched,cls,old.get_name(),old.get_descriptor().replace(' ',''))
+            retained = retained and opcodes(old)==opcodes(new)
+    check('All other trust, metadata, service-caller, and provider methods retain original bytecode',retained)
+    df1=['A00','A01','A02','A03','A04']
+    check('Package/signature helpers and production-mode decision remain unchanged',all(ops(method(original,'LX/DF1;',name))==ops(method(patched,'LX/DF1;',name)) for name in df1))
+    dfn=text(method(patched,'LX/DFN;','A00','(Landroid/content/Intent;Landroid/content/Context;Ljava/lang/String;)V'))
+    check('Service caller allowlist and caller metadata attachment remain intact',all(s in dfn for s in ['com.facebook.services','com.facebook.services.dev','DFM;->A00']))
+    wa=text(method(patched,'Lcom/facebook/aura/login/nativeflow/NativeLoginAccountResolver;','readWhatsAppAccount'))
+    check('WhatsApp provider owner, response, token, and expiry checks remain intact',all(s in wa for s in ['com.whatsapp','getContentResolver','response_code','wire_version','expiration_ts','restricted_token','currentTimeMillis']))
 else:
     raise AssertionError('Unsupported verification version: '+str(version))
 result={'input_sha256':hashlib.sha256(a.original.read_bytes()).hexdigest(),'output_sha256':hashlib.sha256(a.patched.read_bytes()).hexdigest(),'package_version':version,'local_trust_enabled':a.trust,'checks':checks,'passed':True,'runtime_tested':False,'signed':False,'note':'Static APK verification, not phone/runtime/login testing.'}

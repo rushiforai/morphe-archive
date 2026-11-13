@@ -367,8 +367,9 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_LAUNCHER_SHORTCUTS =
             new BooleanSetting("hide_launcher_shortcuts", FALSE);
     /**
-     * Leaves the Hushfeed row out of Settings and privacy (#264). Long pressing For You or Home
-     * still opens the page, and Pause brings the row back, since a paused setting reads stock.
+     * Leaves the Hushfeed row out of Settings and privacy (#264), but only while a long press on
+     * For You or Home opens the page (#244). Pause brings the row back, since a paused setting
+     * reads stock.
      */
     public static final BooleanSetting HIDE_SETTINGS_ROW =
             new BooleanSetting("hide_settings_row", FALSE);
@@ -599,6 +600,8 @@ public class Settings extends BaseSettings {
     public static final StringSetting BOTTOM_TAB_NAME_SHOP = new StringSetting("bottom_tab_name_shop", "");
     /** Which of TikTok's bottom tab icon sets to draw (#285): tiktok, original, new_1 or new_2. TikTok reads it at launch. */
     public static final StringSetting BOTTOM_TAB_ICON_STYLE = new StringSetting("bottom_tab_icon_style", "tiktok", true);
+    /** The bottom bar's height in dp (40, 44, 52 or 56), or tiktok for TikTok's 47. TikTok sizes the bar and the space above it once a launch. */
+    public static final StringSetting BOTTOM_BAR_HEIGHT = new StringSetting("bottom_bar_height", "tiktok", true);
     public static final BooleanSetting KEEP_FOR_YOU_ON_TAB_TAP = new BooleanSetting("keep_for_you_on_tab_tap", FALSE);
     public static final BooleanSetting KEEP_FOR_YOU_ON_PULL_DOWN = new BooleanSetting("keep_for_you_on_pull_down", FALSE);
     /** A long press on the Home tab opens Hushfeed's settings (#45). TikTok gives that press nothing of its own. */
@@ -1650,6 +1653,9 @@ public class Settings extends BaseSettings {
     // which the checklist offers. The strip is read on every search, so no restart.
     public static final StringSetting SEARCH_TAB_PICKS = new StringSetting("search_tab_picks", "");
     public static final StringSetting SEARCH_TAB_CATALOG = new StringSetting("search_tab_catalog", "");
+    // Profile tabs: the checklist rows picked to hide (private, repost, favorite and the rest). Read
+    // whenever a profile lays out its tabs, so a profile opened after a change follows it.
+    public static final StringSetting PROFILE_TAB_PICKS = new StringSetting("profile_tab_picks", "");
     /** The Thoughts bubble above a profile picture (#122). Read when a profile's picture is built. */
     public static final BooleanSetting HIDE_PROFILE_THOUGHTS = new BooleanSetting("hide_profile_thoughts", FALSE, true);
     /** TikTok's two Thoughts gates answer yes (#186). A restart, since TikTok keeps what it built. */

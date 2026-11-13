@@ -298,8 +298,8 @@ class RegionSpoofAnchorsTest {
             val handler = handlers.single()
             val handlerFill = (handler.implementation!!.instructions.toList()[commonParamsFill(handler)!!.fillAt]
                 as ReferenceInstruction).reference.toString()
-            // The helper and its second version, each a numbered static method the Callable
-            // lambdas were moved to.
+            // The helper and its second version: numbered static methods the Callable lambdas
+            // were moved to, or on 47.7.3 the second version's own call().
             assertEquals(
                 "$version: helpers ${helpers.map { "${it.first.definingClass}->${it.first.name}" }}",
                 2, helpers.size,

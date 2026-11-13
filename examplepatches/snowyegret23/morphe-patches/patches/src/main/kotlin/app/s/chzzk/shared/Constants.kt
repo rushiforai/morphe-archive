@@ -13,6 +13,10 @@ object Constants {
         signatures = setOf("0b8b8523bb4aeffa346e4bdd4fbf7d193450569aa14aaad4adfd94a3f7b227bb"),
         targets = listOf(
             AppTarget(
+                version = "3.17.0",
+                minSdk = 26,
+            ),
+            AppTarget(
                 version = "3.16.0",
                 minSdk = 26,
             ),
@@ -41,11 +45,19 @@ object Constants {
         apkFileType = COMPATIBILITY_CHZZK_MOBILE.apkFileType,
         appIconColor = COMPATIBILITY_CHZZK_MOBILE.appIconColor,
         signatures = COMPATIBILITY_CHZZK_MOBILE.signatures,
-        targets = COMPATIBILITY_CHZZK_MOBILE.targets + AppTarget(
-            version = "1.3.0",
-            minSdk = 26,
-            isExperimental = true,
-            description = "Android TV",
+        targets = COMPATIBILITY_CHZZK_MOBILE.targets + listOf(
+            AppTarget(
+                version = "1.4.0",
+                minSdk = 26,
+                isExperimental = true,
+                description = "Android TV",
+            ),
+            AppTarget(
+                version = "1.3.0",
+                minSdk = 26,
+                isExperimental = true,
+                description = "Android TV",
+            ),
         ),
     )
 }

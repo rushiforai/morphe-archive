@@ -3469,6 +3469,8 @@ public final class Haiagaru {
     private static LinearLayout settingsGENERAL(Activity activity) {
         LinearLayout layout = new LinearLayout(activity);
         layout.setOrientation(LinearLayout.VERTICAL);
+        // Keep existing setting links and settings search working after moving
+        // the primary entry to the Haiagaru home screen.
         Button addedFeatures = new Button(activity);
         addedFeatures.setText("更新履歴");
         addedFeatures.setOnClickListener(view -> UpdateHistory.show(activity));
@@ -3496,7 +3498,7 @@ public final class Haiagaru {
         }
         Switch siteGroups=addSwitch(layout,activity,text("外部板をサイト別に板一覧の最上位へ表示","Show external boards by site at the top level"),preferences.getBoolean(ExternalBoardGroups.KEY,false));
         live.toggle(siteGroups,ExternalBoardGroups.KEY);
-        TextView siteGroupsHelp=new TextView(activity);siteGroupsHelp.setText("初期OFF。オンではエッヂ・けんも板・したらばなどをサイト別に表示します。板一覧のキャッシュへ反映するため、変更後はChMateを再起動してください。");layout.addView(siteGroupsHelp);
+        TextView siteGroupsHelp=new TextView(activity);siteGroupsHelp.setText("初期OFF。オンではエッヂ・オルグ板・したらばなどをサイト別に表示します。板一覧のキャッシュへ反映するため、変更後はChMateを再起動してください。");layout.addView(siteGroupsHelp);
         android.widget.Button settingLinks=new android.widget.Button(activity);settingLinks.setText("設定リンクを作成");layout.addView(settingLinks);
         settingLinks.setOnClickListener(v->activity.startActivity(new Intent(activity,SettingLinkActivity.class)));
         Switch nativeTabs = addSwitch(layout, activity,

@@ -1983,6 +1983,7 @@ private val haiagaruBytecodePatch = bytecodePatch {
         }
         patchImageViewerRotationButton(packageMetadata.versionName)
         patchThreadSearchText(packageMetadata.versionName)
+        patchSettingsSearchAliases(packageMetadata.versionName)
         patchLargeImageAlignment(packageMetadata.versionName)
         patchLegacyAutoReload(packageMetadata.versionName)
         patchAutoScrollControlColors(packageMetadata.versionName)

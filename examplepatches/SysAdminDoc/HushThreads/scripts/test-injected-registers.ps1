@@ -450,7 +450,7 @@ try {
 
 # The verifier run end to end, with stand-ins for the tools it starts: a java that answers the
 # version probe and plays DexDiff with the given exit code, an aapt2 that describes Threads
-# 454.0.0.54.79, and an apksigner that reports a Threads signer from patches-list.json. With
+# 455.0.0.55.72, and an apksigner that reports a Threads signer from patches-list.json. With
 # -JavaGone the apksigner also deletes that java, which leaves it unable to start by the time
 # DexDiff runs, as a JDK replaced mid-run would. A Continue preference around the DexDiff call
 # once turned exactly that into '[registers] success.'.
@@ -471,7 +471,7 @@ function Write-StandIn {
 
 function Invoke-VerifierWithStandIns {
     param([string]$Name, [int]$DexDiffExit, [switch]$JavaGone, [string[]]$SelectedPatches,
-        [string]$PatchedVersionCode = '512408636')
+        [string]$PatchedVersionCode = '512508359')
     $case = Join-Path $standIns $Name
     New-Item -ItemType Directory -Path $case -Force | Out-Null
     $javaStandIn = Join-Path $case 'java.cmd'
@@ -505,11 +505,11 @@ exit /b $DexDiffExit
     # The patched APK can report a version code of its own, as Change version code makes it.
     Write-StandIn (Join-Path $case 'aapt2.cmd') @"
 @echo off
-set "standInCode=512408636"
+set "standInCode=512508359"
 echo %* | findstr /c:"patched.apk" >nul && set "standInCode=$PatchedVersionCode"
 echo   E: manifest (line=2)
 echo     A: http://schemas.android.com/apk/res/android:versionCode(0x0101021b)=%standInCode%
-echo     A: http://schemas.android.com/apk/res/android:versionName(0x0101021c)="454.0.0.54.79" (Raw: "454.0.0.54.79")
+echo     A: http://schemas.android.com/apk/res/android:versionName(0x0101021c)="455.0.0.55.72" (Raw: "455.0.0.55.72")
 echo     A: package="$standInPackage" (Raw: "$standInPackage")
 exit /b 0
 "@

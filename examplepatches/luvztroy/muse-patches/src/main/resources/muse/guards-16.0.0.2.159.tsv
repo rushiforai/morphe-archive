@@ -1,0 +1,13 @@
+Lcom/facebook/aura/utils/HatchUtil;	isInternalSettingsEnabled()Z	2	10	6c95edca66183e25cd616adbd141ac8a0d3c29cae117bbeae6f6681952fd21fd
+Lcom/facebook/aura/utils/HatchLeakPreventionUtil;	isLeakPreventionHashCorrect()Z	5	23	48776259e5934c70dc1476ed9b6576e5b7ff736a671858d876f4dda16b01293b
+Lcom/facebook/aura/settings/HatchSettingsScreenKt$InternalSettingsSection$1$1$1$1;	invoke(LX/0pL;LX/4KG;I)V	51	76	6e55577495d4498b5221787d4d3d0db725b596fb217a33935ceeee9707f0c3e7
+Lcom/facebook/aura/main/AuraMainActivity;	startActivityForResult(Landroid/content/Intent;ILandroid/os/Bundle;)V	5	5	13933870e2d84a4ca7007ea2fa6959bc6849ee2f30a228e836ff292bc9e9c36f
+Lcom/facebook/aura/tabs/AuraFixedNavBarKt;	employeeLongClickForTabIndex(ILcom/facebook/aura/navigation/AuraNavigator;ZZ)Lkotlin/jvm/functions/Function0;	6	18	baef53275b0cdde7113e784285e5ce63110877cd4103106c9793d8bcea665704
+LX/DF1;	A00(Landroid/content/Context;Ljava/lang/String;)LX/DEx;	4	26	1acef07d050756d178a878308a69af2cfe7405fca9713f75c4aa4bc5fe321277
+LX/DF1;	A01(Landroid/content/Context;Ljava/lang/String;)LX/CdO;	2	27	e45f16949825437be8f639e3e52e26f3e26ea78988f6392facb80543967618ed
+LX/DF1;	A02(Landroid/content/Context;)Z	2	10	dfdbad99d5027262d2785c182535824ff442b65cdf44b9fb209b1efc5bcd25e4
+LX/DF1;	A03(Landroid/content/Context;II)Z	5	30	56839084b8571eed967a83b7e8583db71e7fccfb06a9ae0a303be77932e4e8bf
+LX/DF1;	A04(Landroid/content/Context;Ljava/lang/String;)Z	4	23	6bdccbc384e5549b6786a765a3bfe9b290ccde1940bb61d85905b980802193e6
+LX/DFM;	A01(Landroid/content/Context;Ljava/lang/String;)Z	8	102	a8ab08f87d88734385f67b4703473fe93ce54aca67532418785a20225bed647a
+LX/DFN;	A00(Landroid/content/Intent;Landroid/content/Context;Ljava/lang/String;)V	5	28	be9542d9bbeb6aa0eab816d1e7162f7ae3709ee103c599485ffab110fe60ae12
+Lcom/facebook/aura/login/nativeflow/NativeLoginAccountResolver;	readWhatsAppAccount(Landroid/content/Context;)Lcom/facebook/aura/login/nativeflow/NativeLoginSsoAccount;	15	241	95dca8e17a3d84924ec8aeba7d01c8bbf54c64b41ae7a75337347e871ee0a708

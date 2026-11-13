@@ -14,6 +14,7 @@ import org.jsoup.nodes.Element;
 
 /** Pure URL and opening-post rules for the opt-in thread-list experiment. */
 final class ThreadListThumbnailRules {
+    static final String FIVE_OPENING_SELECTOR=".thread .post:first-child .message, .post:first-child .message, .post:first-of-type .message, .post:first-child .post-content, dl.thread dd:first-of-type, .postMessage, .message, dd";
     static final class Board {
         final String host, name;
         Board(String host,String name){this.host=host;this.name=name;}
@@ -22,6 +23,9 @@ final class ThreadListThumbnailRules {
             // intentionally does not follow redirects.
             if(host.equals("bbs.eddibb.cc"))return "https://"+host+"/"+name+"/"+id;
             return "https://"+host+"/test/read.cgi/"+name+"/"+id+"/";
+        }
+        String openingDatUrl(String id){
+            return host.equals("bbs.eddibb.cc")?"https://"+host+"/"+name+"/dat/"+id+".dat":null;
         }
         String settingsKey(){return "5ch:"+host+"/"+name;}
         String legacySettingsKey(){return "5ch:"+name;}
@@ -74,7 +78,7 @@ final class ThreadListThumbnailRules {
         Document doc=Jsoup.parse(html,threadUrl);
         boolean edge="bbs.eddibb.cc".equalsIgnoreCase(URI.create(threadUrl).getHost());
         Element opening=edge?doc.selectFirst("[data-ng-target=body][data-ng-response-id=1]"):
-                doc.selectFirst(".thread .post:first-child .message, .post:first-child .message, .post:first-of-type .message, .post:first-child .post-content, dl.thread dd:first-of-type, .postMessage, .message, dd");
+                doc.selectFirst(FIVE_OPENING_SELECTOR);
         if(opening==null)return Collections.emptyList();
         return collectMedia(opening,maxImages,edge);
     }

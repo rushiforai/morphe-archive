@@ -1,0 +1,26 @@
+# APK・逆コンパイル結果・署名鍵はコミットしない（ローカル専用の読み取り入力）
+setlog-apk/
+*.apk
+*.apkm
+*.apks
+*.keystore
+*.jks
+*.mpp
+*.mpe
+
+# ffprobe 等の検証用生成物
+/scratch/
+*.probe.json
+
+# OS / エディタ
+.DS_Store
+
+# Gradle と IDE
+.gradle/
+.kotlin/
+**/build/
+/local.properties
+/.idea/
+*.iml
+.vscode/
+*.idsig

@@ -41,26 +41,30 @@ internal fun BytecodePatchContext.uiBridge(name: String, registers: Int, body: S
 }
 
 internal fun BytecodePatchContext.addChatUiHooks() {
-    val current = packageMetadata.versionName == "3.16.0"
+    val current = packageMetadata.versionName in setOf("3.16.0", "3.17.0")
+    val latest = packageMetadata.versionName == "3.17.0"
     val layoutOwner = when (packageMetadata.versionName) {
+        "3.17.0" -> "Lvo0;"
         "3.16.0" -> "Lo7;"
         "3.15.0", "3.15.2" -> "Lj7;"
         else -> "Lh7;"
     }
     val caseField = if (current) "V" else "Z"
-    val firstState = if (current) "W" else "a0"
+    val firstState = if (latest) "Y" else if (current) "W" else "a0"
     val secondState = if (current) "X" else "b0"
-    val windowState = if (current) "Y" else "c0"
+    val windowState = if (latest) "W" else if (current) "Y" else "c0"
+    val chatVisibleState = if (latest) secondState else firstState
+    val chatWidthState = if (latest) firstState else secondState
     val dpValue = if (current) "V" else "Z"
     val layoutWidth = mutableClassDefBy(layoutOwner).methods.single { it.name == "invoke" }
     check(layoutWidth.localRegisterCount >= 4)
     layoutWidth.addInstructionsWithLabels(0, """
         iget v0, p0, $layoutOwner->$caseField:I
-        const/4 v1, 0x4
+        const/4 v1, ${if (latest) "0x2" else "0x4"}
         if-eq v0, v1, :chat_width
-        const/4 v1, 0x5
+        const/4 v1, ${if (latest) "0x3" else "0x5"}
         if-eq v0, v1, :chat_width
-        const/4 v1, 0x6
+        const/4 v1, ${if (latest) "0x4" else "0x6"}
         if-eq v0, v1, :video_width
         goto :original_width
         :chat_width
@@ -94,14 +98,14 @@ internal fun BytecodePatchContext.addChatUiHooks() {
         move-result-object v0
         check-cast v0, Landroidx/compose/ui/unit/Dp;
         iget v0, v0, Landroidx/compose/ui/unit/Dp;->$dpValue:F
-        iget-object v1, p0, $layoutOwner->$firstState:Landroidx/compose/runtime/State;
+        iget-object v1, p0, $layoutOwner->$chatVisibleState:Landroidx/compose/runtime/State;
         invoke-interface {v1}, Landroidx/compose/runtime/State;->getValue()Ljava/lang/Object;
         move-result-object v1
         check-cast v1, Ljava/lang/Boolean;
         invoke-virtual {v1}, Ljava/lang/Boolean;->booleanValue()Z
         move-result v1
         if-eqz v1, :width_result
-        iget-object v1, p0, $layoutOwner->$secondState:Landroidx/compose/runtime/State;
+        iget-object v1, p0, $layoutOwner->$chatWidthState:Landroidx/compose/runtime/State;
         invoke-interface {v1}, Landroidx/compose/runtime/State;->getValue()Ljava/lang/Object;
         move-result-object v1
         check-cast v1, Landroidx/compose/ui/unit/Dp;
@@ -160,11 +164,11 @@ internal fun BytecodePatchContext.addChatUiHooks() {
         invoke-direct/range {v0 .. v19}, ${constructor.smaliReference}
         move-object/from16 v1, p0
         check-cast v1, $BUILDER
-        invoke-virtual {v1, v0}, $BUILDER->l($SPAN)I
+        invoke-virtual {v1, v0}, $BUILDER->${if (latest) "n" else "l"}($SPAN)I
         move-result v0
         move-object/from16 v2, p1
-        invoke-virtual {v1, v2}, $BUILDER->f(Ljava/lang/String;)V
-        invoke-virtual {v1, v0}, $BUILDER->h(I)V
+        invoke-virtual {v1, v2}, $BUILDER->${if (latest) "h" else "f"}(Ljava/lang/String;)V
+        invoke-virtual {v1, v0}, $BUILDER->${if (latest) "j" else "h"}(I)V
         return-void
     """)
     val icon = "${COMMUNITY}core/ui/ui/text/util/InlineTextContentIconBox;"
@@ -228,7 +232,7 @@ internal fun BytecodePatchContext.addChatUiHooks() {
         move-result v0
         if-eqz v0, :detached
         const/4 v0, 0x1
-        invoke-static {p0, v0}, Landroidx/compose/ui/layout/LayoutCoordinatesKt;->b(Landroidx/compose/ui/layout/LayoutCoordinates;Z)Landroidx/compose/ui/geometry/Rect;
+        invoke-static {p0, v0}, Landroidx/compose/ui/layout/LayoutCoordinatesKt;->${if (latest) "c" else "b"}(Landroidx/compose/ui/layout/LayoutCoordinates;Z)Landroidx/compose/ui/geometry/Rect;
         move-result-object v0
         const/4 v1, 0x4
         new-array v1, v1, [F
@@ -266,7 +270,7 @@ internal fun BytecodePatchContext.addChatUiHooks() {
         "\ninvoke-static/range {v0 .. v4}, $CHAT_UI->appendHeader(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/util/Map;)V")
     val badges = nickname.methods.single { it.name == "c" && it.parameterTypes.size == 19 }
     val textCall = badges.implementation!!.instructions.withIndex().first {
-        it.value.getReference<MethodReference>()?.let { ref -> ref.definingClass == BUILDER && ref.name == "f" } == true
+        it.value.getReference<MethodReference>()?.let { ref -> ref.definingClass == BUILDER && ref.name == (if (latest) "h" else "f") } == true
     }
     val nameRegister = (textCall.value as FiveRegisterInstruction).registerD
     badges.addInstructions(textCall.index, """
@@ -274,10 +278,10 @@ internal fun BytecodePatchContext.addChatUiHooks() {
         move-result-object v$nameRegister
     """.trimIndent())
     val getterHooks = mapOf(
-        "$STATUS->${if (current) "t" else "m"}" to Pair("roleBadge", "Ljava/lang/String;"),
+        "$STATUS->${if (latest) "u" else if (current) "t" else "m"}" to Pair("roleBadge", "Ljava/lang/String;"),
         "$PROPERTY${'$'}Subscription;->c" to Pair("subscriptionBadge", "Ljava/lang/Object;"),
         "$PROPERTY${'$'}DonationRanking;->a" to Pair("donationBadge", "Ljava/lang/Object;"),
-        "$STATUS->${if (current) "i" else "e"}" to Pair("activityBadges", "Ljava/util/List;")
+        "$STATUS->${if (latest) "m" else if (current) "i" else "e"}" to Pair("activityBadges", "Ljava/util/List;")
     )
     val getterCalls = badges.implementation!!.instructions.withIndex().mapNotNull { (index, instruction) ->
         val ref = instruction.getReference<MethodReference>() ?: return@mapNotNull null

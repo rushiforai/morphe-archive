@@ -23,13 +23,6 @@ import kotlin.math.sqrt
  */
 internal object Icons {
 
-    /**
-     * A jigsaw piece, the same shape Pixiv already uses for "extensions" style entries.
-     *
-     * Lucide's `puzzle` was the first choice, but at 24dp its four lobes merge into a blob, so this
-     * is Material's `extension` glyph instead: solid, like the drawer's other icons, and readable
-     * at the size the drawer actually uses.
-     */
     fun patchedFeatures(): Drawable = SvgPathDrawable(
         pathData = "M20.5 11H19V7c0-1.1-.9-2-2-2h-4V3.5C13 2.12 11.88 1 10.5 1S8 2.12 8 3.5V5H4" +
             "c-1.1 0-1.99.9-1.99 2v3.8H3.5c1.49 0 2.7 1.21 2.7 2.7s-1.21 2.7-2.7 2.7H2V20" +

@@ -184,10 +184,12 @@ public class SettingsBackupTest {
         }
         assertEquals("a setting in Settings isn't a switch, and a settings file has no format for it",
                 Collections.emptyList(), notSwitches);
-        assertEquals(Arrays.asList(Settings.HIDE_ADS, Settings.HIDE_SUGGESTED_USERS, Settings.HIDE_SEARCH_SUGGESTIONS, Settings.BLOCK_RETURN_REFRESH,
+        assertEquals(Arrays.asList(Settings.HIDE_ADS, Settings.HIDE_SUGGESTED_USERS, Settings.HIDE_SEARCH_SUGGESTIONS,
+                Settings.HIDE_SUGGESTED_THREADS, Settings.BLOCK_RETURN_REFRESH,
                 Settings.RETURN_REFRESH_NO_LIMIT, Settings.DISABLE_VIDEO_AUTOPLAY, Settings.MAX_IMAGE_QUALITY, Settings.DISABLE_SWIPE_TO_SEARCH,
                 Settings.SANITIZE_SHARING_LINKS, Settings.OPEN_LINKS_EXTERNALLY,
-                Settings.DISABLE_ANALYTICS, Settings.DISABLE_SCREENSHOT_DETECTION, Settings.PURE_BLACK,
+                Settings.DISABLE_ANALYTICS, Settings.DISABLE_SCREENSHOT_DETECTION, Settings.SPOOF_SIM_REGION,
+                Settings.PURE_BLACK,
                 Settings.HIDE_INSTAGRAM_BUTTON, Settings.HIDE_GHOST_POST_BUBBLES, Settings.FULL_SIZE_PROFILE_PICTURES,
                 Settings.EXACT_POST_TIMES,
                 Settings.FILTER_COMMENTS, Settings.HIDE_COMMENT_LINKS, Settings.SAVE_MEDIA, Settings.DOWNLOAD_COMPATIBLE,

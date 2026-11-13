@@ -29,6 +29,7 @@ public final class FamilyNames {
     public static final String EXTERNAL_BROWSER = "Open links in browser";
     public static final String DISABLE_ANALYTICS = "Disable analytics";
     public static final String SCREENSHOT_DETECTION = "Disable screenshot detection";
+    public static final String SPOOF_SIM_REGION = "Spoof SIM region";
     public static final String PURE_BLACK = "Pure black dark mode";
     public static final String HIDE_INSTAGRAM_BUTTON = "Hide the Instagram button";
     public static final String HIDE_GHOST_POST_BUBBLES = "Hide ghost post bubbles";

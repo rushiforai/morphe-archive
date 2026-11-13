@@ -1,3 +1,9 @@
+## [0.6.2](https://github.com/pigfoot/morphe-patches/compare/v0.6.1...v0.6.2) (2026-11-13)
+
+### 🐛 Bug Fixes
+
+* **gps:** force Splash ad-free callback so Premium stops App-Open ads ([#13](https://github.com/pigfoot/morphe-patches/issues/13)) ([c47172e](https://github.com/pigfoot/morphe-patches/commit/c47172e9438a2121883987c84e5779bec429093c))
+
 ## [0.6.1](https://github.com/pigfoot/morphe-patches/compare/v0.6.0...v0.6.1) (2026-11-10)
 
 ### 🐛 Bug Fixes

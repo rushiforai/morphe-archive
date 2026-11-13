@@ -11,6 +11,7 @@ import app.morphe.PatchContexts
 import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patches.telegram.misc.commerce.COMMERCE
+import app.morphe.patches.telegram.misc.commerce.PROFILE_GIFTS
 import app.morphe.patches.telegram.misc.commerce.hideCommercePatch
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
 import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
@@ -232,12 +233,15 @@ class HideChannelBarButtonsFixtureTest {
 
 /**
  * What Hide Premium, gifts and Stars reads beside a slice on 13.2: LocaleController, whose getString wrapper
- * 13.2 inlined into the title sites, and the class 13.2 merges the slice's walletAvailable flag into.
+ * 13.2 inlined into the title sites, the class 13.2 merges the slice's walletAvailable flag into, and the
+ * profile tab strip when the slice carries shared media's Gifts tab builder.
  */
 internal fun commerceReads(build: File, slice: List<ClassDef>): List<ClassDef> {
-    val flags = slice.flatMap { it.methods }.flatMap { it.controlBody() }.mapNotNull { it.controlField() }
+    val body = slice.flatMap { it.methods }.flatMap { it.controlBody() }
+    val flags = body.mapNotNull { it.controlField() }
         .filter { it.origDefiningClass == "Lorg/telegram/messenger/AppGlobalConfig;" && it.origName == "walletAvailable" }
         .map { it.type }.toSet()
-    val found = FixtureDex.classes(build, setOf("Lorg/telegram/messenger/LocaleController;") + flags).values
+    val tabs = if (body.any { it.controlRef() == PROFILE_GIFTS }) setOf("Lorg/telegram/ui/Components/ScrollSlidingTextTabStrip;") else emptySet()
+    val found = FixtureDex.classes(build, setOf("Lorg/telegram/messenger/LocaleController;") + flags + tabs).values
     return (slice + found).distinctBy { it.type }
 }

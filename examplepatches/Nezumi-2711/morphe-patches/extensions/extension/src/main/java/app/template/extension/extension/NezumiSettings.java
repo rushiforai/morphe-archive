@@ -51,6 +51,7 @@ public final class NezumiSettings {
     private static final String HIDE_MEDIA_BOX = "hide_media_box";
     private static final String HIDE_BUSINESS_BOX = "hide_business_box";
     private static final String HIDE_OA_MESSAGES = "hide_oa_messages";
+    private static final String HIDE_MESSAGE_ADS = "hide_message_ads";
     private static final String HIDE_FEED_ADS = "hide_feed_ads";
     private static final String KEEP_RECALLED_MESSAGES = "keep_recalled_messages";
     private static final String HIDE_ONLINE_STATUS = "hide_online_status";
@@ -68,6 +69,7 @@ public final class NezumiSettings {
     private static final int FEATURE_MEDIA_BOX = 1 << 4;
     private static final int FEATURE_BUSINESS_BOX = 1 << 10;
     private static final int FEATURE_OA_MESSAGES = 1 << 12;
+    private static final int FEATURE_MESSAGE_ADS = 1 << 13;
     private static final int FEATURE_FEED_ADS = 1 << 11;
     private static final int FEATURE_RECALLED_MESSAGES = 1 << 8;
     private static final int FEATURE_ONLINE_STATUS = 1 << 5;
@@ -133,6 +135,11 @@ public final class NezumiSettings {
     public static boolean isOAMessagesHidden(Context context) {
         return context != null && context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
                 .getBoolean(HIDE_OA_MESSAGES, true);
+    }
+
+    public static boolean isMessageAdsHidden(Context context) {
+        return context != null && context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .getBoolean(HIDE_MESSAGE_ADS, false);
     }
 
     public static void setOAMessagesHidden(Context context, boolean hidden) {
@@ -730,6 +737,10 @@ public final class NezumiSettings {
         attach(root, anchor, FEATURE_OA_MESSAGES);
     }
 
+    public static void attachMessageAds(View root, View anchor) {
+        attach(root, anchor, FEATURE_MESSAGE_ADS);
+    }
+
     public static void attachFeedAds(View root, View anchor) {
         attach(root, anchor, FEATURE_FEED_ADS);
     }
@@ -1190,7 +1201,7 @@ public final class NezumiSettings {
         list.addView(feedAdsItem, new LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, dp(context, 56)));
         }
-        if ((features & (FEATURE_MEDIA_BOX | FEATURE_BUSINESS_BOX | FEATURE_OA_MESSAGES)) != 0) {
+        if ((features & (FEATURE_MEDIA_BOX | FEATURE_BUSINESS_BOX | FEATURE_OA_MESSAGES | FEATURE_MESSAGE_ADS)) != 0) {
         addGroup(list, context, vietnamese ? "Hội thoại" : "Conversation", darkMode);
         }
         if ((features & FEATURE_MEDIA_BOX) != 0) {
@@ -1252,6 +1263,28 @@ public final class NezumiSettings {
         oaMessagesItem.addView(oaMessagesToggle);
         oaMessagesItem.setOnClickListener(view -> oaMessagesToggle.setChecked(!oaMessagesToggle.isChecked()));
         list.addView(oaMessagesItem, new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, dp(context, 56)));
+        }
+        if ((features & FEATURE_MESSAGE_ADS) != 0) {
+        String messageAdsLabel = vietnamese ? "Ẩn quảng cáo trong Messages" : "Hide ads in Messages";
+        LinearLayout messageAdsItem = new LinearLayout(context);
+        messageAdsItem.setGravity(Gravity.CENTER_VERTICAL);
+        messageAdsItem.setBackgroundColor(surfaceColor(context, darkMode));
+        messageAdsItem.setPadding(dp(context, 16), 0, dp(context, 16), 0);
+        messageAdsItem.addView(label(context, messageAdsLabel, darkMode),
+            new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1));
+        Switch messageAdsToggle = new Switch(context);
+        messageAdsToggle.setContentDescription(messageAdsLabel);
+        messageAdsToggle.setThumbTintList(ColorStateList.valueOf(0xFFFFFFFF));
+        messageAdsToggle.setTrackTintList(new ColorStateList(
+            new int[][] { new int[] { android.R.attr.state_checked }, new int[] {} },
+            new int[] { BLUE, 0xFFBDBDBD }));
+        messageAdsToggle.setChecked(prefs.getBoolean(HIDE_MESSAGE_ADS, false));
+        messageAdsToggle.setOnCheckedChangeListener((button, checked) ->
+            prefs.edit().putBoolean(HIDE_MESSAGE_ADS, checked).apply());
+        messageAdsItem.addView(messageAdsToggle);
+        messageAdsItem.setOnClickListener(view -> messageAdsToggle.setChecked(!messageAdsToggle.isChecked()));
+        list.addView(messageAdsItem, new LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, dp(context, 56)));
         }
         if ((features & FEATURE_CUSTOM_FONT) != 0) {

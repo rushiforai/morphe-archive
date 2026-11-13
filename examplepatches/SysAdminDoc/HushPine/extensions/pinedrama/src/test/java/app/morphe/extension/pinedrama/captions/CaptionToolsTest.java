@@ -66,8 +66,8 @@ public class CaptionToolsTest {
         // the fixture says what they stand for here rather than repeating this build's numbers.
         int textId = View.generateViewId();
         int backgroundId = View.generateViewId();
-        CaptionStyle.resolveForTests("47.6.3:bxl", textId);
-        CaptionStyle.resolveForTests("47.6.3:bxh", backgroundId);
+        CaptionStyle.resolveForTests("47.7.3:bz9", textId);
+        CaptionStyle.resolveForTests("47.7.3:bz5", backgroundId);
         FrameLayout root = new FrameLayout(Utils.getContext());
         TextView text = new TextView(Utils.getContext());
         text.setId(textId);
@@ -100,8 +100,8 @@ public class CaptionToolsTest {
     @Test public void chosenCaptionBackgroundKeepsTikToksRoundedCorners() {
         int textId = View.generateViewId();
         int backgroundId = View.generateViewId();
-        CaptionStyle.resolveForTests("47.6.3:bxl", textId);
-        CaptionStyle.resolveForTests("47.6.3:bxh", backgroundId);
+        CaptionStyle.resolveForTests("47.7.3:bz9", textId);
+        CaptionStyle.resolveForTests("47.7.3:bz5", backgroundId);
         FrameLayout root = new FrameLayout(Utils.getContext());
         FrameLayout strip = new FrameLayout(Utils.getContext());
         strip.setId(backgroundId);
@@ -148,8 +148,8 @@ public class CaptionToolsTest {
     @Test public void chosenCaptionBackgroundUsesTikToksCornersWhateverShapeItCopies() {
         int textId = View.generateViewId();
         int backgroundId = View.generateViewId();
-        CaptionStyle.resolveForTests("47.6.3:bxl", textId);
-        CaptionStyle.resolveForTests("47.6.3:bxh", backgroundId);
+        CaptionStyle.resolveForTests("47.7.3:bz9", textId);
+        CaptionStyle.resolveForTests("47.7.3:bz5", backgroundId);
         FrameLayout root = new FrameLayout(Utils.getContext());
         FrameLayout strip = new FrameLayout(Utils.getContext());
         strip.setId(backgroundId);
@@ -398,15 +398,15 @@ public class CaptionToolsTest {
     @Test public void aBuildWithoutTheCaptionIdsSaysSoOnTheHookStatusRow() {
         HookStatus.clear();
         // What a reshuffled resource table looks like from here: the names resolve to nothing.
-        CaptionStyle.resolveForTests("47.6.3:bxl", 0);
-        CaptionStyle.resolveForTests("47.6.3:bxh", 0);
+        CaptionStyle.resolveForTests("47.7.3:bz9", 0);
+        CaptionStyle.resolveForTests("47.7.3:bz5", 0);
         Settings.CAPTION_TEXT_SIZE.save(32);
         Settings.CAPTION_BACKGROUND.save("black");
 
         CaptionStyle.apply(new FrameLayout(Utils.getContext()));
 
         assertTrue(HookStatus.anyMissing());
-        assertEquals(java.util.Arrays.asList("view id '47.6.3:bxl'", "view id '47.6.3:bxh'"),
+        assertEquals(java.util.Arrays.asList("view id '47.7.3:bz9'", "view id '47.7.3:bz5'"),
                 HookStatus.missing("captions"));
         assertTrue(String.join(" ", HookStatus.report()).contains("captions"));
         HookStatus.clear();
@@ -423,8 +423,8 @@ public class CaptionToolsTest {
         CaptionStyle.resetLookupsForTests();
         // The ids resolve, which is what tells this apart from the case above. They just are
         // not the views in this container.
-        CaptionStyle.resolveForTests("47.6.3:bxl", View.generateViewId());
-        CaptionStyle.resolveForTests("47.6.3:bxh", View.generateViewId());
+        CaptionStyle.resolveForTests("47.7.3:bz9", View.generateViewId());
+        CaptionStyle.resolveForTests("47.7.3:bz5", View.generateViewId());
         Settings.CAPTION_TEXT_SIZE.save(32);
         Settings.CAPTION_BACKGROUND.save("black");
 
@@ -436,7 +436,7 @@ public class CaptionToolsTest {
         assertTrue("a build where neither caption view is reachable says nothing",
                 HookStatus.anyMissing());
         assertEquals(java.util.Arrays.asList(
-                        "view caption container#47.6.3:bxl", "view caption container#47.6.3:bxh"),
+                        "view caption container#47.7.3:bz9", "view caption container#47.7.3:bz5"),
                 HookStatus.missing("captions"));
         HookStatus.clear();
         CaptionStyle.resetLookupsForTests();
@@ -452,8 +452,8 @@ public class CaptionToolsTest {
     @Test public void anEmptyRendererIsNotAMissHoweverManyTimesItArrives() {
         HookStatus.clear();
         CaptionStyle.resetLookupsForTests();
-        CaptionStyle.resolveForTests("47.6.3:bxl", View.generateViewId());
-        CaptionStyle.resolveForTests("47.6.3:bxh", View.generateViewId());
+        CaptionStyle.resolveForTests("47.7.3:bz9", View.generateViewId());
+        CaptionStyle.resolveForTests("47.7.3:bz5", View.generateViewId());
         Settings.CAPTION_TEXT_SIZE.save(32);
         Settings.CAPTION_BACKGROUND.save("black");
 
@@ -472,8 +472,8 @@ public class CaptionToolsTest {
         CaptionStyle.resetLookupsForTests();
         int textId = View.generateViewId();
         int backgroundId = View.generateViewId();
-        CaptionStyle.resolveForTests("47.6.3:bxl", textId);
-        CaptionStyle.resolveForTests("47.6.3:bxh", backgroundId);
+        CaptionStyle.resolveForTests("47.7.3:bz9", textId);
+        CaptionStyle.resolveForTests("47.7.3:bz5", backgroundId);
         Settings.CAPTION_TEXT_SIZE.save(32);
         Settings.CAPTION_BACKGROUND.save("black");
 
@@ -512,8 +512,8 @@ public class CaptionToolsTest {
         HookStatus.clear();
         CaptionStyle.resetLookupsForTests();
         int textId = View.generateViewId();
-        CaptionStyle.resolveForTests("47.6.3:bxl", textId);
-        CaptionStyle.resolveForTests("47.6.3:bxh", View.generateViewId());
+        CaptionStyle.resolveForTests("47.7.3:bz9", textId);
+        CaptionStyle.resolveForTests("47.7.3:bz5", View.generateViewId());
         Settings.CAPTION_TEXT_SIZE.save(32);
         Settings.CAPTION_BACKGROUND.save("black");
 
@@ -528,7 +528,7 @@ public class CaptionToolsTest {
                 text.getTextSize() > 16);
         assertEquals("the half of the build that works was reported as broken, or the half "
                         + "that does not was not reported at all",
-                java.util.Collections.singletonList("view caption container#47.6.3:bxh"),
+                java.util.Collections.singletonList("view caption container#47.7.3:bz5"),
                 HookStatus.missing("captions"));
         HookStatus.clear();
         CaptionStyle.resetLookupsForTests();
@@ -545,8 +545,8 @@ public class CaptionToolsTest {
         CaptionStyle.resetLookupsForTests();
         int textId = View.generateViewId();
         int backgroundId = View.generateViewId();
-        CaptionStyle.resolveForTests("47.6.3:bxl", textId);
-        CaptionStyle.resolveForTests("47.6.3:bxh", backgroundId);
+        CaptionStyle.resolveForTests("47.7.3:bz9", textId);
+        CaptionStyle.resolveForTests("47.7.3:bz5", backgroundId);
         Settings.CAPTION_TEXT_SIZE.save(32);
         Settings.CAPTION_BACKGROUND.save("black");
 

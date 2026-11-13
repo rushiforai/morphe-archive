@@ -1,7 +1,8 @@
 package app.morphe.extension.chmate;
 
 import java.net.URI;
-import java.util.Locale;
+import java.util.*;
+import java.net.URLDecoder;
 import java.util.regex.*;
 
 /** Clean only HTML menu input; JSON and native board identities are left to ChMate. */
@@ -19,8 +20,7 @@ public final class BbsMenuHtml {
  static String siteTitle(String server){
   String key=siteKey(server);
   if(key.equals("eddibb.cc")||key.equals("eddibb.org"))return "エッヂ";
-  if(key.equals("kenmo.org"))return "けんも板";
-  if(key.equals("kenmo.org"))return "けんも板";
+  if(key.equals("kenmo.org"))return "オルグ板";
   if(key.equals("shitaraba.net"))return "したらば";
   return key;
  }
@@ -28,6 +28,24 @@ public final class BbsMenuHtml {
   if(value==null)return false;String s=value.trim().toLowerCase(Locale.ROOT);
   return s.startsWith("gtag(")||s.startsWith("return ")||s.startsWith("function(")||s.startsWith("function ")
    ||s.equals("});")||s.equals("});;")||s.equals("}")||s.contains(".tolowercase()")||s.contains("<script");
+ }
+ static boolean edgeBoard(String server,String board){
+  if(server==null||board==null||!(server.equalsIgnoreCase("bbs.eddibb.cc")||server.equalsIgnoreCase("bbs.eddibb.org")))return false;
+  try{String decoded=URLDecoder.decode(board,"UTF-8").replaceFirst("/+$","");return decoded.equals("liveedge")||decoded.endsWith("/liveedge");}
+  catch(Exception invalid){return false;}
+ }
+ /** Repair only malformed labels; identity and persisted board data remain unchanged. */
+ static List<String> repairCategories(String server,String board,List<String> categories){
+  boolean edge=edgeBoard(server,board),invalid=edge&&(categories==null||categories.isEmpty());
+  if(categories==null&&!edge)return null;
+  LinkedHashSet<String> clean=new LinkedHashSet<>();
+  if(categories!=null)for(String category:categories){
+   if(scriptCategory(category)||(edge&&(category==null||category.trim().isEmpty()||category.trim().equals("無題"))))invalid=true;
+   else if(category!=null&&!category.isEmpty())clean.add(category);
+  }
+  if(!invalid)return categories;
+  if(clean.isEmpty())clean.add(siteTitle(server));
+  return new ArrayList<>(clean);
  }
  static URI boardAddress(String url){
   try{
@@ -63,7 +81,8 @@ public final class BbsMenuHtml {
   if(matcher.find())title=decode(matcher.group(1).replaceAll("(?is)<[^>]+>","").trim());
   if(siteTitle(board.getHost()).equals("エッヂ")&&path.equals("liveedge"))title="エッヂ";
   if(title==null||title.isEmpty()||scriptCategory(title))title=path;
-  return "<html><body><B>"+escape(siteTitle(board.getHost()))+"</B><BR><A HREF=\""+escape(board.toASCIIString())+"\">"+escape(title)+"</A><BR></body></html>";
+  // Native readers test links before headings on each line. Keep them separate.
+  return "<html><body>\n<B>"+escape(siteTitle(board.getHost()))+"</B><BR>\n<A HREF=\""+escape(board.toASCIIString())+"\">"+escape(title)+"</A><BR>\n</body></html>";
  }
  public static int countForValidation(int count,String url){return count==1&&menuBoard(url)!=null?2:count;}
  private static String decode(String text){

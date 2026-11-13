@@ -302,6 +302,9 @@
       "TURN_OFF_PUSH_NOTIFICATIONS",
       "HIDE_MESSAGE_STREAKS"
     ],
+    "Open on Home": [
+      "OPEN_ON_HOME"
+    ],
     "Open external links directly": [
       "OPEN_EXTERNAL_LINKS"
     ],

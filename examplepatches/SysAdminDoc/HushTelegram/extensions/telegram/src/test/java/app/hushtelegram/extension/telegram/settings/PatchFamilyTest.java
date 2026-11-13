@@ -96,6 +96,8 @@ public class PatchFamilyTest {
         Settings.HIDE_TRANSLATE_BAR.resetToDefault();
         Settings.EXACT_NUMBERS.resetToDefault();
         Settings.REVEAL_SPOILERS.resetToDefault();
+        Settings.REVEAL_MENU.resetToDefault();
+        Settings.SEARCH_OPENS_QUOTES.resetToDefault();
         Settings.HIDE_KEYBOARD_ON_SCROLL.resetToDefault();
         Settings.KEEP_VIDEOS_MUTED.resetToDefault();
         Settings.VIDEO_EITHER_LANDSCAPE.resetToDefault();
@@ -186,6 +188,7 @@ public class PatchFamilyTest {
         Settings.MESSAGE_MENU_DELETE_FOR_THEM.resetToDefault();
         Settings.SELECT_BETWEEN.resetToDefault();
         Settings.SELECTION_SCREENSHOT.resetToDefault();
+        Settings.SELECT_ALL.resetToDefault();
         HookStatus.clear();
     }
 
@@ -416,13 +419,14 @@ public class PatchFamilyTest {
         PatchFamily family = PatchFamily.MESSAGE_MENU_REPEAT;
         assertEquals("Add Repeat to the message menu", family.patchName);
         assertEquals(Arrays.asList(Settings.MESSAGE_MENU_REPEAT, Settings.MESSAGE_MENU_COPY_PHOTO, Settings.MESSAGE_MENU_DETAILS,
-                Settings.MESSAGE_MENU_QUICK_FORWARD, Settings.MESSAGE_MENU_COPY_PROTECTED, Settings.MESSAGE_MENU_SAVE_PROTECTED, Settings.MESSAGE_MENU_FORWARD_COPY, Settings.MESSAGE_MENU_FAST_FORWARD, Settings.MESSAGE_MENU_FORWARD_SAVED, Settings.MESSAGE_MENU_SAVE_COVER, Settings.MESSAGE_MENU_SAVE_ART, Settings.MESSAGE_MENU_CLEAR_CACHE, Settings.MESSAGE_MENU_HIDE, Settings.MESSAGE_MENU_PLAIN_FORWARD, Settings.MESSAGE_MENU_DELETE_FOR_THEM, Settings.STORY_SAVE_BUTTON, Settings.ALLOW_SCREENSHOTS, Settings.SELECT_BETWEEN, Settings.SELECTION_SCREENSHOT), family.switches);
+                Settings.MESSAGE_MENU_QUICK_FORWARD, Settings.MESSAGE_MENU_COPY_PROTECTED, Settings.MESSAGE_MENU_SAVE_PROTECTED, Settings.MESSAGE_MENU_FORWARD_COPY, Settings.MESSAGE_MENU_FAST_FORWARD, Settings.MESSAGE_MENU_FORWARD_SAVED, Settings.MESSAGE_MENU_SAVE_COVER, Settings.MESSAGE_MENU_SAVE_ART, Settings.MESSAGE_MENU_CLEAR_CACHE, Settings.MESSAGE_MENU_HIDE, Settings.MESSAGE_MENU_PLAIN_FORWARD, Settings.MESSAGE_MENU_DELETE_FOR_THEM, Settings.STORY_SAVE_BUTTON, Settings.ALLOW_SCREENSHOTS, Settings.SELECT_BETWEEN, Settings.SELECTION_SCREENSHOT, Settings.SELECT_ALL), family.switches);
         for (BooleanSetting setting : family.switches) {
             assertFalse(setting.key, setting.defaultValue);
             assertFalse(setting.key, setting.rebootApp);
         }
         assertEquals(EnumSet.of(PatchFamily.Capability.COPY_SELECTION, PatchFamily.Capability.STORY_SAVE,
-                PatchFamily.Capability.SCREENSHOTS, PatchFamily.Capability.SELECT_BETWEEN, PatchFamily.Capability.SELECTION_SCREENSHOT,
+                PatchFamily.Capability.SCREENSHOTS, PatchFamily.Capability.SELECT_BETWEEN, PatchFamily.Capability.SELECTION_SCREENSHOT, PatchFamily.Capability.SELECT_ALL,
+                PatchFamily.Capability.SHARED_MEDIA_SELECT_ALL,
                 PatchFamily.Capability.HIDE_FOR_ME),
                 family.expectedCapabilities());
         assertEquals("hideForMe", PatchFamily.Capability.HIDE_FOR_ME.statusMethod);
@@ -763,12 +767,17 @@ public class PatchFamilyTest {
         assertEquals("Disable call debug upload", family.patchName);
         assertEquals("disableCallDebug", family.statusMethod);
         // Record calls (#39) starts off and is read on every block of call audio, so no restart is needed.
-        assertEquals(Arrays.asList(Settings.DISABLE_CALL_DEBUG, Settings.RECORD_CALLS, Settings.RECORD_CALL_BUTTON), family.switches);
+        assertEquals(Arrays.asList(Settings.DISABLE_CALL_DEBUG, Settings.RECORD_CALLS, Settings.RECORD_CALL_BUTTON,
+                Settings.RECORD_CALLS_NOTIFY, Settings.RECORD_CALLS_OPUS), family.switches);
         assertTrue(Settings.DISABLE_CALL_DEBUG.defaultValue);
         assertFalse(Settings.RECORD_CALLS.defaultValue);
         assertFalse(Settings.RECORD_CALLS.rebootApp);
         assertFalse(Settings.RECORD_CALL_BUTTON.defaultValue);
         assertFalse(Settings.RECORD_CALL_BUTTON.rebootApp);
+        assertFalse(Settings.RECORD_CALLS_NOTIFY.defaultValue);
+        assertFalse(Settings.RECORD_CALLS_NOTIFY.rebootApp);
+        assertFalse(Settings.RECORD_CALLS_OPUS.defaultValue);
+        assertFalse(Settings.RECORD_CALLS_OPUS.rebootApp);
         assertEquals(EnumSet.of(PatchFamily.Capability.CALL_DEBUG_UPLOAD, PatchFamily.Capability.CALL_LOG_FILE_UPLOAD,
                         PatchFamily.Capability.CALL_LOG_UPLOAD, PatchFamily.Capability.CALL_RECORDING,
                         PatchFamily.Capability.CALL_RECORD_BUTTON),
@@ -1000,10 +1009,15 @@ public class PatchFamilyTest {
     public void revealSpoilersHasItsOwnOffByDefaultSwitchThatAppliesAtOnce() {
         PatchFamily family = PatchFamily.REVEAL_SPOILERS;
         assertEquals("Reveal spoilers", family.patchName);
-        assertEquals(Collections.singletonList(Settings.REVEAL_SPOILERS), family.switches);
-        assertFalse(Settings.REVEAL_SPOILERS.defaultValue);
-        assertFalse(Settings.REVEAL_SPOILERS.rebootApp);
-        assertTrue(family.expectedCapabilities().isEmpty());
+        assertEquals(Arrays.asList(Settings.REVEAL_SPOILERS, Settings.REVEAL_MENU, Settings.SEARCH_OPENS_QUOTES), family.switches);
+        for (BooleanSetting setting : Arrays.asList(Settings.REVEAL_SPOILERS, Settings.REVEAL_MENU, Settings.SEARCH_OPENS_QUOTES)) {
+            assertFalse(setting.key, setting.defaultValue);
+            assertFalse(setting.key, setting.rebootApp);
+        }
+        assertEquals(EnumSet.of(PatchFamily.Capability.CHAT_REVEAL_MENU, PatchFamily.Capability.SEARCH_HIT_QUOTES),
+                family.expectedCapabilities());
+        assertEquals("chatRevealMenu", PatchFamily.Capability.CHAT_REVEAL_MENU.statusMethod);
+        assertEquals("searchHitQuotes", PatchFamily.Capability.SEARCH_HIT_QUOTES.statusMethod);
         assertOnItsPage(family);
     }
 
@@ -1072,7 +1086,8 @@ public class PatchFamilyTest {
                         PatchFamily.Capability.PREMIUM_PROMO_SHOW, PatchFamily.Capability.PREMIUM_PROMO_TAP,
                         PatchFamily.Capability.PREMIUM_PROMO_ACCEPT, PatchFamily.Capability.PREMIUM_PROMO_FAIL, PatchFamily.Capability.DUAL_CAMERA_REPORTS,
                         PatchFamily.Capability.GHOST_MODE, PatchFamily.Capability.RECEIVE_ONLY, PatchFamily.Capability.POWER_OFF_ACCOUNTS,
-                        PatchFamily.Capability.INSTANT_LOCK, PatchFamily.Capability.QUIET_SIGN_UP),
+                        PatchFamily.Capability.INSTANT_LOCK, PatchFamily.Capability.QUIET_SIGN_UP,
+                        PatchFamily.Capability.DELETE_ACCOUNT),
                 PatchFamily.DISABLE_ANALYTICS.expectedCapabilities());
         assertEquals(EnumSet.of(PatchFamily.Capability.READ_METRICS),
                 PatchFamily.DISABLE_ANALYTICS.installedCapabilities());
@@ -1288,7 +1303,7 @@ public class PatchFamilyTest {
                         + "Suppress screenshot notification, Unlock Premium features, Bypass channel restrictions, "
                         + "Bypass integrity check, Auto-forwarding rules, Never send an uncropped photo, Keep captions with their photos, Proxy in the chat list menu, Free proxies, My messages, Text direction, Lyrics and song dates, Chat preview buttons",
                 "Hide ads coverage: channel ads, video ads, search ads",
-                "Disable analytics coverage: channel read metrics, Premium promo views, Premium promo taps, Premium promo accepts, Premium promo failures, dual camera reports, read receipts and story views, receive only mode, powering off accounts, instant lock, quiet sign-up"),
+                "Disable analytics coverage: channel read metrics, Premium promo views, Premium promo taps, Premium promo accepts, Premium promo failures, dual camera reports, read receipts and story views, receive only mode, powering off accounts, instant lock, quiet sign-up, account deletion"),
                 running);
 
         // Every family in this build has a switch, but the line still has room, after the switch's
@@ -1318,7 +1333,7 @@ public class PatchFamilyTest {
                 PatchFamily.Capability.READ_METRICS);
         List<String> running = PatchFamily.reportLines(build, false);
         assertTrue(running.toString(), running.contains("Hide ads coverage: channel ads; missing: video ads, search ads"));
-        assertTrue(running.toString(), running.contains("Disable analytics coverage: channel read metrics; missing: Premium promo views, Premium promo taps, Premium promo accepts, Premium promo failures, dual camera reports, read receipts and story views, receive only mode, powering off accounts, instant lock, quiet sign-up"));
+        assertTrue(running.toString(), running.contains("Disable analytics coverage: channel read metrics; missing: Premium promo views, Premium promo taps, Premium promo accepts, Premium promo failures, dual camera reports, read receipts and story views, receive only mode, powering off accounts, instant lock, quiet sign-up, account deletion"));
         Settings.HIDE_ADS.save(false);
         Settings.DISABLE_ANALYTICS.save(false);
         List<String> disabled = PatchFamily.reportLines(build, false);
@@ -1328,7 +1343,7 @@ public class PatchFamilyTest {
         PatchFamily.capabilitiesForTests = EnumSet.noneOf(PatchFamily.Capability.class);
         List<String> none = PatchFamily.reportLines(build, false);
         assertTrue(none.toString(), none.contains("Hide ads coverage: none; missing: channel ads, video ads, search ads"));
-        assertTrue(none.toString(), none.contains("Disable analytics coverage: none; missing: channel read metrics, Premium promo views, Premium promo taps, Premium promo accepts, Premium promo failures, dual camera reports, read receipts and story views, receive only mode, powering off accounts, instant lock, quiet sign-up"));
+        assertTrue(none.toString(), none.contains("Disable analytics coverage: none; missing: channel read metrics, Premium promo views, Premium promo taps, Premium promo accepts, Premium promo failures, dual camera reports, read receipts and story views, receive only mode, powering off accounts, instant lock, quiet sign-up, account deletion"));
     }
 
     /** A target that only adds its own row leaves the switch working, so its description and report say so. */

@@ -66,13 +66,15 @@ ChMateに設定・閲覧・検索・NG・バックアップ機能を追加する
 - 通常NGの登録上限の変更（0で無制限）、IDなしレスの非表示、自動NGと除外ID、JavaScriptによる高度なNG。[IDなしNG](docs/hidden-id-ng.md) ／ [高度なNG](docs/advanced-ng.md)
 - **連鎖あぼーんを常に非表示**（初期OFF）。元のNG対象レスや保存済みルールを変えず、連鎖されたレスの行を隠します。「NGWord-IDへの返信も非表示」とは独立した設定です。
 - 登録スレの新着通知、巡回時の画像保存、巡回エラーのURL表示。[巡回画像](docs/patrol-images.md) ／ [新着通知](docs/thread-notifications.md)
-- エッヂ・けんも板の記者ID表示・過去ログ検索、エッヂ／kenmo.org／爆サイ／ふたば／あにまんの外部板対応。更新履歴画面と各設定カテゴリからサイトや機能の使用を切り替えられます。サイト設定は初期ONです。有効なサイトは標準の掲示板設定と板一覧に表示され、オフのサイトは板一覧へ追加しません。外部板スレの作成日時もスレ情報ポップアップへ反映します。認証や登録板の編集にも対応します。[記者ID](docs/edge-reporter-id.md) ／ [認証](docs/external-board-auth.md) ／ [外部板編集](docs/external-board-editor.md) ／ [サイト別の板一覧](docs/external-board-groups.md) ／ [作成日時](docs/site-thread-dates-20261108.md)
+- エッヂ・オルグ板の記者ID表示・過去ログ検索、エッヂ／kenmo.org／爆サイ／ふたば／あにまんの外部板対応。更新履歴画面と各設定カテゴリからサイトや機能の使用を切り替えられます。サイト設定は初期ONです。有効なサイトは標準の掲示板設定と板一覧に表示され、オフのサイトは板一覧へ追加しません。外部板スレの作成日時もスレ情報ポップアップへ反映します。認証や登録板の編集にも対応します。[記者ID](docs/edge-reporter-id.md) ／ [認証](docs/external-board-auth.md) ／ [外部板編集](docs/external-board-editor.md) ／ [サイト別の板一覧](docs/external-board-groups.md) ／ [作成日時](docs/site-thread-dates-20261108.md)
 - 標準添付のアップロード先切り替え、アップロード履歴管理。[対応先・制限](docs/upload-hosts.md) ／ [標準履歴](docs/native-upload-history.md)
 - ローカルバックアップ・自動バックアップ、任意のMEGA同期、設定の`.haiagaru`共有。[自動バックアップ](docs/local-auto-backup.md) ／ [MEGA](docs/mega-backup.md) ／ [設定共有](docs/settings-sharing-history-resume.md)
 - 通常ChMateのアーカイブをフォルダ／ZIPから選択して上書き復元。任意のShizukuパッチで共有データのフォルダ別移行にも対応。[移行手順](docs/native-archive-migration.md)
 - 自作テーマ、アプリ名・パッケージ名・アイコン・versionCodeの変更、クラッシュログ保存。[テーマ](docs/custom-theme-import.md)
 
 機能ごとの設定場所は[設定ガイド](docs/feature-switches.md)、直近の変更はアプリ内の「更新履歴」または[CHANGELOG](CHANGELOG.md)を参照してください。過去のリリース文書には当時の設定名や確認範囲が含まれます。
+
+Haiagaru設定トップの「設定を共有」「設定を読み込む」「最低限構成を選び直す」より上に「Haiagaru更新履歴」を配置しています。バージョンを開くと、その版で追加・拡充された機能のスイッチも操作できます。安定版／開発版の表示切替とGitHubからの最新履歴取得ができます。更新内容は過去版のコミット説明も含め日本語で表示します。ChMate本体とHaiagaruの設定検索は、設定名を変えずにCookie／クッキー、UA／ユーザーエージェントなどの別表記を受け付けます。
 
 
 ## インストールできない場合

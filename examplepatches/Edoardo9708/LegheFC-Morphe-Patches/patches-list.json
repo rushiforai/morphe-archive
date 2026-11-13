@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.10.2",
+  "version": "1.11.0",
   "patches": [
     {
       "name": "DNS Changer - Force Pro test D2",
@@ -83,6 +83,32 @@
     {
       "name": "Leghe FC - Avvio e nome 3 campo",
       "description": "Corregge l'avvio dell'app e la rinomina in 3 campo.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "it.quadronica.leghe",
+          "name": "Leghe FC",
+          "description": null,
+          "apkFileType": null,
+          "appIconColor": null,
+          "signatures": null,
+          "targets": [
+            {
+              "version": "13.2.3",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Leghe FC - Ignora aggiornamento obbligatorio [LAB 13.2.3]",
+      "description": "LAB: neutralizza l'esito locale del confronto di versione; non modifica API o versionCode.",
       "default": false,
       "category": null,
       "compatiblePackages": [

@@ -128,8 +128,8 @@ final class Strings {
         put("dearrow_failed", "The title was not sent (no connection to DeArrow)", "No se envió el título (sin conexión con DeArrow)");
         put("dearrow_no_original", "The video's own title was not found", "No se encontró el título propio del video");
         put("live_catch_up", "Catch up to live streams", "Alcanzar el directo");
-        put("live_catch_up_summary", "A live stream more than 12 s behind its live edge plays faster until it is within 5 s, then returns to its speed",
-                "Un directo con más de 12 s de retraso respecto al momento en vivo se reproduce más rápido hasta quedar a menos de 5 s, y luego vuelve a su velocidad");
+        put("live_catch_up_summary", "A live stream up to 15 s behind its live edge plays faster until it cannot get closer, and again whenever it falls 1 s behind; a stream further behind (rewound on purpose) is left alone",
+                "Un directo con hasta 15 s de retraso respecto al momento en vivo se reproduce más rápido hasta que no puede acercarse más, y otra vez cada vez que se atrasa 1 s; un directo más atrasado (retrocedido a propósito) se deja como está");
         put("live_catch_up_speed", "Catch-up speed", "Velocidad para alcanzar el directo");
         put("live_catch_up_speed_summary", "From 1.25 to 4; 2 by default", "De 1.25 a 4; 2 por defecto");
         put("cat_playback", "Playback", "Reproducción");
@@ -139,6 +139,9 @@ final class Strings {
         put("audio_only", "Audio only", "Solo audio");
         put("audio_only_summary", "Videos play their sound without the picture, through YouTube's own audio-only mode",
                 "Los videos reproducen el sonido sin la imagen, con el modo de solo audio de YouTube");
+        put("audio_only_row", "Audio only in the quality menu", "Solo audio en el menú de calidad");
+        put("audio_only_row_summary", "The video quality menu lists Audio only above the resolutions; picking a resolution turns it off",
+                "El menú de calidad del video muestra Solo audio sobre las resoluciones; elegir una resolución lo desactiva");
         put("audio_only_off", "Audio only while the screen is off", "Solo audio con la pantalla apagada");
         put("audio_only_off_summary", "A video playing when the screen turns off plays its sound alone until the screen turns on",
                 "Un video que se reproduce al apagar la pantalla reproduce solo el sonido hasta que se enciende");

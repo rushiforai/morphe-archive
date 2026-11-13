@@ -368,6 +368,17 @@
     },
     {
       "paths": [
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/comments/SuggestedThreads.java",
+        "patches/src/main/kotlin/app/morphe/patches/threads/ads/RelatedThreads.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/HushThreads",
+      "via": [],
+      "license": "GPL-3.0-only",
+      "changes": "Hide suggested users on an opened post: the parse of an opened post's page of replies hands the extension the page's related threads right after reading them, and walks the list it gets back, which is empty while the switch is on. Found by reading BarcelonaPermalinkRepository's parse and the RelatedThreadIntf entries it casts in 455, with no outside code."
+    },
+    {
+      "paths": [
         "extensions/threads/src/main/java/app/morphe/extension/hushthreads/misc/ScreenshotDetection.java",
         "patches/src/main/kotlin/app/morphe/patches/threads/misc/screenshot/**"
       ],
@@ -378,6 +389,21 @@
       ],
       "license": "GPL-3.0-only",
       "changes": "Disable screenshot detection: the extension asked first thing in the photo library observer and the screenshot folder report, both found by the strings they log or query, and Threads' screen capture registrations sent through the extension. Found by reading 450, 449 and 448, with Hushfacebook's switch as the behavior reference."
+    },
+    {
+      "paths": [
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/misc/SimRegion.java",
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/misc/SimRegions.java",
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/SimRegionRows.java",
+        "patches/src/main/kotlin/app/morphe/patches/threads/misc/sim/**"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/HushThreads",
+      "via": [
+        "https://github.com/SysAdminDoc/hushfeed"
+      ],
+      "license": "GPL-3.0-only",
+      "changes": "Spoof SIM region: each read of the SIM's or the network's country, network code and carrier name that Threads makes through TelephonyManager, SubscriptionInfo and the CellIdentity classes hands its answer to the extension right after the call, which gives back the chosen region's while the switch is on. Found by reading which telephony methods 455's dex calls, with Hushfeed's SIM spoof as the behavior reference and its presets as the source of each region's country, network code and carrier. The region list in settings is HushThreads' own."
     },
     {
       "paths": [

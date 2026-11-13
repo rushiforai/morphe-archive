@@ -142,8 +142,8 @@ public class InboxQueryOwnersTest {
     @Test public void observedVmSharingAcrossWindowsRefusesIsolationWithoutInitializingDormantWidgets() {
         Surface main = surface(false), second = surface(true);
         Object sharedVm = new Object();
-        NativeWidget firstWidget = new NativeWidget(main.fragment.LJLLI);
-        NativeWidget secondWidget = new NativeWidget(second.fragment.LJLLI);
+        NativeWidget firstWidget = new NativeWidget(main.fragment.LJLLJ);
+        NativeWidget secondWidget = new NativeWidget(second.fragment.LJLLJ);
         firstWidget.cachedVm = sharedVm;
         secondWidget.cachedVm = sharedVm;
         // A native getter can return before either window binds its first notification.
@@ -161,7 +161,7 @@ public class InboxQueryOwnersTest {
         assertTrue(secondOwner.pagingIsolated());
         assertEquals(0, firstWidget.lazyReads);
         assertEquals(0, secondWidget.lazyReads);
-        secondWidget.parent = main.fragment.LJLLI;
+        secondWidget.parent = main.fragment.LJLLJ;
         assertFalse("a reparented widget must lose its former owner's mapping", secondOwner.pagingIsolated());
     }
 
@@ -222,15 +222,15 @@ public class InboxQueryOwnersTest {
     public static final class NativeFragment {
         final View root;
         final NativeList list;
-        public Object LJLLI = new Object();
+        public Object LJLLJ = new Object();
         NativeFragment(View root, NativeList list) { this.root = root; this.list = list; }
         public View getView() { return root; }
-        public NativeList JN() { return list; }
+        public NativeList mO() { return list; }
     }
     public static final class NativeStub {
         Object state;
-        public Object LJLJLJ;
-        NativeStub(NativeList list) { state = list.state; LJLJLJ = list.adapter; }
+        public Object LJLL;
+        NativeStub(NativeList list) { state = list.state; LJLL = list.adapter; }
         public Object LJIILLIIL() { return state; }
     }
     public static final class NativeHolder {

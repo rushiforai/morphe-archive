@@ -12,9 +12,11 @@ import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import org.ungoogled.patches.samsung.convertSprDrawables
 import org.ungoogled.patches.samsung.redirectCalls
 import org.ungoogled.patches.samsung.redirectMembers
@@ -510,8 +512,13 @@ private val SETTINGS_SHAPES = listOf(
 
 /**
  * Samsung capture keeps its options (recorder sound and quality, selfie view size, screenshot format and toolbar) in
- * Android's settings tables, which only the system may write with One UI's keys (the settings screen crashed opening).
- * Every settings call goes through LocalSettings, which keeps a refused write in the app's own preferences.
+ * Android's settings tables, which only the system may write with One UI's keys (the settings screen crashed opening),
+ * and which One UI lets any app write in System, so a copy next to Samsung's changed Samsung's own options. Every
+ * settings call goes through LocalSettings, which keeps this copy's options in its own files.
+ *
+ * The options only Samsung's preinstalled copy can carry out are hidden (extension SystemOnly): the screenshot options,
+ * which One UI's SystemUI reads when it takes a screenshot, and "Show taps and touches", which One UI draws through a
+ * hidden InputManager call for Samsung's system app only (an app sees no touches outside its own windows).
  */
 private val settingsPatch = bytecodePatch(
     description = "Keeps Samsung capture's own settings in the app.",
@@ -533,6 +540,41 @@ private val settingsPatch = bytecodePatch(
         log.info("Settings calls: $moved")
         // Measured against 6.2.12: 212.
         if (moved < 100) throw PatchException("only $moved settings calls found")
+
+        // The settings screen: hidden right after its options are read from their XML.
+        val preferences = "Landroidx/preference"
+        if (mutableClassDefByOrNull("$preferences/PreferenceFragmentCompat;")?.methods
+                ?.none { it.name == "findPreference" && it.parameterTypes == listOf("Ljava/lang/CharSequence;") } != false ||
+            mutableClassDefByOrNull("$preferences/Preference;")?.methods
+                ?.none { it.name == "setVisible" && it.parameterTypes == listOf("Z") } != false
+        ) {
+            throw PatchException("androidx preference no longer has findPreference(CharSequence) and setVisible(boolean)")
+        }
+        method("Lcom/samsung/android/app/settings/SettingsFragment;", "onCreate") {
+            it.parameterTypes == listOf("Landroid/os/Bundle;")
+        }.apply {
+            val read = implementation!!.instructions.indexOfFirst {
+                ((it as? ReferenceInstruction)?.reference as? MethodReference)?.name == "addPreferencesFromResource"
+            }
+            if (read < 0) throw PatchException("SettingsFragment.onCreate no longer reads its options from XML")
+            addInstruction(read + 1, "invoke-static/range { p0 .. p0 }, $EXT/SystemOnly;->hidePreferences(Ljava/lang/Object;)V")
+        }
+
+        // The recorder's sound question before a recording also offers "Show taps and touches".
+        val views = redirectIn(
+            RECORDER_CONTROLLER,
+            "Landroid/view/View;->findViewById(I)Landroid/view/View;",
+            "$EXT/SystemOnly;->findViewById(Landroid/view/View;I)Landroid/view/View;",
+        )
+        val showTaps = mutableClassDefBy(RECORDER_CONTROLLER).methods.any { m ->
+            m.implementation?.instructions?.any {
+                ((it as? ReferenceInstruction)?.reference as? StringReference)
+                    ?.string == "show_taps_and_touches"
+            } == true
+        }
+        log.info("Recorder view lookups: $views")
+        // Measured against 6.2.12: 18.
+        if (views < 2 || !showTaps) throw PatchException("the recorder's sound question no longer has its show taps switch")
     }
 }
 
@@ -572,6 +614,38 @@ private val telemetryPatch = bytecodePatch(
     execute {
         method("$APP/baseutil/analytics/SmartCaptureSamsungAnalyticsUtils;", "setConfiguration")
             .addInstruction(0, "return-void")
+        // Unconfigured, the SDK's tracker lookup is an assertion that throws where the ROM is not a "user" build
+        // (LineageOS and other userdebug ROMs: the settings screen, recorder and editor stopped on their first log).
+        // Every log call asks for the tracker first, so those calls return at once.
+        val tracker = mutableListOf<Method>()
+        classDefForEach { c ->
+            c.methods.filterTo(tracker) { m ->
+                m.parameterTypes.isEmpty() && m.returnType == c.type && m.implementation?.instructions?.any {
+                    ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == "call after setConfiguration() method"
+                } == true
+            }
+        }
+        val lookup = tracker.singleOrNull() ?: throw PatchException("Samsung Analytics' tracker lookup not found (${tracker.size})")
+        val loggers = mutableListOf<Pair<String, Method>>()
+        classDefForEach { c ->
+            if (c.type == lookup.definingClass) return@classDefForEach
+            c.methods.filter { m ->
+                m.implementation?.instructions?.any {
+                    val ref = (it as? ReferenceInstruction)?.reference as? MethodReference
+                    ref != null && ref.definingClass == lookup.definingClass && ref.name == lookup.name &&
+                        ref.parameterTypes.isEmpty() && ref.returnType == lookup.returnType
+                } == true
+            }.forEach { loggers += c.type to it }
+        }
+        loggers.forEach { (type, m) ->
+            if (m.returnType != "V") throw PatchException("Samsung Analytics log call $type.${m.name} returns ${m.returnType}")
+            val shape = m.parameterTypes.map(CharSequence::toString)
+            method(type, m.name) { it.parameterTypes.map(CharSequence::toString) == shape && it.returnType == "V" }
+                .addInstruction(0, "return-void")
+        }
+        log.info("Samsung Analytics log calls: ${loggers.size}")
+        // Measured against 6.2.12: 5 (screen, event and status logs).
+        if (loggers.size < 3) throw PatchException("only ${loggers.size} Samsung Analytics log calls found")
         val result = "Lcom/samsung/android/app/settings/updatechecker/CheckForUpdates\$PackageCheckResult;"
         method("Lcom/samsung/android/app/settings/updatechecker/CheckForUpdates;", "createPackageCheckResult")
             .addInstructions(

@@ -555,3 +555,10 @@ object VActivityFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf("Landroid/os/Bundle;"),
 )
+
+object MoreChildrenRequestFingerprint : Fingerprint(
+    definingClass = "Lnet/dean/jraw/http/j;",
+    name = "b",
+    returnType = "Lnet/dean/jraw/http/m;",
+    parameters = listOf("Lnet/dean/jraw/http/f;"),
+)

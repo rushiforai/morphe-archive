@@ -19,6 +19,7 @@ import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.addInstructionsWithLabels
 import app.morphe.util.cloneMutableAndPreserveParameters
 import app.morphe.util.findMutableMethodOf
+import app.morphe.util.getFreeRegisterProvider
 import app.morphe.util.getReference
 import app.morphe.util.implementationOrPatchException
 import com.android.tools.smali.dexlib2.Opcode
@@ -234,18 +235,28 @@ internal fun configSite(method: Method): ConfigSite {
     return ConfigSite(at, source(start + 2), source(start + 4), video.registerC)
 }
 
-/** Lets the extension answer the id just before the config takes it. Nothing reads v0 or v1 next. */
+/**
+ * Two registers a short invoke can name that the code writes before reading at the config site.
+ * They used to be v0 and v1, until 47.7.3's scene path kept the video in v1.
+ */
+internal fun configScratch(method: Method, site: ConfigSite): Pair<Int, Int> {
+    val free = method.getFreeRegisterProvider(site.at, 2, site.video, site.model, site.id)
+    return free.getFreeRegister4Bit() to free.getFreeRegister4Bit()
+}
+
+/** Lets the extension answer the id just before the config takes it. */
 private fun MutableMethod.pickSubtitle(choice: HandChoice) {
     val site = configSite(this)
+    val (aid, owner) = configScratch(this, site)
     addInstructionsAtControlFlowLabel(
         site.at,
         """
             invoke-virtual {v${site.video}}, $AWEME_TYPE->getAid()$STRING
-            move-result-object v0
-            sget-object v1, ${choice.owner.definingClass}->${choice.owner.name}:${choice.owner.type}
-            invoke-virtual {v1, v0}, ${choice.lookup.definingClass}->${choice.lookup.name}($STRING)${choice.lookup.returnType}
-            move-result-object v0
-            invoke-static {v${site.video}, v${site.model}, v${site.id}, v0}, $EXTENSION->subtitleId($OBJECT${OBJECT}I$OBJECT)I
+            move-result-object v$aid
+            sget-object v$owner, ${choice.owner.definingClass}->${choice.owner.name}:${choice.owner.type}
+            invoke-virtual {v$owner, v$aid}, ${choice.lookup.definingClass}->${choice.lookup.name}($STRING)${choice.lookup.returnType}
+            move-result-object v$aid
+            invoke-static {v${site.video}, v${site.model}, v${site.id}, v$aid}, $EXTENSION->subtitleId($OBJECT${OBJECT}I$OBJECT)I
             move-result v${site.id}
         """,
     )

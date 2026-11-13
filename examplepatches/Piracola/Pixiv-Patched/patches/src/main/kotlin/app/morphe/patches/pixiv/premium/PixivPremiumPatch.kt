@@ -16,7 +16,6 @@ val pixivPremiumPatch: BytecodePatch = bytecodePatch(
     extendWith("extensions/pixiv.mpe")
 
     execute {
-        // 1. OAuthUser.isPremium() -> always return true (account state used by most UI gates)
         val oauthUserClass = mutableClassDefBy("Ljp/pxv/android/domain/auth/entity/OAuthUser;")
         val isPremiumMethod = oauthUserClass.methods.first { it.name == "m0" && it.returnType == "Z" }
         isPremiumMethod.addInstructions(
@@ -27,7 +26,6 @@ val pixivPremiumPatch: BytecodePatch = bytecodePatch(
             """.trimIndent()
         )
 
-        // 2. ProfileApiModel.isPremium() -> always return true (remote profile DTO)
         val profileApiClass = mutableClassDefBy("Ljp/pxv/android/data/userstate/remote/dto/ProfileApiModel;")
         val profileIsPremiumMethod = profileApiClass.methods.first { it.name == "f" && it.returnType == "Z" }
         profileIsPremiumMethod.addInstructions(
@@ -38,7 +36,8 @@ val pixivPremiumPatch: BytecodePatch = bytecodePatch(
             """.trimIndent()
         )
 
-        // 3. PixivProfile constructor -> force the isPremium parameter (p20) to true (domain entity)
+        // Constructor tail in 6.203.0: (..., isPremium: Z, isUsingCustomProfileImage: Z, Badge);
+        // p20 is isPremium, p21 is the profile-image flag.
         val domainProfileClass = mutableClassDefByOrNull("Ljp/pxv/android/domain/commonentity/PixivProfile;")
         domainProfileClass?.let { cls ->
             val ctor = cls.methods.firstOrNull { it.name == "<init>" && it.parameterTypes.size == 22 }
@@ -48,7 +47,6 @@ val pixivPremiumPatch: BytecodePatch = bytecodePatch(
             )
         }
 
-        // 4. MuteSettingResponse.muteLimitCount() -> return 9999 (mute setting screen)
         val muteSettingClass = mutableClassDefByOrNull("Ljp/pxv/android/data/mute/remote/dto/MuteSettingResponse;")
         muteSettingClass?.let { cls ->
             val limitMethod = cls.methods.firstOrNull { it.name == "a" && it.returnType == "I" }
@@ -61,7 +59,6 @@ val pixivPremiumPatch: BytecodePatch = bytecodePatch(
             )
         }
 
-        // 5. MuteLimitForTextApiModel -> return 9999 for both free and premium text mute limits
         val muteTextLimitClass = mutableClassDefByOrNull("Ljp/pxv/android/data/mute/remote/dto/MuteLimitForTextApiModel;")
         muteTextLimitClass?.let { cls ->
             for (name in listOf("a", "b")) {

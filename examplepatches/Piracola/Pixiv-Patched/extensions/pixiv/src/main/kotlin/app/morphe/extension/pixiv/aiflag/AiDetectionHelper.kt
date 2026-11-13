@@ -137,7 +137,6 @@ object AiDetectionHelper {
         return try {
             detect(unwrapIllust(illust) ?: illust)
         } catch (_: Throwable) {
-            // Safety fallback: never crash app
             false
         }
     }
@@ -359,7 +358,6 @@ object AiDetectionHelper {
                     f.isAccessible = true
                     return f
                 } catch (_: NoSuchFieldException) {
-                    // try next alias
                 }
             }
             current = current.superclass

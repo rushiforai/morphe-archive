@@ -22,14 +22,18 @@ import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.net.ConnectivityManager;
+import android.net.Uri;
 import android.os.Looper;
+import android.provider.DocumentsContract;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceGroup;
@@ -57,10 +61,12 @@ import app.hushtelegram.extension.shared.settings.preference.AbstractPreferenceF
 import app.hushtelegram.extension.shared.settings.preference.ImmediateAction;
 import app.hushtelegram.extension.shared.settings.preference.LogBufferManager;
 import app.hushtelegram.extension.telegram.misc.AppPasscodeForTests;
+import app.hushtelegram.extension.telegram.misc.CallRecorder;
 import app.hushtelegram.extension.telegram.misc.HiddenAccounts;
 import app.hushtelegram.extension.telegram.misc.HiddenAccountsForTests;
 import app.hushtelegram.extension.telegram.misc.DataSaverDownloads;
 import app.hushtelegram.extension.telegram.misc.DataSaverDownloadsForTests;
+import app.hushtelegram.extension.telegram.misc.DeleteAccountForTests;
 import app.hushtelegram.extension.telegram.misc.GhostChats;
 import app.hushtelegram.extension.telegram.misc.HiddenChats;
 import app.hushtelegram.extension.telegram.misc.HiddenChatsForTests;
@@ -84,6 +90,7 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.Shadows;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowActivity;
 import org.robolectric.shadows.ShadowAlertDialog;
 import org.robolectric.shadows.ShadowLooper;
 import org.robolectric.shadows.ShadowToast;
@@ -621,6 +628,17 @@ public class HushTelegramPreferenceFragmentTest {
             // Spoilers stay covered until the switch is turned on.
             assertFalse(Settings.REVEAL_SPOILERS.key,
                     ((SwitchPreference) page.findPreference(Settings.REVEAL_SPOILERS.key)).isChecked());
+            assertEquals("Show all spoilers and quotes", String.valueOf(page.findPreference(Settings.REVEAL_MENU.key).getTitle()));
+            assertEquals("A chat's menu at the top gets Show all spoilers and Expand all quotes, for the messages loaded "
+                    + "so far.",
+                    String.valueOf(page.findPreference(Settings.REVEAL_MENU.key).getSummary()));
+            assertEquals("Open quotes on search hits", String.valueOf(page.findPreference(Settings.SEARCH_OPENS_QUOTES.key).getTitle()));
+            assertEquals("When a chat search lands on a match inside a collapsed quote, the quote opens so the "
+                    + "highlighted match stays in view.",
+                    String.valueOf(page.findPreference(Settings.SEARCH_OPENS_QUOTES.key).getSummary()));
+            // The chat's menu and its search stay as Telegram has them until each switch is turned on.
+            assertFalse(Settings.REVEAL_MENU.key, ((SwitchPreference) page.findPreference(Settings.REVEAL_MENU.key)).isChecked());
+            assertFalse(Settings.SEARCH_OPENS_QUOTES.key, ((SwitchPreference) page.findPreference(Settings.SEARCH_OPENS_QUOTES.key)).isChecked());
             assertEquals("Hide keyboard on scroll", String.valueOf(page.findPreference(Settings.HIDE_KEYBOARD_ON_SCROLL.key).getTitle()));
             assertEquals("The keyboard closes when you start scrolling a chat. The emoji and sticker panel stays open.",
                     String.valueOf(page.findPreference(Settings.HIDE_KEYBOARD_ON_SCROLL.key).getSummary()));
@@ -2168,6 +2186,120 @@ public class HushTelegramPreferenceFragmentTest {
     }
 
     /**
+     * Recordings folder (#72): with none picked a tap goes straight to Android's folder picker. The
+     * picked folder is kept with a lasting permission and named on its row and on Record calls, and
+     * going back to the usual folder lets that permission go.
+     */
+    @Test
+    public void theRecordingsFolderRowPicksAFolderAndGoesBack() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.DISABLE_CALL_DEBUG);
+        Uri tree = DocumentsContract.buildTreeDocumentUri("com.android.externalstorage.documents", "primary:Recordings/Calls");
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushTelegramPreferenceFragment page = pageOf(controller);
+            ContentResolver resolver = controller.get().getContentResolver();
+            Preference folder = page.findPreference(HushTelegramPreferenceFragment.RECORD_FOLDER_ROW);
+            Preference record = page.findPreference(Settings.RECORD_CALLS.key);
+            assertEquals("Recordings folder", String.valueOf(folder.getTitle()));
+            assertFalse(folder.isPersistent());
+            assertEquals(CallRecorder.usualFolder(), String.valueOf(folder.getSummary()).replaceAll("[^\\p{ASCII}]", ""));
+
+            assertTrue(folder.getOnPreferenceClickListener().onPreferenceClick(folder));
+            ShadowActivity.IntentForResult picker = shadowOf(controller.get()).getNextStartedActivityForResult();
+            assertEquals(Intent.ACTION_OPEN_DOCUMENT_TREE, picker.intent.getAction());
+            assertTrue((picker.intent.getFlags() & Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION) != 0);
+
+            // Cancelled: nothing changes.
+            shadowOf(controller.get()).receiveResult(picker.intent, Activity.RESULT_CANCELED, null);
+            settle();
+            assertEquals("", Settings.RECORD_CALLS_FOLDER.get());
+
+            shadowOf(controller.get()).receiveResult(picker.intent, Activity.RESULT_OK, new Intent().setData(tree));
+            settle();
+            assertEquals(tree.toString(), Settings.RECORD_CALLS_FOLDER.get());
+            assertEquals("Recordings/Calls", String.valueOf(folder.getSummary()).replaceAll("[^\\p{ASCII}]", ""));
+            assertEquals("Saves both sides of each call to Recordings/Calls on this phone. The other person isn't told.",
+                    String.valueOf(record.getSummary()).replaceAll("[^\\p{ASCII}]", ""));
+            assertEquals(1, resolver.getPersistedUriPermissions().size());
+            assertEquals(tree, resolver.getPersistedUriPermissions().get(0).getUri());
+
+            AlertDialog ask = dialogOf(folder);
+            assertEquals("Recordings folder", String.valueOf(shadowOf(ask).getTitle()));
+            ask.getButton(AlertDialog.BUTTON_NEUTRAL).performClick();
+            ShadowLooper.idleMainLooper();
+            settle();
+            assertEquals("", Settings.RECORD_CALLS_FOLDER.get());
+            assertEquals(CallRecorder.usualFolder(), String.valueOf(folder.getSummary()).replaceAll("[^\\p{ASCII}]", ""));
+            assertTrue(resolver.getPersistedUriPermissions().isEmpty());
+        } finally {
+            Settings.RECORD_CALLS_FOLDER.resetToDefault();
+        }
+    }
+
+    /**
+     * Delete account (#71) is on the Privacy page of a build with it. A tap names the account in use
+     * and sends nothing until Delete account is tapped, which then waits dimmed for Telegram's answer.
+     */
+    @Test
+    public void deleteAccountAsksByNameAndSendsOnlyOnDelete() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.DISABLE_ANALYTICS);
+        PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.READ_METRICS);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            assertNull("a build without it has no row",
+                    pageOf(controller).findPreference(HushTelegramPreferenceFragment.DELETE_ACCOUNT_ROW));
+        }
+        PatchFamily.capabilitiesForTests = null;
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushTelegramPreferenceFragment page = pageOf(controller);
+            Preference row = page.findPreference(HushTelegramPreferenceFragment.DELETE_ACCOUNT_ROW);
+            assertEquals("Delete account", String.valueOf(row.getTitle()));
+            assertFalse(row.isPersistent());
+            assertEquals("Deletes the account you're using now, with its messages and contacts. If it has a cloud "
+                    + "password, Telegram waits a week first.", String.valueOf(row.getSummary()));
+
+            DeleteAccountForTests.signedIn(0, null);
+            AlertDialog before = ShadowAlertDialog.getLatestAlertDialog();
+            assertTrue(row.getOnPreferenceClickListener().onPreferenceClick(row));
+            ShadowLooper.idleMainLooper();
+            assertEquals("Sign in to Telegram first.", ShadowToast.getTextOfLatestToast());
+            assertSame("no dialog without an account", before, ShadowAlertDialog.getLatestAlertDialog());
+
+            DeleteAccountForTests.signedIn(1, "Test account");
+            AlertDialog ask = dialogOf(row);
+            assertEquals("Delete this account?", String.valueOf(shadowOf(ask).getTitle()));
+            assertEquals("Telegram deletes Test account with all its messages and contacts. This can't be undone.",
+                    String.valueOf(shadowOf(ask).getMessage()).replaceAll("[^\\p{ASCII}]", ""));
+            ask.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();
+            ShadowLooper.idleMainLooper();
+            assertFalse(ask.isShowing());
+            assertTrue("Cancel sends nothing", DeleteAccountForTests.sent().isEmpty());
+
+            ask = dialogOf(row);
+            Button delete = ask.getButton(AlertDialog.BUTTON_POSITIVE);
+            delete.performClick();
+            ShadowLooper.idleMainLooper();
+            assertEquals(Collections.singletonList("1: deleteAccount reason=\"\""), DeleteAccountForTests.sent());
+            assertTrue(ask.isShowing());
+            assertFalse("Delete waits for Telegram", delete.isEnabled());
+            assertEquals("Waiting for Telegram.", String.valueOf(shadowOf(ask).getMessage()));
+
+            DeleteAccountForTests.refused("FLOOD_WAIT_30");
+            ShadowLooper.idleMainLooper();
+            assertTrue("a refusal keeps the dialog", ask.isShowing());
+            assertTrue(delete.isEnabled());
+            assertEquals("Wait 30 seconds, then try again.", ShadowToast.getTextOfLatestToast());
+
+            delete.performClick();
+            DeleteAccountForTests.deleted();
+            ShadowLooper.idleMainLooper();
+            assertFalse(ask.isShowing());
+            assertEquals("Account deleted.", ShadowToast.getTextOfLatestToast());
+            assertEquals(Collections.singletonList(1), DeleteAccountForTests.signedOut());
+        } finally {
+            DeleteAccountForTests.restore();
+        }
+    }
+
+    /**
      * Record calls has three rows under it (#72): which calls it saves, the chats picked for it
      * when that's chosen, and how long recordings stay. Picking chats needs Hide picked chats'
      * hooks, so a build without them offers three choices and no chats row.
@@ -2190,6 +2322,15 @@ public class HushTelegramPreferenceFragmentTest {
             assertEquals(HushTelegramPreferenceFragment.RECORD_KEEP_ROW, keep.getKey());
             assertEquals("Keep recordings", String.valueOf(keep.getTitle()));
             assertEquals("Recordings stay until you delete them.", String.valueOf(keep.getSummary()));
+            // The folder, the format and the notification cover the record button's recordings too, so they come after that switch.
+            Preference folder = rows.get(indexOfKey(rows, Settings.RECORD_CALL_BUTTON.key) + 1);
+            assertEquals(HushTelegramPreferenceFragment.RECORD_FOLDER_ROW, folder.getKey());
+            Preference opus = rows.get(indexOfKey(rows, Settings.RECORD_CALL_BUTTON.key) + 2);
+            assertEquals(Settings.RECORD_CALLS_OPUS.key, opus.getKey());
+            assertEquals("Save recordings as Opus", String.valueOf(opus.getTitle()));
+            Preference notify = rows.get(indexOfKey(rows, Settings.RECORD_CALL_BUTTON.key) + 3);
+            assertEquals(Settings.RECORD_CALLS_NOTIFY.key, notify.getKey());
+            assertEquals("Notify when a call is saved", String.valueOf(notify.getTitle()));
 
             AlertDialog list = dialogOf(which);
             assertEquals("Calls to record", String.valueOf(shadowOf(list).getTitle()));

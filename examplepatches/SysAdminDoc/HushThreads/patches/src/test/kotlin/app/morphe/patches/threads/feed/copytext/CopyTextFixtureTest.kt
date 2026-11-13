@@ -76,12 +76,21 @@ class CopyTextFixtureTest {
 
             for ((i, override) in overrides.withIndex()) {
                 // Read apart from the patch: the lambda reads a field of its own and checks it for
-                // null, and past that check it reads the override's Function0 and checks that.
+                // null, and past that check it reads the override's Function0 and checks that. The
+                // link preview's lambda shares a class with others on 455, keeps the override as an
+                // Object and casts it straight after.
                 val read = stock[i][override.read]
                 assertEquals(where, Opcode.IGET_OBJECT, read.opcode)
                 val field = read.getReference<FieldReference>()!!
                 assertEquals(where, override.method.definingClass, field.definingClass)
-                assertEquals(where, field.type, override.action.definingClass)
+                if (field.type == "Ljava/lang/Object;") {
+                    val cast = stock[i][override.read + 1]
+                    assertEquals(where, Opcode.CHECK_CAST, cast.opcode)
+                    assertEquals(where, override.register, (cast as OneRegisterInstruction).registerA)
+                    assertEquals(where, override.action.definingClass, cast.getReference<TypeReference>()!!.type)
+                } else {
+                    assertEquals(where, field.type, override.action.definingClass)
+                }
                 assertEquals(where, "Lkotlin/jvm/functions/Function0;", override.action.type)
                 assertTrue(where, stock[i][override.guard].opcode in setOf(Opcode.IF_NEZ, Opcode.IF_EQZ))
                 assertEquals(where, override.register, (stock[i][override.guard] as OneRegisterInstruction).registerA)
@@ -89,8 +98,8 @@ class CopyTextFixtureTest {
                 assertTrue(where, override.free != override.register)
             }
             assertEquals(where, 1, overrides.map { it.action.toString() }.distinct().size)
-            // The selection flag is PostText's fourteenth boolean on 454, which adds one ahead of it, copied
-            // once and then tested at parameter 72. Through 453 it was the thirteenth (68 on 452).
+            // The selection flag is PostText's fourteenth boolean on 454 and 455, copied once and then
+            // tested. Through 453 it was the thirteenth.
             val booleans = flag.method.parameterTypes.indices.filter { flag.method.parameterTypes[it].toString() == "Z" }
             assertEquals(where, booleans[13], flag.parameter)
             assertEquals(where, "Z", flag.method.parameterTypes[flag.parameter].toString())
@@ -133,15 +142,23 @@ class CopyTextFixtureTest {
             val text = context.mutable(flag.method)
             val textBody = text.body()
             val register = flag.method.parameterRegisterNumber(flag.parameter)
-            assertEquals(where, textStock.size + 2, textBody.size)
+            // Above v255, where move-result can't reach, the answer comes back through v0.
+            val added = if (register > 255) 3 else 2
+            assertEquals(where, textStock.size + added, textBody.size)
             assertEquals(where, Opcode.INVOKE_STATIC_RANGE, textBody[0].opcode)
             assertEquals(where, SELECTION, textBody[0].getReference<MethodReference>().toString())
             assertEquals(where, register, (textBody[0] as RegisterRangeInstruction).startRegister)
             assertEquals(where, 1, (textBody[0] as RegisterRangeInstruction).registerCount)
             // The answer goes back in the flag's own register and nowhere else.
             assertEquals(where, Opcode.MOVE_RESULT, textBody[1].opcode)
-            assertEquals(where, register, (textBody[1] as OneRegisterInstruction).registerA)
-            assertEquals(where, textStock.map { it.opcode }, textBody.drop(2).map { it.opcode })
+            if (register > 255) {
+                assertEquals(where, 0, (textBody[1] as OneRegisterInstruction).registerA)
+                assertEquals(where, Opcode.MOVE_16, textBody[2].opcode)
+                assertEquals(where, register to 0, (textBody[2] as TwoRegisterInstruction).let { it.registerA to it.registerB })
+            } else {
+                assertEquals(where, register, (textBody[1] as OneRegisterInstruction).registerA)
+            }
+            assertEquals(where, textStock.map { it.opcode }, textBody.drop(added).map { it.opcode })
         }
     }
 
@@ -151,7 +168,7 @@ class CopyTextFixtureTest {
             val context = context(build)
             val flag = context.selectionFlag()
             val register = flag.method.parameterRegisterNumber(flag.parameter)
-            context.mutable(flag.method).addInstructions(flag.copy, "const/16 v$register, 0x1")
+            context.mutable(flag.method).addInstructions(flag.copy, "const/4 v0, 0x1\nmove/16 v$register, v0")
             val error = assertThrows(build.name, PatchException::class.java) { copyTextPatch.execute(context) }
             assertTrue(error.message.orEmpty(), error.message.orEmpty().contains("writes over parameter ${flag.parameter}"))
             assertFalse(build.name, context.mutable(flag.method).body().any { it.calls(SELECTION) })

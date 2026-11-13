@@ -1,0 +1,70 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    # The bundle manifest commit must not start another release.
+    paths-ignore: [patches-bundle.json]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      # Read access to the MorpheApp/registry Maven repository the patch plugin lives on.
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Build patch bundle
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+        run: ./gradlew :patches:buildAndroid --no-daemon
+
+      - name: Read version
+        id: version
+        run: echo "value=$(sed -n 's/^version *= *//p' gradle.properties)" >> "$GITHUB_OUTPUT"
+
+      - name: Publish bundle release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.value }}
+        run: |
+          gh release view "v$VERSION" > /dev/null 2>&1 \
+            || gh release create "v$VERSION" --title "v$VERSION" --notes "Patch bundle v$VERSION"
+          gh release upload "v$VERSION" patches/build/libs/patches-*.mpp --clobber
+
+      - name: Point patches-bundle.json at the release
+        env:
+          VERSION: ${{ steps.version.outputs.value }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          python3 - <<'PY'
+          import json, os
+          version = os.environ["VERSION"]
+          manifest = {
+              "created_at": __import__("datetime").datetime.utcnow().isoformat(timespec="seconds"),
+              "description": "Moves the Niagara Button from the right edge of the home screen to the left edge.",
+              "download_url": f"https://github.com/{os.environ['REPOSITORY']}/releases/download/v{version}/patches-{version}.mpp",
+              "signature_download_url": "",
+              "version": version,
+          }
+          with open("patches-bundle.json", "w") as file:
+              json.dump(manifest, file, indent=2)
+              file.write("\n")
+          PY
+          if git diff --quiet patches-bundle.json; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add patches-bundle.json
+          git commit -m "chore: point the bundle manifest at v$VERSION"
+          git push

@@ -1,6 +1,28 @@
 # 主開発先と統合状況
 
-2026-11-13 更新履歴の読みやすさ・設定カテゴリ切替・外部板追加（公式Release候補）: 更新履歴内のMarkdownを版／節／箇条書き／リンクとして表示し、機能設定をアプリ・表示・画像／動画・NG・履歴／投稿に分類。同じ設定値を各Haiagaruカテゴリへ置き、設定履歴側の保存先も機能本来のSharedPreferencesへ統一。未設定のエッヂ・けんも板・爆サイ・ふたば・あにまんを初期ON、既存のサイト別OFFは保持。エッヂ板一覧は公開ページを直接BBSMENUとして読み、けんも板はkenmo.org/00c.orgのBBSMENUを標準providerへ追加。動作確認・実機導入は利用者指示により省略。公開は既存Semantic Release CIを使用。
+2026-11-13 追加機能一覧・説明文・更新履歴改善（公式Release候補）: Haiagaru設定トップと更新履歴へ「追加された機能をすべて見る」を追加。既存22コントロールの目的別設定・短い説明と、過去の累積ソースにある追加20項目の説明を別画面で表示。各版は設定が上、詳しい更新内容が下となり、過去版の全差分の繰り返しを省く。公開文「最適化」とアプリ内の詳細を分離。版別・説明188／履歴・一覧22項目成功。先行の通常Lint/R8 build3m54s成功、追加画面を含む最終ビルドへ進む。端末操作は省略指示に従う。
+
+2026-11-13 更新履歴の機能設定表示（公式Release候補）: 各版の開閉内を機能スイッチ／設定ボタン→更新内容の順に変更。変更版にも対応する既存設定を表示し、最新の修正対象の22コントロールも表示。複数版の同じ設定はattach時のSharedPreferences監視で同期し、detachで解除、同期による再保存・副作用は抑制。公開説明の「最適化」は維持し、アプリ内の詳細説明を別に用意。版別144／履歴19項目成功、新規native hookなし。端末操作は省略指示に従う。
+
+2026-11-13 Haiagaru 1.27.4公式Release公開完了: 利用者指定に従い、GitHub Release／Morphe JSONの更新内容は「最適化」のみ。最終ソースのRelease CI43366452480（Release／Attest）とBuild43366452389成功。公開6assetのSHA256がGitHub digestに一致、master/mainの両JSONフィード計4経路の全プロパティ一致を確認。draft=false／prerelease=false、2026-11-13 13:38:50 JST公開、生成7684fb80。端末操作は省略指示により実施せず。https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.27.4
+
+2026-11-13 最適化（公式Release候補）: サムネイル取得の既存経路を最適化。公開時の説明は利用者指定で「最適化」のみとし、既存release-notes-generatorの日本語headerから生成することをダミーコミットで確認。ホスト36項目・既存画像抽出46項目成功、初回の通常Lint/R8 build3m38s成功。書式と文字コードの最終調整もホスト確認済み、最終ソース全体はmaster Release CIで再コンパイルする。新規native hook／保存データ変更なし、端末操作は検証省略指示により実施せず。ローカル証跡build/opening-post-build.log、build/edge-first-post/bounded-live-check.json。
+
+2026-11-13 Haiagaru 1.27.3公式Release公開完了: 更新履歴をHaiagaru設定トップの共有・読み込みより上へ配置し、一括オンオフ欄を廃止。22コントロールを版ごとの開閉内へ移し、既存設定リンクの入口を保持。エッヂ・オルグ板のHTTP正規化URLを標準providerで分類し、爆サイ等と同じサイト別項目に表示。過去37種類の英語コミット説明を日本語化し、今後の公開文は既存generatorの日本語headerのみから生成。版別231／履歴19／分類49項目成功、公開文generatorの英語ダミー除外試験成功。初回Lint/R8 build4m2s成功、最終ソースのRelease CI43363586596のRelease／Attest成功。生成f41000e5、正式版draft=false／prerelease=false、公開6assetのSHA256一致、master/main両JSONの全項目一致と追加20／変更修正35項目を確認。端末操作は省略指示に従い実施せず。https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.27.3
+
+2026-11-13 更新履歴の配置・版別設定と標準サイト分類（公式Release候補）: 更新履歴をHaiagaru設定トップの共有・読み込みより上へ移し、旧一括オンオフ欄を撤去。既存22コントロールを追加・拡充版の開閉内に配置し、安定版／devの重複を防止。エッヂ・オルグ板はnative BoardIDのHTTP正規化にprovider条件を合わせ、爆サイ等と同じ標準分類へ。取得HTTPS／保存ID／任意グループ設定は維持。版別231・履歴10・分類49項目成功、新規native hookなし。実機操作は検証省略指示により行わず。詳細docs/history-options-site-groups-20261113.md。
+
+2026-11-13 Haiagaru 1.27.1公式Release公開完了: エッヂの無題カテゴリ補正・オルグ板への表示名変更・共有NG初期報告数2と既存1の一度だけの移行を公開。移行49／条件判定98項目成功、通常Lint/R8 build3m10s成功。新規native hookなし、端末操作は利用者指示により省略。dev Release43357246418／master Release43357840013とBuild43357840058成功。正式版draft=false／prerelease=false、配布6assetのSHA256がGitHub digestと一致、Morphe JSONの追加20／変更修正32項目とmaster/main両JSONフィード全項目一致を確認。生成a8b9fa5d、https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.27.1
+
+2026-11-13 共有NGの必要な報告数（公式Release候補）: 初期値2へ変更し、既存1／不正値は一度だけ2へ移行。2以上・有効状態・例外を保持し、移行後の手動1設定も維持。移行49項目成功。既存native hook／サーバーの票数は変更せず、端末検証は利用者指示により省略。エッヂ・オルグ板修正と同時公開予定。
+
+2026-11-13 エッヂ無題フォルダ・オルグ板（公式Release候補）: BBSMENU変換が見出しとリンクを同一行へ出し、nativeのリンク優先パーサーでカテゴリが欠ける経路を修正。既存の空／無題カテゴリは表示データでエッヂへ補正し、板ID・保存ログを保持。kenmo.org／00c.orgのprovider・サイト別グループをオルグ板に統一。旧名／ドメイン検索・設定リンクも維持。BBSMENU57・検索49・設定リンク66項目成功、Lint/R8 build3m10s成功。新規native hookなし。詳細docs/edge-folder-org-20261113.md。
+
+2026-11-13 Haiagaru 1.27.0公式Release公開完了: devのCI43351733875とmasterのCI43352522562がRelease／Attest成功。追加20項目の下に変更・修正29項目を置いた、1.24.1以降の安定版全差分をMorphe用descriptionへ反映。公開JSON2個の全49項目・バージョン見出し・配布URL・GitHub digestと、master/mainの両フィード4経路の1.27.0を確認。main rawの初回キャッシュは再取得で解消。正式版prerelease=false／draft=false。https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.27.0
+
+2026-11-13 設定検索・ﾜｯﾁｮｲ検索・更新履歴（公式Release候補）: 設定名を変えず、本体／Haiagaru検索へ別表記を適用。ネイティブのOR検索で共通のﾜｯﾁｮｲ見出しだけに一致する不具合を、識別文字列を含むAND条件で修正。設定トップのバックアップ直後にHaiagaru更新履歴を追加し、版別開閉・安定版／dev切替・GitHub取得へ対応。Morphe用には.releaserc生成元へ安定版1.24.1からの全差分を日本語で記載。別表記37・検索305・履歴10＋新文面10項目成功、3版の設定検索モデルと元レジスター形式を照合。詳細docs/settings-search-history-20261113.md。
+
+2026-11-13 Haiagaru 1.26.0公式Release公開完了: 更新履歴内のMarkdownを版／節／箇条書き／リンクとして表示し、機能設定をアプリ・表示・画像／動画・NG・履歴／投稿に分類。同じ設定値を各Haiagaruカテゴリへ置き、設定履歴側の保存先も機能本来のSharedPreferencesへ統一。未設定のエッヂ・けんも板・爆サイ・ふたば・あにまんを初期ON、既存のサイト別OFFは保持。エッヂ板一覧は公開ページを直接BBSMENUとして読み、けんも板はkenmo.org/00c.orgのBBSMENUを標準providerへ追加。動作確認・実機導入は利用者指示により省略。既存Semantic Release CI 43280808286がRelease／Attest成功。1.26.0: https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.26.0
 
 2026-11-13 外部板のスレ情報ポップアップ日時・無効サイトの一覧除外（公式Release候補）: スレ一覧の板スコープ外で呼ばれるChMate標準日時formatterにも作成日時を渡すフックを追加。キャッシュ上に同一スレIDの板が複数あり作成日時が異なる場合は、誤った値を割り当てず元の値を維持。標準掲示板providerから「使用する」がOFFのサイトを除外。Edgeは現行 `SiteBoardMenuProtocol.KINDS` と標準メニュー経路に含まれる。通常Lint/R8を含む `:patches:buildAndroid` 成功（2分40秒）、作成日時21項目、191/226/242のパッチ適用とnative hook/register保持検査成功。Mi Note 10/Android 11 (`d5497008`) の `reporter242` へ既存署名一致で `install -r` 成功。端末からpullしたAPKのSHA256は候補と一致、`firstInstallTime`保持、HomeActivity表示、新規crash bufferに該当fatalなし。詳細は `docs/android-installations.md`。
 

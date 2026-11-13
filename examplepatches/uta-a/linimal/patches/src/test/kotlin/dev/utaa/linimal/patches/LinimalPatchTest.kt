@@ -9,6 +9,7 @@ import dev.utaa.linimal.patches.core.linimalManifestComponentRegistrationPatch
 import dev.utaa.linimal.patches.core.noOpProbePatch
 import dev.utaa.linimal.patches.features.ads.homeTopAdPatch
 import dev.utaa.linimal.patches.features.ads.smartChannelAdsPatch
+import dev.utaa.linimal.patches.features.ads.squareAdsPatch
 import dev.utaa.linimal.patches.features.agenti.agentIChatComposerPatch
 import dev.utaa.linimal.patches.features.agenti.agentIChatPlusMenuPatch
 import dev.utaa.linimal.patches.features.agenti.agentIChatListSearchPatch
@@ -141,7 +142,8 @@ class LinimalPatchTest {
         assertEquals(setOf(readReceiptManualCallerPatch), readReceiptSupplierRegistrationPatch.dependencies)
         assertEquals(setOf(readReceiptOutboundGatePatch), readReceiptManualCallerPatch.dependencies)
         assertEquals(setOf(externalBrowserChatTextLinkPatch), readReceiptOutboundGatePatch.dependencies)
-        assertEquals(setOf(smartChannelAdsPatch), externalBrowserChatTextLinkPatch.dependencies)
+        assertEquals(setOf(squareAdsPatch), externalBrowserChatTextLinkPatch.dependencies)
+        assertEquals(setOf(smartChannelAdsPatch), squareAdsPatch.dependencies)
         assertEquals(setOf(homeTrendingPatch), smartChannelAdsPatch.dependencies)
         assertEquals(setOf(homeContentsRecommendationPatch), homeTrendingPatch.dependencies)
         assertEquals(setOf(lineAiEntryPatch), homeContentsRecommendationPatch.dependencies)

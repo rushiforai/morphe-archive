@@ -301,7 +301,7 @@ group = "app.morphe"
 patches {
     about {
         name = "HushPine"
-        description = "HushPine patches for PineDrama 47.6.3, built for Morphe. Less noise, more control over the feed, inbox, comments and downloads."
+        description = "HushPine patches for PineDrama 47.7.3, built for Morphe. Less noise, more control over the feed, inbox, comments and downloads."
         source = "https://github.com/SysAdminDoc/HushPine"
         author = "SysAdminDoc"
         contact = "https://github.com/SysAdminDoc/HushPine/issues"

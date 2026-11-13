@@ -8,6 +8,9 @@ import android.content.Context;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.AudioTrack;
+import android.media.MediaCodecList;
+import android.net.Uri;
+import android.os.Build;
 import android.os.SystemClock;
 
 import androidx.annotation.Nullable;
@@ -18,6 +21,7 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BooleanSupplier;
 import java.util.function.LongSupplier;
 
 import app.hushtelegram.extension.shared.L10n;
@@ -89,12 +93,12 @@ public final class CallRecorder {
     }
 
     interface Outputs {
-        Output open(File file) throws IOException;
+        Output open(File file, CallRecordings.Format format) throws IOException;
     }
 
     interface Saver {
-        /** Puts the finished file in shared storage and answers the folder it went to. */
-        String save(Context context, File file, String name) throws IOException;
+        /** Puts the finished file in shared storage and answers where it went. */
+        CallRecordings.Saved save(Context context, File file, String name) throws IOException;
     }
 
     interface Cleaner {
@@ -122,10 +126,40 @@ public final class CallRecorder {
     static Outputs outputs = CallAac::new;
     static Saver saver = CallRecordings::save;
     static Cleaner cleaner = CallRecordings::clean;
+    static BooleanSupplier opusEncoder = CallRecorder::canEncodeOpus;
+
+    /**
+     * Opus when Save recordings as Opus is on and the phone can write it, which takes Android 10
+     * and an Opus encoder. AAC otherwise, so a call is never lost to the choice.
+     */
+    static CallRecordings.Format format() {
+        if (!Settings.RECORD_CALLS_OPUS.get() || Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return CallRecordings.Format.AAC;
+        return opusEncoder.getAsBoolean() ? CallRecordings.Format.OPUS : CallRecordings.Format.AAC;
+    }
+
+    private static boolean canEncodeOpus() {
+        try {
+            return new MediaCodecList(MediaCodecList.REGULAR_CODECS)
+                    .findEncoderForFormat(CallAac.encoding(CallRecordings.Format.OPUS)) != null;
+        } catch (RuntimeException unreadable) {
+            return false;
+        }
+    }
 
     /** The folder recordings go to on this phone, as a file manager shows it, for the switch's description. */
     public static String folder() {
+        return CallRecordings.shown();
+    }
+
+    /** The usual folder, where recordings go when none is picked. */
+    public static String usualFolder() {
         return CallRecordings.folder();
+    }
+
+    /** The folder picked under Recordings folder, or null for the usual one. */
+    @Nullable
+    public static Uri chosenFolder() {
+        return CallRecordings.chosen();
     }
 
     /** The newer engine's microphone block, before WebRTC takes it. [bytes] were read from the start of [buffer]. */
@@ -335,6 +369,7 @@ public final class CallRecorder {
         private boolean active;
         private boolean failed;
         private long began;
+        private CallRecordings.Format format = CallRecordings.Format.AAC;
         private long last;
         private int micSource;
         private int speakerSource;
@@ -403,7 +438,8 @@ public final class CallRecorder {
                 Context context = Utils.getContext();
                 if (context == null) throw new IOException("No context to record the call in");
                 file = CallRecordings.scratch(context, began);
-                Output opened = outputs.open(file);
+                format = format();
+                Output opened = outputs.open(file, format);
                 output = opened;
                 mixer = new CallMixer(opened);
             } catch (Throwable failure) {
@@ -451,9 +487,11 @@ public final class CallRecorder {
                 finished = open.finish();
                 Context context = Utils.getContext();
                 if (context == null) throw new IOException("No context to save the call in");
-                String folder = saver.save(context, finished, CallRecordings.name(began, with));
+                String name = CallRecordings.name(began, with, format);
+                CallRecordings.Saved saved = saver.save(context, finished, name);
                 HookStatus.counted(FAMILY, SAVED);
-                Utils.showToastShort(L10n.f("Call saved to %1$s", L10n.isolate(folder)));
+                Utils.showToastShort(L10n.f("Call saved to %1$s", L10n.isolate(saved.folder)));
+                notice(context, saved, name);
                 clean(context);
             } catch (Throwable failure) {
                 HookStatus.threw(FAMILY, "call recording save", failure);
@@ -463,6 +501,15 @@ public final class CallRecorder {
             } finally {
                 if (finished != null && !finished.delete() && finished.exists()) finished.deleteOnExit();
                 file = null;
+            }
+        }
+
+        /** The notification for a saved recording. The recording stays saved whatever happens here. */
+        private void notice(Context context, CallRecordings.Saved saved, String name) {
+            try {
+                CallSavedNotice.show(context, saved.uri, name, saved.mime);
+            } catch (Throwable failure) {
+                HookStatus.threw(FAMILY, "call saved notification", failure);
             }
         }
 

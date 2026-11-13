@@ -1,0 +1,1019 @@
+## [1.1.0](https://github.com/SatanMerde/D-moniakPatches-dev/compare/v1.0.0...v1.1.0) (2026-11-11)
+
+### ✨ New Features
+
+* **hotstar:** add live sports scte and sgai ad blocking ([14fb89f](https://github.com/SatanMerde/D-moniakPatches-dev/commit/14fb89fa69ccf730922f1bb84cce2ce1dce91711))
+
+## 1.0.0 (2026-11-11)
+
+### ✨ New Features
+
+* initialize dev repository with automated push releases ([936c834](https://github.com/SatanMerde/D-moniakPatches-dev/commit/936c8347133b7c6e2789558f474039f4d962d61d))
+
+## [1.73.1](https://github.com/SatanMerde/D-moniakPatches/compare/v1.73.0...v1.73.1) (2026-11-11)
+
+### 🐛 Bug Fixes
+
+* **picturemushroom:** bypass splash connection error trap and enforce network readiness ([91dc950](https://github.com/SatanMerde/D-moniakPatches/commit/91dc9501e4f42fbd380c170b99a2b2797436afcb))
+
+## [1.73.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.72.0...v1.73.0) (2026-11-11)
+
+### 🐛 Bug Fixes
+
+* **claude:** add Play Integrity and installer bypass, modernize patch suite ([cec757c](https://github.com/SatanMerde/D-moniakPatches/commit/cec757cf5e4b3f8cddafa4259b812447b50d3312))
+
+### ✨ New Features
+
+* **deepl:** overhaul patch suite for v26.45 with correct package name and 2 new patches ([ae1b3fc](https://github.com/SatanMerde/D-moniakPatches/commit/ae1b3fcb2ed5ec4db36b3f82c99209626306c06e))
+* **macrodroid:** add Pro unlock, unlimited macros, ad-free, and screenshot patches for v6.1.5 ([c928d83](https://github.com/SatanMerde/D-moniakPatches/commit/c928d834bde7e84cce55c5fcb774a87abd4d4906))
+* **mtmanager:** add VIP unlock, ad removal, and signature bypass patches for v2.26.11 ([b1ea7ba](https://github.com/SatanMerde/D-moniakPatches/commit/b1ea7ba872fcbdf00c5d5bbf60dfea2b43a912a3))
+* **picturemushroom:** add Unlock Premium, Ad-Free, and Allow Screenshots patches ([5dba900](https://github.com/SatanMerde/D-moniakPatches/commit/5dba900dc228c123106ec45f77da7bc49dee628e))
+* **shroomid:** add Unlock Premium, Ad-Free, and Allow Screenshots patches ([7892aa3](https://github.com/SatanMerde/D-moniakPatches/commit/7892aa356b549fb10c739681adabaa08b5ccf467))
+* **snapchat:** overhaul patch suite for v14.31.0.56 with enhanced safety warnings and zero arobase ([3368b94](https://github.com/SatanMerde/D-moniakPatches/commit/3368b94ee7b4a692b773a5fab1024449f580d3c9))
+* **youtube:** overhaul and sanitize full patch suite for v21.44.539 with zero arobase ([31a9604](https://github.com/SatanMerde/D-moniakPatches/commit/31a960495cd682db96b0fc362cec772a1b7eebe7))
+
+## [1.72.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.71.1...v1.72.0) (2026-11-10)
+
+### ✨ New Features
+
+* **hotstar:** neutralize SGAI ad servers and SCTE live cricket ad pods ([f83c453](https://github.com/SatanMerde/D-moniakPatches/commit/f83c453f95556ad53f92c05097940c9cc1f3d2e7))
+
+## [1.71.1](https://github.com/SatanMerde/D-moniakPatches/compare/v1.71.0...v1.71.1) (2026-11-09)
+
+### 🐛 Bug Fixes
+
+* **hotstar:** resolve app crash by removing fatal blacklist nulling and experimental codec overrides ([cb5ab25](https://github.com/SatanMerde/D-moniakPatches/commit/cb5ab25304e778d25e74e7f1f3857f7526be17f9))
+
+## [1.71.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.70.0...v1.71.0) (2026-11-09)
+
+### 🐛 Bug Fixes
+
+* **fctv:** escape inner class dollar signs in smali bytecode strings ([15201ec](https://github.com/SatanMerde/D-moniakPatches/commit/15201ec5483070d20cd4eda15e548ea3953c7761))
+
+### ✨ New Features
+
+* **fctv:** add Enhanced Playback & PiP patch and fix shade overlay and fullscreen controls ([78a6033](https://github.com/SatanMerde/D-moniakPatches/commit/78a6033a88042916891a631b4496d382f4103fed))
+
+## [1.70.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.69.0...v1.70.0) (2026-11-09)
+
+### ✨ New Features
+
+* **shazam:** promote Shazam patches to tested and functional and update README ([32c7704](https://github.com/SatanMerde/D-moniakPatches/commit/32c770464aec77fefd8ca2a3e54f9779683e64f4))
+
+## [1.69.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.68.2...v1.69.0) (2026-11-09)
+
+### ✨ New Features
+
+* **hotstar:** deep SSAI live stream ad neutralization, AV1 DAV1D codec unlock, and Dolby audio enhancements ([64bc70b](https://github.com/SatanMerde/D-moniakPatches/commit/64bc70b14f51fe8dcb9c7b06f2e266f87068fdfc))
+
+## [1.68.2](https://github.com/SatanMerde/D-moniakPatches/compare/v1.68.1...v1.68.2) (2026-11-08)
+
+### 🐛 Bug Fixes
+
+* **hotstar:** implement Paresh-tested SSAI AdMetadata, SurfaceView and Compose screenshot bypass, and signature spoofing ([9a598f8](https://github.com/SatanMerde/D-moniakPatches/commit/9a598f88caf6d6c59e76f15845a4e65998b4d496))
+
+## [1.68.1](https://github.com/SatanMerde/D-moniakPatches/compare/v1.68.0...v1.68.1) (2026-11-08)
+
+### 🐛 Bug Fixes
+
+* **mega,hotstar:** fix Compose AMOLED color literal and register overflow, enhance Hotstar ad blocking and screenshot bypass ([132511e](https://github.com/SatanMerde/D-moniakPatches/commit/132511edb3af26abfa20f78c8b80d6741bb4f4ba))
+
+## [1.68.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.67.0...v1.68.0) (2026-11-07)
+
+### ✨ New Features
+
+* **mega:** rewrite AMOLED with Compose token hooks, fix register bug, add promo blocker and keep-awake patches ([0e7bc86](https://github.com/SatanMerde/D-moniakPatches/commit/0e7bc8623b949aeaf385151f38fe682baeb5cbc2))
+
+## [1.67.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.66.0...v1.67.0) (2026-11-07)
+
+### ✨ New Features
+
+* **hotstar:** add signature bypass, root/vpn bypass, and promote JioHotstar patches ([4fd0ca3](https://github.com/SatanMerde/D-moniakPatches/commit/4fd0ca34d960ba45e625b7e591b81f726921718c))
+
+## [1.66.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.65.0...v1.66.0) (2026-11-07)
+
+### ✨ New Features
+
+* **patches:** promote Undercover and Virtual Master patches to tested and functional ([5733492](https://github.com/SatanMerde/D-moniakPatches/commit/57334927f04bb9475e2f770e1dd23e2856e8e2a2))
+
+## [1.65.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.64.0...v1.65.0) (2026-11-07)
+
+### ✨ New Features
+
+* **cryptomator:** promote Cryptomator patches to tested and functional ([3c1846e](https://github.com/SatanMerde/D-moniakPatches/commit/3c1846e24f04042213a2c55ed2522cce0e1faec3))
+
+## [1.64.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.63.0...v1.64.0) (2026-11-07)
+
+### ✨ New Features
+
+* **mtmanager:** remove MT Manager patches due to unsupported native anti-tamper and multi-tier signature verification ([4e3a414](https://github.com/SatanMerde/D-moniakPatches/commit/4e3a41428e69f3cbbdc2dd618648cbbbb93e4f12))
+
+## [1.63.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.62.1...v1.63.0) (2026-11-07)
+
+### 🐛 Bug Fixes
+
+* Fix syntax error in Constants.kt and add JioHotstar Ad-Free & Premium patches (closes [#22](https://github.com/SatanMerde/D-moniakPatches/issues/22)) ([9edc634](https://github.com/SatanMerde/D-moniakPatches/commit/9edc63478f116fb62fe6c2a9a4a342f8883b4542))
+* **mega:** Fix AMOLED Dark Theme and Allow Screenshots patches and set default false on universal patches (closes [#21](https://github.com/SatanMerde/D-moniakPatches/issues/21)) ([b330257](https://github.com/SatanMerde/D-moniakPatches/commit/b330257bb2ffe2e5b1deede93991af44414a3d66))
+
+### ✨ New Features
+
+* Add Unlock Premium patches for The Athletic and FotMob+ ([92f936b](https://github.com/SatanMerde/D-moniakPatches/commit/92f936b57bfc62fdb0ce20f02bb680d82aaea16d))
+
+## [1.62.1](https://github.com/SatanMerde/D-moniakPatches/compare/v1.62.0...v1.62.1) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* **silt:** fix PAD asset pack resolution to eliminate infinite loading freeze ([bfc1693](https://github.com/SatanMerde/D-moniakPatches/commit/bfc169316dd65a9cc51c9746c3d78e8e6690a13b))
+
+## [1.62.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.61.0...v1.62.0) (2026-10-31)
+
+### ✨ New Features
+
+* **spotify:** remove Spicetify and Premium patches for Spotify ([50355d7](https://github.com/SatanMerde/D-moniakPatches/commit/50355d745a81f15eba2506d84a6ad2c894481187))
+
+## [1.61.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.60.0...v1.61.0) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* **capcut:** fix API usage in CapCutBypassIntegrityPatch for Morphe DSL ([bfbe928](https://github.com/SatanMerde/D-moniakPatches/commit/bfbe928315c64069783a4dbd651f3f97aece13eb))
+* **capcut:** specify named parameter smaliCode in replaceMethod ([0da3cb4](https://github.com/SatanMerde/D-moniakPatches/commit/0da3cb43a0744b0c9ed47558840ebbddd703893a))
+
+### ✨ New Features
+
+* **capcut:** add integrity and update dialog bypass patch ([3dca6f6](https://github.com/SatanMerde/D-moniakPatches/commit/3dca6f61c873010d5d4ed493a86668516c70b04f))
+
+## [1.59.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.58.1...v1.59.0) (2026-10-31)
+
+### ✨ New Features
+
+* **patches:** add CapCut Pro and watermark removal patches ([f2a031f](https://github.com/SatanMerde/D-moniakPatches/commit/f2a031f45763eb39e6f541bec27596ace1340537))
+
+## [1.58.1](https://github.com/SatanMerde/D-moniakPatches/compare/v1.58.0...v1.58.1) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* **virtualmaster:** reverse engineer APK v3.2.86, fix Pro entitlement and AdMob hooks ([8eacf9c](https://github.com/SatanMerde/D-moniakPatches/commit/8eacf9c3d7420d553ab2d5da450bf0fcd6e8e6ff))
+
+## [1.58.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.57.0...v1.58.0) (2026-10-31)
+
+### ✨ New Features
+
+* **patches:** add MT Manager and Virtual Master patches, verify and enhance CoinSnap, Stellarium, and World Map Quiz ([01a4dc4](https://github.com/SatanMerde/D-moniakPatches/commit/01a4dc4bf579fe046a552a4fbe2db5ac02dcb6bf))
+
+## [1.57.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.56.0...v1.57.0) (2026-10-31)
+
+### ✨ New Features
+
+* **patches:** add 15 community-requested patches for Todoist, Poweramp, SwiftKey, Goodreads, Pocket Casts, and more ([93cfc98](https://github.com/SatanMerde/D-moniakPatches/commit/93cfc98f15124a2e25fc9f0085127da77c7d462e))
+
+## [1.56.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.55.0...v1.56.0) (2026-10-31)
+
+### ✨ New Features
+
+* **patches:** add community-requested patches for Chess.com, Moovit, Hevy, MyFitnessPal, and Cronometer ([a880cc1](https://github.com/SatanMerde/D-moniakPatches/commit/a880cc1606cf557db5492841ae8f6fca1405492e))
+
+## [1.55.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.54.0...v1.55.0) (2026-10-31)
+
+### ✨ New Features
+
+* **patches:** add community-requested patches for Letterboxd, IMDb, Tumblr, and Quizlet ([ad39ae4](https://github.com/SatanMerde/D-moniakPatches/commit/ad39ae4f2592663abbb1bdea44799bab72019d5c))
+
+## [1.54.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.53.1...v1.54.0) (2026-10-31)
+
+### ✨ New Features
+
+* **docs:** add experimental patch validation template and report links ([633b09a](https://github.com/SatanMerde/D-moniakPatches/commit/633b09a7453c8ce5e2d5314093b3198a0a2affa8))
+
+## [1.53.1](https://github.com/SatanMerde/D-moniakPatches/compare/v1.53.0...v1.53.1) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* **patches:** reclassify unverified patches to experimental (AllTrails, BandLab, Fossify Phone, Shazam, Silt, Spotify) ([263155c](https://github.com/SatanMerde/D-moniakPatches/commit/263155c6ec92e1facf1cdd981f8171c4769fe5a9))
+
+## [1.53.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.21...v1.53.0) (2026-10-30)
+
+### ✨ New Features
+
+* **cryptomator:** add full version unlock, screenshots, and AMOLED theme patches ([59bd1fe](https://github.com/SatanMerde/D-moniakPatches/commit/59bd1feba785fa6ba3e385f70144c95308999975))
+
+## [1.52.21](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.20...v1.52.21) (2026-10-28)
+
+### 🐛 Bug Fixes
+
+* declare target version bounds for Truecaller and Shazam ([#15](https://github.com/SatanMerde/D-moniakPatches/issues/15)) ([e615c06](https://github.com/SatanMerde/D-moniakPatches/commit/e615c06c9694060c9f86fe2a86824b253c9acaf7))
+
+## [1.52.20](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.19...v1.52.20) (2026-10-25)
+
+### 🐛 Bug Fixes
+
+* **silt:** resolve PAD getAssetPackPath branch check and hook BillingClient startConnection ([b4a11bb](https://github.com/SatanMerde/D-moniakPatches/commit/b4a11bb925334cb55e9ae9341f456293c475060b))
+
+## [1.52.19](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.18...v1.52.19) (2026-10-25)
+
+### 🐛 Bug Fixes
+
+* **silt:** extract datapack.unity3d to local VFS mount point and bypass MountDataArchive string checks ([8f9d167](https://github.com/SatanMerde/D-moniakPatches/commit/8f9d16753eee81a1381b58e8fc1412757791d782))
+
+## [1.52.18](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.17...v1.52.18) (2026-10-25)
+
+### 🐛 Bug Fixes
+
+* **silt:** resolve PAD loading screen freeze for merged APK bundles in bytecode and native engine ([7054125](https://github.com/SatanMerde/D-moniakPatches/commit/7054125b516b62ceb3c3b28f33f144ab6e99de23))
+
+## [1.52.17](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.16...v1.52.17) (2026-10-25)
+
+### 🐛 Bug Fixes
+
+* **silt:** resolve UnityDataAssetPack via ActivityThread and add OBB/external storage fallbacks ([e8e5c25](https://github.com/SatanMerde/D-moniakPatches/commit/e8e5c253cdd76164da824b116b713b5eace749ed))
+
+## [1.52.16](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.15...v1.52.16) (2026-10-24)
+
+### 🐛 Bug Fixes
+
+* **silt:** hook PlayAssetDeliveryUnityWrapper and sanitize libfmod to fix loading screen freeze ([d2df367](https://github.com/SatanMerde/D-moniakPatches/commit/d2df3671e6a466f28fa12bcd11c8f1ca8671f944))
+
+## [1.52.15](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.14...v1.52.15) (2026-10-24)
+
+### 🐛 Bug Fixes
+
+* **silt:** restore official clean DRM-free native binaries to eliminate il2cpp_init crash ([40884c0](https://github.com/SatanMerde/D-moniakPatches/commit/40884c00e9125c5ede20afd87c00b74b30f439ca))
+
+## [1.52.14](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.13...v1.52.14) (2026-10-24)
+
+### 🐛 Bug Fixes
+
+* **silt:** replace libpairipcore.so with dynamic GOT resolver engine ([f6380a9](https://github.com/SatanMerde/D-moniakPatches/commit/f6380a98a4bcd42734c48b5d8a9c5c99b43f50cc))
+
+## [1.52.13](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.12...v1.52.13) (2026-10-24)
+
+### 🐛 Bug Fixes
+
+* **silt:** retain libpairipcore.so in DT_NEEDED to satisfy ExecuteProgram symbol ([82eb9ec](https://github.com/SatanMerde/D-moniakPatches/commit/82eb9ecad6fed4b142a9bfaa44afaa913580afa5))
+
+## [1.52.12](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.11...v1.52.12) (2026-10-24)
+
+### 🐛 Bug Fixes
+
+* **silt:** patch libmain RTLD_NOW, sanitize DT_NEEDED, and zero init_array ([d8c8951](https://github.com/SatanMerde/D-moniakPatches/commit/d8c89518d03e329f11078e3d6f78a0ab06e99824))
+
+## [1.52.11](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.10...v1.52.11) (2026-10-24)
+
+### 🐛 Bug Fixes
+
+* **silt:** fix bounds checks and strtabSz in native ELF stubbing ([4505242](https://github.com/SatanMerde/D-moniakPatches/commit/4505242760b517bb0b3f8960c07b070d6494f80b))
+
+## [1.52.10](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.9...v1.52.10) (2026-10-24)
+
+### 🐛 Bug Fixes
+
+* **silt:** restore all 1511 PairIP obfuscated strings and GMS preconditions ([f8003d4](https://github.com/SatanMerde/D-moniakPatches/commit/f8003d4462a92560124b1177becf74f6e42c9610))
+
+## [1.52.9](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.8...v1.52.9) (2026-10-24)
+
+### 🐛 Bug Fixes
+
+* **silt:** restore clean UnityPlayerActivity lifecycle to prevent PairIP reflection NPE ([a830a24](https://github.com/SatanMerde/D-moniakPatches/commit/a830a24b77b1d7ef1caa4e7790842cc23ca7bb0b))
+
+## [1.52.8](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.7...v1.52.8) (2026-10-24)
+
+### 🐛 Bug Fixes
+
+* **silt:** neutralize Play Games appshortcuts background crash ([2bf3376](https://github.com/SatanMerde/D-moniakPatches/commit/2bf3376184b69a5a9fb5705933a3b4e59519f4c5))
+
+## [1.52.7](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.6...v1.52.7) (2026-10-24)
+
+### 🐛 Bug Fixes
+
+* **silt:** retain PairIP classes as safe stubs to prevent NoClassDefFoundError ([26c6e16](https://github.com/SatanMerde/D-moniakPatches/commit/26c6e163d0cb489441b73a1f2ca4ecb3064e8684))
+
+## [1.52.6](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.5...v1.52.6) (2026-10-24)
+
+### 🐛 Bug Fixes
+
+* **silt:** avoid ConcurrentModificationException when purging PairIP classes ([7789977](https://github.com/SatanMerde/D-moniakPatches/commit/778997737cde26ffdfad6b113660d24fa18ab778))
+
+## [1.52.5](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.4...v1.52.5) (2026-10-24)
+
+### 🐛 Bug Fixes
+
+* **silt:** clean up compatibility description ([f46a1fd](https://github.com/SatanMerde/D-moniakPatches/commit/f46a1fd24a04feb68f9b321acf480f08c51c8e48))
+
+## [1.52.4](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.3...v1.52.4) (2026-10-24)
+
+### 🐛 Bug Fixes
+
+* **silt:** correct BuilderInstruction35c register properties ([b275251](https://github.com/SatanMerde/D-moniakPatches/commit/b275251aa9366244187eca8cb0e57000581cbed7))
+* **silt:** restore PairIP strings, inline wrappers, and dynamically neutralize native DRM ([7577dab](https://github.com/SatanMerde/D-moniakPatches/commit/7577daba29d6779411e18a9eae78718a50e78c2b))
+
+## [1.52.3](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.2...v1.52.3) (2026-10-24)
+
+### 🐛 Bug Fixes
+
+* **silt:** set target version to 1.0.10 and document decrypted base requirement ([90b538f](https://github.com/SatanMerde/D-moniakPatches/commit/90b538f52343ef41d4d724359bcf2256f7dc19a8))
+
+## [1.52.2](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.1...v1.52.2) (2026-10-24)
+
+### 🐛 Bug Fixes
+
+* finalize Silt DRM hooks and refine Shazam adblock logging ([617cece](https://github.com/SatanMerde/D-moniakPatches/commit/617cece9ed4c109f65ed51a1fd961101fc13a519))
+
+## [1.52.1](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.0...v1.52.1) (2026-10-18)
+
+### 🐛 Bug Fixes
+
+* resolve Shazam, Moises, Silt issues and add Fossify Phone patches ([c48f32d](https://github.com/SatanMerde/D-moniakPatches/commit/c48f32d2361c3b9a2be6e4b9d41569911833b3b0)), closes [#14](https://github.com/SatanMerde/D-moniakPatches/issues/14) [#2](https://github.com/SatanMerde/D-moniakPatches/issues/2) [#8](https://github.com/SatanMerde/D-moniakPatches/issues/8) [#7](https://github.com/SatanMerde/D-moniakPatches/issues/7)
+
+## [1.52.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.51.0...v1.52.0) (2026-10-11)
+
+### ✨ New Features
+
+* **rblive:** add compatibility for RBTV+ / RBLive (com.rblive.app and com.rblive.tv) ([23da398](https://github.com/SatanMerde/D-moniakPatches/commit/23da398a0d1094c8c68b4ce3fb46541cac96e830))
+
+## [1.51.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.50.1...v1.51.0) (2026-10-11)
+
+### ✨ New Features
+
+* **fctv:** add compatibility for FCTV33 Android TV version (com.fctv77.tv) ([9a40052](https://github.com/SatanMerde/D-moniakPatches/commit/9a40052aefca75f8c44cee1d72d5e82031b3aa86))
+
+## [1.50.1](https://github.com/SatanMerde/D-moniakPatches/compare/v1.50.0...v1.50.1) (2026-10-11)
+
+### 🐛 Bug Fixes
+
+* **moises:** correct recommended target version to 2.72.0 ([9e80461](https://github.com/SatanMerde/D-moniakPatches/commit/9e804617cf676451148bafcffddda63dc615f1c5))
+
+## [1.50.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.49.0...v1.50.0) (2026-10-11)
+
+### ✨ New Features
+
+* **fctv:** add ad-blocking and VIP patches for FCTV33 (com.fctv77.app) ([630e1f9](https://github.com/SatanMerde/D-moniakPatches/commit/630e1f93c3cb0c4981fa88dd862e2f5f91c32baa))
+
+## [1.49.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.48.14...v1.49.0) (2026-10-10)
+
+### ✨ New Features
+
+* **ai:** integrate morphe-ai knowledge base, rules, and skills into workspace ([3a9a71e](https://github.com/SatanMerde/D-moniakPatches/commit/3a9a71e201596f8521f15b7040055b518bedca87))
+
+## [1.48.14](https://github.com/SatanMerde/D-moniakPatches/compare/v1.48.13...v1.48.14) (2026-10-10)
+
+### 🐛 Bug Fixes
+
+* **silt:** escape dollar signs in receiver class strings ([eaef914](https://github.com/SatanMerde/D-moniakPatches/commit/eaef91475161c0965f9bba1508fd5f91236013a2))
+* **silt:** neutralize VMRunner invoke/executeVM and hijacked broadcast receivers to fully bypass PairIP ([009a56a](https://github.com/SatanMerde/D-moniakPatches/commit/009a56a7e92c1bd0f99e6ed0c535acba69aa5201))
+
+## [1.48.13](https://github.com/SatanMerde/D-moniakPatches/compare/v1.48.12...v1.48.13) (2026-10-10)
+
+### 🐛 Bug Fixes
+
+* **silt:** neutralize UnityPlayer.preloadJavaPlugins and initialize TelephonyManager string ([81f0573](https://github.com/SatanMerde/D-moniakPatches/commit/81f0573b0b965ce8b14cc1de02b3be78e939b819))
+
+## [1.48.12](https://github.com/SatanMerde/D-moniakPatches/compare/v1.48.11...v1.48.12) (2026-10-10)
+
+### 🐛 Bug Fixes
+
+* **silt:** restore direct UnityPlayerActivity lifecycle methods and bypass PairIP native DRM ([985bd93](https://github.com/SatanMerde/D-moniakPatches/commit/985bd93472618b8cbb55124b14b9649816f17c4c))
+
+## [1.48.11](https://github.com/SatanMerde/D-moniakPatches/compare/v1.48.10...v1.48.11) (2026-10-10)
+
+### 🐛 Bug Fixes
+
+* **silt:** keep VMRunner and StartupLauncher active to populate reflection methods ([8d84d64](https://github.com/SatanMerde/D-moniakPatches/commit/8d84d643eb8582e9d34cb91ef38ba48682739f97))
+
+## [1.48.10](https://github.com/SatanMerde/D-moniakPatches/compare/v1.48.9...v1.48.10) (2026-10-10)
+
+### 🐛 Bug Fixes
+
+* **silt:** neutralize Play Games AppShortcuts crash on signature change ([7bed05a](https://github.com/SatanMerde/D-moniakPatches/commit/7bed05a36299f292887419920b1b9801dc629a52))
+
+## [1.48.9](https://github.com/SatanMerde/D-moniakPatches/compare/v1.48.8...v1.48.9) (2026-10-10)
+
+### 🐛 Bug Fixes
+
+* **silt:** sanitize Application.attachBaseContext and neutralize VMRunner entry points ([8b3474e](https://github.com/SatanMerde/D-moniakPatches/commit/8b3474e0ea71fc2e443bd817599d56fb47a0350e))
+
+## [1.48.8](https://github.com/SatanMerde/D-moniakPatches/compare/v1.48.7...v1.48.8) (2026-10-10)
+
+### 🐛 Bug Fixes
+
+* **silt:** neutralize PairIP StartupLauncher and VMRunner entry points ([f83a332](https://github.com/SatanMerde/D-moniakPatches/commit/f83a332c4e52bc4e1d98045e8e4b1dcc714606f3))
+
+## [1.48.7](https://github.com/SatanMerde/D-moniakPatches/compare/v1.48.6...v1.48.7) (2026-10-10)
+
+### 🐛 Bug Fixes
+
+* **silt:** protect constructors during PairIP hooking and clarify XAPK requirement ([e15f86b](https://github.com/SatanMerde/D-moniakPatches/commit/e15f86b434f6f0f4ded448cfecc73c1b48058395))
+* **silt:** resolve mName reference in pairip hook ([63405d4](https://github.com/SatanMerde/D-moniakPatches/commit/63405d4f3c3177dfebf5473949692229c107e4b7))
+
+## [1.48.6](https://github.com/SatanMerde/D-moniakPatches/compare/v1.48.5...v1.48.6) (2026-10-10)
+
+### 🐛 Bug Fixes
+
+* **silt:** neutralize Google Play App Signing PairIP protection and harden billing hooks ([cc4cc93](https://github.com/SatanMerde/D-moniakPatches/commit/cc4cc933e017a62da2ce6e9f8c44f656a92e04c6))
+
+## [1.48.5](https://github.com/SatanMerde/D-moniakPatches/compare/v1.48.4...v1.48.5) (2026-10-10)
+
+### 🐛 Bug Fixes
+
+* **silt:** bypass Play Integrity remediation dialog and unlock Play Pass ([5afc443](https://github.com/SatanMerde/D-moniakPatches/commit/5afc443166734fa5237b2dca0d8ba852f3179504))
+
+## [1.48.4](https://github.com/SatanMerde/D-moniakPatches/compare/v1.48.3...v1.48.4) (2026-10-10)
+
+### 🐛 Bug Fixes
+
+* **silt:** resolve Dalvik register collision in LVL license callback hooks ([c22f54b](https://github.com/SatanMerde/D-moniakPatches/commit/c22f54b22192288dce5baf90d84cbf43688c52a8))
+
+## [1.48.3](https://github.com/SatanMerde/D-moniakPatches/compare/v1.48.2...v1.48.3) (2026-10-10)
+
+### 🐛 Bug Fixes
+
+* **movix:** resolve startup ANR via safe bytecode injection and add BandLab patches ([80f71b3](https://github.com/SatanMerde/D-moniakPatches/commit/80f71b3b2404fad58e2e9448fa6efde5b9678a58))
+
+## [1.48.2](https://github.com/SatanMerde/D-moniakPatches/compare/v1.48.1...v1.48.2) (2026-10-10)
+
+### 🐛 Bug Fixes
+
+* **movix:** update Movix targets to 2.6.5 recommended and support 2.6.x range; enhance Silt LVL callback ([0a52a18](https://github.com/SatanMerde/D-moniakPatches/commit/0a52a182c49542dfcb3ecb6060edfc6f1843eef7))
+
+## [1.48.1](https://github.com/SatanMerde/D-moniakPatches/compare/v1.48.0...v1.48.1) (2026-10-10)
+
+### 🐛 Bug Fixes
+
+* update Movix targets to 2.5.3, sanitize WebView hooks, fix universal patches leak ([717cb85](https://github.com/SatanMerde/D-moniakPatches/commit/717cb857c7fb374b8e60dd3aa6c92f869f48d3d5))
+
+## [1.48.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.47.2...v1.48.0) (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **spotify:** import java.util.logging.Logger in theme and accent patches ([746e797](https://github.com/SatanMerde/D-moniakPatches/commit/746e797b5304d74da6f8996c8e9fe20b03f1f406))
+
+### ✨ New Features
+
+* **spotify:** add XML resource patching for full AMOLED black and accent coverage ([e39fc1f](https://github.com/SatanMerde/D-moniakPatches/commit/e39fc1f16e978cd3889927fa55c48d44a2e7f49b))
+
+## [1.47.2](https://github.com/SatanMerde/D-moniakPatches/compare/v1.47.1...v1.47.2) (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **freefire:** pass Int literal to BuilderInstruction21s to fix compilation ([d0816ec](https://github.com/SatanMerde/D-moniakPatches/commit/d0816ec32dae77a559ce5a49bcba0e3581772d97))
+* **freefire:** resolve crash on startup by removing unsafe method injections and switching to 100% in-place bytecode replacement ([2bdb379](https://github.com/SatanMerde/D-moniakPatches/commit/2bdb379c23043e7417d6759813b0ab654dced818))
+
+## [1.47.1](https://github.com/SatanMerde/D-moniakPatches/compare/v1.47.0...v1.47.1) (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **spotify:** resolve crash on launch by removing conflicting method hooks and maintaining bytecode-safe literal architecture ([5508ed1](https://github.com/SatanMerde/D-moniakPatches/commit/5508ed11d7dc7a9a716e7f9c0164822368664429))
+
+## [1.47.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.46.4...v1.47.0) (2026-10-04)
+
+### ✨ New Features
+
+* **spotify:** integrate ReVanced Compose ColorSpace utils and Lottie float rounding hooks ([4703e4c](https://github.com/SatanMerde/D-moniakPatches/commit/4703e4c69a89b16f53002ae2e1ca1b17be581bbe))
+
+## [1.46.4](https://github.com/SatanMerde/D-moniakPatches/compare/v1.46.3...v1.46.4) (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **spotify:** CardView black background, BottomSheet pitch black, and Lottie checkmark purple tint ([e4e23e3](https://github.com/SatanMerde/D-moniakPatches/commit/e4e23e3778529e5ffd70cd326f86a148de45cbfa))
+
+## [1.46.3](https://github.com/SatanMerde/D-moniakPatches/compare/v1.46.2...v1.46.3) (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **spotify:** expand Encore palette hooks for surface cards, search bar, pills, and checkmarks ([cf8f16c](https://github.com/SatanMerde/D-moniakPatches/commit/cf8f16cc8524cca8de790532c9980d1e7b2fe24c))
+
+## [1.46.2](https://github.com/SatanMerde/D-moniakPatches/compare/v1.46.1...v1.46.2) (2026-10-04)
+
+### 🐛 Bug Fixes
+
+* **spotify:** add 64-bit Jetpack Compose color hooks for AMOLED and accent color, fix register allocation ([4e22c35](https://github.com/SatanMerde/D-moniakPatches/commit/4e22c358c07807bb0ef0b3052eda667f3dfbef1d))
+
+## [1.46.1](https://github.com/SatanMerde/D-moniakPatches/compare/v1.46.0...v1.46.1) (2026-10-03)
+
+### 🐛 Bug Fixes
+
+* **spotify:** overhaul AMOLED theme with Window DecorView injection and accent color string redirection ([67e2cff](https://github.com/SatanMerde/D-moniakPatches/commit/67e2cffbe6b7ac3aaa66a2f3e53be536adea8623))
+
+## [1.46.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.45.0...v1.46.0) (2026-10-03)
+
+### ✨ New Features
+
+* add useful patches for Google Maps, Drive, VLC, Proton Pass, Windy, AllTrails, and Photomath ([9106cc5](https://github.com/SatanMerde/D-moniakPatches/commit/9106cc51bf048b2f9e9dfe4dc9f4d9eec4e482ad))
+
+## [1.45.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.44.2...v1.45.0) (2026-10-03)
+
+### ✨ New Features
+
+* **freefire:** add 120 FPS display mode and device model spoof patch ([e876075](https://github.com/SatanMerde/D-moniakPatches/commit/e8760751bb9c1cde8109fc7ec856b7af6868990b))
+
+## [1.44.2](https://github.com/SatanMerde/D-moniakPatches/compare/v1.44.1...v1.44.2) (2026-10-03)
+
+### 🐛 Bug Fixes
+
+* resolve Undercover crashes, Silt LVL license redirect, and Spotify accent color hook ([8a057cb](https://github.com/SatanMerde/D-moniakPatches/commit/8a057cbf760b590953243c30381ea05c0156a519))
+
+## [1.44.1](https://github.com/SatanMerde/D-moniakPatches/compare/v1.44.0...v1.44.1) (2026-10-03)
+
+### 🐛 Bug Fixes
+
+* **plagueinc:** update package name to com.miniclip.plagueinc with alt support ([3bcc36d](https://github.com/SatanMerde/D-moniakPatches/commit/3bcc36dcb1ff2c1e76c4dccc2cbdfe5d822d23bd))
+
+## [1.44.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.43.0...v1.44.0) (2026-10-03)
+
+### ✨ New Features
+
+* **undercover:** add pack enum hook to custom words creator patch ([f882426](https://github.com/SatanMerde/D-moniakPatches/commit/f882426336c4365fab04e62ece92882f3f35a977))
+
+## [1.43.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.42.0...v1.43.0) (2026-10-03)
+
+### ✨ New Features
+
+* **undercover:** optimize pack enums, preference managers, and consent blocker hooks ([67480b0](https://github.com/SatanMerde/D-moniakPatches/commit/67480b0ff39be07c7d7f0140e26a43e12931ccb3))
+
+## [1.42.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.41.0...v1.42.0) (2026-10-03)
+
+### ✨ New Features
+
+* **undercover:** add cookie/consent banner blocker and reverse-engineer obfuscated purchase checks ([48d041e](https://github.com/SatanMerde/D-moniakPatches/commit/48d041e4bd55d0a882ffa59cbc868867f76ec034))
+
+## [1.41.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.40.0...v1.41.0) (2026-10-03)
+
+### ✨ New Features
+
+* **undercover:** add comprehensive patch suite for Undercover Word Party Game ([c5268f2](https://github.com/SatanMerde/D-moniakPatches/commit/c5268f209c0fbc8451ee0f93fffcdfa400fba1da))
+
+## [1.40.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.39.0...v1.40.0) (2026-10-03)
+
+### 🐛 Bug Fixes
+
+* **patches:** ensure safe single-line string escaping and clean unicode in extended suites ([03daa00](https://github.com/SatanMerde/D-moniakPatches/commit/03daa00f1d4176afd60c33e3524b287afefeff8a))
+
+### ✨ New Features
+
+* **youtube,instagram,reddit:** surpass official Morphe and Piko with 106 YouTube, 71 Instagram, and 26 Reddit patches ([e85452a](https://github.com/SatanMerde/D-moniakPatches/commit/e85452a4b68ab45d752c76d36ea5c149ffc34509))
+
+## [1.39.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.38.0...v1.39.0) (2026-10-03)
+
+### ✨ New Features
+
+* **youtube,instagram,reddit:** add advanced patches surpassing Piko and official Morphe suites ([03a46d9](https://github.com/SatanMerde/D-moniakPatches/commit/03a46d945a7cee13ab40025bf62b5a0fae8a634e))
+
+## [1.38.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.37.0...v1.38.0) (2026-10-03)
+
+### 🐛 Bug Fixes
+
+* **youtube:** delegate YouTubeGmsCoreSupportPatch to executeUniversalGmsCoreSupportLogic ([34b1a04](https://github.com/SatanMerde/D-moniakPatches/commit/34b1a0411388e94403cb65943c29f8fe0868d84a))
+
+### ✨ New Features
+
+* **youtube,instagram,reddit:** add dedicated SponsorBlock, Return YouTube Dislike, GmsCore, and advanced media patches ([b3b6544](https://github.com/SatanMerde/D-moniakPatches/commit/b3b6544a47a31b2a2a84e5cfd45a811c734b7db8))
+
+## [1.37.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.36.3...v1.37.0) (2026-10-03)
+
+### ✨ New Features
+
+* **patches:** add comprehensive patch suites for YouTube, Reddit, Instagram, and Plague Inc. ([5535b80](https://github.com/SatanMerde/D-moniakPatches/commit/5535b801b315320b5bdbcc23409a1ea14e888a92))
+
+## [1.36.3](https://github.com/SatanMerde/D-moniakPatches/compare/v1.36.2...v1.36.3) (2026-10-03)
+
+### 🐛 Bug Fixes
+
+* **gmscore:** use replaceInstruction with BuilderInstruction21c/31c and preserve gms.version key ([3fc31d0](https://github.com/SatanMerde/D-moniakPatches/commit/3fc31d0308a7c3ad78416adca713e0c6620a43b7))
+
+## [1.36.2](https://github.com/SatanMerde/D-moniakPatches/compare/v1.36.1...v1.36.2) (2026-10-03)
+
+### 🐛 Bug Fixes
+
+* **gmscore:** add missing addInstructions import in UniversalGmsCoreSupportPatch ([4c893b5](https://github.com/SatanMerde/D-moniakPatches/commit/4c893b5abb8c7fc10c4d97d01fefe6f7c303a5c4))
+* **gmscore:** redirect account type com.google to app.revanced, authorities, and hook availability to fix login conflict ([ae8db26](https://github.com/SatanMerde/D-moniakPatches/commit/ae8db26d25bea10a2126a21e5540a57e50d5c6c6))
+
+## [1.36.1](https://github.com/SatanMerde/D-moniakPatches/compare/v1.36.0...v1.36.1) (2026-10-03)
+
+### 🐛 Bug Fixes
+
+* **moises:** hook User.q(), GraphQL subscription models, and suppress MainActivity paywall for v2.7.2 Pro status ([803909a](https://github.com/SatanMerde/D-moniakPatches/commit/803909a6af649f673552d78ba30ebe6d24171bde))
+
+## [1.36.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.35.2...v1.36.0) (2026-10-02)
+
+### ✨ New Features
+
+* **targets:** add explicit compatible version targets for Moises, HSW, Movix, CoinSnap, and reported apps ([51cf459](https://github.com/SatanMerde/D-moniakPatches/commit/51cf45965cf5001fa06f29be136628297df6c1dd))
+
+## [1.35.2](https://github.com/SatanMerde/D-moniakPatches/compare/v1.35.1...v1.35.2) (2026-10-02)
+
+### 🐛 Bug Fixes
+
+* **readme:** correct verified patches list, move Google Drive to experimental, and promote tested Moises patches ([a9115b8](https://github.com/SatanMerde/D-moniakPatches/commit/a9115b8565eb38481bdf747c35d017d23bba38d9))
+
+## [1.35.1](https://github.com/SatanMerde/D-moniakPatches/compare/v1.35.0...v1.35.1) (2026-10-02)
+
+### 🐛 Bug Fixes
+
+* **moises:** resolve crash on launch by eliminating verify error and skipping pairip internals ([7ad430b](https://github.com/SatanMerde/D-moniakPatches/commit/7ad430b857e120c9795628de9fe8a57bdb952cbd))
+
+## [1.35.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.34.0...v1.35.0) (2026-10-02)
+
+### ✨ New Features
+
+* **moises:** add unlock premium and high quality audio export patches ([3c09d12](https://github.com/SatanMerde/D-moniakPatches/commit/3c09d1294d3bf776141a69e4a6a2d62ec9f3eb4b))
+
+## [1.34.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.33.0...v1.34.0) (2026-10-02)
+
+### 🐛 Bug Fixes
+
+* **googledrive:** overhaul all 7 Google Drive patches with real Android SDK bytecode injection ([3ab354e](https://github.com/SatanMerde/D-moniakPatches/commit/3ab354e0b89378813c4babe19f73cc1616e976a2))
+* overhaul 50+ experimental patches with real AdMob/Unity/AppLovin mediation hooks and Google Play Billing bypass ([ef76298](https://github.com/SatanMerde/D-moniakPatches/commit/ef762986fc4fb4aff7f2a4ad2d351355a1e3c2a5))
+* **patches:** remove hallucinated ad-blocking patches on ad-free apps ([b4e6460](https://github.com/SatanMerde/D-moniakPatches/commit/b4e646010fe15397ab2dd4c0351fb38410e083b7))
+* resolve compileKotlin errors in Google Drive and GmsCore patches ([6eb3bc5](https://github.com/SatanMerde/D-moniakPatches/commit/6eb3bc5b209b54f6ca6e61886f8d242d5e613622))
+
+### ✨ New Features
+
+* add premium and pro feature patches for Duolingo, Waze, SoundCloud, and Pinterest ([6074d38](https://github.com/SatanMerde/D-moniakPatches/commit/6074d381fcbeeb913a385b389a556546ad33bcae))
+* add VIP/Premium/Free Shopping unlock patches for Turbo VPN, TeraBox, Hill Climb Racing and Alto's Adventure ([b9b1645](https://github.com/SatanMerde/D-moniakPatches/commit/b9b1645c390d7775f907a8527828979b46fca550))
+* resolve community issues (silt full game unlock, gmscore support, play store bypass, and patch compatibility docs) ([ff33c50](https://github.com/SatanMerde/D-moniakPatches/commit/ff33c508d07953cb3c17742434de8d579f799529))
+* **vip:** add Brave Origin, Spotify Premium, and Jetpack Joyride VIP patches; sync README to 239 patches ([f9467d1](https://github.com/SatanMerde/D-moniakPatches/commit/f9467d12fae3bb9fb4c47136874b3e73f9ba2584))
+
+## [1.33.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.32.0...v1.33.0) (2026-09-26)
+
+### ✨ New Features
+
+* add practical feature patches for Bitwarden, Claude AI, Euria AI, VPN.lat, hide.me VPN, DeepL ([325b78d](https://github.com/SatanMerde/D-moniakPatches/commit/325b78d900564cc54b0368d6200c182d1ce44d34))
+
+## [1.32.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.31.0...v1.32.0) (2026-09-26)
+
+### ✨ New Features
+
+* add patch suites for VPN.lat, hide.me VPN, Claude AI, Euria AI, Bitwarden, DeepL ([4f0ad64](https://github.com/SatanMerde/D-moniakPatches/commit/4f0ad64cab7dab330df6c2ae2d8724dfd8d5f315))
+
+## [1.31.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.30.0...v1.31.0) (2026-09-26)
+
+### ✨ New Features
+
+* add patch suites for useful apps (CamScanner, Flightradar24, PictureThis, AllTrails, Windy) ([9fc0274](https://github.com/SatanMerde/D-moniakPatches/commit/9fc02743f3778affa1ddee9bfd286f05b6735dff))
+
+## [1.30.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.29.0...v1.30.0) (2026-09-26)
+
+### ✨ New Features
+
+* add patch suites for useful apps (Stellarium Mobile, World Map Quiz, Photomath, Memrise, Peak) ([1b2cb1b](https://github.com/SatanMerde/D-moniakPatches/commit/1b2cb1b872d5a8ad2ad305bf7cea7ff17063b938))
+
+## [1.29.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.28.3...v1.29.0) (2026-09-26)
+
+### ✨ New Features
+
+* add patch suites for 10 mythical mobile games (Subway Surfers, PvZ, Temple Run 2, Fruit Ninja, etc.) ([71f9e31](https://github.com/SatanMerde/D-moniakPatches/commit/71f9e31a5f6f25464bb95077c35de54ccb3c44c8))
+
+## [1.28.3](https://github.com/SatanMerde/D-moniakPatches/compare/v1.28.2...v1.28.3) (2026-09-26)
+
+### 🐛 Bug Fixes
+
+* **movix:** switch to evaluateJavascript and inject via setInjectedJavaScriptBeforeContentLoaded ([7ad7820](https://github.com/SatanMerde/D-moniakPatches/commit/7ad7820d81f717521ebf743b7a0a7e281e2158f8))
+
+## [1.28.2](https://github.com/SatanMerde/D-moniakPatches/compare/v1.28.1...v1.28.2) (2026-09-26)
+
+### 🐛 Bug Fixes
+
+* **movix:** completely eliminate 'Une pub et c\'est parti' modal via VIP storage locking, fetch mock and Radix dialog killer ([9af40e5](https://github.com/SatanMerde/D-moniakPatches/commit/9af40e5dde1c41cceb2a7254005b916f8c52dfb4))
+
+## [1.28.1](https://github.com/SatanMerde/D-moniakPatches/compare/v1.28.0...v1.28.1) (2026-09-26)
+
+### 🐛 Bug Fixes
+
+* **movix:** implement real React Native WebView bytecode hooks for Movix ad blocking and feature unlock ([e99f6c8](https://github.com/SatanMerde/D-moniakPatches/commit/e99f6c8048178023ddabd9e37af3c614b1bc0649))
+
+## [1.28.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.27.0...v1.28.0) (2026-09-26)
+
+### ✨ New Features
+
+* add Brave Browser, Firefox, Twitch and VLC patch suites (170 patches, 53 apps) ([8d83b4d](https://github.com/SatanMerde/D-moniakPatches/commit/8d83b4dacf3126762707764ca0239f984f0f80a3))
+
+## [1.27.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.26.0...v1.27.0) (2026-09-26)
+
+### ✨ New Features
+
+* expand Canva, Movix and Google Drive suites to 158 patches total ([5f55355](https://github.com/SatanMerde/D-moniakPatches/commit/5f55355c85423641c8164b872fb1bdd2d2ed941a))
+
+## [1.26.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.25.0...v1.26.0) (2026-09-26)
+
+### ✨ New Features
+
+* add Canva, Movix and Google Drive patch suites (145 patches, 49 apps) ([97ba158](https://github.com/SatanMerde/D-moniakPatches/commit/97ba15809ceedc83f2d15ecf9ba833d35be635f5))
+
+## [1.25.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.24.0...v1.25.0) (2026-09-26)
+
+### ✨ New Features
+
+* add cloud storage suite (MEGA, TeraBox, Proton Drive, Nextcloud) ([0204163](https://github.com/SatanMerde/D-moniakPatches/commit/0204163be3118d347336d7bda064777d01ff2312))
+
+## [1.24.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.23.0...v1.24.0) (2026-09-26)
+
+### ✨ New Features
+
+* add Pro and Premium feature unlocks for Telegram, Snapchat, Signal, Session, and SimpleX ([3c9b5d3](https://github.com/SatanMerde/D-moniakPatches/commit/3c9b5d354dd7a78e05aed37035807e6920360aa6))
+
+## [1.23.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.22.0...v1.23.0) (2026-09-26)
+
+### ✨ New Features
+
+* expand patches for Telegram, Signal, Snapchat, ChatGPT, Perplexity, Gemini, Maps, and Google Phone ([350cff0](https://github.com/SatanMerde/D-moniakPatches/commit/350cff0e819fd283ef6d92e6c4bd298f9ed9d0c2))
+
+## [1.22.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.21.0...v1.22.0) (2026-09-26)
+
+### ✨ New Features
+
+* add messaging apps suite (Telegram, Signal, Session, SimpleX, Snapchat) ([b3f17a2](https://github.com/SatanMerde/D-moniakPatches/commit/b3f17a2caee026ff90176eefef00d973a5c43358))
+
+## [1.21.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.20.0...v1.21.0) (2026-09-26)
+
+### ✨ New Features
+
+* add AI apps suite (ChatGPT, Perplexity, Google Gemini) and expand Google Photos patches ([649c5d9](https://github.com/SatanMerde/D-moniakPatches/commit/649c5d98953ed31435f0161b210f92284f5c8238))
+
+## [1.20.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.19.0...v1.20.0) (2026-09-26)
+
+### ✨ New Features
+
+* add Google Phone, Google Maps, and Google Photos base apps suite ([17e4aef](https://github.com/SatanMerde/D-moniakPatches/commit/17e4aef2a906e0824723a0efe6fedd9318639c7c))
+
+## [1.19.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.18.0...v1.19.0) (2026-09-26)
+
+### ✨ New Features
+
+* add Tuta Mail suite and expand Proton VPN patches suite ([6040fbb](https://github.com/SatanMerde/D-moniakPatches/commit/6040fbbb1ea0c8a1d9135ca0d2de4ed7745a029e))
+
+## [1.18.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.17.0...v1.18.0) (2026-09-26)
+
+### ✨ New Features
+
+* add advanced Proton VPN, Proton Mail, and Proton Pass patches suite ([21f6335](https://github.com/SatanMerde/D-moniakPatches/commit/21f6335c02825e9fedbe866516755537d60434c6))
+
+## [1.17.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.16.0...v1.17.0) (2026-09-26)
+
+### ✨ New Features
+
+* add Proton VPN, Turbo VPN, and Windscribe patches suite ([475083e](https://github.com/SatanMerde/D-moniakPatches/commit/475083e667c13ad8ed7b3a8ab61cfc14d502f94c))
+
+## [1.16.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.15.0...v1.16.0) (2026-09-26)
+
+### ✨ New Features
+
+* add Hill Climb Racing, Jetpack Joyride, Alto's Adventure, and Speedtest patches suite ([071e03a](https://github.com/SatanMerde/D-moniakPatches/commit/071e03ae5a6ec1247d7be66b6f07547d89e7e441))
+
+## [1.15.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.14.0...v1.15.0) (2026-09-26)
+
+### ✨ New Features
+
+* add 6 universal patches for AMOLED, rotation, screen on, 120Hz, haptics, and webview debugging ([0e0373f](https://github.com/SatanMerde/D-moniakPatches/commit/0e0373fc15d542e630bd209379d92e2a430f790a))
+
+## [1.14.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.13.0...v1.14.0) (2026-09-26)
+
+### ✨ New Features
+
+* add Shazam, Strava, Truecaller, and MX Player patches suite ([389f538](https://github.com/SatanMerde/D-moniakPatches/commit/389f538d6cf0bf8d207cbd614f946712f328cc44))
+
+## [1.13.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.12.0...v1.13.0) (2026-09-26)
+
+### ✨ New Features
+
+* add premium and pro feature patches for Duolingo, Waze, SoundCloud, and Pinterest ([43364aa](https://github.com/SatanMerde/D-moniakPatches/commit/43364aa38f2231a5511418494c1ad0a5491431ab))
+
+## [1.12.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.11.0...v1.12.0) (2026-09-26)
+
+### ✨ New Features
+
+* add Duolingo, Waze, SoundCloud, and Pinterest patches suite ([2eb0d61](https://github.com/SatanMerde/D-moniakPatches/commit/2eb0d61c64b3fd9aadea51b01f9d3776b9bf0c47))
+
+## [1.11.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.10.0...v1.11.0) (2026-09-26)
+
+### ✨ New Features
+
+* **universal:** add Universal App Clone patch for side-by-side dual installation ([0d7055b](https://github.com/SatanMerde/D-moniakPatches/commit/0d7055b70fb4a3c23fbb1a11dd569bcc8fc27768))
+
+## [1.10.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.9.0...v1.10.0) (2026-09-26)
+
+### ✨ New Features
+
+* **spotify:** add Spicetify Mobile patch suite (AMOLED, custom accents, declutter, addons) ([b86d6a9](https://github.com/SatanMerde/D-moniakPatches/commit/b86d6a95abd27e99140248cd166c8980cd440365))
+
+## [1.9.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.8.0...v1.9.0) (2026-09-25)
+
+### ✨ New Features
+
+* **patches:** add tailored gameplay patches and support for Beach Buggy Racing, Robbery Bob, and Vector 2 ([3b26e16](https://github.com/SatanMerde/D-moniakPatches/commit/3b26e16e2eb7f3cc9a77f8c1f70b59efc6727553))
+
+## [1.8.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.7.0...v1.8.0) (2026-09-25)
+
+### ✨ New Features
+
+* **patches:** tailor patches and descriptions specifically per application ([0db1353](https://github.com/SatanMerde/D-moniakPatches/commit/0db13538b0ed54b12dc5ee370d6eeeb1561b18b2))
+
+## [1.7.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.6.0...v1.7.0) (2026-09-25)
+
+### ✨ New Features
+
+* **shadowfight:** add full Shadow Fight saga support (2, 2 SE, 3, Shades, 4 Arena) ([5798c4e](https://github.com/SatanMerde/D-moniakPatches/commit/5798c4e8767a82ef1652ff9f505ad71f8d8dafbb))
+
+## [1.6.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.5.0...v1.6.0) (2026-09-25)
+
+### ✨ New Features
+
+* **patches:** disambiguate patch names across games to avoid bundle collision ([9a41e06](https://github.com/SatanMerde/D-moniakPatches/commit/9a41e06258be40dc929f62430b1689719e72adee))
+
+## [1.5.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.4.0...v1.5.0) (2026-09-25)
+
+### ✨ New Features
+
+* **shadowfight:** add Shadow Fight 2 experimental patches ([b7a7ab2](https://github.com/SatanMerde/D-moniakPatches/commit/b7a7ab21660203ed17f771b401fd3e90ce15fa16))
+
+## [1.4.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.3.0...v1.4.0) (2026-09-25)
+
+### 🐛 Bug Fixes
+
+* **hungryshark:** import BytecodePatchContext in FreeShoppingPatch ([c2e46f2](https://github.com/SatanMerde/D-moniakPatches/commit/c2e46f24bc18da9f64766fb7d63e43a39b4afb8b))
+
+### ✨ New Features
+
+* **hungryshark:** add Hungry Shark Evolution patches (experimental) ([9e7e24c](https://github.com/SatanMerde/D-moniakPatches/commit/9e7e24c84e3a914a184c8b8cf5955bade692fd34))
+
+## [1.3.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.2.0...v1.3.0) (2026-09-21)
+
+### ✨ New Features
+
+* **coinsnap:** mark CoinSnap VIP patch as experimental and in development ([1f60895](https://github.com/SatanMerde/D-moniakPatches/commit/1f60895a1eabf961e4552d8ed57c88e57a60a4fe))
+
+## [1.2.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.1.17...v1.2.0) (2026-09-21)
+
+### ✨ New Features
+
+* **coinsnap:** add CoinSnap VIP Pro unlock patch ([0c6c60d](https://github.com/SatanMerde/D-moniakPatches/commit/0c6c60d61d528f04f112c3b16edde8195a7eee1c))
+
+## [1.1.17](https://github.com/SatanMerde/D-moniakPatches/compare/v1.1.16...v1.1.17) (2026-09-20)
+
+### 🐛 Bug Fixes
+
+* **hungryshark:** generate dynamic order IDs and fire proper completion callbacks ([cd2f24b](https://github.com/SatanMerde/D-moniakPatches/commit/cd2f24b05cb3d157a971248f8816927b838e5d80))
+
+## [1.1.16](https://github.com/SatanMerde/D-moniakPatches/compare/v1.1.15...v1.1.16) (2026-09-20)
+
+### 🐛 Bug Fixes
+
+* **hungryshark:** fire correct completion callback to allow repeated purchases ([8808175](https://github.com/SatanMerde/D-moniakPatches/commit/88081756d6c4a2a12edc4e88e4f06bbc252362bc))
+
+## [1.1.15](https://github.com/SatanMerde/D-moniakPatches/compare/v1.1.14...v1.1.15) (2026-09-19)
+
+### 🐛 Bug Fixes
+
+* **hungryshark:** fix inverted branch conditions preventing shop callbacks from firing ([52525be](https://github.com/SatanMerde/D-moniakPatches/commit/52525be0d529ce6c8ea98c9394861d20ce43746b))
+
+## [1.1.14](https://github.com/SatanMerde/D-moniakPatches/compare/v1.1.13...v1.1.14) (2026-09-19)
+
+### 🐛 Bug Fixes
+
+* **hungryshark:** clean method replacement for google billing service and preserve houston bytecode ([979538c](https://github.com/SatanMerde/D-moniakPatches/commit/979538cd12eab95c7e012e1bf0adc2887cd06839))
+
+## [1.1.13](https://github.com/SatanMerde/D-moniakPatches/compare/v1.1.12...v1.1.13) (2026-09-19)
+
+### 🐛 Bug Fixes
+
+* **hungryshark:** guard onPurchasesUpdated against cold startup queries to fix loading hang ([45250df](https://github.com/SatanMerde/D-moniakPatches/commit/45250df8babba19c18c70af4f890c5fce2b2d887))
+
+## [1.1.12](https://github.com/SatanMerde/D-moniakPatches/compare/v1.1.11...v1.1.12) (2026-09-19)
+
+### 🐛 Bug Fixes
+
+* **hungryshark:** resolve loading screen hang by preserving initialise and fix purchase completion ([089831e](https://github.com/SatanMerde/D-moniakPatches/commit/089831e0fa3e9931e801014734ce5b05bee86832))
+
+## [1.1.11](https://github.com/SatanMerde/D-moniakPatches/compare/v1.1.10...v1.1.11) (2026-09-19)
+
+### 🐛 Bug Fixes
+
+* **hungryshark:** bypass ubisoft orion and houston validation to resolve shop freeze ([7cac43a](https://github.com/SatanMerde/D-moniakPatches/commit/7cac43ad61ebc8dd49b7276114cc2cae7274d1f0))
+
+## [1.1.10](https://github.com/SatanMerde/D-moniakPatches/compare/v1.1.9...v1.1.10) (2026-09-19)
+
+### 🐛 Bug Fixes
+
+* **hungryshark:** make sku extraction null-safe and prevent exceptions in launch billing flow ([af7bbcb](https://github.com/SatanMerde/D-moniakPatches/commit/af7bbcba5a67625411ba0e39e7b51d80c228175e))
+
+## [1.1.9](https://github.com/SatanMerde/D-moniakPatches/compare/v1.1.8...v1.1.9) (2026-09-19)
+
+### 🐛 Bug Fixes
+
+* **hungryshark:** resolve shop purchase freeze via real sku extraction and purchases updated broadcast ([e461ece](https://github.com/SatanMerde/D-moniakPatches/commit/e461ecead7615c33b7b4c10463fa08527699996a))
+
+## [1.1.8](https://github.com/SatanMerde/D-moniakPatches/compare/v1.1.7...v1.1.8) (2026-09-19)
+
+### 🐛 Bug Fixes
+
+* **hungryshark:** fix constructor reference in billing listener capture ([153dde8](https://github.com/SatanMerde/D-moniakPatches/commit/153dde880e5e6bdb8c7c30bc2d9698d2fedfe8fa))
+* **hungryshark:** fix shop purchase freeze by capturing billing listener via system properties and correct list branch logic ([d139504](https://github.com/SatanMerde/D-moniakPatches/commit/d139504cf6cbb04b87599ed13cf7b6fcf239416c))
+
+## [1.1.7](https://github.com/SatanMerde/D-moniakPatches/compare/v1.1.6...v1.1.7) (2026-09-19)
+
+### 🐛 Bug Fixes
+
+* **hungryshark:** eliminate loading freeze and enable shop unlock via self-contained pure smali billing bypass ([b045062](https://github.com/SatanMerde/D-moniakPatches/commit/b0450629e9b7ffce35da13b6efb91d8dd7cd8a01))
+
+## [1.1.6](https://github.com/SatanMerde/D-moniakPatches/compare/v1.1.5...v1.1.6) (2026-09-18)
+
+### 🐛 Bug Fixes
+
+* **hungryshark:** prevent VerifyError freeze with check-cast and complete billing lifecycle ([f5c6911](https://github.com/SatanMerde/D-moniakPatches/commit/f5c69118777a0f94a0d99c7a78dfda292ad9d235))
+
+## [1.1.5](https://github.com/SatanMerde/D-moniakPatches/compare/v1.1.4...v1.1.5) (2026-09-18)
+
+### 🐛 Bug Fixes
+
+* **hungryshark:** use FiveRegisterInstruction/RegisterRangeInstruction interfaces for call site matching ([ed269c2](https://github.com/SatanMerde/D-moniakPatches/commit/ed269c2d0f5adeaff508fff998a4c01237332227))
+
+## [1.1.4](https://github.com/SatanMerde/D-moniakPatches/compare/v1.1.3...v1.1.4) (2026-09-18)
+
+### 🐛 Bug Fixes
+
+* **hungryshark:** patch launchBillingFlow call sites in game code instead of BillingClient impl ([c588ead](https://github.com/SatanMerde/D-moniakPatches/commit/c588eade207719fd756f729231eb791b12b07655))
+
+## [1.1.3](https://github.com/SatanMerde/D-moniakPatches/compare/v1.1.2...v1.1.3) (2026-09-18)
+
+### 🐛 Bug Fixes
+
+* **hungryshark:** isolate Free Shopping to launchBillingFlow and restrict strictly to billingclient package ([e009d42](https://github.com/SatanMerde/D-moniakPatches/commit/e009d426b5a9fc94058986929552d791efeb3806))
+
+## [1.1.2](https://github.com/SatanMerde/D-moniakPatches/compare/v1.1.1...v1.1.2) (2026-09-18)
+
+### 🐛 Bug Fixes
+
+* **hungryshark:** prevent loading freeze by removing intrusive startup lifecycle hooks ([99ddbce](https://github.com/SatanMerde/D-moniakPatches/commit/99ddbce2b71b0b6f3c1708bd52880b15bee7a707))
+
+## [1.1.1](https://github.com/SatanMerde/D-moniakPatches/compare/v1.1.0...v1.1.1) (2026-09-18)
+
+### 🐛 Bug Fixes
+
+* **hungryshark:** fix Free Shopping smali register errors and eliminate Google Play dialog ([02ad80c](https://github.com/SatanMerde/D-moniakPatches/commit/02ad80cf108ebaa5c45fa226ad5064bee72be7d0))
+
+## [1.1.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.0.9...v1.1.0) (2026-09-18)
+
+### ✨ New Features
+
+* **hungryshark:** add Free Shopping patch for in-app purchases and shop unlocks ([5ae65e7](https://github.com/SatanMerde/D-moniakPatches/commit/5ae65e762d1e7c4114713545b69d8e2ac78fba79))
+
+## [1.0.9](https://github.com/SatanMerde/D-moniakPatches/compare/v1.0.8...v1.0.9) (2026-09-17)
+
+### 🐛 Bug Fixes
+
+* **hungryshark:** intercept Google Unity Mobile Ads RewardedAd to fix video load failure ([8e206f7](https://github.com/SatanMerde/D-moniakPatches/commit/8e206f7545dcb923b80d18249e34b350e42fd12e))
+
+## [1.0.8](https://github.com/SatanMerde/D-moniakPatches/compare/v1.0.7...v1.0.8) (2026-09-17)
+
+### 🐛 Bug Fixes
+
+* **hungryshark:** implement comprehensive multi-SDK ad bypass with register-safe parameter cloning ([0a8037d](https://github.com/SatanMerde/D-moniakPatches/commit/0a8037d752955afdeb0e4ce72f83d6e70d609f1a))
+
+## [1.0.7](https://github.com/SatanMerde/D-moniakPatches/compare/v1.0.6...v1.0.7) (2026-09-17)
+
+### 🐛 Bug Fixes
+
+* **hungryshark:** eliminate JsonUtils dependency, use JSONObject(String) literal for MAX Unity events ([e543479](https://github.com/SatanMerde/D-moniakPatches/commit/e5434796915ad0a31f2312cd55065ab3ace5ce60))
+
+## [1.0.6](https://github.com/SatanMerde/D-moniakPatches/compare/v1.0.5...v1.0.6) (2026-09-17)
+
+### 🐛 Bug Fixes
+
+* **hungryshark:** rewrite patch with direct smali injection (Nai64 approach) to bypass AppLovin MAX Unity rewarded ads ([d1a8ee2](https://github.com/SatanMerde/D-moniakPatches/commit/d1a8ee24dfb2126ef14d765a2272b7ede3d4412d))
+
+## [1.0.5](https://github.com/SatanMerde/D-moniakPatches/compare/v1.0.4...v1.0.5) (2026-09-17)
+
+### 🐛 Bug Fixes
+
+* **hungryshark:** bypass video ad loading failures with universal readiness and synchronous MAX events ([406890a](https://github.com/SatanMerde/D-moniakPatches/commit/406890ae35e7483822721ecffcd3b9aca0d1debd))
+
+## [1.0.4](https://github.com/SatanMerde/D-moniakPatches/compare/v1.0.3...v1.0.4) (2026-09-17)
+
+### 🐛 Bug Fixes
+
+* intercept AppLovin MAX Unity Plugin ad readiness and reward callbacks ([6363f95](https://github.com/SatanMerde/D-moniakPatches/commit/6363f95cae7aaf4547fd046830378b54554635dd))
+
+## [1.0.3](https://github.com/SatanMerde/D-moniakPatches/compare/v1.0.2...v1.0.3) (2026-09-17)
+
+### 🐛 Bug Fixes
+
+* restore billing and fix ad load lifecycle across MAX, Unity Ads and IronSource ([90da006](https://github.com/SatanMerde/D-moniakPatches/commit/90da00642dd7d6ad720a4d981fbe03f78f239a88))
+
+## [1.0.2](https://github.com/SatanMerde/D-moniakPatches/compare/v1.0.1...v1.0.2) (2026-09-17)
+
+### 🐛 Bug Fixes
+
+* bypass AppLovin MAX Unity Plugin ad readiness check and reward callbacks ([edf248c](https://github.com/SatanMerde/D-moniakPatches/commit/edf248cefb065c70c0fb1422a45fbfde2c9eeb2b))
+
+## [1.0.1](https://github.com/SatanMerde/D-moniakPatches/compare/v1.0.0...v1.0.1) (2026-09-17)
+
+### 🐛 Bug Fixes
+
+* prevent NPE on abstract ad methods and add AI disclaimer ([a258362](https://github.com/SatanMerde/D-moniakPatches/commit/a258362b0c6931041957b5ab4d658b49c8ff4351))
+
+## 1.0.0 (2026-09-17)
+
+### 🐛 Bug Fixes
+
+* ensure gradlew and scripts are executable on Linux CI runners ([efd2636](https://github.com/SatanMerde/D-moniakPatches/commit/efd26362f36fef3a4ad0b820fd2e952b95c9c4d3))
+
+### ✨ New Features
+
+* Initial commit with Hungry Shark World rewarded ads bypass patch ([7e400a1](https://github.com/SatanMerde/D-moniakPatches/commit/7e400a1836fc594fd599d7d4be1c2435948178e7))

@@ -118,9 +118,14 @@ class FullSizeProfilePictureFixtureTest {
             assertEquals(where, listOf("$PROFILE_PIC_URL_INFO->getUrl()Ljava/lang/String;"), calls("hdUrl"))
             assertEquals(where, listOf("$IMAGE_URL->getUrl()Ljava/lang/String;"), calls("pictureUrl"))
             assertEquals(where, listOf("Lkotlin/jvm/functions/Function0;->invoke()Ljava/lang/Object;"), calls("dismiss"))
-            // Threads' session read is handed the int it passes itself.
+            // Threads' session read is handed the int it passes itself, where it takes one. 455's
+            // second ARMv7 build reads it from the composer alone.
             val session = model.single { it.name == "session" }.body()
-            assertEquals(where, 1, session.filter { it.opcode == Opcode.CONST_4 }.map { (it as NarrowLiteralInstruction).narrowLiteral }.first())
+            val read = session.single { it.getReference<MethodReference>()?.toString() == reads.single().toString() } as FiveRegisterInstruction
+            assertEquals(where, reads.single().parameterTypes.size, read.registerCount)
+            if (read.registerCount == 2) {
+                assertEquals(where, 1, session.filter { it.opcode == Opcode.CONST_4 }.map { (it as NarrowLiteralInstruction).narrowLiteral }.first())
+            }
             assertEquals(where, 1, status(context))
         }
     }

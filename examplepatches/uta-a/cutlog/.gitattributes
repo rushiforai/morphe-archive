@@ -1,0 +1,3 @@
+# Keep Gradle wrapper scripts and configuration files consistently text-based.
+* text=auto eol=lf
+*.bat text eol=crlf

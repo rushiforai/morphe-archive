@@ -40,16 +40,23 @@ class MaxImageQualityFixtureTest {
 
         for (build in Fixtures.declaredBuilds()) {
             val where = build.name
-            val classes = FixtureDex.classesWhere(build, { true }) { it.isSizeChooserShape() }
+            val classes = FixtureDex.classesWhere(build, { true }) { it.isSizeChooserShape() || it.isGenericChooserShape() }
             // Read apart from the patch: one method has the chooser's signature, and it aims a
-            // twentieth past its last parameter.
+            // twentieth past its last parameter, or (455 on) hands that width to the one generic
+            // chooser, which aims a twentieth past its own last parameter.
             val choosers = classes.flatMap { it.methods }.filter { it.isSizeChooserShape() }
             assertEquals("$where: choosers", 1, choosers.size)
             val stock = choosers.single()
             val width = stock.implementation!!.registerCount - 1
             val stockBody = stock.body()
-            assertEquals("$where: one twentieth of the width", 1, stockBody.count {
-                it.opcode == Opcode.DIV_INT_LIT8 && (it as TwoRegisterInstruction).registerB == width &&
+            val handoff = stockBody.singleOrNull { it.getReference<MethodReference>()?.isGenericChooserShape() == true }
+            val aiming = if (handoff == null) stock else {
+                val generic = handoff.getReference<MethodReference>()!!
+                classes.flatMap { it.methods }.single { it.isGenericChooserShape() && it.signature() == generic.signature() }
+            }
+            val aimed = aiming.implementation!!.registerCount - 1
+            assertEquals("$where: one twentieth of the width", 1, aiming.body().count {
+                it.opcode == Opcode.DIV_INT_LIT8 && (it as TwoRegisterInstruction).registerB == aimed &&
                     (it as NarrowLiteralInstruction).narrowLiteral == 20
             })
             // The width the hook rewrites is read later, so its answer is the one Threads aims at.
@@ -78,7 +85,7 @@ class MaxImageQualityFixtureTest {
 
     private fun Method.body(): List<Instruction> = implementation!!.instructions.toList()
 
-    private fun Method.signature() = "$definingClass->$name(${parameterTypes.joinToString("")})$returnType"
+    private fun MethodReference.signature() ="$definingClass->$name(${parameterTypes.joinToString("")})$returnType"
 
     private fun status(context: BytecodePatchContext) = (context.mutableClassDefBy(SETTINGS_STATUS).methods
         .single { it.name == "maxImageQuality" }.implementation!!.instructions.first() as NarrowLiteralInstruction).narrowLiteral

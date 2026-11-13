@@ -13,6 +13,7 @@ final class LinimalConfigSchema {
 
     static final String SMART_CHANNEL_ADS_ENABLED_KEY = "linimal.ads.smart_channel";
     static final String HOME_TOP_AD_ENABLED_KEY = "linimal.ads.home_top";
+    static final String SQUARE_ADS_ENABLED_KEY = "linimal.ads.square";
     static final String AGENT_I_HOME_HEADER_ENABLED_KEY = "linimal.agent_i.home_header";
     static final String AGENT_I_CHAT_INFORMATION_ENABLED_KEY = "linimal.agent_i.chat_information";
     static final String AGENT_I_WALLET_HEADER_ENABLED_KEY = "linimal.agent_i.wallet_header";
@@ -72,6 +73,8 @@ final class LinimalConfigSchema {
                 return SMART_CHANNEL_ADS_ENABLED_KEY;
             case HOME_TOP_AD:
                 return HOME_TOP_AD_ENABLED_KEY;
+            case SQUARE_ADS:
+                return SQUARE_ADS_ENABLED_KEY;
             case AGENT_I_HOME_HEADER:
                 return AGENT_I_HOME_HEADER_ENABLED_KEY;
             case AGENT_I_CHAT_INFORMATION:

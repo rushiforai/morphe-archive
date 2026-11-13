@@ -732,6 +732,16 @@ Don't open a reply under each comment. View replies still shows all of them.,不
 Hide playlist videos,隐藏播放列表视频
 Hide subscriber-only videos,隐藏仅限订阅者的视频
 Hide profile shortcuts,隐藏个人资料快捷方式
+Hide profile tabs,隐藏个人资料标签页
+"Pick the tabs to hide from the strip above a profile's videos, such as Reposts or Liked videos. One tab always stays. Restart TikTok to apply this.",选择要在个人资料视频上方的标签栏中隐藏的标签页，例如转发或喜欢的视频。始终保留一个标签页。重新启动 TikTok 以应用此操作.
+Private videos,私密视频
+Reposts,转发
+Favorites,收藏
+Music,音乐
+Effects,特效
+Series,系列
+Stickers,贴纸
+AI theater,AI 剧场
 Hide profile shortcuts by name,按名称隐藏配置文件快捷方式
 Hide profile views,隐藏个人资料视图
 Hide promotional music,隐藏促销音乐
@@ -2327,7 +2337,7 @@ Some recording files remain. Try deleting them again.,仍有录制文件未删�
 "Collapsed","已折叠"
 This setting isn't available. Search for another setting.,此设置不可用. 请搜索其他设置.
 Hide the Hushfeed row,隐藏 Hushfeed 入口
-"Take Hushfeed out of TikTok's Settings and privacy. To open these settings, press and hold For You at the top of the feed, or Home if Long-press Home for Hushfeed settings is on.",从 TikTok 的“设置和隐私”中移除 Hushfeed。要打开这些设置，请长按信息流顶部的“为你”，如果已开启“长按 Home 进行 Hushfeed 设置”，也可以长按 Home.
+"Take Hushfeed out of TikTok's Settings and privacy. To open these settings, press and hold For You at the top of the feed, or Home if Long-press Home for Hushfeed settings is on. If neither press can open them, the row stays.",从 TikTok 的“设置和隐私”中移除 Hushfeed。要打开这些设置，请长按信息流顶部的“为你”，如果已开启“长按 Home 进行 Hushfeed 设置”，也可以长按 Home。如果两者都无法打开，此行会保留.
 Open the search page,打开搜索页面
 Search didn't open. Restart TikTok and try again.,搜索未打开。请重启 TikTok 后重试.
 Fold the search into a button,将搜索收起为按钮
@@ -2584,6 +2594,12 @@ Bottom bar icons,底部栏图标
 "TikTok tests more than one set of icons for the bottom bar. Pick one here, or leave it to TikTok.",TikTok 正在为底部栏测试多套图标。可在此选择一套，或交给 TikTok 决定.
 New style 1,新样式 1
 New style 2,新样式 2
+Bottom bar height,底部栏高度
+"Videos and the other tabs make room for the bar at its new height. With the tab names hidden, the icons fit the shorter bars best.",视频和其他标签页会按新的高度为底部栏留出空间。隐藏标签名称时，图标最适合较矮的底部栏.
+Shorter,更矮
+Short,较矮
+Tall,较高
+Taller,更高
 Friends in the top tabs,顶部标签显示“朋友”
 "Friends moves up to the tabs at the top of the feed, next to Following, and Discover takes its spot in the bottom bar, the way TikTok lays it out in some countries. Your region and your feed stay as they are.",“朋友”会移到信息流顶部的标签，位于“关注”旁边，“发现”则占据它在底部栏的位置，和 TikTok 在部分国家的布局一样。你的地区和信息流保持不变.
 Pin more chats,置顶更多聊天

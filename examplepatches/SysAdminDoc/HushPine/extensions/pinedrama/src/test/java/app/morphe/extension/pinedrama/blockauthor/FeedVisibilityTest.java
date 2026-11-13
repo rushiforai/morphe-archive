@@ -31,8 +31,8 @@ public class FeedVisibilityTest {
             title.setId(0x7f0a1002);
             sheet.addView(title, new FrameLayout.LayoutParams(200, 80));
             content.addView(sheet, new FrameLayout.LayoutParams(500, 700));
-            FeedVisibility.resolveForTests(activity.getPackageName(), "47.6.3:idd", sheet.getId());
-            FeedVisibility.resolveForTests(activity.getPackageName(), "47.6.3:m6k", title.getId());
+            FeedVisibility.resolveForTests(activity.getPackageName(), "47.7.3:ig0", sheet.getId());
+            FeedVisibility.resolveForTests(activity.getPackageName(), "47.7.3:mbq", title.getId());
 
             assertTrue(FeedVisibility.isCommentSheetVisible(activity));
             title.setVisibility(View.GONE);
@@ -54,8 +54,8 @@ public class FeedVisibilityTest {
             title.setId(0x7f0a1002);
             sheet.addView(title, new FrameLayout.LayoutParams(200, 80));
             content.addView(sheet, new FrameLayout.LayoutParams(500, 700));
-            FeedVisibility.resolveForTests(activity.getPackageName(), "47.6.3:idd", sheet.getId());
-            FeedVisibility.resolveForTests(activity.getPackageName(), "47.6.3:m6k", title.getId());
+            FeedVisibility.resolveForTests(activity.getPackageName(), "47.7.3:ig0", sheet.getId());
+            FeedVisibility.resolveForTests(activity.getPackageName(), "47.7.3:mbq", title.getId());
             Shadows.shadowOf(Looper.getMainLooper()).idle();
 
             assertTrue(FeedVisibility.isCommentSheetVisible(activity));
@@ -89,7 +89,7 @@ public class FeedVisibilityTest {
             activity.setContentView(pager);
             Shadows.shadowOf(Looper.getMainLooper()).idle();
             assertTrue("the window never laid out", homeTab.getWidth() > 0 && pager.getWidth() > 0);
-            FeedVisibility.resolveForTests(activity.getPackageName(), "47.6.3:hs7", homeTab.getId());
+            FeedVisibility.resolveForTests(activity.getPackageName(), "47.7.3:hur", homeTab.getId());
             try {
                 assertTrue(FeedVisibility.isOnFeed(activity));
                 assertTrue(FeedVisibility.onRecommendationFeed(activity));
@@ -109,7 +109,7 @@ public class FeedVisibilityTest {
             } finally {
                 // The id cache is process-wide and this class shares a loader with every other
                 // test: a tab id left resolved answers for whatever runs next.
-                FeedVisibility.resolveForTests(activity.getPackageName(), "47.6.3:hs7", 0);
+                FeedVisibility.resolveForTests(activity.getPackageName(), "47.7.3:hur", 0);
             }
         }
     }
@@ -144,7 +144,7 @@ public class FeedVisibilityTest {
             assertTrue("the window never laid out", width > 0 && homeTab.getWidth() > 0);
             shop.setTranslationX(width);
             nearby.setTranslationX(2 * width);
-            FeedVisibility.resolveForTests(activity.getPackageName(), "47.6.3:hs7", homeTab.getId());
+            FeedVisibility.resolveForTests(activity.getPackageName(), "47.7.3:hur", homeTab.getId());
             try {
                 assertTrue(FeedVisibility.onRecommendationFeed(activity));
 
@@ -183,7 +183,7 @@ public class FeedVisibilityTest {
                         .idleFor(java.time.Duration.ofMillis(FeedVisibility.FEED_PAGER_SEARCH_GAP_MS));
                 assertFalse(FeedVisibility.onRecommendationFeed(activity));
             } finally {
-                FeedVisibility.resolveForTests(activity.getPackageName(), "47.6.3:hs7", 0);
+                FeedVisibility.resolveForTests(activity.getPackageName(), "47.7.3:hur", 0);
             }
         }
     }
@@ -203,14 +203,14 @@ public class FeedVisibilityTest {
             root.addView(homeTab, new FrameLayout.LayoutParams(60, 40, Gravity.BOTTOM));
             activity.setContentView(root);
             Shadows.shadowOf(Looper.getMainLooper()).idle();
-            FeedVisibility.resolveForTests(activity.getPackageName(), "47.6.3:hs7", homeTab.getId());
+            FeedVisibility.resolveForTests(activity.getPackageName(), "47.7.3:hur", homeTab.getId());
             try {
                 assertFalse("no feed's pager yet", FeedVisibility.onRecommendationFeed(activity));
                 root.addView(new VerticalViewPager(activity), 0, matchParent());
                 assertTrue("the feed built right after a failed look was missed",
                         FeedVisibility.onRecommendationFeed(activity));
             } finally {
-                FeedVisibility.resolveForTests(activity.getPackageName(), "47.6.3:hs7", 0);
+                FeedVisibility.resolveForTests(activity.getPackageName(), "47.7.3:hur", 0);
             }
         }
     }
@@ -248,7 +248,7 @@ public class FeedVisibilityTest {
             fresh.addView(homeTab, new FrameLayout.LayoutParams(60, 40));
             outer.addView(fresh, new FrameLayout.LayoutParams(200, 200));
             homeTab.layout(0, 0, 60, 40);
-            FeedVisibility.resolveForTests(activity.getPackageName(), "47.6.3:hs7", homeTab.getId());
+            FeedVisibility.resolveForTests(activity.getPackageName(), "47.7.3:hur", homeTab.getId());
             try {
                 assertFalse("the fixture's ancestor has laid out after all", fresh.isLaidOut());
                 assertTrue("an ancestor that has not laid out counted as hiding the tab",
@@ -274,7 +274,7 @@ public class FeedVisibilityTest {
                 assertFalse("a group collapsed to nothing counted as showing the tab",
                         FeedVisibility.isOnFeed(activity));
             } finally {
-                FeedVisibility.resolveForTests(activity.getPackageName(), "47.6.3:hs7", 0);
+                FeedVisibility.resolveForTests(activity.getPackageName(), "47.7.3:hur", 0);
             }
         }
     }
@@ -288,15 +288,15 @@ public class FeedVisibilityTest {
         try (var controller = Robolectric.buildActivity(Activity.class).setup().visible()) {
             Activity activity = controller.get();
             HookStatus.clear();
-            FeedVisibility.resolveForTests(activity.getPackageName(), "47.6.3:hs7", 0);
-            FeedVisibility.resolveForTests(activity.getPackageName(), "47.6.3:hs8", 0);
+            FeedVisibility.resolveForTests(activity.getPackageName(), "47.7.3:hur", 0);
+            FeedVisibility.resolveForTests(activity.getPackageName(), "47.7.3:hus", 0);
 
             assertNull(FeedVisibility.homeTabView(activity));
             assertNull(FeedVisibility.inboxTabView(activity));
 
             assertEquals(java.util.Arrays.asList(
-                            "view id 'Home tab (47.6.3:hs7)'",
-                            "view id 'Inbox tab (47.6.3:hs8)'"),
+                            "view id 'Home tab (47.7.3:hur)'",
+                            "view id 'Inbox tab (47.7.3:hus)'"),
                     HookStatus.missing("bottom navigation"));
             assertTrue(String.join(" ", HookStatus.report()).contains("bottom navigation"));
         } finally {
@@ -313,13 +313,13 @@ public class FeedVisibilityTest {
         try (var controller = Robolectric.buildActivity(Activity.class).setup().visible()) {
             Activity activity = controller.get();
             HookStatus.clear();
-            FeedVisibility.resolveForTests(activity.getPackageName(), "47.6.3:hs7", 0x7f0a4703);
+            FeedVisibility.resolveForTests(activity.getPackageName(), "47.7.3:hur", 0x7f0a4703);
             try {
                 assertNull(FeedVisibility.homeTabView(activity));
                 assertTrue("a resolving name without an attached view was reported as missing",
                         HookStatus.missing("bottom navigation").isEmpty());
             } finally {
-                FeedVisibility.resolveForTests(activity.getPackageName(), "47.6.3:hs7", 0);
+                FeedVisibility.resolveForTests(activity.getPackageName(), "47.7.3:hur", 0);
                 HookStatus.clear();
             }
         }
@@ -330,7 +330,7 @@ public class FeedVisibilityTest {
             Activity activity = controller.get();
             FrameLayout content = activity.findViewById(android.R.id.content);
             int homeId = 0x7f0a4703;
-            FeedVisibility.resolveForTests(activity.getPackageName(), "47.6.3:hs7", homeId);
+            FeedVisibility.resolveForTests(activity.getPackageName(), "47.7.3:hur", homeId);
             HookStatus.clear();
             try {
                 // Name resolves but view not yet in tree: no miss with the new behaviour.
@@ -348,7 +348,7 @@ public class FeedVisibilityTest {
                 assertSame(homeTab, FeedVisibility.homeTabView(activity));
                 assertTrue(HookStatus.missing("bottom navigation").isEmpty());
             } finally {
-                FeedVisibility.resolveForTests(activity.getPackageName(), "47.6.3:hs7", 0);
+                FeedVisibility.resolveForTests(activity.getPackageName(), "47.7.3:hur", 0);
                 HookStatus.clear();
             }
         }

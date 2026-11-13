@@ -93,10 +93,6 @@ object EnhancedViewerHelper {
     private val executor = Executors.newFixedThreadPool(2)
     private val mainHandler = Handler(Looper.getMainLooper())
 
-    // ------------------------------------------------------------------------
-    // Detail view -> fullscreen hand-off
-    // ------------------------------------------------------------------------
-
     /**
      * Hook: DetailImageViewHolder.bind$lambda$0(illust, holder, pageIndex, view).
      * The page index is the one the app itself forwards to the viewer as "KEY_POSITION".
@@ -212,10 +208,6 @@ object EnhancedViewerHelper {
         return null
     }
 
-    // ------------------------------------------------------------------------
-    // Fullscreen page: placeholder + discreet loading badge
-    // ------------------------------------------------------------------------
-
     /**
      * Hook: Lea4.instantiateItem(), after addView() and before the layout is returned.
      * The page index is the tag the adapter assigns to the photo view (setImageViewTag).
@@ -231,14 +223,13 @@ object EnhancedViewerHelper {
 
             val illust = currentIllust(itemView)
 
-            // 1. The page the user is looking at: no network, no latency.
+            // Never another page's bitmap: a placeholder is only trusted for the page it shows.
             val detailBitmap = takeDetailBitmap(illust, pageIndex)
             if (detailBitmap != null) {
                 applyPlaceholder(itemView, imageView, photoAttacher, detailBitmap, progressBar)
                 return
             }
 
-            // 2. Any other page: its own standard resolution preview, never another page's bitmap.
             val url = standardResolutionUrl(illust, pageIndex)
             if (url == null) return
 
@@ -344,7 +335,6 @@ object EnhancedViewerHelper {
         if (userMatrix != null) restoreZoom(photoAttacher, userMatrix)
     }
 
-    /** The attacher's user matrix, but only when the user actually zoomed in past the base scale. */
     private fun currentUserMatrix(photoAttacher: Any): Matrix? = runCatching {
         val scale = photoAttacher.javaClass.getMethod("d").invoke(photoAttacher) as? Float
         if (scale != null && scale > 1.05f) {
@@ -499,10 +489,6 @@ object EnhancedViewerHelper {
         }
     }
 
-    // ------------------------------------------------------------------------
-    // Full resolution arrived: dismiss badge, keep the user's zoom
-    // ------------------------------------------------------------------------
-
     /** Hook: da4.c(Object, qca), inserted before the drawable is installed. */
     @JvmStatic
     fun onFullResLoaded(fullResTarget: Any?) {
@@ -544,10 +530,6 @@ object EnhancedViewerHelper {
             Log.w(TAG, "restoreZoom failed: ${t.message}")
         }
     }
-
-    // ------------------------------------------------------------------------
-    // Helpers
-    // ------------------------------------------------------------------------
 
     private fun getChildImageView(viewGroup: ViewGroup?): ImageView? {
         if (viewGroup == null) return null

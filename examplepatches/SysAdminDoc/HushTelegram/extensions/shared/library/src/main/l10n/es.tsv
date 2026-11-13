@@ -1146,7 +1146,7 @@ Couldn't save the call recording.	No se pudo guardar la grabación de la llamada
 # context: a switch on the Privacy page under Record calls (#39), off by default. Turned on, it puts a round record button on Telegram's call screen, right under the minimize arrow in the top left corner.
 Record button on calls	Botón de grabar en llamadas
 # context: that switch's summary. "Record calls" is the name of the switch above it, which records every call. A tap on the button records only the call on screen, or, with Record calls on, skips recording that one call.
-A button on the call screen records just that call, or stops recording it when Record calls is on.	Un botón en la pantalla de llamada graba solo esa llamada, o deja de grabarla cuando Grabar llamadas está activado.
+A button on the call and voice chat screens records just that call, or stops recording it when Record calls is on.	Un botón en la pantalla de llamada y de chat de voz graba solo esa llamada, o deja de grabarla cuando Grabar llamadas está activado.
 # context: a short toast shown when the record button on the call screen is tapped and the call starts recording.
 Recording this call	Grabando esta llamada
 # context: a short toast shown when the record button on the call screen is tapped again and the call stops recording. What was already recorded is still saved.
@@ -1628,6 +1628,8 @@ Don't notify contacts	No notificar a los contactos
 When you sign up a phone number that's new to Telegram, people who have it saved aren't told you joined. Accounts that already exist aren't affected.	Al registrar un número de teléfono nuevo en Telegram, quienes lo tienen guardado no reciben aviso de que te uniste. Las cuentas que ya existen no se ven afectadas.
 # context: Lowercase noun phrase naming the Don't notify contacts switch (#71) in the patch status list
 quiet sign-up	registro silencioso
+# context: Lowercase noun phrase naming the Delete account row (#71) in the patch status list
+account deletion	eliminación de cuenta
 # context: Lowercase noun phrase naming Proxy order (#71) in the patch status list
 proxy order	orden de proxies
 # context: Title of the Proxy order row on the Chat list page and of its editor dialog (#71). It sets the order of the proxies on Telegram's own proxy screen
@@ -1855,5 +1857,52 @@ Recordings stay until you delete them.	Las grabaciones se quedan hasta que las b
 Recordings older than %1$d day are deleted when the next one is saved.	Las grabaciones de más de %1$d día se borran cuando se guarda la siguiente.
 Recordings older than %1$d days are deleted when the next one is saved.	Las grabaciones de más de %1$d días se borran cuando se guarda la siguiente.
 Until you delete them	Hasta que las borres
+Recordings folder	Carpeta de grabaciones
+Recordings go to %1$s. The usual folder is %2$s.	Las grabaciones van a %1$s. La carpeta habitual es %2$s.
+Choose another folder	Elegir otra carpeta
+Use the usual folder	Usar la carpeta habitual
+Couldn't use that folder. Pick another one.	No se puede usar esa carpeta. Elige otra.
+This phone has no folder picker.	Este teléfono no tiene selector de carpetas.
+Internal storage	Almacenamiento interno
+Save recordings as Opus	Guardar grabaciones en Opus
+Files about half the size, ending in .ogg. Some older players can't open them.	Archivos de más o menos la mitad de tamaño, terminados en .ogg. Algunos reproductores antiguos no los abren.
+Notify when a call is saved	Avisar cuando se guarde una llamada
+A tap on the notification plays the recording. Its buttons share it or send it to your Saved Messages.	Al tocar la notificación se reproduce la grabación. Sus botones la comparten o la envían a tus Mensajes guardados.
+Call recordings	Grabaciones de llamadas
+Call recording saved	Grabación de llamada guardada
+Share	Compartir
 %1$d day	%1$d día
 %1$d days	%1$d días
+# context: Delete account (#71). A row on the Privacy page, the dialog it opens (the name is the account's, and the button is the row's title again) and the toasts after Telegram answers. The day count is how long Telegram waits before deleting an account that has a cloud password.
+Delete account	Eliminar cuenta
+Deletes the account you're using now, with its messages and contacts. If it has a cloud password, Telegram waits a week first.	Elimina la cuenta que estás usando ahora, con sus mensajes y contactos. Si tiene contraseña en la nube, Telegram espera una semana antes.
+Delete this account?	¿Eliminar esta cuenta?
+Telegram deletes %1$s with all its messages and contacts. This can't be undone.	Telegram elimina %1$s con todos sus mensajes y contactos. No se puede deshacer.
+Account deleted.	Cuenta eliminada.
+Telegram deletes the account in %1$d day.	Telegram eliminará la cuenta en %1$d día.
+Telegram deletes the account in %1$d days.	Telegram eliminará la cuenta en %1$d días.
+Telegram didn't delete the account.	Telegram no eliminó la cuenta.
+# context: Show all spoilers and quotes (#71). Two items in a chat's menu at the top (the three dots), the toasts they show, and two switches on the Reveal spoilers page. The summary names the two menu items, so use the same words for them there. A collapsed quote is a long quote Telegram shows folded, with a button to expand it.
+Show all spoilers	Mostrar todos los spoilers
+Expand all quotes	Expandir todas las citas
+Couldn't update the messages here.	No se pudieron actualizar los mensajes aquí.
+No hidden spoilers in the loaded messages.	No hay spoilers ocultos en los mensajes cargados.
+No collapsed quotes in the loaded messages.	No hay citas contraídas en los mensajes cargados.
+Show all spoilers and quotes	Mostrar todos los spoilers y citas
+A chat's menu at the top gets Show all spoilers and Expand all quotes, for the messages loaded so far.	El menú superior de un chat tiene Mostrar todos los spoilers y Expandir todas las citas, para los mensajes cargados hasta ahora.
+Open quotes on search hits	Abrir citas en resultados de búsqueda
+When a chat search lands on a match inside a collapsed quote, the quote opens so the highlighted match stays in view.	Cuando una búsqueda en el chat cae en una coincidencia dentro de una cita contraída, la cita se abre para que la coincidencia resaltada siga a la vista.
+# context: Lowercase noun phrase naming the Show all spoilers and quotes switch (#71) in the patch status list
+spoiler and quote items in the chat menu	opciones de spoilers y citas en el menú del chat
+# context: Lowercase noun phrase naming the Open quotes on search hits switch (#71) in the patch status list
+quotes opened on search hits	citas abiertas en resultados de búsqueda
+# context: Label of the Select all button (#73) in the bar that shows while messages are selected, and of its switch.
+Select all	Seleccionar todo
+# context: Toast from Select all when every loaded message is already selected.
+Everything here is already selected	Ya está todo seleccionado
+# context: Summary of the Select all switch (#73). The bar is the one that appears at the top of a chat, or of a chat's shared media, while messages are selected.
+Adds a Select all button to the bar that shows while you pick messages, in chats and in a chat's shared media. It selects everything loaded, newest first, up to Telegram's limit of 100.	Añade un botón Seleccionar todo a la barra que aparece al elegir mensajes, en los chats y en los archivos compartidos de un chat. Selecciona todo lo cargado, empezando por lo más reciente, hasta el límite de 100 de Telegram.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the Select all button in chats.
+selecting every loaded message in a chat	seleccionar todos los mensajes cargados de un chat
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the Select all button in a chat's shared media.
+selecting everything in shared media	seleccionar todo en los archivos compartidos

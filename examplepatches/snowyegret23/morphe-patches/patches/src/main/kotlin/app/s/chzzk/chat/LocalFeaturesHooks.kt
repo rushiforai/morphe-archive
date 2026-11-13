@@ -86,7 +86,7 @@ internal fun BytecodePatchContext.addLocalFeaturesHooks() {
     val channelIds = listOf("StreamingMicroChannel", "StreamingMicroChannelPersonal",
         "StreamingChannelPersonal", "StreamingChannelDetail").map { channelType ->
         val type = "${COMMUNITY}data/core/entity/channel/$channelType;"
-        if (packageMetadata.versionName != "1.3.0" || channelType != "StreamingMicroChannel") {
+        if (packageMetadata.versionName !in setOf("1.3.0", "1.4.0") || channelType != "StreamingMicroChannel") {
             getter(type, "channelId")
         } else {
             val owner = mutableClassDefBy(type)
@@ -261,7 +261,7 @@ internal fun BytecodePatchContext.addLocalFeaturesHooks() {
                 (instruction.opcode.setsWideRegister() && destination?.plus(1) == receiver))
         }) { "CHZZK detail constructor receiver was overwritten before capture" }
         val exit = instructions.withIndex().single { it.value.opcode == Opcode.RETURN_VOID }.index
-        check(if (packageMetadata.versionName == "1.3.0") lastWrite.index + 1 < exit else lastWrite.index + 1 == exit)
+        check(if (packageMetadata.versionName in setOf("1.3.0", "1.4.0")) lastWrite.index + 1 < exit else lastWrite.index + 1 == exit)
         constructor.addInstructions(lastWrite.index + 1,
             "invoke-static/range {v$receiver .. v$receiver}, $FOLLOWING->captureDetail(Ljava/lang/Object;)V")
     }

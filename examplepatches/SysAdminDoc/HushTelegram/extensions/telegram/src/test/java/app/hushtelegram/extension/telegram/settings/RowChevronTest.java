@@ -71,7 +71,7 @@ public class RowChevronTest {
 
     /** Every row on the screen whose tap opens a dialog, a file picker, the browser, Android's settings or another page. */
     private static final Set<String> OPENS_SOMETHING = new LinkedHashSet<>(Arrays.asList(
-            "Jump to a section", "Folder to open", "Chats to hide", "Accounts to hide", "Folder icons", "Your proxy lists", "Proxy order", "Filters for groups", "Filters for channels", "Translation service", "Translate into", "What to copy", "Gallery folder", "Folder in internal storage", "Notification status on this phone", "Push app", "Open a chat by ID", "Tracked people", "Emoji next to the chat list title", "Sticker size", "Exception chats", "Calls to record", "Chats to record", "Keep recordings", "Forwarding rules", "Supported links", "Export settings", "Import settings",
+            "Jump to a section", "Folder to open", "Chats to hide", "Accounts to hide", "Folder icons", "Your proxy lists", "Proxy order", "Filters for groups", "Filters for channels", "Translation service", "Translate into", "What to copy", "Gallery folder", "Folder in internal storage", "Notification status on this phone", "Push app", "Open a chat by ID", "Tracked people", "Emoji next to the chat list title", "Sticker size", "Exception chats", "Delete account", "Calls to record", "Chats to record", "Keep recordings", "Recordings folder", "Forwarding rules", "Supported links", "Export settings", "Import settings",
             "Quick setups", "Export diagnostic report", "Source code and issues", "Licenses"));
 
     /** Built by the first show(), after a test has set the text size it wants. */

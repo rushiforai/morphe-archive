@@ -4,7 +4,7 @@
   <a href="https://github.com/SysAdminDoc/Hushfacebook/releases"><img src="https://img.shields.io/badge/version-0.22.0-0866FF" alt="Version 0.22.0"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License GPL-3.0"></a>
   <img src="https://img.shields.io/badge/platform-Android%2011%2B-3DDC84" alt="Platform Android 11+">
-  <img src="https://img.shields.io/badge/Facebook-586.0.0.52.53-0866FF" alt="Facebook 586.0.0.52.53">
+  <img src="https://img.shields.io/badge/Facebook-587.0.0.39.55-0866FF" alt="Facebook 587.0.0.39.55">
   <img src="https://img.shields.io/badge/for-Morphe%20Manager%202.5.0%2B-8A2BE2" alt="For Morphe Manager 2.5.0 or newer">
 </p>
 
@@ -22,7 +22,7 @@ Each row in the [patch table](#patches) says how its switch starts. The ad filte
 
 This project has no connection to Meta or to the Morphe project. Neither endorses it, and neither wrote it.
 
-The latest release is [v0.21.0](https://github.com/SysAdminDoc/Hushfacebook/releases/tag/v0.21.0), with 117 patches. It includes all changes since v0.20.0, among them a new look for the Hush settings with a list of the switches that are on, settings in Russian, photo carousels in the feed, gray Reels with a break after 20 of them, and a seek bar on feed videos, as the [changelog](CHANGELOG.md) describes.
+The latest release is [v0.22.0](https://github.com/SysAdminDoc/Hushfacebook/releases/tag/v0.22.0), with 122 patches. It includes all changes since v0.21.0, among them a queue for reel saves that asks which quality you want, a Like that can ask before it counts, double tap to skip and speeds up to 3x on feed videos, `Only friends' posts` for the feed, and the move to Facebook 586.0.0.52.53, as the [changelog](CHANGELOG.md) describes.
 
 [Add to Morphe](https://morphe.software/add-source?github=SysAdminDoc%2FHushfacebook) | [Download a release](https://github.com/SysAdminDoc/Hushfacebook/releases/latest) | [Browse the patches](#patches)
 
@@ -33,7 +33,7 @@ The latest release is [v0.21.0](https://github.com/SysAdminDoc/Hushfacebook/rele
 
 1. Install [Morphe Manager](https://github.com/MorpheApp/morphe-manager) 2.5.0 or newer.
 2. Add Hushfacebook as a patch source: https://morphe.software/add-source?github=SysAdminDoc%2FHushfacebook
-3. Download Facebook 586.0.0.52.53 from [APKMirror](https://www.apkmirror.com/apk/facebook-2/facebook/). Take the bundle labelled (arm64-v8a) (120-640dpi) (Android 11+), build 476217123, or on a phone with only a 32-bit processor the one labelled (arm-v7a) (320dpi) (Android 11+), build 476217122. Both are .apkm files. Take the 64-bit one whenever your phone can run it. The 32-bit one only has images for 320 dpi screens, so on a sharper screen some icons look soft.
+3. Download Facebook 587.0.0.39.55 from [APKMirror](https://www.apkmirror.com/apk/facebook-2/facebook/). Take the bundle labelled (arm64-v8a) (240-640dpi) (Android 11+), build 707414333, or on a phone with only a 32-bit processor the one labelled (arm-v7a) (320dpi) (Android 11+), build 707414338. Both are .apkm files. Take the 64-bit one whenever your phone can run it. The 32-bit one only has images for 320 dpi screens, so on a sharper screen some icons look soft.
 4. In Morphe Manager, tap **Select other apps**, then **Open APK file**, and pick that file. Android may ask for file access the first time.
 5. Patch with the default selection and install. If Meta's own Facebook is on the phone, Android makes you uninstall it first, as [Package conflict](#package-conflict) explains.
 
@@ -119,7 +119,7 @@ Each row says what the patch does, how its switch starts and which settings sect
 | `Block screenshot detection` | Stops Facebook noticing when you take a screenshot or record the screen, in the feed, Reels, chats and everywhere else, so it can't react to it. Starts off. Turn it on in Hushfacebook settings > Privacy. |
 | `Hide typing indicator` | Others don't see that you're typing, in chats that open inside Facebook and in comment boxes, so you can write without anyone watching. Your messages send as usual. Starts off. Turn on the parts you want in Hushfacebook settings > Privacy. |
 | `Hide read receipts` | People you chat with in chats that open inside Facebook don't see that you've read their messages, so you can read now and reply later. Replying may still show you've read it. Starts off. Turn it on in Hushfacebook settings > Privacy. |
-| `Clean up Reels` | Hides clutter on reels, such as the Follow button, comment previews, Remix and Use template buttons and Threads cards between reels, so more of the video shows, and can play each reel once instead of over and over, keep its original audio instead of a Meta AI dub, drop the search suggestions under the caption, over the comments and at the top of a profile's reels, or hide the like, comment and share counts, the Like, Comment, Share, Save or speaker button, or the line naming the reel's sound. It can also keep the Reels tab to accounts you follow, open a video you tap in the feed on its own, with no reels after it, do the same for a reel you open from a link or a chat, play a feed video again right there when you tap Watch again instead of opening Reels, play a video you tap in Saved in the video player instead of Reels, go on to the next reel in Saved instead of a suggested one, keep reels playing without stopping to ask "Are you still watching?", take the UP NEXT bar off the bottom of a video you open from the feed, hide the Fullscreen button under a wide video, stop the "This is taking a while" message when a video is slow to load, and play whole reels in the feed's Reels row instead of the same second over and over, or keep the Comment button on reels with comments turned off so you can read them, and hide the one-tap Subscribe button some authors get instead of Follow, or Search and the button beside it at the top of a video you open and of the Reels tab, and show when a reel or video was posted. Its Burn-in guard can fade a reel's buttons, caption and bars when you leave them alone, so they don't burn into the screen. With Turn off HDR brightness patched too, it can show Reels in gray, video and all. Starts off. Turn on the parts you want in Hushfacebook settings > Reels and Watch. |
+| `Clean up Reels` | Hides clutter on reels, such as the Follow button, comment previews, Remix and Use template buttons and Threads cards between reels, so more of the video shows, and can play each reel once instead of over and over, keep its original audio instead of a Meta AI dub, drop the search suggestions under the caption, over the comments and at the top of a profile's reels, or hide the like, comment and share counts, the Like, Comment, Repost, Share, Save or speaker button, or the line naming the reel's sound. It can also keep the Reels tab to accounts you follow, open a video you tap in the feed on its own, with no reels after it, do the same for a reel you open from a link or a chat, play a feed video again right there when you tap Watch again instead of opening Reels, play a video you tap in Saved in the video player instead of Reels, go on to the next reel in Saved instead of a suggested one, keep reels playing without stopping to ask "Are you still watching?", take the UP NEXT bar off the bottom of a video you open from the feed, hide the Fullscreen button under a wide video, stop the "This is taking a while" message when a video is slow to load, and play whole reels in the feed's Reels row instead of the same second over and over, or keep the Comment button on reels with comments turned off so you can read them, and hide the one-tap Subscribe button some authors get instead of Follow, or Search and the button beside it at the top of a video you open and of the Reels tab, and show when a reel or video was posted. Its Burn-in guard can fade a reel's buttons, caption and bars when you leave them alone, so they don't burn into the screen. With Turn off HDR brightness patched too, it can show Reels in gray, video and all. Starts off. Turn on the parts you want in Hushfacebook settings > Reels and Watch. |
 | `Clone install under another package name` | Installs a second copy of Facebook beside the first under its own package name and app name, for a phone where Facebook came preinstalled and a patched one won't install over it. Hushfacebook settings open in the copy the same way. It isn't selected by default because push notifications may not reach the copy, and you only need it for a second Facebook. Turn on Expert mode in Manager to pick it. Works as soon as you patch it in, with no switch. |
 | `Default playback quality` | Plays videos, reels and video stories at the quality you choose, such as Data saver or up to 720p, instead of what Facebook picks. Lower saves data, higher looks sharper. Starts off. Turn it on and pick a quality in Hushfacebook settings > Video and audio. |
 | `Default comment order` | Opens comments in the order you choose, Most relevant, Newest, All comments or Oldest, instead of the one Facebook picks. Handy if you always want the newest first. Starts off. Turn it on and pick an order in Hushfacebook settings > Comments and writing. |
@@ -246,7 +246,7 @@ Questions about setting up, or about whether a Facebook build works, go in [Disc
 
 ### Unsupported Version
 
-Manager shows this before it patches, usually with "This is a different build of the same version". Facebook 586.0.0.52.53 comes in several builds, each compiled separately, and Hushfacebook declares only the two its patches are checked against, 476217123 for 64-bit phones and 476217122 for 32-bit ones. Download one of those as [Install](#install) describes and the warning goes away. **Proceed anyway** patches the build you have, but other builds haven't been tried, and if a patch can't find what it changes, patching stops and names it. The same check is why Manager won't offer the Facebook you installed from Google Play unless it's that exact build.
+Manager shows this before it patches, usually with "This is a different build of the same version". Facebook 587.0.0.39.55 comes in several builds, each compiled separately, and Hushfacebook declares only the two its patches are checked against, 707414333 for 64-bit phones and 707414338 for 32-bit ones. Download one of those as [Install](#install) describes and the warning goes away. **Proceed anyway** patches the build you have, but other builds haven't been tried, and if a patch can't find what it changes, patching stops and names it. The same check is why Manager won't offer the Facebook you installed from Google Play unless it's that exact build.
 
 ### Patching stops on one patch
 
@@ -364,19 +364,19 @@ A few rows hand a link to another app instead of going online themselves. **Send
 | Field | Value |
 |---|---|
 | Package | `com.facebook.katana` |
-| Version | `586.0.0.52.53` |
-| 64-bit phones | build `476217123`, the (arm64-v8a) (120-640dpi) (Android 11+) bundle |
-| 32-bit phones | build `476217122`, the (arm-v7a) (320dpi) (Android 11+) bundle |
+| Version | `587.0.0.39.55` |
+| 64-bit phones | build `707414333`, the (arm64-v8a) (240-640dpi) (Android 11+) bundle |
+| 32-bit phones | build `707414338`, the (arm-v7a) (320dpi) (Android 11+) bundle |
 | Minimum Android version | Android 11 |
 | Download | [APKMirror](https://www.apkmirror.com/apk/facebook-2/facebook/) |
 
-There are 122 patches for `com.facebook.katana`, and a release only goes out once every one of them has applied to that build. Older Facebook versions like 585 and 584 aren't supported any more, so update Facebook before you patch. When a newer stable Facebook comes out, Hushfacebook moves to it and drops the one before. Meta's builds for Android 9 and 8 can't be patched as they come, since their code sits in a compressed archive the patcher can't read. Hush Unpacker (`helper/`) unpacks the Android 9 and 10 build on the phone. A copy patched from what it makes loads Home and Reels with the patches working on Android 16, though it hasn't been tried on an Android 9 or 10 phone yet. Releases after 0.21.0 attach it as `hush-unpacker-<version>.apk`. The 64-bit build is the 120-640dpi one because 586 has no 480-640dpi bundle for Android 11; it carries every screen density, so it fits any 64-bit phone.
+There are 122 patches for `com.facebook.katana`, and a release only goes out once every one of them has applied to that build. Older Facebook versions like 586 and 585 aren't supported any more, so update Facebook before you patch. When a newer stable Facebook comes out, Hushfacebook moves to it and drops the one before. Meta's builds for Android 9 and 8 can't be patched as they come, since their code sits in a compressed archive the patcher can't read. Hush Unpacker (`helper/`) unpacks the Android 9 and 10 build on the phone. A copy patched from what it makes loads Home and Reels with the patches working on Android 16, though it hasn't been tried on an Android 9 or 10 phone yet. Releases after 0.21.0 attach it as `hush-unpacker-<version>.apk`. The 64-bit build is the 120-640dpi one because 586 has no 480-640dpi bundle for Android 11; it carries every screen density, so it fits any 64-bit phone.
 
 SHA-256 of the .apkm files the patches are checked against:
 
 ```text
-476217123  18bcf009e2efe403fdd4eb81c0cf1db9b0b77658f9a165001a4b73e18a1bbb57  arm64-v8a
-476217122  d7df17133d86f726ab880a21fabb56a42a95bec4be6551aa328cb4fc06693ee6  armeabi-v7a
+707414333  68f371141240729db1efb03be34498b870a4b211d2ce3f707f950774ac59f498  arm64-v8a
+707414338  c7fd78bf39d7e009da6c5ebcfcbfe33a55accc1d8e5e933b6d4f7864f0b031e7  armeabi-v7a
 ```
 
 On Windows, compare yours with `Get-FileHash -Algorithm SHA256 .\facebook.apkm`, or use `sha256sum facebook.apkm` on Linux and macOS.

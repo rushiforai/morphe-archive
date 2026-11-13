@@ -358,18 +358,18 @@ public class FeatureGateLabActionsTest {
 
     /** The rules a change of PineDrama build turned off are counted when the Lab next opens. */
     @Test public void openingTheLabAfterABuildChangeSaysHowManyRulesWereTurnedOff() throws Exception {
-        // 47.4.3 is no longer in the catalog; 47.6.3, which replaced it, is.
+        // 47.4.3 is no longer in the catalog, and 47.7.3 is.
         app.morphe.extension.shared.BuildNames.setRunningBuildForTests("47.4.3");
         try {
             FeatureGateLabStore.resetAllLabData();
-            // A gate 47.6.3 carries, one under a type it doesn't, and one it dropped.
+            // A gate 47.7.3 carries, one under a type it doesn't, and one it dropped.
             FeatureGateLabStore.saveRule("abmock", "28_max_limit_count_daily", "INT", "9", true);
             FeatureGateLabStore.saveRule("abmock", "28_max_limit_count_daily", "LONG", "9", true);
             FeatureGateLabStore.saveRule("abmock", "comment_cell_badge_dedup", "BOOLEAN", "true", true);
-            app.morphe.extension.shared.BuildNames.setRunningBuildForTests("47.6.3");
+            app.morphe.extension.shared.BuildNames.setRunningBuildForTests("47.7.3");
             try (var owner = Robolectric.buildActivity(TestActivity.class).setup().visible()) {
                 attach(owner.get());
-                waitFor("2 overrides off. Check them for PineDrama 47.6.3.");
+                waitFor("2 overrides off. Check them for PineDrama 47.7.3.");
                 assertTrue(FeatureGateLabStore.rule("abmock", "28_max_limit_count_daily", "INT").enabled);
             }
         } finally {
