@@ -1,4 +1,13 @@
-# Repos reported by the last notification (3)
-Akshayykadam/Pixel-Camera
-RizkLee/morphe-bilibili-danmaku
-kmru/nai64extrapatches
+# Repos reported by the last notification (12)
+Hinatara/morphe-arcore-patches
+Nizarberyan/Avito-Patches
+Roboroads/morphe-patches
+SatanMerde/D-moniakPatches-dev
+avano/morphe-patches
+bhashanaliyanage/helakuru-morphe
+brandonp2412/instagram-notification-nudges
+chocolavv/extended-youtube-playlists
+hxmst/morphe-patches
+sebsebseb9b/lockstar-clock-patch
+thebugsmith/bugsmith-morphe-patches
+uta-a/cutlog
