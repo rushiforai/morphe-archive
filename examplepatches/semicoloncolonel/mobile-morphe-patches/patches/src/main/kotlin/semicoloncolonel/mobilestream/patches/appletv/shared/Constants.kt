@@ -4,6 +4,7 @@ import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.FormFactor
+import semicoloncolonel.mobilestream.patches.shared.misc.devTarget
 
 // Apple TV ships two different apps under one package name: the phone app
 // (a Java and Media3 app, 3.x) and the Android TV app (Apple's native engine,
@@ -25,7 +26,10 @@ object Constants {
         description = "The Android TV app, not the phone app.",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x000000,
-        targets = listOf(AppTarget(version = "17.0.2", versionCode = 170202, description = "Android TV build")),
+        targets = listOf(
+            devTarget("17.0.3", versionCode = 170300, description = "Android TV build"),
+            AppTarget(version = "17.0.2", versionCode = 170202, description = "Android TV build"),
+        ),
         formFactor = FormFactor.TV,
     )
 }

@@ -13,10 +13,12 @@ import java.util.ArrayList;
 
 /**
  * Bypasses content restrictions (no forwards, no saving, no copying) on channels and chats.
- * Hooks the three places Telegram checks: {@code MessagesController.isChatNoForwards},
- * {@code MessagesController.isPeerNoForwards} and the {@code noforwards} field on messages.
- * When the switch is on, all three answer false so forwarding, copying and saving work as if
- * the restriction was never set. The existing Allow screenshots patch handles FLAG_SECURE
+ * Hooks the places Telegram checks: {@code MessagesController.isChatNoForwards},
+ * {@code MessagesController.isPeerNoForwards}, the static check of a private chat's full profile,
+ * and every place the app branches on a message's or a chat's own {@code noforwards} field: the
+ * selection, the message menu, the share button, shared media and the photo viewer. When the switch
+ * is on, all of them answer false so forwarding, copying and saving work as if the restriction was
+ * never set. The existing Allow screenshots patch handles FLAG_SECURE
  * separately, except in stories (see {@link #storyAllowed}). Its Open restricted channels switch
  * also drops the restriction reason Telegram shows for copyright or local law blocks.
  */
@@ -24,12 +26,30 @@ public final class ChannelRestrictions {
     private ChannelRestrictions() {
     }
 
+    /** Set on a thread while the extension asks Telegram for its own answer (see {@link #stockAnswers}). */
+    private static final ThreadLocal<Boolean> STOCK = new ThreadLocal<>();
+
     /**
-     * Called where Telegram asks whether a chat forbids forwarding. Returns 0 (false) when the
-     * switch is on, letting the stock answer through otherwise.
+     * While on, the two forwarding checks give this thread Telegram's own answer even with the
+     * switch on, so {@link ProtectedForward} can tell which messages Telegram's servers will refuse
+     * to forward. Turn it off again in a finally block.
+     */
+    static void stockAnswers(boolean on) {
+        if (on) STOCK.set(Boolean.TRUE);
+        else STOCK.remove();
+    }
+
+    private static boolean askingStock() {
+        return STOCK.get() != null;
+    }
+
+    /**
+     * Called where Telegram asks whether a chat forbids forwarding, where it asks the same of a
+     * private chat's full profile, and where a screen branches on a chat's own noforwards flag
+     * (#73). Returns 0 (false) when the switch is on, letting the stock answer through otherwise.
      */
     public static int isChatNoForwards(int stockAnswer) {
-        if (stockAnswer == 0) return 0;
+        if (stockAnswer == 0 || askingStock()) return stockAnswer;
         try {
             if (!Utils.settingsReady() || !Settings.BYPASS_CHANNEL_RESTRICTIONS.get()) return stockAnswer;
         } catch (Throwable t) {
@@ -41,11 +61,11 @@ public final class ChannelRestrictions {
     }
 
     /**
-     * Called where Telegram reads a message's noforwards flag. Returns 0 (false) when the
-     * switch is on.
+     * Called where Telegram asks whether a peer forbids forwarding, and wherever the app branches
+     * on a message's own noforwards flag (#73). Returns 0 (false) when the switch is on.
      */
     public static int noForwards(int stockAnswer) {
-        if (stockAnswer == 0) return 0;
+        if (stockAnswer == 0 || askingStock()) return stockAnswer;
         try {
             if (!Utils.settingsReady() || !Settings.BYPASS_CHANNEL_RESTRICTIONS.get()) return stockAnswer;
         } catch (Throwable t) {

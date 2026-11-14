@@ -27,6 +27,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.draw.rotate
 import androidx.core.graphics.drawable.toBitmap
 
 /** Adapts the existing preference bindings to Compose controls, without mounting legacy Views.
@@ -34,16 +35,21 @@ import androidx.core.graphics.drawable.toBitmap
 internal data class BoundSetting(
     val control: View,
     val label: String,
-    val enabled: Boolean = control.isEnabled,
+    val available: () -> Boolean = { true },
+    val enabled: Boolean = control.isEnabled && available(),
     val checked: Boolean? = (control as? CompoundButton)?.isChecked,
     val progress: Int? = (control as? SeekBar)?.progress,
     val description: String = "",
     val previewColor: Int? = control.getTag(PosterHighlight.COLOR_PREVIEW_TAG) as? Int,
+    val children: List<BoundSetting>? = null,
+    val searchTrail: String = "",
 ) {
     // Native Views are not Compose state. Include their current values in row equality so
     // Compose cannot skip a row whose saved value or dependent enabled state has changed.
-    fun refreshed() = BoundSetting(control, label, description = description)
-    val keywords: String get() = label + " " + description + " " + when (control) {
+    fun refreshed(): BoundSetting = BoundSetting(control, label, available = available, description = description,
+        children = children?.map { it.refreshed() }, searchTrail = searchTrail)
+    val keywords: String get() = label + " " + description + " " + searchTrail + " " +
+        (control.getTag(SettingsSection.KEYWORDS_TAG) as? String).orEmpty() + " " + when (control) {
         is EditText -> control.hint?.toString().orEmpty() // Never index entered text or credentials.
         is TextView -> control.text.toString()
         else -> ""
@@ -72,11 +78,16 @@ internal fun settingsRows(root: ViewGroup): List<BoundSetting> = settingsRows(ro
 
 internal fun settingsRows(root: ViewGroup, includeHidden: Boolean): List<BoundSetting> {
     val result = mutableListOf<BoundSetting>()
-    fun collect(parent: ViewGroup) {
+    fun collect(parent: ViewGroup, available: () -> Boolean = { true }, trail: String = "") {
         var index = 0
         while (index < parent.childCount) {
             val view = parent.getChildAt(index++)
             if (!includeHidden && view.visibility != View.VISIBLE) continue
+            if (!includeHidden && view.getTag(SettingsSection.CATALOG_ONLY_TAG) == true) continue
+            if (view is SettingsSection) {
+                result.add(sectionSetting(view, includeHidden).inheriting(available, trail))
+                continue
+            }
             val next = parent.getChildAt(index)
             if (view is TextView && view !is Button && view !is EditText &&
                 !view.hasOnClickListeners() && (next is EditText || next is Spinner || next is SeekBar)) {
@@ -85,14 +96,15 @@ internal fun settingsRows(root: ViewGroup, includeHidden: Boolean): List<BoundSe
                     val text = view.text.toString()
                     // Floating labels cannot display paragraphs, route syntax or examples.
                     // Keep the complete help text in the row, separate from its short label.
-                    result.add(if (next is SeekBar) BoundSetting(next, next.contentDescription?.toString().orEmpty())
-                        else labeledSetting(next, text))
+                    val row = if (next is SeekBar) BoundSetting(next, next.contentDescription?.toString().orEmpty())
+                        else labeledSetting(next, text)
+                    result.add(row.copy(available = available, enabled = row.enabled && available(), searchTrail = trail))
                 }
-            } else if (view is ViewGroup && view !is Spinner) collect(view)
+            } else if (view is ViewGroup && view !is Spinner) collect(view, available, trail)
             else if (view is TextView || view is Spinner || view is ImageView || view is SeekBar) {
                 val label = if (view is EditText) view.hint?.toString().orEmpty()
                     else if (view is TextView) view.text.toString() else view.contentDescription?.toString().orEmpty()
-                result.add(BoundSetting(view, label))
+                result.add(BoundSetting(view, label, available = available, searchTrail = trail))
             }
         }
     }
@@ -101,7 +113,7 @@ internal fun settingsRows(root: ViewGroup, includeHidden: Boolean): List<BoundSe
     for (row in result) {
         val help = row.control is TextView && row.control !is Button && row.control !is EditText &&
             !row.control.hasOnClickListeners() && !row.control.isLongClickable && row.previewColor == null && row.control.text !is android.text.Spanned
-        if (help && grouped.isNotEmpty()) {
+        if (help && grouped.isNotEmpty() && grouped.last().children == null) {
             val previous = grouped.removeAt(grouped.lastIndex)
             grouped.add(previous.copy(description = listOf(previous.description, row.label).filter { it.isNotBlank() }.joinToString("\n\n")))
         } else grouped.add(row)
@@ -109,11 +121,54 @@ internal fun settingsRows(root: ViewGroup, includeHidden: Boolean): List<BoundSe
     return grouped
 }
 
+private fun BoundSetting.inheriting(parent: () -> Boolean, trail: String): BoundSetting {
+    val own = available
+    val combined = { parent() && own() }
+    return copy(available = combined, enabled = control.isEnabled && combined(),
+        children = children?.map { it.inheriting(parent, trail) }, searchTrail = trail + " " + searchTrail)
+}
+
+internal fun sectionSetting(section: SettingsSection, includeHidden: Boolean = false): BoundSetting =
+    BoundSetting(section, section.title, description = section.summary,
+        children = settingsRows(section, includeHidden).map { it.inheriting({ section.available.asBoolean }, section.title) })
+
+/** Search and setting links see children even when their presentation is collapsed. */
+internal fun flattenedSettingsRows(root: ViewGroup, includeHidden: Boolean = false): List<BoundSetting> {
+    fun flatten(rows: List<BoundSetting>): List<BoundSetting> = rows.flatMap { row ->
+        row.children?.let { flatten(it) } ?: listOf(row)
+    }
+    return flatten(settingsRows(root, includeHidden))
+}
+
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 internal fun BoundSettingRow(item: BoundSetting, changed: () -> Unit) {
     val view = item.control
     when (view) {
+        is SettingsSection -> {
+            var expanded by remember(view) { mutableStateOf(!view.collapsed) }
+            Column(Modifier.fillMaxWidth()) {
+                ListItem(headlineContent = { Text(item.label, style = MaterialTheme.typography.titleMedium,
+                    color = HaiagaruUi.settingsCategoryColor) },
+                    supportingContent = { if (item.description.isNotBlank()) Text(item.description) },
+                    trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null,
+                        Modifier.rotate(if (expanded) 90f else 0f)) },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                    modifier = Modifier.fillMaxWidth().clickable { expanded = !expanded })
+                if (expanded) {
+                    if (!view.available.asBoolean && view.unavailableMessage.isNotBlank()) Text(view.unavailableMessage,
+                        Modifier.padding(12.dp), style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Column(Modifier.padding(start = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        item.children.orEmpty().forEachIndexed { index, child ->
+                            if (index > 0) HorizontalDivider(Modifier.padding(horizontal = 12.dp),
+                                color = MaterialTheme.colorScheme.outlineVariant)
+                            BoundSettingRow(child.refreshed(), changed)
+                        }
+                    }
+                }
+            }
+        }
         is android.widget.RadioButton -> {
             Row(Modifier.fillMaxWidth().heightIn(min = 56.dp).selectable(selected = item.checked == true, enabled = item.enabled, role = Role.RadioButton) {
                 view.performClick()
@@ -149,8 +204,8 @@ internal fun BoundSettingRow(item: BoundSetting, changed: () -> Unit) {
             ListItem(headlineContent = { Text(item.label) },
                 supportingContent = { Text(view.selectedItem?.toString().orEmpty()) },
                 trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null) },
-                colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-                modifier = Modifier.clickable(enabled = view.isEnabled) { choosing = true })
+                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                modifier = Modifier.clickable(enabled = item.enabled) { choosing = true })
             if (choosing) AlertDialog(onDismissRequest = { choosing = false },
                 title = { Text(item.label) }, text = {
                     androidx.compose.foundation.lazy.LazyColumn {
@@ -170,8 +225,8 @@ internal fun BoundSettingRow(item: BoundSetting, changed: () -> Unit) {
         }
         is Button -> ListItem(headlineContent = { Text(item.label) },
             trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null) },
-            colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-            modifier = Modifier.fillMaxWidth().combinedClickable(enabled = view.isEnabled,
+            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+            modifier = Modifier.fillMaxWidth().combinedClickable(enabled = item.enabled,
                 onClick = { view.performClick(); changed() }, onLongClick = { view.performLongClick(); changed() }))
         is TextView -> {
             if (item.previewColor != null) Text(view.text.toString(),
@@ -196,7 +251,7 @@ internal fun BoundSettingRow(item: BoundSetting, changed: () -> Unit) {
             }
         }
     }
-    if (item.description.isNotBlank()) {
+    if (item.description.isNotBlank() && view !is SettingsSection) {
         HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant)
         androidx.compose.foundation.text.selection.SelectionContainer {
             Text(item.description, style = MaterialTheme.typography.bodyMedium,

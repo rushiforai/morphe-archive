@@ -211,6 +211,72 @@ public class SystemCameraTest {
         assertNull(CameraProvider.fileFor(app, Uri.parse("content://other.app" + CameraProvider.AUTHORITY_SUFFIX + "/IMG_1.jpg")));
     }
 
+    /** The Photo or Video choice Ask photo or video puts up first (#168). */
+    private static android.app.AlertDialog choice() {
+        android.app.Dialog shown = org.robolectric.shadows.ShadowDialog.getLatestDialog();
+        assertTrue(shown instanceof android.app.AlertDialog);
+        assertTrue(shown.isShowing());
+        return (android.app.AlertDialog) shown;
+    }
+
+    @Test public void askPhotoOrVideoRecordsAVideoThatComesBackForTheChat() throws Exception {
+        Settings.preferences.edit().putBoolean(CameraActivity.ASK, true).commit();
+        try (ActivityController<CameraActivity> controller = Robolectric.buildActivity(CameraActivity.class).setup()) {
+            ShadowActivity screen = shadowOf(controller.get());
+            assertNull("Nothing opens until the person picks", screen.getNextStartedActivityForResult());
+            android.widget.ListView items = choice().getListView();
+            assertEquals(2, items.getCount());
+            shadowOf(items).performItemClick(1);
+            Intent camera = screen.getNextStartedActivityForResult().intent;
+            assertEquals(MediaStore.ACTION_VIDEO_CAPTURE, camera.getAction());
+            Uri output = camera.getParcelableExtra(MediaStore.EXTRA_OUTPUT);
+            assertTrue(output.getLastPathSegment().matches("VID_\\d+\\.mp4"));
+            try (ParcelFileDescriptor descriptor = provider.openFile(output, "w");
+                 FileOutputStream out = new FileOutputStream(descriptor.getFileDescriptor())) {
+                out.write(PHOTO);
+            }
+            screen.receiveResult(camera, Activity.RESULT_OK, null);
+            assertEquals(Activity.RESULT_OK, screen.getResultCode());
+            Intent result = screen.getResultIntent();
+            assertEquals(output, result.getData());
+            assertEquals("video/mp4", result.getType());
+            assertEquals("video/mp4", provider.getType(output));
+            assertTrue(Settings.trustCapturedPhoto(output));
+        }
+    }
+
+    @Test public void askPhotoOrVideoTakesAPhotoAndBackingOutLeavesTheChatAlone() {
+        Settings.preferences.edit().putBoolean(CameraActivity.ASK, true).commit();
+        try (ActivityController<CameraActivity> controller = Robolectric.buildActivity(CameraActivity.class).setup()) {
+            ShadowActivity screen = shadowOf(controller.get());
+            shadowOf(choice().getListView()).performItemClick(0);
+            assertEquals(MediaStore.ACTION_IMAGE_CAPTURE, screen.getNextStartedActivityForResult().intent.getAction());
+        }
+        try (ActivityController<CameraActivity> controller = Robolectric.buildActivity(CameraActivity.class).setup()) {
+            choice().cancel();
+            org.robolectric.shadows.ShadowLooper.idleMainLooper();
+            assertTrue(controller.get().isFinishing());
+            assertEquals(Activity.RESULT_CANCELED, shadowOf(controller.get()).getResultCode());
+            assertNull(shadowOf(controller.get()).getNextStartedActivityForResult());
+        }
+    }
+
+    @Test public void aVideoTheCameraAppKeptInItsOwnGalleryComesBackFromThere() {
+        Settings.preferences.edit().putBoolean(CameraActivity.ASK, true).commit();
+        try (ActivityController<CameraActivity> controller = Robolectric.buildActivity(CameraActivity.class).setup()) {
+            ShadowActivity screen = shadowOf(controller.get());
+            shadowOf(choice().getListView()).performItemClick(1);
+            Intent camera = screen.getNextStartedActivityForResult().intent;
+            Uri kept = Uri.parse("content://media/external/video/media/42");
+            screen.receiveResult(camera, Activity.RESULT_OK, new Intent().setData(kept));
+            assertEquals(Activity.RESULT_OK, screen.getResultCode());
+            assertEquals(kept, screen.getResultIntent().getData());
+            assertTrue(screen.getResultIntent().getType().startsWith("video/"));
+            assertEquals("The empty capture file goes", 0, CameraProvider.directory(app).listFiles().length);
+            assertNull(CameraActivity.handedBack);
+        }
+    }
+
     @Test public void aCancelledPhotoLeavesTheChatAsItWasAndItsFileGoes() {
         try (ActivityController<CameraActivity> controller = Robolectric.buildActivity(CameraActivity.class).setup()) {
             ShadowActivity screen = shadowOf(controller.get());

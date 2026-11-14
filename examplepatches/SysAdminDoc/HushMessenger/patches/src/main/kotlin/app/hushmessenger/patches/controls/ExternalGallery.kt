@@ -187,14 +187,15 @@ private fun Method.galleryHandlerKind(): String? {
 
 /**
  * A chat composer event handler that opens Messenger's own gallery on ActivateGalleryEvent and Messenger's editor on
- * EditGalleryItemEvent, by the event's class name or by checking its class.
+ * EditGalleryItemEvent, by the event's class name or by checking its class. 587's armv7 build looks some names up in
+ * a string table.
  */
-internal fun Method.isGalleryHandler(): Boolean {
+internal fun Method.isGalleryHandler(tables: Map<String, Map<Int, String>> = activeStringTables): Boolean {
     if (AccessFlags.STATIC.isSet(accessFlags) || returnType != "V") return false
     val code = implementation?.instructions ?: return false
     val events = listOf(ACTIVATE_GALLERY, EDIT_GALLERY_ITEM)
     val handles = when (galleryHandlerKind()) {
-        "by name" -> galleryStrings().let { strings -> events.all { dotted(it) in strings } }
+        "by name" -> (galleryStrings() + tableStrings(tables)).let { strings -> events.all { dotted(it) in strings } }
         "plugin" -> events.all { event -> code.any { it.opcode == Opcode.INSTANCE_OF && it.galleryType() == event } }
         else -> false
     }
@@ -321,7 +322,7 @@ internal fun Method.galleryItemsIntent(byType: Map<String, ClassDef>): FieldRefe
  * one way each handler's Edit branch reaches it, and both reachable from that handler. There's at most one handler of
  * each kind, and every one found must route, or a gallery button would still open Messenger's gallery with the switch on.
  */
-internal fun findExternalGallery(classes: Iterable<ClassDef>): List<Method> {
+internal fun findExternalGallery(classes: Iterable<ClassDef>, tables: Map<String, Map<Int, String>> = activeStringTables): List<Method> {
     galleryRoute = null
     val all = classes.toList()
     val methods = all.flatMap { it.methods }
@@ -340,7 +341,7 @@ internal fun findExternalGallery(classes: Iterable<ClassDef>): List<Method> {
     // The hook has no host to hand the start, so it passes null, which only works while the start never reads it.
     if (start.implementation!!.instructions.any { start.implementation!!.registerCount - 1 in it.galleryReads() }) return emptyList()
     val target = all.galleryTarget(launcherClass, start, byType) ?: return emptyList()
-    val handlers = methods.filter { it.isGalleryHandler() }
+    val handlers = methods.filter { it.isGalleryHandler(tables) }
     if (handlers.isEmpty() || handlers.groupingBy { it.galleryHandlerKind() }.eachCount().values.any { it > 1 }) return emptyList()
     val routed = handlers.map { handler ->
         val provider = handler.galleryProvider(factory.returnType, start, byType) ?: return emptyList()

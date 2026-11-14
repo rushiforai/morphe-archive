@@ -30,6 +30,7 @@ val blockAnalyticsPatch = bytecodePatch(
     description = "Stops Apple's usage metrics, such as the pages you view and what you play.",
     default = false,
 ) {
+    category("Privacy")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

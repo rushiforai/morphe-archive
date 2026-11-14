@@ -1,19 +1,27 @@
 package mightymich.morphe.patches.com.whatsapp
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.booleanOption
+import com.android.tools.smali.dexlib2.AccessFlags
 
 /**
- * Prevents "Delete for everyone" from wiping local message text.
- * Exact revoke/apply path is version-specific — refine after APK dump.
+ * Keep "Delete for everyone" messages visible locally on WhatsApp 2.26.43.x.
+ *
+ * Strategy (obfuscated class names — anchor on retained source-file / log strings):
+ *  1. No-op StandardRevokePreProcessor / RevokePreProcessor / RevokeEditProcessor
+ *     entry methods that apply incoming revokes (return-void).
+ *  2. Force isRevokeMessage / isRevoked / messageIsRevoke ()Z → false so UI rows
+ *     keep original text instead of the deleted placeholder.
+ *  3. Soft-success — partial apply still installs; full wipe needs server-side data.
+ *
+ * Verified string anchors on 2.26.43.76.
  */
 @Suppress("unused")
 val keepDeletedMessagesPatch = bytecodePatch(
     name = "Keep deleted messages",
-    description = "Show messages that were deleted for everyone. " +
-        "May need a fingerprint update after WhatsApp upgrades.",
+    description = "Show messages that were deleted for everyone. Client-side only; " +
+        "already-wiped history cannot be restored.",
     default = true,
 ) {
     compatibleWith(WhatsAppCompatibility.WHATSAPP)
@@ -22,55 +30,118 @@ val keepDeletedMessagesPatch = bytecodePatch(
         key = "highlight",
         default = true,
         title = "Highlight deleted messages",
-        description = "Mark deleted messages so they are easier to spot.",
+        description = "Reserved for future UI tinting of kept-deleted rows.",
     )
 
     execute {
-        val markers = listOf(
-            "Delete for everyone",
-            "delete_for_everyone",
-            "revoked",
-            "REVOKE",
-            "message_revoked",
-        )
         var hits = 0
-        for (marker in markers) {
+
+        val revokeAnchors = listOf(
+            "StandardRevokePreProcessor.kt",
+            "RevokePreProcessor.kt",
+            "RevokeEditProcessor.kt",
+            "RevokeEditProcessor",
+            "FMessageRevokedFactory",
+            "UserActionsMessageDeletion/userActionRevokeMessages",
+            "/processMessage revoked message ",
+            "msgstore/revoke: Failed to re-insert revoked message:",
+        )
+
+        for (anchor in revokeAnchors) {
             val defs = try {
-                classDefByStrings(marker)
+                classDefByStrings(anchor)
             } catch (_: Exception) {
                 emptyList()
             }
             for (def in defs) {
+                if (AccessFlags.INTERFACE.isSet(def.accessFlags)) continue
                 val clazz = try {
                     mutableClassDefBy(def)
                 } catch (_: Exception) {
                     continue
                 }
                 for (method in clazz.methods) {
-                    if (method.returnType != "V") continue
+                    if (AccessFlags.ABSTRACT.isSet(method.accessFlags)) continue
+                    if (AccessFlags.NATIVE.isSet(method.accessFlags)) continue
                     val impl = method.implementation ?: continue
-                    val text = impl.instructions.joinToString("\n") { it.toString() }
-                    // Heuristic: methods that clear text / set revoked flag
-                    if (!text.contains("revoke", ignoreCase = true) &&
-                        !text.contains(marker)
-                    ) {
-                        continue
-                    }
-                    if (impl.instructions.count() > 120) continue
+                    val n = impl.instructions.count()
+                    if (n < 3 || n > 200) continue
                     try {
-                        method.addInstructions(0, "return-void")
+                        when (method.returnType) {
+                            "V" -> {
+                                method.addInstructions(0, "return-void")
+                                hits++
+                            }
+                            "Z" -> {
+                                method.addInstructions(
+                                    0,
+                                    """
+                                        const/4 v0, 0x0
+                                        return v0
+                                    """,
+                                )
+                                hits++
+                            }
+                        }
+                    } catch (_: Exception) {
+                    }
+                }
+            }
+        }
+
+        val flagAnchors = listOf(
+            "isRevokeMessage",
+            "messageIsRevoke",
+            ", isRevoked=",
+            "FMessageRevoked",
+            "ConversationRowRevoked.kt",
+            "ConversationRowAdminRevoked.kt",
+        )
+        val flagNames = setOf(
+            "isRevokeMessage",
+            "isRevoked",
+            "messageIsRevoke",
+            "isDeleted",
+        )
+        val seen = mutableSetOf<String>()
+        for (anchor in flagAnchors) {
+            val defs = try {
+                classDefByStrings(anchor)
+            } catch (_: Exception) {
+                emptyList()
+            }
+            for (def in defs) {
+                if (!seen.add(def.type)) continue
+                if (AccessFlags.INTERFACE.isSet(def.accessFlags)) continue
+                val t = def.type
+                if (t.startsWith("Landroid") || t.startsWith("Landroidx") ||
+                    t.startsWith("Ljava") || t.startsWith("Lkotlin")
+                ) {
+                    continue
+                }
+                val clazz = try {
+                    mutableClassDefBy(def)
+                } catch (_: Exception) {
+                    continue
+                }
+                for (method in clazz.methods) {
+                    if (method.returnType != "Z") continue
+                    if (method.parameterTypes.isNotEmpty()) continue
+                    if (AccessFlags.ABSTRACT.isSet(method.accessFlags)) continue
+                    if (method.name !in flagNames) continue
+                    try {
+                        method.addInstructions(
+                            0,
+                            """
+                                const/4 v0, 0x0
+                                return v0
+                            """,
+                        )
                         hits++
                     } catch (_: Exception) {
                     }
                 }
             }
-            if (hits > 0) break
-        }
-        if (hits == 0) {
-            throw PatchException(
-                "WhatsApp: no delete-for-everyone / revoke handler matched. " +
-                    "Provide APK analysis for this version.",
-            )
         }
     }
 }

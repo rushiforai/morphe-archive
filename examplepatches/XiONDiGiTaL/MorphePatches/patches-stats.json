@@ -1,0 +1,9 @@
+{
+  "version": "0.1.0",
+  "apps": 2,
+  "patches": 7,
+  "packages": [
+    "com.amazon.atozm",
+    "net.tandem"
+  ]
+}

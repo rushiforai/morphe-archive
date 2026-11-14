@@ -1,0 +1,12 @@
+[
+  {
+    "folder": "Tandem",
+    "package": "tandem",
+    "description": "Patches for Tandem (net.tandem)"
+  },
+  {
+    "folder": "AmazonAtoZ",
+    "package": "atoz",
+    "description": "Patches for Amazon A to Z (com.amazon.atozm)"
+  }
+]

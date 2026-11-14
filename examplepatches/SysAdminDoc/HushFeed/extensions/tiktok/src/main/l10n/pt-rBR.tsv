@@ -2199,7 +2199,7 @@ Let the video reach the bottom of the screen on the main feed and show the tabs 
 LIVE chat auto-translate	Tradução automática do chat da LIVE
 
 The Translate comments button in a LIVE room also needs a Japanese SIM. Turn on Override SIM details in Hushfeed settings > Region, set SIM country preset to Japan, NTT DOCOMO (44010), then restart TikTok.	O botão Traduzir comentários numa sala LIVE também precisa de um SIM japonês. Ative Substituir os dados do SIM nas configurações do Hushfeed > Região, defina País predefinido do SIM como Japan, NTT DOCOMO (44010) e reinicie o TikTok.
-Comments only scroll on videos TikTok has turned them on for, so most videos stay the same.	Os comentários só passam sobre os vídeos em que o TikTok os ativou, então a maioria dos vídeos continua igual.
+Wide videos TikTok allows it on get an Add one-liner button under the video and a one-liner bar in full screen. Other videos stay the same.	Vídeos horizontais em que o TikTok permite ganham um botão para adicionar comentários de uma linha abaixo do vídeo e uma barra para eles em tela cheia. Os outros vídeos continuam iguais.
 
 Pick videos to save from profile grids	Escolher vídeos para salvar nas grades de perfil
 Puts a circle on each video in a profile, Liked or Favorites grid. Pick up to %1$s, then tap Save to save them one after another, with a count and Cancel.	Coloca um círculo em cada vídeo de uma grade de perfil, Curtidos ou Favoritos. Escolha até %1$s e toque em Salvar para salvá-los um após o outro, com uma contagem e Cancelar.
@@ -2268,7 +2268,7 @@ Hide the Add friends button at the top of your profile. The menu button stays wh
 Hide Balance in the profile menu	Esconder Saldo no menu do perfil
 Hide Balance from the menu your profile's top right button opens. Your coins and gifts stay as they are.	Oculte o Saldo do menu que o botão no canto superior direito do seu perfil abre. Suas moedas e presentes ficam como estão.
 See-through status bar	Barra de status transparente
-Let the video reach the top of the screen on the main feed, with the clock and status icons over it. The tabs at the top stay where they are.	No feed principal, deixe o vídeo chegar até o topo da tela, com o relógio e os ícones de status por cima. As abas do topo continuam onde estão.
+Let the video reach the top of the screen, with the clock and status icons over it. Works on the main feed and on videos you open from search, a profile or your Liked and Favorites. The tabs at the top stay where they are.	Deixe o vídeo chegar até o topo da tela, com o relógio e os ícones de status por cima. Funciona no feed principal e nos vídeos que você abre pela busca, por um perfil ou pelas suas Curtidas e Favoritos. As abas do topo continuam onde estão.
 Floating bottom bar	Barra inferior flutuante
 Show the main feed's tabs on a rounded, see-through dark pill that floats over the video. Needs See-through bottom bar.	Mostra as abas do feed principal sobre uma pílula escura, arredondada e transparente que flutua sobre o vídeo. Precisa de Barra inferior transparente.
 Liquid glass look	Visual de vidro líquido
@@ -2766,3 +2766,18 @@ Pick the tabs to remove from the top of the search results, such as Shop, LIVE o
 # context: Shown in that checklist before TikTok has served any search tabs on this phone
 No search tabs have been seen yet	Nenhuma aba de busca apareceu ainda
 Search for something once, then return here to choose its tabs.	Pesquise algo uma vez e volte aqui para escolher as abas.
+Video download codec	Codec de download de vídeo
+HEVC first	HEVC primeiro
+H.264 only	Somente H.264
+At the same quality, Automatic saves H.264, which nearly every player opens. HEVC is often sharper, but some older players and TVs can't play it.	Na mesma qualidade, Automático salva em H.264, que quase todo player abre. HEVC costuma ficar mais nítido, mas alguns players e TVs mais antigos não conseguem reproduzi-lo.
+Pick which stories to save	Escolher quais stories salvar
+When someone has more than one story, saving asks which ones to keep. The story you're watching is already checked.	Quando alguém tem mais de um story, salvar pergunta quais manter. O story que você está vendo já vem marcado.
+Pick stories to save	Escolha os stories para salvar
+%1$s of %2$s stories are loaded. Watch further to load the rest.	%1$s de %2$s stories foram carregados. Continue assistindo para carregar o resto.
+Story %1$s	Story %1$s
+On screen	Na tela
+Pick at least one story	Escolha pelo menos um story
+Shade behind the status bar	Sombra atrás da barra de status
+A soft dark fade behind the clock and status icons, so they stay easy to read over a bright video. Needs See-through status bar.	Um degradê escuro suave atrás do relógio e dos ícones de status, para que fiquem fáceis de ler sobre um vídeo claro. Precisa de Barra de status transparente.
+Glass Stories button on Following	Botão de Stories de vidro em Seguindo
+The Stories button at the top of the Following feed turns to glass with round ends. On Android 12 and up, the video behind it is blurred too.	O botão de Stories no topo do feed Seguindo vira vidro com as pontas arredondadas. No Android 12 ou mais recente, o vídeo atrás dele também fica desfocado.

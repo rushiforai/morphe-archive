@@ -392,7 +392,7 @@ Comment sort and dislike styles,Kiểu sắp xếp bình luận và không thíc
 Comments,Bình luận
 Comments aren't available for this video,Bình luận không khả dụng cho video này
 Comments beside the video,Bình luận bên cạnh video
-"Comments only scroll on videos TikTok has turned them on for, so most videos stay the same.","Bình luận chỉ cuộn trên các video mà TikTok đã kích hoạt tính năng này, do đó hầu hết các video giữ nguyên."
+Wide videos TikTok allows it on get an Add one-liner button under the video and a one-liner bar in full screen. Other videos stay the same.,Video ngang mà TikTok cho phép sẽ có nút thêm bình luận một dòng bên dưới video và một thanh dành cho chúng khi xem toàn màn hình. Các video khác giữ nguyên.
 Comments range,Phạm vi bình luận
 Compact,Nhỏ gọn
 Compact comment header,Tiêu đề bình luận nhỏ gọn
@@ -1058,7 +1058,7 @@ Let other apps play until a video starts,Cho phép ứng dụng khác phát nh�
 Let the Offline videos menu use your own limit instead of TikTok's fixed one. Restart TikTok to apply this.,Cho phép menu Video ngoại tuyến sử dụng giới hạn riêng của bạn thay vì giới hạn cố định của TikTok. Khởi động lại TikTok để áp dụng.
 Let the last video finish,Cho phép video cuối cùng phát xong
 Let the video reach the bottom of the screen on the main feed and show the tabs over it with no bar behind them.,Cho phép video tràn xuống đáy màn hình trên bảng tin chính và hiển thị các thẻ đè lên trên mà không có thanh nền phía sau.
-"Let the video reach the top of the screen on the main feed, with the clock and status icons over it. The tabs at the top stay where they are.",Cho phép video tràn lên đỉnh màn hình trên bảng tin chính với đồng hồ và biểu tượng trạng thái đè lên. Các thẻ ở đầu màn hình giữ nguyên vị trí.
+"Let the video reach the top of the screen, with the clock and status icons over it. Works on the main feed and on videos you open from search, a profile or your Liked and Favorites. The tabs at the top stay where they are.","Cho phép video tràn lên đỉnh màn hình với đồng hồ và biểu tượng trạng thái đè lên. Áp dụng cho bảng tin chính và các video bạn mở từ tìm kiếm, trang cá nhân hoặc mục Đã thích và Yêu thích của bạn. Các thẻ ở đầu màn hình giữ nguyên vị trí."
 Licenses,Giấy phép
 Lift text length limits,Gỡ bỏ giới hạn độ dài văn bản
 "Lifts spoken captions above TikTok's spot while the phone is sideways. Use 0 for TikTok's spot, or up to %1$d.","Nâng vị trí phụ đề lời nói lên trên vị trí mặc định của TikTok khi xoay ngang điện thoại. Nhập 0 để dùng vị trí mặc định của TikTok, hoặc tối đa %1$d."
@@ -2635,3 +2635,18 @@ Hide search result tabs,Ẩn các tab kết quả tìm kiếm
 "Pick the tabs to remove from the top of the search results, such as Shop, LIVE or Places. The list holds the tabs TikTok has shown you, and Top always stays.","Chọn các tab cần bỏ khỏi phía trên kết quả tìm kiếm, như Cửa hàng, LIVE hoặc Địa điểm. Danh sách gồm các tab TikTok đã hiển thị cho bạn, và Top luôn được giữ lại."
 No search tabs have been seen yet,Chưa xuất hiện tab tìm kiếm nào
 "Search for something once, then return here to choose its tabs.","Hãy tìm kiếm một lần, rồi quay lại đây để chọn tab."
+Video download codec,Codec tải video xuống
+HEVC first,Ưu tiên HEVC
+H.264 only,Chỉ H.264
+"At the same quality, Automatic saves H.264, which nearly every player opens. HEVC is often sharper, but some older players and TVs can't play it.","Ở cùng chất lượng, Tự động lưu bằng H.264, định dạng mà hầu hết trình phát đều mở được. HEVC thường nét hơn, nhưng một số trình phát và TV cũ không phát được."
+Pick which stories to save,Chọn tin để lưu
+"When someone has more than one story, saving asks which ones to keep. The story you're watching is already checked.","Khi ai đó có nhiều hơn một tin, lúc lưu sẽ hỏi bạn muốn giữ những tin nào. Tin bạn đang xem đã được chọn sẵn."
+Pick stories to save,Chọn tin để lưu
+%1$s of %2$s stories are loaded. Watch further to load the rest.,Đã tải %1$s trên %2$s tin. Xem tiếp để tải phần còn lại.
+Story %1$s,Tin %1$s
+On screen,Trên màn hình
+Pick at least one story,Hãy chọn ít nhất một tin
+Shade behind the status bar,Bóng mờ sau thanh trạng thái
+"A soft dark fade behind the clock and status icons, so they stay easy to read over a bright video. Needs See-through status bar.",Một dải tối mờ dần phía sau đồng hồ và biểu tượng trạng thái để chúng vẫn dễ đọc trên video sáng. Yêu cầu bật Thanh trạng thái trong suốt.
+Glass Stories button on Following,Nút Tin dạng kính trên Đang theo dõi
+"The Stories button at the top of the Following feed turns to glass with round ends. On Android 12 and up, the video behind it is blurred too.","Nút Tin ở đầu bảng tin Đang theo dõi chuyển thành kính với hai đầu bo tròn. Trên Android 12 trở lên, video phía sau nút cũng được làm mờ."

@@ -30,6 +30,7 @@ val disableAiPatch = bytecodePatch(
     description = "Turns off Sparky, Walmart's AI assistant, and the AI features on item and search pages.",
     default = false,
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")

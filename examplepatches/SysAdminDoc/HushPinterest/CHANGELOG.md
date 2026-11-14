@@ -4,14 +4,18 @@ Every HushPinterest release, newest first.
 
 ## Unreleased
 
-* The patches now target Pinterest 14.43.0, version code 14438020. APKMirror has it as a plain APK for Android 10 or newer. Older Pinterest versions are refused.
-* The patches are now built on Morphe patcher 2.2.0, so you'll need Morphe Manager 2.4.0 or newer to apply them.
+* The patches now target Pinterest 14.44.0, version code 14448030. APKMirror has it as a plain APK for Android 10 or newer. Older Pinterest versions are refused.
+* The patches are now built on Morphe patcher 2.3.0, so you'll need Morphe Manager 2.5.0 or newer to apply them.
 * Hide ads now covers Meta's ad network as well. Pinterest 14.43.0 started filling some ad slots through Meta Audience Network, and with Hide ads on, Pinterest's own consent check answers no for Meta, so that SDK never starts. Export report lists it as `Meta ad SDK` under Hide ads coverage.
 * Long-press download now covers the newer list-style long-press menu too. Download shows up there and saves the pin you pressed, and the switches that hide Save, Send and Search image work on that menu as well.
 * With GmsCore support, Continue with Google no longer does nothing when microG-RE can't be reached. You get a message saying to install it, turn it on or open it, and the setup guide says to add your Google account there first. Export report has a new Google sign-in section (no account names, no tokens) so a failure can be traced.
+* Download pin no longer leaves a pin stuck at "Queued" for hours. On some phones Android holds Pinterest's downloads back to save battery, so the file never showed up. Now, if a download hasn't started within a few seconds, HushPinterest saves it itself, to the same folder under the same name, as long as your network matches the Wi-Fi and roaming switches. You get the usual "Saved in" message, and Download history shows it as saved. (#27, #29)
+* Download pin now saves videos Pinterest only streams. Those used to stop at "Pinterest only streams this video". HushPinterest fetches the picture and the sound itself and joins them into one MP4 in your download folder, copying them as they are so nothing gets re-encoded. It follows the same Wi-Fi and roaming switches, and Download history can open the file. (#27)
 * Two new switches under Pin actions, both off to start. Save pins you download also saves a pin you download from its menu, and Download pins you save downloads whatever you save, from any screen.
 * New `Hide Assistant` switch under Interface takes Pinterest's AI Assistant out of search, boards and pins on accounts that get it. Regular search keeps working. It starts off.
 * New `Hide pins you've already saved` switch under Feed takes pins you've saved or own out of your home feed. Your boards and search still show them. It starts off.
+* New `Hide Home suggestions` switch under Feed, part of Filter feed. It takes Pinterest's "More ideas for your board" and "Inspired by your interests" rows off Home, and the "See more like this?" bubble off pins. It starts off. (#30)
+* New `Hide Inbox updates` patch with its own switch under Notifications. It leaves the Updates section out of your Inbox so Pinterest doesn't load it. The pin ideas Pinterest puts there go, and the activity updates in that section go with them. Messages stay. It starts off. (#30)
 * `Hide lens button on pins` now also hides the lens on pins with several pictures, which have a second lens of their own in the picture carousel. (#20)
 * `Hide Search image label on pins` now also turns off the glow Pinterest puts around the lens. (#19)
 * Hide closeup buttons has four new switches for the row under a pin's picture: like, comment, share and more, each on its own. Hiding more also hides the way into that pin's menu from there, Download pin included, and the row says so. They all start off and sit on the Interface page. (#22)

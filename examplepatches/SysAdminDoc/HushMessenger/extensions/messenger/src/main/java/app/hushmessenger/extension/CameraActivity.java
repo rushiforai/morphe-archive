@@ -22,21 +22,27 @@ import java.io.IOException;
 /**
  * Opens the phone's camera app for the chat's camera button and hands the photo back the way a photo picked in another
  * app comes back. The chat's own code then copies it and opens it in Messenger's editor for that chat. Not exported, and
- * it draws nothing: the camera app is the only screen the person sees.
+ * it draws nothing but the Photo or Video choice when Ask photo or video is on (#168): the camera app is the only other
+ * screen the person sees. A video comes back the same way a single video picked in the gallery does.
  */
 public final class CameraActivity extends Activity {
     /** Messenger's request code for a photo picked in another app. The patch checks the chat fragment reads it. */
     static final int EXTERNAL_MEDIA_REQUEST = 1112;
     static final String KEY = "system_camera";
+    /** Under the camera switch: ask Photo or Video first instead of always taking a photo. */
+    static final String ASK = "system_camera_ask";
     private static final int CAPTURE = 1;
     private static final int PERMISSION = 2;
     private static final String PENDING = "hush_camera_photo";
+    private static final String CHOOSING = "hush_camera_choosing";
     /** Messenger copies the photo as soon as it's back, so older captures are only leftovers. */
     static final long KEEP_MS = 10 * 60 * 1000L;
     /** The name of the photo last handed back to the chat, the only one Messenger's copy checks let through. */
     static volatile String handedBack;
 
     File photo;
+    /** The Photo or Video choice while it's up, so a rotation puts it back. */
+    android.app.Dialog choice;
 
     /** The capture screen when Android knows it and its provider under this package's own name, otherwise null. */
     static Intent captureIntent(Context context) {
@@ -63,10 +69,37 @@ public final class CameraActivity extends Activity {
             // Android stopped Messenger while the camera app was open. The camera's answer still comes back here.
             String name = state.getString(PENDING);
             if (name != null) photo = new File(CameraProvider.directory(this), name);
+            else if (state.getBoolean(CHOOSING)) choose();
             return;
         }
         if (needsPermission()) requestPermissions(new String[] {Manifest.permission.CAMERA}, PERMISSION);
-        else capture();
+        else start();
+    }
+
+    private void start() {
+        if (Settings.preferences != null && Settings.preferences.getBoolean(ASK, false)) choose();
+        else capture(false);
+    }
+
+    /** Photo or Video, the way Messenger's own camera offers both. Backing out leaves the chat as it was. */
+    private void choose() {
+        SettingsText text = new SettingsText(this);
+        choice = new android.app.AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+            .setItems(new CharSequence[] {text.get("camera_photo"), text.get("camera_video")}, (dialog, which) -> {
+                choice = null;
+                capture(which == 1);
+            })
+            .setOnCancelListener(dialog -> {
+                choice = null;
+                setResult(RESULT_CANCELED);
+                finish();
+            })
+            .show();
+    }
+
+    @Override protected void onDestroy() {
+        if (choice != null) choice.dismiss();
+        super.onDestroy();
     }
 
     /** Android refuses the camera action to an app that asks for the camera permission and doesn't hold it. Messenger asks. */
@@ -83,16 +116,17 @@ public final class CameraActivity extends Activity {
         return false;
     }
 
-    private void capture() {
+    private void capture(boolean video) {
         try {
             File folder = CameraProvider.directory(this);
             removeLeftovers(folder, System.currentTimeMillis());
             if (!folder.isDirectory() && !folder.mkdirs()) throw new IOException("No camera folder");
-            File next = new File(folder, "IMG_" + System.currentTimeMillis() + ".jpg");
+            long now = System.currentTimeMillis();
+            File next = new File(folder, video ? "VID_" + now + ".mp4" : "IMG_" + now + ".jpg");
             if (!next.createNewFile()) throw new IOException("The photo file already exists");
             photo = next;
             Uri uri = CameraProvider.uriFor(this, next);
-            Intent camera = new Intent(MediaStore.ACTION_IMAGE_CAPTURE).putExtra(MediaStore.EXTRA_OUTPUT, uri)
+            Intent camera = new Intent(video ? MediaStore.ACTION_VIDEO_CAPTURE : MediaStore.ACTION_IMAGE_CAPTURE).putExtra(MediaStore.EXTRA_OUTPUT, uri)
                 .addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
             camera.setClipData(ClipData.newRawUri("", uri));
             startActivityForResult(camera, CAPTURE);
@@ -106,17 +140,29 @@ public final class CameraActivity extends Activity {
 
     @Override public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] results) {
         if (requestCode != PERMISSION) return;
-        if (results.length > 0 && results[0] == PackageManager.PERMISSION_GRANTED) capture();
+        if (results.length > 0 && results[0] == PackageManager.PERMISSION_GRANTED) start();
         else give("camera_permission");
     }
 
     @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode != CAPTURE) return;
         File taken = photo;
+        Uri saved = data == null ? null : data.getData();
         if (resultCode == RESULT_OK && taken != null && taken.length() > 0) {
             Uri uri = CameraProvider.uriFor(this, taken);
             handedBack = taken.getName();
-            setResult(RESULT_OK, new Intent().setDataAndType(uri, "image/jpeg").addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION));
+            setResult(RESULT_OK, new Intent().setDataAndType(uri, CameraProvider.typeOf(taken.getName())).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION));
+        } else if (resultCode == RESULT_OK && taken != null && taken.getName().startsWith(CameraProvider.VIDEO) && saved != null) {
+            // Some camera apps save a video to their own gallery and only say where. That one comes back like a gallery pick.
+            if (!taken.delete() && taken.exists()) Log.w("HushMessenger", "Can't remove an empty camera video");
+            String type = null;
+            try {
+                type = getContentResolver().getType(saved);
+            } catch (RuntimeException unreadable) {
+                Log.w("HushMessenger", "Can't read the camera video's type", unreadable);
+            }
+            setResult(RESULT_OK, new Intent().setDataAndType(saved, type != null && type.startsWith("video/") ? type : "video/mp4")
+                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION));
         } else {
             if (taken != null && !taken.delete() && taken.exists()) Log.w("HushMessenger", "Can't remove an empty camera photo");
             setResult(RESULT_CANCELED);
@@ -128,6 +174,7 @@ public final class CameraActivity extends Activity {
     @Override protected void onSaveInstanceState(Bundle state) {
         super.onSaveInstanceState(state);
         if (photo != null) state.putString(PENDING, photo.getName());
+        else if (choice != null) state.putBoolean(CHOOSING, true);
     }
 
     /** Ends with no photo, so the chat stays as it was. */

@@ -2021,7 +2021,7 @@ Pour afficher le bouton de téléchargement de playlist natif, activez l\'option
     <string name="revanced_override_video_download_button_title">Remplacer le bouton de téléchargement de la vidéo</string>
     <string name="revanced_patched_date_title">Date du patch</string>
     <string name="revanced_patches_excluded"><font color="#EA4335">Exclus</font></string>
-    <string name="revanced_patches_included"><font color="#4CAF50">Appliqué</font></string>
+    <string name="revanced_patches_included"><font color="#4CAF50">Inclus</font></string>
     <string name="revanced_playback_audio_pitch_sync">Synchroniser</string>
     <string name="revanced_playback_audio_pitch_sync_summary_off">La hauteur tonale du son est indépendante de la vitesse de lecture</string>
     <string name="revanced_playback_audio_pitch_sync_summary_on">La hauteur tonale du son est synchronisée avec la vitesse de lecture</string>
@@ -2089,7 +2089,6 @@ Pour afficher le bouton de téléchargement de playlist natif, activez l\'option
     <string name="revanced_preference_screen_misc_title">Paramètres avancés</string>
     <string name="revanced_preference_screen_navigation_bar_summary">Masque ou affiche les éléments de la barre de navigation</string>
     <string name="revanced_preference_screen_navigation_bar_title">Barre de navigation</string>
-    <string name="revanced_preference_screen_patch_information_summary">Informations sur les patchs appliqués</string>
     <string name="revanced_preference_screen_player_buttons_summary">Masque ou affiche les boutons sur les vidéos</string>
     <string name="revanced_preference_screen_player_buttons_title">Boutons du lecteur</string>
     <string name="revanced_preference_screen_player_flyout_menu_summary">Masque ou modifie des options du menu déroulant dans le lecteur vidéo</string>

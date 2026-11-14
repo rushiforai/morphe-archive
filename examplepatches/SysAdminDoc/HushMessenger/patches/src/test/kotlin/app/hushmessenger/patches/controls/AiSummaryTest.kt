@@ -77,7 +77,7 @@ class AiSummaryTest {
 
     @Test fun theMappingHooksTheEligibilityCheck() {
         assertEquals(setOf(SYNTHETIC_AI_SUMMARY), SYNTHETIC_PROFILE.hooks.getValue(AI_SUMMARY))
-        assertEquals(setOf("LX/5lp;->A04(Lcom/facebook/messaging/model/threadkey/ThreadKey;" +
+        assertEquals(setOf("LX/5fQ;->A04(Lcom/facebook/messaging/model/threadkey/ThreadKey;" +
             "Lcom/facebook/xapp/messaging/capability/vector/Capabilities;JZZ)Z"), BASE_PROFILE.hooks.getValue(AI_SUMMARY))
         assertTrue(AI_SUMMARY in controlHooks.getValue("meta_ai"))
     }

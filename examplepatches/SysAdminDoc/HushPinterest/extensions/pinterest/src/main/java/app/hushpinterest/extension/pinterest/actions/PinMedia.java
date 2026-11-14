@@ -99,10 +99,11 @@ final class PinMedia {
             for (Map.Entry<?, ?> entry : ((Map<?, ?>) videoList).entrySet()) {
                 if (entry.getKey() instanceof String) videos.put((String) entry.getKey(), entry.getValue());
             }
-            Source best = null;
-            Object selected = null, unsupported = null;
+            Source best = null, streamed = null;
+            Object selected = null, unsupported = null, streamedFrom = null;
             double largest = -1;
             double largestUnsupported = -1;
+            double largestStream = -1;
             boolean adaptive = false;
             for (Object video : videos.values()) {
                 double area = dimension(field(video, "width")) * dimension(field(video, "height"));
@@ -116,7 +117,15 @@ final class PinMedia {
                     largestUnsupported = area;
                 }
                 Source candidate = sourceUrl(field(video, "url"), true);
-                if (candidate == null) continue;
+                if (candidate == null) {
+                    Source stream = streamUrl(field(video, "url"));
+                    if (stream != null && (streamed == null || area > largestStream)) {
+                        streamed = stream;
+                        streamedFrom = video;
+                        largestStream = area;
+                    }
+                    continue;
+                }
                 if (best == null || area > largest) {
                     best = candidate;
                     selected = video;
@@ -124,6 +133,8 @@ final class PinMedia {
                 }
             }
             if (best != null) return new Resolution(id, best, null, selected, null);
+            // Pinterest streams most videos as HLS alone. Download pin joins the stream into an MP4 (#27).
+            if (streamed != null) return new Resolution(id, streamed, null, streamedFrom, null);
             // A supplied playlist still identifies a video when is_video was omitted.
             if (!((Map<?, ?>) videoList).isEmpty()) {
                 return new Resolution(id, null, adaptive ? Refusal.ADAPTIVE_VIDEO : Refusal.MP4_MISSING, unsupported, null);
@@ -247,7 +258,7 @@ final class PinMedia {
             width = suppliedDimension(field(supplied, "width"));
             height = suppliedDimension(field(supplied, "height"));
             // Type comes only from a supported supplied URL, never a probe or a thumbnail.
-            urlType = source == null ? null : source.mime;
+            urlType = source == null ? null : source.stream ? HlsPlaylist.TYPE : source.mime;
         }
     }
 
@@ -264,6 +275,18 @@ final class PinMedia {
         return null;
     }
 
+    /**
+     * A supplied HLS playlist on the media host, as the MP4 Download pin makes of it. Null for any
+     * other link: a DASH manifest stays unsupported.
+     */
+    static Source streamUrl(Object value) {
+        if (!(value instanceof String)) return null;
+        URI uri = mediaUri((String) value);
+        if (uri == null || uri.getPath() == null) return null;
+        String path = uri.getPath().toLowerCase(java.util.Locale.ROOT);
+        return path.endsWith(".m3u8") ? new Source(uri.toString(), "video/mp4", ".mp4", true) : null;
+    }
+
     /** True when the source is a supplied size standing in for an original Pinterest didn't supply. */
     static boolean standIn(Resolution media) {
         return media != null && media.source != null && media.size != null &&
@@ -274,11 +297,21 @@ final class PinMedia {
         final String url;
         final String mime;
         final String suffix;
+        /**
+         * True for an HLS playlist rather than a file. Download pin fetches its parts and joins them
+         * into one file of [mime]; Android's Downloads never gets it.
+         */
+        final boolean stream;
 
         Source(String url, String mime, String suffix) {
+            this(url, mime, suffix, false);
+        }
+
+        Source(String url, String mime, String suffix, boolean stream) {
             this.url = url;
             this.mime = mime;
             this.suffix = suffix;
+            this.stream = stream;
         }
     }
 }

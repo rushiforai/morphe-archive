@@ -3,6 +3,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/3014
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ * Modified by lavinhoque33, 2026-11-12.
  *
  * Modified by lavinhoque33, 2026-10-24: ported to the fork's patcher 1.15 helpers; the queue
  * command is only serialised for Jam while Jam queue sharing is on.
@@ -531,7 +532,18 @@ private fun BytecodePatchContext.installQueueItemAccess(item: QueueItemAbi) {
 }
 
 private fun BytecodePatchContext.installQueueManagerCapture(queue: JamQueueAbi) {
-    val original = queue.constructor.getMutableMethod()
+    installQueueConstructorCapture(queue.constructor, "$BRIDGE->capture($ACCESS)V")
+}
+
+/**
+ * Captures through a preserved receiver before every return. Always clone the current mutable method
+ * so another patch's constructor captures survive, including when p0 is used as a scratch register.
+ */
+internal fun BytecodePatchContext.installQueueConstructorCapture(
+    constructorMethod: MethodReference,
+    captureMethod: String,
+) {
+    val original = constructorMethod.getMutableMethod()
     val preservedThisRegister = requireNotNull(original.implementation).registerCount
     val constructor =
         original.cloneMutable(additionalRegisters = original.numberOfParameterRegisters + 1)
@@ -543,7 +555,7 @@ private fun BytecodePatchContext.installQueueManagerCapture(queue: JamQueueAbi) 
     constructor.findInstructionIndicesReversedOrThrow(Opcode.RETURN_VOID).forEach { index ->
         constructor.addInstructions(
             index,
-            "invoke-static/range {v$preservedThisRegister .. v$preservedThisRegister}, $BRIDGE->capture($ACCESS)V",
+            "invoke-static/range {v$preservedThisRegister .. v$preservedThisRegister}, $captureMethod",
         )
     }
 }

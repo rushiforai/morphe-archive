@@ -16,8 +16,8 @@ val unlockPremiumPatch = bytecodePatch(
         IsPremiumFingerprint.method.addInstructions(
             0,
             """
-                const-string v0, "premium"
-                return-object v0
+                const/4 v0, 0x1
+                return v0
             """
         )
 

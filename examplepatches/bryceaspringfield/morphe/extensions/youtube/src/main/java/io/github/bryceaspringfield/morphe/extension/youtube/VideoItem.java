@@ -140,7 +140,7 @@ final class VideoItem {
         // A playlist lockup may link "watch?v=FIRST&list=PL..." as well as "playlist?list=PL..."; a card (lockup.eml)
         // names the playlist page's browse ID, "VLPL...". Albums are playlists too (OLAK5uy_).
         boolean playlist = text.contains("list=PL") || text.contains("VLPL") || text.contains("list=OLAK5uy")
-                || text.contains("VLOLAK5uy");
+                || text.contains("VLOLAK5uy") || Metadata.isCourse(text);
         boolean mix = !playlist && ((text.contains("youtube.com/playlist?list=RD") && !text.contains("youtube.com/watch?v="))
                 || (p.startsWith("lockup.") && text.contains("VLRD")));
         if (live || playlist || mix) seconds = -1;
@@ -178,20 +178,23 @@ final class VideoItem {
 
     private static String readable(String text) {
         StringBuilder out = new StringBuilder();
+        forEachRun(text, run -> {
+            String r = run.trim();
+            if (r.indexOf(' ') > 0 && !r.contains("://") && !r.startsWith("yt_")) out.append(r.toLowerCase(Locale.ROOT)).append('\n');
+        });
+        return out.toString();
+    }
+
+    /** Each run of 4 or more printable characters of the buffer's text (the strings of its protobuf fields). */
+    private static void forEachRun(String text, java.util.function.Consumer<String> each) {
         int start = 0;
         for (int i = 0; i <= text.length(); i++) {
             char ch = i < text.length() ? text.charAt(i) : '\u0000';
             if (ch < ' ' || ch == '\uFFFD') {
-                if (i - start >= 4) {
-                    String run = text.substring(start, i).trim();
-                    if (run.indexOf(' ') > 0 && !run.contains("://") && !run.startsWith("yt_")) {
-                        out.append(run.toLowerCase(Locale.ROOT)).append('\n');
-                    }
-                }
+                if (i - start >= 4) each.accept(text.substring(start, i));
                 start = i + 1;
             }
         }
-        return out.toString();
     }
 
     /** Whether the item belongs to the channel a rule names (an ID starting with UC, an @handle, or a name). */
@@ -208,5 +211,14 @@ final class VideoItem {
         return "video=" + videoId + " channel=" + channelId + " @" + handle + " name=" + channelName
                 + " seconds=" + seconds + (live ? " live" : "") + (playlist ? " playlist" : "")
                 + (mix ? " mix" : "") + (shorts ? " shorts" : "");
+    }
+
+    /** The buffer's printable runs of 4 or more characters, for the debug log of an item's raw data. */
+    static String runs(byte[] buffer, int max) {
+        StringBuilder out = new StringBuilder();
+        forEachRun(new String(buffer, StandardCharsets.UTF_8), run -> {
+            if (out.length() < max) out.append(run).append(" | ");
+        });
+        return out.length() > max ? out.substring(0, max) : out.toString();
     }
 }

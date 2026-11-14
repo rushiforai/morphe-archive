@@ -26,6 +26,7 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -394,7 +395,9 @@ val customizeSearchTabsPatch = bytecodePatch(
 
 // region Side bar
 
-private object DrawerFingerprint : Fingerprint(strings = listOf("DrawerDiscountPillAlpha"))
+/** The side bar composables. Its pill was renamed from "discount" to "offer" in 12.43. */
+private object DrawerFingerprint : Fingerprint(strings = listOf("DrawerOfferPillAlpha"))
+private object LegacyDrawerFingerprint : Fingerprint(strings = listOf("DrawerDiscountPillAlpha"))
 
 /** The side bar rows, keyed by option, with the string resources their titles come from. */
 private val SIDE_BAR_ROWS = linkedMapOf(
@@ -447,7 +450,8 @@ val customizeSideBarPatch = bytecodePatch(
         // title as the first argument. The app has merged these over time (two variants up to 12.41,
         // one from 12.42), so every composable of that shape is guarded rather than a fixed count. A
         // hidden row returns before its composable starts its group.
-        val rows = mutableClassDefBy(DrawerFingerprint.classDef).methods.filter { method ->
+        val drawer = DrawerFingerprint.classDefOrNull ?: LegacyDrawerFingerprint.classDef
+        val rows = mutableClassDefBy(drawer).methods.filter { method ->
             AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "V" &&
                 method.parameterTypes.map { it.toString() }.let { parameters ->
                     parameters.firstOrNull() == "Ljava/lang/String;" &&
@@ -527,23 +531,28 @@ val customizeTimelineTopBarPatch = bytecodePatch(
         // The default tabs, For you and Following.
         filterArraysOf(ToStringFingerprint("Tab(homeTabType=").classDef.type, "homeTabs")
 
-        // The full list, rebuilt once pinned timelines load, just before the pager is given it.
+        // The full list, rebuilt once pinned timelines load, just before the pager is given it. The
+        // pager's setter is the method's only virtual call taking just a List. The call before it
+        // that hands the list on to navigation changes shape under R8 (a static call taking the list
+        // up to 12.42, a lambda capturing it from 12.43), so the list is filtered before its first
+        // use in the setter's block.
         PinnedHomeTabsFingerprint.method.apply {
-            val navigate = instructions.first { instruction ->
-                instruction.opcode == Opcode.INVOKE_STATIC &&
+            val setter = instructions.first { instruction ->
+                instruction.opcode == Opcode.INVOKE_VIRTUAL &&
                     instruction.getReference<MethodReference>()?.let { reference ->
-                        reference.returnType == "V" && reference.parameterTypes.size == 2 &&
-                            reference.parameterTypes[1] == "Ljava/util/List;"
-                    } == true &&
-                    instructions.getOrNull(instruction.location.index + 1)?.let { next ->
-                        next.opcode == Opcode.INVOKE_VIRTUAL &&
-                            next.getReference<MethodReference>()?.parameterTypes?.map { it.toString() } == listOf("Ljava/util/List;")
+                        reference.returnType == "V" && reference.parameterTypes.map { it.toString() } == listOf("Ljava/util/List;")
                     } == true
             }
-            val tabs = (navigate as FiveRegisterInstruction).registerD
+            val tabs = (setter as FiveRegisterInstruction).registerD
 
-            addInstructions(
-                navigate.location.index,
+            var blockStart = setter.location.index
+            while (blockStart > 0 && getInstruction(blockStart - 1) !is OffsetInstruction &&
+                getInstruction(blockStart - 1).opcode !in BLOCK_ENDS
+            ) blockStart--
+            val firstUse = (blockStart..setter.location.index).first { getInstruction(it).reads(tabs) }
+
+            addInstructionsAtControlFlowLabel(
+                firstUse,
                 "invoke-static/range { v$tabs .. v$tabs }, $CUSTOMISE_CLASS->homeTabsList(Ljava/util/List;)V",
             )
         }
@@ -551,6 +560,16 @@ val customizeTimelineTopBarPatch = bytecodePatch(
 }
 
 // endregion
+
+private val BLOCK_ENDS = setOf(
+    Opcode.RETURN_VOID, Opcode.RETURN, Opcode.RETURN_WIDE, Opcode.RETURN_OBJECT, Opcode.THROW,
+)
+
+private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction.reads(register: Int) = when (this) {
+    is FiveRegisterInstruction -> listOf(registerC, registerD, registerE, registerF, registerG).take(registerCount).contains(register)
+    is RegisterRangeInstruction -> register in startRegister until startRegister + registerCount
+    else -> false
+}
 
 private fun com.android.tools.smali.dexlib2.iface.Method.isAddTab(label: Long) =
     AccessFlags.STATIC.isSet(accessFlags) && returnType == "V" &&

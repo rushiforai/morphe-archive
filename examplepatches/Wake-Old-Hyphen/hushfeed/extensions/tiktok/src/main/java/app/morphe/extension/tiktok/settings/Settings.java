@@ -367,8 +367,9 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_LAUNCHER_SHORTCUTS =
             new BooleanSetting("hide_launcher_shortcuts", FALSE);
     /**
-     * Leaves the Hushfeed row out of Settings and privacy (#264). Long pressing For You or Home
-     * still opens the page, and Pause brings the row back, since a paused setting reads stock.
+     * Leaves the Hushfeed row out of Settings and privacy (#264), but only while a long press on
+     * For You or Home opens the page (#244). Pause brings the row back, since a paused setting
+     * reads stock.
      */
     public static final BooleanSetting HIDE_SETTINGS_ROW =
             new BooleanSetting("hide_settings_row", FALSE);
@@ -599,6 +600,8 @@ public class Settings extends BaseSettings {
     public static final StringSetting BOTTOM_TAB_NAME_SHOP = new StringSetting("bottom_tab_name_shop", "");
     /** Which of TikTok's bottom tab icon sets to draw (#285): tiktok, original, new_1 or new_2. TikTok reads it at launch. */
     public static final StringSetting BOTTOM_TAB_ICON_STYLE = new StringSetting("bottom_tab_icon_style", "tiktok", true);
+    /** The bottom bar's height in dp (40, 44, 52 or 56), or tiktok for TikTok's 47. TikTok sizes the bar and the space above it once a launch. */
+    public static final StringSetting BOTTOM_BAR_HEIGHT = new StringSetting("bottom_bar_height", "tiktok", true);
     public static final BooleanSetting KEEP_FOR_YOU_ON_TAB_TAP = new BooleanSetting("keep_for_you_on_tab_tap", FALSE);
     public static final BooleanSetting KEEP_FOR_YOU_ON_PULL_DOWN = new BooleanSetting("keep_for_you_on_pull_down", FALSE);
     /** A long press on the Home tab opens Hushfeed's settings (#45). TikTok gives that press nothing of its own. */
@@ -704,6 +707,8 @@ public class Settings extends BaseSettings {
     ).withRange(CustomOfflineVideosLimitPatch.MIN_LIMIT, CustomOfflineVideosLimitPatch.MAX_LIMIT);
     /** Offline videos stay until you clear them, instead of expiring after TikTok's lifetime (#123). */
     public static final BooleanSetting KEEP_OFFLINE_VIDEOS = new BooleanSetting("keep_offline_videos", FALSE, true);
+    /** Watched offline videos are deleted at each start, so the next download replaces them. */
+    public static final BooleanSetting DELETE_WATCHED_OFFLINE_VIDEOS = new BooleanSetting("delete_watched_offline_videos", FALSE, true);
     public static final BooleanSetting SHOW_SEEKBAR = new BooleanSetting("show_seekbar", TRUE);
     /** The time played and the video's length at the end of the progress bar (#90). */
     public static final BooleanSetting SEEKBAR_TIME = new BooleanSetting("seekbar_time", FALSE);
@@ -1644,6 +1649,13 @@ public class Settings extends BaseSettings {
     public static final StringSetting HIDDEN_PROFILE_SHORTCUTS = new StringSetting("hidden_profile_shortcuts", "");
     public static final StringSetting PROFILE_SHORTCUT_PICKS = new StringSetting("profile_shortcut_picks", "");
     public static final StringSetting PROFILE_SHORTCUT_CATALOG = new StringSetting("profile_shortcut_catalog", "");
+    // Search result tabs: the keys picked to hide, and the tabs TikTok has served on this phone,
+    // which the checklist offers. The strip is read on every search, so no restart.
+    public static final StringSetting SEARCH_TAB_PICKS = new StringSetting("search_tab_picks", "");
+    public static final StringSetting SEARCH_TAB_CATALOG = new StringSetting("search_tab_catalog", "");
+    // Profile tabs: the checklist rows picked to hide (private, repost, favorite and the rest). Read
+    // whenever a profile lays out its tabs, so a profile opened after a change follows it.
+    public static final StringSetting PROFILE_TAB_PICKS = new StringSetting("profile_tab_picks", "");
     /** The Thoughts bubble above a profile picture (#122). Read when a profile's picture is built. */
     public static final BooleanSetting HIDE_PROFILE_THOUGHTS = new BooleanSetting("hide_profile_thoughts", FALSE, true);
     /** TikTok's two Thoughts gates answer yes (#186). A restart, since TikTok keeps what it built. */
@@ -1739,7 +1751,8 @@ public class Settings extends BaseSettings {
                 REMEMBERED_SPEED, SESSION_BUDGET_STATE, BLOCK_AUTHOR_BUTTON_POSITION,
                 LOCAL_HIDE_BUTTON_POSITION, BLOCK_SOUND_BUTTON_POSITION, NOT_INTERESTED_BUTTON_POSITION,
                 FEED_MUTE_BUTTON_POSITION, DOWNLOAD_BUTTON_POSITION, COMMENT_TRANSLATE_BUTTON_TURNED_ON,
-                SHARE_ACTION_CATALOG, PROFILE_SHORTCUT_CATALOG, POPUP_LABEL_CATALOG, DIAGNOSTIC_REPORT_SALT, AUTO_STREAK_STATE,
+                SHARE_ACTION_CATALOG, PROFILE_SHORTCUT_CATALOG, POPUP_LABEL_CATALOG, SEARCH_TAB_CATALOG,
+                DIAGNOSTIC_REPORT_SALT, AUTO_STREAK_STATE,
                 // The settings screen still searches while paused. Answering the empty default
                 // hid the recent searches, and the next search saved itself over all of them.
                 RECENT_SETTINGS_SEARCHES,

@@ -10,6 +10,7 @@ import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import java.nio.file.Files
@@ -83,7 +84,32 @@ private val THIRD_PARTY_URI_BODY = """
     return-object v0
 """.trimIndent()
 
-internal const val INTERNAL_FILE_OPEN = "LX/0FQ;->A01(Landroid/content/Context;Landroid/net/Uri;)Landroid/content/res/AssetFileDescriptor;"
+private const val META_URI_CHECK = "LX/04A;->A05(Landroid/content/Context;Landroid/net/Uri;)Z"
+
+/** 587's callee holding that check's body, which answers whether Meta owns the provider. Parameters start at v5. */
+private val META_URI_BODY = """
+    const/4 v4, 0x0
+    invoke-virtual {p2}, Landroid/net/Uri;->getAuthority()Ljava/lang/String;
+    move-result-object v3
+    const-string v1, "content"
+    const-string v0, "Unable to get providerInfo for authority "
+    const/4 v0, 0x1
+    return v0
+""".trimIndent()
+
+/** 587's Boolean check, left a wrapper that flips the callee's answer. */
+private val URI_WRAPPER_BODY = """
+    invoke-static {}, LX/047;->A05()LX/04A;
+    move-result-object v0
+    invoke-virtual {v0, p1, p2}, $META_URI_CHECK
+    move-result v0
+    xor-int/lit8 v0, v0, 0x1
+    invoke-static {v0}, Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;
+    move-result-object v0
+    return-object v0
+""".trimIndent()
+
+internal const val INTERNAL_FILE_OPEN ="LX/0FQ;->A01(Landroid/content/Context;Landroid/net/Uri;)Landroid/content/res/AssetFileDescriptor;"
 
 /** The open that refuses a file Messenger owns, the way every supported build writes it. Parameters start at v3. */
 private val INTERNAL_FILE_OPEN_BODY = """
@@ -220,8 +246,12 @@ private fun assertMarkHook(before: List<Instruction>, after: List<Instruction>, 
     assertEquals(Opcode.IPUT_OBJECT, after[site + 1].opcode, message)
 }
 
-/** The capture screen's photo is answered with TRUE up front, and every other URI falls through to the stock check. */
+/**
+ * The capture screen's photo is answered with TRUE up front (false from 587's callee, which its wrapper flips), and
+ * every other URI falls through to the stock check.
+ */
 private fun assertTrustHook(method: MutableMethod, before: List<Instruction>, message: String) {
+    val callee = method.isMetaUriCheck()
     val after = method.code()
     assertEquals(before.size + 5, after.size, message)
     assertEquals(before, after.drop(5), message)
@@ -232,8 +262,14 @@ private fun assertTrustHook(method: MutableMethod, before: List<Instruction>, me
     assertEquals(Opcode.MOVE_RESULT, after[1].opcode, message)
     assertEquals(Opcode.IF_EQZ, after[2].opcode, message)
     assertTrue(5 in method.jumpTargets(), "$message: a URI that isn't the photo goes on to the stock check")
-    assertEquals("Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;", (after[3] as ReferenceInstruction).reference.toString(), message)
-    assertEquals(Opcode.RETURN_OBJECT, after[4].opcode, message)
+    if (callee) {
+        assertEquals(Opcode.CONST_4, after[3].opcode, message)
+        assertEquals(0, (after[3] as NarrowLiteralInstruction).narrowLiteral, message)
+        assertEquals(Opcode.RETURN, after[4].opcode, message)
+    } else {
+        assertEquals("Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;", (after[3] as ReferenceInstruction).reference.toString(), message)
+        assertEquals(Opcode.RETURN_OBJECT, after[4].opcode, message)
+    }
 }
 
 /** The open's answer on whether Messenger owns the file goes past the extension right before its refusal. */
@@ -257,7 +293,7 @@ private fun injectAndCheck(method: MutableMethod, message: String) {
     val site = method.validateSystemCamera()
     val factory = method.isChatCameraFactory()
     val chat = method.isLauncherStart()
-    val trust = method.isThirdPartyUriCheck()
+    val trust = method.isThirdPartyUriCheck() || method.isMetaUriCheck()
     val ownFile = method.isInternalFileOpen()
     injectControl(SYSTEM_CAMERA, mapOf(SYSTEM_CAMERA to listOf(method)))
     when {
@@ -362,6 +398,19 @@ class SystemCameraTest {
         val start = fixtureMethod(CHAT_CAMERA_START, looped, registers = 7)
         assertTrue(start.isLauncherStart())
         assertFailsWith<PatchException> { start.validateSystemCamera() }
+    }
+
+    // 587 moved the check's body into a callee that answers whether Meta owns the provider, so the photo gets false there.
+    @Test fun a587ProviderCalleeAnswersFalseForTheCapturedPhoto() {
+        val fixture = systemCameraFixture().filterNot { it.type == "LX/0gQ;" } +
+            fixtureClass("LX/0gQ;", listOf(fixtureMethod(THIRD_PARTY_URI_CHECK, URI_WRAPPER_BODY, registers = 4))) +
+            fixtureClass("LX/04A;", listOf(fixtureMethod(META_URI_CHECK, META_URI_BODY, registers = 8)))
+        val found = findSystemCamera(fixture)
+        assertEquals(setOf(LAUNCH, CHAT_CAMERA_FACTORY, CHAT_CAMERA_START, CHAT_CAPTURE, META_URI_CHECK, INTERNAL_FILE_OPEN), found.map { it.hookId() }.toSet())
+        injectAndCheck(found.single { it.hookId() == META_URI_CHECK } as MutableMethod, META_URI_CHECK)
+        // A static callee, or one that never names the content scheme, isn't the check.
+        assertTrue(!fixtureMethod(META_URI_CHECK, META_URI_BODY.replace("p2", "p1"), registers = 8, flags = STATIC).isMetaUriCheck())
+        assertTrue(!fixtureMethod(META_URI_CHECK, META_URI_BODY.replace("\"content\"", "\"file\""), registers = 8).isMetaUriCheck())
     }
 
     @Test fun aUriCheckWithItsUriPastV15StopsThePatch() {

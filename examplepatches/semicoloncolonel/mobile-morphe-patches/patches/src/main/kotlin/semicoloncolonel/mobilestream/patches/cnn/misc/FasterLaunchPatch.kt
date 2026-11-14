@@ -10,7 +10,7 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import semicoloncolonel.mobilestream.patches.cnn.shared.Constants
 
 // ─────────────────────────────────────────────────────────────────────────────
-// CNN 26.21.0 — Faster launch.
+// CNN 26.21.0 and 26.23.0 — Faster launch.
 //
 // CNN's splash screen waits for Optimizely (its feature-flag service) to
 // start, and OptimizelyClientFactory starts it with the SDK's asynchronous
@@ -22,6 +22,11 @@ import semicoloncolonel.mobilestream.patches.cnn.shared.Constants
 // client at once from the datafile already on the phone (Optimizely's cached
 // copy, or the one bundled in the app). Optimizely's background updates keep
 // the cached copy current.
+//
+// 26.23.0 rewrote OptimizelyClientFactory to start the client from the local
+// datafile itself and refresh in the background, which is what this patch did,
+// so the asynchronous initialize call is gone. The patch then has nothing to
+// replace and leaves the already-fast build untouched.
 // ─────────────────────────────────────────────────────────────────────────────
 
 private const val FACTORY = "Lcom/cnn/mobile/android/phone/features/featurestateprovider/optimizely/OptimizelyClientFactory;"
@@ -32,6 +37,7 @@ val fasterLaunchPatch = bytecodePatch(
     name = "Faster launch",
     description = "Opens the app without waiting to download its feature settings.",
 ) {
+    category("Setup")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")
@@ -59,6 +65,8 @@ val fasterLaunchPatch = bytecodePatch(
                 replaced++
             }
         }
-        if (replaced != 1) throw PatchException("Optimizely initialize call: expected 1, found $replaced")
+        // 26.21.0 has one asynchronous initialize call to replace. 26.23.0 and
+        // later start from the local datafile already, so finding none is fine.
+        if (replaced > 1) throw PatchException("Optimizely initialize call: expected 0 or 1, found $replaced")
     }
 }

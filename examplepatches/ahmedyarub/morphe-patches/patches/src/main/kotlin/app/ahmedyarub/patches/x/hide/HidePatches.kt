@@ -97,7 +97,12 @@ private object HomeUpgradePillFingerprint : Fingerprint(
     strings = listOf("subscriptions_upsells_premium_home_nav_offer_enabled"),
 )
 
+/** DrawerFeatures; its first field was renamed from cardDiscountPercent to cardOffer in 12.43. */
 private object DrawerFeaturesToStringFingerprint : Fingerprint(
+    name = "toString",
+    strings = listOf("DrawerFeatures(cardOffer="),
+)
+private object LegacyDrawerFeaturesToStringFingerprint : Fingerprint(
     name = "toString",
     strings = listOf("DrawerFeatures(cardDiscountPercent="),
 )
@@ -119,10 +124,11 @@ val removePremiumUpsellPatch = bytecodePatch(
         HomeUpgradePillFingerprint.method.addInstructions(0, RETURN_NULL)
 
         // The side bar's Premium row is drawn for every premium state but Hidden. Every
-        // DrawerFeatures is made by one constructor, which is handed the state third.
-        val drawerFeatures = DrawerFeaturesToStringFingerprint.classDef
+        // DrawerFeatures is made by one constructor, which is handed the state third. The other
+        // constructor is the synthetic defaults one, which takes only primitives.
+        val drawerFeatures = DrawerFeaturesToStringFingerprint.classDefOrNull ?: LegacyDrawerFeaturesToStringFingerprint.classDef
         val constructor = mutableClassDefBy(drawerFeatures).methods.single { method ->
-            method.name == "<init>" && method.parameterTypes.size > 3 && method.parameterTypes[0] == "Ljava/lang/Integer;"
+            method.name == "<init>" && method.parameterTypes.size > 3 && method.parameterTypes[0].toString().startsWith("L")
         }
         val premiumState = constructor.parameterTypes[2].toString()
         val hidden = classDefBy { classDef ->

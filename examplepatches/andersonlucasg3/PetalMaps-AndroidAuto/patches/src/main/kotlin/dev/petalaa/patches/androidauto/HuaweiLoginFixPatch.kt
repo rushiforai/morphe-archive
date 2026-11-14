@@ -26,9 +26,8 @@ import dev.petalaa.patches.androidauto.Constants.COMPATIBILITY_PETAL_MAPS
  * to return.
  *
  * Original body: `return up2.g(a81.c()) ? a.g() : b.n();`
- * Patched body: checks HMS Core availability at runtime:
- *   - HMS Core installed  → returns a.g() (HwPhoneAccountHelper via HMS)
- *   - HMS Core missing    → returns b.n() (AccountPicker with WebView H5)
+ * Patched body: unconditionally returns `b.n()` (AccountPicker path, which
+ * falls back to the WebView H5 sign-in when HMS Core is missing).
  *
  * This method is structurally unique: it is the only static method in the
  * APK that returns AccountApi with no parameters AND calls
@@ -50,23 +49,27 @@ internal object D4AFingerprint : Fingerprint(
 )
 
 /**
- * Bytecode patch that forces [d4.a] to always return [a.g] (HwPhoneAccountHelper),
- * using the HMS Core sign-in path.
+ * Bytecode patch that forces [d4.a] to always return [b.n] (AccountPicker /
+ * ThirdPartyPhoneAccountHelper).
  *
  * ## Problem
  * [ManufacturerCheckBypassPatch] forces [up2.g] → true, which makes [d4.a]
  * return the Huawei ID Auth flow ([a.g]). On devices without HMS Core, that
  * flow cannot show any UI (HwIdSignInHubActivity checks HMS availability and
- * finishes immediately with no WebView fallback).
+ * finishes immediately with no WebView fallback), so sign-in silently does
+ * nothing.
  *
  * ## Fix
- * Rewrite [d4.a] to unconditionally return [a.g]. This works on devices
- * WITH HMS Core installed. Devices without HMS Core should disable this patch
- * and use the AccountPicker WebView fallback instead.
+ * Rewrite [d4.a] to unconditionally return [b.n]. That path reaches
+ * `AccountPickerSignInHubPresenter.checkMinVersion()`, which
+ * [AccountPickerH5Patch] already redirects to `getSignInIntentByH5()` (WebView
+ * H5 sign-in). This works without HMS Core and avoids any HMS IPC on the
+ * account factory (a runtime availability check here used to block sign-in when
+ * HMS Core was installed but not running).
  *
  * ## Compatibility
- * Coexists safely with [ManufacturerCheckBypassPatch]: the login path
- * uses HMS Core directly, while the rest of the app still uses the
+ * Coexists safely with [ManufacturerCheckBypassPatch]: only the account
+ * factory's return value changes, while the rest of the app still uses the
  * manufacturer bypass for splash-screen gating.
  *
  * @see docs/login-analysis.md for the full login-flow analysis.
@@ -74,8 +77,8 @@ internal object D4AFingerprint : Fingerprint(
 @Suppress("unused")
 val huaweiLoginFixPatch = bytecodePatch(
     name = "Huawei login fix",
-    description = "Forces HMS Core sign-in path (a.g) in AccountFactory. " +
-            "Requires HMS Core installed. Disable if HMS Core is not available.",
+    description = "Forces the Account Picker sign-in path (b.n) in AccountFactory, " +
+            "which uses the WebView H5 sign-in fallback when HMS Core is missing.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_PETAL_MAPS)
@@ -89,11 +92,11 @@ val huaweiLoginFixPatch = bytecodePatch(
             method.removeInstructions(0, instructionCount)
         }
 
-        // Replace with: return a.g();  (uses only v0, fits original 1-register method)
+        // Replace with: return b.n();  (uses only v0, fits original 1-register method)
         method.addInstructions(
             0,
             """
-                invoke-static {}, Lcom/huawei/maps/businessbase/utils/account/a;->g()Lcom/huawei/maps/businessbase/utils/account/a;
+                invoke-static {}, Lcom/huawei/maps/businessbase/utils/account/b;->n()Lcom/huawei/maps/businessbase/utils/account/b;
                 move-result-object v0
                 return-object v0
             """

@@ -413,6 +413,7 @@ public final class ImgurWebUpload {
     private static JSONObject json(HttpURLConnection connection) throws Exception {
         int status = connection.getResponseCode();
         receiveSessionCookies(connection);
+        if (status == 413) throw MediaUploadHosts.capacityError();
         if (status == 401) throw loginRequired();
         if (status == 403) throw new IOException("Imgurへのアクセスが拒否されました（HTTP 403）。"
                 + "一時的なアクセス制限の場合もあり、ログアウトとは限りません。匿名送信は行いません");
@@ -443,7 +444,7 @@ public final class ImgurWebUpload {
         }
     }
     private static IOException loginRequired() {
-        return new IOException("Haiagaru設定の「Imgurにログイン」で再認証してください。匿名送信は行いません");
+        return new IOException("「画像・動画のアップロード先」の「Imgurにログイン」で再認証してください。匿名送信は行いません");
     }
     private static final class Session {
         final String clientId, cookie, agent;

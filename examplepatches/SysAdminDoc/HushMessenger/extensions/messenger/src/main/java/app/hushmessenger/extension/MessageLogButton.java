@@ -1,20 +1,28 @@
 package app.hushmessenger.extension;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.view.View;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
 /**
  * Message log button: a clock in the Chats tab's top bar, next to Messenger's new message button, that opens the
  * message log. It shows while Keep a message log and this switch are both on. A second switch puts a Message log row
- * in the Menu tab instead, or as well.
+ * in the Menu tab instead, or as well, and a third puts one in the menu a chat opens on a long press, which opens the
+ * log on just that chat.
  */
 public final class MessageLogButton {
     static final String KEY = "message_log_button";
     /** The Menu tab row, which Settings.addMenuSettingsEntry copies from Messenger's own Settings row. */
     static final String MENU_KEY = "message_log_menu_row";
+    /** The chat menu row, which ChatHiding builds next to Hide from chat list. */
+    static final String CHAT_KEY = "message_log_chat_row";
+    /** Our chat menu row's id. Messenger hands it back on the tap, so it can't be one of Messenger's own. */
+    static final int CHAT_ROW_ID = 0x48550003;
+    private static final String CHAT_ROW_NAME = "hush_message_log";
     /** The button's id in the top bar. Messenger hands it back on every tap, which is how ours is told apart. */
     static final String ID = "HushMessageLog";
     /** The id Messenger gives its new message button, which this one goes in front of. The patch checks the build uses it. */
@@ -32,6 +40,39 @@ public final class MessageLogButton {
     static boolean inMenu() {
         SharedPreferences prefs = Settings.preferences;
         return Settings.wouldUse(MessageLog.KEY) && prefs != null && prefs.getBoolean(MENU_KEY, false);
+    }
+
+    /** The same for the chat menu row. */
+    static boolean inChatMenu() {
+        SharedPreferences prefs = Settings.preferences;
+        return Settings.wouldUse(MessageLog.KEY) && prefs != null && prefs.getBoolean(CHAT_KEY, false);
+    }
+
+    /** Adds Message log to the menu a long press on [chat] opens, when its switch is on. */
+    static void chatRow(ChatHiding.Route target, Object chat, ArrayList<Object> rows) {
+        try {
+            Context context = Settings.appContext;
+            if (context == null || !inChatMenu()) return;
+            Object row = target.row(CHAT_ROW_ID, CHAT_ROW_NAME, label(context), "CLOCK", "TIMER");
+            if (row == null) return;
+            ChatHiding.place(rows, row);
+            Settings.enabled(MessageLog.KEY);
+        } catch (Throwable error) {
+            Settings.hookFailed(MessageLog.KEY, "Can't add Message log to the chat menu", error);
+        }
+    }
+
+    /** Opens the message log on the chat whose menu was tapped. */
+    static void chatTapped(ChatHiding.Route target, Object menu) {
+        try {
+            Context context = Settings.appContext;
+            if (context == null || !target.menu.isInstance(menu) || !Settings.enabled(MessageLog.KEY)) return;
+            Object chat = target.menuSummary.get(menu);
+            if (!target.summary.isInstance(chat)) return;
+            open(context, target.key(chat));
+        } catch (Throwable error) {
+            Settings.hookFailed(MessageLog.KEY, "Can't open the message log", error);
+        }
     }
 
     /**
@@ -73,8 +114,15 @@ public final class MessageLogButton {
 
     /** Opens settings with the message log already showing, for the clock and the Menu tab row. */
     static void open(Context context) {
+        open(context, null);
+    }
+
+    /** The same, narrowed to one chat's messages when [thread] names one. */
+    static void open(Context context, String thread) {
         try {
-            context.startActivity(HostScreens.intentFor(context, HostScreens.SETTINGS).putExtra(MessageLogSheet.OPEN_EXTRA, true));
+            Intent intent = HostScreens.intentFor(context, HostScreens.SETTINGS).putExtra(MessageLogSheet.OPEN_EXTRA, true);
+            if (thread != null && !thread.isEmpty()) intent.putExtra(MessageLogSheet.THREAD_EXTRA, thread);
+            context.startActivity(intent);
         } catch (Throwable error) {
             Settings.hookFailed(MessageLog.KEY, "Can't open the message log", error);
         }

@@ -57,6 +57,7 @@ val hidePromptsPatch = bytecodePatch(
     description = "Hides the rating dialog, promo banners, the app tour, and the \"Watch on YouTube\" dialog.",
     default = false,
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

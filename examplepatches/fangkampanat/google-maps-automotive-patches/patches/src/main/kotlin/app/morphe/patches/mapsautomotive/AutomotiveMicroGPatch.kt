@@ -226,6 +226,7 @@ private fun patchManifest(document: Document, appName: String) {
     val renamedLabels = renameAppLabels(manifest, appName)
     logger.info("Set $renamedLabels app and chooser labels to \"$appName\"")
     ensureQueryPackage(document, manifest)
+    ensureInstallPermission(document, manifest)
     ensureSpoofMetadata(document)
     disableCronetTelemetry(document)
     addReportActivity(document, manifest, REPORT_LABEL_PREFIX + appName)
@@ -587,6 +588,22 @@ private fun ensureQueryPackage(document: Document, manifest: Element) {
             queries.appendChild(packageNode)
         }
     }
+}
+
+// The update dialog's "Download and install" (ApkInstaller) hands the APK that the report server offers to
+// Android's installer. Android still asks the user, and refuses an APK signed with another key.
+private const val INSTALL_PERMISSION = "android.permission.REQUEST_INSTALL_PACKAGES"
+
+private fun ensureInstallPermission(document: Document, manifest: Element) {
+    val declared = manifest.directChildren("uses-permission").any { it.getAttribute("android:name") == INSTALL_PERMISSION }
+    if (declared) {
+        logger.info("$INSTALL_PERMISSION is already declared")
+        return
+    }
+    val permission = document.createElement("uses-permission")
+    permission.setAttribute("android:name", INSTALL_PERMISSION)
+    manifest.insertBefore(permission, manifest.directChildren("application").single())
+    logger.info("Declared $INSTALL_PERMISSION for the in-app update")
 }
 
 private fun ensureSpoofMetadata(document: Document) {
@@ -1111,21 +1128,24 @@ private fun BytecodePatchContext.injectWindowRefresh() {
 }
 
 // UI density. The Application and AppCompatActivity (the first attachBaseContext in
-// MapsActivity's hierarchy, shared by the app's activities) receive a configuration context with the
-// density chosen in Settings (200 dpi until one is chosen) and the language chosen there; the system's
-// density and language keep the context unchanged.
+// MapsActivity's hierarchy, shared by the app's activities) receive the density chosen in Settings (200 dpi
+// until one is chosen) and the language chosen there; the system's density and language keep the context
+// unchanged. The Application gets a configuration context (wrap); the activity keeps its own context as its
+// base with the configuration context's resources (wrapActivity, 0.1.8), so a display change still reaches the
+// context its window manager uses.
 private fun BytecodePatchContext.applyUiDensity() {
     listOf(
-        APPLICATION_CLASS to "Maps application attachBaseContext",
-        MAIN_CLASS to "Maps activity attachBaseContext",
-    ).forEach { (startClass, label) ->
+        Triple(APPLICATION_CLASS, "Maps application attachBaseContext", "wrap"),
+        Triple(MAIN_CLASS, "Maps activity attachBaseContext", "wrapActivity"),
+    ).forEach { (startClass, label, entry) ->
+        requireExtensionMethod(UI_DENSITY_CLASS, entry, listOf("Landroid/content/Context;"), "Landroid/content/Context;")
         findHierarchyHook(startClass, label) {
             it.name == "attachBaseContext" && it.returnType == "V" &&
                 it.parameterTypes.map { type -> type.toString() } == listOf("Landroid/content/Context;")
         }.addInstructions(
             0,
             """
-                invoke-static/range { p1 .. p1 }, $UI_DENSITY_CLASS->wrap(Landroid/content/Context;)Landroid/content/Context;
+                invoke-static/range { p1 .. p1 }, $UI_DENSITY_CLASS->$entry(Landroid/content/Context;)Landroid/content/Context;
                 move-result-object p1
             """.trimIndent(),
         )

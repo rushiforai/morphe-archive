@@ -604,7 +604,7 @@ Nobody listed yet, so no post is hidden.	Ninguém na lista ainda, então nenhuma
 Your list of people, Pages and sites to hide will be empty.	Sua lista de pessoas, Páginas e sites para ocultar ficará vazia.
 Your list of people, Pages and sites to hide will hold %1$d entry.	Sua lista de pessoas, Páginas e sites para ocultar terá %1$d item.
 Your list of people, Pages and sites to hide will hold %1$d entries.	Sua lista de pessoas, Páginas e sites para ocultar terá %1$d itens.
-Hides posts containing a word or phrase from your list below. Words that keep a post win over it. Your words stay on this phone unless you export them.	Oculta publicações que contêm uma palavra ou frase da sua lista abaixo. Palavras que mantêm uma publicação têm prioridade. Suas palavras ficam neste celular, a menos que você as exporte.
+Hides posts containing a word or phrase from your list below. Words that keep a post win over it. Your words stay on this phone unless you export them. Posts on profiles, Pages and in groups go too, and Reels tab reels go by their captions.	Oculta publicações que contêm uma palavra ou frase da sua lista abaixo. Palavras que mantêm uma publicação têm prioridade. Suas palavras ficam neste celular, a menos que você as exporte. Publicações em perfis, Páginas e grupos também são ocultadas, e os Reels da aba Reels são filtrados pela legenda.
 Words to hide	Palavras para ocultar
 Words that keep a post	Palavras que mantêm uma publicação
 One word or phrase per line, up to %1$d lines, each %2$d to %3$d characters long. A single emoji or Chinese, Japanese or Korean character is enough on its own. Capital letters don't matter, and a phrase matches anywhere in a post's text, even inside longer words.	Uma palavra ou frase por linha, até %1$d linhas, com %2$d a %3$d caracteres cada. Um único emoji ou caractere chinês, japonês ou coreano já basta. Maiúsculas não importam, e uma frase corresponde em qualquer parte do texto de uma publicação, até dentro de palavras maiores.
@@ -1290,7 +1290,7 @@ Hides posts with a photo or album, including shares.	Oculta publicações com fo
 # context: summary of the Hide video posts switch
 Hides posts with a video, including shares. Reels in the feed have their own switch.	Oculta publicações com vídeo, incluindo compartilhamentos. Os reels no feed têm o próprio botão.
 # context: summary of the Hide link posts switch
-Hides posts that share a link to a website, with its preview card.	Oculta publicações que compartilham um link para um site, com o cartão de prévia.
+Hides posts that share a link to a website, with its preview card. On profiles, Pages, groups and the Reels tab, a post or reel whose words name a website goes too.	Oculta publicações que compartilham um link para um site, com o cartão de prévia. Em perfis, Páginas, grupos e na aba Reels, uma publicação ou reel cujo texto cita um site também é ocultado.
 # context: summary of the Hide posts on a colored background switch
 Hides short posts shown as big text on a colored background.	Oculta publicações curtas exibidas como texto grande sobre um fundo colorido.
 # context: switch title under News feed: hides posts that share someone else's post, the ones Facebook heads "shared a post"; use Facebook's own word for a shared post in this language
@@ -1667,6 +1667,16 @@ Leaving Facebook doesn't open the window. Tap Picture-in-picture in a reel's Mor
 Picture-in-picture button	Botão de picture-in-picture
 # context: summary of that switch; "the window" is the small picture-in-picture window
 Shows a small button at the left edge of a reel or video that has the window ready. Tap it to open the window right away. Works with Picture-in-picture on.	Mostra um botão pequeno na borda esquerda de um reel ou vídeo que tem a janela pronta. Toque nele para abrir a janela na hora. Funciona com Picture-in-picture ativado.
+# context: switch title under Playback; on, a video you started keeps its sound after you leave Facebook; also the label of a headphones button in the picture-in-picture window
+Keep playing in the background	Continuar tocando em segundo plano
+# context: summary of that switch; the notification is the one Facebook shows with the video's play and pause buttons
+A video you started with a tap keeps its sound after you leave Facebook, and its notification can pause it. Swiping the notification away or taking a call stops it.	Um vídeo que você começou com um toque continua com som depois que você sai do Facebook, e a notificação dele pode pausá-lo. Arrastar a notificação para fora ou atender uma ligação interrompe o vídeo.
+# context: title of that notification when the video has none of its own
+Facebook video	Vídeo do Facebook
+# context: switch title under Playback; on, the small picture-in-picture window gets a headphones button that keeps the sound playing after the window closes
+Background play button in the window	Botão de reprodução em segundo plano na janela
+# context: summary of that switch; "the window" is the small picture-in-picture window
+Adds a headphones button to the picture-in-picture window. Tap it to close the window and keep the sound playing, with a notification to pause it.	Adiciona um botão de fones de ouvido à janela Picture-in-picture. Toque nele para fechar a janela e continuar com o som, com uma notificação para pausar.
 # context: switch title under Stories; it makes videos you post to your own Story ask for high quality when they upload
 Upload Stories in HD	Enviar Stories em HD
 # context: summary of that switch; standard is the normal upload quality, high the better one
@@ -1890,6 +1900,10 @@ A video you open from Saved goes on to the next one in Saved when it ends or whe
 Skip "Are you still watching?"	Pular "Você ainda está assistindo?"
 # context: summary of that switch; reels and videos go on to the next one by themselves
 Reels and videos keep going to the next one without pausing to ask if you're still watching.	Reels e vídeos continuam passando para o próximo sem parar para perguntar se você ainda está assistindo.
+# context: switch title under Reels and Watch; on, a reel that would show black bars above and below (or at the sides) is enlarged until it fills the whole screen
+Fill the screen with reels	Preencher a tela com os reels
+# context: summary of that switch; the reel is zoomed in until it reaches every edge, so a little of the picture at two of its edges is cut off
+Reels and full-screen videos that would leave black bars fill the screen instead, with a little cut off the edges. Pinch in on a reel to see all of it, or pinch out to fill it again.	Reels e vídeos em tela cheia que deixariam faixas pretas preenchem a tela, cortando um pouco das bordas. Faça pinça para dentro em um reel para vê-lo inteiro, ou para fora para preencher a tela de novo.
 Hide the new comments pop-up	Ocultar o aviso de novos comentários
 # context: the bubble Facebook shows over an open comment list when new comments arrive, like "3 new comments"
 The "new comments" bubble no longer pops up while you read comments. New comments still show in the list.	A bolha de “novos comentários” não aparece mais enquanto você lê os comentários. Os novos comentários continuam aparecendo na lista.
@@ -2128,6 +2142,10 @@ Adds buttons to feed videos that jump back or ahead 10 seconds, like Facebook's 
 Adds a button to feed videos that shows their speed. Each tap moves to the next one: 1x, 1.25x, 1.5x, 2x, then 0.5x. Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	Adiciona aos vídeos do feed um botão que mostra a velocidade. Cada toque passa para a próxima: 1x, 1.25x, 1.5x, 2x e depois 0.5x. Vídeos ao vivo e anúncios mantêm os próprios controles. Com “Tocar para reproduzir” ligado, “Controles de vídeo no feed” também precisa estar ligado.
 Shows how far into a feed video you are at the left end of its seek bar, and how much is left at the right end. Needs Seek bar on feed videos on.	Mostra quanto já passou de um vídeo do feed na ponta esquerda da barra de progresso e quanto falta na ponta direita. Precisa de “Barra de progresso nos vídeos do feed” ligado.
 Adds a button to feed videos that opens the video in Facebook's own full player, with all its controls. Live videos get it too. With Tap to play on, it needs Inline feed video controls on too.	Adiciona um botão aos vídeos do feed que abre o vídeo no player completo do próprio Facebook, com todos os controles. Vídeos ao vivo também ganham o botão. Com “Tocar para reproduzir” ligado, “Controles de vídeo no feed” também precisa estar ligado.
+# context: switch title under Playback; on, the full player button sits in a feed video's bottom corner next to Facebook's speaker (mute) button
+Full player button by the speaker	Botão de player completo ao lado do alto-falante
+# context: summary of that switch; "the other buttons" are the play/pause and skip buttons along the video's top
+Puts a feed video's full player button in its bottom corner, next to Facebook's speaker button, which moves over to make room. Live videos, and videos without Facebook's speaker, keep it up with the other buttons. Needs Full player button on feed videos on.	Coloca o botão de player completo de um vídeo do feed no canto de baixo, ao lado do botão de alto-falante do Facebook, que se desloca para abrir espaço. Vídeos ao vivo e vídeos sem o alto-falante do Facebook mantêm o botão em cima, com os outros botões. Precisa de “Botão de player completo nos vídeos do feed” ligado.
 # context: a switch under Video and audio; with it on, a video opened full screen starts with its details and comments panel closed, so the video is in the middle of the screen
 Open full screen videos centered	Abrir vídeos em tela cheia centralizados
 # context: that switch's summary; the arrow is the small button under the video that opens and closes the details and comments panel
@@ -2192,6 +2210,21 @@ Shows when a reel or a video you open full screen was posted, under the name of 
 Keeps the Comment button on reels whose comments are turned off, so you can still read the ones already there. A change shows from the next reel.	Mantém o botão Comentar nos reels com comentários desativados, para você ainda ler os que já estão lá. A mudança aparece a partir do próximo reel.
 Select part of a post's text	Selecionar parte do texto de uma publicação
 Holding a post's text opens it in a box where you can select just the part you want and copy that, or copy all of it. The hold itself copies nothing.	Segurar o texto de uma publicação abre o texto em uma caixa onde você pode selecionar só a parte que quiser e copiá-la, ou copiar tudo. Segurar sozinho não copia nada.
+Hold a post to react	Segurar uma publicação para reagir
+Holding a post's photo or video opens its reactions, as holding Like does. On a feed post it comes before Long press opens comments.	Segurar a foto ou o vídeo de uma publicação abre as reações dela, como segurar Curtir. Em uma publicação do feed, isso vem antes de Pressionar e segurar abre os comentários.
+Reaction	Reação
+Pick one each time	Escolher toda vez
+Like	Curtir
+Love	Amei
+Care	Força
+Haha	Haha
+Wow	Uau
+Sad	Triste
+Angry	Grr
+Pick one each time. The reactions open over the post, so slide to one and let go, or let go and tap one.	Escolher toda vez. As reações abrem sobre a publicação, então deslize até uma e solte, ou solte e toque em uma.
+%1$s. Holding a post gives it straight away.	%1$s. Segurar uma publicação já dá essa reação na hora.
+Hold a post to react will open the reactions to pick from.	Segurar uma publicação para reagir vai abrir as reações para escolher.
+Hold a post to react will give %1$s.	Segurar uma publicação para reagir vai dar %1$s.
 Select text	Selecionar texto
 Done	Concluído
 Copy all	Copiar tudo
@@ -2570,7 +2603,7 @@ Tab bar width	Largura da barra de abas
 Percent of the screen's width, from %1$s to %2$s. The icons grow and shrink with it. Leave it blank for %3$s.	Porcentagem da largura da tela, de %1$s a %2$s. Os ícones crescem e encolhem junto. Deixe em branco para usar %3$s.
 The rounded tab bar is %1$s percent of the screen wide.	A barra de abas arredondada ocupa %1$s por cento da largura da tela.
 Tab bar height	Altura da barra de abas
-Percent of its full height the rounded tab bar keeps, from %1$s to %2$s, trimmed above and below the icons. Leave it blank for %3$s.	Porcentagem da altura total que a barra de abas arredondada mantém, de %1$s a %2$s, cortada acima e abaixo dos ícones. Deixe em branco para usar %3$s.
+Percent of its full height the rounded tab bar keeps, from %1$s to %2$s, trimmed above and below the icons. Over 100 makes it taller, mostly toward the bottom of the screen. Leave it blank for %3$s.	Porcentagem da altura total que a barra de abas arredondada mantém, de %1$s a %2$s, cortada acima e abaixo dos ícones. Acima de 100 ela fica mais alta, principalmente em direção à parte de baixo da tela. Deixe em branco para usar %3$s.
 The rounded tab bar keeps %1$s percent of its height.	A barra de abas arredondada mantém %1$s por cento da altura.
 # context: title of a row under About that picks how long a dot marks settings an update added
 Mark new settings	Marcar configurações novas
@@ -2608,7 +2641,7 @@ Double tap the right side of a playing feed video to jump ahead 10 seconds, or t
 Show only comments that match	Mostrar só os comentários que correspondem
 While the search box holds words, comments without them are hidden. Clearing the box brings them back.	Enquanto a caixa de pesquisa tiver palavras, os comentários sem elas ficam ocultos. Limpar a caixa traz todos de volta.
 Queue reel saves	Enfileirar downloads de Reels
-Each reel you tap Download on joins a queue that saves one reel at a time in the background. Pause or cancel it from its notification or from Downloads here. A reel already in the queue is skipped, and one that fails gets one more try. The queue lasts until Facebook closes.	Cada Reel em que você toca em Download entra em uma fila que salva um Reel por vez em segundo plano. Pause ou cancele a fila pela notificação dela ou por Downloads aqui. Um Reel que já está na fila é ignorado, e um que falha ganha mais uma tentativa. A fila dura até o Facebook fechar.
+Each reel you tap Download on joins a queue that saves one reel at a time in the background. Pause or cancel it from its notification or from Downloads here. A reel already in the queue is skipped, and one that fails gets one more try. The queue lasts until Facebook closes. Hold Download to save that reel and the ones after it, 10 to 150 at a time.	Cada Reel em que você toca em Download entra em uma fila que salva um Reel por vez em segundo plano. Pause ou cancele a fila pela notificação dela ou por Downloads aqui. Um Reel que já está na fila é ignorado, e um que falha ganha mais uma tentativa. A fila dura até o Facebook fechar. Mantenha Download pressionado para salvar esse Reel e os seguintes, de 10 a 150 por vez.
 Added to the reel queue	Adicionado à fila de Reels
 Added to the reel queue. To pause or cancel it, open Downloads in Hushfacebook settings.	Adicionado à fila de Reels. Para pausar ou cancelar, abra Downloads nas configurações do Hushfacebook.
 Already in the reel queue	Já está na fila de Reels
@@ -2620,3 +2653,25 @@ Reel queue done	Fila de Reels concluída
 %1$d saved, %2$d waiting, %3$d failed	%1$d salvos, %2$d aguardando, %3$d com falha
 Reel queue canceled	Fila de Reels cancelada
 Cancel the reel queue	Cancelar a fila de Reels
+Save this reel and the ones after it	Salvar este Reel e os seguintes
+%1$d reels	%1$d Reels
+Going through %1$d reels for the reel queue. Hold Download again or cancel the queue to stop.	Percorrendo %1$d Reels para a fila de Reels. Mantenha Download pressionado de novo ou cancele a fila para parar.
+Put %1$d reels in the reel queue	%1$d Reels colocados na fila de Reels
+No more reels came. %1$d went in the reel queue.	Não vieram mais Reels. %1$d entraram na fila de Reels.
+Stopped going through reels	Parou de percorrer os Reels
+Reel from %1$s	Reel de %1$s
+Reel %1$d	Reel %1$d
+Saving now	Salvando agora
+Waiting	Aguardando
+Paused	Pausado
+Pause this reel	Pausar este Reel
+Resume this reel	Retomar este Reel
+Cancel this reel	Cancelar este Reel
+Hide stories you scrolled past	Ocultar Stories que você passou
+A story you scrolled past in the Stories tray leaves it the next time you open Facebook, even if you didn't watch it. A new story brings that person back.	Um story que você passou na bandeja de stories sai dela na próxima vez que você abrir o Facebook, mesmo que não tenha assistido. Um story novo traz essa pessoa de volta.
+# context: row under Home header picture that puts Hushfacebook's logo there (#467)
+Use the Hushfacebook logo	Usar o logo do Hushfacebook
+# context: summary under Use the Hushfacebook logo
+Shows Hushfacebook's logo at the top of Home in place of your words and Facebook's logo. Restart Facebook to see it.	Mostra o logo do Hushfacebook no topo da Página inicial no lugar das suas palavras e do logo do Facebook. Reinicie o Facebook para ver.
+# context: the name Home header picture shows once the logo is picked
+Hushfacebook logo	logo do Hushfacebook

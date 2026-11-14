@@ -6,7 +6,10 @@ import app.badfella.patches.linkedin.shared.markIncluded
 import app.badfella.patches.linkedin.shared.sduiComponentFilterPatch
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.smali.ExternalLabel
 
 private const val SETTINGS_CLASS = "$EXTENSION_PACKAGE/Settings;"
 
@@ -74,6 +77,17 @@ private object NavPanelResponseFingerprint : Fingerprint(
 )
 
 @Suppress("unused")
+/**
+ * UniversalNavigationController.navigate(int, Bundle, NavOptions): every in-app navigation, including the server
+ * driven full screen Premium page (premium_upsell_full_page_takeover) that LinkedIn opens on its own after launch.
+ */
+private object UniversalNavigateFingerprint : Fingerprint(
+    definingClass = "Lcom/linkedin/android/infra/navigation/UniversalNavigationController;",
+    name = "navigate",
+    returnType = "V",
+    parameters = listOf("I", "Landroid/os/Bundle;", "Lcom/linkedin/android/infra/navigation/NavOptions;"),
+)
+
 val hidePremiumUpsellsPatch = bytecodePatch(
     name = "Hide Premium upsells",
     description = "Removes Premium and AI upsell cards and banners, including on profiles and the Me panel.",
@@ -95,5 +109,19 @@ val hidePremiumUpsellsPatch = bytecodePatch(
                 check-cast p2, Lcom/linkedin/android/pegasus/dash/gen/voyager/dash/premium/PremiumUpsellSlotContent;
             """
         )
+
+        // Never open the full screen Premium page: with its only component hidden it would flash an empty page.
+        UniversalNavigateFingerprint.method.apply {
+            addInstructionsWithLabels(
+                0,
+                """
+                    invoke-static/range { p2 .. p2 }, $EXTENSION_PACKAGE/PremiumTakeover;->blocksNavigation(Landroid/os/Bundle;)Z
+                    move-result v0
+                    if-eqz v0, :navigate
+                    return-void
+                """,
+                ExternalLabel("navigate", getInstruction(0))
+            )
+        }
     }
 }

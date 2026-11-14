@@ -44,8 +44,18 @@ final class MorpheKeywords {
         return phrases;
     }
 
+    /** The list and the three switches as they are now. */
+    static String signature() {
+        return Settings.HIDE_KEYWORD_CONTENT_PHRASES.get() + "\u0001" + Settings.HIDE_KEYWORD_CONTENT_HOME.get()
+                + Settings.HIDE_KEYWORD_CONTENT_SUBSCRIPTIONS.get() + Settings.HIDE_KEYWORD_CONTENT_SEARCH.get();
+    }
+
+    /** The signature the cards on screen were filtered with; null before any card was. */
+    static volatile String usedSignature;
+
     /** The first phrase found in the card, or null. */
     static String match(VideoItem item) {
+        usedSignature = signature();
         List<String[]> list = phrases();
         if (list.isEmpty()) return null;
         String text = item.text + "\n" + (item.channelName == null ? "" : item.channelName.toLowerCase(Locale.ROOT));

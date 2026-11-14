@@ -86,6 +86,20 @@ class XheAudioTest {
         assertTrue(findXheAudio(shareCopyFixture() + twin).isEmpty())
     }
 
+    @Test fun a587CopyThatReturnsTheByteCountIsTheSameCopy() {
+        // 587's LX/8AR;->A00 returns how many bytes it copied, and the share drops the count.
+        val method = shareCopy(copy = COPY.replace("LX/8Bb;", "LX/8AR;").replace("OutputStream;)V", "OutputStream;)J"))
+        val classes = listOf(fixtureClass("LX/KLZ;", listOf(method)))
+        assertEquals(listOf(SYNTHETIC_SHARE_COPY), mirroredControls(classes).getValue(XHE_AUDIO).map { it.hookId() })
+        val before = method.code()
+        val site = method.shareCopySite()!!
+        injectControl(XHE_AUDIO, mapOf(XHE_AUDIO to listOf(method)))
+        assertCopyHook(before, method.code(), site, "587 copy")
+        // A copy that hands back the stream or the File is something else.
+        for (other in listOf("Ljava/io/OutputStream;", "Ljava/io/File;"))
+            assertTrue(findXheAudio(listOf(fixtureClass("LX/KLZ;", listOf(shareCopy(copy = COPY.replace("OutputStream;)V", "OutputStream;)$other")))))).isEmpty(), other)
+    }
+
     @Test fun theStaticBodyRedexMovesCallIntoIsTheSameCopy() {
         // 346816951 and its siblings: LX/LZc;->A00(LX/LZc;)Ljava/lang/Object; holds what call() used to.
         val static = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value

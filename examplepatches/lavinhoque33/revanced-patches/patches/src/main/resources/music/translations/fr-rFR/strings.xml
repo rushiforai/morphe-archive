@@ -110,7 +110,6 @@ Lecture SABR (Falsifier les flux vidéo désactivés)"</string>
     <string name="morphe_music_crossfade_screen_title">Fondu enchaîné</string>
     <string name="morphe_music_crossfade_session_control_summary">Appuyez longuement sur le bouton \'Lecture aléatoire\' pour activer ou désactiver le fondu enchaîné</string>
     <string name="morphe_music_crossfade_session_control_title">Contrôle de session</string>
-    <string name="morphe_music_crossfade_video_mode_disabled_toast">Le mode vidéo n\'est pas disponible lorsque le fondu enchaîné est activé</string>
     <string name="morphe_music_deezer_arl_dialog_instruction">"Collez le cookie arl de Deezer
 
 Étapes :
@@ -1011,4 +1010,6 @@ L'identifiant de la vidéo que vous regardez est envoyé à l'API de Return YouT
     <string name="revanced_webview_toast_empty">%s est vide</string>
     <string name="revanced_webview_toast_no_network">Veuillez vérifier votre connexion réseau</string>
     <string name="revanced_webview_toast_unavailable">WebView n\'est pas disponible</string>
+    <string name="morphe_music_auto_song_version_title">Toujours lire la version chanson</string>
+    <string name="morphe_music_auto_song_version_summary">Remplace les clips officiels dans la file par la chanson correspondante. Nécessite d’activer « Ne pas lire les clips musicaux » dans l’application. Les titres sans correspondance exacte restent inchangés</string>
 </resources>

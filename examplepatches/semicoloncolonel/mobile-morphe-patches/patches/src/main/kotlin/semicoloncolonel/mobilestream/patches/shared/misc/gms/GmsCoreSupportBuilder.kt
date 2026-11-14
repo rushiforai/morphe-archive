@@ -75,6 +75,17 @@ internal object NamedPlayServicesAvailableFingerprint : Fingerprint(
     parameters = listOf("Landroid/content/Context;", "I"),
 )
 
+// The same method in builds where R8 moved the manifest-check strings into a
+// helper (Yahoo News 100.1.1): it still logs this message itself.
+internal object ResourcesPlayServicesAvailableFingerprint : Fingerprint(
+    returnType = "I",
+    parameters = listOf("Landroid/content/Context;", "I"),
+    strings = listOf(
+        "The Google Play services resources were not found. Check your project configuration to " +
+            "ensure that the resources are included.",
+    ),
+)
+
 // androidx.credentials' CredentialProviderFactory.getBestAvailableProvider.
 internal object AnyCredentialProviderFactoryFingerprint : Fingerprint(
     strings = listOf("androidx.credentials.TYPE_CLEAR_RESTORE_CREDENTIAL", "android.software.leanback"),
@@ -87,6 +98,23 @@ internal object AnyPlayServicesGetCredentialFingerprint : Fingerprint(
     name = "onGetCredential",
     returnType = "V",
     custom = { method, _ -> method.isAvailableOnDeviceCall() >= 0 },
+)
+
+// CredentialProviderFrameworkImpl.isAvailableOnDevice, the system Credential
+// Manager provider. Its class keeps its log text even where R8 renamed it.
+internal object FrameworkCredentialProviderAvailableFingerprint : Fingerprint(
+    name = "isAvailableOnDevice",
+    returnType = "Z",
+    parameters = listOf(),
+    custom = { _, classDef ->
+        classDef.methods.any { method ->
+            method.implementation?.instructions?.any { insn ->
+                insn.opcode == Opcode.CONST_STRING &&
+                    ((insn as ReferenceInstruction).reference as StringReference).string
+                        .startsWith("In CredentialProviderFrameworkImpl")
+            } == true
+        }
+    },
 )
 
 private fun com.android.tools.smali.dexlib2.iface.Method.isAvailableOnDeviceCall() =
@@ -106,6 +134,8 @@ private fun com.android.tools.smali.dexlib2.iface.Method.isAvailableOnDeviceCall
  * @param required Whether the app cannot sign in without it. Apps that also
  *   offer email or other sign-ins get it as an opt-in patch, because it also
  *   moves push notifications to GmsCore.
+ * @param category Folder that Morphe Manager shows the patch in, for apps
+ *   with enough patches to sort.
  */
 internal fun gmsCoreSupportPatch(
     compatibility: Compatibility,
@@ -115,6 +145,7 @@ internal fun gmsCoreSupportPatch(
     signature: String,
     launcherActivity: String,
     required: Boolean = false,
+    category: String? = null,
 ): BytecodePatch {
     lateinit var cloneApp: Option<Boolean>
     lateinit var clonePackage: Option<String>
@@ -193,6 +224,7 @@ internal fun gmsCoreSupportPatch(
         default = required,
     ) {
         compatibleWith(compatibility)
+        category?.let { category(it) }
 
         // A root mount keeps the stock package name and Google's signature.
         availability { installer, _ ->
@@ -228,10 +260,14 @@ internal fun gmsCoreSupportPatch(
         extendWith("extensions/extension.mpe")
 
         execute {
-            val available = AnyPlayServicesAvailableFingerprint.methodOrNull
-                ?: NamedPlayServicesAvailableFingerprint.methodOrNull
-                ?: throw PatchException("Play services availability check not found")
-            available.returnEarly(0)
+            // Some builds have no availability check left: R8 removes it when
+            // nothing calls it (Yahoo Finance 26.22.2), and there is then
+            // nothing to bypass.
+            (
+                AnyPlayServicesAvailableFingerprint.methodOrNull
+                    ?: NamedPlayServicesAvailableFingerprint.methodOrNull
+                    ?: ResourcesPlayServicesAvailableFingerprint.methodOrNull
+            )?.returnEarly(0)
 
             fun replaceStrings(from: String, to: String) {
                 string(from).matchAllMethodIndicesForEach(requireMatches = false) { index ->
@@ -311,6 +347,11 @@ internal fun gmsCoreSupportPatch(
                     """,
                 )
             }
+            // Older androidx.credentials versions, where neither of the above
+            // matches: the system provider reports itself unavailable, so the
+            // factory falls back to the Play services provider.
+            FrameworkCredentialProviderAvailableFingerprint.methodOrNull?.returnEarly(false)
+
             AnyPlayServicesGetCredentialFingerprint.methodOrNull?.apply {
                 val call = isAvailableOnDeviceCall()
                 if (instructions[call + 1].opcode != Opcode.MOVE_RESULT) {

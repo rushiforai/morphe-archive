@@ -89,10 +89,10 @@ internal fun MutableMethod.injectCarMessages() {
 /**
  * The message notification builds its car extender only when a server flag says so, right before it logs
  * add_android_auto_extension. Accounts with the flag off never get a car bundle, so the extender's hook above never runs
- * for them and Android Auto shows nothing (#75 again on 586).
+ * for them and Android Auto shows nothing (#75 again on 586). The flag is as 587 numbers it (586 read 0x0081027700011858).
  */
 internal const val CAR_EXTENSION_GATE = "car_extension_gate"
-internal const val CAR_EXTENSION_FLAG = 0x0081027700011858L
+internal const val CAR_EXTENSION_FLAG = 0x0081027600011849L
 internal const val CAR_EXTENSION_STEP = "add_android_auto_extension"
 internal const val CAR_EXTENSION_CALL = "Lapp/hushmessenger/extension/CarMessages;->carExtension(Z)Z"
 
@@ -102,9 +102,10 @@ private const val CAR_MOBILE_CONFIG = "Lcom/facebook/mobileconfig/factory/Mobile
 internal class CarGate(val index: Int, val flag: Int)
 
 /**
- * const-wide the flag's id, check-cast the config, invoke-interface its (J)Z getter, move-result, then if-eqz on that
- * result straight over the add_android_auto_extension step. Nothing may jump to the branch, since the answer is
- * rewritten between the move-result and it. Null when the method isn't the gate or the shape changed.
+ * const-wide the flag's id, the config's (J)Z read, move-result, then if-eqz on that result straight over the
+ * add_android_auto_extension step. 587 reads it through a static (Object, long)Z helper right after the id; 586
+ * cast the config and called its getter. Nothing may jump to the branch, since the answer is rewritten between the
+ * move-result and it. Null when the method isn't the gate or the shape changed.
  */
 internal fun Method.carExtensionGate(): CarGate? {
     val code = implementation?.instructions?.toList() ?: return null
@@ -114,13 +115,15 @@ internal fun Method.carExtensionGate(): CarGate? {
     val branch = code[step - 1] as? OneRegisterInstruction ?: return null
     val result = code[step - 2] as? OneRegisterInstruction ?: return null
     val read = code[step - 3] as? FiveRegisterInstruction ?: return null
-    val id = code[step - 5]
     if (code[step - 1].opcode != Opcode.IF_EQZ || code[step - 2].opcode != Opcode.MOVE_RESULT || branch.registerA != result.registerA) return null
     val getter = (read as ReferenceInstruction).reference as? MethodReference ?: return null
-    if (code[step - 3].opcode != Opcode.INVOKE_INTERFACE || read.registerCount != 3 || getter.definingClass != CAR_MOBILE_CONFIG ||
-        getter.parameterTypes.map { it.toString() } != listOf("J") || getter.returnType != "Z") return null
-    if (code[step - 4].opcode != Opcode.CHECK_CAST || id.opcode != Opcode.CONST_WIDE ||
-        (id as WideLiteralInstruction).wideLiteral != CAR_EXTENSION_FLAG || (id as OneRegisterInstruction).registerA != read.registerD) return null
+    if (read.registerCount != 3 || getter.returnType != "Z") return null
+    val helper = code[step - 3].opcode == Opcode.INVOKE_STATIC && getter.parameterTypes.map { it.toString() } == listOf("Ljava/lang/Object;", "J")
+    val config = code[step - 3].opcode == Opcode.INVOKE_INTERFACE && getter.definingClass == CAR_MOBILE_CONFIG &&
+        getter.parameterTypes.map { it.toString() } == listOf("J") && code[step - 4].opcode == Opcode.CHECK_CAST
+    if (!helper && !config) return null
+    val id = code[if (helper) step - 4 else step - 5]
+    if (id.opcode != Opcode.CONST_WIDE || (id as WideLiteralInstruction).wideLiteral != CAR_EXTENSION_FLAG || (id as OneRegisterInstruction).registerA != read.registerD) return null
     if (step - 1 in jumpTargets() || result.registerA > 0xff) return null
     return CarGate(step - 2, result.registerA)
 }

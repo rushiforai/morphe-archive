@@ -24,6 +24,10 @@ public final class SettingsProfiles {
         // Expert is a projection of these same controls, not a second catalog.
         for(SettingsSections.Category c:SettingsSections.Category.values())if(c!=SettingsSections.Category.EXPERT)Haiagaru.settingsCategory(activity,c.name());
         booleanKey(ExpertSettings.KEY);
+        booleanKey(StockChmatePosting.LONG_PRESS);defaultValue(StockChmatePosting.LONG_PRESS,false);
+        booleanKey(StockChmatePosting.SKIP_CONFIRM);defaultValue(StockChmatePosting.SKIP_CONFIRM,false);
+        booleanKey(StockChmatePosting.SHOW_MENU);defaultValue(StockChmatePosting.SHOW_MENU,true);
+        booleanKey(ThreadPostingNames.ENABLED);defaultValue(ThreadPostingNames.ENABLED,false);
         for(String key:new String[]{"settingsOptionLinksEnabled","reporterSearchEnabled","videoLandscapeImmersive"}){
             booleanKey(key);defaultValue(key,true);
         }
@@ -40,6 +44,7 @@ public final class SettingsProfiles {
         booleanKey(VideoViewerSettings.INLINE_GIF);defaultValue(VideoViewerSettings.INLINE_GIF,false);
         booleanKey(ImageViewerRotationButton.MENU_KEY);defaultValue(ImageViewerRotationButton.MENU_KEY,true);
         booleanKey(UpdateConnectionHeaders.KEY);defaultValue(UpdateConnectionHeaders.KEY,true);
+        booleanKey(ArchiveSearchLayout.ORIGINAL_SITE);defaultValue(ArchiveSearchLayout.ORIGINAL_SITE,false);
         for(String key:new String[]{"fast191UpdateConnect","optimize191UpdateProgress"}){booleanKey(key);defaultValue(key,true);}
         numberKey(CachedSearchOrder.KEY,0,4);defaultValue(CachedSearchOrder.KEY,0);
         for(String k:new String[]{EdgeLevelNg.OBSERVED}){booleanKey(k);defaultValue(k,false);}
@@ -48,6 +53,7 @@ public final class SettingsProfiles {
         numberKey("edgeLevelIntervalMinutes",15,1440);defaultValue("edgeLevelIntervalMinutes",30);
 
         booleanKey(GlobalTitleSearch.KEY);defaultValue(GlobalTitleSearch.KEY,false);
+        numberKey(GlobalTitleSearch.MODE,0,1);defaultValue(GlobalTitleSearch.MODE,0);
         RULES.put(GlobalTitleSearch.BOARDS,v->v instanceof String&&GlobalTitleSearch.validSelection((String)v));defaultValue(GlobalTitleSearch.BOARDS,"");
         for(String key:new String[]{VideoViewerSettings.GIF_NATIVE,VideoViewerSettings.VIDEO_NATIVE,VideoViewerSettings.THREAD_MEDIA}){
             booleanKey(key);defaultValue(key,false);
@@ -76,6 +82,8 @@ public final class SettingsProfiles {
         numberKey(HissiScanTemplate.DAYS,0,36524);
         booleanKey(HissiScanTemplate.ENABLED);
         defaultValue(HissiScanTemplate.ENABLED,true);
+        booleanKey(Haiagaru.HISSI_MENU_ENABLED_KEY);
+        defaultValue(Haiagaru.HISSI_MENU_ENABLED_KEY,true);
         numberKey(HissiScanTemplate.PROVIDER,0,3);
         RULES.put(HissiScanTemplate.BOARDS,v->v instanceof String&&((String)v).length()<=4096
                 &&(((String)v).isBlank()||((String)v).matches("[A-Za-z0-9_,\\s-]+")));
@@ -132,7 +140,7 @@ public final class SettingsProfiles {
         edit.remove(MinimalSetup.ACTIVE);
         if(!edit.commit())return false;
         SharedPreferences.Editor archive=activity.getSharedPreferences("haiagaru_eddi_search",0).edit();
-        for(String key:new String[]{"controlTextScale","resultTextScale","resultVerticalPadding","controlLayoutScale","hideSearchForm"})archive.remove(key);
+        for(String key:new String[]{"controlTextScale","resultTextScale","resultVerticalPadding","controlLayoutScale","hideSearchForm",ArchiveSearchLayout.HEIGHT,ArchiveSearchLayout.LOCKED})archive.remove(key);
         if(!archive.commit())return false;
         for(String name:new String[]{PosterHighlight.PREFS,ProgrammableNgController.PREFS,"haiagaru.hidden-id-ng",StringReplacement.PREFS})
             if(!activity.getSharedPreferences(name,0).edit().remove("enabled").commit())return false;

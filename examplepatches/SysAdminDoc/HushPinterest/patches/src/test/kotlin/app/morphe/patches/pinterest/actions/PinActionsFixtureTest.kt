@@ -157,19 +157,28 @@ class PinActionsFixtureTest {
                 assertEquals("${build.name} every path to the return at ${hook + 1} runs the hand-over", listOf(hook),
                     flow.normal.indices.filter { hook + 1 in flow.normal[it] })
             }
-            val marks = code.indices.filter {
-                (code[it] as? ReferenceInstruction)?.reference?.toString() == "$downloads->nativeRow(Landroid/view/View;)V"
+            // From 14.44.0 onViewCreated hands the row building to a method of the sheet's own.
+            fun marksIn(method: Method) = method.implementation?.instructions?.withIndex()?.filter { (_, instruction) ->
+                (instruction as? ReferenceInstruction)?.reference?.toString() == "$downloads->nativeRow(Landroid/view/View;)V"
+            }?.map { it.index }.orEmpty()
+            val marked = context.mutableClassDefBy(type).methods.filter { marksIn(it).isNotEmpty() }
+            assertEquals("${build.name} one method marks the sheet's Download image row", 1, marked.size)
+            val rowsAfter = marked.single()
+            val rowsBefore = classes.single { it.type == type }.methods.single {
+                it.name == rowsAfter.name && it.parameterTypes.map(CharSequence::toString) == rowsAfter.parameterTypes.map(CharSequence::toString)
             }
-            assertEquals("${build.name} the sheet's Download image row is marked once", 1, marks.size)
-            val mark = marks.single()
-            assertEquals(Opcode.MOVE_RESULT_OBJECT, code[mark - 1].opcode)
-            assertEquals("${build.name} mark passes the row register", (code[mark - 1] as OneRegisterInstruction).registerA,
-                (code[mark] as RegisterRangeInstruction).startRegister)
-            val factory = (code[mark - 2] as ReferenceInstruction).reference as MethodReference
+            if (build.name.startsWith("pinterest-14.44.0-")) assertEquals(build.name, "W9", rowsAfter.name)
+            val rowCode = rowsAfter.implementation!!.instructions.toList()
+            assertEquals("${build.name} the sheet's Download image row is marked once", 1, marksIn(rowsAfter).size)
+            val mark = marksIn(rowsAfter).single()
+            assertEquals(Opcode.MOVE_RESULT_OBJECT, rowCode[mark - 1].opcode)
+            assertEquals("${build.name} mark passes the row register", (rowCode[mark - 1] as OneRegisterInstruction).registerA,
+                (rowCode[mark] as RegisterRangeInstruction).startRegister)
+            val factory = (rowCode[mark - 2] as ReferenceInstruction).reference as MethodReference
             assertEquals(type, factory.definingClass)
             assertEquals("Landroid/widget/RelativeLayout;", factory.returnType)
             assertTrue("${build.name} marked row is the Download image title",
-                references(code.subList(maxOf(0, mark - 9), mark - 2)).any { it.endsWith("->$NATIVE_DOWNLOAD_TITLE:I") })
+                references(rowCode.subList(maxOf(0, mark - 9), mark - 2)).any { it.endsWith("->$NATIVE_DOWNLOAD_TITLE:I") })
             // Take the hooks back out and the sheet's own code is what it was. A jump the hooks pushed
             // out of a short goto's reach is assembled as a wider goto.
             val gotos = setOf(Opcode.GOTO_16, Opcode.GOTO_32)
@@ -177,7 +186,12 @@ class PinActionsFixtureTest {
                 .filter { (index, instruction) -> index !in removed && instruction.opcode != Opcode.NOP }
                 .map { (_, instruction) -> (if (instruction.opcode in gotos) Opcode.GOTO else instruction.opcode) to
                     (instruction as? ReferenceInstruction)?.reference?.toString() }
-            assertEquals("${build.name} the sheet's own rows survive", shape(before, emptySet()), shape(after, (hooks + mark).toSet()))
+            if (rowsAfter.name == after.name && rowsAfter.parameterTypes.map(CharSequence::toString) == after.parameterTypes.map(CharSequence::toString)) {
+                assertEquals("${build.name} the sheet's own rows survive", shape(before, emptySet()), shape(after, (hooks + mark).toSet()))
+            } else {
+                assertEquals("${build.name} the sheet's own setup survives", shape(before, emptySet()), shape(after, hooks.toSet()))
+                assertEquals("${build.name} the sheet's own rows survive", shape(rowsBefore, emptySet()), shape(rowsAfter, setOf(mark)))
+            }
             val stubs = context.mutableClassDefBy(downloads)
             fun stub(name: String) = references(stubs.methods.single { it.name == name }.implementation!!.instructions.toList())
             val pin = classes.single { it.type == PIN_MENU }.fields.single { it.name == "pin" }.type
@@ -235,7 +249,7 @@ class PinActionsFixtureTest {
             }.let { (it as ReferenceInstruction).reference.toString() }
             val id = stored(Opcode.IPUT_OBJECT, registers - 2)
             val kind = stored(Opcode.IPUT, registers - 1)
-            if (build.name.startsWith("pinterest-14.43.0-")) {
+            if (build.name.startsWith("pinterest-14.44.0-")) {
                 assertEquals("$SENDABLE_TYPE->a:Ljava/lang/String;", id)
                 assertEquals("$SENDABLE_TYPE->c:I", kind)
             }
@@ -253,7 +267,7 @@ class PinActionsFixtureTest {
             // The extension makes a pin link only for kind 0, and the patch applied, so the
             // sendable's model constructor gives the overflow menu's pin model that kind.
             val pin = classes.single { it.type == PIN_MENU }.fields.single { it.name == "pin" }.type
-            if (build.name.startsWith("pinterest-14.43.0-")) assertEquals("${build.name} pin model", "Lcom/pinterest/api/model/pe;", pin)
+            if (build.name.startsWith("pinterest-14.44.0-")) assertEquals("${build.name} pin model", "Lcom/pinterest/api/model/pe;", pin)
             println("${build.name}: a pin ($pin) is sendable kind 0")
         }
     }

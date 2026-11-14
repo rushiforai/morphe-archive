@@ -16,7 +16,7 @@ val unlockPremiumPatch = bytecodePatch(
         CheckProStatusFingerprint.method.addInstructions(
             0,
             """
-                invoke-virtual {p0}, Lzx2;->o()V
+                invoke-virtual {p0}, Lf13;->o()V
                 return-void
             """
         )

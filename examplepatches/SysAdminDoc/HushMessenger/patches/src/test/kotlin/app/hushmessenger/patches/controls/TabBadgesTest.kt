@@ -72,6 +72,28 @@ private fun buttonBuild(
     return-object v4
 """.trimIndent(), registers = registers)
 
+/** 587's build: the controller goes into the button's builder right after the check, and the builder into the button. */
+private fun buttonBuild587(
+    store: String = "iput-object v9, v8, LX/2LP;->A04:LX/38i;",
+    build: String = "invoke-direct {v4, v8}, LX/2RS;-><init>(LX/2LP;)V",
+) = fixtureMethod(SYNTHETIC_FACEBOOK_BADGE, """
+    sget-object v3, LX/1sN;->A00:$FB_USER_SESSION
+    sget-object v9, LX/1sN;->A01:Ljava/lang/Object;
+    check-cast v9, LX/38i;
+    new-instance v8, LX/2LP;
+    invoke-direct {v8}, LX/2LP;-><init>()V
+    sget-object v0, LX/1sN;->A02:LX/1sM;
+    $SESSION_CHECK
+    move-result v0
+    if-nez v0, :build
+    const/4 v9, 0x0
+    :build
+    $store
+    new-instance v4, LX/2RS;
+    $build
+    return-object v4
+""".trimIndent(), registers = 15)
+
 /** Both hooks for the catalog-wide discovery fixture. */
 internal fun tabBadgesFixture() = listOf(fixtureClass("LX/1n1;", listOf(dispatcher())), fixtureClass(FACEBOOK_BUTTON, listOf(buttonBuild())))
 
@@ -134,6 +156,28 @@ class TabBadgesTest {
         injectControl(TAB_BADGES, mapOf(TAB_BADGES to listOf(tab), FACEBOOK_BADGE to listOf(button)))
         assertDispatcherHook(tabBefore, tab.code(), tab.parameterRegister(1), NO_BADGE, "dispatcher")
         assertButtonHook(buttonBefore, button.code(), result, "button")
+    }
+
+    @Test fun the587ButtonThatTakesItsControllerThroughABuilderGoesThroughTheExtension() {
+        val button = buttonBuild587()
+        val found = found(button)
+        assertEquals(listOf(SYNTHETIC_FACEBOOK_BADGE), found.getValue(FACEBOOK_BADGE).map { it.hookId() })
+        validateControls(found, setOf(FACEBOOK_BADGE))
+        val before = button.code()
+        val result = button.facebookBadgeCheck()!!
+        injectControl(FACEBOOK_BADGE, mapOf(FACEBOOK_BADGE to listOf(button)))
+        assertButtonHook(before, button.code(), result, "587 button")
+        val wrong = mapOf(
+            "the builder's field isn't the controller's type" to buttonBuild587(store = "iput-object v9, v8, LX/2LP;->A04:Ljava/lang/Object;"),
+            "the button never gets the builder" to buttonBuild587(build = "invoke-direct {v4, v7}, LX/2RS;-><init>(LX/2LP;)V"),
+            "the button takes the builder as an Object" to buttonBuild587(build = "invoke-direct {v4, v8}, LX/2RS;-><init>(Ljava/lang/Object;)V"),
+        )
+        for ((case, bad) in wrong) {
+            assertTrue(found(bad).getValue(FACEBOOK_BADGE).isEmpty(), case)
+            val code = bad.code()
+            assertFailsWith<PatchException>(case) { injectControl(FACEBOOK_BADGE, mapOf(FACEBOOK_BADGE to listOf(bad))) }
+            assertEquals(code, bad.code(), case)
+        }
     }
 
     @Test fun onlyTheOneDispatcherAndTheFacebookButtonItselfCount() {

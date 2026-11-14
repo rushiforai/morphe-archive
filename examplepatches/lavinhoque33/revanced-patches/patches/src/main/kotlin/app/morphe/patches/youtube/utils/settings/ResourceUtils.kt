@@ -22,6 +22,7 @@ internal object ResourceUtils {
     fun setContext(context: ResourcePatchContext) {
         this.context = context
         this.rvxSettingFile = context[RVX_PREFERENCE_PATH]
+        PatchList.entries.forEach { it.included = false }
     }
 
     fun getContext() = context
@@ -105,7 +106,6 @@ internal object ResourceUtils {
 
     fun addPreference(patch: PatchList) {
         patch.included = true
-        updatePatchStatus(patch.title.replace(" for YouTube", ""))
     }
 
     fun addPreference(settingArray: Array<String>, patch: PatchList) {
@@ -113,26 +113,27 @@ internal object ResourceUtils {
         addPreference(patch)
     }
 
-    fun updatePatchStatus(patchTitle: String) {
-        updatePatchStatusSettings(patchTitle, "@string/revanced_patches_included")
-    }
-
-    fun updatePatchStatusTheme(themeName: String) =
-        updatePatchStatusSettings("Theme", themeName)
-
-    fun updatePatchStatusSettings(
-        patchTitle: String,
-        updateText: String
-    ) = context.apply {
-        document(RVX_PREFERENCE_PATH).use { document ->
-            document.doRecursively loop@{
-                if (it !is Element) return@loop
-
-                it.getAttributeNode("android:title")?.let { attribute ->
-                    if (attribute.textContent == patchTitle) {
-                        it.getAttributeNode("android:summary").textContent = updateText
-                    }
-                }
+    /**
+     * These flags are the existing settings inclusion records, not patcher execution results.
+     * In particular, an absent record cannot distinguish exclusions, version gates or failures.
+     */
+    fun writePatchInformation() {
+        context.document(RVX_PREFERENCE_PATH).use { document ->
+            val category = document.childNodes.findElementByAttributeValueOrThrow(
+                "android:key", "revanced_about_patch_inclusion"
+            )
+            PatchList.entries.sortedBy { it.title }.forEach { patch ->
+                val preference = document.createElement(
+                    "app.morphe.extension.youtube.settings.preference.AboutPreference"
+                )
+                preference.setAttribute("android:title", patch.title)
+                preference.setAttribute("android:selectable", "false")
+                preference.setAttribute(
+                    "android:summary",
+                    if (patch.included == true) "@string/revanced_patches_included"
+                    else "@string/revanced_about_patch_not_recorded"
+                )
+                category.appendChild(preference)
             }
         }
     }

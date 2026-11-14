@@ -149,20 +149,30 @@ internal const val FOLLOW_BUTTON_KEY = "video_author_follow_button"
 
 /**
  * The hot comment runnables, Kotlin's numbered lambdas of one method: the name ends in a number,
- * `$1` up to 585, `$1` and `$2` on 586, so it's matched up to the number ([footerRunnable]).
+ * `$1` up to 585, `$1` and `$2` on 586 and 587, so it's matched up to the number ([namedRunnable]).
+ * A MobileConfig flag picks which one the footer builds (586 LX/0C3N;->A1I, 587 LX/0CMg;->A1G), so
+ * every one is skipped.
  */
 internal const val HOT_COMMENT_RUNNABLE = "FbShortsViewerFooterHotCommentHelper\$createHotCommentQueryRunnable\$"
 internal const val SOCIAL_BUBBLES_RUNNABLE =
     "FbShortsViewerFooterSocialBubblesHelper\$setupSocialBubblesQuery\$socialBubblesQueryRunnable\$1"
 
-/** The query the hot comment runnable starts, the plain one beside its XAR variant. */
+/**
+ * The author and caption row's runnables, numbered like the hot comment ones. The one holding a
+ * comment query ([CAPTION_COMMENT_QUERIES]) fetches the comment the row swaps in for the caption a
+ * few seconds in, "Name commented: ..." (#464, 587 arm64 `$1`, LX/0ZtV;).
+ */
+internal const val CAPTION_ROW_RUNNABLE =
+    "FbShortsViewerAuthorAndDescriptionComponentSpec\$Companion\$onCreateInitialState\$"
+
+/** The comment query the caption row's runnable starts, the plain one beside its XAR variant. */
 internal const val INLINE_COMMENTS_QUERY = "FBShortsInlineCommentsQuery"
 
-/**
- * The query 586's other hot comment runnable (`$1`, LX/0CiK;) starts; a MobileConfig flag picks
- * which of the two the footer builds (LX/0C3N;->A1I), so both are skipped.
- */
-internal const val MFC_INLINE_COMMENTS_QUERY = "FBShortsMFCInlineCommentsQuery"
+/** The XAR variant, which the caption row's runnable starts when a check of Facebook's says so. */
+internal const val XAR_INLINE_COMMENTS_QUERY = "FBShortsXARInlineCommentsQuery"
+
+/** Either query marks the caption row's comment runnable among its others. */
+internal val CAPTION_COMMENT_QUERIES = listOf(INLINE_COMMENTS_QUERY, XAR_INLINE_COMMENTS_QUERY)
 
 /** The one literal the social bubbles runnable loads: the reel it asks about. */
 internal const val VIDEO_ID = "video_id"
@@ -417,12 +427,21 @@ private fun firstLambdaOf(body: List<Instruction>, picker: Int, first: Int): Pai
                 body[it].opcode == Opcode.INVOKE_DIRECT && invokeRegisters(body[it]).firstOrNull() == first
             } ?: return null
             val constructor = body[init].methodReference ?: return null
-            if (constructor.definingClass != type || constructor.name != "<init>" ||
-                constructor.parameterTypes.map { it.toString() } != listOf("Ljava/lang/Object;", "I")) return null
+            if (!isKeyedConstructor(constructor, type)) return null
             type to (constantAt(body, init, invokeRegisters(body[init]).last()) ?: return null)
         }
         else -> null
     }
+}
+
+/**
+ * Whether [constructor] makes a merged lambda of [type] keyed by its int: one object (the captured
+ * value, an Object up to 586, the config's own class on 587's helper) and then the key.
+ */
+private fun isKeyedConstructor(constructor: MethodReference, type: String): Boolean {
+    val parameters = constructor.parameterTypes.map { it.toString() }
+    return constructor.definingClass == type && constructor.name == "<init>" && parameters.size == 2 &&
+        parameters[0].startsWith("L") && parameters[1] == "I"
 }
 
 /** A lambda the picker helper hands the config's pick: one of its own parameters, or one it makes from an int parameter. */
@@ -468,8 +487,7 @@ private fun pickedLambdas(helper: Method): List<PickedLambda>? {
                     body[it].opcode == Opcode.INVOKE_DIRECT && invokeRegisters(body[it]).firstOrNull() == register
                 } ?: return null
                 val constructor = body[init].methodReference ?: return null
-                if (constructor.definingClass != type || constructor.name != "<init>" ||
-                    constructor.parameterTypes.map { it.toString() } != listOf("Ljava/lang/Object;", "I")) return null
+                if (!isKeyedConstructor(constructor, type)) return null
                 MadeHere(type, parameterAt(helper, invokeRegisters(body[init]).last()) ?: return null)
             }
             else -> return null
@@ -493,6 +511,8 @@ private fun pickedLambdas(helper: Method): List<PickedLambda>? {
  * - 585's Android 9 build, both values (LX/0ArK;->A01): `(config, Function0, I)String` as on 584, the
  *   first lambda made in the dump with `new-instance`, but the helper makes the second of a class of
  *   its own from its int, as the Player tab's helper does on 585's other builds.
+ * - 587 arm64, both values (09kw.A01): the Android 9 shape, except that the helper's own lambda
+ *   (0A59) is made from the config and the int, not from an Object and the int.
  */
 internal fun followFlagsAt(body: List<Instruction>, literal: Int, classOf: (String) -> ClassDef?): List<FollowFlag>? {
     val name = (body[literal] as? OneRegisterInstruction)?.registerA ?: return null
@@ -728,14 +748,25 @@ internal fun followCheck(author: Method, resolve: (MethodReference) -> Method?):
  * The `run()` of [classDef] when Redex left it the name [redexName] (or, for a name ending in `$`,
  * that name and a number), it's a Runnable, and its run loads [holding]; otherwise null.
  */
-internal fun footerRunnable(classDef: ClassDef, redexName: String, holding: String): Method? {
+internal fun footerRunnable(classDef: ClassDef, redexName: String, holding: String): Method? =
+    namedRunnable(classDef, redexName)?.takeIf { holdsString(it, holding) }
+
+/**
+ * The `run()` of [classDef] when Redex left it the name [redexName] (or, for a name ending in `$`,
+ * that name and a number) and it's a Runnable, whatever it loads; otherwise null. 587's second hot
+ * comment runnable (`$2`, LX/0CT7;) only hands a lambda the query, so it holds no query name.
+ */
+internal fun namedRunnable(classDef: ClassDef, redexName: String): Method? {
     if (!footerRunnableNamed(redexOriginalName(classDef), redexName)) return null
     if (classDef.interfaces.none { it.toString() == RUNNABLE }) return null
     return classDef.methods.singleOrNull {
-        it.name == "run" && it.returnType == "V" && it.parameterTypes.isEmpty() && it.implementation != null &&
-            holdsString(it, holding)
+        it.name == "run" && it.returnType == "V" && it.parameterTypes.isEmpty() && it.implementation != null
     }
 }
+
+/** The caption row's comment runnable (#464): one of [CAPTION_ROW_RUNNABLE]'s holding a comment query. */
+internal fun captionCommentRunnable(classDef: ClassDef): Method? =
+    namedRunnable(classDef, CAPTION_ROW_RUNNABLE)?.takeIf { run -> CAPTION_COMMENT_QUERIES.any { holdsString(run, it) } }
 
 /** Whether Redex's [name] is [redexName], or, for a [redexName] ending in `$`, that and a number. */
 internal fun footerRunnableNamed(name: String?, redexName: String): Boolean {

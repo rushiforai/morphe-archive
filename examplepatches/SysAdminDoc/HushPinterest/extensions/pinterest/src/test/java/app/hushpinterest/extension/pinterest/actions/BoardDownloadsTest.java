@@ -216,7 +216,7 @@ public class BoardDownloadsTest {
     @Test public void theBoardOffersEachKindAndRereadsHistoryWhenItQueues() throws Exception {
         List<Object> pins = page("77", 100, 2);
         pins.add(video("102", "102.mp4", "77"));
-        pins.add(video("103", "hls/103.m3u8", "77"));
+        pins.add(video("103", "dash/103.mpd", "77"));
         AlertDialog choice = openChooser(pins);
         android.widget.ListView kinds = choice.getListView();
         assertEquals(Arrays.asList("All (4)\nUnsupported: 1", "Images (2)\nUnsupported: 0", "Videos (2)\nUnsupported: 1"),
@@ -261,8 +261,8 @@ public class BoardDownloadsTest {
     /** A kind whose new pins are all streamed-only keeps Queue pins off, Save list on, and a tap that gets there queues nothing. */
     @Test public void aKindWithNothingThatCanBeSavedKeepsQueueOff() throws Exception {
         List<Object> pins = page("77", 100, 1);
-        pins.add(video("102", "hls/102.m3u8", "77"));
-        pins.add(video("103", "hls/103.m3u8", "77"));
+        pins.add(video("102", "dash/102.mpd", "77"));
+        pins.add(video("103", "dash/103.mpd", "77"));
         AlertDialog choice = openChooser(pins);
         android.widget.ListView kinds = choice.getListView();
         assertEquals("Videos (2)\nUnsupported: 2", kinds.getAdapter().getItem(2).toString());
@@ -288,8 +288,8 @@ public class BoardDownloadsTest {
     /** A board of only streamed-only videos opens with Queue pins off and Save list on. */
     @Test public void aBoardOfOnlyStreamedVideosOpensWithQueueOff() throws Exception {
         List<Object> pins = new ArrayList<>();
-        pins.add(video("102", "hls/102.m3u8", "77"));
-        pins.add(video("103", "hls/103.m3u8", "77"));
+        pins.add(video("102", "dash/102.mpd", "77"));
+        pins.add(video("103", "dash/103.mpd", "77"));
         AlertDialog choice = openChooser(pins);
         assertEquals("All (2)\nUnsupported: 2", choice.getListView().getAdapter().getItem(0).toString());
         assertFalse(choice.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled());

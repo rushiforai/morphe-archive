@@ -10,7 +10,7 @@ import semicoloncolonel.mobilestream.patches.shared.privacy.blockTrackers
 // ─────────────────────────────────────────────────────────────────────────────
 // Block analytics & tracking (OPT-IN, default OFF).
 //
-// DealSeek 1.64.0 ships AppsFlyer, the Meta SDK (auto-logged events and ad-ID
+// DealSeek 1.65.0 ships AppsFlyer, the Meta SDK (auto-logged events and ad-ID
 // collection switched on), Firebase Analytics, the TikTok Business SDK and
 // PostHog. The native SDKs send through URL.openConnection(), which the shared
 // layer covers. OkHttp is renamed in this build, so the shared OkHttp layer
@@ -30,6 +30,7 @@ val blockAnalyticsPatch = bytecodePatch(
     description = "Stops the app's analytics, ad measurement, and marketing services.",
     default = false,
 ) {
+    category("Privacy")
     compatibleWith(Constants.COMPATIBILITY)
 
     dependsOn(analyticsKillSwitchesPatch)

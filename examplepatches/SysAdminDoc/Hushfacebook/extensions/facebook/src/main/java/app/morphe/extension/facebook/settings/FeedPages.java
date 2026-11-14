@@ -12,6 +12,7 @@ import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragm
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.commentOrderRow;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.commentsHeightRow;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.feedsSubtabRow;
+import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.holdReactionRow;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.homeFeedRow;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.info;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.pauseLengthRow;
@@ -179,7 +180,12 @@ final class FeedPages {
                 || build.contains(PatchFamily.POST_DATES)
                 || build.contains(PatchFamily.AUTO_TRANSLATION)
                 || build.contains(PatchFamily.ASK_BEFORE_LIKE)
-                || build.contains(PatchFamily.FEEDS_HEADER)) {
+                || build.contains(PatchFamily.FEEDS_HEADER)
+                || build.contains(PatchFamily.FULL_POST_TEXT)
+                || build.contains(PatchFamily.TRANSLATE_POSTS)
+                || build.contains(PatchFamily.REEL_GESTURES)
+                || build.contains(PatchFamily.WHO_SHARED)
+                || build.contains(PatchFamily.PHOTO_CAROUSEL)) {
             PreferenceCategory feed = category(screen, L10n.t("News feed"));
             // The families whose rules run in the feed guard, which keeps the tally.
             if (build.contains(PatchFamily.SPONSORED_POSTS) || build.contains(PatchFamily.SUGGESTED_POSTS)
@@ -355,6 +361,10 @@ final class FeedPages {
                 feed.addPreference(toggle(context, Settings.SELECT_POST_TEXT,
                         L10n.t("Holding a post's text opens it in a box where you can select just the part you want "
                                 + "and copy that, or copy all of it. The hold itself copies nothing.")));
+                feed.addPreference(toggle(context, Settings.HOLD_POST_TO_REACT,
+                        L10n.t("Holding a post's photo or video opens its reactions, as holding Like does. On a feed "
+                                + "post it comes before Long press opens comments.")));
+                feed.addPreference(holdReactionRow(context));
             }
             if (build.contains(PatchFamily.WHO_SHARED)) {
                 feed.addPreference(toggle(context, Settings.SEE_WHO_SHARED,
@@ -429,7 +439,8 @@ final class FeedPages {
             if (build.contains(PatchFamily.POST_WORDS)) {
                 feed.addPreference(toggle(context, Settings.HIDE_POSTS_WITH_WORDS,
                         L10n.t("Hides posts containing a word or phrase from your list below. Words that keep a post win over it. "
-                                + "Your words stay on this phone unless you export them.")));
+                                + "Your words stay on this phone unless you export them. Posts on profiles, Pages and in groups go too, "
+                                + "and Reels tab reels go by their captions.")));
                 feed.addPreference(page.wordsRow(context, Settings.HIDDEN_WORDS, true));
                 feed.addPreference(page.wordsRow(context, Settings.KEPT_WORDS, false));
                 feed.addPreference(toggle(context, Settings.POST_WORDS_WHOLE_WORDS,
@@ -443,7 +454,8 @@ final class FeedPages {
                 feed.addPreference(toggle(context, Settings.HIDE_VIDEO_POSTS,
                         L10n.t("Hides posts with a video, including shares. Reels in the feed have their own switch.")));
                 feed.addPreference(toggle(context, Settings.HIDE_LINK_POSTS,
-                        L10n.t("Hides posts that share a link to a website, with its preview card.")));
+                        L10n.t("Hides posts that share a link to a website, with its preview card. On profiles, Pages, groups and "
+                                + "the Reels tab, a post or reel whose words name a website goes too.")));
                 feed.addPreference(toggle(context, Settings.HIDE_BACKGROUND_POSTS,
                         L10n.t("Hides short posts shown as big text on a colored background.")));
                 feed.addPreference(toggle(context, Settings.HIDE_REPOSTS,
@@ -710,6 +722,10 @@ final class FeedPages {
                         L10n.t("The Stories tray keeps only the stories you've already watched, so you can find one again. "
                                 + "Turn it off to see the new ones. Hide seen stories waits while this is on. Applies when "
                                 + "Facebook next loads the tray.")));
+                // Stories that showed in Home's tray count as seen, watched or not (#463).
+                stories.addPreference(toggle(context, Settings.HIDE_PASSED_STORIES,
+                        L10n.t("A story you scrolled past in the Stories tray leaves it the next time you open Facebook, "
+                                + "even if you didn't watch it. A new story brings that person back.")));
             }
             if (build.contains(PatchFamily.STORY_AUTO_ADVANCE)) {
                 stories.addPreference(toggle(context, Settings.BLOCK_STORY_AUTO_ADVANCE,

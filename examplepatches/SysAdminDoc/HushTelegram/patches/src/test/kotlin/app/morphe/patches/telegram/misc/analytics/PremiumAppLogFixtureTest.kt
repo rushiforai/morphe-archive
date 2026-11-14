@@ -390,7 +390,8 @@ class PremiumAppLogFixtureTest {
 
     private fun hosts(build: File) = (FixtureDex.classesWhere(build, HOST_CENSUS, { true }) { method -> buildsAppLog(method) || method.instructions().any {
         it.opcode == Opcode.NEW_INSTANCE && it.reference() == REPORT_READ_METRICS
-    } } + ghostModeHosts(build) + instantLockHosts(build) + quietSignUpHosts(build) + deleteAccountHosts(build)).distinctBy { it.type }
+    } } + ghostModeHosts(build) + instantLockHosts(build) + quietSignUpHosts(build) + deleteAccountHosts(build) +
+        readsMenuHosts(build)).distinctBy { it.type }
     private fun buildsAppLog(method: Method) = method.instructions().any { it.opcode == Opcode.NEW_INSTANCE && it.reference() == SAVE_APP_LOG }
     private fun snapshots(context: BytecodePatchContext, classes: List<ClassDef>) =
         (classes.map { it.type } + listOf(ANALYTICS, SETTINGS_STATUS)).distinct().flatMap { owner ->

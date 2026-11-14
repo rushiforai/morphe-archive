@@ -24,9 +24,9 @@ class SourceIndexTest {
             MessengerTarget.VERSIONS.entries.single { it.key == target.version }.value
                 .forEach { assertContains(description, it.toString()) }
         }
-        // #145: 586 has several arm64 builds and the map holds one code per ABI, so Manager is told none and the
+        // #145: 587 has several arm64 builds and the map holds one code per ABI, so Manager is told none and the
         // patch-time check is what refuses a build that isn't recorded. Declaring one would turn the others away.
-        assertNull(targets.single { it.version == "586.0.0.55.92" }.versionCodes)
+        assertNull(targets.single { it.version == "587.0.0.54.96" }.versionCodes)
     }
 
     @Test

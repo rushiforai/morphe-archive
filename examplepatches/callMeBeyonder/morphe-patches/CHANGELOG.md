@@ -1,3 +1,21 @@
+## [1.17.0](https://github.com/callMeBeyonder/morphe-patches/compare/v1.16.0...v1.17.0) (2026-11-13)
+
+### ✨ New Features
+
+* **pushups100:** add premium unlock patch for 0-100 Pushups 5.3.3 ([6c2c24b](https://github.com/callMeBeyonder/morphe-patches/commit/6c2c24b5cb1067ec8248b2c8f58aa58e68cf599f))
+
+## [1.16.0](https://github.com/callMeBeyonder/morphe-patches/compare/v1.15.0...v1.16.0) (2026-11-13)
+
+### ✨ New Features
+
+* **c262:** add premium unlock patch for Marathon 26.2 2.58 ([d40cd2b](https://github.com/callMeBeyonder/morphe-patches/commit/d40cd2be9ba4c5d0b8ebfbdc9c5ee291c31d8781))
+
+## [1.15.0](https://github.com/callMeBeyonder/morphe-patches/compare/v1.14.0...v1.15.0) (2026-11-13)
+
+### ✨ New Features
+
+* **c131:** add premium unlock patch for Half Marathon 13.1 96.03 ([c91d232](https://github.com/callMeBeyonder/morphe-patches/commit/c91d232cd006a74353cf715ebe4dca1626037e93))
+
 ## [1.14.0](https://github.com/callMeBeyonder/morphe-patches/compare/v1.13.0...v1.14.0) (2026-11-13)
 
 ### ✨ New Features

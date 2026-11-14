@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.util.Log;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Opens settings and restart on installs whose manifest changes never reached PackageManager, such as
@@ -51,7 +52,9 @@ public final class HostScreens {
             Log.e("HushMessenger", "Can't watch for chats opening", error);
         }
         try {
-            if (app != null && Settings.bundled(bundledControls()).contains(CallRecording.KEY)) CallRecording.register(app);
+            Set<String> bundled = app == null ? null : Settings.bundled(bundledControls());
+            // Live captions put their box on the call screen through the same watcher.
+            if (bundled != null && (bundled.contains(CallRecording.KEY) || bundled.contains(CallCaptions.KEY))) CallRecording.register(app);
         } catch (RuntimeException | LinkageError error) {
             Log.e("HushMessenger", "Can't watch for calls", error);
         }
@@ -117,7 +120,7 @@ public final class HostScreens {
     }
 
     /**
-     * The Messenger build the patch started from, "586.0.0.55.92|347215348|base": version name, version code and the
+     * The Messenger build the patch started from, "587.0.0.54.96|347415354|base": version name, version code and the
      * mapping its hooks came from. The patch rewrites this, so it holds on Root Mount installs and under Spoof package
      * version, where Android's version code says something else. The extension alone has none.
      */

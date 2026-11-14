@@ -118,7 +118,6 @@ Reproducción SABR (con 'Falsificar transmisiones de vídeo' desactivado)"</stri
     <string name="morphe_music_crossfade_screen_title">Fundido entre canciones</string>
     <string name="morphe_music_crossfade_session_control_summary">Mantén pulsado el botón de reproducción aleatoria para pausar o reanudar el fundido entre canciones</string>
     <string name="morphe_music_crossfade_session_control_title">Control de sesión</string>
-    <string name="morphe_music_crossfade_video_mode_disabled_toast">El modo de vídeo no está disponible mientras el fundido entre canciones está activado</string>
     <string name="morphe_music_deezer_arl_dialog_instruction">"Pega la cookie arl de Deezer
 
 Pasos:
@@ -1049,4 +1048,6 @@ El ID del video que ves se envía a la API de Return YouTube Dislike, y tus me g
     <string name="revanced_webview_toast_empty">%s está vacío</string>
     <string name="revanced_webview_toast_no_network">Comprueba tu conexión a Internet</string>
     <string name="revanced_webview_toast_unavailable">WebView no está disponible</string>
+    <string name="morphe_music_auto_song_version_title">Reproducir siempre la versión de la canción</string>
+    <string name="morphe_music_auto_song_version_summary">Reemplaza los vídeos musicales oficiales de la cola por la canción correspondiente. Requiere activar «No reproducir vídeos musicales» en la aplicación. Las pistas sin coincidencia exacta no cambian</string>
 </resources>

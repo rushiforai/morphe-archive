@@ -6,7 +6,7 @@
 
 用 [Morphe](https://morphe.software) 修補,修補後的 Maps 以另一個 package 安裝,**與原廠 Google Maps 並存**:原廠的照常拿來開車,修補版拿來騎機車。
 
-> 實驗性專案。只在 Galaxy S25(Android 16)+ headunit 模擬車機(USB 有線)上驗證過。上路前請先停車測試;路線是否合法(例如 125cc 禁行國道、快速道路)請依現地標誌判斷,不能只看 App。
+> 實驗性專案。2026-11-14 使用者確認：**Galaxy S25（Android 16）＋ Pernis MS700CL，透過無線 Android Auto 18 可使用修補版 Maps**；關鍵是使用 **KingInstaller Classic** 安裝修補完成的 APK。成功案例使用 1.0.3 bundle（含 template-only patch）。先前也已在 headunit 模擬車機（USB）驗證。其他手機與車機尚不能保證相容，上路前請先停車測試，並依現地交通標誌行駛。
 
 ## 功能
 
@@ -26,8 +26,9 @@
 | 項目 | 下載 |
 |---|---|
 | Morphe Manager | <https://morphe.software> |
+| KingInstaller（本次 Samsung 實體車機成功案例使用的安裝工具） | [官方專案與下載](https://github.com/fcaronte/KingInstaller) |
 | **該版本的 MicroG-RE**(必須用這版) | [shuili1013/MicroG-RE releases](https://github.com/shuili1013/MicroG-RE/releases/tag/v7.3.0-maps-fix) → `microg-re-maps-fix-7.3.0.apk` |
-| 本專案的 patch bundle | 在 Morphe 加入 remote source `github.com/shuili1013/Maps-AA-AnyMode-Morphe`(或從 [Releases](https://github.com/shuili1013/Maps-AA-AnyMode-Morphe/releases) 下載 `patches-1.0.1.mpp`,用 Local 方式加入) |
+| 本專案的 patch bundle | 在 Morphe 加入 remote source `github.com/shuili1013/Maps-AA-AnyMode-Morphe`(或從 [Releases](https://github.com/shuili1013/Maps-AA-AnyMode-Morphe/releases) 下載 `patches-1.0.3.mpp`,用 Local 方式加入) |
 
 這個 bundle 已經包含所需的 Dutch App Patches 功能,**不用再另外加入 Dutch App Patches**。
 
@@ -42,6 +43,8 @@
 
 ## 安裝步驟
 
+### 1. 準備 MicroG-RE 與修補 Maps
+
 1. **安裝 MicroG-RE**(上表連結),打開它跑 Self-Check。
 2. **Morphe 設定 → Patching → 開啟 Expert mode**。
 3. **Sources → + → Remote →** 輸入 `github.com/shuili1013/Maps-AA-AnyMode-Morphe`。之前如果為了 Maps 加過 Dutch App Patches,請先停用。
@@ -53,16 +56,56 @@
    - `Allow any travel mode on Android Auto`
    - `Always two-wheeler on Android Auto`
    - `Skip private Android Auto car connection`
+   - `Android Auto template-only app`
 
    不要再從其他 source 勾 Maps 的 patch(例如官方 Morphe Patches 的 `Clone app`)。
-5. **安裝**。修補版會以 `org.ungoogled.android.apps.maps.microg` 安裝,名稱是 **Ungoogled Maps**。
-6. **Android Auto 開啟不明來源**:手機的 Android Auto 設定 → 連點「版本」約 10 次開啟開發人員模式 → 右上選單「開發人員設定」→ 開啟「**不明來源**」。
-7. 連上車機,選 **Ungoogled Maps**(車機上會有兩個 Maps 圖示,原廠那個無法隱藏,別選錯)。
+
+   `Android Auto template-only app` 會移除舊 projection 與通知入口，只保留 CAL 導航入口。它**不能**單獨讓車機接受修補版，安裝來源驗證仍然要靠下一節的 KingInstaller。**這個 patch 從 1.0.3 開始提供**，更舊的 bundle 沒有。
+
+5. 修補完成後，使用 Morphe 的儲存／匯出功能，保留**修補完成且已簽名的完整單一 APK**。原始輸入是 APKM，但交給 KingInstaller 的必須是成品 APK；不要選原始 APKM，也不要只抽出缺少 splits 的 base APK 安裝。
+
+### 2. 用 KingInstaller Classic 安裝成品 APK
+
+1. 從上表的官方專案下載並安裝 KingInstaller，打開它。
+2. **Root、Shizuku 兩個開關都不要開。**這就是 Classic 模式，也是本次 S25 成功的方法，無須 root 或啟動 Shizuku。
+3. 選取剛才從 Morphe 匯出的成品 APK，按安裝按鈕（部分版本顯示 `Install as king`）。若 Android 要求允許 KingInstaller 安裝不明應用程式，依提示開啟。
+4. 在手機跳出的**系統套件安裝畫面**確認安裝。若已裝過相同簽章的修補版，先嘗試覆蓋更新。不要為了重設來源紀錄直接刪 App；若遇簽章衝突，先確認簽章或備份資料，再處理解除安裝。
+5. 回 KingInstaller 主畫面，按選 APK 按鈕下方、**AA** 按鈕旁的 **Check and Reinstall App**。
+6. 搜尋 `maps`，點修補版 **`org.ungoogled.android.apps.maps.microg`**。名稱可能顯示 Maps 或 Ungoogled Maps，請用 package 確認，別選到原廠 Maps。
+7. 同時檢查兩個欄位。本次成功的 S25 顯示：
+
+   | 欄位 | 成功案例的值 |
+   |---|---|
+   | Initiating Installer（安裝發起者） | Package installer（`com.google.android.packageinstaller`） |
+   | Installing Installer（安裝者） | Google Play Store（`com.android.vending`） |
+
+   下方顯示綠色 **This app should work in Android Auto**。這是工具根據來源紀錄做的判斷，是否真的可用仍要接車機確認。
+
+8. 在手機打開修補版 Maps，授予導航／定位所需權限，確認地圖與定位正常；需要帳號功能時再透過 MicroG-RE 登入。
+
+**往後更新成品 APK，也請再次經由 KingInstaller Classic 安裝並檢查這兩欄。**改用 Morphe 或 ADB 更新可能改掉來源紀錄。KingInstaller 雖支援安裝 split APK，但其文件說明 split 安裝不具相同的 AA 來源繞過效果，因此本流程使用完整單一 APK。詳見 [KingInstaller 說明](https://github.com/fcaronte/KingInstaller)。
+
+### 3. 連接實體車機
+
+1. 打開手機的 Android Auto 設定。需要開發人員模式時，連點版本資訊約 10 次，再從右上選單開啟開發人員設定。原先測試環境有開啟**不明來源**，可保留，但它**不足以放行 CAL 導航 App**；Google 官方明確說此例外不適用於 Car App Library（[官方測試文件](https://developer.android.com/training/cars/testing)）。
+2. 中斷 Android Auto，再重新連接 MS700CL。必要時在手機 Android Auto 的「自訂啟動器／Customize launcher」檢查修補版 Maps，若有列出但未勾選則勾選。
+3. 在車機選修補版 Maps，搜尋目的地並選機車導航。原廠 Maps 也可能出現在清單中，請確認開啟的是修補版。
+4. 停車確認車機能顯示地圖與轉彎卡片。本次使用者在完成 KingInstaller Classic 安裝後，已確認實體 MS700CL 可以使用。
+
+### 常見問題與排查
+
+- **App 清單完全沒有 Maps：**先檢查上述兩個安裝來源欄位。手機能成功安裝，不代表 Android Auto 已接受它。
+- **開啟後顯示 `No new messages during this drive`：**舊的通知入口可能在 CAL 導航入口被拒後仍然顯示。template-only patch 會移除這個誤導入口，但不能單靠它解決來源驗證。
+- **不明來源開著仍不顯示：**這個設定不適用於 CAL App，請重新確認 KingInstaller 的安裝流程與來源欄位。
+- **`adb install -i com.android.vending` 沒用：**本次已測過無效。這種安裝可能只改安裝者，發起者仍是 shell；本次 Classic 安裝取得了上表兩個不同的值，並成功在實體車機運作。
+- **「Maps 遇到了未預期的錯誤」：**單靠這個訊息不能確定原因，請保留同次連線的 `CAR.VALIDATOR`、`PlayGearheadService` log 再判斷。
+
+先前除錯把 Play 的 `app owners empty` 視為完整原因；這次 Classic 成功證明，在本次環境還有其他可接受安裝來源的路徑。KingInstaller 並沒有恢復 Google 原始簽章，也不會讓 Play 真正擁有修補版 package。
 
 ## 已知限制
 
 - Android Auto 側欄的「下一個轉彎」資訊不會顯示;車機主畫面的地圖與轉彎卡片正常。
-- 實體車機、無線 Android Auto、偏航重算、長程實際道路尚未完整驗證。
+- 上述組合的實體 MS700CL／無線 Android Auto 已由使用者確認可用；偏航重算、長程實際道路及其他硬體仍未完整驗證。
 - 從手機上開始導航再交給車機,比在車機上搜尋開始的情況測試得少。
 
 ## Bundle 內的 patch
@@ -76,6 +119,7 @@
 | `Skip private Android Auto car connection` | 本專案 | Maps 的 `CarConnectionHandler.onCarConnected` 會呼叫 Android Auto 私有服務,重新簽名的 App 一律被拒(`Wrong signature - go/gearhead-retail-device`)並閃退。改為直接略過。 |
 | `Always two-wheeler on Android Auto` | 本專案 | Android Auto 的「支援模式」改為機車,讓在車機上搜尋的目的地預設走機車路線。 |
 | `Allow any travel mode on Android Auto` | 本專案 | 移除「模式不符就擋下/結束車機導航」的兩道檢查。 |
+| `Android Auto template-only app`(1.0.3 起) | 本專案 | 保留 CAL 導航能力，移除舊 projection／通知入口；仍須通過安裝來源驗證。 |
 
 原始碼在 `patch/`。本專案的 patch 在 `patch/patches/src/main/kotlin/tw/maps/`;收錄的 Dutch App Patches 程式碼在 `patch/patches/src/main/kotlin/dutch/`、`patch/extensions/`、`patch/support/`(改了哪些地方見 [NOTICE](NOTICE))。完整除錯過程、logcat 證據與 26.44 的名稱對應見 [findings.md](findings.md)。
 

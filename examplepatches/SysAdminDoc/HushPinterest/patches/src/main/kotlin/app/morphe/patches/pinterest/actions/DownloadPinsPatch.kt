@@ -13,6 +13,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patches.pinterest.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.pinterest.misc.extension.enableCapability
@@ -316,6 +317,7 @@ private class SheetHooks(
     val download: String,
     val presenter: Field,
     val dismiss: Method,
+    val rows: MutableMethod,
     val nativeAt: Int,
     val nativeRegister: Int,
     val returns: List<Int>,
@@ -359,8 +361,21 @@ private fun BytecodePatchContext.sheetHooks(sheet: PinSheet, icon: String): Shee
     }
     val (presenter, dismiss) = presenters.singleOrNull() ?: fail("has ${presenters.size} presenters that close it")
     if (!AccessFlags.PUBLIC.isSet(presenter.accessFlags)) fail("keeps its presenter private")
-    // Pinterest's own Download image row: the title id goes into the sheet's static row factory.
-    val built = sheet.build.instructions()
+    // Pinterest's own Download image row: the title id goes into the sheet's static row factory. Up to
+    // 14.43.0 onViewCreated built the rows itself; from 14.44.0 it hands the option list to a method of
+    // the sheet's own that builds them, before onViewCreated returns.
+    fun readsTitle(method: Method) = method.instructions().any { instruction ->
+        val title = (instruction as? ReferenceInstruction)?.reference as? FieldReference
+        instruction.opcode == Opcode.SGET && title?.name == NATIVE_DOWNLOAD_TITLE && title.type == "I"
+    }
+    val rows = (if (readsTitle(sheet.build)) sheet.build else fragment.methods.filter(::readsTitle).singleOrNull())
+        ?: fail("builds its Download image row in no single method of its own")
+    if (rows !== sheet.build && sheet.build.instructions().none { instruction ->
+            val called = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+            called?.definingClass == fragment.type && called.name == rows.name &&
+                called.parameterTypes.map(CharSequence::toString) == rows.parameterTypes.map(CharSequence::toString)
+        }) fail("builds its rows in ${rows.name}, which onViewCreated never calls")
+    val built = rows.instructions()
     val natives = built.withIndex().mapNotNull { (index, instruction) ->
         val title = (instruction as? ReferenceInstruction)?.reference as? FieldReference
         if (instruction.opcode != Opcode.SGET || title?.name != NATIVE_DOWNLOAD_TITLE || title.type != "I") return@mapNotNull null
@@ -383,11 +398,12 @@ private fun BytecodePatchContext.sheetHooks(sheet: PinSheet, icon: String): Shee
         call + 2 to (result as OneRegisterInstruction).registerA
     }
     val (nativeAt, nativeRegister) = natives.singleOrNull() ?: fail("has ${natives.size} native Download image rows")
-    // The rows are all in once the method returns, from wherever it returns.
-    val returns = built.withIndex().filter { it.value.opcode == Opcode.RETURN_VOID }.map { it.index }
+    // The rows are all in once onViewCreated returns, from wherever it returns, even when a method of the
+    // sheet's own builds them. These indices are onViewCreated's, where the hand-over goes.
+    val returns = sheet.build.instructions().withIndex().filter { it.value.opcode == Opcode.RETURN_VOID }.map { it.index }
     if (returns.isEmpty()) fail("never finishes building its rows")
     sheet.build.requireThisIntact(PATCH, returns)
-    return SheetHooks(sheet, row, icon, download, presenter, dismiss, nativeAt, nativeRegister, returns)
+    return SheetHooks(sheet, row, icon, download, presenter, dismiss, rows, nativeAt, nativeRegister, returns)
 }
 
 /** Writes the sheet's stubs, marks its native Download image row and hands the built sheet to the extension. */
@@ -426,7 +442,7 @@ private fun BytecodePatchContext.installSheet(hooks: SheetHooks) = with(hooks) {
         return-void
     """)
     // Highest first, so each index still points at the instruction it was found at.
-    val hooks = returns.map { it to "invoke-static/range { p0 .. p0 }, $DOWNLOADS->attachSheet(Ljava/lang/Object;)V" } +
-        (nativeAt to "invoke-static/range { v$nativeRegister .. v$nativeRegister }, $DOWNLOADS->nativeRow(Landroid/view/View;)V")
-    hooks.sortedByDescending { it.first }.forEach { (at, code) -> sheet.build.addInstructionsAtControlFlowLabel(at, code) }
+    val hooks = returns.map { Triple(sheet.build, it, "invoke-static/range { p0 .. p0 }, $DOWNLOADS->attachSheet(Ljava/lang/Object;)V") } +
+        Triple(rows, nativeAt, "invoke-static/range { v$nativeRegister .. v$nativeRegister }, $DOWNLOADS->nativeRow(Landroid/view/View;)V")
+    hooks.sortedByDescending { it.second }.forEach { (method, at, code) -> method.addInstructionsAtControlFlowLabel(at, code) }
 }

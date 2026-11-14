@@ -297,6 +297,28 @@ public final class GhostMode {
         }
     }
 
+    /**
+     * Sends the read held for one [chat] of [account], for Send read receipts in that chat's menu
+     * (#69): 1 once it's gone, 0 when nothing was held there, or -1 when this build can't send it,
+     * which keeps it held.
+     */
+    static int sendHeld(int account, long chat) {
+        try {
+            Held read;
+            synchronized (HELD) {
+                Map<Long, Held> reads = HELD.get(account);
+                read = reads == null ? null : reads.remove(chat);
+            }
+            if (read == null) return 0;
+            if (send(account, Collections.singletonMap(chat, read)) == 0) return -1;
+            HookStatus.counted(FamilyNames.DISABLE_ANALYTICS, "reads sent from a chat's menu");
+            return 1;
+        } catch (RuntimeException unreadable) {
+            HookStatus.threw(FamilyNames.DISABLE_ANALYTICS, "ghost mode chat's held read", unreadable);
+            return -1;
+        }
+    }
+
     /** Sends [reads] past the gate, putting back any that didn't go so the next try has them: how many went. */
     private static int send(int account, Map<Long, Held> reads) {
         int sent = 0;

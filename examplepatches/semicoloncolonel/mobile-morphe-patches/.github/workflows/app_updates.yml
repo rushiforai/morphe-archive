@@ -34,7 +34,7 @@ concurrency:
 jobs:
   schedule:
     name: Match Pacific time
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions: {}
     outputs:
       run: ${{ steps.slot.outputs.run }}
@@ -62,7 +62,7 @@ jobs:
     name: Check app versions
     needs: schedule
     if: needs.schedule.outputs.run == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 120
     permissions:
       contents: read
@@ -107,7 +107,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           ONLY: ${{ inputs.only }}
           # A throwaway Google account, not in any beta program, for reading the
-          # version Google Play serves to an ordinary phone.
+          # version Google Play serves to an ordinary phone, and as a Sony Bravia
+          # TV, the version it serves to Android TV.
           PLAY_EMAIL: ${{ secrets.PLAY_EMAIL }}
           PLAY_AAS_TOKEN: ${{ secrets.PLAY_AAS_TOKEN }}
         run: |
@@ -129,7 +130,7 @@ jobs:
   launch:
     name: Launch check on an emulator
     needs: check
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 90
     permissions:
       contents: read
@@ -184,7 +185,7 @@ jobs:
     name: Bump app versions on dev
     needs: [check, launch]
     if: ${{ always() && vars.AUTO_BUMP == 'true' && needs.check.result == 'success' && needs.launch.result == 'success' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     permissions:
       contents: write

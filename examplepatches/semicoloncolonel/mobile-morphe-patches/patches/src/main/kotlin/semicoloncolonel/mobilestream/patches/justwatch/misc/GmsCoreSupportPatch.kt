@@ -20,4 +20,5 @@ val gmsCoreSupportPatch = gmsCoreSupportPatch(
     // SHA-1 of the Play app signing certificate.
     signature = "cfd09a2ca218cc6546c9f5b1f48b9b255623feeb",
     launcherActivity = "Lcom/justwatch/justwatch/MainActivity;",
+    category = "Setup",
 )

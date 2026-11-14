@@ -78,7 +78,7 @@ public final class ImageVpnController {
 
     /** Persistent export dedup must not depend on a per-process relay capability URL. */
     static synchronized String imageIdentity(String value) {
-        return relay == null ? value : relay.imageIdentity(value);
+        return LocalImageArchive.originalUrl(relay == null ? value : relay.imageIdentity(value));
     }
 
     public static synchronized String route(String value) {

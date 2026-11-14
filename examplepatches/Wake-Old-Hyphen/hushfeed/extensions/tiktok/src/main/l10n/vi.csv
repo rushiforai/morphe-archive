@@ -367,6 +367,7 @@ Clear display isn't available for this video,Xóa hiển thị không khả dụ
 Clear kept messages,Xóa tin nhắn đã giữ lại
 Clear preset,Xóa cấu hình sẵn
 "Clear screen hides a LIVE's chat, gifts and buttons so only the stream shows. TikTok puts it in the menu of only some rooms. This adds it to the others.","Tính năng xóa màn hình sẽ ẩn khung chat, quà tặng và các nút của LIVE để chỉ hiển thị luồng phát. TikTok chỉ đặt tính năng này trong menu của một số phòng. Tùy chọn này sẽ bổ sung nó cho các phòng còn lại."
+Hashtags,Hashtag
 Keep clear screen in the next LIVE,Giữ xóa màn hình ở LIVE tiếp theo
 "A LIVE you swipe to comes back with its chat, gifts and buttons showing. This keeps clear screen on from room to room until you turn it off.","LIVE bạn vuốt tới sẽ hiện lại khung chat, quà tặng và các nút. Tùy chọn này giữ chế độ xóa màn hình từ phòng này sang phòng khác cho đến khi bạn tắt nó."
 Clear search,Xóa tìm kiếm
@@ -561,8 +562,11 @@ Easier comment likes,Thích bình luận dễ dàng hơn
 Edge strip width,Độ rộng dải cạnh
 "Effects ask TikTok's server whether your phone can run them, and some get turned down on older phones. This tells the effects server you have a Galaxy S24 Ultra instead, or the phone you type below. Sign-in and everything else still see your real phone. An effect your phone really can't run may still fail or look wrong.","Hiệu ứng sẽ hỏi máy chủ TikTok xem điện thoại của bạn có chạy được không và một số hiệu ứng bị từ chối trên máy cũ. Tùy chọn này giả lập báo cho máy chủ hiệu ứng rằng bạn dùng Galaxy S24 Ultra, hoặc điện thoại bạn nhập bên dưới. Đăng nhập và các tính năng khác vẫn nhận diện đúng điện thoại thực. Hiệu ứng phần cứng không hỗ trợ vẫn có thể không chạy được."
 Phone model for effects,Mẫu điện thoại cho hiệu ứng
+Photos,Ảnh
 "Pick the phone the effects server is told about, or type any model. An effect turned down for one phone may open for another. Empty means the Galaxy S24 Ultra.","Chọn điện thoại được báo cho máy chủ hiệu ứng, hoặc nhập bất kỳ mẫu máy nào. Hiệu ứng bị từ chối với điện thoại này có thể mở được với điện thoại khác. Để trống nghĩa là Galaxy S24 Ultra."
 "%1$s, the default","%1$s, mặc định"
+Places,Địa điểm
+Sounds,Âm thanh
 Type another model,Nhập mẫu máy khác
 "Use up to 40 letters and numbers. Spaces, dots, dashes and brackets are fine too.","Dùng tối đa 40 chữ cái và chữ số. Dấu cách, dấu chấm, dấu gạch ngang và dấu ngoặc cũng được."
 Empty,Trống
@@ -772,6 +776,16 @@ Hide picture comments,Ẩn bình luận bằng hình ảnh
 Hide playlist videos,Ẩn video trong danh sách phát
 "Hide posts only a creator's subscribers can watch, the ones with a lock, on the feed and on profiles.",Ẩn các bài đăng có biểu tượng khóa (chỉ dành riêng cho người đăng ký kênh của nhà sáng tạo) trên bảng tin và trên trang cá nhân.
 Hide profile shortcuts,Ẩn lối tắt trang cá nhân
+Hide profile tabs,Ẩn thẻ trang cá nhân
+"Pick the tabs to hide from the strip above a profile's videos, such as Reposts or Liked videos. One tab always stays. Restart TikTok to apply this.","Chọn các thẻ cần ẩn khỏi dải phía trên video của trang cá nhân, chẳng hạn Đăng lại hoặc Video đã thích. Luôn giữ lại một thẻ. Khởi động lại TikTok để áp dụng."
+Private videos,Video riêng tư
+Reposts,Đăng lại
+Favorites,Yêu thích
+Music,Âm nhạc
+Effects,Hiệu ứng
+Series,Phim bộ
+Stickers,Nhãn dán
+AI theater,Rạp AI
 Hide profile shortcuts by name,Ẩn lối tắt trang cá nhân theo tên
 Hide profile views,Ẩn lượt xem trang cá nhân
 Hide promotional music,Ẩn nhạc quảng cáo
@@ -1810,6 +1824,8 @@ Pill is the wide bubble with a row of dots under the speed. Circle is a small ro
 Hold speed slide direction,Hướng trượt tốc độ nhấn giữ
 Sideways,Sang ngang
 Up and down,Lên và xuống
+Users,Người dùng
+Videos,Video
 "With Sideways, slide left or right to change the speed and pull down to lock it. With Up and down, slide up for faster and down for slower, and slide to the side to lock it, so a hold near the edge still reaches every speed.","Với Sang ngang, trượt sang trái hoặc phải để đổi tốc độ và kéo xuống để khóa. Với Lên và xuống, trượt lên để nhanh hơn, trượt xuống để chậm hơn và trượt sang một bên để khóa, nên khi giữ gần mép màn hình bạn vẫn đến được mọi tốc độ."
 Soft blur,Mờ nhẹ
 Soft tick,Rung nhẹ
@@ -1928,7 +1944,7 @@ Swiping a message sideways no longer starts a reply to it. Taps and long presses
 "Swiping right on the For You feed no longer opens TikTok's side menu, with Your orders, TikTok Minis and more.","Vuốt sang phải trên bảng tin Dành cho bạn sẽ không còn mở menu bên của TikTok (chứa các mục Đơn hàng của bạn, TikTok Minis, v.v.)."
 System,Hệ thống
 Tag saved videos with their details,Gắn nhãn thông tin chi tiết vào video đã lưu
-"Take Hushfeed out of TikTok's Settings and privacy. To open these settings, press and hold For You at the top of the feed, or Home if Long-press Home for Hushfeed settings is on.","Gỡ mục Hushfeed khỏi phần Cài đặt và quyền riêng tư của TikTok. Để mở các cài đặt này, hãy nhấn giữ chữ Dành cho bạn ở đầu bảng tin hoặc nhấn giữ nút Trang chủ (Home) nếu đã bật tính năng Nhấn giữ nút Trang chủ để vào cài đặt Hushfeed."
+"Take Hushfeed out of TikTok's Settings and privacy. To open these settings, press and hold For You at the top of the feed, or Home if Long-press Home for Hushfeed settings is on. If neither press can open them, the row stays.","Gỡ mục Hushfeed khỏi phần Cài đặt và quyền riêng tư của TikTok. Để mở các cài đặt này, hãy nhấn giữ chữ Dành cho bạn ở đầu bảng tin hoặc nhấn giữ nút Trang chủ (Home) nếu đã bật tính năng Nhấn giữ nút Trang chủ để vào cài đặt Hushfeed. Nếu cả hai cách đều không mở được, mục này vẫn hiển thị."
 "Take the Add comment bar off videos you open from a profile, a hashtag, a sound or search, so the video fills the screen down to the bottom. The comment button on the right still opens comments.","Gỡ thanh Thêm bình luận khỏi các video mở từ trang cá nhân, hashtag, âm thanh hoặc tìm kiếm để video lấp đầy màn hình xuống tận đáy. Nút bình luận ở bên phải vẫn mở phần bình luận bình thường."
 "Take the pulsing LIVE ring off profile pictures on the feed, in comments and on profiles. Tapping the picture of a creator who's live opens their profile instead of the LIVE.","Gỡ vòng viền LIVE nhấp nháy khỏi ảnh đại diện trên bảng tin, trong bình luận và trên trang cá nhân. Chạm vào ảnh đại diện của nhà sáng tạo đang phát trực tiếp sẽ mở trang cá nhân của họ thay vì tham gia buổi LIVE."
 Remove rings on the feed,Xóa vòng viền trên bảng tin
@@ -2143,6 +2159,10 @@ TikTok refused the like with code %1$s,TikTok từ chối lượt thích với m
 TikTok refused the like: %1$s,TikTok từ chối lượt thích: %1$s
 TikTok refused this request (%1$s).,TikTok đã từ chối yêu cầu này (%1$s).
 "TikTok removes videos saved for offline viewing after a set time, sometimes only two days, watched or not. With this on they stay until you delete them in TikTok's Offline videos settings. TikTok can still clear watched ones when your phone is low on space.","TikTok xóa các video đã lưu để xem ngoại tuyến sau một khoảng thời gian nhất định (thỉnh thoảng chỉ hai ngày), dù đã xem hay chưa. Khi bật tính năng này, các video sẽ được giữ lại cho đến khi bạn tự xóa chúng trong phần cài đặt Video ngoại tuyến của TikTok. TikTok vẫn có thể xóa các video đã xem khi điện thoại của bạn sắp hết dung lượng."
+Delete watched offline videos,Xóa video ngoại tuyến đã xem
+"Each time TikTok starts, deletes the offline videos you've already watched, so the next download fills their places with new ones. A video counts as watched once it's been on screen.","Mỗi lần TikTok khởi động, xóa các video ngoại tuyến bạn đã xem, để lần tải xuống tiếp theo lấp chỗ của chúng bằng video mới. Một video được tính là đã xem ngay khi nó xuất hiện trên màn hình."
+1 unwatched offline video left,Còn 1 video ngoại tuyến chưa xem
+%1$d unwatched offline videos left,Còn %1$d video ngoại tuyến chưa xem
 TikTok reports additional filtered accounts. This list is incomplete.,TikTok báo cáo có thêm các tài khoản bị lọc. Danh sách này chưa đầy đủ.
 TikTok reports no more items in this list.,TikTok báo cáo không còn mục nào khác trong danh sách này.
 TikTok sees an empty contact list instead of yours. Find Friends and People you may know can no longer use your contacts.,TikTok nhìn thấy danh sách liên hệ trống thay vì danh sách của bạn. Các tính năng Tìm bạn bè và Người bạn có thể biết sẽ không thể sử dụng danh sách liên hệ của bạn nữa.
@@ -2574,6 +2594,12 @@ Bottom bar icons,Biểu tượng thanh dưới
 "TikTok tests more than one set of icons for the bottom bar. Pick one here, or leave it to TikTok.",TikTok đang thử nhiều bộ biểu tượng cho thanh dưới. Chọn một bộ ở đây hoặc để TikTok quyết định.
 New style 1,Kiểu mới 1
 New style 2,Kiểu mới 2
+Bottom bar height,Chiều cao thanh dưới
+"Videos and the other tabs make room for the bar at its new height. With the tab names hidden, the icons fit the shorter bars best.","Video và các thẻ khác chừa chỗ cho thanh theo chiều cao mới. Khi ẩn tên thẻ, biểu tượng vừa nhất với các thanh thấp hơn."
+Shorter,Rất thấp
+Short,Thấp
+Tall,Cao
+Taller,Rất cao
 Friends in the top tabs,Bạn bè ở các thẻ trên cùng
 "Friends moves up to the tabs at the top of the feed, next to Following, and Discover takes its spot in the bottom bar, the way TikTok lays it out in some countries. Your region and your feed stay as they are.","Bạn bè chuyển lên các thẻ ở đầu bảng tin, cạnh Đang theo dõi, và Khám phá thay chỗ nó ở thanh dưới cùng, giống cách TikTok sắp xếp ở một số quốc gia. Khu vực và bảng tin của bạn vẫn giữ nguyên."
 Pin more chats,Ghim thêm cuộc trò chuyện
@@ -2605,3 +2631,7 @@ Pause before the feed,Tạm dừng trước bảng tin
 Continue,Tiếp tục
 Leave TikTok,Rời TikTok
 You can continue now.,Bạn có thể tiếp tục ngay bây giờ.
+Hide search result tabs,Ẩn các tab kết quả tìm kiếm
+"Pick the tabs to remove from the top of the search results, such as Shop, LIVE or Places. The list holds the tabs TikTok has shown you, and Top always stays.","Chọn các tab cần bỏ khỏi phía trên kết quả tìm kiếm, như Cửa hàng, LIVE hoặc Địa điểm. Danh sách gồm các tab TikTok đã hiển thị cho bạn, và Top luôn được giữ lại."
+No search tabs have been seen yet,Chưa xuất hiện tab tìm kiếm nào
+"Search for something once, then return here to choose its tabs.","Hãy tìm kiếm một lần, rồi quay lại đây để chọn tab."

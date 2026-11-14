@@ -20,6 +20,7 @@ import app.morphe.patches.pinterest.ui.calls
 import app.morphe.patches.pinterest.ui.mutable
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -63,7 +64,19 @@ class FeedFixtureTest {
             assertEquals("${build.name} warnings", emptyList<String>(), warnings)
             assertEquals(build.name, 3, feedListHoldersHooked)
             for (flag in listOf("hideAds", "feedAds", "adViews", "googleAds", "metaAds", "hideAiPins", "feedAiPins", "hideShopping", "feedShopping",
-                    "filterFeed", "feedVideoPins", "feedMutedWords", "feedSavedPins")) assertFlag(context, flag)
+                    "filterFeed", "feedVideoPins", "feedMutedWords", "feedSavedPins", "feedHomeSuggestions", "feedbackFlyout")) assertFlag(context, flag)
+            // The pin's "See more like this?" getter hands every answer through the hook on its way out, once.
+            val flyout = context.feedbackFlyoutOrNull()!!
+            context.installFeedbackFlyout(flyout)
+            val asks = context.mutable(flyout.getter).implementation!!.instructions.toList()
+            val flyoutHooks = asks.indices.filter { (asks[it] as? ReferenceInstruction)?.reference?.toString() == FEEDBACK_FLYOUT_HOOK }
+            assertEquals("${build.name}: flyout hooks", 1, flyoutHooks.size)
+            assertEquals(build.name, listOf(Opcode.INVOKE_STATIC_RANGE, Opcode.MOVE_RESULT_OBJECT, Opcode.RETURN_OBJECT),
+                asks.subList(flyoutHooks.single(), asks.size).map { it.opcode })
+            for (branch in asks.filterIsInstance<BuilderOffsetInstruction>()) {
+                assertTrue("${build.name}: a branch in the flyout getter skips the hook",
+                    asks.indexOf(branch.target.location.instruction) <= flyoutHooks.single())
+            }
             // Home's request and page each carry one hook, and Download pins asking for the first adds no second.
             val homeFields = context.homeFieldsOrNull()!!
             context.installHomeFields(homeFields)
@@ -137,6 +150,8 @@ class FeedFixtureTest {
         // Pinterest's consent vendor enums, and the classes with a one-argument boolean check by parameter type.
         val vendors = mutableSetOf<String>()
         val askers = mutableMapOf<String, MutableSet<String>>()
+        // The pin model, as the outer class of whatever reads its "See more like this?" JSON name.
+        val models = mutableSetOf<String>()
         FixtureDex.forEach(build) { dex ->
             for (classDef in dex.classes) {
                 if (classDef.fields.any { it.name == META_AUDIENCE_NETWORK && it.type == classDef.type && AccessFlags.STATIC.isSet(it.accessFlags) }) {
@@ -153,6 +168,11 @@ class FeedFixtureTest {
                     }
                 }
                 val matched = literals.filter { it in written }
+                if (classDef.methods.any { method -> method.implementation?.instructions?.any {
+                        ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == FEEDBACK_FLYOUT } == true }) {
+                    wanted[classDef.type] = ImmutableClassDef.of(classDef)
+                    models += classDef.type.substringBefore('$').removeSuffix(";") + ";"
+                }
                 matched.forEach { holders.getOrPut(it) { mutableListOf() } += classDef.type }
                 val googleAds = classDef.methods.any { method -> method.implementation?.instructions?.any {
                     ((it as? ReferenceInstruction)?.reference as? FieldReference)?.name == GOOGLE_MOBILE_ADS } == true }
@@ -166,7 +186,7 @@ class FeedFixtureTest {
                 if (matched.isNotEmpty() || classDef.type in AD_ONLY_VIEWS || googleAds || home) wanted[classDef.type] = ImmutableClassDef.of(classDef)
             }
         }
-        wanted += FixtureDex.classes(build, vendors.flatMap { askers[it].orEmpty() }.toSet() - wanted.keys)
+        wanted += FixtureDex.classes(build, (vendors.flatMap { askers[it].orEmpty() } + models).toSet() - wanted.keys)
         var above = wanted.values.mapNotNull { it.superclass }.toSet() - wanted.keys
         while (above.isNotEmpty()) {
             val found = FixtureDex.classes(build, above)

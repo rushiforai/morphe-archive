@@ -1,89 +1,87 @@
-# 🧩 sqz patches
+# 🧩 Lustx Patches
 
-[![Release](https://img.shields.io/github/v/release/sqzass/patches?logo=github&color=blue)](https://github.com/sqzass/patches/releases)
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
-[![Add to Morphe](https://img.shields.io/badge/Morphe-Add_Source-7C4DFF?logo=android&logoColor=white)](https://morphe.software/add-source?github=sqzass/patches)
-
-Universal and customized patches for Android apps, compatible with [Morphe](https://morphe.software).
+> **Lustx Patches by sqzass**  
+> Custom patches for use with the Morphe app patcher.
 
 ## ❓ About
 
-sqz patches is a custom patches bundle for use with the Morphe patcher. It includes universal patches such as permission stripping for enhanced privacy.
+**Lustx Patches** is a custom patch bundle by **sqzass**, built for compatibility with the [Morphe](https://morphe.software) patcher ecosystem and based on prior work of the Morphe and [ReVanced](https://github.com/ReVanced) projects.
 
 ### How to use these patches
 
-Click here to add these patches to Morphe: https://morphe.software/add-source?github=sqzass/patches
+Add this repository source to Morphe Manager:
+`https://github.com/sqzass/lustx-patches`
+
+---
+
+## 🛠️ Tools & Development
+
+This repository includes a local helper tool for decompiling Android apps and split packages (`.apk`, `.apks`, `.xapk`, `.apkm`, `.aab`, `.zip`) to inspect Java sources, Smali bytecode, and Android resources when developing custom patches:
+
+- **Decompile all app packages in `apks/`**:
+  ```bash
+  python scripts/decompile.py
+  ```
+
+_Note: All app files placed in `apks/` are processed and automatically deleted once decompilation successfully completes._
+
+&nbsp;
 
 ## 🩹 Patches list
 
-<!-- PATCHES_START EXPANDED -->
-> **[v1.9.0](https://github.com/sqzass/patches/releases/tag/v1.9.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;47 patches total
+<!-- PATCHES_START -->
+> **[v1.15.0](https://github.com/sqzass/lustx-patches/releases/tag/v1.15.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;13 patches total
 <details open>
-<summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;47 patches</summary>
+<summary>📦 Pawxy - Fast VPN & Web Browser&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 1.15.1 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock premium](#unlock-premium) | Unlocks Pawxy premium features (VPN servers, removes paywall and upsell badges). |  |
+
+</details>
+
+<details open>
+<summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;12 patches</summary>
 <br>
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [AMOLED dark theme force](#amoled-dark-theme-force) | Forces AMOLED theme preference keys to their enabled state and can recolor dark theme values to pure black. | • Force AMOLED Preference<br>• Extra Preference Keys<br>• Recolor To Pure Black<br>• Source Color<br>• Target Color |
-| [Ads-free rewards](#ads-free-rewards) | Experimental: reports rewarded ads as loaded and suppresses ad load failure callbacks so reward flows proceed. Granting rewards with no ad shown needs an extension and is not covered. | • Force Ad Ready<br>• Suppress Load Failures |
-| [Allow screenshots and screen recording](#allow-screenshots-and-screen-recording) | Removes preview hiding, capture restrictions, FLAG_SECURE flags, and detection callbacks. | • Enable Recent App Previews<br>• Remove Capture Restrictions<br>• Remove FLAG_SECURE<br>• Bypass Screenshot Detection |
-| [Bypass PairIP protection](#bypass-pairip-protection) | Defeats Google Play's PairIP guard: restores the original application class so the protection gate never starts, deletes libpairipcore.so, and strips PairIP components. | • Restore Application Class<br>• Delete Native Core<br>• Strip PairIP Components |
-| [Bypass Play Integrity](#bypass-play-integrity) | Experimental: forces client-side Play Integrity verdict checks to report success. Integrity tokens validated on a server cannot be forged offline, so server-gated features stay gated. | • Force Verdict Reads<br>• Force Verdict Methods |
-| [Bypass Play licensing](#bypass-play-licensing) | Makes licensing checks report success: forces licensing policy responses to licensed and suppresses denial callbacks. Server-side license verification cannot be bypassed this way. | • Force Licensed Response<br>• Suppress Denial Callbacks |
-| [Bypass anti-tamper checks](#bypass-anti-tamper-checks) | Defeats common anti-tamper checks: reports the Play Store as installer, forces signature comparisons to report a match, and can make signature digest methods report an intact app. | • Spoof Installer Package<br>• Force Signature Checks<br>• Force Digest Checks Valid |
-| [Bypass root and debugger checks](#bypass-root-and-debugger-checks) | Reports the debugger as disconnected, hides root indicator files from existence checks. Works only on common detection methods. | • Bypass Debugger Checks<br>• Bypass Root File Checks |
-| [Change package name](#change-package-name) | Renames the app package: rewrites the manifest package, components, and authorities plus matching dex strings, and can report the original package to the app. Permissions are stripped, never renamed. Binary assets referencing the package are left untouched. | • New Package Name<br>• Rewrite Manifest<br>• Strip Permissions |
-| [Change package name (dex)](#change-package-name-dex) | Rewrites matching package string constants in dex code and can report the original package to the app. | • Original Package Name<br>• New Package Name<br>• Rewrite Dex Strings<br>• Hook getPackageName |
-| [Cross-signal location consistency](#cross-signal-location-consistency) | Returns no Wi-Fi scan or cell tower data so location cross-checks against Wi-Fi fingerprints and cell IDs cannot contradict the spoofed position. | • Suppress Wi-Fi Scans<br>• Suppress Cell Info |
-| [Custom app name](#custom-app-name) | Replaces the application label shown in the launcher with a custom name. | • App Name<br>• Override Activity Labels |
-| [Custom font](#custom-font) | Injects a custom TTF/OTF/WOFF2 font file into the app and rewrites every android:fontFamily and app:fontFamily attribute across resource XMLs to use it. Requested in https://github.com/sqzass/patches/issues/5. | • Font File Path<br>• Rewrite Font Attributes<br>• Set Application-level Font |
-| [DexGuard string decrypt hook](#dexguard-string-decrypt-hook) | Experimental, apply last: detects likely string decryptor methods and forces their results to empty so obfuscated string flows stay non-null. Server-driven or native decryptors are not covered. | • Log Only<br>• Force Empty Strings |
-| [Disable PairIP license check](#disable-pairip-license-check) | Disables PairIP license verification, VM checks, and repeated background checks. |  |
-| [Disable Play Protect hooks](#disable-play-protect-hooks) | Strips APK-side verify hooks: removes package verification intent filters and verifier roles. Play Protect verdicts computed inside Google Play services cannot be changed from the app. | • Strip Verification Filters<br>• Strip Verifier Roles |
-| [Disable analytics collection](#disable-analytics-collection) | Disables Firebase Analytics, Crashlytics, and Performance Monitoring data collection. | • Disable Firebase Analytics<br>• Disable Crashlytics<br>• Disable Performance Monitoring |
-| [Disable boot start-up](#disable-boot-start-up) | Removes boot intent filters so the app cannot start itself when the device boots. | • Remove Boot Intent Filters |
-| [Enable app backups](#enable-app-backups) | Allows the app to back up its data. | • Enable Backups<br>• Remove Backup Rules |
-| [Enable debugging and inspection](#enable-debugging-and-inspection) | Enables debugging flags, trusts user CA certificates, permits cleartext traffic for proxy inspection, and strips test-only restrictions in the application manifest. | • Enable Debugging<br>• Trust User Certificates<br>• Allow Cleartext Traffic<br>• Remove Test-Only Flag |
-| [Fix Firebase after re-signing](#fix-firebase-after-re-signing) | Fixes Firebase services (push notifications, Remote Config, Firebase Auth) that break after Morphe re-signs the app with a different certificate.<br><br>Apply with Original app certificate patch — no other config needed. |  |
-| [Free in-app purchases](#free-in-app-purchases) | Grants device-local purchases: forces purchase state to purchased, acknowledgements to true, and owned-item preference reads to true. Network-verified purchases stay gated. | • Force Purchased State<br>• Force Acknowledged<br>• Force Owned Keys |
-| [GMS check strip](#gms-check-strip) | Makes the app run without Google Play services: forces availability checks to succeed, suppresses error dialogs, and strips GMS package visibility. A lighter alternative to MicroG, which is heavier but more stable. | • Force Availability Success<br>• Suppress Error Dialogs<br>• Strip GMS Package Visibility |
-| [GmsCore support (MicroG)](#gmscore-support-microg) | Routes Google Play Services calls through MicroG instead of real GPS.<br><br>Works for: Google apps (YouTube, Maps, News, Photos) and third-party apps using classic Google Sign-In (Android 13 and below).<br><br>Does not work for: Android 14+ Credential Manager sign-in (most modern third-party apps), Play Integrity / SafetyNet checks, or apps with custom auth.<br><br>Requires MicroG RE installed. Apply with Original app certificate patch. | • MicroG package name<br>• Main activity class (optional)<br>• Custom package name (optional) |
-| [Hide app icon](#hide-app-icon) | Removes MAIN/LAUNCHER intent filters so the app no longer appears in launcher app lists. | • Remove Launcher Entry |
-| [Mask developer options and ADB state](#mask-developer-options-and-adb-state) | Hides developer state: reports adb_enabled and development settings as off and forces debug-revealing system properties to production values. | • Mask ADB State<br>• Mask Developer Settings<br>• Mask Debug System Properties |
-| [MicroG support](#microg-support) | Adapts the app for MicroG: forces Play services availability checks to succeed, suppresses error dialogs, and drops the GMS client version check. MicroG is heavier than stripping GMS checks alone but more stable. | • Force Availability Success<br>• Suppress Error Dialogs<br>• Remove GMS Version Meta |
-| [Mock Play Billing client](#mock-play-billing-client) | Mocks Play Billing client state: reports the client ready, feature checks as supported, and suppresses acknowledge, consume, and disconnect calls. Purchase query results cannot be fabricated without an extension. | • Force Billing Ready<br>• Force Feature Supported<br>• Suppress Consume Calls |
-| [Open links in browser](#open-links-in-browser) | Stops http and https links from opening inside the app. | • Remove App Link Verification<br>• Remove Link Intent Filters |
-| [Provide Original app certificate](#provide-original-app-certificate) | Automatically reads the signing certificate from the APK you are patching — no original app installed or file provided needed. Only fill the options below if you are patching an APK that was already re-signed (e.g. a previously patched build): in that case point to the original APK file, or enter the certificate manually. | • Path to original APK (if uninstalled)<br>• Certificate SHA-1 (manual)<br>• Certificate SHA-256 (manual)<br>• Certificate Base64 DER (manual) |
-| [Spoof GPS](#spoof-gps) | Reports fixed coordinates: forces Location latitude, longitude, and related getter results to the configured position. | • Latitude<br>• Longitude<br>• Spoof Accuracy<br>• Accuracy (meters)<br>• Spoof Altitude<br>• Altitude (meters)<br>• Spoof Provider Name |
-| [Spoof MAC address](#spoof-mac-address) | Forces WifiInfo.getMacAddress() to report a fixed locally-administered MAC address instead of the real hardware MAC. | • MAC Address |
-| [Spoof Widevine / DRM level](#spoof-widevine-drm-level) | Reports Widevine L1 (hardware DRM) to apps that check DRM level locally.<br><br>Useful for apps that refuse to play HD/4K content on L3 devices or after re-signing.<br><br>Does not bypass server-side DRM - Netflix, Disney+ and similar are not affected. | • Widevine security level to report<br>• HDCP level to report |
-| [Spoof advertising ID](#spoof-advertising-id) | Forces the Google Advertising ID (AdvertisingIdClient) and Settings.Secure ANDROID_ID to report a fixed random value, and disables limit-ad-tracking reads. | • Advertising ID<br>• Disable Limit Ad Tracking<br>• Spoof ANDROID_ID |
-| [Spoof app signature](#spoof-app-signature) | Makes the app think its signing certificate is unchanged after Morphe re-signs it.<br><br>Useful when an app crashes or shows a tamper warning because it checks its own certificate.<br><br>Does not bypass Play Integrity / SafetyNet hardware attestation.<br><br>Apply with Original app certificate patch. | • Package name override (optional) |
-| [Spoof battery level](#spoof-battery-level) | Forces BatteryManager capacity/level reads to report a fixed percentage. | • Battery Level (%) |
-| [Spoof device information](#spoof-device-information) | Presents a different device entirely: rewrites Build identity field reads, forces matching system property reads, and overrides telephony operator and SIM identity getters using device and SIM presets. | • Device Preset<br>• SIM Preset<br>• Spoof Build Identity<br>• Spoof SIM Identity<br>• Spoof Device IDs |
-| [Spoof install location](#spoof-install-location) | Reports internal storage as the install location, matching the Play Store default. | • Set Manifest Install Location<br>• Spoof Install Location Reads |
-| [Spoof install source](#spoof-install-source) | Makes the app think it was installed from a specific store (default: Google Play).<br><br>Useful when an app blocks features or shows errors because it detects it was not installed from the Play Store.<br><br>Only affects what the app itself sees - does not change the real system install record. | • Store to impersonate |
-| [Spoof network transport type](#spoof-network-transport-type) | Reports a Wi-Fi connection: forces transport capability flags, hides the VPN transport, and overrides NetworkInfo type readings. | • Force Wi-Fi Transport<br>• Force Cellular Transport<br>• Hide VPN Transport |
-| [Strip VPN checks](#strip-vpn-checks) | Defeats VPN detection: reports VpnService.prepare as no consent required, the VPN transport flag as unset, and VPN string tests as false. | • Bypass VpnService.prepare<br>• Bypass VPN Transport Flag<br>• Bypass VPN String Checks |
-| [Strip mock location flags](#strip-mock-location-flags) | Reports Location.isMock and isFromMockProvider as false and forces mock location settings reads to report disabled. | • Bypass Location Mock APIs<br>• Bypass Mock Location Settings |
-| [Strip sensitive permissions](#strip-sensitive-permissions) | Removes sensitive Android permissions from the application. | • Strip Camera<br>• Strip Microphone<br>• Strip Location<br>• Strip Sensors<br>• Strip Contacts<br>• Strip Phone & SMS<br>• Strip Calendar<br>• Strip Storage & Media<br>• Strip Nearby Wi-Fi<br>• Strip Overlay Access<br>• Strip Special Access<br>• Remove Queries Declarations<br>• Remove QUERY_ALL_PACKAGES Permission |
-| [Strip trackers and telemetry](#strip-trackers-and-telemetry) | Strips tracking, analytics, and advertising SDK components from the manifest, and their runtime calls. | • Google & Firebase Analytics<br>• Facebook SDK<br>• Attribution SDKs<br>• Crash Reporting SDKs<br>• Advertising ID & AdServices<br>• Tracker SDK Calls |
-| [Universal cleanup](#universal-cleanup) | Debloats the app: removes debug and tracking components, extra locales, and stale install files. ABI splits, density filtering, and asset size filtering are not covered. | • Strip Debug Components<br>• Strip GMS Components<br>• Strip Extra Locales<br>• Keep Locales |
-| [Unlock premium](#unlock-premium) | Enables premium features locally: forces premium status getters to report true and premium preference reads to report enabled. Server-side entitlements stay gated. | • Force Premium Getters<br>• Force Premium Preferences<br>• Extra Premium Keys |
-| [Unlock screen orientation](#unlock-screen-orientation) | Forces orientation unlock on apps that force an orientation. | • Remove Orientation Locks |
+| [Allow screen recording](#allow-screen-recording) | Clears FLAG_SECURE and disables secure surfaces so the app can be screen-recorded. |  |
+| [Allow screenshots](#allow-screenshots) | Clears FLAG_SECURE from window flags so the app can be captured in screenshots. |  |
+| [Change package name](#change-package-name) | Renames the app package (appends ".lustx" by default) and updates custom permissions and content-provider authorities. Changing the package name can break apps that hardcode their package or authorities in code. | • Package name<br>• Update permissions<br>• Update provider authorities |
+| [Custom font](#custom-font) | Overrides the app's typeface with a built-in font family. Affects explicit Typeface usage; views that never set a typeface keep the system default. | • Font family |
+| [Disable boot start-up](#disable-boot-start-up) | Prevents the app from auto-starting on device boot by removing boot intent-filter actions and the RECEIVE_BOOT_COMPLETED permission. | • Also block update start-up |
+| [Hide app icon](#hide-app-icon) | Hides the app from the launcher by replacing the LAUNCHER category with DEFAULT. The app stays installed; launch it via another app or a shortcut. |  |
+| [Remove PairIP](#remove-pairip) | Removes the PairIP Play licensing gate (startup license check, response validation, repeated checks and paywall/kill path). Does not bypass PairIP native virtualization or Play Integrity attestation. |  |
+| [Spoof device information](#spoof-device-information) | Replaces android.os.Build device identity fields with a chosen device preset. | • Device preset<br>• Also spoof OS version |
+| [Spoof install source](#spoof-install-source) | Makes the app believe it was installed from a chosen store (Play Store by default). | • Install source |
+| [Strip VPN checks](#strip-vpn-checks) | Hides an active VPN from the app by neutralizing NetworkCapabilities transport/capability checks and (optionally) network-interface name checks. | • Also strip interface-name checks |
+| [Strip sensitive permissions](#strip-sensitive-permissions) | Removes selected sensitive permissions from the manifest. Can break features that rely on them; enable only the groups you want stripped. | • Location<br>• Contacts & accounts<br>• SMS & call log<br>• Phone<br>• Camera & microphone<br>• Storage / media<br>• Sensors & activity<br>• Calendar<br>• Nearby devices<br>• Notifications |
+| [Universal cleanup](#universal-cleanup) | Removes junk metadata files and (optionally) strips debug logging calls. | • Strip debug logging<br>• Remove Kotlin module metadata |
 
 </details>
 
 <!-- PATCHES_END -->
 
-### 🛠️ Building locally
+## Contributing
 
-- Run `./gradlew buildAndroid`
-- The built patches .mpp file is found in `patches/build/libs/patches-*.mpp`
-- Patch the mpp file using [Morphe-Desktop](https://github.com/MorpheApp/morphe-desktop) like any other patch bundle.
+We currently accept pull requests for fixes/improvements to the Pawxy patch.
+If you have developed patches for other apps, you are encouraged to release your patches in a third party repository.
+See the [Patches template](https://github.com/morpheapp/morphe-patches-template) for more information.
 
-See the [Morphe documentation](https://github.com/MorpheApp/morphe-documentation) for more information.
+Before opening a pull request, read the [contribution guidelines](CONTRIBUTING.md).
 
 ## 📜 License
 
-sqz patches are licensed under the [GNU General Public License v3.0](LICENSE)
+Lustx Patches are licensed under the [GNU General Public License v3.0](LICENSE), with additional conditions under GPLv3 Section 7 preserving upstream notices and disclaimers.
+
+- **Attribution (7b):** Any use of this code, including derivative works, must preserve all original notices and disclaimers.
+- **Name & Branding Restrictions (7c & 7e):** Derivative works must use their own distinct branding. The **"Morphe"** name, logos, and trademarks may not be used for the branding or title of derivative works (e.g., names like _"Morphe Plus"_, _"Morphe Expanded"_, or _"Morphe UserXYZ"_ are strictly prohibited).
+
+See the [LICENSE](LICENSE) file for full GPLv3 terms and the [NOTICE](NOTICE) file for full conditions of GPLv3 Section 7 and upstream attributions.

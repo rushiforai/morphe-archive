@@ -297,6 +297,9 @@ Still scroll reels from Search and Explore	ยังคงเลื่อนด�
 With Stop Reels scrolling on, reels you open from Search, Explore, a hashtag or a place still move on when you swipe.	เมื่อเปิด "หยุดการเลื่อนดูรีลส์" รีลส์ที่คุณเปิดจากการค้นหา, สำรวจ, แฮชแท็ก หรือตำแหน่งที่ตั้งจะยังคงเปลี่ยนไปเมื่อคุณปัดหน้าจอ
 Still scroll reels from a song page	ยังคงเลื่อนดูรีลส์จากหน้าเพลงได้
 With Stop Reels scrolling on, reels you open from a song or audio page still move on when you swipe.	เมื่อเปิด "หยุดการเลื่อนดูรีลส์" รีลส์ที่คุณเปิดจากหน้าเพลงหรือหน้าเสียงจะยังคงเปลี่ยนไปเมื่อคุณปัดหน้าจอ
+# context: Reels page, a switch of its own after the three above (#656). It names the Messages page switch Swipe through a chat's reels by its label.
+Play only the reel you opened	เล่นเฉพาะรีลส์ที่คุณเปิด
+A reel you open from a post on Home, a suggested reels row or a message plays on its own. Swiping, pulling down and auto scroll won't move on to another reel, so it plays again when it ends. The Reels tab scrolls as usual. With Swipe through a chat's reels on, a chat's reels still swipe.	รีลส์ที่คุณเปิดจากโพสต์ในหน้าหลัก แถวรีลส์แนะนำ หรือข้อความ จะเล่นเพียงรีลส์เดียว การปัด การดึงลง และการเลื่อนอัตโนมัติจะไม่เปลี่ยนไปยังรีลส์อื่น รีลส์จึงเล่นซ้ำเมื่อจบ แท็บรีลส์ยังเลื่อนได้ตามปกติ เมื่อเปิด "ปัดดูรีลส์ของแชท" รีลส์ในแชทจะยังปัดได้
 A swipe in Reels no longer moves on to the next reel, and pulling down doesn't load new ones. The reel you opened still plays. Restart Instagram to see the change.	การปัดในรีลส์จะไม่เปลี่ยนไปยังรีลส์ถัดไปอีกต่อไป และการลากลงจะไม่โหลดรีลส์ใหม่ รีลส์ที่คุณเปิดอยู่จะยังคงเล่นต่อไป รีสตาร์ท Instagram เพื่อดูการเปลี่ยนแปลง
 Lock a reel at 2x (hold its edge, then slide down) and the next reels play at 2x too. Slide the lock off, or hold the edge and let go, to go back to normal speed.	ล็อกความเร็วรีลส์ไว้ที่ 2x (แตะขอบค้างไว้แล้วเลื่อนลง) แล้วรีลส์ถัดไปจะเล่นที่ความเร็ว 2x เช่นกัน เลื่อนเพื่อปลดล็อก หรือแตะขอบค้างไว้แล้วปล่อย เพื่อกลับสู่ความเร็วปกติ
 Open links in external browser	เปิดลิงก์ในเบราว์เซอร์ภายนอก
@@ -335,6 +338,9 @@ Hide the Explore grid	ซ่อนตารางหน้าสำรวจ
 Hides the grid of posts and reels under the Search tab's bar. Search, recent searches and results stay.	ซ่อนตารางโพสต์และรีลส์ใต้แถบแท็บค้นหา โดยฟังก์ชันค้นหา, การค้นหาล่าสุด และผลการค้นหาจะยังคงอยู่
 Hide suggested accounts in search	ซ่อนบัญชีที่แนะนำในการค้นหา
 Leaves the Suggested for you accounts out of what shows when you tap the search bar. Recent searches stay.	ไม่แสดงบัญชี "แนะนำสำหรับคุณ" เมื่อคุณแตะที่แถบค้นหา การค้นหาล่าสุดจะยังคงอยู่
+# context: You may also like is the header Instagram's server puts on the recommended posts after search results; it isn't a fixed string in the app, so the rows describe it.
+Hide You may also like in search	ซ่อนโพสต์แนะนำในผลการค้นหา
+Leaves out the You may also like posts Instagram adds below your search results. The results you searched for stay.	ไม่แสดงโพสต์ที่ Instagram แนะนำไว้ใต้ผลการค้นหาของคุณ ผลการค้นหาที่คุณค้นหาจะยังคงอยู่
 Messages	ข้อความ
 Hide the notes row	ซ่อนแถวโน้ต
 Takes the row of notes off the top of your messages, the Map bubble in it too. Your chats, search and requests stay.	นำแถวโน้ตที่อยู่ด้านบนของข้อความออก รวมถึงฟองแผนที่ในนั้นด้วย แชท, การค้นหา และคำขอของคุณจะยังคงอยู่
@@ -511,6 +517,9 @@ Reply with a comment's GIF	ตอบกลับด้วย GIF ของคว
 When a comment has a GIF, its menu gets a GIF reply that sends that same GIF back as your reply, animated.	เมื่อความคิดเห็นมี GIF เมนูของความคิดเห็นนั้นจะมีตัวเลือก "ตอบกลับด้วย GIF" ซึ่งจะส่ง GIF นั้นกลับไปเป็นการตอบกลับของคุณแบบเคลื่อนไหว
 Show a comment GIF's name	แสดงชื่อ GIF ของความคิดเห็น
 When a comment has a GIF or sticker, its menu shows its name. Tap the name to copy it.	เมื่อความคิดเห็นมี GIF หรือสติกเกอร์ เมนูจะแสดงชื่อของ GIF หรือสติกเกอร์นั้น แตะที่ชื่อเพื่อคัดลอก
+Send saved GIFs as GIFs	ส่ง GIF ที่บันทึกไว้เป็น GIF
+A comment GIF you saved with Save comment photo, picked from your gallery in the comment box, goes up right away as the same GIF, animated. Other pictures go up as before.	GIF ในความคิดเห็นที่คุณบันทึกด้วย "บันทึกรูปภาพในความคิดเห็น" เมื่อเลือกจากแกลเลอรีในช่องแสดงความคิดเห็น จะโพสต์ทันทีเป็น GIF เดิมที่ยังเคลื่อนไหว ส่วนรูปภาพอื่นจะอัปโหลดเหมือนเดิม
+Couldn't send this GIF	ไม่สามารถส่ง GIF นี้ได้
 GIF name	ชื่อ GIF
 GIF name copied	คัดลอกชื่อ GIF แล้ว
 Couldn't copy the GIF name	ไม่สามารถคัดลอกชื่อ GIF ได้
@@ -760,7 +769,7 @@ Ask before a refresh	ถามก่อนรีเฟรช
 Continue	ดำเนินการต่อ
 Like or unlike this post?	กดถูกใจหรือยกเลิกการกดถูกใจโพสต์นี้หรือไม่
 Like or unlike this comment?	กดถูกใจหรือยกเลิกการกดถูกใจความคิดเห็นนี้หรือไม่
-Asks before pulling down refreshes Home, Reels or another list. Cancel keeps what's on screen.	ถามก่อนที่การเลื่อนลงจะรีเฟรชหน้าหลัก รีลส์ หรือรายการอื่น การแตะ "ยกเลิก" จะคงสิ่งที่อยู่บนหน้าจอไว้
+Asks before a pull down or another tap on its tab refreshes Home, Reels or another list. Cancel keeps what's on screen.	ถามก่อนที่การเลื่อนลงหรือการแตะแท็บซ้ำจะรีเฟรชหน้าหลัก รีลส์ หรือรายการอื่น การแตะ "ยกเลิก" จะคงสิ่งที่อยู่บนหน้าจอไว้
 Skip the collections tray	ข้ามแถบคอลเลกชั่น
 Saving a post or reel shows Instagram's Saved message instead of the tray that asks you to start a collection.	การบันทึกโพสต์หรือรีลส์จะแสดงข้อความ "บันทึกแล้ว" ของ Instagram แทนแถบที่ขอให้คุณสร้างคอลเลกชั่น
 Refresh	รีเฟรช
@@ -972,7 +981,12 @@ Chat %1$s	แชท %1$s
 Hidden chats	แชทที่ซ่อนอยู่
 Hide single chats. A hidden chat leaves your inbox and its notifications don't post until you show it here again.	ซ่อนแชทแต่ละรายการ แชทที่ซ่อนไว้จะถูกนำออกจากกล่องข้อความของคุณ และการแจ้งเตือนจะไม่แสดงจนกว่าคุณจะเลือกแสดงอีกครั้งที่นี่
 Double-tap Messages for hidden chats	แตะข้อความสองครั้งสำหรับแชทที่ซ่อนอยู่
-Two quick taps on the Messages button, on the tab bar or at the top of Home, open your hidden chats. While a lock is on, it asks for it first. One tap opens Messages as usual.	แตะปุ่มข้อความเร็วๆ สองครั้ง บนแถบแท็บหรือที่ด้านบนของหน้าหลัก เพื่อเปิดแชทที่ซ่อนอยู่ หากเปิดการล็อคไว้ ระบบจะขอปลดล็อคก่อน การแตะครั้งเดียวจะเปิดข้อความตามปกติ
+Two quick taps on the Messages button, on the tab bar or at the top of Home, show your hidden chats in your inbox after your screen lock or PIN. Two more taps hide them again. Long press a chat to hide or unhide it. One tap opens Messages as usual.	แตะปุ่มข้อความเร็วๆ สองครั้ง บนแถบแท็บหรือที่ด้านบนของหน้าหลัก เพื่อแสดงแชทที่ซ่อนอยู่ในกล่องข้อความหลังปลดล็อคหน้าจอหรือใส่ PIN แตะอีกสองครั้งเพื่อซ่อนอีกครั้ง กดแชทค้างไว้เพื่อซ่อนหรือเลิกซ่อน การแตะครั้งเดียวจะเปิดข้อความตามปกติ
+# context: Hide chat and Unhide chat in a chat's long press menu in the inbox (#661), and the toasts when two quick taps on Messages show the hidden chats in the inbox or hide them again
+Hide chat	ซ่อนแชท
+Unhide chat	เลิกซ่อนแชท
+Showing your hidden chats	กำลังแสดงแชทที่ซ่อนอยู่
+Hidden chats locked again	ล็อคแชทที่ซ่อนอีกครั้งแล้ว
 Open a chat in Instagram, then come back here to hide it.	เปิดแชทใน Instagram แล้วกลับมาที่นี่เพื่อซ่อนแชท
 Pinned chats	แชทที่ปักหมุดไว้
 Keeps the chats you pick at the top of your inbox. The pins stay on this phone, and Instagram's own order holds for every other chat.	ตรึงแชทที่คุณเลือกไว้ที่ด้านบนสุดของกล่องข้อความ การปักหมุดจะมีผลเฉพาะบนโทรศัพท์เครื่องนี้ ส่วนแชทอื่นๆ ทั้งหมดจะเรียงตามลำดับเดิมของ Instagram
@@ -1172,6 +1186,10 @@ Pick friends	เลือกเพื่อน
 Open the Friends tab first.	เปิดแท็บเพื่อนก่อน
 No friends to pick yet.	ยังไม่มีเพื่อนให้เลือก
 Applies to the next reels loaded.	มีผลกับรีลส์ถัดไปที่โหลด
+Hide the Like button on reels	ซ่อนปุ่มถูกใจในรีลส์
+Takes the heart out of the column of buttons beside a reel, and the like count under it. Double tap still likes a reel.	นำรูปหัวใจและจำนวนถูกใจใต้ปุ่มออกจากคอลัมน์ปุ่มข้างรีลส์ คุณยังแตะสองครั้งเพื่อกดถูกใจรีลส์ได้อยู่
+Hide the Comment button on reels	ซ่อนปุ่มความคิดเห็นในรีลส์
+Takes the Comment button out of the column of buttons beside a reel, and the count under it. The comment bar under a reel has its own switch.	นำปุ่มความคิดเห็นและจำนวนใต้ปุ่มออกจากคอลัมน์ปุ่มข้างรีลส์ แถบความคิดเห็นใต้รีลส์มีสวิตช์แยกของตัวเองอยู่
 Hide the Save button on reels	ซ่อนปุ่มบันทึกในรีลส์
 Burn-in guard	ระบบป้องกันจอเบิร์น
 Dim when idle	หรี่แสงเมื่อไม่ได้ใช้งาน
@@ -1709,6 +1727,8 @@ Couldn't read that picture.	ไม่สามารถอ่านรูปภ�
 This launcher can't add it.	ลอนเชอร์นี้ไม่สามารถเพิ่มได้
 Glass in chats	เอฟเฟกต์กระจกในแชท
 Gives a chat's top bar and message bar frosted glass and puts the back, call and video buttons on round glass circles. It shows the next time you open a chat. Needs Android 12 or newer for the blur.	เพิ่มเอฟเฟกต์กระจกฝ้าที่แถบด้านบนและแถบข้อความของแชท และวางปุ่มย้อนกลับ โทร และวิดีโอคอลบนวงกลมกระจกมน จะแสดงขึ้นในครั้งถัดไปที่คุณเปิดแชท ต้องใช้ Android 12 ขึ้นไปสำหรับเอฟเฟกต์เบลอ
+Glass top bar in chats	กระจกที่แถบด้านบนของแชท
+Turn it off to leave a chat's top bar as Instagram draws it, with no frosted band behind it. The round glass buttons and the glass message bar stay.	ปิดเพื่อให้แถบด้านบนของแชทเป็นแบบที่ Instagram แสดงตามปกติ โดยไม่มีแถบกระจกฝ้าด้านหลัง ปุ่มกระจกทรงกลมและแถบข้อความกระจกยังคงอยู่
 # context: Reels switch Hide reels with few views, its summary, the Minimum views row, its dialog message and the row's summary, then the Minimum likes row, its dialog message, its summary and its summary at 0; %1$s is a number with thousands separators (#444)
 Hide reels with few views	ซ่อนรีลส์ที่มียอดดูน้อย
 Leaves out reels in the Reels tab with fewer views or likes than the numbers below. Reels from accounts you follow, reels sent to you and reels with no count still play.	ละเว้นรีลส์ในแท็บรีลส์ที่มียอดดูหรือยอดถูกใจน้อยกว่าจำนวนด้านล่างนี้ โดยรีลส์จากบัญชีที่คุณติดตาม รีลส์ที่ส่งถึงคุณ และรีลส์ที่ไม่มีจำนวนนับจะยังคงเล่นตามปกติ
@@ -1965,6 +1985,8 @@ Save in the post menu	บันทึกในเมนูโพสต์
 Adds Save to the menu behind a post's three dots, or Remove from saved when you saved it already.	เพิ่ม "บันทึก" ลงในเมนูใต้จุดสามจุดของโพสต์ หรือ "ลบออกจากรายการที่บันทึกไว้" เมื่อคุณได้บันทึกไว้แล้ว
 Hide the Save button	ซ่อนปุ่มบันทึก
 Takes the Save button off the bottom of posts in your feed, so a stray tap can't save one.	นำปุ่มบันทึกออกจากด้านล่างของโพสต์ในฟีดของคุณ เพื่อป้องกันการแตะโดนโดยไม่ตั้งใจจนบันทึกโพสต์
+Hide the Like button	ซ่อนปุ่มถูกใจ
+Takes the heart and the like count off the bottom of posts in your feed. Double tap still likes a post.	นำรูปหัวใจและจำนวนถูกใจออกจากด้านล่างของโพสต์ในฟีดของคุณ คุณยังแตะสองครั้งเพื่อกดถูกใจโพสต์ได้อยู่
 # context: the row in a feed post's three-dot menu for a post you already saved, and the row that takes an account off Saved profiles, on its profile's menu and on the Saved profiles page (#629)
 Remove from saved	ลบออกจากรายการที่บันทึกไว้
 # context: a switch on the Reels page
@@ -2121,6 +2143,10 @@ Takes the invite to someone's broadcast channel from under their bio. Yours keep
 Hide the other profile banners	ซ่อนแบนเนอร์อื่นๆ ในโปรไฟล์
 # context: Profiles > summary of Hide the other profile banners (#627)
 Takes the rest of the banners under the bio off other people's profiles, like events, fundraisers, schools and business hours. Yours keeps them.	นำแบนเนอร์อื่นๆ ใต้ประวัติย่อออกจากโปรไฟล์ของคนอื่น เช่น กิจกรรม การระดมทุน โรงเรียน และเวลาทำการ โปรไฟล์ของคุณยังคงมีอยู่
+# context: Profiles > title of the switch that hides the row of links (a website, a business's links) under the bio on other people's profiles (#627)
+Hide links	ซ่อนลิงก์
+# context: Profiles > summary of Hide links (#627)
+Takes the row of links, like a website or a business's links, from under the bio on other people's profiles. Yours keeps it.	นำแถวลิงก์ เช่น เว็บไซต์หรือลิงก์ของธุรกิจ ออกจากใต้ประวัติย่อในโปรไฟล์ของคนอื่น โปรไฟล์ของคุณยังคงมีอยู่
 # context: the row HushGram adds to the menu on someone's profile; it puts the account on the Saved profiles list (#629)
 Save profile	บันทึกโปรไฟล์
 # context: toast after Save profile; %s is the account's username (#629)
@@ -2202,3 +2228,10 @@ Haptic strength	ความแรงของการสั่นตอบส�
 Tap sound on the tab bar	เสียงแตะบนแถบแท็บ
 A click each time the highlight moves to another tab, even with the phone's touch sounds off. Silent and vibrate mode keep it quiet.	เสียงคลิกทุกครั้งที่ไฮไลต์ย้ายไปยังแท็บอื่น แม้ปิดเสียงสัมผัสของโทรศัพท์ไว้ก็ตาม โหมดปิดเสียงและโหมดสั่นจะไม่มีเสียงนี้
 Tap sound volume	ระดับเสียงแตะ
+Auto scroll in Home	เลื่อนอัตโนมัติในหน้าหลัก
+Moves Home on to the next post by itself. A video moves on when it ends, a photo or carousel after Time on each post. Touch the screen to hold it.	หน้าหลักจะเลื่อนไปยังโพสต์ถัดไปเอง วิดีโอจะเลื่อนเมื่อเล่นจบ ส่วนรูปภาพหรือโพสต์ภาพหมุนจะเลื่อนหลังจากเวลาในแต่ละโพสต์ แตะหน้าจอค้างไว้เพื่อหยุด
+Time on each post	เวลาในแต่ละโพสต์
+# context: Reels settings: switch that lets a tap on the reel shown above an open comments sheet pause or play it, and a hold play it at 2x, without closing the comments (#665)
+Control the reel above comments	ควบคุมรีลส์เหนือความคิดเห็น
+# context: Summary of Control the reel above comments (#665)
+With a reel's comments open, tap the reel above them to pause or play it, or hold it to play at 2x. The comments stay open.	ขณะเปิดความคิดเห็นของรีลส์ แตะรีลส์ด้านบนเพื่อหยุดชั่วคราวหรือเล่น หรือกดค้างไว้เพื่อเล่นที่ 2x ความคิดเห็นจะยังเปิดอยู่

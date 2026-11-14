@@ -3,13 +3,13 @@ package semicoloncolonel.mobilestream.patches.appletv.tv
 import app.morphe.patcher.patch.resourcePatch
 import semicoloncolonel.mobilestream.patches.appletv.shared.Constants
 
-// Apple TV Android TV 17.0.2. The engine networks from native code, so a
+// Apple TV Android TV 17.0.2 and 17.0.3. The engine networks from native code, so a
 // blocker in Java cannot see its requests. The JavaScript in app.zip is
 // changed instead (see AppZip):
 //
 // - Over-the-air updates are turned off (DISABLE_OTA), so a downloaded diff
 //   cannot bring the metrics code back.
-// - Apple's usage metrics (2012.js, MetricsKit): every topic reports itself
+// - Apple's usage metrics (MetricsKit): every topic reports itself
 //   disabled, so no event is queued or sent, and the xp.apple.com report and
 //   config URLs point at a host that does not exist.
 // - Playback reporting (PlayerStore.js): the player's real-time reporting
@@ -26,18 +26,21 @@ import semicoloncolonel.mobilestream.patches.appletv.shared.Constants
 
 private const val NO_HOST = "https://xp.apple.invalid"
 
+// MetricsKit's chunk: 2012.js in 17.0.2, 5273.js in 17.0.3.
+private val METRICS_KIT = chunk("blacklistedEvents")
+
 private val EDITS = listOf(
     DISABLE_OTA,
     // MetricsKit's three "is this topic disabled?" checks.
     AppZipEdit(
-        "2012.js",
+        METRICS_KIT,
         "p.prototype.disabled=function(e){return this.value(\"disabled\",e).then(function(e){return!!e})}",
         "p.prototype.disabled=function(e){return Promise.resolve(!0)}",
     ),
-    AppZipEdit("2012.js", "function E(e){return!!this.value(\"disabled\",e)}", "function E(e){return!0}"),
-    AppZipEdit("2012.js", "function k(e){return!!this.value(\"disabled\",e)}", "function k(e){return!0}"),
-    AppZipEdit("2012.js", "\"https://xp.apple.com/report\"", "\"$NO_HOST/report\"", all = true),
-    AppZipEdit("2012.js", "\"https://xp.apple.com/config/1/report\"", "\"$NO_HOST/config/1/report\"", all = true),
+    AppZipEdit(METRICS_KIT, "function E(e){return!!this.value(\"disabled\",e)}", "function E(e){return!0}"),
+    AppZipEdit(METRICS_KIT, "function k(e){return!!this.value(\"disabled\",e)}", "function k(e){return!0}"),
+    AppZipEdit(METRICS_KIT, "\"https://xp.apple.com/report\"", "\"$NO_HOST/report\"", all = true),
+    AppZipEdit(METRICS_KIT, "\"https://xp.apple.com/config/1/report\"", "\"$NO_HOST/config/1/report\"", all = true),
     // Playback reporting.
     AppZipEdit(
         "PlayerStore.js",

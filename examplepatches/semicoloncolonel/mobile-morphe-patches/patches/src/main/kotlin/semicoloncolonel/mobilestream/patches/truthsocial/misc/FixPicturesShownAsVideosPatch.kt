@@ -67,6 +67,7 @@ val fixPicturesShownAsVideosPatch = bytecodePatch(
     name = "Fix pictures shown as videos",
     description = "Shows a post's picture as a picture when the app would draw it as a video that cannot play.",
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")

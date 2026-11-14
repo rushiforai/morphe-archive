@@ -111,6 +111,7 @@ public class HushTumblrPreferenceFragmentTest {
         ROW_TITLES.put(PatchFamily.HIDE_WATCH_IT_ROWS, "Hide Watch it rows");
         ROW_TITLES.put(PatchFamily.HIDE_FEATURED_POSTS, "Hide Featured posts");
         ROW_TITLES.put(PatchFamily.HIDE_HASHTAGS, "Hide hashtags");
+        ROW_TITLES.put(PatchFamily.TAG_BLOG_SEARCH, "Tags open the blog's tag search");
         ROW_TITLES.put(PatchFamily.HIDE_FOLLOW_BUTTON, "Hide the Follow button");
         ROW_TITLES.put(PatchFamily.HIDE_TUMBLRMART, "Hide the diamond and TumblrMart");
         ROW_TITLES.put(PatchFamily.HIDE_NOTE_COUNTS, "Hide note counts");
@@ -123,6 +124,7 @@ public class HushTumblrPreferenceFragmentTest {
         ROW_TITLES.put(PatchFamily.HIDE_UNREAD_DOTS, "Hide the Dashboard count");
         ROW_TITLES.put(PatchFamily.HIDE_REBLOGS, "Hide reblogs");
         ROW_TITLES.put(PatchFamily.HIDE_OWN_REBLOGS, "Hide your own reblogs");
+        ROW_TITLES.put(PatchFamily.HIDE_REBLOGS_OF_YOURS, "Hide reblogs of your posts");
         ROW_TITLES.put(PatchFamily.HIDE_LIKED_POSTS, "Hide liked posts");
         ROW_TITLES.put(PatchFamily.HIDE_VIDEO_POSTS, "Hide video posts");
         ROW_TITLES.put(PatchFamily.HIDE_PHOTO_POSTS, "Hide photo posts");

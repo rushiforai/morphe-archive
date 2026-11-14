@@ -380,13 +380,14 @@ public class PatchFamilyTest {
         PatchFamily.inBuildForTests = build;
         try {
             assertEquals("Filter feed: disabled by its switch (hushpinterest_hide_video_pins=off, hushpinterest_hide_saved_pins=off, "
-                    + "hushpinterest_muted_words=0)", PatchFamily.reportLines(build, false).get(0));
+                    + "hushpinterest_hide_home_suggestions=off, hushpinterest_muted_words=0)", PatchFamily.reportLines(build, false).get(0));
             Settings.MUTED_WORDS.save("cake\nwedding dress");
             String line = PatchFamily.reportLines(build, false).get(0);
-            assertEquals("Filter feed: on (hushpinterest_hide_video_pins=off, hushpinterest_hide_saved_pins=off, hushpinterest_muted_words=2)", line);
+            assertEquals("Filter feed: on (hushpinterest_hide_video_pins=off, hushpinterest_hide_saved_pins=off, "
+                    + "hushpinterest_hide_home_suggestions=off, hushpinterest_muted_words=2)", line);
             assertFalse(line, line.contains("cake") || line.contains("wedding"));
             assertEquals("Filter feed: disabled while paused (saved hushpinterest_hide_video_pins=off, hushpinterest_hide_saved_pins=off, "
-                    + "hushpinterest_muted_words=2)", PatchFamily.reportLines(build, true).get(0));
+                    + "hushpinterest_hide_home_suggestions=off, hushpinterest_muted_words=2)", PatchFamily.reportLines(build, true).get(0));
         } finally {
             Settings.MUTED_WORDS.resetToDefault();
         }

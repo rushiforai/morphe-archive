@@ -16,6 +16,7 @@ import app.morphe.util.names.loadsInt
 import app.morphe.util.names.origRef
 import app.morphe.util.names.addInstruction
 import app.morphe.util.names.addInstructionsWithLabels
+import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
@@ -221,6 +222,45 @@ private fun BytecodePatchContext.requireSettingsEntry() {
         val method = owner.methods.filter { it.origName == name }.nativeSingle("extension $name")
         nativeShape(method.nativeShape(parameters, result) && method.nativeCallable(true), "extension $name changed")
     }
+}
+
+/** The Settings page's observer set and the account center getter it gets instead of the global one. */
+internal data class SettingsObserverFix(val method: MutableMethod, val index: Int, val getter: Method)
+
+/**
+ * Issue #76: 13.2's Settings page builds the observer set for profile updates and new suggestions
+ * on the global notification center, while Telegram posts those on the account's own center, which
+ * the chat list listens on. So a suggestion card ("Is this still your number?") stayed after Yes
+ * until Settings was opened again. The page gets its own account's center from the fragment's
+ * getter instead. Null when the page already does that or no longer has this shape.
+ */
+internal fun BytecodePatchContext.resolveSettingsObserverFix(ownerType: String): SettingsObserverFix? {
+    val owner = tgMutableClassDefBy(ownerType)
+    val create = owner.methods.singleOrNull {
+        it.origName == "onFragmentCreate" && it.parameterTypes.isEmpty() && it.returnType == "Z" && it.implementation != null
+    } ?: return null
+    val getter = superclassChain(owner.superclass ?: return null).mapNotNull { tgMutableClassDefByOrNull(it) }
+        .firstNotNullOfOrNull { type -> type.methods.singleOrNull { it.origName == "getNotificationCenter" && it.parameterTypes.isEmpty() } }
+        ?.takeIf { it.nativeCallable(false) } ?: return null
+    val center = getter.returnType
+    val self = create.implementation!!.registerCount - 1
+    val body = create.nativeBody()
+    val sites = body.indices.filter { at ->
+        val global = body[at].nativeCall()
+        body[at].opcode == Opcode.INVOKE_STATIC && global != null && global.definingClass == center &&
+            global.parameterTypes.isEmpty() && global.returnType == center &&
+            body.getOrNull(at + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT &&
+            (at + 2 until minOf(body.size, at + 5)).any { use ->
+                val init = body[use].nativeCall()
+                body[use].opcode == Opcode.INVOKE_DIRECT && init?.name == "<init>" && init.parameterTypes.size == 2 &&
+                    init.parameterTypes.first().toString() == center &&
+                    body[use].namedRegisters().drop(1) == listOf(body[at + 1].namedRegisters().single(), self)
+            }
+    }
+    val site = sites.singleOrNull() ?: return null
+    // The new call reads the fragment from p0, so nothing before it may have reused that register.
+    if (body.take(site).any { it.opcode.setsRegister() && it.namedRegisters().firstOrNull() == self }) return null
+    return SettingsObserverFix(create, site, getter)
 }
 
 internal data class NativeSettingsPlan(
@@ -751,6 +791,7 @@ val settingsPatch = bytecodePatch(
         // Resolve and compile native edits first. A changed row or callback never leaves lifecycle
         // hooks behind, and an absent native surface retains both external ways into settings.
         val native = resolveNativeSettings()
+        val observers = native?.let { resolveSettingsObserverFix(it.builder.definingClass) }
         val activityCreate = declaredInHierarchy(MAIN_ACTIVITY, "onCreate", "Landroid/os/Bundle;")
         val newIntent = declaredInHierarchy(MAIN_ACTIVITY, "onNewIntent", "Landroid/content/Intent;")
         // Before each return of the application's onCreate, after Telegram's own startup: the
@@ -786,6 +827,8 @@ val settingsPatch = bytecodePatch(
             owner.methods.add(native.patchedBuilder)
             owner.methods.add(native.patchedClick)
             owner.methods.add(native.bridge)
+            // Same length as the static call it replaces, so no branch or try range moves.
+            observers?.let { it.method.replaceInstruction(it.index, "invoke-virtual/range { p0 .. p0 }, ${it.getter.origString()}") }
         }
     }
 }

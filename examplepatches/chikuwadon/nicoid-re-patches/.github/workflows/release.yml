@@ -54,7 +54,14 @@ jobs:
       - name: Check published source baseline and metadata
         run: |
           python3 porting/tests/VerifyReleaseBaseline.py
-          python3 porting/revisions/v2.0.1-release/test_release.py
+          if grep -Eq '^version[[:space:]]*=[[:space:]]*2\.0\.1[[:space:]]*$' gradle.properties; then
+            python3 porting/revisions/v2.0.1-release/test_release.py
+          elif grep -Eq '^version[[:space:]]*=[[:space:]]*2\.0\.2[[:space:]]*$' gradle.properties; then
+            python3 porting/revisions/v2.0.2-release/test_release.py
+          else
+            echo "Unsupported official release version" >&2
+            exit 1
+          fi
 
       - name: Check legacy list interactions and download history
         run: |
@@ -193,6 +200,8 @@ jobs:
             NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.0.0-mpp.sh
           elif grep -Fq "version = 2.0.1" gradle.properties; then
             NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.0.1-mpp.sh
+          elif grep -Fq "version = 2.0.2" gradle.properties; then
+            NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.0.2-mpp.sh
           else
             python3 porting/revisions/v1.11.1/verify-mpp.py 1.11.1
           fi

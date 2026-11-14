@@ -27,10 +27,10 @@ import org.junit.experimental.categories.Category
 @Category(FixtureTests::class)
 class NativeSettingsEntryFixtureTest {
     private val model = "Lcom/pinterest/feature/settings/menu/model/"
-    private val builder = "Lcom/pinterest/feature/profile/pymk/sba/r1;"
-    private val click = "Lnn1/m;"
-    private val external = "${model}k1;"
-    private val types = setOf(builder, click, external) + listOf("y", "r1", "s1", "f1").map { "$model$it;" }
+    private val builder = "Lcom/pinterest/feature/settings/blockedaccounts/k0;"
+    private val click = "Lxi0/f;"
+    private val external = "${model}l1;"
+    private val types = setOf(builder, click, external) + listOf("z", "s1", "t1", "g1").map { "$model$it;" }
 
     private fun classes(build: java.io.File): List<ClassDef> {
         val stock = FixtureDex.classes(build, types)
@@ -43,7 +43,7 @@ class NativeSettingsEntryFixtureTest {
             val classes = classes(build)
             val context = PatchContexts.of(classes)
             context.hookNativeSettingsEntry()
-            assertEquals("${model}y;", context.classDefBy(NATIVE_SETTINGS_ITEM).superclass)
+            assertEquals("${model}z;", context.classDefBy(NATIVE_SETTINGS_ITEM).superclass)
             assertEquals("the native list's marker interface must survive code generation",
                 classes.single { it.type == external }.interfaces,
                 context.classDefBy(NATIVE_SETTINGS_ITEM).interfaces)

@@ -45,10 +45,11 @@ public final class FeedFilter {
         boolean shopping = PatchFamily.Capability.FEED_SHOPPING.installed();
         boolean videos = PatchFamily.Capability.FEED_VIDEO_PINS.installed();
         boolean muting = PatchFamily.Capability.FEED_MUTED_WORDS.installed();
+        boolean suggestions = PatchFamily.Capability.FEED_HOME_SUGGESTIONS.installed();
         if (ads) HookStatus.invoked(FamilyNames.HIDE_ADS);
         if (ai) HookStatus.invoked(FamilyNames.HIDE_AI_PINS);
         if (shopping) HookStatus.invoked(FamilyNames.HIDE_SHOPPING);
-        if (videos || muting) HookStatus.invoked(FamilyNames.FILTER_FEED);
+        if (videos || muting || suggestions) HookStatus.invoked(FamilyNames.FILTER_FEED);
         if (items == null || items.isEmpty()) return items;
         ads = ads && Ads.active();
         // Hide pins that say they're AI rides the same hook as Hide AI-labeled pins, on its own switch.
@@ -56,13 +57,16 @@ public final class FeedFilter {
         ai = ai && AiPins.active();
         shopping = shopping && Shopping.active();
         videos = videos && VideoPins.active();
+        suggestions = suggestions && HomeSuggestions.active();
         List<String> muted = muting ? MutedWords.phrases() : Collections.emptyList();
-        if (!ads && !ai && !aiWords && !shopping && !videos && muted.isEmpty()) {
+        if (!ads && !ai && !aiWords && !shopping && !videos && !suggestions && muted.isEmpty()) {
             BoardDownloads.record(items);
             return items;
         }
-        boolean hideAds = ads, hideAi = ai, hideAiWords = aiWords, hideShopping = shopping, hideVideos = videos;
-        ModuleItems.Verdict verdict = model -> family(model, hideAds, hideAi, hideAiWords, hideShopping, hideVideos, muted);
+        boolean hideAds = ads, hideAi = ai, hideAiWords = aiWords, hideShopping = shopping, hideVideos = videos,
+                hideSuggestions = suggestions;
+        ModuleItems.Verdict verdict = model -> family(model, hideAds, hideAi, hideAiWords, hideShopping, hideVideos, muted,
+                hideSuggestions);
         String owner = ads ? FamilyNames.HIDE_ADS : ai || aiWords ? FamilyNames.HIDE_AI_PINS
                 : shopping ? FamilyNames.HIDE_SHOPPING : FamilyNames.FILTER_FEED;
         boolean debug = debugLogging();
@@ -135,23 +139,26 @@ public final class FeedFilter {
 
     /**
      * The first switch on that takes [item] out, in the order ads, AI label, AI words, shopping,
-     * video, muted words, or null to keep it. A pin that says it's AI is named
-     * {@link AiPins#SELF_DESCRIBED} and a muted one {@link MutedWords#MUTED}, each counted apart.
+     * video, muted words, Home suggestions, or null to keep it. A pin that says it's AI is named
+     * {@link AiPins#SELF_DESCRIBED}, a muted one {@link MutedWords#MUTED} and a suggestion row
+     * {@link HomeSuggestions#SUGGESTION}, each counted apart.
      */
     private static String family(Object item, boolean ads, boolean ai, boolean aiWords, boolean shopping, boolean videos,
-                                 List<String> muted) {
+                                 List<String> muted, boolean suggestions) {
         return ads && Ads.isAd(item) ? FamilyNames.HIDE_ADS
                 : ai && AiPins.isLabeled(item) ? FamilyNames.HIDE_AI_PINS
                 : aiWords && AiPins.saysItIsAi(item) ? AiPins.SELF_DESCRIBED
                 : shopping && Shopping.isShopping(item) ? FamilyNames.HIDE_SHOPPING
                 : videos && VideoPins.isVideo(item) ? FamilyNames.FILTER_FEED
-                : MutedWords.isMuted(item, muted) ? MutedWords.MUTED : null;
+                : MutedWords.isMuted(item, muted) ? MutedWords.MUTED
+                : suggestions && HomeSuggestions.isSuggestion(item) ? HomeSuggestions.SUGGESTION : null;
     }
 
     /** The family whose report counts a removal [family] names. */
     static String owner(String family) {
         return AiPins.SELF_DESCRIBED.equals(family) ? FamilyNames.HIDE_AI_PINS
-                : MutedWords.MUTED.equals(family) || SavedPins.SAVED.equals(family) ? FamilyNames.FILTER_FEED : family;
+                : MutedWords.MUTED.equals(family) || SavedPins.SAVED.equals(family)
+                    || HomeSuggestions.SUGGESTION.equals(family) ? FamilyNames.FILTER_FEED : family;
     }
 
     /** What a removal by [family] is counted as. English, for the report. */
@@ -161,6 +168,7 @@ public final class FeedFilter {
                 : family.equals(AiPins.SELF_DESCRIBED) ? "self-described AI pin removed"
                 : family.equals(FamilyNames.FILTER_FEED) ? "video pin removed"
                 : family.equals(MutedWords.MUTED) ? "muted word pin removed"
-                : family.equals(SavedPins.SAVED) ? "saved pin removed" : "shopping placement removed";
+                : family.equals(SavedPins.SAVED) ? "saved pin removed"
+                : family.equals(HomeSuggestions.SUGGESTION) ? "Home suggestion removed" : "shopping placement removed";
     }
 }

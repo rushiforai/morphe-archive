@@ -1,0 +1,66 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    name: Release
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      packages: write
+      id-token: write
+      attestations: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v6.1.0
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 'lts/*'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x gradlew
+
+      - name: Install release dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Run unit tests before release
+        run: ./gradlew :extensions:soundcloud:testDebugUnitTest --no-daemon
+
+      - name: Semantic Release (Tag, Metadata & .mpp Asset)
+        uses: cycjimmy/semantic-release-action@v8
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Attest build provenance (public repos)
+        if: steps.release.outputs.new_release_published == 'true' && github.event.repository.private == false
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-name: 'SoundCloud Combined Patches ${{ steps.release.outputs.new_release_git_tag }}'
+          subject-path: patches/build/libs/patches-*.mpp
+
+      - name: Verify compilation when no release was cut
+        if: steps.release.outputs.new_release_published != 'true'
+        run: |
+          ./gradlew :patches:check :patches:generatePatchesList --no-daemon
+          bash .github/scripts/verify_mpp.sh

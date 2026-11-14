@@ -5,7 +5,7 @@ package app.hushmessenger.extension;
  * purpose: a control that drops out has to show up here as a failing test.
  */
 final class ExpectedTotals {
-    static final int CONTROLS = 83;
+    static final int CONTROLS = 88;
     /** Copy setup for the default test install: one line per control plus its fixed header and status lines. */
     static final int SETUP_LINES = CONTROLS + 15;
     /** The same report with two recorded hook errors under its Hook errors heading. */

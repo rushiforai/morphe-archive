@@ -59,7 +59,8 @@ val optionalImageVpn = tasks.register<Zip>("optionalImageVpn") {
     isPreserveFileTimestamps = false
     isReproducibleFileOrder = true
 }
-// Versioned package. Keep the legacy filename above for patches already published.
+// Versioned package. The legacy filename above is kept for local compatibility only;
+// release assets publish this versioned package.
 val optionalImageVpnV2 = tasks.register<Zip>("optionalImageVpnV2") {
     from(zipTree(rootProject.file("vpn/image-stack/prebuilt/image-stack.aar"))) {
         include("jni/*/libgojni.so")

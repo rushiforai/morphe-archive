@@ -7,7 +7,10 @@ package app.hushmessenger.patches.misc
 
 import app.hushmessenger.patches.MessengerTarget
 import app.hushmessenger.patches.coexist.validateVersionCode
+import app.hushmessenger.patches.controls.settingsExtension
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
@@ -15,6 +18,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.encodedValue.MutableStringEncodedValue
+import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21c
@@ -59,6 +63,12 @@ internal const val MESSENGER_CERTIFICATE_SHA1 = "8a3c4b262d721acd49a4bf97d521319
 private const val CONTEXT = "Landroid/content/Context;"
 private const val CREDENTIAL_MANAGER = "Landroid/credentials/CredentialManager;"
 private const val EXTENSION_ROOT = "Lapp/hushmessenger/"
+
+/** The extension's answer to the availability check: success while microG-RE is installed, missing without it. */
+internal const val GMS_CORE_AVAILABILITY = "Lapp/hushmessenger/extension/GmsCore;->availability(${CONTEXT})I"
+
+/** The extension's answer for the framework provider: true while microG-RE is installed, so the provider steps aside. */
+internal const val GMS_CORE_SIGNS_IN_THROUGH_MICROG = "Lapp/hushmessenger/extension/GmsCore;->signsInThroughMicroG()Z"
 
 /** Play services permissions microG-RE defines under its own vendor. Morphe's list. */
 internal val GMS_PERMISSIONS = setOf(
@@ -367,12 +377,15 @@ internal data class GmsCorePlan(
  * Finds the three edits in [classes], refusing when any of them isn't where 586 has it:
  *
  * - Play services' availability check, the one method taking a Context and the minimum version that reads the
- *   version metadata ("MetadataValueReader") and Play services' package. It answers success, so the library stops
- *   asking whether Google's own Play services is installed and signed by Google.
+ *   version metadata ("MetadataValueReader") and Play services' package. It answers success while microG-RE is
+ *   installed, so the library stops asking whether Google's own Play services is installed and signed by Google, and
+ *   Play services' "missing" without it. A constant success sent androidx's sign-in helper on to ask the package
+ *   manager for microG-RE's version, which Hushfacebook saw close the signed-out login screen.
  * - androidx Credential Manager's framework provider, the one class holding Android's CredentialManager. On Android 14
  *   and later androidx prefers it, and Android hands Google's requests to Google's own Play services whatever the app
- *   asks for, so it answers unavailable and androidx falls back to the Play services provider the reroute points at
- *   microG-RE.
+ *   asks for, so while microG-RE is installed it answers unavailable and androidx falls back to the Play services
+ *   provider the reroute points at microG-RE. Without microG-RE it answers for itself: the Play services provider is
+ *   missing there too, and answering unavailable left androidx with no credential provider at all.
  * - Every const-string outside HushMessenger's own classes that [gmsCoreText] rewrites, and every static String
  *   field value it rewrites.
  */
@@ -407,6 +420,8 @@ internal fun planGmsCore(classes: Iterable<ClassDef>): GmsCorePlan {
     }
     shape(availability.size == 1, "Play services' availability check has ${availability.size} matches")
     shape(providers.size == 1, "Credential Manager's framework provider has ${providers.size} matches")
+    // Its only parameter is this, so any register past it is a local the answer can borrow on entry.
+    shape(providers.single().implementation!!.registerCount > 1, "Credential Manager's framework provider has no local register")
     val rewritten = texts.map { text -> text.method.texts()[text.index] }.toSet()
     GMS_CORE_REQUIRED_TEXTS.firstOrNull { it !in rewritten }?.let { shape(false, "Messenger no longer names $it") }
     return GmsCorePlan(availability.single(), providers.single(), texts, fields)
@@ -433,15 +448,31 @@ internal fun BytecodePatchContext.applyGmsCore(plan: GmsCorePlan) {
         val owner = mutableClassDefBy(type)
         for (field in held) (owner.staticFields.single { it.name == field.name }.initialValue as MutableStringEncodedValue).value = field.text
     }
-    mutableClassDefBy(plan.availability.definingClass).methods.single { it.same(plan.availability) }.answerZero()
-    mutableClassDefBy(plan.frameworkProvider.definingClass).methods.single { it.same(plan.frameworkProvider) }.answerZero()
+    mutableClassDefBy(plan.availability.definingClass).methods.single { it.same(plan.availability) }.answerFromMicroG()
+    mutableClassDefBy(plan.frameworkProvider.definingClass).methods.single { it.same(plan.frameworkProvider) }.stepAsideForMicroG()
 }
 
-/** Returns 0 (success for the availability check, false for the provider) before the body runs. Both have a v0. */
-private fun MutableMethod.answerZero() = addInstructions(0, """
+/** The availability check answers whatever the extension says about microG-RE, in the Context register it's handed. */
+internal fun MutableMethod.answerFromMicroG() {
+    val context = if (AccessFlags.STATIC.isSet(accessFlags)) "p0" else "p1"
+    addInstructions(0, """
+        invoke-static/range {$context .. $context}, $GMS_CORE_AVAILABILITY
+        move-result $context
+        return $context
+    """)
+}
+
+/**
+ * The framework provider answers false while microG-RE is installed, so androidx uses microG-RE's provider, and
+ * otherwise runs its own body. v0 is a local the plan checked for, unread before its first write.
+ */
+internal fun MutableMethod.stepAsideForMicroG() = addInstructionsWithLabels(0, """
+    invoke-static {}, $GMS_CORE_SIGNS_IN_THROUGH_MICROG
+    move-result v0
+    if-eqz v0, :framework
     const/4 v0, 0x0
     return v0
-""")
+""", ExternalLabel("framework", getInstruction(0)))
 
 /**
  * Sends Cloud Messaging's manifest names to microG-RE: the receive permission Messenger asks for, the send permission
@@ -496,12 +527,13 @@ internal val gmsCoreManifestPatch = resourcePatch(description = "Point Messenger
 @Suppress("unused")
 val gmsCoreSupportPatch = bytecodePatch(
     name = GMS_CORE_PATCH,
-    description = "Gets Messenger's push notifications through microG-RE instead of Google Play services. It also gives microG-RE the signature of Meta's own Messenger for the Google services that check one. Only for phones with microG-RE installed, since Messenger stops asking Google Play services. Pick it in Morphe Manager's Expert mode. Works as soon as you patch it in, with no switch.",
+    description = "Gets Messenger's push notifications through microG-RE instead of Google Play services. It also gives microG-RE the signature of Meta's own Messenger for the Google services that check one. Only for phones with microG-RE installed, since Messenger stops asking Google Play services. Install microG-RE before you open the patched app. Pick it in Morphe Manager's Expert mode. Works as soon as you patch it in, with no switch.",
     default = false,
 ) {
     category("Fixes")
     compatibleWith(MessengerTarget.COMPATIBILITY)
-    dependsOn(gmsCoreManifestPatch)
+    // The checks call GmsCore, which comes with the extension, and read the Context its settings provider stores.
+    dependsOn(settingsExtension, gmsCoreManifestPatch)
 
     execute {
         // Found again rather than carried over: patches that ran since may have edited these classes.

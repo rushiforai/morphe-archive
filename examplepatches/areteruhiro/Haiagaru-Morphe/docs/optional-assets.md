@@ -25,7 +25,7 @@
 これはImage NGではなく、**画像取得専用VPNの追加ファイル**のエラーです。`haiagaru-image-ng.zip` にはVPNは入っていません。
 
 - VPNを使わない場合: 「画像取得専用VPN（実験用・検証中）」のチェックを外してください。Image NG用ZIPはHaiagaruの191画像判定オプションで選択したままで構いません。
-- VPNも使う場合: [VPN用haiagaru-image-vpn-v2.zip](https://github.com/areteruhiro/Haiagaru-Morphe/releases/latest/download/haiagaru-image-vpn-v2.zip)を保存し、**VPN側のファイル選択**で指定してください。以前のパッチ向けに従来名のZIPも配布します。ZIP対応前のパッチでは、下の従来AARを使います。
+- VPNも使う場合: [VPN用haiagaru-image-vpn-v2.zip](https://github.com/areteruhiro/Haiagaru-Morphe/releases/latest/download/haiagaru-image-vpn-v2.zip)を保存し、**VPN側のファイル選択**で指定してください。ZIP対応前のパッチでは、下の従来AARを使います。
 
 ZIPはどちらも展開せず選びます。ファイル名を変更して代用しても、内容が違うため適用できません。
 
@@ -39,7 +39,7 @@ ZIPはどちらも展開せず選びます。ファイル名を変更して代�
 
 ## 開発者向け
 
-`./gradlew :patches:buildAndroid` は画像判定ZIPとVPN用ZIPを生成し、通常のSemantic Release CIでMPPと別々に添付します。巨大資材のソース・ライセンスはリポジトリに残し、MPPのリソースからだけ除外します。生成先は画像判定が `optional-assets/haiagaru-image-ng.zip`、新しいVPN版が `build/optional-assets/haiagaru-image-vpn-v2.zip`、旧パッチ互換用が `build/optional-assets/haiagaru-image-vpn.zip` です。VPN ZIPにはAAR内のJNIライブラリと対応する第三者ライセンスを含めます。
+`./gradlew :patches:buildAndroid` は画像判定ZIPとVPN用ZIPを生成し、通常のSemantic Release CIでMPPと別々に添付します。巨大資材のソース・ライセンスはリポジトリに残し、MPPのリソースからだけ除外します。生成先は画像判定が `optional-assets/haiagaru-image-ng.zip`、VPN版が `build/optional-assets/haiagaru-image-vpn-v2.zip` です。VPN ZIPにはAAR内のJNIライブラリと対応する第三者ライセンスを含めます。
 
 
 VPNライブラリは対応するMPPと同じ更新のファイルを選んでください。開発版MPPを使用する場合は、同じ開発版のAARまたは生成ZIPが必要です。ビルドはソースの絶対パスとローカルのモジュール置換情報を埋め込まない設定を使用します。依存関係と第三者ライセンスは引き続き公開します。

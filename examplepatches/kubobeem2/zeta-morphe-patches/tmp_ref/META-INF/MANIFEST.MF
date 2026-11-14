@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Name: VTube Studio Morphe Patches
+Description: Patches for VTube Studio Android
+Version: 1.0.1
+Timestamp: 1794304637059
+Source: https://github.com/kuboes/vtuber-studio-morphe-patch
+Author: kuboes
+Contact: na
+Website: na
+License: GPLv3
+Patcher-Version: 2.3.0
+

@@ -62,6 +62,7 @@ val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
     description = "Removes the sponsored and boosted posts and the other ads from the feeds.",
 ) {
+    category("Ads")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")

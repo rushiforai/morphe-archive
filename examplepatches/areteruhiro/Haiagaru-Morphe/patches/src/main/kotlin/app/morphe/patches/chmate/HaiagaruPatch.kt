@@ -3312,6 +3312,14 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchXVideoAttachmentP
  * neither the forced sort nor the forced jump-to-bottom collector runs. */
 private fun BytecodePatchContext.patchPostEditorTextSize(version: String) {
     patchPostingIpWarning(version)
+    if(version=="0.8.10.242 dev"){
+        val dialog=mutableClassDefBy("Lo/zzbgc;")
+        check(dialog.superclass=="Landroid/widget/RelativeLayout;")
+        val layout=dialog.methods.single{it.name=="onLayout"&&it.parameterTypes==listOf("Z","I","I","I","I")&&it.returnType=="V"}
+        layout.implementation!!.instructions.withIndex().filter{it.value.opcode==Opcode.RETURN_VOID}.map{it.index}.asReversed().forEach{
+            layout.addInstructionsWithLabels(it,"invoke-static/range {p0 .. p0}, Lapp/morphe/extension/chmate/PostEditorDialogLayout;->fit(Landroid/view/ViewGroup;)V")
+        }
+    }
     if (version == "0.8.10.191 dev") {
         val command = mutableClassDefBy("Lo/pa;").methods.single {
             it.name == "e" && it.parameterTypes == listOf("I", "Ljava/lang/Object;") && it.returnType == "Z"
@@ -4965,6 +4973,12 @@ val haiagaruPatch = resourcePatch(
                 refreshTabs.setAttributeNS("http://schemas.android.com/apk/res/android", "android:defaultValue", "0")
                 refreshTabs.setAttributeNS("http://schemas.android.com/apk/res/android", "android:summary", "タブレット表示の両ペインのタブを更新します。未使用のジェスチャーを割り当ててください")
                 anchor.parentNode.insertBefore(refreshTabs, deleteRead.nextSibling)
+                val quickFilters = settings.createElement("jp.syoboi.a2chMate.ui.setting.preference.gesture.GesturePreference")
+                quickFilters.setAttributeNS("http://schemas.android.com/apk/res/android", "android:title", "フィルター")
+                quickFilters.setAttributeNS("http://schemas.android.com/apk/res/android", "android:key", "haiagaruGestureQuickFilters")
+                quickFilters.setAttributeNS("http://schemas.android.com/apk/res/android", "android:defaultValue", "0")
+                quickFilters.setAttributeNS("http://schemas.android.com/apk/res/android", "android:summary", "人気レス・画像・動画などのレスフィルターを開きます。未使用のジェスチャーを割り当ててください")
+                anchor.parentNode.insertBefore(quickFilters, refreshTabs.nextSibling)
             }
         }
         if (replaceImageNgTflite && imageNgLibraryFile.value.orEmpty().isNotBlank() && packageMetadata.versionName == "0.8.10.191 dev") {
@@ -5153,6 +5167,7 @@ val haiagaruPatch = resourcePatch(
             "haiagaru_hissi_droid_plus" to "必死チェッカーDroid＋で開く",
             "haiagaru_auto_ng_exclusions" to "自動NG除外ID",
             "haiagaru_thread_watch" to "このスレの新着通知",
+            "haiagaru_stock_posting" to "標準アプリで書き込むを開く",
             "haiagaru_refresh_open_tabs" to "開いているスレ・板を一括更新",
         )) {
             for (values in listOf("values", "values-en")) {
@@ -5168,6 +5183,8 @@ val haiagaruPatch = resourcePatch(
                 it.createPublicId("drawable", name)
             }
             val iconPath = when (name) {
+                "haiagaru_stock_posting" ->
+                    "M3,17.25V21h3.75L17.81,9.94l-3.75,-3.75zM20.71,7.04a1,1 0,0 0,0 -1.41l-2.34,-2.34a1,1 0,0 0,-1.41 0l-1.83,1.83 3.75,3.75zM13,19h8v2h-8z"
                 "haiagaru_refresh_open_tabs" ->
                     "M3,3h8v2H5v6H3zM13,3h8v8h-2V5h-6zM3,13h2v6h6v2H3zM19,13h2v8h-8v-2h6zM16,8v4h-4l1.6,-1.6A3,3 0,1 0,15 13h2a5,5 0,1 1,-2.3,-4.2z"
                 "haiagaru_thread_watch" ->
@@ -5504,6 +5521,11 @@ val haiagaruPatch = resourcePatch(
                 setAndroidAttribute("theme", "@android:style/Theme.Material.Light.NoActionBar")
             })
             application.appendChild(document.createElement("activity").apply {
+                setAndroidAttribute("name", "app.morphe.extension.chmate.LocalImageArchiveActivity")
+                setAndroidAttribute("exported", "false")
+                setAndroidAttribute("theme", "@android:style/Theme.Material.Light.NoActionBar")
+            })
+            application.appendChild(document.createElement("activity").apply {
                 setAndroidAttribute("name", "app.morphe.extension.chmate.RegisteredImageNgSettingsActivity")
                 setAndroidAttribute("exported", "false")
                 setAndroidAttribute("theme", "@android:style/Theme.Material.Light.NoActionBar")
@@ -5566,6 +5588,11 @@ val haiagaruPatch = resourcePatch(
             })
             application.appendChild(document.createElement("activity").apply {
                 setAttributeNS(ANDROID_XML_NAMESPACE,"android:name","app.morphe.extension.chmate.ThreadWatchOpenActivity")
+                setAttributeNS(ANDROID_XML_NAMESPACE,"android:exported","false")
+                setAttributeNS(ANDROID_XML_NAMESPACE,"android:theme","@android:style/Theme.Translucent.NoTitleBar")
+            })
+            application.appendChild(document.createElement("activity").apply {
+                setAttributeNS(ANDROID_XML_NAMESPACE,"android:name","app.morphe.extension.chmate.StockPostingRelayActivity")
                 setAttributeNS(ANDROID_XML_NAMESPACE,"android:exported","false")
                 setAttributeNS(ANDROID_XML_NAMESPACE,"android:theme","@android:style/Theme.Translucent.NoTitleBar")
             })

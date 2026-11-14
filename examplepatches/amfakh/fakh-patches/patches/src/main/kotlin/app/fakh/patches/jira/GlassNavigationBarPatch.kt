@@ -3,6 +3,9 @@ package app.fakh.patches.jira
 import app.fakh.patches.jira.shared.Constants.COMPATIBILITY_JIRA
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
@@ -46,6 +49,8 @@ private val taller = resourcePatch {
     }
 }
 
+private const val EXTENSION = "Lapp/fakh/extension/jira/MaterialYou;"
+
 @Suppress("unused")
 val glassNavigationBarPatch = bytecodePatch(
     name = "Glass navigation bar",
@@ -58,16 +63,30 @@ val glassNavigationBarPatch = bytecodePatch(
     dependsOn(taller, settingsRowsPatch)
 
     execute {
-        val insets = homeInsetsFingerprint.method
-        if (insets.implementation!!.registerCount < 3) throw PatchException("No free registers in the insets getter")
-        insets.addInstructions(
+        // The extension's switch for the bar only shows where this patch is in.
+        mutableClassDefBy(EXTENSION).methods.first { it.name == "isGlassNavigationBarIncluded" }.addInstructions(
             0,
             """
+                const/4 v0, 0x1
+                return v0
+            """,
+        )
+
+        val insets = homeInsetsFingerprint.method
+        if (insets.implementation!!.registerCount < 3) throw PatchException("No free registers in the insets getter")
+        // With the bar's switch off the pages keep the app's room for its own bar.
+        insets.addInstructionsWithLabels(
+            0,
+            """
+                invoke-static { }, $EXTENSION->glassNavigationBar()Z
+                move-result v0
+                if-eqz v0, :keep
                 new-instance v0, ${insets.returnType}
                 const/4 v1, 0x0
                 invoke-direct { v0, v1, v1, v1, v1 }, ${insets.returnType}-><init>(IIII)V
                 return-object v0
             """,
+            ExternalLabel("keep", insets.getInstruction(0)),
         )
 
         val constructor = bottomNavFingerprint.method

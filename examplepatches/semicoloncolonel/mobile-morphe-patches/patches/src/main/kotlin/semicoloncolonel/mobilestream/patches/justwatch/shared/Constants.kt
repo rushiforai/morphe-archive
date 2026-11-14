@@ -4,6 +4,7 @@ import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.SupportedAbi
+import semicoloncolonel.mobilestream.patches.shared.misc.devTarget
 
 object Constants {
     val COMPATIBILITY = Compatibility(
@@ -13,7 +14,7 @@ object Constants {
         apkFileType = ApkFileType.APKM,
         appIconColor = 0xFBC500,
         targets = listOf(
-            AppTarget("26.44.2", 2644002, description = "Phone build"),
+            devTarget("26.45.1", 2645001, description = "Phone build"),
             // Two Android TV builds of 26.43.8 exist: APKMirror's bundle (2643008, with
             // 32-bit and 64-bit splits) and the single 32-bit APK Google Play gives an
             // NVIDIA Shield (12643008). Both are listed so Morphe Manager accepts either.

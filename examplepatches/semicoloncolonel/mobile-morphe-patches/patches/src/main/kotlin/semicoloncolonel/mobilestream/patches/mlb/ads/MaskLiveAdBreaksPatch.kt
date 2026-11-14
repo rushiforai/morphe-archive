@@ -29,6 +29,7 @@ val maskLiveAdBreaksPatch = bytecodePatch(
     description = "Covers live gambling-ad breaks with a notice.",
     default = false,
 ) {
+    category("Ads")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")

@@ -44,6 +44,7 @@ val releaseTimesPatch = bytecodePatch(
     name = "Show release times",
     description = "Shows the time in your time zone when an upcoming episode or title is released.",
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")

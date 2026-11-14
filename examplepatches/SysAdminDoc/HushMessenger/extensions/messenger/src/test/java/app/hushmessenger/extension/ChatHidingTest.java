@@ -91,7 +91,7 @@ public class ChatHidingTest {
         }
     }
 
-    public enum Icons { MUTE, EYE, EYE_CROSS }
+    public enum Icons { MUTE, EYE, EYE_CROSS, STAR, STAR_CROSS, CLOCK }
 
     /** Messenger's row builder: a factory, an id, an icon, a title and a description, then a static build. */
     public static final class Builder {
@@ -110,6 +110,14 @@ public class ChatHidingTest {
 
         public void title(CharSequence title) {
             label = title;
+        }
+
+        /** 587's builder fills the description through a setter. */
+        int described;
+
+        public void describe(String text) {
+            description = text;
+            described++;
         }
 
         public static Built build(Builder builder, String name) {
@@ -149,7 +157,8 @@ public class ChatHidingTest {
     private static final String SUMMARY = TEST + "Summary;";
     private static final String BUILDER = TEST + "Builder;";
     private static final String SUPPLIER = TEST + "Supplier;";
-    private static final String ROUTE = String.join("|",
+    /** Also Special contacts' route: its menu row and tap ride on these same hooks. */
+    static final String ROUTE = String.join("|",
         SUMMARY + "->key:" + TEST + "Key;",
         SUMMARY + "->name:Ljava/lang/String;",
         SUMMARY + "->people:" + TEST + "Rows;",
@@ -275,6 +284,17 @@ public class ChatHidingTest {
         assertEquals(1, supplier.subscribed);
         Rows back = Rows.of(chat);
         assertSame(back, ChatHiding.inboxRows(supplier, back));
+    }
+
+    @Test public void a587RouteFillsTheDescriptionThroughTheBuildersSetter() throws Exception {
+        String field = BUILDER + "->description:Ljava/lang/String;";
+        ChatHiding.route = ChatHiding.Route.of(ROUTE.replace(field, BUILDER + "->describe(Ljava/lang/String;)V"), ChatHidingTest.class.getClassLoader());
+        Built hide = (Built) menuRows(new Summary("chat")).get(1);
+        assertEquals(text("hidden_chats_hide"), hide.builder.description);
+        assertEquals(1, hide.builder.described);
+        for (String wrong : Arrays.asList(BUILDER + "->title(Ljava/lang/CharSequence;)V", BUILDER + "->create()" + BUILDER, BUILDER + "->id:I")) {
+            assertThrows(wrong, IllegalStateException.class, () -> ChatHiding.Route.of(ROUTE.replace(field, wrong), ChatHidingTest.class.getClassLoader()));
+        }
     }
 
     @Test public void aFullMenuGetsTheRowOnTheEndAndMessengersOwnTapsGoOn() {

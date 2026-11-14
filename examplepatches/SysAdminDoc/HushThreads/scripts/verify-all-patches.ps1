@@ -251,10 +251,17 @@ try {
                 -Stock $baselineManifest -Patched $patchedManifest))
             $approvedChanges = @(Read-ManifestDeltaAllowlist -Path (Join-Path $PSScriptRoot 'manifest-delta-allowlist.txt') |
                 Where-Object { $_ })
-            $unapprovedChanges = @($manifestChanges | Where-Object { $approvedChanges -cnotcontains $_ })
+            # Change package name renames the app's own permissions along with the package. Those pairs
+            # are the rename itself, not a new ask, and no release selection carries that patch.
+            $renameChanges = @(Get-PackageRenameEntries -Stock $baselineManifest -Patched $patchedManifest `
+                -Entries $manifestChanges | Where-Object { $_ })
+            $unapprovedChanges = @($manifestChanges | Where-Object {
+                    $approvedChanges -cnotcontains $_ -and $renameChanges -cnotcontains $_ })
             Write-Host "[verify] manifest delta: $($manifestChanges.Count) change(s), $($unapprovedChanges.Count) not approved"
             foreach ($change in $manifestChanges) {
-                $mark = if ($approvedChanges -ccontains $change) { 'approved' } else { 'NOT APPROVED' }
+                $mark = if ($approvedChanges -ccontains $change) { 'approved' }
+                elseif ($renameChanges -ccontains $change) { "package rename $($baselineManifest.package) to $($patchedManifest.package)" }
+                else { 'NOT APPROVED' }
                 Write-Host "[verify]   $change ($mark)"
             }
             $unmade = @($approvedChanges | Where-Object { $manifestChanges -cnotcontains $_ })

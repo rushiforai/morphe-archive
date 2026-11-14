@@ -26,12 +26,13 @@ $WalkLaunchGateLabel = '^(Close|At least 18|Continue)$'
 # comment and share buttons, and the server picks it (Short Video and AI fiction so far), so MainTab
 # is whatever else sits up there. Drama is the series. PineDrama takes its language from its own settings, over the phone's
 # and Android's per-app locale, so a phone set to another language needs its words added here.
-# HushPine's own titles come from its translation tables instead (Get-WalkTitleLabel).
+# HushPine's own titles come from its translation tables instead (Get-WalkTitleLabel). The fourth
+# bottom tab is Inbox on some 47.7.3 installs and My list on others, signed in or not.
 $WalkLabels = @{
     Home = '^Home$'
     Discover = '^Discover$'
     Rewards = '^Rewards$'
-    Inbox = '^Inbox$'
+    Inbox = '^(Inbox|My list)$'
     Profile = '^Profile$'
     MainTab = '^(?!Following$|Drama$|Search$).+$'
     Following = '^Following$'

@@ -46,6 +46,7 @@ public final class GlassNavigationBar {
      * @param view the FoldableBottomNav being built
      */
     public static void install(final View view) {
+        if (!MaterialYou.glassNavigationBar()) return;
         view.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
             private Selection selection;
 
@@ -130,6 +131,7 @@ public final class GlassNavigationBar {
             bar.setPadding(bar.getPaddingLeft() + sides, bar.getPaddingTop(), bar.getPaddingRight() + sides, bar.getPaddingBottom());
             bar.setBackground(glass);
             glass.setLiquid(MaterialYou.liquidGlass(bar.getContext()));
+            glass.setBevel(true);
             if (tabs() != null) TabSlide.install(bar, glass, false, TabSlide.children(tabs(), bar));
         }
 

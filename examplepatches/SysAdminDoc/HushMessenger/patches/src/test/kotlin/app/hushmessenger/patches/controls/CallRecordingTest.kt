@@ -6,11 +6,14 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import java.io.ByteArrayInputStream
+import javax.xml.parsers.DocumentBuilderFactory
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
+import org.w3c.dom.Element
 
 private const val PLAYOUT_THREAD = "LX/Cvy;"
 private const val RECORD_THREAD = "LX/Cvx;"
@@ -170,5 +173,40 @@ class CallRecordingTest {
         assertEquals(CALL_RECORDING_SPOKE, (code[handle - 1] as ReferenceInstruction).reference.toString())
         assertEquals(listOf(0, 1, 3), (code[handle - 1] as FiveRegisterInstruction).registers())
         assertEquals(listOf(5, 3, 0, 1), (code[handle + 1] as FiveRegisterInstruction).registers())
+    }
+
+    // Live captions on calls (#159) rides the same five steps, so patching both leaves one hook per step, not two.
+    @Test fun recordCallsAndLiveCaptionsShareOneHookPerStep() {
+        val methods = listOf(holderMethod(), switchMethod(SYNTHETIC_CALL_START), switchMethod(SYNTHETIC_CALL_STOP), playoutMethod(), recordMethod())
+        val calls = setOf(CALL_RECORDING_ADD_LAYER, CALL_RECORDING_STARTED, CALL_RECORDING_STOPPED, CALL_RECORDING_HEARD, CALL_RECORDING_SPOKE)
+        fun hooks(method: MutableMethod) = method.code().mapNotNull { (it as? ReferenceInstruction)?.reference?.toString() }.filter { it in calls }
+        for (method in methods) inject(method)
+        val once = methods.map { hooks(it) }
+        injectControl(CALL_CAPTIONS, mapOf(CALL_RECORDING to methods))
+        assertEquals(once, methods.map { hooks(it) })
+        assertTrue(once.all { it.size == 1 })
+        val captionsFirst = listOf(holderMethod(), playoutMethod())
+        injectControl(CALL_CAPTIONS, mapOf(CALL_RECORDING to captionsFirst))
+        for (method in captionsFirst) inject(method)
+        assertEquals(listOf(listOf(CALL_RECORDING_ADD_LAYER), listOf(CALL_RECORDING_HEARD)), captionsFirst.map { hooks(it) })
+    }
+
+    @Test fun liveCaptionsLetMessengerSeeTheSpeechRecognizerOnce() {
+        val document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(ByteArrayInputStream("""
+            <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.facebook.orca">
+                <queries><intent><action android:name="android.intent.action.TTS_SERVICE"/></intent></queries>
+                <application/>
+            </manifest>
+        """.trimIndent().toByteArray()))
+        document.addSpeechQueries()
+        document.addSpeechQueries()
+        val actions = document.getElementsByTagName("action").let { nodes -> (0 until nodes.length).map { (nodes.item(it) as Element).getAttribute("android:name") } }
+        assertEquals(listOf("android.intent.action.TTS_SERVICE", RECOGNITION_SERVICE), actions)
+        assertEquals(1, document.getElementsByTagName("queries").length)
+
+        val bare = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(ByteArrayInputStream(
+            "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"><application/></manifest>".toByteArray()))
+        bare.addSpeechQueries()
+        assertEquals(RECOGNITION_SERVICE, (bare.getElementsByTagName("action").item(0) as Element).getAttribute("android:name"))
     }
 }

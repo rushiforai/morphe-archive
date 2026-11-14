@@ -20,15 +20,15 @@ from scripts import verify_changed_apk_failure as checker
 # The Kotlin message follows its own table order; the check accepts any order.
 SUPPORTED = " or ".join(str(code) for code in reversed(checker.BUILDS))
 LAST_BUILD = str(next(iter(checker.BUILDS)))
-REASON = f"expected 6 permission loads, found 4; use version code {SUPPORTED}"
+REASON = f"expected 3 permission loads, found 1; use version code {SUPPORTED}"
 WRAPPED_REASON = (
     'app.morphe.patcher.patch.PatchException: The patch "Install beside Meta apps" '
     'depends on "ResourcePatch@1179093020", which raised an exception:\r\n'
     'app.morphe.patcher.patch.PatchException: The patch "ResourcePatch@1179093020" '
     'depends on "BytecodePatch@1727420902", which raised an exception:\r\n'
     "app.morphe.patcher.patch.PatchException: Install beside Meta apps: "
-    "expected 6 permission loads, found 4. Use an unmodified Messenger "
-    f"586.0.0.55.92 APK (version code {SUPPORTED}).\r\r\n"
+    "expected 3 permission loads, found 1. Use an unmodified Messenger "
+    f"587.0.0.54.96 APK (version code {SUPPORTED}).\r\r\n"
     "\tat app.hushmessenger.patches.coexist.InstallBesideMetaAppsPatchKt.validateDexSites(InstallBesideMetaAppsPatch.kt:203)\r\n"
 )
 
@@ -175,12 +175,12 @@ class ChangedApkChecks(unittest.TestCase):
                         outcome["failedPatches"][0]["reason"] = "unrelated failure"
                     if case == "wrapped-unrelated":
                         outcome["failedPatches"][0]["reason"] = WRAPPED_REASON.replace(
-                            "expected 6 permission loads, found 4",
-                            "expected 6 permission loads, found 5",
+                            "expected 3 permission loads, found 1",
+                            "expected 3 permission loads, found 2",
                         )
                     if case == "wrapped-count-prefix":
                         outcome["failedPatches"][0]["reason"] = WRAPPED_REASON.replace(
-                            "found 4.", "found 40."
+                            "found 1.", "found 10."
                         )
                     if case == "wrapped-build-prefix":
                         outcome["failedPatches"][0]["reason"] = WRAPPED_REASON.replace(
@@ -188,7 +188,7 @@ class ChangedApkChecks(unittest.TestCase):
                         )
                     if case == "split-reason":
                         outcome["failedPatches"][0]["reason"] = (
-                            "expected 6 permission loads, found 4\n"
+                            "expected 3 permission loads, found 1\n"
                             f"unrelated error on version code {SUPPORTED}"
                         )
                     if case == "report-array":

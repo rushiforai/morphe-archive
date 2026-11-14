@@ -138,6 +138,7 @@ val gmsCoreSupportPatch = bytecodePatch(
     name = "GmsCore support",
     description = "Signs in with Google through GmsCore instead of Google Play services.",
 ) {
+    category("Setup")
     compatibleWith(Constants.COMPATIBILITY)
 
     // A root mount keeps the stock package name and Google's signature, so it

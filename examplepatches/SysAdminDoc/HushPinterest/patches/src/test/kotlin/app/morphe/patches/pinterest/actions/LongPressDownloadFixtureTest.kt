@@ -22,8 +22,10 @@ import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
@@ -88,9 +90,9 @@ class LongPressDownloadFixtureTest {
             assertEquals(build.name, "Z", found.springsDetached.type)
             // Pinned by hand, so a search that drifts to another boolean and object pair fails here
             // instead of agreeing with itself (DexDiff repeats the same search).
-            if (build.name.startsWith("pinterest-14.43.0-")) {
+            if (build.name.startsWith("pinterest-14.44.0-")) {
                 assertEquals(build.name, "Lcom/pinterest/ui/menu/SpringLinearLayout;->d:Z", "${found.springsDetached}")
-                assertEquals(build.name, "Lcom/pinterest/ui/menu/KotSpringLinearLayout;->g:Leb3/a2;", "${found.springDriver}")
+                assertEquals(build.name, "Lcom/pinterest/ui/menu/KotSpringLinearLayout;->g:Lbc3/d2;", "${found.springDriver}")
             }
             assertEquals(build.name, listOf(CONTEXT_MENU_ITEM, "${found.springsDetached}", "${found.springDriver}"), stub("springsReattached"))
             assertEquals(build.name, listOf(Opcode.CHECK_CAST, Opcode.CONST_4, Opcode.IPUT_BOOLEAN, Opcode.IPUT_OBJECT, Opcode.RETURN_VOID),
@@ -101,10 +103,10 @@ class LongPressDownloadFixtureTest {
             assertTrue(build.name, "${found.strings}->download:I" in item)
             assertTrue(build.name, item.any { it.startsWith("${found.factory.definingClass}->${found.factory.name}(") })
             assertTrue(build.name, item.any { it.startsWith("${found.styler.definingClass}->${found.styler.name}(") })
-            // The button's id field and the three ids it's compared with, pinned by hand on 14.43.0
+            // The button's id field and the three ids it's compared with, pinned by hand on 14.44.0
             // so a search that drifts to another int field fails here.
-            if (build.name.startsWith("pinterest-14.43.0-")) {
-                assertEquals(build.name, "Lno0/e;", ids!!.owner)
+            if (build.name.startsWith("pinterest-14.44.0-")) {
+                assertEquals(build.name, "Lzo0/e;", ids!!.owner)
                 assertEquals(build.name, "j", ids.field)
                 assertTrue(build.name, ids.closeup)
             }
@@ -179,10 +181,19 @@ class LongPressDownloadFixtureTest {
             longPressDownloadPatch.execute(context)
 
             val list = context.mutable(found.dispatcher).implementation!!.instructions.toList()
-            assertEquals("${build.name} list hook", COMPOSE_ITEMS_HOOK, (list[found.listAt] as ReferenceInstruction).reference.toString())
-            assertEquals("${build.name} list hook's answer", Opcode.MOVE_RESULT_OBJECT, list[found.listAt + 1].opcode)
+            // A list kept past v15 goes to the hook as a range, after a copy of the event lands next to it.
+            val hookAt = found.listAt + if (found.pair == null) 0 else 1
+            if (found.pair != null) {
+                assertEquals("${build.name} event copy", Opcode.MOVE_OBJECT_FROM16, list[found.listAt].opcode)
+                assertEquals("${build.name} event copy", listOf(found.pair, found.event),
+                    (list[found.listAt] as TwoRegisterInstruction).let { listOf(it.registerA, it.registerB) })
+                assertEquals("${build.name} list hook takes a range", Opcode.INVOKE_STATIC_RANGE, list[hookAt].opcode)
+            }
+            assertEquals("${build.name} list hook", COMPOSE_ITEMS_HOOK, (list[hookAt] as ReferenceInstruction).reference.toString())
+            assertEquals("${build.name} list hook's answer", Opcode.MOVE_RESULT_OBJECT, list[hookAt + 1].opcode)
+            assertEquals("${build.name} list hook's answer", found.items, (list[hookAt + 1] as OneRegisterInstruction).registerA)
             assertEquals("${build.name} the rest of the dispatcher", render(listBefore),
-                render(list.filterIndexed { at, _ -> at != found.listAt && at != found.listAt + 1 }))
+                render(list.filterIndexed { at, _ -> at !in found.listAt..hookAt + 1 }))
 
             val effect = context.mutable(found.effect).implementation!!.instructions.toList()
             assertEquals("${build.name} tap reads the pin", "${found.pinRead}", (effect[found.clickAt] as ReferenceInstruction).reference.toString())
@@ -199,10 +210,12 @@ class LongPressDownloadFixtureTest {
 
             val extension = context.mutableClassDefBy(LONG_PRESS)
             fun stub(name: String) = references(extension.methods.single { it.name == name })
-            // Pinned by hand on 14.43.0, so a search that drifts to another interface or enum fails here.
-            if (build.name.startsWith("pinterest-14.43.0-")) {
-                assertEquals(build.name, "Lk23/y;", found.face.type)
-                assertEquals(build.name, "Lk23/p0;", found.kinds.type)
+            // Pinned by hand on 14.44.0, so a search that drifts to another interface, enum or dispatcher fails here.
+            if (build.name.startsWith("pinterest-14.44.0-")) {
+                assertEquals(build.name, "Le33/z;", found.face.type)
+                assertEquals(build.name, "Le33/t0;", found.kinds.type)
+                assertEquals(build.name, "Lf33/u0;->l", "${found.dispatcher.definingClass}->${found.dispatcher.name}")
+                assertEquals(build.name, 38, found.items)
             }
             assertEquals(build.name, listOf(found.face.type), stub("composeOptionType"))
             assertTrue(build.name, "${menu.icon}->DOWNLOAD:${menu.icon}" in stub("composeIconAndLabel"))

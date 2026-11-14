@@ -67,6 +67,13 @@ private val COPY_DECISION_BODY = DECISION_BODY
     .replace("if-nez v1,", "if-nez v24,")
     .replace("invoke-static {v0, v1}, $ENTRY", "move/from16 v3, v24\ninvoke-static {v0, v3}, $ENTRY")
 
+private const val PAIR = "LX/0DU;"
+private const val TEXT_ENTRY = "invoke-static {v1}, Ljava/lang/String;->valueOf(Z)Ljava/lang/String;\nmove-result-object v3\nnew-instance v4, $PAIR\n" +
+    "invoke-direct {v4, v0, v3}, $PAIR-><init>(Ljava/lang/Object;Ljava/lang/Object;)V"
+
+/** 587's form: the flag is logged as its String, paired with the name in a new object. */
+private val TEXT_DECISION_BODY = DECISION_BODY.replace("invoke-static {v0, v1}, $ENTRY", TEXT_ENTRY)
+
 /** The poster, with no local register at all: it posts with the call id it was given through the service it was handed. */
 private const val POSTER_BODY = "invoke-virtual {p2, p3, p0}, $START_FOREGROUND\nreturn-void"
 
@@ -112,14 +119,18 @@ class QuietCallsTest {
         val copied = quietCallsFixture(decision(COPY_DECISION_BODY, registers = 26))
         assertEquals(listOf(SYNTHETIC_RING_DECISION), found(copied, QUIET_CALL_RING))
         validateControls(mirroredControls(copied), both)
+        // 587 logs the flag's String, paired with the name.
+        val text = quietCallsFixture(decision(TEXT_DECISION_BODY))
+        assertEquals(listOf(SYNTHETIC_RING_DECISION), found(text, QUIET_CALL_RING))
+        validateControls(mirroredControls(text), both)
     }
 
     @Test fun eachProfileHooksItsOwnDecisionAndPoster() {
         assertEquals(setOf(SYNTHETIC_RING_DECISION), SYNTHETIC_PROFILE.hooks.getValue(QUIET_CALL_RING))
         assertEquals(setOf(SYNTHETIC_CALL_POSTER), SYNTHETIC_PROFILE.hooks.getValue(QUIET_CALL_NOTIFICATION))
-        assertEquals(setOf("LX/BDT;->run()V"), BASE_PROFILE.hooks.getValue(QUIET_CALL_RING))
-        assertEquals(setOf("$RTC_NOTIFICATION_SERVICE->A00(Landroid/app/Notification;Landroid/content/Context;LX/BZK;LX/BnO;LX/BF1;" +
-            "${RTC_NOTIFICATION_SERVICE}LX/NFV;Ljava/lang/Integer;Ljava/lang/String;IZZZ)V"), BASE_PROFILE.hooks.getValue(QUIET_CALL_NOTIFICATION))
+        assertEquals(setOf("LX/B7o;->run()V"), BASE_PROFILE.hooks.getValue(QUIET_CALL_RING))
+        assertEquals(setOf("$RTC_NOTIFICATION_SERVICE->A00(Landroid/app/Notification;Landroid/content/Context;LX/BRO;LX/CU3;LX/B9H;" +
+            "${RTC_NOTIFICATION_SERVICE}LX/Mqn;Ljava/lang/Integer;Ljava/lang/String;IZZZ)V"), BASE_PROFILE.hooks.getValue(QUIET_CALL_NOTIFICATION))
     }
 
     // The switch says the phone stays quiet. A decision that skips the ringtone some other way could ring anyway, and a
@@ -140,6 +151,8 @@ class QuietCallsTest {
             "a copy the entry doesn't log" to quietCallsFixture(decision(COPY_DECISION_BODY.replace("invoke-static {v0, v3}", "invoke-static {v0, v2}"), registers = 26)),
             "a copy over the name" to quietCallsFixture(decision(COPY_DECISION_BODY.replace("move/from16 v3, v24\ninvoke-static {v0, v3}",
                 "move/from16 v0, v24\ninvoke-static {v0, v0}").also { check(it != COPY_DECISION_BODY) }, registers = 26)),
+            "a flag's String paired with something else" to quietCallsFixture(decision(TEXT_DECISION_BODY.replace("{v4, v0, v3}", "{v4, v2, v3}"))),
+            "a flag's String never paired" to quietCallsFixture(decision(TEXT_DECISION_BODY.replace("new-instance v4, $PAIR\n", "const/4 v4, 0x0\n"))),
             "a static run" to quietCallsFixture(decision(DECISION_BODY.replace("p0", "v3"), flags = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value)),
             "a run with a parameter" to quietCallsFixture(decision(id = "$DECIDER->run(I)V", registers = 12)),
             "a second method that rings" to quietCallsFixture() + secondRinger,

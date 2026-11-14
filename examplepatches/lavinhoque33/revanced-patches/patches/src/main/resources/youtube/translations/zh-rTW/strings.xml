@@ -1992,7 +1992,6 @@ AI 生成的回應可能包含不準確的資訊。
     <string name="revanced_preference_screen_misc_title">其他設定</string>
     <string name="revanced_preference_screen_navigation_bar_summary">隱藏或顯示導覽列部分組件。</string>
     <string name="revanced_preference_screen_navigation_bar_title">導覽列</string>
-    <string name="revanced_preference_screen_patch_information_summary">已套用的補丁資訊。</string>
     <string name="revanced_preference_screen_player_buttons_summary">隱藏或顯示影片中的按鈕。</string>
     <string name="revanced_preference_screen_player_buttons_title">播放器按鈕</string>
     <string name="revanced_preference_screen_player_flyout_menu_summary">隱藏或更改影片播放器中的彈出選單。</string>

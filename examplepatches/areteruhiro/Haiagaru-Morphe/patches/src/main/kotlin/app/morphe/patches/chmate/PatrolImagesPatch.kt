@@ -47,6 +47,20 @@ internal fun BytecodePatchContext.patchPatrolImages(version: String) {
     check(cache.methods.single { it.name == config[3] && it.parameterTypes == listOf("Landroid/content/Context;") }.returnType == nativeOwner)
     check(cache.methods.single { it.name == config[5] && it.parameterTypes == listOf("Ljava/lang/String;") }.returnType == "Ljava/io/InputStream;")
     val info = cache.methods.single { it.name == config[4] && it.parameterTypes == listOf("Ljava/lang/String;") }
+    val stream=cache.methods.single{it.name==config[5]&&it.parameterTypes==listOf("Ljava/lang/String;")&&it.returnType=="Ljava/io/InputStream;"}
+    val nativeStream=MutableMethod(ImmutableMethod(cache.type,"haiagaruNativeCachedImageStream",stream.parameters,stream.returnType,
+        stream.accessFlags,stream.annotations,stream.hiddenApiRestrictions,stream.implementation))
+    cache.methods.remove(stream);cache.methods.add(nativeStream)
+    val dispatch=if(stream.accessFlags and 0x2!=0)"invoke-direct" else "invoke-virtual"
+    cache.methods.add(MutableMethod(ImmutableMethod(cache.type,stream.name,stream.parameters,stream.returnType,stream.accessFlags,
+        stream.annotations,stream.hiddenApiRestrictions,ImmutableMethodImplementation(3,emptyList(),emptyList(),emptyList()))).apply{
+        addInstructions(0,"""
+            $dispatch {p0, p1}, $nativeStream
+            move-result-object v0
+            invoke-static {p1}, Lapp/morphe/extension/chmate/LocalImageArchive;->observe(Ljava/lang/String;)V
+            return-object v0
+        """.trimIndent())
+    })
     val infoType = mutableClassDefBy(info.returnType)
     listOf(config[6], config[7], config[8]).forEach { name ->
         check(infoType.fields.single { it.name == name }.type == "I")

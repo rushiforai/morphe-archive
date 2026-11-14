@@ -5329,7 +5329,7 @@ try {
         'if /i "%~nx4"=="MergeSplits.java" goto merge',
         'if /i "%~nx4"=="ResourceTableCheck.java" goto resources',
         'if /i "%~nx4"=="DexDiff.java" goto dexdiff',
-        'set "OUT=" & set "RESULT=" & set "LAST=" & set "PREV=" & set "FORCED=0"',
+        'set "OUT=" & set "RESULT=" & set "LAST=" & set "PREV=" & set "FORCED=0" & set "RENAMED=0"',
         'shift',
         'shift',
         'rem patch-for-device.ps1 hands the CLI one argument file, a quoted value a line with',
@@ -5353,6 +5353,7 @@ try {
         'if "!PREV!"=="-o" set "OUT=!V!"',
         'if "!PREV!"=="-r" set "RESULT=!V!"',
         'if "!V!"=="-f" set "FORCED=1"',
+        'if "!PREV!"=="-e" if "!V!"=="Change package name" set "RENAMED=1"',
         'set "PREV=!V!"',
         'set "LAST=!V!"',
         'exit /b 0',
@@ -5370,9 +5371,14 @@ try {
         'echo WARNING: a patch named a target this build lacks, and still applied 1>&2',
         'rem A case that needs something to change while a fixture is patched leaves this behind.',
         'if exist "!HERE!during-patch.cmd" call "!HERE!during-patch.cmd"',
-        'copy /y "!SRC!.result.json" "!RESULT!" >nul || exit /b 3',
+        'set "REPORT=!SRC!.result.json"',
+        'if "!RENAMED!"=="0" if exist "!SRC!.device.result.json" set "REPORT=!SRC!.device.result.json"',
+        'copy /y "!REPORT!" "!RESULT!" >nul || exit /b 3',
         'copy /y "!HERE!patched.apk" "!OUT!" >nul || exit /b 4',
-        'copy /y "!SRC!.patched.txt" "!OUT!.xmltree" >nul || exit /b 5',
+        'rem Change package name moves the build to the Threads package plus .hushthreads.',
+        'set "MANIFEST=!SRC!.patched.txt"',
+        'if "!RENAMED!"=="1" set "MANIFEST=!SRC!.renamed.txt"',
+        'copy /y "!MANIFEST!" "!OUT!.xmltree" >nul || exit /b 5',
         'exit /b 0',
         'rem MergeSplits.java <bundle> <merged.apk>. A case can make it fail, or leave no APK behind.',
         ':merge',
@@ -5471,7 +5477,13 @@ try {
         if (@($releaseNames) -ccontains 'Change version code') { return '2147483647' }
         return $Code
     }
+    # Change package name, which every-patch runs carry, moves the build to its own package; the
+    # stand-in CLI writes the .renamed.txt manifest when it's asked for.
+    $renamedPackage = "$($releaseTarget.PackageName).hushthreads"
+    $patchedManifestSuffix = if (@($releaseNames) -ccontains 'Change package name') { 'renamed.txt' } else { 'patched.txt' }
     $dependencyNamesHere =@(Get-PatchDependencyNames -PatchList $releaseCatalog -RequestedNames $releaseNames)
+    $deviceNamesHere = @($releaseNames | Where-Object { $_ -cnotin @('Change package name', 'Change app name') })
+    $deviceDependencyNamesHere = @(Get-PatchDependencyNames -PatchList $releaseCatalog -RequestedNames $deviceNamesHere)
     $fixturePaths = @{}
     # Beside the declared builds, a newer one the catalog doesn't declare, the kind a release run
     # patches under -f to see what still applies on it. Each declared build carries the version code
@@ -5491,14 +5503,22 @@ try {
             -Value (Get-FixtureManifest -Build $build -Code "$versionCode" -WithSplit)
         Set-Content -LiteralPath "$apkm.patched.txt" -Encoding ASCII -NoNewline `
             -Value (Get-FixtureManifest -Build $build -Code (Get-PatchedFixtureCode "$versionCode") -WithSplit -Patched)
+        Set-Content -LiteralPath "$apkm.renamed.txt" -Encoding ASCII -NoNewline `
+            -Value (Get-FixtureManifest -Build $build -Code (Get-PatchedFixtureCode "$versionCode") -WithSplit -Patched -Package $renamedPackage)
         # The report the CLI writes: every patch and the internal dependencies applied, one step,
         # and the input's own version, which is what the CLI reports.
-        Set-Content -LiteralPath "$apkm.result.json" -Encoding ASCII -Value ([ordered]@{
-            patchingSteps = @([ordered]@{ success = $true })
-            appliedPatches = @(@($releaseNames) + @($dependencyNamesHere) | ForEach-Object { [ordered]@{ name = $_ } })
-            failedPatches = @()
-            packageName = $releaseTarget.PackageName
-            packageVersion = $build } | ConvertTo-Json -Depth 6)
+        # patch-for-device.ps1 leaves the two copy patches out unless it's building a copy, so its
+        # run reports one fewer pair; the stand-in CLI hands that one over when Change package
+        # name wasn't asked for.
+        foreach ($fixtureReport in @(@{ File = "$apkm.result.json"; Names = $releaseNames; Dependencies = $dependencyNamesHere },
+                @{ File = "$apkm.device.result.json"; Names = $deviceNamesHere; Dependencies = $deviceDependencyNamesHere })) {
+            Set-Content -LiteralPath $fixtureReport.File -Encoding ASCII -Value ([ordered]@{
+                patchingSteps = @([ordered]@{ success = $true })
+                appliedPatches = @(@($fixtureReport.Names) + @($fixtureReport.Dependencies) | ForEach-Object { [ordered]@{ name = $_ } })
+                failedPatches = @()
+                packageName = $releaseTarget.PackageName
+                packageVersion = $build } | ConvertTo-Json -Depth 6)
+        }
         $fixturePaths[$build] = $apkm
     }
     # And another build of the oldest declared version, as one Threads release can come as several
@@ -5712,10 +5732,13 @@ try {
     Set-Content -LiteralPath $plainFixture -Encoding ASCII -NoNewline `
         -Value (Get-FixtureManifest -Build $releaseTarget.PackageVersion -Code $newestCode)
     Copy-Item -LiteralPath "$newestFixture.result.json" -Destination "$plainFixture.result.json"
+    Copy-Item -LiteralPath "$newestFixture.device.result.json" -Destination "$plainFixture.device.result.json"
     # Patched from the plain APK itself: its manifest with the patches' change and no split's
     # component, which verify-all-patches.ps1 would refuse as a change nobody approved.
     Set-Content -LiteralPath "$plainFixture.patched.txt" -Encoding ASCII -NoNewline `
         -Value (Get-FixtureManifest -Build $releaseTarget.PackageVersion -Code (Get-PatchedFixtureCode $newestCode) -Patched)
+    Set-Content -LiteralPath "$plainFixture.renamed.txt" -Encoding ASCII -NoNewline `
+        -Value (Get-FixtureManifest -Build $releaseTarget.PackageVersion -Code (Get-PatchedFixtureCode $newestCode) -Patched -Package $renamedPackage)
     try {
         $said = Invoke-VerifyAll -Apk $plainFixture
         Assert-True ($said -like '*success: every requested patch applied*' -and $said -notlike '*into one APK for the CLI*' -and
@@ -5724,7 +5747,8 @@ try {
             (Get-Content -LiteralPath $resourceStock -Raw) -ceq (Get-Content -LiteralPath $plainFixture -Raw)) `
             "verify-all-patches.ps1 did not patch a plain APK as it is and hold the table to it: $said"
     } finally {
-        Remove-Item -LiteralPath $plainFixture, "$plainFixture.result.json", "$plainFixture.patched.txt" -Force -ErrorAction SilentlyContinue
+        Remove-Item -LiteralPath $plainFixture, "$plainFixture.result.json", "$plainFixture.device.result.json",
+            "$plainFixture.patched.txt", "$plainFixture.renamed.txt" -Force -ErrorAction SilentlyContinue
     }
     Assert-True (@(Get-ChildItem -LiteralPath (Join-Path $releaseRoot 'verify-work') -Directory -Filter 'verify-*').Count -eq 0) `
         'verify-all-patches.ps1 left a run folder behind.'
@@ -5754,7 +5778,7 @@ try {
             $stamp.patchListSha256 -ceq $listHash -and $stamp.desktopJarSha256 -ceq (Get-Sha256Hex -Path $stubJar) -and
             $stamp.versionName -ceq $build -and $stamp.forced -eq $forcedHere -and $stamp.merged -eq $true) `
             "The kept run of $build is stamped with something else than what it patched: $($stamp | ConvertTo-Json -Compress)"
-        Copy-Item -LiteralPath "$fixture.patched.txt" -Destination (Join-Path $keptDir 'patched.apk.xmltree')
+        Copy-Item -LiteralPath "$fixture.$patchedManifestSuffix" -Destination (Join-Path $keptDir 'patched.apk.xmltree')
     }
     function Get-KeptHashes {
         @(Get-ChildItem -LiteralPath $appliedRoot -File -Recurse | Sort-Object FullName |

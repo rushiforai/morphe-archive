@@ -12,21 +12,21 @@ Each app has its own README with the full patch list.
 
 | App | Package | Version | Format | Details |
 |---|---|---|---|---|
+| BARDI Smart Home | `com.bardi.smart.home` | `1.5.3` | XAPK from APKPure | [apps/smartlife](apps/smartlife/README.md) |
+| CNN Indonesia | `com.cnn.indonesia` | `2.50.7` | APK from APKMirror | [apps/cnn](apps/cnn/README.md) |
+| CoverScreen OS | `apps.ijp.coverscreenos` | `CSOS_9.0.1_BETA` | APKM from APKMirror | [apps/coverscreen](apps/coverscreen/README.md) |
+| detikcom | `org.detikcom.rss` | `7.14.1` | APK from APKMirror | [apps/detik](apps/detik/README.md) |
+| DoDo Music | `com.dundunstudio.autoplay` | `2.0.14`, `2.0.17` | XAPK from APKPure | [apps/dodo](apps/dodo/README.md) |
+| FlipSide | `com.dinoster.flipside` | `1.6` | APKS from APKCube | [apps/flipside](apps/flipside/README.md) |
 | GitHub | `com.github.android` | `1.282.0`, `1.283.0` | APKM from APKMirror | [apps/github](apps/github/README.md) |
+| IDN | `com.idntimes.idntimes` | `6.69.1` | XAPK or APKS from APKPure or APKCube | [apps/idn](apps/idn/README.md) |
 | Jira | `com.atlassian.android.jira.core` | `2026.21.2` | APKM from APKMirror | [apps/jira](apps/jira/README.md) |
+| KOMPAS.com | `com.ertanto.kompas.official` | `9.8.4` | XAPK from APKPure | [apps/kompas](apps/kompas/README.md) |
 | LinkedIn | `com.linkedin.android` | `4.1.1264`, `4.1.1267`, `4.1.1269`, `4.1.1270` | APKM from APKMirror | [apps/linkedin](apps/linkedin/README.md) |
 | Radio Indonesia | `com.appmind.radios.id` | `4.2.30` | XAPK from APKPure | [apps/radio](apps/radio/README.md) |
-| DoDo Music | `com.dundunstudio.autoplay` | `2.0.14`, `2.0.17` | XAPK from APKPure | [apps/dodo](apps/dodo/README.md) |
-| Windy | `com.windyty.android` | `51.3.2` | APKM from APKMirror | [apps/windy](apps/windy/README.md) |
 | Smart Life | `com.tuya.smartlife` | `7.12.3-877`, `7.12.6-880` | XAPK from APKPure, APKM from APKMirror | [apps/smartlife](apps/smartlife/README.md) |
 | Tuya Smart | `com.tuya.smart` | `7.12.3-870`, `7.12.6-872` | APKM from APKMirror | [apps/smartlife](apps/smartlife/README.md) |
-| BARDI Smart Home | `com.bardi.smart.home` | `1.5.3` | XAPK from APKPure | [apps/smartlife](apps/smartlife/README.md) |
-| IDN | `com.idntimes.idntimes` | `6.69.1` | XAPK or APKS from APKPure or APKCube | [apps/idn](apps/idn/README.md) |
-| KOMPAS.com | `com.ertanto.kompas.official` | `9.8.4` | XAPK from APKPure | [apps/kompas](apps/kompas/README.md) |
-| detikcom | `org.detikcom.rss` | `7.14.1` | APK from APKMirror | [apps/detik](apps/detik/README.md) |
-| CNN Indonesia | `com.cnn.indonesia` | `2.50.7` | APK from APKMirror | [apps/cnn](apps/cnn/README.md) |
-| FlipSide | `com.dinoster.flipside` | `1.6` | APKS from APKCube | [apps/flipside](apps/flipside/README.md) |
-| CoverScreen OS | `apps.ijp.coverscreenos` | `CSOS_9.0.1_BETA` | APKM from APKMirror | [apps/coverscreen](apps/coverscreen/README.md) |
+| Windy | `com.windyty.android` | `51.3.2` | APKM from APKMirror | [apps/windy](apps/windy/README.md) |
 
 ## Use
 

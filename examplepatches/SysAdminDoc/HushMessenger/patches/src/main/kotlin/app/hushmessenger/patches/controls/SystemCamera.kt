@@ -197,8 +197,15 @@ internal fun Method.isLauncherStart(): Boolean = returnType == "Z" && parameterT
  * app outside Meta's. The capture screen's provider lives inside Messenger, so without the hook its photo is refused
  * with a SecurityException that closes Messenger (#40).
  */
-internal fun Method.isThirdPartyUriCheck(): Boolean = !AccessFlags.STATIC.isSet(accessFlags) &&
-    returnType == "Ljava/lang/Boolean;" &&
+internal fun Method.isThirdPartyUriCheck(): Boolean = readsProviderOwner("Ljava/lang/Boolean;")
+
+/**
+ * Messenger 587 moved that check's body into this callee, which answers the reverse, whether Meta owns the provider,
+ * and left the Boolean check a wrapper that flips it.
+ */
+internal fun Method.isMetaUriCheck(): Boolean = readsProviderOwner("Z")
+
+private fun Method.readsProviderOwner(answer: String) = !AccessFlags.STATIC.isSet(accessFlags) && returnType == answer &&
     parameterTypes.map { it.toString() } == listOf("Landroid/content/Context;", "Landroid/net/Uri;") &&
     strings().let { "Unable to get providerInfo for authority " in it && "content" in it }
 
@@ -226,7 +233,7 @@ internal fun findSystemCamera(classes: Iterable<ClassDef>): List<Method> {
     val launcherInterface = factories.singleOrNull()?.returnType
     return listeners + factories + methods.filter { launcherInterface != null && it.captureLauncherType() == launcherInterface } +
         methods.filter { it.definingClass == launcher && it.isLauncherStart() } +
-        methods.filter { it.isThirdPartyUriCheck() } + methods.filter { it.isInternalFileOpen() }
+        methods.filter { it.isThirdPartyUriCheck() || it.isMetaUriCheck() } + methods.filter { it.isInternalFileOpen() }
 }
 
 /**
@@ -372,7 +379,7 @@ internal fun MutableMethod.validateSystemCamera(): Int = when {
     isChatCameraFactory() -> chatCameraMarkSite()
     isLauncherStart() -> if (chatStartRouted()) -1 else chatCameraLaunchSite()
     // The URI is the last parameter, and the hook passes it to a plain invoke.
-    isThirdPartyUriCheck() -> 0.also {
+    isThirdPartyUriCheck() || isMetaUriCheck() -> 0.also {
         validateScratch()
         if (implementation!!.registerCount - 1 > 15) cameraChanged("uri register out of range")
     }
@@ -406,14 +413,15 @@ internal fun MutableMethod.injectSystemCamera() {
         """.trimIndent())
         return
     }
-    if (isThirdPartyUriCheck()) {
+    if (isThirdPartyUriCheck() || isMetaUriCheck()) {
+        // The Boolean check answers TRUE for the photo, and 587's callee answers false so its wrapper flips it to TRUE.
+        val answer = if (isMetaUriCheck()) "const/4 v0, 0x0\nreturn v0"
+            else "sget-object v0, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;\nreturn-object v0"
         addInstructionsWithLabels(0, """
             invoke-static {p2}, $TRUST_CAPTURE_CALL
             move-result v0
             if-eqz v0, :stock_behavior
-            sget-object v0, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;
-            return-object v0
-        """.trimIndent(), ExternalLabel("stock_behavior", getInstruction(0)))
+        """.trimIndent() + "\n" + answer, ExternalLabel("stock_behavior", getInstruction(0)))
         return
     }
     val site = implementation!!.instructions.elementAt(at)

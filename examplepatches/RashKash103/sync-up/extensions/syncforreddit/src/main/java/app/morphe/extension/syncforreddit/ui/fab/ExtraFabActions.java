@@ -689,12 +689,19 @@ public final class ExtraFabActions {
         float noLowerThan = roomAboveTheBar(parent, fab, surface);
         boolean wouldCoverTheBar = !Float.isNaN(noLowerThan) && y > noLowerThan;
 
+        boolean keyboard = keyboardIsUp(fab);
+
         float reach = Math.max(1f, fab.getHeight());
-        if (wouldCoverTheBar && !Float.isNaN(its.restingY)) {
-            // Stay exactly where it is, and forget any jump that was being considered: the
-            // button is somewhere it cannot sensibly be drawn.
-            its.settlingAt = Float.NaN;
-            its.settling = 0;
+        if ((wouldCoverTheBar || keyboard) && !Float.isNaN(its.restingY)) {
+            // Stay exactly where it is. The button is somewhere it cannot sensibly be drawn —
+            // over a bar that is plainly still up, or pushed most of the way up the screen by a
+            // keyboard — and whatever put it there is covering the surface anyway.
+            //
+            // What was being considered is left alone rather than forgotten. Sync throws its
+            // button down to the bar's place on alternating frames while a screen is changing,
+            // so clearing the count here means a real move can never finish where those
+            // excursions are dense: every other frame puts the count back to nothing. An
+            // excursion is simply not counted.
         } else if (Float.isNaN(its.restingY) || Math.abs(y - its.restingY) <= reach) {
             its.restingY = wouldCoverTheBar ? noLowerThan : y;
             its.settlingAt = Float.NaN;
@@ -755,6 +762,37 @@ public final class ExtraFabActions {
     }
 
 
+
+    /**
+     * @return Whether a soft keyboard is up over the window the button is in.
+     *
+     * <p>Sync lays its button out against the room that is left, so a keyboard moves it most of
+     * the way up the screen: measured on a 2400 tall screen as the button going from where it
+     * rests at 1917 to 1097 the moment the search sheet's keyboard arrived, and back again when
+     * it went. A surface that follows it there is a surface stranded in the middle of the feed,
+     * and the thing that raised the keyboard is covering all of it anyway, so there is nothing
+     * to be gained by going and everything to lose on the way back.
+     *
+     * <p>Read from the insets rather than from the window's own height, which does not move: the
+     * parent stayed 2400 tall across the whole of that measurement while the button inside it
+     * went up and down. What answers is the difference between the room the system is taking now
+     * and the room it always takes — the bars are tens of pixels and a keyboard is hundreds —
+     * since {@code WindowInsets.Type.ime()} arrived in API 30 and this is offered from 23.
+     */
+    private static boolean keyboardIsUp(View fab) {
+        try {
+            android.view.WindowInsets insets = fab.getRootWindowInsets();
+            if (insets == null) {
+                return false;
+            }
+            int now = insets.getSystemWindowInsetBottom();
+            int always = insets.getStableInsetBottom();
+            return now - always > Math.max(1, fab.getHeight());
+        } catch (Throwable ex) {
+            Logger.printDebug(() -> "fab: could not tell whether a keyboard is up: " + ex);
+            return false;
+        }
+    }
 
     /**
      * @return The lowest the surface may sit without covering a bottom bar that is up, or

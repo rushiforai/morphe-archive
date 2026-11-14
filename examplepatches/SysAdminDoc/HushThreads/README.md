@@ -1,7 +1,7 @@
 ![HushThreads. Keep the thread. Cut the noise.](assets/readme-hero.png)
 
 <p align="center">
-  <a href="https://github.com/SysAdminDoc/HushThreads"><img src="https://img.shields.io/badge/version-0.0.17-000000" alt="Version 0.0.17"></a>
+  <a href="https://github.com/SysAdminDoc/HushThreads"><img src="https://img.shields.io/badge/version-0.0.18-000000" alt="Version 0.0.18"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License GPL-3.0"></a>
   <img src="https://img.shields.io/badge/platform-Android%209%2B-3DDC84" alt="Platform Android 9+">
   <img src="https://img.shields.io/badge/Threads-455.0.0.55.72-000000" alt="Threads 455.0.0.55.72">
@@ -24,7 +24,7 @@ HushThreads is a Morphe patch bundle for Android that takes the ads out of Threa
 
 Sponsored posts and suggested-account cards leave your feed before Threads shows them. Shared links lose their tracking tags, and a short `/share/` link becomes the post's own link. Web links open in your browser instead of Threads' own, with its click tracker skipped. You can also save photos and videos, keep your place in the feed, stop autoplay and make dark mode pure black.
 
-The latest release is [v0.0.17](https://github.com/SysAdminDoc/HushThreads/releases/tag/v0.0.17), with 22 patches. It's for Threads 454.0.0.54.79 on all eight APKMirror variants. The source build has moved to Threads 455.0.0.55.72, which ships in the next release. What changed in each version is in the [changelog](CHANGELOG.md).
+The latest release is [v0.0.18](https://github.com/SysAdminDoc/HushThreads/releases/tag/v0.0.18), with 26 patches. It's for Threads 455.0.0.55.72 on all nine APKMirror variants. What changed in each version is in the [changelog](CHANGELOG.md).
 
 [Add to Morphe](https://morphe.software/add-source?github=SysAdminDoc%2FHushThreads) | [Download a release](https://github.com/SysAdminDoc/HushThreads/releases/latest) | [Browse the patches](#patches)
 
@@ -34,13 +34,13 @@ HushThreads only comes from this repo, github.com/SysAdminDoc/HushThreads, and y
 
 1. Install [Morphe Manager](https://github.com/MorpheApp/morphe-manager) 2.5.0 or newer.
 2. Add HushThreads as a patch source: https://morphe.software/add-source?github=SysAdminDoc%2FHushThreads
-3. Get Threads 455.0.0.55.72 (`com.instagram.barcelona`) for any architecture and screen density in the [table below](#supported-threads-build), on Android 9 or newer. If you're installing the v0.0.17 release instead, get Threads 454.0.0.54.79. If you're on an older Threads, update it to 455 before you patch the source build.
+3. Get Threads 455.0.0.55.72 (`com.instagram.barcelona`) for any architecture and screen density in the [table below](#supported-threads-build), on Android 9 or newer. If you're on an older Threads, update it to 455 before you patch.
 4. Uninstall the stock Threads. A patched Threads can't install over Meta's signed copy. If you'd rather keep it, add `Change package name` (and `Change app name`, so you can tell them apart) and the patched one installs beside it as a second app with its own sign-in.
 5. In Morphe Manager, pick that file and patch. The default selection has every patch except the five the [Patches](#patches) section names, so you don't need Expert mode.
 
 To add one of those five, turn on **Settings → Advanced → Expert mode** in Manager before you pick the file. If you saved your own selection in Expert mode before, Manager may keep using it, so look over the list once.
 
-The source build patches Threads 455 only. Each release moves to the newest stable Threads and drops the one before, so v0.0.15 is the last release for 451.0.0.51.80, v0.0.16 the last for 452.0.0.50.64 and v0.0.17 the last for 454.0.0.54.79. If a patch can't find what it needs in your build, patching stops with a message naming it, so you don't end up with an app where that patch does nothing.
+v0.0.18 patches Threads 455 only. Each release moves to the newest stable Threads and drops the one before, so v0.0.15 is the last release for 451.0.0.51.80, v0.0.16 the last for 452.0.0.50.64 and v0.0.17 the last for 454.0.0.54.79. If a patch can't find what it needs in your build, patching stops with a message naming it, so you don't end up with an app where that patch does nothing.
 
 In 2027 Android developer verification reaches every certified phone (it started on 2026-09-30 in Brazil, Indonesia, Singapore and Thailand), and a patched Threads signed with your own key counts as an app from an unverified developer. You can still install it over ADB, or through Android's advanced install flow, which is a one-time setting with a one-day wait.
 
@@ -137,7 +137,7 @@ If you also patch Instagram with [HushGram](https://github.com/SysAdminDoc/HushG
 
 - **Threads says your password is wrong when it isn't.** Reset your Instagram password and sign in with the new one. That fixed it in [issue #3](https://github.com/SysAdminDoc/HushThreads/issues/3).
 - **A feature you used stopped after updating from v0.0.12 or older.** `Block background-return feed refresh`, `Disable screenshot detection`, `Disable video autoplay`, `Max image quality` and `Pure black dark mode` joined the default selection in v0.0.13 with their switches off. Turn yours back on in HushThreads settings.
-- **Instagram says "Sorry, we weren't able to load that website" when you tap a Threads post.** That message is Instagram's, not a patch you're missing. The regular Instagram app only hands posts over to a Threads signed by Meta, and a patched Threads carries your Morphe Manager key instead. Opening the post from inside Threads still works, and the Links section in HushThreads settings says so when it finds Meta's Instagram on your phone. Reported in [issue #8](https://github.com/SysAdminDoc/HushThreads/issues/8).
+- **Instagram says "Sorry, we weren't able to load that website" when you tap a Threads post.** That message is Instagram's, not a patch you're missing. The regular Instagram app only hands posts over to a Threads signed by Meta, and a patched Threads carries your Morphe Manager key instead. Patch Instagram with [HushGram](https://github.com/SysAdminDoc/HushGram) in the same Morphe Manager, so both carry one key, and Instagram sends Threads posts and profiles to HushThreads. Opening the post from inside Threads works either way, and the Links section in HushThreads settings says all this when it finds Meta's Instagram on your phone. Reported in [issue #8](https://github.com/SysAdminDoc/HushThreads/issues/8).
 - **Android won't install the patched app.** Uninstall the stock Threads first. An update to your patched Threads needs the same signing key as the copy on your phone.
 - **Android says `INSTALL_FAILED_NO_MATCHING_ABIS`.** The Threads file you patched was built for a different processor. Get the variant in the [table above](#supported-threads-build) that matches your phone's CPU (most phones are arm64-v8a) and patch it again.
 - **Patching stops with a patch's name.** That usually means your Threads isn't the supported build. Check the Threads version name against the [table above](#supported-threads-build).
@@ -161,13 +161,13 @@ The About section and the Licenses window link to `github.com`, `gitlab.com` and
 
 ## Verify a download
 
-Only trust a bundle from this repo's [Releases](https://github.com/SysAdminDoc/HushThreads/releases) page. Each release ships `SHA256SUMS.txt` beside the bundle, along with a CycloneDX SBOM and a release receipt recording the Threads build every patch was checked on. Compare the `.mpp` hash with your download. For v0.0.17 it's:
+Only trust a bundle from this repo's [Releases](https://github.com/SysAdminDoc/HushThreads/releases) page. Each release ships `SHA256SUMS.txt` beside the bundle, along with a CycloneDX SBOM and a release receipt recording the Threads build every patch was checked on. Compare the `.mpp` hash with your download. For v0.0.18 it's:
 
 ```text
-bdcedf1a14476c9b430c0bba68ebd040e116ff798818794cd7ff512c45190b23  patches-0.0.17.mpp
+d2ea9f291e71aaebaeb5ab0d91ff054185eabd14077c74c206afd67554c83005  patches-0.0.18.mpp
 ```
 
-On Windows, run `Get-FileHash -Algorithm SHA256 .\patches-0.0.17.mpp`. Inside the patched app, the About section in HushThreads settings shows the bundle's payload hash and the source it was built from.
+On Windows, run `Get-FileHash -Algorithm SHA256 .\patches-0.0.18.mpp`. Inside the patched app, the About section in HushThreads settings shows the bundle's payload hash and the source it was built from.
 
 Releases from v0.0.17 on are signed. Morphe Manager shows the signer when you add or update the source, and it should read `d0d2 eda0 b978 70da`. Manager remembers that key from then on and refuses an update signed by any other, or by none. The full public key is in [`morphe-signing.pub`](morphe-signing.pub).
 

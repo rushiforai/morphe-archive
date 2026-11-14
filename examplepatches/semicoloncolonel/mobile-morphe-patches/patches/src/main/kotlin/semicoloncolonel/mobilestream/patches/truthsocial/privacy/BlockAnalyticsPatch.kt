@@ -17,6 +17,7 @@ val blockAnalyticsPatch = bytecodePatch(
     description = "Stops Mixpanel, Adjust, and Firebase/Google Analytics.",
     default = false,
 ) {
+    category("Privacy")
     compatibleWith(Constants.COMPATIBILITY)
 
     dependsOn(analyticsKillSwitchesPatch)

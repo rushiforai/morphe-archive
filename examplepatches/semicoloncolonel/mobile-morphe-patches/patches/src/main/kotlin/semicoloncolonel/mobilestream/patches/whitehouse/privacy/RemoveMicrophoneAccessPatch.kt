@@ -13,6 +13,7 @@ val removeMicrophoneAccessPatch = resourcePatch(
     name = "Remove microphone access",
     description = "Removes the app's microphone permission, which no feature uses.",
 ) {
+    category("Privacy")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

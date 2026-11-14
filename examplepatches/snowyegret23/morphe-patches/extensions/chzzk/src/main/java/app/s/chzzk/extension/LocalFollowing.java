@@ -640,7 +640,9 @@ public final class LocalFollowing {
 
     public static void observe(String id, String title, String category, String status, String openDate, boolean connecting) {
         String channelId = parseChannelId(id);
-        if (channelId == null || connecting || (!"OPEN".equals(status) && !"CLOSE".equals(status))) return;
+        if (channelId == null || (!"OPEN".equals(status) && !"CLOSE".equals(status))) return;
+        ViewerCountOverlay.updateLive(channelId, status, openDate);
+        if (connecting) return;
         long observedAt = SystemClock.elapsedRealtime();
         int revision;
         synchronized (LOCK) {

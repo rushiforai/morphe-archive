@@ -21,7 +21,10 @@
 *Independent Android patches and adaptations for [Morphe](https://morphe.software).*
 
 [![Morphe](https://img.shields.io/badge/Morphe-3f80ff?style=flat-square)](https://morphe.software)
-[![Release: v1.1.0](https://img.shields.io/badge/Release-v1.1.0-79a8ff?style=flat-square)](https://github.com/XiONDiGiTaL/MorphePatches/releases/tag/v1.1.0)
+[![Release](https://img.shields.io/github/v/release/XiONDiGiTaL/MorphePatches?style=flat-square&label=release&color=79a8ff)](https://github.com/XiONDiGiTaL/MorphePatches/releases/latest)
+[![Apps](https://img.shields.io/badge/dynamic/json?style=flat-square&label=apps&color=3f80ff&url=https%3A%2F%2Fraw.githubusercontent.com%2FXiONDiGiTaL%2FMorphePatches%2Fmain%2Fpatches-stats.json&query=%24.apps)](https://github.com/XiONDiGiTaL/MorphePatches#patches)
+[![Patches](https://img.shields.io/badge/dynamic/json?style=flat-square&label=patches&color=0c0e11&url=https%3A%2F%2Fraw.githubusercontent.com%2FXiONDiGiTaL%2FMorphePatches%2Fmain%2Fpatches-stats.json&query=%24.patches)](https://github.com/XiONDiGiTaL/MorphePatches#patches)
+[![Downloads](https://img.shields.io/github/downloads/XiONDiGiTaL/MorphePatches/total?style=flat-square&label=downloads&color=79a8ff)](https://github.com/XiONDiGiTaL/MorphePatches/releases)
 [![Site](https://img.shields.io/badge/Site-Morphe%20Patches-0c0e11?style=flat-square)](https://xiondigital.net/MorphePatches/)
 
 <a href="#patches">01 / Patches</a> &nbsp; / &nbsp;
@@ -39,26 +42,27 @@
 
 ### What ships here
 
-Five working patches for **Tandem: Language exchange** 6.38.0, written against Morphe's patch API and
-shipped as a prebuilt bundle. Each one is a real change to Tandem's own dex, documented down to the
-method it anchors on and the exact code it injects.
+Seven patches for two apps, written against Morphe's patch API and shipped as one prebuilt bundle.
+Five are for **Tandem: Language exchange** 6.38.0 and 6.12.0; two are for **Amazon A to Z**
+(`com.amazon.atozm`) and apply to **any version** of it — a universal **Force dark mode** and an
+opt-in **Clone package** that installs the patched build under its own application id.
 
-Version `v1.1.0` carries the bundle that was applied to the APKMirror 6.38.0 APKM: all five patches
-run, and both the patched dex and the patched manifest were decompiled to confirm the result. Its new
-**Clone package** patch gives the patched build its own application id, so it installs beside the
-official Tandem app instead of replacing it — and no longer collides with it on provider authorities,
-the signature permission or Tandem's own call-control broadcasts.
+Each app documents its own work in its own folder: [`Tandem/`](Tandem/README.md) and
+[`AmazonAtoZ/`](AmazonAtoZ/README.md). The patch sources live under
+`patches/src/main/kotlin/app/xiondigital/patches/<app>/`, and the release bundle gathers all of them,
+so adding an app is one folder plus one package — not a new mechanism.
 
 </td>
 <td width="35%" valign="top">
 
 ### Release status
 
-**v1.1.0** — 2026-11-04
+**v0.1.0** — baseline
 
-5 patches · `net.tandem` 6.38.0 · APK + APKM
+7 patches · 2 apps · `net.tandem` 6.38.0 / 6.12.0 · `com.amazon.atozm` any version
 
-Applies to the stock APKM; device test 2026-11-04: installs, blocked at launch by Tandem's licence gate
+Every patch is **Experimental**: they apply to the real stock files and the patched output has been
+decompiled, but no build has survived launch on hardware yet.
 
 [Downloads ↗](https://github.com/XiONDiGiTaL/MorphePatches/releases/latest)
 
@@ -74,26 +78,42 @@ Applies to the stock APKM; device test 2026-11-04: installs, blocked at launch b
 
 | App | Package | Patches |
 | --- | --- | --- |
-| [Tandem](Tandem/README.md) | `net.tandem` | [Bypass PairIP checks](Tandem/README.md#bypass-pairip-checks) · [Force dark mode](Tandem/README.md#force-dark-mode) · [Remove ads](Tandem/README.md#remove-ads) · [Disable Adjust tracking](Tandem/README.md#disable-adjust-tracking) · [Clone package](Tandem/README.md#clone-package) (opt-in) — 6.38.0 only |
+| [Tandem](Tandem/README.md) | `net.tandem` | [Bypass PairIP checks](Tandem/README.md#bypass-pairip-checks) · [Force dark mode](Tandem/README.md#force-dark-mode) · [Remove ads](Tandem/README.md#remove-ads) · [Disable Adjust tracking](Tandem/README.md#disable-adjust-tracking) · [Clone package](Tandem/README.md#clone-package) (opt-in) — 6.38.0 · 6.12.0 |
+| [Amazon A to Z](AmazonAtoZ/README.md) | `com.amazon.atozm` | [Force dark mode](AmazonAtoZ/README.md#force-dark-mode) · [Clone package](AmazonAtoZ/README.md#clone-package) (opt-in) — any version |
 
-Two copies of the same bundle — take either:
+### One bundle, every app
 
-| Where | File | Size | SHA-256 |
-| :--- | :--- | ---: | :--- |
-| [Release `v1.1.0`](https://github.com/XiONDiGiTaL/MorphePatches/releases/tag/v1.1.0) | `patches-1.1.0.mpp` | 74,124 B | `0034159ee9a8ba74d7f540f2ca48f5c57cf4d805f68639da575d991e1f5f2af9` |
-| This repository | [`Tandem/patches.mpp`](Tandem/patches.mpp) | 74,124 B | `0034159ee9a8ba74d7f540f2ca48f5c57cf4d805f68639da575d991e1f5f2af9` |
+The release asset — `patches-<version>.mpp` — is the bundle Morphe reads. It contains every patch for
+every app above; you import the same file for all of them, and Morphe shows only the patches that
+match the app you selected. The SHA-256 of each asset is on its release page.
 
-Both files are the same build, so either download matches that single hash. The bundle declares
-`Patcher-Version: 2.1.0`. Import it in Morphe Manager, or patch your stock Tandem 6.38.0 file with it
-directly.
+| Where | What it is |
+| :--- | :--- |
+| [Release asset](https://github.com/XiONDiGiTaL/MorphePatches/releases/latest) | `patches-<version>.mpp` — the complete bundle, built and attached by the release workflow |
+| [Patch source](https://morphe.software/add-source?github=XiONDiGiTaL/MorphePatches) | `patches-list.json` in this repository — what the add-source link reads |
+| [`Tandem/patches.mpp`](Tandem/patches.mpp) | Tandem-only bundle, for a direct import without the other app's patches |
+| [`AmazonAtoZ/patches.mpp`](AmazonAtoZ/patches.mpp) | A to Z-only bundle, same version and sources |
 
-Supported: Tandem `6.38.0` (versionCode 11568), APKM bundle or single APK, minSdk 32. Any other
-version is refused by the bundle instead of being patched blindly. The bundle was applied to the
-APKMirror 6.38.0 APKM — all five patches complete — and the patched dex and manifest were decompiled to
-confirm each change. The first device test (2026-11-04) installs the clone beside the official app but
-Tandem's licence gate sends the user to Google Play and the process dies before its UI — the full status
-is in [Tandem/README.md](Tandem/README.md#testing-status) and
-[Tandem/DEVICE-TEST.md](Tandem/DEVICE-TEST.md).
+Both per-app bundles are derived from the released bundle by the release workflow, so they cannot
+fall behind it. `.github/apps.json` is the list it works from.
+| `Tandem/`, `AmazonAtoZ/` | Documentation per app: what each patch changes, its anchors, its limits |
+| `patches/src/main/kotlin/app/xiondigital/patches/<app>/` | The patch sources, one package per app |
+
+Adding an app means a new folder, a new package under `patches/.../patches/`, a compatibility entry
+and one line in `.github/apps.json`. The combined release asset, that folder's own bundle,
+`patches-list.json`, the patch table below and the badges at the top are all regenerated from that at
+the next release.
+
+The bundle declares `Patcher-Version: 2.1.0`. Import it in Morphe Manager, or point Morphe at the
+source link above and it lists the patches itself.
+
+**Amazon A to Z** accepts any version. The dark-mode patch only adds theme items and one call at the
+top of `MainApplication.onCreate()`; enable **Clone package** if you want the patched build beside the
+official app instead of replacing it.
+
+**Tandem** declares 6.38.0 (versionCode 11568) and 6.12.0 (versionCode 11503), APKM bundle or single
+APK, and refuses anything else instead of patching it blindly. The full status is in
+[Tandem/README.md](Tandem/README.md#testing-status) and [Tandem/DEVICE-TEST.md](Tandem/DEVICE-TEST.md).
 
 ### Companion app — Tandem Study
 
@@ -116,7 +136,7 @@ not do.
 ### Generated patch list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.1.1](https://github.com/XiONDiGiTaL/MorphePatches/releases/tag/v1.1.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;5 patches total
+> **[v0.1.0](https://github.com/XiONDiGiTaL/MorphePatches/releases/tag/v0.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
 <details open>
 <summary>📦 Tandem: Language exchange&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>
@@ -138,6 +158,19 @@ not do.
 
 </details>
 
+<details open>
+<summary>📦 Amazon A to Z&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**Package name:** `com.amazon.atozm`
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Clone package](#clone-package) | Installs the patched build under its own application id (app.xiondigital.atoz by default), so it can sit next to the official Amazon A to Z instead of replacing it. Renames the provider authorities, the app's runtime permission and the launcher label, and drops the Amazon SDK permission declarations a re-signed build cannot own. Off by default: a clone starts empty, and Play services, FCM targeting, attestation and verified App Links stay bound to the original package. | • Package name<br>• App name |
+| [Force dark mode](#force-dark-mode) | Turns on Amazon A to Z's night mode before the first screen is created and opts the app into Android's automatic dark transform, so the interface is dark even when the phone is set to light mode. |  |
+
+</details>
+
 <!-- PATCHES_END -->
 
 ### How to use these patches
@@ -149,16 +182,20 @@ the release table below:
 https://morphe.software/add-source?github=XiONDiGiTaL/MorphePatches
 ```
 
-Or import a file directly: download either bundle above, open it in Morphe Manager, select your Tandem
-6.38.0 APK or APKM, keep **Bypass PairIP checks** enabled, and patch. Nothing needs to be built
-locally — the `.mpp` in this repo is the finished artifact.
+Or import a file directly: download `patches-<version>.mpp` from the
+[latest release](https://github.com/XiONDiGiTaL/MorphePatches/releases/latest), open it in Morphe
+Manager, and select your app's file. Nothing needs to be built locally — the release asset is the
+finished artifact.
+
+For **Tandem**, keep **Bypass PairIP checks** enabled (a re-signed build will not start without it)
+and turn on **Clone package** if the patched app should install next to the official one.
 
 <a href="https://morphe.software/add-source?github=XiONDiGiTaL/MorphePatches">
   <img src=".github/assets/add-to-morphe.svg" alt="Add to Morphe" height="48">
 </a>
 
-Build the bundle locally with `./gradlew :patches:buildAndroid` — the
-`.mpp` file is created at `patches/build/libs/patches-*.mpp`.
+Build the bundle locally with `./gradlew :patches:buildAndroid` — the `.mpp` file is created at
+`patches/build/libs/patches-*.mpp`.
 
 <br />
 
@@ -168,17 +205,19 @@ Build the bundle locally with `./gradlew :patches:buildAndroid` — the
 
 | Release | Date | Bundle | Contents |
 | :--- | :--- | :--- | :--- |
-| [`v1.1.0`](https://github.com/XiONDiGiTaL/MorphePatches/releases/tag/v1.1.0) | 2026-11-04 | [`patches-1.1.0.mpp`](https://github.com/XiONDiGiTaL/MorphePatches/releases/download/v1.1.0/patches-1.1.0.mpp) | Adds **Clone package**: the patched build installs under `app.xiondigital.tandem` beside the official app, with the signature permission, all nine provider authorities, WXEntryActivity's task affinity and ten dex literals renamed to match. Opt-in; the other four patches are unchanged |
-| [`v1.0.2`](https://github.com/XiONDiGiTaL/MorphePatches/releases/tag/v1.0.2) | 2026-11-04 | [`patches-1.0.2.mpp`](https://github.com/XiONDiGiTaL/MorphePatches/releases/download/v1.0.2/patches-1.0.2.mpp) | The four original Tandem patches plus the offline companion app. Empties PairIP's licence paywall, error dialog and delayed shutdown, so a patched build is no longer sent to Google Play at launch |
-| [`v1.0.1`](https://github.com/XiONDiGiTaL/MorphePatches/releases/tag/v1.0.1) | 2026-11-03 | [`patches-1.0.1.mpp`](https://github.com/XiONDiGiTaL/MorphePatches/releases/download/v1.0.1/patches-1.0.1.mpp) | Superseded: applied cleanly, but only emptied PairIP's two checks, so the licence screen could still open. Use `v1.1.0` |
-| `v1.0.0` | 2026-11-01 | — | Retired: built before the patch-time fixes, so patching aborted. Use `v1.1.0` |
+| [`v0.1.0`](https://github.com/XiONDiGiTaL/MorphePatches/releases/tag/v0.1.0) — baseline | 2026-11-13 | `patches-0.1.0.mpp` | First release under the 0.1.x scheme. Seven patches for two apps in one bundle: five Tandem patches (6.38.0 · 6.12.0) and the A to Z dark-mode and clone patches (any version) |
 
-Releases are automated. Every push to `main` runs semantic-release, which tags the next version,
-attaches the freshly built `.mpp`, regenerates `patches-list.json` and `patches-bundle.json`, and
-rewrites the patch table above. `patches-list.json` is the file the Morphe add-source link reads, so a
-tagged release is what makes these patches appear in the app. The release number it tags comes from the
-commit prefix in `main`'s history — `feat` → minor, `fix` → patch, `chore`/`docs` → no release — so the
-prefix decides whether a change ships as 1.0.x or 1.1.0.
+Versions move by **one patch number at a time**: `0.1.0`, `0.1.1`, `0.1.2`, and so on. Every release
+bumps the last number by one — adding a patch, fixing one, or adding an app counts the same, so
+nothing is skipped and the number no longer says what kind of change is inside. The commit prefix
+still drives the changelog sections, not the version.
+
+Releases are automated. `/releases` (in `release.yml`) tags the next patch number, builds the bundle,
+attaches it, regenerates `patches-list.json`, `patches-stats.json` and `patches-bundle.json`, and
+rewrites the patch table above. The baseline `0.1.0` was published once from
+`.github/workflows/baseline-release.yml`, because the release tooling can only count upward from an
+existing tag. Earlier `v1.0.x` / `v1.1.x` tags were retired when the collection was renumbered; their
+history stays in git.
 
 Only patch bundles are distributed here. Original and prepatched proprietary application packages are not.
 
@@ -187,12 +226,13 @@ Only patch bundles are distributed here. Original and prepatched proprietary app
 
 | Status | Meaning |
 | :--- | :--- |
-| Experimental | Applies cleanly to the stock 6.38.0 APK; not yet confirmed on a device |
+| Experimental | Applies cleanly to the stock build; not yet confirmed on a device |
 | Tested | Confirmed on a device, with the app version and setup recorded |
 | Released | Included in a published bundle |
 
-All five Tandem patches are **Experimental** in `v1.1.0`. The 2026-11-04 device test did not get past
-launch — see [Tandem/DEVICE-TEST.md](Tandem/DEVICE-TEST.md) — so none of them qualify as Tested.
+All seven patches are **Experimental**. The 2026-11-04 Tandem device test did not get past launch —
+see [Tandem/DEVICE-TEST.md](Tandem/DEVICE-TEST.md) — and no A to Z build has been run on hardware, so
+none of them qualify as Tested.
 
 </details>
 
@@ -204,7 +244,9 @@ launch — see [Tandem/DEVICE-TEST.md](Tandem/DEVICE-TEST.md) — so none of the
 
 [Suggest a patch or report an issue ↗](https://github.com/XiONDiGiTaL/MorphePatches/issues)
 
-When reporting a bug, include the Tandem version, the bundle version (`v1.1.0`), which patches were selected, your Android version, and reproduction steps. Remove personal information and credentials from logs.
+When reporting a bug, include the app and its version, the bundle version (`v0.1.0` at time of
+writing), which patches were selected, your Android version, and reproduction steps. Remove personal
+information and credentials from logs.
 
 <br />
 
@@ -212,24 +254,33 @@ When reporting a bug, include the Tandem version, the bundle version (`v1.1.0`),
 
 #### How do I use this?
 
-Add `XiONDiGiTaL/MorphePatches` as a source in Morphe Manager and it lists all five patches, or import
-[`Tandem/patches.mpp`](Tandem/patches.mpp) directly. Then patch a stock Tandem 6.38.0 file, keeping
-**Bypass PairIP checks** enabled — a re-signed build will not start without it. Turn on **Clone
-package** if you want the patched app to install next to the official one instead of replacing it.
+Add `XiONDiGiTaL/MorphePatches` as a source in Morphe Manager, or import the
+[latest release](https://github.com/XiONDiGiTaL/MorphePatches/releases/latest) bundle. Then pick the
+app: for Tandem, a stock 6.38.0 or 6.12.0 file with **Bypass PairIP checks** enabled; for Amazon A to
+Z, any version. Turn on **Clone package** if you want the patched app to install next to the official
+one instead of replacing it.
 
-#### What APK version should I use?
+#### What version should I use?
 
-Tandem **6.38.0** (versionCode 11568), APKM bundle or single APK. The bundle declares only that
-version, so Morphe refuses anything else. No other app is covered yet.
+Tandem **6.38.0** (versionCode 11568) or **6.12.0** (versionCode 11503), APKM bundle or single APK;
+the Tandem patches declare only those, so Morphe refuses anything else. For **Amazon A to Z**, any
+version is accepted — the patch has no version list on purpose and fails loudly instead of guessing
+if a build ever moves the anchors it uses.
+
+#### Why does the version start at 0.1.0?
+
+Because the collection is one bundle of independent, experimental patches, not an app release. It hit
+`1.1.0` once by accident (a `feat:` commit bumps a minor in the old rules), so the numbering was
+reset to a single 0.1 line and now advances one patch at a time. Every app added from here gets its
+own folder and its own patches inside the same bundle.
 
 #### Are the patches tested?
 
-They have been applied to the real 6.38.0 files: the bundle runs against the APKMirror APKM, all five
-patches complete, the patched dex decompiles to the expected bodies, and with **Clone package** enabled
-the installed id, provider authorities and task affinity are renamed as documented. It has also been run
-on hardware: the clone installs as its own app, but Tandem's licence gate opens Google Play and kills
-the process before the UI, which is why every patch stays experimental — see
-[Tandem/DEVICE-TEST.md](Tandem/DEVICE-TEST.md).
+They have been applied to the real stock files and the results decompiled: for Tandem, all five
+patches complete against the APKMirror 6.38.0 and 6.12.0 APKMs; for Amazon A to Z, the dark-mode and
+clone patches complete against the 6.0.5098.0 arm64 APK. Tandem has also been run on hardware — the
+clone installs as its own app, but the licence gate opens Google Play and kills the process before the
+UI. That is why every patch stays Experimental; see [Tandem/DEVICE-TEST.md](Tandem/DEVICE-TEST.md).
 
 #### Can you make a patch for another app?
 

@@ -43,6 +43,7 @@ val blockAppScanPatch = bytecodePatch(
     name = "Block installed-app scan",
     description = "Stops the app from checking which other apps are on your phone and reporting them.",
 ) {
+    category("Privacy")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

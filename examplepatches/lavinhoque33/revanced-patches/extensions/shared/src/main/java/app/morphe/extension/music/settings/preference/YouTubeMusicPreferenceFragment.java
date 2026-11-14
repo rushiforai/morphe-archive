@@ -9,6 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-11.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -93,6 +94,7 @@ public class YouTubeMusicPreferenceFragment extends ToolbarPreferenceFragment {
             Utils.sortPreferenceGroups(preferenceScreen);
             setPreferenceScreenToolbar(preferenceScreen);
             installPreferenceIntentHandlers(preferenceScreen);
+            setDebugLogPreference();
 
             NewSettingsIndicator.markNewPreferences(preferenceScreen);
         } catch (Exception ex) {
@@ -182,6 +184,18 @@ public class YouTubeMusicPreferenceFragment extends ToolbarPreferenceFragment {
         return dataString != null
                 && !dataString.isEmpty()
                 && Settings.includeWithIntent(dataString);
+    }
+
+    private void setDebugLogPreference() {
+        Preference exportLogToFile = findPreference("revanced_debug_export_logs_to_file");
+        if (exportLogToFile == null) {
+            return;
+        }
+
+        exportLogToFile.setOnPreferenceClickListener(preference -> {
+            exportActivity();
+            return true;
+        });
     }
 
     /**

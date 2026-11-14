@@ -47,7 +47,7 @@ family|revealAllowedMatureContent|Reveal allowed mature content|accountSafeMatur
 family|hideAdFreeBanner|Hide the ad-free banner|adFreeBannerFlags
 family|hideTumblrTv|Hide Tumblr TV|tumblrTvFlags
 family|hideCommunitiesTab|Hide the Communities tab|communitiesTabFlags,communitiesTabButton
-family|hideBlazePrompts|Hide Blaze prompts|blazePromptFlags
+family|hideBlazePrompts|Hide Blaze prompts|blazePromptFlags,blazeButtons
 family|turnOffScreenshotSharing|Turn off screenshot sharing|screenshotSharingFlags
 family|disableUpdatePrompts|Disable update prompts|updatePromptFlags
 family|skipReviewPrompts|Skip review prompts|reviewPrompt
@@ -62,6 +62,7 @@ family|hideWatchItRows|Hide Watch it rows|watchItRows
 family|hideFeaturedPosts|Hide Featured posts|featuredPosts
 family|hideReblogs|Hide reblogs|reblogPosts
 family|hideOwnReblogs|Hide your own reblogs|ownReblogPosts
+family|hideReblogsOfYours|Hide reblogs of your posts|reblogsOfYours
 family|hideLikedPosts|Hide liked posts|likedPosts
 family|hideVideoPosts|Hide video posts|videoPosts
 family|hidePhotoPosts|Hide photo posts|photoPosts
@@ -70,6 +71,7 @@ family|hidePostsWithWords|Hide posts with these words|postWords
 family|hideFilteredPosts|Hide filtered posts|filteredPosts
 family|hideHashtags|Hide hashtags|postTags
 family|hideFollowButton|Hide the Follow button|followButton
+family|tagBlogSearch|Tags open the blog's tag search|tagBlogLinks
 family|hideTumblrMart|Hide the diamond and TumblrMart|premiumDiamond,tumblrMartButtons
 family|hideNoteCounts|Hide note counts|noteCounts
 family|hideLikeButton|Hide the like button|likeButton
@@ -89,10 +91,10 @@ mutation|settings|settings|Lcom/tumblr/App;|Lcom/tumblr/ui/activity/JumpoffActiv
 # titled with, and the extension's row hooks. The settings patch leaves the row out, with a
 # warning, when that screen changed shape, and then asks for none of it.
 mutation|settings|settingsRow|Lcom/tumblr/settingshub/impl/hub/|Lcom/tumblr/core/ui/R$string;->settings_hub_row_preferences|Lapp/hushtumblr/extension/tumblr/settings/SettingsHubRow;
-mutation|settings|accountIdentity|Lapp/hushtumblr/extension/tumblr/rootmute/RootPostMutes;|Lcom/tumblr/UserInfo;|Lsw5;|Llw5;|Liy0;|Ll8c;|Lcom/tumblr/rumblr/response/UserInfoResponse;|Lapp/hushtumblr/extension/tumblr/rootmute/HushAccountIdentity;|Lcom/tumblr/UserInfo;->A:Ljava/lang/String;|muteRootPosts,revealAllowedMatureContent,showMutualMarkers
-mutation|settings|postJsonPresence|Lcom/tumblr/rumblr/model/post/Post;|Lcom/tumblr/rumblr/model/post/PostJsonAdapter;|hideAds,hideOwnReblogs,hideFeaturedPosts,muteRootPosts
+mutation|settings|accountIdentity|Lapp/hushtumblr/extension/tumblr/rootmute/RootPostMutes;|Lcom/tumblr/UserInfo;|Lsw5;|Llw5;|Liy0;|Ll8c;|Lcom/tumblr/rumblr/response/UserInfoResponse;|Lapp/hushtumblr/extension/tumblr/rootmute/HushAccountIdentity;|Lcom/tumblr/UserInfo;->A:Ljava/lang/String;|muteRootPosts,revealAllowedMatureContent,showMutualMarkers,hideReblogsOfYours
+mutation|settings|postJsonPresence|Lcom/tumblr/rumblr/model/post/Post;|Lcom/tumblr/rumblr/model/post/PostJsonAdapter;|hideAds,hideOwnReblogs,hideReblogsOfYours,hideFeaturedPosts,muteRootPosts
 mutation|rootPostMutes|rootPostMutes|Lapp/hushtumblr/extension/tumblr/rootmute/RootPostMutes;|Lapp/hushtumblr/extension/tumblr/rootmute/RootPostMenu;|Lcom/tumblr/rumblr/model/post/Post;|Laf1;|Lflh;->y(Lcom/tumblr/ui/fragment/c;Lcom/tumblr/rumblr/TumblrPostNotesService;Lflh$a;Ljlh;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lr4g;Lyzb;Lcom/tumblr/analytics/ScreenType;Li22;)V|Lcom/tumblr/ui/fragment/TimelineFragment;|Lapp/hushtumblr/extension/tumblr/timeline/HushRootPost;|Lapp/hushtumblr/extension/tumblr/rootmute/HushLocalTimeline;|Lapp/hushtumblr/extension/tumblr/rootmute/RootPostMuteAction;
-mutation|settings|dashboardPage|Lapp/hushtumblr/extension/tumblr/rootmute/RootPostMutes;|Lapp/hushtumblr/extension/tumblr/rootmute/RootPostMenu;|Lcom/tumblr/rumblr/model/post/Post;|Laf1;|Lcom/tumblr/ui/fragment/TimelineFragment;|Lcom/tumblr/rumblr/model/TimelineObject;|Lapp/hushtumblr/extension/tumblr/timeline/DashboardPosts;->facts(Ljava/lang/Object;)I|Lapp/hushtumblr/extension/tumblr/timeline/HushPostFacts;|muteRootPosts,hideLikedPosts,hideOwnReblogs
+mutation|settings|dashboardPage|Lapp/hushtumblr/extension/tumblr/rootmute/RootPostMutes;|Lapp/hushtumblr/extension/tumblr/rootmute/RootPostMenu;|Lcom/tumblr/rumblr/model/post/Post;|Laf1;|Lcom/tumblr/ui/fragment/TimelineFragment;|Lcom/tumblr/rumblr/model/TimelineObject;|Lapp/hushtumblr/extension/tumblr/timeline/DashboardPosts;->facts(Ljava/lang/Object;)I|Lapp/hushtumblr/extension/tumblr/timeline/HushPostFacts;|muteRootPosts,hideLikedPosts,hideOwnReblogs,hideReblogsOfYours
 mutation|accountSafeMatureReveal|matureContent|Lapp/hushtumblr/extension/tumblr/mature/AllowedMatureContent;|Lui4;|Lcom/tumblr/rumblr/model/AgeVerification;|Lcom/tumblr/communitylabel/data/settings/CommunityLabelUserConfigResponse;|Lcom/tumblr/rumblr/response/ApiResponse;|Lcom/tumblr/rumblr/response/Metadata;|Lcom/tumblr/communitylabel/data/settings/a;|Lcom/tumblr/communitylabel/data/settings/CommunityLabelService;|Lapp/hushtumblr/extension/tumblr/mature/NativeMatureService;|Lapp/hushtumblr/extension/tumblr/mature/NativeMatureContinuation;|Lcom/tumblr/UserInfo;|Lpdn;->b(Lr4g;Lui4;)Lrgn;
 mutation|primaryBlogMutuals|mutualMarkers|Lapp/hushtumblr/extension/tumblr/mutual/MutualMarkers;|Lcom/tumblr/ui/widget/PostCardHeader;|Lcom/tumblr/UserInfo;|Lcom/tumblr/rumblr/model/blog/UserBlogInfo;|Lcom/tumblr/rumblr/model/blog/ShortBlogInfo;|Lcom/tumblr/bloginfo/BlogInfo;|Lcom/tumblr/rumblr/model/User;|Lcom/tumblr/rumblr/response/FollowerResponse;|Lcom/tumblr/rumblr/model/PaginationLink;|Lcom/tumblr/rumblr/model/link/LinkImpl;|Lcom/tumblr/rumblr/response/ApiResponse;|Lapp/hushtumblr/extension/tumblr/mutual/NativeMutualSource;|Lcom/tumblr/rumblr/TumblrService;
 mutation|advertisingId|answers|Lcom/google/android/gms/ads/identifier/AdvertisingIdClient$Info;->getId()Ljava/lang/String;|Lapp/hushtumblr/extension/tumblr/privacy/AdvertisingId;->id(Ljava/lang/String;)Ljava/lang/String;|Lcom/google/android/gms/ads/identifier/AdvertisingIdClient$Info;->isLimitAdTrackingEnabled()Z|Lapp/hushtumblr/extension/tumblr/privacy/AdvertisingId;->limitTracking(Z)Z
@@ -109,12 +111,12 @@ mutation|analyticsFlags,adFreeBannerFlags,tumblrTvFlags,communitiesTabFlags,blaz
 # Each timeline page's items, first thing in both constructors, the copy the blog posts, likes and
 # blog search subclasses keep, and the card and post families that need the hook for the
 # capability their own bridge backs.
-mutation|timelineAds|timelineList|Lapp/hushtumblr/extension/tumblr/timeline/TimelineFilter;->filter(Ljava/util/List;)Ljava/util/List;|Lcom/tumblr/rumblr/model/Timeline;-><init>(Ljava/util/List;Lcom/tumblr/rumblr/model/PaginationLink;)V|Lcom/tumblr/rumblr/response/timeline/TimelineResponse;-><init>(Ljava/util/List;Lcom/tumblr/rumblr/model/PaginationLink;Ljava/util/Map;)V|Lapp/hushtumblr/extension/tumblr/timeline/TimelineFilter;->filterKept(Ljava/util/List;)Ljava/util/List;|Lapp/hushtumblr/extension/tumblr/timeline/DirectPosts;->opening(Ljava/lang/String;)V|Lcom/tumblr/rumblr/TumblrService;->postPermalink(Ljava/lang/String;Ljava/lang/String;)Lretrofit2/Call;|hideSuggestedBlogs,hideSuggestedCommunities,hideSuggestedTags,hideWatchItRows,hideFeaturedPosts,hideReblogs,hideOwnReblogs,hideLikedPosts,hideVideoPosts,hidePhotoPosts,hideTextPosts,hidePostsWithWords,hideFilteredPosts,muteRootPosts
+mutation|timelineAds|timelineList|Lapp/hushtumblr/extension/tumblr/timeline/TimelineFilter;->filter(Ljava/util/List;)Ljava/util/List;|Lcom/tumblr/rumblr/model/Timeline;-><init>(Ljava/util/List;Lcom/tumblr/rumblr/model/PaginationLink;)V|Lcom/tumblr/rumblr/response/timeline/TimelineResponse;-><init>(Ljava/util/List;Lcom/tumblr/rumblr/model/PaginationLink;Ljava/util/Map;)V|Lapp/hushtumblr/extension/tumblr/timeline/TimelineFilter;->filterKept(Ljava/util/List;)Ljava/util/List;|Lapp/hushtumblr/extension/tumblr/timeline/DirectPosts;->opening(Ljava/lang/String;)V|Lcom/tumblr/rumblr/TumblrService;->postPermalink(Ljava/lang/String;Ljava/lang/String;)Lretrofit2/Call;|hideSuggestedBlogs,hideSuggestedCommunities,hideSuggestedTags,hideWatchItRows,hideFeaturedPosts,hideReblogs,hideOwnReblogs,hideReblogsOfYours,hideLikedPosts,hideVideoPosts,hidePhotoPosts,hideTextPosts,hidePostsWithWords,hideFilteredPosts,muteRootPosts
 # What a timeline fragment does with a page that came back empty: the hook asked right after
 # the fragment's own isEmpty(), the fragment, the page links and the link type their next-page
 # getter answers with, then every family whose filter can empty a page. The switch-and-return
 # block around the hook is held to the members Tumblr's own method names.
-mutation|settings|timelinePaging|Lapp/hushtumblr/extension/tumblr/timeline/TimelinePaging;->onPage(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Z)I|Lcom/tumblr/ui/fragment/TimelineFragment;|Lcom/tumblr/timeline/model/link/TimelinePaginationLink;|Lcom/tumblr/timeline/model/link/Link;|hideAds,hideSuggestedBlogs,hideSuggestedCommunities,hideSuggestedTags,hideWatchItRows,hideFeaturedPosts,hideReblogs,hideOwnReblogs,hideLikedPosts,hideVideoPosts,hidePhotoPosts,hideTextPosts,hidePostsWithWords,hideFilteredPosts,muteRootPosts
+mutation|settings|timelinePaging|Lapp/hushtumblr/extension/tumblr/timeline/TimelinePaging;->onPage(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Z)I|Lcom/tumblr/ui/fragment/TimelineFragment;|Lcom/tumblr/timeline/model/link/TimelinePaginationLink;|Lcom/tumblr/timeline/model/link/Link;|hideAds,hideSuggestedBlogs,hideSuggestedCommunities,hideSuggestedTags,hideWatchItRows,hideFeaturedPosts,hideReblogs,hideOwnReblogs,hideReblogsOfYours,hideLikedPosts,hideVideoPosts,hidePhotoPosts,hideTextPosts,hidePostsWithWords,hideFilteredPosts,muteRootPosts
 # The carousel stub, the carousel model and the key its Moshi adapter writes the items under.
 mutation|suggestedBlogCards,suggestedCommunityCards,suggestedTagCards,watchItRows|timelineCarousel|Lapp/hushtumblr/extension/tumblr/timeline/TimelineFilter;->carouselItems(Ljava/lang/Object;)Ljava/util/List;|Lcom/tumblr/rumblr/model/carousel/Carousel;|elements
 # model>interface>method:key, one per bridge: each interface method calls the getter the model's
@@ -124,11 +126,15 @@ mutation|reblogPosts,ownReblogPosts,videoPosts,photoPosts,textPosts,postWords|po
 mutation|filteredPosts|postBridge|Lcom/tumblr/rumblr/model/post/Post;>Lapp/hushtumblr/extension/tumblr/timeline/HushFilteredPost;>hushFiltered:filtered|Lcom/tumblr/rumblr/model/post/asset/Filtered;>Lapp/hushtumblr/extension/tumblr/timeline/HushFiltered;>hushFilteredTags:tags,hushFilteredContent:content
 # The post's liked state as Tumblr sent it.
 mutation|likedPosts|postBridge|Lcom/tumblr/rumblr/model/post/Post;>Lapp/hushtumblr/extension/tumblr/timeline/HushLikedPost;>hushLiked:liked
+# The blogs a post was reblogged from and first made on, a blog's name, and the signed-in
+# account's blogs: UserInfo's private final list, filled from getBlogs() by its fresh
+# user/info constructor and nowhere else.
+mutation|reblogsOfYours|reblogSources|Lcom/tumblr/rumblr/model/post/Post;>Lapp/hushtumblr/extension/tumblr/timeline/HushReblogSource;>hushRebloggedFromName:reblogged_from_name,hushRebloggedRootName:reblogged_root_name|Lcom/tumblr/rumblr/model/blog/ShortBlogInfo;>Lapp/hushtumblr/extension/tumblr/timeline/HushAccountBlog;>hushAccountBlogName:name|Lcom/tumblr/UserInfo;|Lapp/hushtumblr/extension/tumblr/timeline/HushAccountBlogs;|Lcom/tumblr/UserInfo;->k:Ljava/util/List;
 # Structured header context only. The icon path returns null when header_context is absent, and
 # the two account-specific getters protect followed-blog and editable Blaze posts. Hide your own
 # reblogs reads can_edit here too, its capability owned by the post bridge. Hide Featured posts
 # reads the header icon, so its capability is owned here.
-mutation|paidPostHeader,featuredPosts|paidPostBridge|Lcom/tumblr/rumblr/model/post/Post;|Lapp/hushtumblr/extension/tumblr/timeline/HushPaidPost;|hushHeaderIcon:header_context:icon|hushFollowed:followed|hushCanEdit:can_edit|hushPaidContextKnown|hideOwnReblogs
+mutation|paidPostHeader,featuredPosts|paidPostBridge|Lcom/tumblr/rumblr/model/post/Post;|Lapp/hushtumblr/extension/tumblr/timeline/HushPaidPost;|hushHeaderIcon:header_context:icon|hushFollowed:followed|hushCanEdit:can_edit|hushPaidContextKnown|hideOwnReblogs,hideReblogsOfYours
 mutation|reviewPrompt|reviewPrompt|Lapp/hushtumblr/extension/tumblr/ui/ReviewPrompts;->skip()Z|app_review_prompt_rules_last_shown|Lcom/tumblr/rating/RatingPromptActivity;
 # SDK launch entries, each target followed by the hook asked first thing in it: the manifest's
 # providers and initializer, plus the SDKs' own start methods for Audience Network and Google
@@ -143,7 +149,7 @@ mutation|crashReports|crashReports|Lapp/hushtumblr/extension/tumblr/privacy/SdkS
 # Optional prompt decisions. The shared gift renderer must hand over its instance key so crab tips stay native.
 mutation|blogNotificationReminder|blogNotificationReminder|Lapp/hushtumblr/extension/tumblr/ui/OptionalNudges;->hideBlogNotificationReminder()Z|blog_notify_enabled
 mutation|giftMessagePopup|giftMessagePopup|Lapp/hushtumblr/extension/tumblr/ui/OptionalNudges;->hideGiftMessage(Ljava/lang/String;)Z|key_has_seen_ad_free_browsing_gift_popup|key_has_seen_summon_crabs_popup
-mutation|postLine|postLine|Lapp/hushtumblr/extension/tumblr/ui/PostLines;->paintsGaps(I)I|Lapp/hushtumblr/extension/tumblr/ui/PostLines;->paintGap(Landroid/graphics/Canvas;FFFFLandroid/graphics/Paint;)V|debug_timeline_object_spacing
+mutation|postLine|postLine|Lapp/hushtumblr/extension/tumblr/ui/PostLines;->paintsGaps(I)I|Lapp/hushtumblr/extension/tumblr/ui/PostLines;->paintGap(Landroid/graphics/Canvas;FFFFLandroid/graphics/Paint;)V|debug_timeline_object_spacing|Lapp/hushtumblr/extension/tumblr/ui/PostLines;->offsetsOf(Landroid/view/View;)V|Lapp/hushtumblr/extension/tumblr/ui/PostLines;->between(Ljava/lang/Object;Ljava/lang/Object;)V|Lapp/hushtumblr/extension/tumblr/ui/PostLines;->drawingRow(Landroid/view/View;)V
 # A video in a post hands its container and address over after the binder builds its details, and the
 # timeline controls' long-press listener goes through the extension.
 mutation|videoLinkPress|videoLinkPress|Lapp/hushtumblr/extension/tumblr/ui/VideoLinks;->bind(Landroid/view/View;Ljava/lang/String;)V|Lapp/hushtumblr/extension/tumblr/ui/VideoLinks;->press(Landroid/view/View$OnLongClickListener;)Landroid/view/View$OnLongClickListener;|Lcom/tumblr/R$layout;->tumblr_video_player_timeline_controller|Lcom/tumblr/rumblr/model/video/VideoDetails;-><init>(Ljava/lang/String;II)V|Lcom/tumblr/ui/widget/NewVideoPlayerContainer;|Lcom/tumblr/rumblr/model/post/blocks/TumblrVideoBlock;
@@ -167,6 +173,10 @@ mutation|longTrailRows|longTrailRows|Lapp/hushtumblr/extension/tumblr/timeline/L
 mutation|longPostExpand|longPostExpand|Lapp/hushtumblr/extension/tumblr/timeline/LongPosts;->readMoreShown(Landroid/view/View;Ljava/lang/Object;)V|Lapp/hushtumblr/extension/tumblr/timeline/LongPosts;->readMore(Ljava/lang/Object;Landroid/view/View;)Z|Lr0h;|Lqfe;|Lcom/tumblr/ui/widget/graywater/viewholder/ReadMoreViewHolder;|Lr4g;|La2k;|Lcom/tumblr/ui/fragment/TimelineFragment;|Lw4a;|Lzx9;|Landroidx/recyclerview/widget/RecyclerView$h;|Lapp/hushtumblr/extension/tumblr/timeline/HushReadMoreBinder;|Lapp/hushtumblr/extension/tumblr/timeline/HushTimelineItem;|Lapp/hushtumblr/extension/tumblr/timeline/HushExpandingTimeline;|Ljm2;|Laf1;|Lkjh;
 mutation|fontChoice|fontChoice|Lapp/hushtumblr/extension/tumblr/ui/AppFont;->replacement(Landroid/content/Context;I)Landroid/graphics/Typeface;|Lapp/hushtumblr/extension/tumblr/ui/AppFont;->provided(Landroid/graphics/Typeface;)Landroid/graphics/Typeface;|Font resource ID #0x|sans-serif-medium|Returning pre-inflated View for resId: |Lapp/hushtumblr/extension/tumblr/ui/AppFont;->preinflated(Landroid/view/View;)V
 mutation|followButton|followButton|Lapp/hushtumblr/extension/tumblr/ui/PostParts;->hideFollowButton()Z|Lcom/tumblr/ui/widget/PostCardHeader;|Lcom/tumblr/rumblr/model/post/PostHeaderAction$ActionType;->FOLLOW|Lapp/hushtumblr/extension/tumblr/ui/PostParts;->trailFollow(Ljava/lang/Object;)Ljava/lang/Object;|Lcom/tumblr/ui/widget/graywater/viewholder/ReblogHeaderViewHolder;
+# The tag listener's question hook, the tags row that builds the listener, the screen and blog it's
+# built from, the screen type its blog question takes, the blog search it opens, and the bridge the
+# listener answers its blog's name through, with the bridge's method name.
+mutation|tagBlogLinks|tagBlogLinks|Lapp/hushtumblr/extension/tumblr/ui/BlogTags;->blogScreen(ILjava/lang/Object;)Z|Lcom/tumblr/ui/widget/PostCardWrappedTags;|Lcom/tumblr/analytics/NavigationState;|Lcom/tumblr/bloginfo/BlogInfo;|Lcom/tumblr/analytics/ScreenType;|Lcom/tumblr/ui/activity/GraywaterBlogSearchActivity;|Lapp/hushtumblr/extension/tumblr/ui/HushTagBlog;|hushTagBlogName
 # A footer button's question, the Compose function it guards (by its source note) and the
 # community footer hook the family adds, or none.
 mutation|likeButton|footerButton|Lapp/hushtumblr/extension/tumblr/ui/PostFooter;->hideLikeButton()Z|com.tumblr.ui.widget.splitnotescount.composable.LikeEngagement|Lapp/hushtumblr/extension/tumblr/ui/PostFooter;->hideCommunityReactions(Landroid/view/ViewGroup;)V
@@ -189,3 +199,6 @@ mutation|themeBackground|darkBackground|Lapp/hushtumblr/extension/tumblr/ui/Dark
 # The diamond's question, the TumblrMart button hook, the two search bar room hooks and the
 # preference only the diamond's class names.
 mutation|premiumDiamond,tumblrMartButtons|storeButtons|Lapp/hushtumblr/extension/tumblr/ui/StoreButtons;->hideDiamond(Landroid/view/View;Landroid/view/View;)Z|Lapp/hushtumblr/extension/tumblr/ui/StoreButtons;->hideTumblrMart(Landroid/view/View;)V|Lapp/hushtumblr/extension/tumblr/ui/StoreButtons;->tumblrMartRoom(I)I|Lapp/hushtumblr/extension/tumblr/ui/StoreButtons;->diamondRoom(I)I|arg_has_clicked_on_premium_diamond
+# The own-post flame, post menu, share sheet and community menu hooks, then the row state's
+# printout, the menu item's label, the share sheet's argument and the community Promote item.
+mutation|blazeButtons|blazeButtons|Lapp/hushtumblr/extension/tumblr/ui/BlazeButtons;->ownPostButton(I)Z|Lapp/hushtumblr/extension/tumblr/ui/BlazeButtons;->postMenuItem(I)Z|Lapp/hushtumblr/extension/tumblr/ui/BlazeButtons;->shareTarget(I)Z|Lapp/hushtumblr/extension/tumblr/ui/BlazeButtons;->communityMenu(Ljava/util/List;)Ljava/util/List;|AuthorActionsState(showDelete=|Lcom/tumblr/core/ui/R$string;->blaze_post_overflow_menu_action_item|can_blaze|Lcom/tumblr/rumblr/communities/PostOverflowMenuItem$PromotePost;

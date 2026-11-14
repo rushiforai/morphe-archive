@@ -28,6 +28,7 @@ val hideSignInPromptsPatch = bytecodePatch(
     name = "Hide sign-in prompts",
     description = "Stops the app from asking you to sign in when you pause or leave a title.",
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

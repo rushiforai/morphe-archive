@@ -1048,6 +1048,11 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                         L10n.t("Remember where playback stopped"), L10n.t("Videos, voice messages and music pick up where you left off, even short ones."
                                 + " Telegram only does that for long ones.")));
             }
+            if (PatchFamily.Capability.VOICE_SKIP.installed()) {
+                on(pages, PatchFamily.VOICE_MUSIC_PLAYER).addPreference(toggle(context, Settings.VOICE_SKIP,
+                        L10n.t("Skip between voice messages"), L10n.t("Next and previous on headphones, in a car, in the notification,"
+                                + " on the lock screen and in the full player move between a chat's voice messages, as they do for songs.")));
+            }
         }
         if (build.contains(PatchFamily.LYRICS)) {
             on(pages, PatchFamily.LYRICS).addPreference(toggle(context, Settings.LYRICS, L10n.t("Lyrics in the music player"),
@@ -1469,8 +1474,8 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                             L10n.t("A ghost at the top of the chat list turns Ghost mode on and off with a tap. It's filled while Ghost mode is on.")));
                     privacy.addPreference(toggle(context, Settings.GHOST_READS_BUTTON, L10n.t("Read receipts button"),
                             L10n.t("A double check at the top of the chat list sends the read receipts Ghost mode is holding for the "
-                                    + "account you're on, from chats read since Telegram last started. Shows with Ghost mode and No "
-                                    + "read receipts on.")));
+                                    + "account you're on, from chats read since Telegram last started. Send read receipts in a "
+                                    + "chat's menu sends just that chat's. Shows with Ghost mode and No read receipts on.")));
                     // The exceptions are picked from the hidden chats' list and long press item.
                     if (PatchFamily.Capability.HIDDEN_CHATS.installed()) {
                         privacy.addPreference(toggle(context, Settings.GHOST_CHATS, L10n.t("Ghost mode exceptions"),
@@ -1592,11 +1597,19 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                     Settings.BYPASS_CHANNEL_RESTRICTIONS, L10n.t("Bypass channel restrictions"),
                     PatchFamily.BYPASS_CHANNEL_RESTRICTIONS.coverageSummary(L10n.t(
                             "Channels and chats that block forwarding and saving let you forward messages and save media."))));
-            if (PatchFamily.Capability.OPEN_RESTRICTED_CHATS.installed()) {
+            boolean restricted = PatchFamily.Capability.OPEN_RESTRICTED_CHATS.installed();
+            boolean banned = PatchFamily.Capability.BANNED_CHANNEL_WEB.installed();
+            if (restricted || banned) {
+                List<String> summary = new ArrayList<>();
+                if (restricted) {
+                    summary.add(L10n.t("Channels, groups and messages Telegram says are unavailable for copyright or local "
+                            + "law open anyway, as long as Telegram still sends them."));
+                }
+                if (banned) {
+                    summary.add(L10n.t("A channel that banned you offers Open on the web, which shows its public posts in your browser."));
+                }
                 on(pages, PatchFamily.BYPASS_CHANNEL_RESTRICTIONS).addPreference(toggle(context, Settings.OPEN_RESTRICTED_CHATS,
-                        L10n.t("Open restricted channels"),
-                        L10n.t("Channels, groups and messages Telegram says are unavailable for copyright or local "
-                                + "law open anyway, as long as Telegram still sends them.")));
+                        L10n.t("Open restricted channels"), String.join(" ", summary)));
             }
         }
         if (build.contains(PatchFamily.BYPASS_INTEGRITY_CHECK)) {

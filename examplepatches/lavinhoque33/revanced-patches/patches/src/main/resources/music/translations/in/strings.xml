@@ -118,7 +118,6 @@ Pemutaran SABR (Spoof aliran video dimatikan)"</string>
     <string name="morphe_music_crossfade_screen_title">Pudar silang</string>
     <string name="morphe_music_crossfade_session_control_summary">Tekan lama tombol acak untuk menjeda atau melanjutkan pudar silang</string>
     <string name="morphe_music_crossfade_session_control_title">Kontrol sesi</string>
-    <string name="morphe_music_crossfade_video_mode_disabled_toast">Mode video tidak tersedia saat pudar silang diaktifkan</string>
     <string name="morphe_music_deezer_arl_dialog_instruction">"Tempel cookie arl dari Deezer
 
 Langkah-langkah:
@@ -1063,4 +1062,6 @@ ID video yang Anda tonton dikirim ke API Return YouTube Dislike, dan suka dan ti
     <string name="revanced_webview_toast_empty">%s kosong</string>
     <string name="revanced_webview_toast_no_network">Silakan periksa koneksi jaringan Anda</string>
     <string name="revanced_webview_toast_unavailable">WebView tidak tersedia</string>
+    <string name="morphe_music_auto_song_version_title">Selalu putar versi lagu</string>
+    <string name="morphe_music_auto_song_version_summary">Mengganti video musik resmi dalam antrean dengan lagu yang cocok. Memerlukan setelan aplikasi Jangan putar video musik diaktifkan. Trek tanpa kecocokan persis tidak diubah</string>
 </resources>

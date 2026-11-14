@@ -1,7 +1,7 @@
 package app.hushmessenger.patches.misc
 
 import app.hushmessenger.patches.controls.ControlProfile
-import app.hushmessenger.patches.controls.PROFILE_347215341
+import app.hushmessenger.patches.controls.PROFILE_347415262
 import app.hushmessenger.patches.controls.activeProfile
 import app.hushmessenger.patches.controls.hookId
 import app.hushmessenger.patches.controls.settingsExtension
@@ -35,7 +35,7 @@ internal const val SELF_VERSION_READS = 66
 internal const val ARMV7_SELF_VERSION_READS = 75
 
 internal fun selfVersionReadsFor(profile: ControlProfile) =
-    if (profile === PROFILE_347215341) ARMV7_SELF_VERSION_READS else SELF_VERSION_READS
+    if (profile === PROFILE_347415262) ARMV7_SELF_VERSION_READS else SELF_VERSION_READS
 
 private fun Instruction.reference() = (this as? ReferenceInstruction)?.reference?.toString()
 

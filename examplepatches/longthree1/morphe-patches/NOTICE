@@ -1,0 +1,57 @@
+Morphe NOTICE
+=============
+
+This file contains Section 7 notices of the GNU General Public License v3
+as they apply to this repository and upstream Morphe components. These notices
+do not change the terms of the GPLv3 license. For the full license text, see
+the LICENSE file or:
+https://www.gnu.org/licenses/gpl-3.0.html
+
+7c. Project Name Restriction
+----------------------------
+
+The GPLv3 license does not grant permission to use the name "Morphe", or any
+name, logo, or branding that is confusingly similar, as the primary identifying
+mark of any modified version, fork, or derivative work.
+
+Any redistribution or derivative work must adopt a distinct name and branding
+that clearly differentiates it from the official Morphe project and does not
+cause confusion as to source or origin.
+
+References to Morphe in this repository ("for use with Morphe", "compatible
+with Morphe", and the repository URL slug) are solely descriptive compatibility
+references and do not suggest authorship or endorsement by the Morphe project.
+
+Derivative Attribution & Upstream Credits
+=========================================
+
+This repository combines and extends SoundCloud patches for use with Morphe
+(target: com.soundcloud.android 2026.11.02-release), licensed under GPLv3.
+
+Maintainer additions & Vietnamese localization:
+- Maintained by: longthree1 (https://github.com/longthree1/morphe-patches)
+- Added: Vietnamese language patch (2,760 UI strings, 64 plural rules,
+  per-app Android 13+ locale config, and runtime UI/SDUI label translation)
+
+Upstream repositories and original authors credited under GPLv3:
+1. JohninNL — nl-morphe-patches
+   Source: https://gitlab.com/johninnld/nl-morphe-patches (commit 9fac12f)
+   Patches/components: Home in Android Auto, Disable analytics,
+   Disable consent popup, Remove ads and upsells, and extension runtime bridge.
+
+2. lootdev78 / Psylos — psylos-morphe-patches
+   Source: https://github.com/lootdev78/psylos-morphe-patches (commit 0eac0c5)
+   Patches: Hide Cast icon.
+
+3. V4n1X — V4n1X/morphe-patches
+   Source: https://github.com/V4n1X/morphe-patches (commit 4180c5f)
+   Patches: AMOLED dark theme, Enable SoundCloud Go+ baseline flags/overrides.
+
+4. Hoo-dles & kondratjev
+   Original SoundCloud Morphe patches (AMOLED dark theme, analytics,
+   consent popup, and Go feature/plan flags) inherited through V4n1X,
+   Psylos, and JohninNL.
+
+5. Morphe Project — morphe-patches-template & patcher APIs
+   Source: https://github.com/MorpheApp/morphe-patches-template
+   Patcher Gradle plugin, extension runtime mechanism, and PatchListGenerator.

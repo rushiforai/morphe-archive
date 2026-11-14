@@ -27,6 +27,7 @@ val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
     description = "Gives every title an empty ad plan, so no ad break is scheduled.",
 ) {
+    category("Ads")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

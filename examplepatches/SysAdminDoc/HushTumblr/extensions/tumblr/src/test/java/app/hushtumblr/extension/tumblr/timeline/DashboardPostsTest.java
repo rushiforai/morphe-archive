@@ -30,7 +30,9 @@ import app.hushtumblr.extension.shared.SettingsContextRule;
 import app.hushtumblr.extension.shared.diagnostics.HookStatus;
 import app.hushtumblr.extension.shared.settings.HushTumblrPause;
 import app.hushtumblr.extension.shared.settings.PauseForTests;
+import app.hushtumblr.extension.tumblr.rootmute.HushAccountIdentity;
 import app.hushtumblr.extension.tumblr.rootmute.HushDashboardTimeline;
+import app.hushtumblr.extension.tumblr.rootmute.MatureAccountsForTests;
 import app.hushtumblr.extension.tumblr.rootmute.RootPostMutes;
 import app.hushtumblr.extension.tumblr.settings.FamilyNames;
 import app.hushtumblr.extension.tumblr.settings.PatchFamily;
@@ -38,9 +40,9 @@ import app.hushtumblr.extension.tumblr.settings.PatchFamilyForTests;
 import app.hushtumblr.extension.tumblr.settings.Settings;
 
 /**
- * Hide liked posts and Hide your own reblogs act on a dashboard screen's pages only. A post you
- * open, your review queue, a Blaze list and the audio player load the dashboard's response too,
- * so parsing it keeps every post.
+ * Hide liked posts, Hide your own reblogs and Hide reblogs of your posts act on a dashboard
+ * screen's pages only. A post you open, your review queue, a Blaze list and the audio player load
+ * the dashboard's response too, so parsing it keeps every post.
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 30)
@@ -62,6 +64,8 @@ public class DashboardPostsTest {
         Settings.HIDE_ADS.resetToDefault();
         Settings.HIDE_OWN_REBLOGS.resetToDefault();
         Settings.HIDE_LIKED_POSTS.resetToDefault();
+        Settings.HIDE_REBLOGS_OF_YOURS.resetToDefault();
+        MatureAccountsForTests.restore();
         PauseForTests.resume();
         HookStatus.clear();
     }
@@ -206,6 +210,121 @@ public class DashboardPostsTest {
         try {
             Settings.HIDE_LIKED_POSTS.save(true);
             assertTrue(shown(DASHBOARD, Arrays.asList(LIKED, LIKED)).isEmpty());
+            String report = String.join("\n", HookStatus.report());
+            assertTrue(report, report.contains(TimelinePagingForTests.EMPTIED + " 1"));
+        } finally {
+            TimelinePagingForTests.reset();
+        }
+    }
+
+    // A mutual's posts, as seen by an account whose blogs are "Me" and "side-blog".
+    /** A mutual's reblog straight from your blog, of a post someone else made first. */
+    private static final Object REBLOGGED_FROM_YOU = TimelineItems.reblogFromBlogs("me", "someone", false).getData();
+    /** A mutual's reblog, by way of someone else, of a post your side blog made. */
+    private static final Object YOUR_POST_REBLOGGED = TimelineItems.reblogFromBlogs("someone", "side-blog", false).getData();
+    /** A mutual's reblog of a post that has nothing to do with you. */
+    private static final Object THEIRS_REBLOGGED = TimelineItems.reblogFromBlogs("someone", "stranger", false).getData();
+    /** Your own reblog of a post from your other blog: Tumblr says you can edit it. */
+    private static final Object YOU_REBLOGGED_YOURSELF = TimelineItems.reblogFromBlogs("side-blog", "side-blog", true).getData();
+
+    /** Signs in as an account whose blogs are [blogs], with Tumblr's fresh user/info. */
+    private static void signedInAs(String... blogs) {
+        MatureAccountsForTests.reset();
+        MatureAccountsForTests.commit(TimelineItems.accountWithBlogs(blogs));
+    }
+
+    /**
+     * Hide reblogs of your posts starts off. Turned on, someone else's reblog of a post from one
+     * of your blogs leaves a dashboard page, whether it came straight from you or your blog made
+     * the post first. A mutual's own post, their reblog of someone else's post and your own
+     * reblogs stay.
+     */
+    @Test
+    public void hideReblogsOfYourPostsTakesOtherPeoplesReblogsOfYoursOffTheDashboard() {
+        signedInAs("Me", "side-blog");
+        List<Object> page = Arrays.asList(TEXT, REBLOGGED_FROM_YOU, THEIRS_REBLOGGED, YOUR_POST_REBLOGGED,
+                YOU_REBLOGGED_YOURSELF, YOUR_POST);
+        assertFalse(Settings.HIDE_REBLOGS_OF_YOURS.get());
+        assertSame(page, shown(DASHBOARD, page));
+        Settings.HIDE_REBLOGS_OF_YOURS.save(true);
+        HookStatus.clear();
+        assertEquals(Arrays.asList(TEXT, THEIRS_REBLOGGED, YOU_REBLOGGED_YOURSELF, YOUR_POST), shown(DASHBOARD, page));
+        String line = "";
+        for (String each : HookStatus.report()) {
+            if (each.startsWith(FamilyNames.HIDE_REBLOGS_OF_YOURS + ":")) line = each;
+        }
+        assertTrue(String.join(" | ", HookStatus.report()), line.contains("post removed 2"));
+        // Hide your own reblogs takes your reblog out too, under its own name.
+        Settings.HIDE_OWN_REBLOGS.save(true);
+        assertEquals(Arrays.asList(TEXT, THEIRS_REBLOGGED, YOUR_POST), shown(DASHBOARD, page));
+    }
+
+    /**
+     * Your blog's page, a post you open and every screen but the dashboard keep reblogs of your
+     * posts. So does the dashboard's response as it's parsed.
+     */
+    @Test
+    public void reblogsOfYourPostsStayEverywhereButTheDashboard() {
+        signedInAs("me", "side-blog");
+        Settings.HIDE_REBLOGS_OF_YOURS.save(true);
+        List<Object> page = Arrays.asList(TEXT, REBLOGGED_FROM_YOU, YOUR_POST_REBLOGGED);
+        assertSame("your blog, a permalink or any other screen", page, shown(new Object(), page));
+        assertSame("Explore or Communities", page, shown(OTHER_TAB, page));
+        assertSame("no screen", page, shown(null, page));
+        List<Object> parsed = Arrays.asList(TimelineItems.postWith(new TextBlock("hello")),
+                TimelineItems.reblogFromBlogs("me", "me", false));
+        assertSame("the dashboard's response", parsed, TimelineItems.onTheDashboard(parsed));
+        assertSame("a blog", parsed, TimelineItems.onABlog(parsed));
+    }
+
+    /**
+     * Until Tumblr has the signed-in account's blogs from a fresh user/info response, or when it
+     * can't read them, every post stays.
+     */
+    @Test
+    public void withoutTheAccountsBlogsEveryPostStays() {
+        Settings.HIDE_REBLOGS_OF_YOURS.save(true);
+        List<Object> page = Arrays.asList(TEXT, REBLOGGED_FROM_YOU);
+        MatureAccountsForTests.reset();
+        assertSame("no account yet", page, shown(DASHBOARD, page));
+        MatureAccountsForTests.commit((HushAccountIdentity) () -> "no-blogs-bridge");
+        assertSame("an account without the blogs bridge", page, shown(DASHBOARD, page));
+        signedInAs();
+        assertSame("an account with no blogs", page, shown(DASHBOARD, page));
+        signedInAs("me");
+        assertEquals(Collections.singletonList(TEXT), shown(DASHBOARD, page));
+        // A post model without the reblog source bridge stays.
+        Object unbridged = new Object();
+        List<Object> mixed = Arrays.asList(unbridged, TEXT);
+        assertSame(mixed, shown(DASHBOARD, mixed));
+    }
+
+    /** Without its patch in the build, or while paused, Hide reblogs of your posts takes nothing out. */
+    @Test
+    public void hideReblogsOfYourPostsNeedsItsPatchAndStopsWhilePaused() {
+        signedInAs("me");
+        Settings.HIDE_REBLOGS_OF_YOURS.save(true);
+        List<Object> page = Arrays.asList(TEXT, REBLOGGED_FROM_YOU);
+        PatchFamilyForTests.capabilities(EnumSet.complementOf(EnumSet.of(PatchFamily.Capability.REBLOGS_OF_YOURS)));
+        assertSame("without its patch", page, shown(DASHBOARD, page));
+        PatchFamilyForTests.capabilities(EnumSet.allOf(PatchFamily.Capability.class));
+        assertEquals(Collections.singletonList(TEXT), shown(DASHBOARD, page));
+        PauseForTests.pause(HushTumblrPause.Reason.SWITCH);
+        try {
+            assertSame("paused", page, shown(DASHBOARD, page));
+        } finally {
+            PauseForTests.resume();
+        }
+    }
+
+    /** A dashboard page left empty by Hide reblogs of your posts goes on to the next one. */
+    @Test
+    public void aPageOfReblogsOfYourPostsGoesOnToTheNextPage() {
+        TimelinePagingForTests.reset();
+        try {
+            signedInAs("me", "side-blog");
+            Settings.HIDE_REBLOGS_OF_YOURS.save(true);
+            assertTrue(shown(DASHBOARD, Arrays.asList(REBLOGGED_FROM_YOU, YOUR_POST_REBLOGGED)).isEmpty());
             String report = String.join("\n", HookStatus.report());
             assertTrue(report, report.contains(TimelinePagingForTests.EMPTIED + " 1"));
         } finally {

@@ -11,6 +11,8 @@ import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import org.w3c.dom.Document
+import org.w3c.dom.Element
 
 /**
  * Records a call (#105). Messenger plays a call through its own native Oboe module, with nothing in Java to read. Native
@@ -28,6 +30,7 @@ internal const val CALL_RECORDING_STARTED = "Lapp/hushmessenger/extension/CallRe
 internal const val CALL_RECORDING_STOPPED = "Lapp/hushmessenger/extension/CallRecording;->playoutStopped()V"
 internal const val CALL_RECORDING_HEARD = "Lapp/hushmessenger/extension/CallRecording;->heard(Landroid/media/AudioTrack;Ljava/nio/ByteBuffer;I)V"
 internal const val CALL_RECORDING_SPOKE = "Lapp/hushmessenger/extension/CallRecording;->spoke(Landroid/media/AudioRecord;Ljava/nio/ByteBuffer;I)V"
+private val CALL_AUDIO_CALLS = setOf(CALL_RECORDING_ADD_LAYER, CALL_RECORDING_STARTED, CALL_RECORDING_STOPPED, CALL_RECORDING_HEARD, CALL_RECORDING_SPOKE)
 
 internal const val OVERLAY_CONFIG_HOLDER = "Lcom/facebook/rsys/overlayconfigmanager/OverlayConfigManagerHolder;"
 internal const val WEBRTC_AUDIO_TRACK = "Lorg/webrtc/voiceengine/WebRtcAudioTrack;"
@@ -92,6 +95,9 @@ internal fun findCallRecording(classes: Iterable<ClassDef>): List<Method> {
     return listOf(holder, start, stop, playout, record)
 }
 
+/** Record calls and Live captions on calls share these hooks: whichever patches first puts them in, and the other finds them there. */
+internal fun Method.callAudioHooked(): Boolean = implementation?.instructions?.any { it.called() in CALL_AUDIO_CALLS } == true
+
 internal fun MutableMethod.validateCallRecording() {
     validateScratch()
     if (!isConfigHolder() && !isPlayoutSwitch() && playoutWriteAt() < 0 && recordHandoverAt() < 0) {
@@ -105,6 +111,7 @@ internal fun MutableMethod.validateCallRecording() {
  */
 internal fun MutableMethod.injectCallRecording() {
     validateCallRecording()
+    if (callAudioHooked()) return
     when {
         isConfigHolder() -> addInstructions(0, "invoke-static {p1}, $CALL_RECORDING_ADD_LAYER")
         isPlayoutSwitch() -> addInstructions(0, "invoke-static {}, ${if (name == "startPlayout") CALL_RECORDING_STARTED else CALL_RECORDING_STOPPED}")
@@ -124,4 +131,23 @@ internal fun MutableMethod.injectCallRecording() {
             """.trimIndent())
         }
     }
+}
+
+internal const val CALL_CAPTIONS = "call_captions"
+internal const val RECOGNITION_SERVICE = "android.speech.RecognitionService"
+
+/**
+ * Live captions on calls (#159) turn the far side's sound into text with the phone's speech recognizer. Android hides
+ * recognizer apps from Messenger unless its manifest names them, and 587's names only text to speech.
+ */
+internal fun Document.addSpeechQueries() {
+    val root = documentElement ?: throw PatchException("Messenger controls: the manifest has no root")
+    val children = root.childNodes
+    val queries = (0 until children.length).map { children.item(it) }.filterIsInstance<Element>().firstOrNull { it.tagName == "queries" }
+        ?: createElement("queries").also { root.appendChild(it) }
+    val actions = queries.getElementsByTagName("action")
+    if ((0 until actions.length).any { (actions.item(it) as Element).getAttribute("android:name") == RECOGNITION_SERVICE }) return
+    val intent = createElement("intent")
+    intent.appendChild(createElement("action").also { it.setAttribute("android:name", RECOGNITION_SERVICE) })
+    queries.appendChild(intent)
 }

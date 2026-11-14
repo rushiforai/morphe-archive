@@ -90,6 +90,7 @@ body:
         - Hide photo posts
         - Hide posts with these words
         - Hide reblogs
+        - Hide reblogs of your posts
         - Hide suggested blogs
         - Hide suggested communities
         - Hide suggested tags
@@ -122,6 +123,7 @@ body:
         - Show post timestamps
         - Skip review prompts
         - Spoof signature for Google sign-in
+        - Tags open the blog's tag search
         - Turn off screenshot sharing
         - Visible image descriptions
     validations:

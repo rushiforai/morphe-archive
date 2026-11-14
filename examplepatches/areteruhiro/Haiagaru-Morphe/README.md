@@ -1,6 +1,6 @@
 掲示板での問い合わせは以下のみです。
 
-◆2ofgBR.b9E <br>
+areteruhiro ◆8LNH56sLs6 <br>
 ChMate用Morpheパッチ「Haiagaru」 Part 1
 https://jbbs.shitaraba.net/computer/45040/ <br> 
 
@@ -9,15 +9,30 @@ https://jbbs.shitaraba.net/computer/45040/ <br>
 ChMateに設定・閲覧・検索・NG・バックアップ機能を追加するMorpheパッチです。
 対応する元APKは **0.8.10.191 dev／0.8.10.226 dev／0.8.10.242 dev** です。0.8.10.241と0.8.10.243 devは対応対象外です。
 
-**[最新の正式リリースと配布ファイル](https://github.com/areteruhiro/Haiagaru-Morphe/releases/latest)** ／ [変更履歴](CHANGELOG.md) ／ [使い方](使い方.md) ／ [FAQ](docs/faq.md)
+**[最新の正式リリースと配布ファイル](https://github.com/areteruhiro/Haiagaru-Morphe/releases/latest)** ／ [変更履歴](CHANGELOG.md) ／ [使い方](使い方.md) ／ [よくある質問](docs/faq.md)
 
 このREADMEは現在のソースに対応します。公開済みの内容は上のリリース説明で確認してください。開発ブランチの変更が公開前の場合もあります。従来の機能紹介は[Haiagaru](https://github.com/areteruhiro/Haiagaru)も参照できます。
 
 ## 導入と更新
 
+[導入方法(動画)](https://www.youtube.com/watch?v=ZiFHjQon694)
+
+
+0. [Moephe](https://morphe.software/)をインストール 
 1. 更新前にChMateの設定・必要なログをバックアップします。`.haiagaru`の設定共有ファイルだけでは、スレ本文や全履歴のバックアップにはなりません。
 2. Morpheへ[Haiagaruのパッチソースを追加](https://morphe.software/add-source?github=areteruhiro/Haiagaru-Morphe&name=Haiagaru)します。
-3. 対応する元APKを選び、`Haiagaru`を適用します。動画専用ビューア、MEGA、パッケージ名変更などの任意パッチは用途に合わせて選択します。
+
+3. 対応する元APKをダウンロード<br>
+242dev<br>
+https://2chmate.jp.uptodown.com/android/dw/1173615239
+
+226dev<br>
+https://2chmate.jp.uptodown.com/android/dw/1112290912
+
+191dev<br>
+https://2chmate.jp.uptodown.com/android/dw/1024004246
+
+`Haiagaru`を適用します。動画専用ビューア、MEGA、パッケージ名変更などの任意パッチは用途に合わせて選択します。
 4. 作成したAPKをインストールします。上書き更新では、既存アプリと**パッケージ名・署名鍵をそろえてください**。
 5. ChMateの設定を開き、**「セーフモード」の直前にある「Haiagaru設定」**から追加機能を設定します。旧版で表示されていた浮動ボタンは、設定画面内の入口へ置き換わります。
 
@@ -62,6 +77,9 @@ ChMateに設定・閲覧・検索・NG・バックアップ機能を追加する
 - DAT落ちスレの取得、任意のHTTPS取得経路、SS速報VIPの過去ログ、保存レス・保存用スレ。[DAT経路](docs/dat-routes.md) ／ [レスアーカイブ](docs/response-archive.md)
 - レス本文の直接選択・コピー、投稿者の強調、X投稿の本文プレビュー。[直接選択](docs/direct-body-selection.md) ／ [投稿者の強調](docs/poster-highlight.md) ／ [Xプレビュー](docs/x-post-preview.md)
 - 表示本文をTXTのルールで置換（正規表現対応）。投稿内容・保存DAT・元のNG判定は変更しません。[本文の文字列置換](docs/replace-str.md)
+- 保存画像からの表示復元。既定の保存先と追加フォルダを検索し、改名した画像は内容で照合できます。対応情報がない画像は元URLを手動で関連付けます。[保存画像の復元](docs/local-image-recovery.md)
+- 外部板を含む全板検索は、追加通信のない高速モードと、対象板の一覧を取得する最新モードから選べます。OFFのサイトは板一覧・検索候補から除外します。[検索方式](docs/global-title-search.md)
+- ﾜｯﾁｮｲ長押しから、上4桁・下4桁をそれぞれコピーできます。[長押しメニュー](docs/wacchoi-menu-order.md)
 - 画像・GIF・動画の閲覧、スレ全体のメディアへの移動、動画の相対シーク・再生速度・保存。専用動画ビューアは任意パッチです。[動画操作](docs/video-viewer-controls.md)
 - 通常NGの登録上限の変更（0で無制限）、IDなしレスの非表示、自動NGと除外ID、JavaScriptによる高度なNG。[IDなしNG](docs/hidden-id-ng.md) ／ [高度なNG](docs/advanced-ng.md)
 - **連鎖あぼーんを常に非表示**（初期OFF）。元のNG対象レスや保存済みルールを変えず、連鎖されたレスの行を隠します。「NGWord-IDへの返信も非表示」とは独立した設定です。
@@ -74,7 +92,7 @@ ChMateに設定・閲覧・検索・NG・バックアップ機能を追加する
 
 機能ごとの設定場所は[設定ガイド](docs/feature-switches.md)、直近の変更はアプリ内の「更新履歴」または[CHANGELOG](CHANGELOG.md)を参照してください。過去のリリース文書には当時の設定名や確認範囲が含まれます。
 
-Haiagaru設定トップの「設定を共有」「設定を読み込む」「最低限構成を選び直す」より上に「Haiagaru更新履歴」を配置しています。バージョンを開くと、その版で追加・拡充された機能のスイッチも操作できます。安定版／開発版の表示切替とGitHubからの最新履歴取得ができます。更新内容は過去版のコミット説明も含め日本語で表示します。ChMate本体とHaiagaruの設定検索は、設定名を変えずにCookie／クッキー、UA／ユーザーエージェントなどの別表記を受け付けます。
+Haiagaru設定トップの「設定を共有」「設定を読み込む」「最低限構成を選び直す」より上に「Haiagaru更新履歴」を配置しています。バージョンを開くと、上に関連機能のスイッチ、下に詳しい変更内容を表示します。「追加された機能をすべて見る」から、目的別の設定と機能全体の説明も確認できます。安定版／開発版の表示切替とGitHubからの最新履歴取得ができます。更新内容は過去版のコミット説明も含め日本語で表示します。ChMate本体とHaiagaruの設定検索は、設定名を変えずにCookie／クッキー、UA／ユーザーエージェントなどの別表記を受け付けます。
 
 
 ## インストールできない場合

@@ -2111,7 +2111,6 @@
     <string name="revanced_preference_screen_misc_title">Різне</string>
     <string name="revanced_preference_screen_navigation_bar_summary">Приховувати чи показувати секцію компонентів панелі навігації</string>
     <string name="revanced_preference_screen_navigation_bar_title">Панель навігації</string>
-    <string name="revanced_preference_screen_patch_information_summary">Інформація про застосовані патчі</string>
     <string name="revanced_preference_screen_player_buttons_summary">Приховувати чи показувати кнопки у відео</string>
     <string name="revanced_preference_screen_player_buttons_title">Кнопки плеєра</string>
     <string name="revanced_preference_screen_player_flyout_menu_summary">Приховати або змінити висувне меню у відеоплеєрі</string>

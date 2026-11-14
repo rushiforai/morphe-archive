@@ -50,6 +50,15 @@ final class SettingsText {
 
     String get(String id, Object... arguments) { return display(format(id, arguments)); }
 
+    /**
+     * A section heading in capitals. A translated heading takes its own language's capitals (a Turkish "Gizlilik" is
+     * "GİZLİLİK"), and English keeps English ones on every phone, so a Turkish or Azerbaijani phone never dots its I.
+     */
+    String heading(String id) {
+        String shown = get(id);
+        return shown.toUpperCase(translated.containsKey(id) ? locale : Locale.ROOT);
+    }
+
     /** The id's text with its arguments, without the pseudo-locale markers, for text placed inside other text. */
     String format(String id, Object... arguments) {
         try {
@@ -87,6 +96,7 @@ final class SettingsText {
         ENGLISH.put("controls", "Controls");
         ENGLISH.put("app", "App");
         ENGLISH.put("inbox", "Inbox");
+        ENGLISH.put("chat_menu", "Chat menu");
         ENGLISH.put("navigation", "Navigation");
         ENGLISH.put("stickers", "Stickers");
         ENGLISH.put("conversations", "Conversations");
@@ -193,6 +203,31 @@ final class SettingsText {
         ENGLISH.put("call_recording_channel", "Call recording");
         ENGLISH.put("call_recording_saved", "Call saved to %1$s");
         ENGLISH.put("call_recording_failed", "Couldn't record this call");
+        ENGLISH.put("call_captions_unsupported", "This needs Android 13 or newer. Your choice is saved.");
+        ENGLISH.put("call_captions_speak", "Read captions aloud");
+        ENGLISH.put("call_captions_speak_help", "Reads each caption out loud in the phone's voice once it's finished. Use earphones so the other people don't hear it too.");
+        ENGLISH.put("call_captions_duck", "Lower their voice while reading");
+        ENGLISH.put("call_captions_duck_help", "Turns the other people down while a caption is read, so you can follow the voice.");
+        ENGLISH.put("call_captions_heard", "They speak: %1$s");
+        ENGLISH.put("call_captions_heard_title", "Language they speak");
+        ENGLISH.put("call_captions_heard_hint", "Captions listen for this language. One marked to download gets fetched by the phone first.");
+        ENGLISH.put("call_captions_shown", "Show captions in: %1$s");
+        ENGLISH.put("call_captions_shown_title", "Show captions in");
+        ENGLISH.put("call_captions_shown_hint", "Captions get translated on the phone into this language. Only the languages your phone can translate into are listed.");
+        ENGLISH.put("call_captions_phone_language", "Phone's language (%1$s)");
+        ENGLISH.put("call_captions_untranslated_choice", "As spoken, no translation");
+        ENGLISH.put("call_captions_loading", "Looking at what your phone has");
+        ENGLISH.put("call_captions_download", "%1$s (downloads first)");
+        ENGLISH.put("call_captions_picked", "Captions: %1$s");
+        ENGLISH.put("call_captions_downloading_now", "Downloading %1$s");
+        ENGLISH.put("call_captions_cancel", "Cancel");
+        ENGLISH.put("call_captions_no_recognizer", "Your phone doesn't have on-device speech recognition, so captions can't run on it.");
+        ENGLISH.put("call_captions_no_translator", "Your phone doesn't have on-device translation, so captions stay in the language they're spoken.");
+        ENGLISH.put("call_captions_untranslated", "Your phone can't translate this language pair, so captions stay as spoken.");
+        ENGLISH.put("call_captions_unavailable", "Your phone can't recognize this language. Pick another one in HushMessenger settings.");
+        ENGLISH.put("call_captions_downloading", "Your phone is downloading this language. Captions start once it's there.");
+        ENGLISH.put("call_captions_stopped", "Captions stopped for this call.");
+        ENGLISH.put("call_captions_no_voice", "Your phone has no voice for this language, so captions aren't read aloud.");
         ENGLISH.put("save_voice_menu_row", "Save voice message");
         ENGLISH.put("save_voice_menu_saved", "Saved to %1$s");
         ENGLISH.put("save_voice_menu_failed", "Couldn't save this voice message");
@@ -206,6 +241,25 @@ final class SettingsText {
         ENGLISH.put("hidden_chats_empty", "Chats you hide from your chat list show up here.");
         ENGLISH.put("hidden_chats_unhide", "Unhide");
         ENGLISH.put("hidden_chats_unnamed", "Chat");
+        ENGLISH.put("special_contacts_track", "Track this person");
+        ENGLISH.put("special_contacts_untrack", "Stop tracking");
+        ENGLISH.put("special_contacts_tracked", "Tracking this person now");
+        ENGLISH.put("special_contacts_untracked", "Stopped tracking this person");
+        ENGLISH.put("special_contacts_full", "You can track up to 50 people");
+        ENGLISH.put("special_contacts_failed", "Couldn't change that. Try again.");
+        ENGLISH.put("special_contacts_cleared", "History cleared");
+        ENGLISH.put("special_contacts_empty", "People you track show up here. Press and hold a chat with someone and tap Track this person.");
+        ENGLISH.put("special_contacts_unnamed", "Someone");
+        ENGLISH.put("special_contacts_nothing", "Nothing seen yet");
+        ENGLISH.put("special_contacts_history", "History");
+        ENGLISH.put("special_contacts_hide_history", "Hide history");
+        ENGLISH.put("special_contacts_clear", "Clear history");
+        ENGLISH.put("special_contacts_online", "Online at %s");
+        ENGLISH.put("special_contacts_offline", "Offline at %s");
+        ENGLISH.put("special_contacts_offline_at", "Offline at %1$s, last active %2$s");
+        ENGLISH.put("special_contacts_typing", "Typing at %s");
+        ENGLISH.put("special_contacts_since", "Tracking since %s");
+        ENGLISH.put("special_contacts_renamed", "Name changed to %2$s at %1$s");
         ENGLISH.put("message_actions_sent", "Messages you sent");
         ENGLISH.put("message_actions_got", "Messages you got");
         ENGLISH.put("message_actions_empty_sent", "Press and hold a message you sent, and its actions show up here.");
@@ -353,7 +407,7 @@ final class SettingsText {
         ENGLISH.put("quick_privacy", "Privacy");
         ENGLISH.put("quick_privacy_help", "Stops the uploads that tell Meta how you use Messenger, your advertising ID included.");
         ENGLISH.put("quick_iphone", "iPhone look");
-        ENGLISH.put("quick_iphone_help", "Puts a Chats title at the top of your chat list in place of the wordmark and keeps the search bar under it, the way Messenger looks on an iPhone. Restart Messenger to see it.");
+        ENGLISH.put("quick_iphone_help", "Puts a Chats title at the top of your chat list in place of the wordmark, keeps the search bar under it and blurs the screen behind menus (Android 12 or newer), the way Messenger looks on an iPhone. Restart Messenger to see it.");
         ENGLISH.put("quick_iphone_words", "Chats");
         ENGLISH.put("quick_defaults", "Back to defaults");
         ENGLISH.put("quick_defaults_help", "Turns every control off. Pause and the theme stay as they are.");
@@ -435,6 +489,8 @@ final class SettingsText {
         ENGLISH.put("tab_people_show_pending_off", "The People tab goes away after Messenger restarts");
         ENGLISH.put("tab_notifications_pending_on", "The Notifications tab is hidden after Messenger restarts");
         ENGLISH.put("tab_notifications_pending_off", "The Notifications tab comes back after Messenger restarts");
+        ENGLISH.put("tab_stories_pending_on", "The Stories tab is hidden after Messenger restarts");
+        ENGLISH.put("tab_stories_pending_off", "The Stories tab comes back after Messenger restarts");
         ENGLISH.put("error_now", "Stopped with an error just now. Copy setup on the App tab has details.");
         ENGLISH.put("error_ago", "Stopped with an error %s ago. Copy setup on the App tab has details.");
         ENGLISH.put("changes_paused", "Changes paused");
@@ -464,14 +520,19 @@ final class SettingsText {
         ENGLISH.put("camera_missing", "No camera app found that can take photos.");
         ENGLISH.put("camera_failed", "Can't open your camera app. Try again.");
         ENGLISH.put("camera_permission", "Allow the camera permission in Messenger's app info.");
+        ENGLISH.put("camera_photo", "Photo");
+        ENGLISH.put("camera_video", "Video");
+        ENGLISH.put("system_camera_ask", "Ask photo or video");
+        ENGLISH.put("system_camera_ask_help", "The camera button asks whether you want a photo or a video, then opens your camera app for it.");
         ENGLISH.put("gallery_missing", "No gallery app found that can pick photos.");
         ENGLISH.put("gallery_failed", "Your gallery couldn't finish the selection. Try again.");
+        ENGLISH.put("instant_gallery_shutter", "Tap the shutter to send your photo.");
         ENGLISH.put("message_log_clear", "Clear log");
         ENGLISH.put("message_log_close", "Close");
         ENGLISH.put("message_log_title", "Message log");
         ENGLISH.put("message_log_hint", "Saved only on this phone. Newest first.");
         ENGLISH.put("message_log_hint_by_chat", "Saved only on this phone. Chats with the latest message first.");
-        ENGLISH.put("message_log_retention", "Turning the log off stops new entries. Saved messages stay until you clear them or they pass the time you picked. The log keeps up to 5,000.");
+        ENGLISH.put("message_log_retention", "Turning the log off stops new entries. Saved messages stay until you clear them or they pass the time you picked. The log keeps up to 20,000.");
         ENGLISH.put("message_log_loading", "Loading...");
         ENGLISH.put("message_log_empty", "No messages kept yet.");
         ENGLISH.put("message_log_empty_on", "New messages with notification text will appear here. Messages already in your chats aren't added.");
@@ -534,6 +595,8 @@ final class SettingsText {
         ENGLISH.put("message_log_button_help", "Puts a clock next to the new message button. Tap it to open the log.");
         ENGLISH.put("message_log_menu_row", "Row in the Menu tab");
         ENGLISH.put("message_log_menu_row_help", "Adds Message log under Settings in Messenger's Menu tab. Tap it to open the log.");
+        ENGLISH.put("message_log_chat_row", "Row in the chat menu");
+        ENGLISH.put("message_log_chat_row_help", "Adds Message log to the menu you get when you press and hold a chat. Tap it to open the log on just that chat.");
         ENGLISH.put("auto_reply_edit", "Edit replies");
         ENGLISH.put("auto_reply_title", "Auto replies");
         ENGLISH.put("auto_reply_hint", "Replies are tried from top to bottom. The first matching reply is sent.");
@@ -608,6 +671,11 @@ final class SettingsText {
         ENGLISH.put("mark_read", "Mark as read");
         ENGLISH.put("mark_read_done", "Marked as read");
         ENGLISH.put("mark_read_nothing", "Nothing new to mark as read");
+        ENGLISH.put("story_seen_button", "Mark as seen button");
+        ENGLISH.put("story_seen_button_help", "Puts an eye button on stories you open. Tap it when you want that person to see you viewed the story on screen. The eye has a slash until you do.");
+        ENGLISH.put("story_seen", "Mark as seen");
+        ENGLISH.put("story_seen_done", "Marked as seen");
+        ENGLISH.put("story_seen_nothing", "Nothing to mark as seen");
         ENGLISH.put("call_confirm_audio", "Start a voice call?");
         ENGLISH.put("call_confirm_video", "Start a video call?");
         ENGLISH.put("call_confirm_call", "Call");

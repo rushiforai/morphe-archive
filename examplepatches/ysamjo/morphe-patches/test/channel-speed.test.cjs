@@ -69,8 +69,8 @@ function fixture({ channel = SPORT, speed = 2.5, saved, kids = false, readyState
 function items(command) { return command.openPopupAction.popup.overlaySectionRenderer.overlay.overlayTwoPanelRenderer.actionPanel.overlayPanelRenderer.content.overlayPanelItemListRenderer.items; }
 function settingsMenu(id = 'tt-settings') { return api.modal('Einstellungen', '', [api.button('Vorhanden', '', 'UNCHANGED')], id); }
 
-test('Alle 21 Sport-Kanäle starten mit 1,0×', () => {
-    for (const channel of [SPORT, 'UCRFsyeKu07-LnHDG44O6uCA', 'UCAvNr5DMVncoJnJAotXOjOQ', 'UCuOwl-VgqBHOzR8hWnonBcA', 'UC5dCegXiWjE57wKrhWnCo0g', 'UCdi3n18zcIZeTk_x9qvSgZw', 'UC-XArLCeEw91r9gmaDi-Ajw', RTL, 'UCK2izXoHvraUFaPMU5B7vMQ', 'UCk452F_ypT9Q8b1S38-Ok8A', 'UCPj_Vtw0hKnhJapQuATBUrA', 'UCiMAc_TN1kSO3ErMtxUXfMA', 'UCQEHrmmI8kKJ6kAiQdQUjgg', 'UChr7ZXDFiPOEl543HM4Aj8g', NFL, 'UCWJ2lWNubArHWmf3FIHbfcQ', 'UC8pYaQzbBBXg9GIOHRvTmDQ', 'UCB_qr75-ydFVKSF9Dmo6izg', 'UC6UL29enLNe4mqwTfAyeNuw', 'UCfMo0xj-sbdzHuzxvKdu1hw', 'UCyGa1YEx9ST66rYrJTGIKOw']) assert.equal(fixture({ channel }).video.playbackRate, 1);
+test('Alle 22 Sport-Kanäle starten mit 1,0×', () => {
+    for (const channel of [SPORT, 'UCRFsyeKu07-LnHDG44O6uCA', 'UCAvNr5DMVncoJnJAotXOjOQ', 'UCuOwl-VgqBHOzR8hWnonBcA', 'UC5dCegXiWjE57wKrhWnCo0g', 'UCdi3n18zcIZeTk_x9qvSgZw', 'UC-XArLCeEw91r9gmaDi-Ajw', 'UClBFnQJMlinWDCvfSXj60CA', RTL, 'UCK2izXoHvraUFaPMU5B7vMQ', 'UCk452F_ypT9Q8b1S38-Ok8A', 'UCPj_Vtw0hKnhJapQuATBUrA', 'UCiMAc_TN1kSO3ErMtxUXfMA', 'UCQEHrmmI8kKJ6kAiQdQUjgg', 'UChr7ZXDFiPOEl543HM4Aj8g', NFL, 'UCWJ2lWNubArHWmf3FIHbfcQ', 'UC8pYaQzbBBXg9GIOHRvTmDQ', 'UCB_qr75-ydFVKSF9Dmo6izg', 'UC6UL29enLNe4mqwTfAyeNuw', 'UCfMo0xj-sbdzHuzxvKdu1hw', 'UCyGa1YEx9ST66rYrJTGIKOw']) assert.equal(fixture({ channel }).video.playbackRate, 1);
 });
 test('D/S/R überschreiben sportstudio temporär, neue Video-ID setzt zurück', () => {
     const env = fixture(); env.key('d'); assert.equal(env.video.playbackRate, 1.1); env.key('s'); assert.equal(env.video.playbackRate, 1);
@@ -264,7 +264,7 @@ test('Unveränderte Altinstallation erhält den neuen Sport-Kanalsatz', () => {
     assert.equal(env.video.playbackRate, 1);
     const migrated = JSON.parse(env.storage.getItem(api.key));
     assert.equal(migrated.version, 4);
-    assert.deepEqual(migrated.channels.map(r => r.id), [SPORT, 'UCRFsyeKu07-LnHDG44O6uCA', 'UCAvNr5DMVncoJnJAotXOjOQ', 'UCuOwl-VgqBHOzR8hWnonBcA', 'UC5dCegXiWjE57wKrhWnCo0g', 'UCdi3n18zcIZeTk_x9qvSgZw', 'UC-XArLCeEw91r9gmaDi-Ajw', RTL, 'UCK2izXoHvraUFaPMU5B7vMQ', 'UCk452F_ypT9Q8b1S38-Ok8A', 'UCPj_Vtw0hKnhJapQuATBUrA', 'UCiMAc_TN1kSO3ErMtxUXfMA', 'UCQEHrmmI8kKJ6kAiQdQUjgg', 'UChr7ZXDFiPOEl543HM4Aj8g', NFL, 'UCWJ2lWNubArHWmf3FIHbfcQ', 'UC8pYaQzbBBXg9GIOHRvTmDQ', 'UCB_qr75-ydFVKSF9Dmo6izg', 'UC6UL29enLNe4mqwTfAyeNuw', 'UCfMo0xj-sbdzHuzxvKdu1hw', 'UCyGa1YEx9ST66rYrJTGIKOw']);
+    assert.deepEqual(migrated.channels.map(r => r.id), [SPORT, 'UCRFsyeKu07-LnHDG44O6uCA', 'UCAvNr5DMVncoJnJAotXOjOQ', 'UCuOwl-VgqBHOzR8hWnonBcA', 'UC5dCegXiWjE57wKrhWnCo0g', 'UCdi3n18zcIZeTk_x9qvSgZw', 'UC-XArLCeEw91r9gmaDi-Ajw', 'UClBFnQJMlinWDCvfSXj60CA', RTL, 'UCK2izXoHvraUFaPMU5B7vMQ', 'UCk452F_ypT9Q8b1S38-Ok8A', 'UCPj_Vtw0hKnhJapQuATBUrA', 'UCiMAc_TN1kSO3ErMtxUXfMA', 'UCQEHrmmI8kKJ6kAiQdQUjgg', 'UChr7ZXDFiPOEl543HM4Aj8g', NFL, 'UCWJ2lWNubArHWmf3FIHbfcQ', 'UC8pYaQzbBBXg9GIOHRvTmDQ', 'UCB_qr75-ydFVKSF9Dmo6izg', 'UC6UL29enLNe4mqwTfAyeNuw', 'UCfMo0xj-sbdzHuzxvKdu1hw', 'UCyGa1YEx9ST66rYrJTGIKOw']);
 });
 
 test('Version-3-Installation übernimmt die zusätzlichen Sport-Kanäle', () => {
@@ -280,7 +280,7 @@ test('Version-3-Installation übernimmt die zusätzlichen Sport-Kanäle', () => 
     ] };
     const env = fixture({ channel: 'UCk452F_ypT9Q8b1S38-Ok8A', saved });
     assert.equal(env.video.playbackRate, 1);
-    assert.equal(env.control.getSettings().channels.length, 21);
+    assert.equal(env.control.getSettings().channels.length, 22);
 });
 
 test('Fehlende Kanalidentität speichert keine irrtümliche Standardänderung', () => {

@@ -77,9 +77,11 @@ These screenshots come from the code on this page, so they can be a step ahead o
 | Hide Mark as read | Takes Mark as read out of the menu you get when you press and hold a chat, so you can't mark one read by accident. Mark as unread stays. |
 | Pin more chats | Lets you pin chats past Messenger's limit and puts Pin back on chats that don't offer it. Pins past the limit stay on this phone, so they won't show on your other devices. Experimental. |
 | Hide chosen chats | Adds Hide from chat list to the menu you get when you press and hold a chat. A hidden chat stays off your list when new messages come in, search still finds it, and you can unhide it in HushMessenger settings. Hiding stays on this phone and doesn't silence anything, so mute the chat in Messenger if you want it quiet. Experimental. |
+| Special contacts | Adds Track this person to the menu you get when you press and hold a chat with one person. HushMessenger then keeps a history of when they come online, go offline, type to you and change their name, from what Messenger already shows you. It stays on this phone, and you read it in HushMessenger settings. Experimental. |
 | Hide People tab | Hides the People tab in the bottom bar. Restart Messenger to see it go. |
 | Show People tab | Brings the People tab back to the bottom bar, right after Chats, on accounts where Messenger dropped it. Restart Messenger to see it. |
 | Hide Notifications tab | Hides the Notifications tab in the bottom bar. Restart Messenger to see it go. |
+| Hide Stories tab | Hides the Stories tab in the bottom bar. Restart Messenger to see it go. |
 | Hide tab badges | Hides the red dots and counts on the bottom tabs and on the Facebook button at the top. The Keep switches under it bring back the ones you want. Takes effect after a restart. |
 | Hide Facebook shortcuts | Removes Facebook toolbar, profile and sharing shortcuts, and the "Also from Meta" and "Subscriptions" sections in the Menu tab. Keep the Profile button, right under it, leaves the chat details Profile button and the View profile button at the top of a new chat in place. |
 | Hide Meta AI | Hides the Meta AI button, tab and menu entries, the "Ask Meta AI" search button, the AI suggestions when you type @ in a chat and the offer to summarize unread messages. Existing AI chats stay. The tab changes after a restart. |
@@ -101,7 +103,7 @@ These screenshots come from the code on this page, so they can be a step ahead o
 | Stop live connection logging | Drops the health reports and push logging Messenger sends over its live connection (MQTT). Messenger sends most of its traffic another way, so there's often little for it to drop. Messages and calls keep working. |
 | Stop nearby scans | Stops Messenger from reading the list of Wi-Fi networks around you, and hides the name and hardware address of the one you're connected to, the way Android does when Messenger can't see your location. Also stops the timer it can run while it's open to check your location and scan for Wi-Fi networks and Bluetooth devices. Experimental, since Messenger hasn't started those scans on the test phones yet. |
 | Stop app list and device ID sharing | Stops Messenger from going through your installed apps to find other Meta apps, and from asking them for the device ID Meta uses to link its apps on one phone. Messenger keeps the ID it already has. Experimental. |
-| Keep a message log | Saves a copy of each message that raised a notification, encrypted chats included, so an unsend can't take it back. **Log chats that don't notify** also saves messages from muted and restricted chats that aren't end-to-end encrypted, with no notification. Messages that get unsent are marked Unsent, and **Show only unsent** lists just those. It stays on your phone, encrypted. **View log** and **Clear log** sit under the switch. The log can be searched by words or names (accents don't matter) and grouped by chat, and **Save as text** or **Save as CSV** writes what's showing to a file you pick. **Save messages before they're removed** adds each message to a file in Download/Messenger right before the log drops it, one file a month. Those files aren't encrypted, so that switch starts off, and it needs Android 10 or newer. **Direct** and **Groups** split one-to-one chats from group chats, and a chat that shows up with no name can get one you pick. Photos get their own entry, with the notification's preview picture when Messenger sends one. You pick how long messages stay (30 days, 90 days, a year or until you clear the log), up to 5,000 of them. **Button at the top of Chats** puts a clock next to the new message button that opens the log, and **Row in the Menu tab** puts a Message log row under Settings in Messenger's Menu tab. |
+| Keep a message log | Saves a copy of each message that raised a notification, encrypted chats included, so an unsend can't take it back. **Log chats that don't notify** also saves messages from muted and restricted chats that aren't end-to-end encrypted, with no notification. Messages that get unsent are marked Unsent, and **Show only unsent** lists just those. It stays on your phone, encrypted. **View log** and **Clear log** sit under the switch. The log can be searched by words or names (accents don't matter) and grouped by chat, and **Save as text** or **Save as CSV** writes what's showing to a file you pick. **Save messages before they're removed** adds each message to a file in Download/Messenger right before the log drops it, one file a month. Those files aren't encrypted, so that switch starts off, and it needs Android 10 or newer. **Direct** and **Groups** split one-to-one chats from group chats, and a chat that shows up with no name can get one you pick. Photos get their own entry, with the notification's preview picture when Messenger sends one. You pick how long messages stay (30 days, 90 days, a year or until you clear the log), up to 20,000 of them. **Button at the top of Chats** puts a clock next to the new message button that opens the log, and **Row in the Menu tab** puts a Message log row under Settings in Messenger's Menu tab. **Row in the chat menu** adds Message log to the menu you get when you press and hold a chat, and it opens the log on just that chat. |
 | Auto reply | Answers messages with a reply you write, for certain words or for any message. One reply per chat every five minutes, and group chats only when you allow it. |
 | Quiet incoming calls | Calls still come in, but Messenger doesn't ring, vibrate or pop the call up over your screen. It waits in the notification shade with Answer and Decline, and a call you miss still shows in the chat. **Only chosen chats** under the switch keeps this to the chats you pick, so every other call rings. If the Facebook app is on your phone, it can still ring for the same call. Experimental. |
 | Android Auto messages | Android Auto reads your Messenger messages out loud and sends the reply you speak, from its own messaging screen. Android Auto only lists apps from the Play Store. Unknown sources in its developer settings opens that up on a desktop head unit, and a real car can still leave Messenger out. Playing a message aloud marks the chat read, so the sender sees Seen even with Hide read receipts on. |
@@ -110,11 +112,13 @@ These screenshots come from the code on this page, so they can be a step ahead o
 | Customize message actions | Pick the order of the actions you get by holding a message and hide the ones you never use. Messages you sent and messages you got each have their own list, and it fills in as you hold messages. The first ones go in the row of buttons and the rest under More, in your order too. **Reset to Messenger's order** puts a list back. |
 | Allow landscape | Lets Messenger turn sideways with your phone, for a wider keyboard and bigger photos and videos. It follows your phone's auto-rotate setting. Calls, the camera, payments and a few other screens stay upright. Restart Messenger after you change it. Experimental. |
 | Record calls | Adds a Record button over Messenger during a call. The call goes into one sound file in Recordings/Messenger Calls on your phone (Music/Messenger Calls on Android 10 and 11). While it's on, calls use Android's regular audio path instead of Messenger's own, and Messenger needs a restart after you change it. Messenger doesn't tell the other people, and recording laws differ from place to place, so get everyone's OK first. Needs Android 10 or newer. |
+| Live captions on calls | Shows what the other people say as captions over a call. Your phone's own speech recognition makes them, and it can translate them into your language and read them aloud (wear earphones for that). Pick the language they speak and the one you want under the switch. It needs Android 13 or newer, and translation needs a phone that can translate on the device. Like Record calls, it moves calls to Android's regular audio path and needs a Messenger restart. Experimental. |
 | Hide call buttons | Takes the audio and video call buttons out of a chat's top bar, so you can't tap one by accident. Calls still ring, and you can still join one that's going. |
-| Ask before a call | Tapping the audio or video call button in a chat asks first, so a stray tap doesn't ring anyone. **Call** starts it, **Cancel** doesn't. |
+| Ask before a call | Tapping an audio or video call button asks first, so a stray tap doesn't ring anyone. That covers a chat's top bar, a business chat and the New message screen. **Call** starts it, **Cancel** doesn't. |
 | Hide read receipts | Opening a chat no longer sends Seen. The chat stays unread on your phone until you reply or mark it read. Group chats haven't been checked. |
 | Mark as read button | Works with Hide read receipts. A chat's top bar gets Messenger's own Mark as read icon, and tapping it sends the Seen that opening the chat held back. When the bar is full it replaces the chat details button (tapping the chat's name opens the same page), or another button that isn't for calls when a chat doesn't have one. Experimental. |
 | View stories anonymously | Opens other people's stories without adding you to their viewer list. |
+| Mark as seen button | Works with View stories anonymously. Stories you open get an eye with a slash through it, and tapping it adds you to that story's viewer list. The next story stays anonymous. Experimental. |
 | Save any story | Adds **Save** to the **More options** menu on other people's stories. |
 | Keep unsent messages | Keeps messages on the older unsend routes and marks them "[unsent]". An encrypted chat can't keep the message itself, so its notification stays up instead. |
 | Allow screenshots | Lets you screenshot protected photos and media, view-once included, with no screenshot notice to the sender. |
@@ -124,9 +128,10 @@ These screenshots come from the code on this page, so they can be a step ahead o
 | Send photos at original quality | With HD on, a JPEG photo up to 20 MB goes out at its full size instead of Messenger's smaller copy. Location and camera details are stripped, as Messenger does. |
 | Send videos without re-encoding | A video up to 25 MB goes out as it is. |
 | Fix videos that won't send | A video whose only sound is xHE-AAC gets that sound converted to regular AAC, and a Samsung screen recording loses the tag Samsung's recorder adds when Messenger's media check rejects it, so neither ends in "Unable to send". Works for videos shared in from another app and ones picked in a chat. |
-| Use the phone's camera app | A chat's camera button opens your own camera app. Photos only. |
+| Use the phone's camera app | A chat's camera button opens your own camera app. Ask photo or video lets it record videos too. |
 | Open your gallery app | A chat's gallery button opens your own gallery app. One pick opens in Messenger's editor, and several open the Send to sheet with that chat at the top. |
 | Put gallery picks in the chat | Goes with Open your gallery app. What you pick lands above the chat's message box, the way Messenger's own gallery puts it there, one item or several. Nothing goes out until you tap Send. Experimental. |
+| Send Instants from your gallery | The Instants shutter opens your gallery app instead of taking a photo. The photo you pick goes out as the Instant, cut to fit. Back out and nothing is sent. Experimental. |
 | Open web links externally | Opens http and https links in your default browser. |
 | Slide chats in and out | Slides a chat in from the side when you open it and back out when you leave. |
 | Hold stories at the end | A story stays on screen when it ends, photo or video, until you tap or swipe to the next one. The last one stays open until you close it. Experimental. |
@@ -142,6 +147,7 @@ These screenshots come from the code on this page, so they can be a step ahead o
 | Your own home header | Puts your own words or picture at the top of the chat list where the "messenger" wordmark is. Words take the wordmark's colors, so they follow dark mode, and a picture shows instead of the words when you've set both. Restart Messenger after a change. |
 | Material You theme | In dark mode on Android 12 and newer, Messenger takes the accent color from your wallpaper. A **Pure black dark mode** switch sits under Appearance. You can paste your own colors there too, as text like `{"name": "Sunset", "accent": "#E1306C", "neutral": "#1A1418"}`, and share them with **Copy theme**. **Light mode accent** gives Messenger's blues in light mode your accent too, from the row of colors in Appearance or your wallpaper's. |
 | Use your own font | Replaces Meta's font with your phone's, or with a .ttf or .otf file you pick, with size and position adjustments. Restart Messenger after a change. |
+| Blur behind menus | The screen behind the press-and-hold menu on a chat, and behind Messenger's other pop-up menus and sheets, blurs the way it does on an iPhone. Android 12 and newer. If your phone can't blur behind a window (some Samsungs can't, and battery saver can turn it off), Messenger blurs its own screen under the menu instead. The **iPhone look** quick setup turns it on too. Experimental. |
 | Bold and italic text | Adds Bold and Italic to the text selection menu. They change the letters A to Z, accented ones included, and Bold changes digits too. Other alphabets stay as they are. |
 | Open settings from menu | Adds the HushMessenger row to Messenger's Menu tab and side menu, and makes a long press on the Messenger logo at the top of Chats or the Menu tab's title open settings. On by default. The App tab can turn off each way in, as long as one stays on. |
 
@@ -149,6 +155,7 @@ These screenshots come from the code on this page, so they can be a step ahead o
 
 - **Install beside Meta apps** renames Messenger's two shared Meta permissions so a patched Messenger installs next to a stock or patched Facebook. If you patch [Hushfacebook](https://github.com/SysAdminDoc/Hushfacebook) too, sign both with the same key.
 - **Keep chat pop-ups** stops Messenger from turning off message pop-ups for good when it expects a chat head to show, and brings them back at the next start on a phone where that already happened. If you lowered them yourself in Android's settings they stay that way, and picking **Chat heads** under `Allow chat bubbles` gives you Messenger's own behavior. On Android 9 it can only stop new changes, because Android 9 can't say who lowered them.
+- **Fix videos in chat heads** draws a video in a chat head (or a bubble on Android 12 and newer) inside the chat itself. Messenger puts videos on a layer of their own, and on some phones that layer showed up black in a chat head and stayed on screen after it closed. Videos in the app itself play the way Messenger draws them.
 - **Restore screens on re-signed builds** answers Messenger's check of its own certificate with Meta's, so a re-signed build opens to your chats instead of a blank screen. It also opens Threads links and Instagram video links in a Threads or Instagram you patched yourself. Messenger only hands those to apps signed by Meta and does nothing otherwise, so now the link goes to the app the normal way, or to your browser if the app can't take it.
 - **Clone install under another package name** installs a second Messenger beside the first, as `com.facebook.orca.hush` and **Messenger Clone** unless you change them. Push notifications may not reach the copy, and Root Mount can't use it. If you also run a Facebook clone, set **Facebook package to open** to its ID (like `com.facebook.katana.morphe`) and Messenger's profile and Facebook links go to that copy. It stays `com.facebook.katana` otherwise, and sign-in still uses the regular Facebook app.
 - **Spoof package version** gives Messenger a very high version code (2147483647 unless you pick another) so the Play Store stops offering updates. Keep it selected with the same number when you patch a later build, since Android won't install a lower code over a higher one.
@@ -172,11 +179,12 @@ These screenshots come from the code on this page, so they can be a step ahead o
 - **`INSTALL_FAILED_DUPLICATE_PERMISSION`.** Another app, usually a Facebook patched with a different key, owns a permission Messenger declares too. Messenger isn't the problem here, so leave it installed and patch with the same key as that app. The [install check](#verify-a-download) tells this apart from a Messenger signer mismatch and names the app.
 - **`INSTALL_FAILED_VERSION_DOWNGRADE ... older than current 2147483647`.** Another patch set raised Messenger's version code to Android's maximum, and Android remembers it even after an uninstall that kept data. Don't uninstall or clear data to get past it. An in-place update needs the same signing key and a version code at least that high, so patch with **Spoof package version** selected at that number.
 - **`INSTALL_FAILED_VERSION_DOWNGRADE: Downgrade detected on app uninstalled with DELETE_KEEP_DATA`.** Messenger was uninstalled with its data kept, or Android archived it, and the number after "older than current" is that copy's version code. Android won't put a lower version over it. It won't take one signed with another key either, even with a higher number, so a patched APK can't replace a leftover Messenger from the Play Store. Select **Clone install under another package name** (Morphe Manager shows it in Expert mode) to install next to it without touching it. If you don't need what that copy kept, uninstall it in Android's Settings > Apps or with `adb uninstall com.facebook.orca`, then install the patched APK. The [install check](#verify-a-download) spots a leftover copy before you install.
-- **Root Mount crashes when chat heads or other screens open.** Root Mount keeps the Messenger Android already has and lays the patched one over it, so both have to be the same build, down to the version code. Several builds share one version name (586.0.0.55.92 comes in a few), and mixing them crashes. HushMessenger warns about it under the name in settings and on the **Mounted build** line of **Copy setup**. The warning names the build Android has, so patch that exact one, or install the patched APK normally.
+- **Root Mount crashes when chat heads or other screens open.** Root Mount keeps the Messenger Android already has and lays the patched one over it, so both have to be the same build, down to the version code. Several builds share one version name (587.0.0.54.96 comes in nineteen), and mixing them crashes. HushMessenger warns about it under the name in settings and on the **Mounted build** line of **Copy setup**. The warning names the build Android has, so patch that exact one, or install the patched APK normally.
 - **Uninstalling the settings icon removes Messenger.** Both icons belong to one app. Hide the icon with **App > Hide app drawer icon** instead.
 - **A cloned Messenger brings back the settings icon.** A clone made by your phone's dual apps or app cloner keeps its own copy of the settings. Open the clone's settings icon and turn on **App > Hide app drawer icon** there too.
 - **Messages or calls stop popping up.** Check that `Quiet incoming calls` is off and that **Allow chat bubbles** is on Stock. A reinstall resets your phone's own notification permissions, and Xiaomi, Redmi and POCO phones also want **Floating notifications** on for each Messenger category plus **Display pop-up windows while running in the background** under Other permissions for calls. **App > Report a problem** then lists any notification channel that still can't pop up.
 - **Every chat and call notifies twice.** The second one comes from the Facebook app, which doesn't treat the patched Messenger as the real one. In [Hushfacebook](https://github.com/SysAdminDoc/Hushfacebook) turn on **Leave calls and chats to Messenger**. With regular Facebook, turn off its chat and call notifications in Android's app settings for Facebook.
+- **Facebook's Messenger button opens Facebook's own Chats.** Regular Facebook doesn't treat the patched Messenger as the real one, so it keeps you in its Chats. In [Hushfacebook](https://github.com/SysAdminDoc/Hushfacebook) turn on **Open Messenger from the top bar** under Chats and Messenger.
 - **Restoring chats ends in an error.** The Google Drive restore only works in Meta's own signed Messenger. Use your PIN or a one-time code from another device you're signed in on. No PIN yet? Set one up in another Meta app first, such as Facebook Lite.
 - **Login gets past the password, then loops on a browser check.** That happens on accounts with a passkey. Sign in on the web, remove the passkey under Settings > Accounts Center > Password and security, then log in again. Facebook falls back to approving the login from another device you're signed in on, and you can add the passkey back afterwards.
 - **Install blocked on a Galaxy phone.** Samsung's Auto Blocker only lets apps in from Galaxy Store and Google Play, and it blocks USB installs too. Turn it off in **Settings > Security and privacy > Auto Blocker**, install, then turn it back on. Google's Advanced Protection (**Settings > Google > All services > Privacy & security > Advanced Protection**) blocks the install the same way.
@@ -195,33 +203,43 @@ With **Hide read receipts** on, a chat you open stays unread on your phone, beca
 
 ## Supported Messenger builds
 
-This table is for the next release. v0.29.0, the current one, doesn't take `347215273`, `347215275` or `347215277` yet.
+This table is for the next release. v0.29.0, the current one, takes 586.0.0.55.92.
 
 | Field | Value |
 | --- | --- |
 | Package | `com.facebook.orca` |
-| Version | `586.0.0.55.92` |
-| Version codes, arm64-v8a | `347215257`, `347215273`, `347215275`, `347215277`, `347215330`, `347215343`, `347215344`, `347215348` |
-| Version code, armeabi-v7a | `347215341` |
-| Icons for every screen density | `347215257`, `347215273`, `347215343` |
-| Icons for one screen density | 120-160 dpi `347215344`. 213-240 dpi `347215275`. 360-480 dpi `347215277`, `347215330` and the armeabi-v7a build. 560-640 dpi `347215348` |
+| Version | `587.0.0.54.96` |
+| Version codes, arm64-v8a | `347415267`, `347415268`, `347415280`, `347415281`, `347415284`, `347415285`, `347415299`, `347415301`, `347415302`, `347415333`, `347415337`, `347415350`, `347415351`, `347415352`, `347415354`, `347415355` |
+| Version codes, armeabi-v7a | `347415262`, `347415295`, `347415348` |
+| Icons for every screen density (nodpi) | `347415280`, `347415333`, `347415350` |
+| Icons for one screen density | 120-160 dpi `347415281`, `347415351`. 213-240 dpi `347415299`, `347415352`. 280-320 dpi `347415267`. 360-480 dpi `347415268`, `347415284`, `347415301`, `347415337`, `347415354` and the armeabi-v7a builds. 560-640 dpi `347415285`, `347415302`, `347415355` |
 | Minimum Android version | Android 9 (API 28) |
-| APKMirror download | [586.0.0.55.92](https://www.apkmirror.com/apk/facebook-2/messenger/facebook-messenger-586-0-0-55-92-release/) |
+| APKMirror download | [587.0.0.54.96](https://www.apkmirror.com/apk/facebook-2/messenger/facebook-messenger-587-0-0-54-96-release/) |
 
-That's every build APKMirror lists for 586. Meta compiled `347215273`, `347215275` and `347215277` a little differently from the rest, and the patches find their way around both kinds. The patch checks the version code before it changes anything and stops on a build that isn't listed. Older Messenger versions aren't supported by current bundles. v0.28.0 takes 585.0.0.53.94 (armv7 too), v0.27.0 takes 584.1.0.61.98, v0.26.0 takes 584.0.0.49.98, v0.25.0 takes 583.0.0.29.95 and v0.23.0 takes 582.0.0.61.92.
+That's every build APKMirror lists for 587. Meta compiled `347415280`, `347415281`, `347415284` and `347415285` a little differently from the rest, and the patches find their way around both kinds. The patch checks the version code before it changes anything and stops on a build that isn't listed. APKMirror says the armeabi-v7a builds run on Android 8, but the patches are only checked on Android 9 and up. Older Messenger versions aren't supported by current bundles. v0.29.0 takes 586.0.0.55.92, v0.28.0 takes 585.0.0.53.94 (armv7 too), v0.27.0 takes 584.1.0.61.98, v0.26.0 takes 584.0.0.49.98, v0.25.0 takes 583.0.0.29.95 and v0.23.0 takes 582.0.0.61.92.
 
 SHA-256 of the stock APKs the checks ran against:
 
 ```text
-347215257  d362ca4c12b3df2255cadfe16bad6e6b8e6f7dce28f678ef1c148c50343938a2
-347215273  954a17fafc4e1081becf82bf9e9c80b49fbd83470b52a0f578e0d4e9453da35b
-347215275  204bfaa3da0fd5371ceac595a764d115fe2ca74c5b462db6a86be51c76e80093
-347215277  5eb448e8615f50790414d475af7e4f2cf76813e687848a6ccf06ed00e80721d7
-347215330  503251702dc69d100feba9d56cfa28e96ec1c9ea974cf385bf88d6ee2ed037c1
-347215341  c2a2b65edf52bede0de5b1d5603f332813a7c404784ac8913801a29670190691
-347215343  d6335e5da25effadd6c8f03220750e0990bc17bcd2670275883bfd8dd3605edc
-347215344  2049f4d122994249ddb69d9dca718bd1aafebc7b0c3ccd24866f0a3e33f15e23
-347215348  ee4bee15fe07eecc933aacfb7ec8d8d3f8ace8f4d7ccf517c6bd1ff0b63aae7e
+347415262  f24997a80ddca389d1b2bdac21e3296f13d1ca759dfefc49662de0f1f0406aab
+347415267  9dca666ae5807390598c8eeebb522edc9e3b9a7334493f214cc15ade8e7bc9d5
+347415268  62455a09871d11e08564c5e898754e637fd72be34ee97f7448e51852e34bd70d
+347415280  b6fa2d062ba631eb27356e23cdd13781dffe223d346675ad362ff9d844538e89
+347415281  d1ea300b2210c5ce750f6a90f15aab043317262b9a6a540c0194c409b005b3cc
+347415284  f83349a8151359b02487494dc5f4f49b30407c990bc4a2f820dc93fce47a00cc
+347415285  f8d499c6c8240be690b98897315797fb4a30f65e7ded0dc534d81e4faa3fb9a3
+347415295  44e0f95e7008e37a55bbba2b9c601f73acd240e08b50827555864691d9001599
+347415299  53aae93bc7be9bdaa027e33ca88a46425ff8108ab59347d86f1a08447a3042cd
+347415301  136e96d187ff10d79e4e5f5720f2b7db8d0e4d9eff13e3826dcddf38b5ee4506
+347415302  0da233955e845976a1d7681e552d7a52702ae6e0d1c70a1992410ab66243c0ec
+347415333  ab3cabbd30d7a3fc6dd96aa48326e2fc6b03d973e631d99fecc8bf7bab48f59f
+347415337  1913f85b20cc2fea75e79ae364807470f53816c6b670ffb736261b6d31161317
+347415348  20d3c4d3a3503496b4f3ade47261066ebfd415470a75bad207bec52c964bd96f
+347415350  944ba7792c2591ea5e90e36a019f3cb3e6d71cb80746315f908a670a64c49f3e
+347415351  f31f887a26bb639b88ea152e737f42aba3760aa5abc3116922429b23748d475d
+347415352  ae829413175779f1863bbab56383760fde07808987182ca47aa02c7765e73dff
+347415354  f9c05885753c65857cf8556f7fb280827a0b9842ece1957d9b48bf3949059bd3
+347415355  a9afd2584cd65e6077c89baf41cc1590bd9f9c87fda5f04ba62cc5ccb6f47a24
 ```
 
 On Windows, compare your file with `Get-FileHash -Algorithm SHA256 .\messenger.apk`. Meta sometimes publishes different APKs under one version name.
@@ -265,7 +283,7 @@ $env:GITHUB_TOKEN = gh auth token
 python -m unittest discover -s scripts/tests -v
 ```
 
-The bundle lands in `patches/build/libs/`, and clean builds from the same source give the same checksum. `:patches:check` wants the exact stock APK of every supported build in a folder named by `HUSH_NATIVE_FIXTURES`, each file named with its version code after the last dash, like `messenger-586.0-347215348.apk`. `:patches:test` runs without them and skips the tests that replay on those APKs.
+The bundle lands in `patches/build/libs/`, and clean builds from the same source give the same checksum. `:patches:check` wants the exact stock APK of every supported build in a folder named by `HUSH_NATIVE_FIXTURES`, each file named with its version code after the last dash, like `messenger-587.0-347415354.apk`. `:patches:test` runs without them and skips the tests that replay on those APKs.
 
 The development bundle names its discovery stages in the patch log and reports their elapsed time. To compare Wi-Fi finder time, allocation and heap peaks against the previous implementation on one stock APK, run `:patches:benchmarkWifiIdentity -PapkPath=<apk>`.
 

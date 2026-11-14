@@ -167,6 +167,7 @@ public final class SettingsBackup {
             Settings.FORWARD_HIDE_SENDER,
             Settings.VOICE_MUSIC_PLAYER,
             Settings.PLAYBACK_POSITION,
+            Settings.VOICE_SKIP,
             Settings.LYRICS,
             Settings.SONG_DATES,
             Settings.SELECT_BETWEEN,

@@ -199,6 +199,7 @@ public final class MediaUploadClient {
     }
     private static String body(HttpURLConnection c,boolean sent) throws IOException {
         int code=c.getResponseCode();
+        if(code==413)throw new MediaUploadSizeException();
         if(code<200 || code>=300) throw new IOException("アップロード先の応答: HTTP "+code
                 +(sent?"。再送前にサイトを確認してください":"。ファイルは送信していません"));
         try(InputStream input=c.getInputStream(); ByteArrayOutputStream out=new ByteArrayOutputStream()) {

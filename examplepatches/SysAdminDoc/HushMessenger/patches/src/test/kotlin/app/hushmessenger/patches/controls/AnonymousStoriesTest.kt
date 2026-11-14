@@ -12,6 +12,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import java.nio.file.Files
 import java.nio.file.Path
@@ -41,7 +42,12 @@ class AnonymousStoriesTest {
         method.injectStorySeen()
         val code = method.implementation!!.instructions.toList()
         val addresses = code.runningFold(0) { address, instruction -> address + instruction.codeUnits }
-        assertEquals("$SETTINGS->viewStoriesAnonymously()Z", reference(code[1]))
+        // The handler, the card and the flag go to the extension, which keeps them for the Mark as seen button (#169).
+        assertEquals("$SETTINGS->holdStorySeen(Ljava/lang/Object;Ljava/lang/Object;I)Z", reference(code[1]))
+        assertEquals(Opcode.INVOKE_STATIC_RANGE, code[1].opcode)
+        val passed = code[1] as RegisterRangeInstruction
+        assertEquals(method.implementation!!.registerCount - 3, passed.startRegister)
+        assertEquals(3, passed.registerCount)
         assertEquals(Opcode.IF_EQZ, code[3].opcode)
         // Off: the untouched send. On: v0 back to the 0 the local update expects, then straight to it.
         assertEquals(addresses[6], addresses[3] + (code[3] as OffsetInstruction).codeOffset)
@@ -61,6 +67,33 @@ class AnonymousStoriesTest {
         val before = method.implementation!!.instructions.toList()
         assertFailsWith<PatchException> { method.injectStorySeen() }
         assertEquals(before, method.implementation!!.instructions.toList())
+    }
+
+    private fun storyViewer(vararg methods: MutableMethod) = fixtureClass(MONTAGE_VIEWER, methods.toList(), superclass = "Landroidx/fragment/app/DialogFragment;")
+
+    private fun viewerCreated(flags: Int = AccessFlags.PUBLIC.value) = fixtureMethod(STORY_VIEWER_CREATED,
+        "invoke-super {p0, p1, p2}, Landroidx/fragment/app/DialogFragment;->onViewCreated(Landroid/view/View;Landroid/os/Bundle;)V\nreturn-void",
+        registers = 4, flags = flags)
+
+    @Test fun theStoryViewerHandsItsViewToTheMarkAsSeenButtonBeforeItsOwnSetup() {
+        val viewer = storyViewer(viewerCreated())
+        val method = viewer.methods.single { it.hookId() == viewer.storyViewerCreated().hookId() }
+        val original = method.implementation!!.instructions.toList()
+        method.injectStoryViewerCreated()
+        val code = method.implementation!!.instructions.toList()
+        assertEquals(Opcode.INVOKE_STATIC_RANGE, code[0].opcode)
+        assertEquals("$STORY_EYE->viewerCreated(Ljava/lang/Object;Landroid/view/View;)V", reference(code[0]))
+        // Four registers and three parameters: p0, the fragment, is v1, and p1, its view, is v2.
+        val passed = code[0] as RegisterRangeInstruction
+        assertEquals(1, passed.startRegister)
+        assertEquals(2, passed.registerCount)
+        assertEquals(original, code.drop(1))
+    }
+
+    @Test fun aStoryViewerWithoutItsOwnOnViewCreatedIsRejected() {
+        assertFailsWith<PatchException> { storyViewer().storyViewerCreated() }
+        assertFailsWith<PatchException> { storyViewer(viewerCreated(AccessFlags.PUBLIC.value or AccessFlags.STATIC.value)).storyViewerCreated() }
+        assertFailsWith<PatchException> { handler().injectStoryViewerCreated() }
     }
 
     @Test fun readSetIsTheClassTheLocalUpdateHandsTheCardTo() {
@@ -222,9 +255,12 @@ class AnonymousStoriesTest {
 
             val handler = MutableMethod(discovered.getValue("anonymous_stories").single { it.definingClass == handlerType })
             val readSet = byType.getValue(handler.storyReadSetAdd().definingClass).validateStoryReadSet(handler.storyReadSetAdd())
-            // 586's 273 family keeps the card's ID in A0L; every other build keeps it in A0K.
-            val cardId = if (activeProfile === PROFILE_347215273) "$MONTAGE_CARD->A0L:Ljava/lang/String;" else readCardId
-            assertEquals(cardId, readSet.cardId, code)
+            val viewerCreated = MutableMethod(byType.getValue(MONTAGE_VIEWER).storyViewerCreated())
+            viewerCreated.injectStoryViewerCreated()
+            assertEquals("$STORY_EYE->viewerCreated(Ljava/lang/Object;Landroid/view/View;)V",
+                reference(viewerCreated.implementation!!.instructions.first()), code)
+            // Every 587 build keeps the card's ID in A0K, the 280 family included.
+            assertEquals(readCardId, readSet.cardId, code)
             val ring = preview.validateStoryRing()
             assertEquals(STORY_PREVIEW_INIT, ring.constructor, code)
             ringFields += "${ring.card} ${ring.unread} ${ring.unreadCount}"

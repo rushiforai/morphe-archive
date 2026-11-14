@@ -245,7 +245,7 @@ Hide the Communities tab	Sembunyikan tab Komunitas
 Takes the Communities tab out of the bottom bar and stops Communities tips in the post editor.	Menghapus tab Komunitas dari bilah bawah dan menghentikan tips Komunitas di editor postingan.
 # context: the Hide Blaze prompts switch on the Interface page. Blaze is Tumblr's paid post promotion.
 Hide Blaze prompts	Sembunyikan ajakan Blaze
-Hides the Blaze buttons, banners and the nudge to promote a post after you share it. The Blaze item in a post's menu stays.	Menyembunyikan tombol dan banner Blaze serta ajakan untuk mempromosikan postingan setelah kamu membagikannya. Pilihan Blaze di menu postingan tetap ada.
+Hides the Blaze buttons and banners, the nudge to promote a post after you share it, and Blaze in post menus and the share sheet.	Menyembunyikan tombol dan banner Blaze, ajakan untuk mempromosikan postingan setelah kamu membagikannya, serta Blaze di menu postingan dan menu berbagi.
 # context: the Skip review prompts switch on the Interface page. It stops Tumblr's rate-this-app pop-up.
 # context: the Skip review prompts switch on the Interface page. It stops Tumblr's "What do you think of the Tumblr app?" pop-up.
 Skip review prompts	Lewati permintaan ulasan
@@ -273,6 +273,8 @@ That isn't a font file. Nothing changed.	Itu bukan file font. Tidak ada yang ber
 That file is too big to be a font.	File itu terlalu besar untuk sebuah font.
 Blog notification reminder	Pengingat notifikasi blog
 Gift purchase popup	Pop-up pembelian hadiah
+# context: a part of Hide Blaze prompts, named on the status card when a build has or lacks it. The flame under your own posts, Blaze in post menus and the share sheet, and Promote in community posts.
+Blaze buttons on posts	Tombol Blaze di postingan
 Stops the pop-up that asks what you think of the Tumblr app and then asks for a rating or feedback.	Menghentikan pop-up yang menanyakan pendapatmu tentang aplikasi Tumblr lalu meminta rating atau masukan.
 # context: the Turn off screenshot sharing switch on the Interface page. Tumblr watches for screenshots and offers to save the post as an image.
 Turn off screenshot sharing	Matikan berbagi tangkapan layar
@@ -298,6 +300,9 @@ Hide hashtags	Sembunyikan tagar
 Hide the Follow button	Sembunyikan tombol Ikuti
 Takes the Follow button out of the header of posts from blogs you don't follow yet.	Menghapus tombol Ikuti dari bagian atas postingan dari blog yang belum kamu ikuti.
 Takes the tags off the bottom of posts in your dashboard and other feeds, and keeps the source link.	Menghapus tag di bagian bawah postingan di dasbor dan feed lainnya, dan tetap menampilkan tautan sumber.
+# context: a switch on the Posts page. A tag is a hashtag under a post, and tapping it opens a search. The blog's tag search is the screen blog.tumblr.com/tagged/<tag> shows, only that blog's posts.
+Tags open the blog's tag search	Tag membuka pencarian tag blog
+Tapping a tag under a post searches that blog's posts for the tag, in the dashboard, other feeds and a post opened by itself.	Mengetuk tag di bawah postingan akan mencari postingan blog itu dengan tag tersebut, di dasbor, feed lainnya, dan postingan yang dibuka tersendiri.
 # context: the switch for Tumblr's Premium diamond and TumblrMart button on the Interface page. TumblrMart and Premium are Tumblr's names; keep them. The last two are parts named in "This build handles %1$s."
 Hide the diamond and TumblrMart	Sembunyikan berlian dan TumblrMart
 Hides the Premium diamond on your dashboard, Explore and notifications when you return to them. Open screens keep their TumblrMart button until Tumblr restarts.	Menyembunyikan berlian Premium di dasbor, Jelajahi, dan notifikasi saat kamu kembali ke layar tersebut. Layar yang terbuka tetap menampilkan tombol TumblrMart sampai Tumblr dimulai ulang.
@@ -394,6 +399,9 @@ Keep reblogs with added content	Pertahankan reblog dengan konten tambahan
 When reblogs are hidden, keep ones where the reblogger added something of their own. Other post filters still apply.	Saat reblog disembunyikan, pertahankan yang diberi tambahan sendiri oleh pembuat reblog. Filter postingan lainnya tetap berlaku.
 Hide your own reblogs	Sembunyikan reblog milikmu
 Takes the reblogs you made out of your dashboard. Your blog and the rest of Tumblr still show them.	Menghapus reblog yang kamu buat dari dasbor. Blogmu dan bagian lain Tumblr tetap menampilkannya.
+# context: a switch on the Feed page, next to Hide your own reblogs. It hides posts where someone else reblogged a post you made, or reblogged it from you.
+Hide reblogs of your posts	Sembunyikan reblog postinganmu
+Takes other people's reblogs of your posts out of your dashboard. Your blog and the rest of Tumblr still show them.	Menghapus reblog orang lain atas postinganmu dari dasbor. Blogmu dan bagian lain Tumblr tetap menampilkannya.
 Hide liked posts	Sembunyikan postingan yang disukai
 Takes the posts you've already liked out of your dashboard. Your likes and the rest of Tumblr still show them.	Menghapus postingan yang sudah kamu sukai dari dasbor. Daftar sukamu dan bagian lain Tumblr tetap menampilkannya.
 Match current post text	Cocokkan teks postingan saat ini

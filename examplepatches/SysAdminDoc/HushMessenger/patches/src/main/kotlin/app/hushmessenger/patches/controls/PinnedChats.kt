@@ -44,11 +44,11 @@ internal const val PIN_ARRANGE_CALL = "$LOCAL_PINS->arrange(Ljava/lang/Object;)V
 internal const val PINNED_CHAT_ROUTE = "$HOST_SCREENS->pinnedChatRoute()Ljava/lang/String;"
 
 /**
- * The config number Messenger reads its pinned chat limit from. Most 586 builds have no getter for it and read it in
+ * The config number Messenger reads its pinned chat limit from. Most 587 builds have no getter for it and read it in
  * place wherever the pinned count is compared with it: the Pin row's check before a pin, the recount after one, the chat
  * list's fetch of pinned chats and the thread details' Pin state. Family B reads it in one getter those places call.
  */
-internal const val PINNED_CHAT_LIMIT_CONFIG = 0x82059c00020fdeL
+internal const val PINNED_CHAT_LIMIT_CONFIG = 0x82059500020f8fL
 
 internal const val PINNED_CHAT_LIMIT_GATE = "$SETTINGS->pinnedChatLimit(I)I"
 
@@ -262,14 +262,19 @@ private fun List<Instruction>.pinFullSiteAt(at: Int): PinFullSite? {
     val taken = getOrNull(at + 1) as? OneRegisterInstruction ?: return null
     val controller = getOrNull(at + 2) as? TwoRegisterInstruction ?: return null
     val cast = getOrNull(at + 3) as? OneRegisterInstruction ?: return null
-    val branch = getOrNull(at + 4) as? OneRegisterInstruction ?: return null
-    val first = getOrNull(at + 5) as? TwoRegisterInstruction ?: return null
+    // 587 reads the Context and casts it between the controller's cast and the branch.
+    val early = getOrNull(at + 4) as? TwoRegisterInstruction
+    val gap = if (early?.opcode == Opcode.IGET_OBJECT && getOrNull(at + 5)?.opcode == Opcode.CHECK_CAST &&
+        (getOrNull(at + 5) as OneRegisterInstruction).registerA == early.registerA) 2 else 0
+    val branch = getOrNull(at + 4 + gap) as? OneRegisterInstruction ?: return null
+    val first = getOrNull(at + 5 + gap) as? TwoRegisterInstruction ?: return null
     if (taken.opcode != Opcode.MOVE_RESULT || controller.opcode != Opcode.IGET_OBJECT || cast.opcode != Opcode.CHECK_CAST ||
         branch.opcode != Opcode.IF_EQZ || branch.registerA != taken.registerA || first.opcode != Opcode.IGET_OBJECT ||
-        first.registerA == first.registerB || controller.registerB != first.registerB) return null
+        first.registerA == first.registerB || controller.registerB != first.registerB ||
+        (gap > 0 && (early!!.registerB != first.registerB || early.registerA == taken.registerA))) return null
     val owner = ((cast as ReferenceInstruction).reference as TypeReference).type
     var key: FieldReference? = null
-    for (i in at + 5 until minOf(at + 40, size - 1)) {
+    for (i in at + 5 + gap until minOf(at + 40, size - 1)) {
         val step = this[i]
         if (key == null && step.opcode == Opcode.CHECK_CAST && ((step as ReferenceInstruction).reference as TypeReference).type == THREAD_KEY_TYPE &&
             this[i - 1].opcode == Opcode.IGET_OBJECT) {
@@ -283,7 +288,7 @@ private fun List<Instruction>.pinFullSiteAt(at: Int): PinFullSite? {
         val exit = getOrNull(done) as? OneRegisterInstruction ?: return null
         val out = getOrNull(done + 1) as? OneRegisterInstruction ?: return null
         if (exit.opcode != Opcode.SGET_OBJECT || out.opcode != Opcode.RETURN_OBJECT || out.registerA != exit.registerA) return null
-        return PinFullSite(at + 5, first.registerB, first.registerA, key ?: return null, done, owner)
+        return PinFullSite(at + 5 + gap, first.registerB, first.registerA, key ?: return null, done, owner)
     }
     return null
 }

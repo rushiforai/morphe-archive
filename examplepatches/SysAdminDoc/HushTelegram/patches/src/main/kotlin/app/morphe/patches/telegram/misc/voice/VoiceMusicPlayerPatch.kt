@@ -66,7 +66,8 @@ private val VIRTUAL = setOf(Opcode.INVOKE_VIRTUAL, Opcode.INVOKE_VIRTUAL_RANGE)
 val voiceMusicPlayerPatch = bytecodePatch(
     name = "Voice messages in the music player",
     description = "Makes tapping the bar above a chat, while a voice message plays, open Telegram's full music player " +
-        "with a seek bar. Starts off. Turn it on in HushTelegram settings > Playback.",
+        "with a seek bar. A second switch gives voice messages next and previous in the notification, on the lock screen " +
+        "and on headphones. Both start off. Turn them on in HushTelegram settings > Playback.",
     default = true,
 ) {
     category("Playback")
@@ -75,10 +76,12 @@ val voiceMusicPlayerPatch = bytecodePatch(
     execute {
         val site = resolveVoiceMusicPlayer()
         val position = resolvePlaybackPosition()
+        val skip = resolveVoiceSkip()
         // Assembled on copies first, so a refusal leaves the app untouched.
         site.calls.forEach { (method, indices) -> replaceMusicChecks(MutableMethod(ImmutableMethod.of(method)), indices) }
         askBeforeProfileButtons(MutableMethod(ImmutableMethod.of(site.profile.first)), site.profile.second)
         if (position.missing == null) position.rehearse(this)
+        if (skip.missing == null) skip.rehearse()
         for ((name, check) in listOf("isMusic" to "isMusic()Z", "isVoice" to "isVoice()Z", "once" to "isVoiceOnce()Z")) {
             writeStub(VOICE_PLAYER, name, 2, """
                 check-cast p0, $MESSAGE
@@ -101,6 +104,12 @@ val voiceMusicPlayerPatch = bytecodePatch(
             enableCapability("playbackPosition")
         } else {
             patchLog.warning("Voice messages in the music player: ${position.missing}. The patch goes on without the playback position switch.")
+        }
+        if (skip.missing == null) {
+            skip.apply(this)
+            enableCapability("voiceSkip")
+        } else {
+            patchLog.warning("Voice messages in the music player: ${skip.missing}. The patch goes on without the voice skip switch.")
         }
     }
 }

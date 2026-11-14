@@ -120,6 +120,7 @@ Local imports do not update automatically; import the new `.mpp` for each update
 | `Open links externally` | Adds an option to always open links in your browser instead of the in-app browser. | 21.39.525 ~ 20.05.46 |
 | `Overlay buttons` | Adds options to display useful overlay buttons in the video player. | 21.39.525 ~ 20.05.46 |
 | `Override YouTube Music buttons` | Overrides YouTube Music buttons to open RVX Music or any compatible third-party client. | 21.39.525 ~ 20.05.46 |
+| `Patches update notice` | Notifies about newer fork patches and opens Manager to re-patch. Does not download APKs. | 21.39.525 ~ 20.05.46 |
 | `Picture-in-picture button` | Adds an option to display a picture-in-picture button in the video player. | 21.39.525 ~ 20.05.46 |
 | `Playback buffer` | Adds an option to change the video playback buffer size. | 21.39.525 ~ 20.05.46 |
 | `Playback in feeds` | Adds the 'Playback in feeds' setting of YouTube to the RVX settings, where it is always available even if YouTube hides it. | 21.39.525 ~ 20.05.46 |
@@ -179,6 +180,7 @@ Local imports do not update automatically; import the new `.mpp` for each update
 | `Custom branding for YouTube Music` | Adds in-app app-name, launcher-icon, header, splash, and settings-icon selection. | 9.40.51 ~ 8.12.54 |
 | `Disable Cairo splash animation` | Adds an option to disable Cairo splash animation. | 9.40.51 ~ 8.12.54 |
 | `Disable QUIC protocol` | Adds an option to disable CronetEngine's QUIC protocol. | 9.40.51 ~ 8.12.54 |
+| `Disable audio ducking` | Adds an option to keep the volume unchanged when another app plays a short sound, such as a notification. | 9.40.51 ~ 8.12.54 |
 | `Disable dislike redirection` | Adds an option to disable redirection to the next track when clicking the Dislike button. | 9.40.51 ~ 8.12.54 |
 | `Disable forced auto captions` | Adds an option to disable captions from being automatically enabled. | 9.40.51 ~ 8.12.54 |
 | `Disable music video in album` | Adds option to redirect music videos from albums for non-premium users. | 9.40.51 ~ 8.12.54 |
@@ -202,6 +204,7 @@ Local imports do not update automatically; import the new `.mpp` for each update
 | `Media notification controls` | Adds options to disable the seekbar and previous/next buttons in the media notification and headphone controls. | 9.40.51 ~ 8.12.54 |
 | `Navigation bar components` | Adds options to hide or change components related to the navigation bar. | 9.40.51 ~ 8.12.54 |
 | `Network proxy` | Adds options to route supported network requests through an HTTP or HTTPS proxy. Including this patch may cause connectivity problems on certain devices. | 9.40.51 ~ 8.12.54 |
+| `Patches update notice` | Notifies about newer fork patches and opens Manager to re-patch. Does not download APKs. | 9.40.51 ~ 8.12.54 |
 | `Play albums songs` | Adds an option to play the song version of album tracks instead of music videos. | 9.40.51 ~ 8.12.54 |
 | `Player components` | Adds options to hide or change components related to the player. | 9.40.51 ~ 8.12.54 |
 | `Playlist track tap action` | Adds an option to play only the tapped track of a playlist or album, or to add it to the queue, instead of replacing the queue with the whole playlist. | 9.40.51 ~ 8.12.54 |

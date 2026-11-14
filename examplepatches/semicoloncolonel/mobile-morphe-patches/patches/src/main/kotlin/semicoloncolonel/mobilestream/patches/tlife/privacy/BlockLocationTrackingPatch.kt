@@ -11,6 +11,11 @@ import semicoloncolonel.mobilestream.patches.tlife.shared.Constants
 // with the device ID, plus geofences and IP geolocation. Radar is never
 // initialized, and every Radar call then returns at once or reports an
 // error to its callback, which the app already handles.
+//
+// From 12.4.0 the Radar class is renamed and moved out of io.radar.sdk, so it
+// is found by its public method names, which the build keeps.
+
+private val RADAR_METHODS = setOf("initialize", "autocomplete", "trackOnce")
 
 @Suppress("unused")
 val blockLocationTrackingPatch = bytecodePatch(
@@ -21,7 +26,10 @@ val blockLocationTrackingPatch = bytecodePatch(
 
     execute {
         val count = forEachMatchingMethod(
-            { it.type == "Lio/radar/sdk/Radar;" },
+            { classDef ->
+                classDef.type == "Lio/radar/sdk/Radar;" ||
+                    classDef.methods.map { it.name }.toSet().containsAll(RADAR_METHODS)
+            },
             { it.name == "initialize" && it.returnType == "V" },
         ) { it.returnEarly("return-void") }
         if (count == 0) throw PatchException("Radar initialize not found")

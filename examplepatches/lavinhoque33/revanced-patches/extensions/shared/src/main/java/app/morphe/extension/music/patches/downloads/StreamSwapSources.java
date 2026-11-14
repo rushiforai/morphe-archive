@@ -1,8 +1,8 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-12.
  * Written by lavinhoque33, 2026-11-07.
- * Modified by lavinhoque33, 2026-11-09.
  */
 package app.morphe.extension.music.patches.downloads;
 
@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayDeque;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -76,12 +77,33 @@ final class StreamSwapSources {
     private static final AtomicLong sequence = new AtomicLong();
     private static final ConcurrentHashMap<String, Source> sources = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<String, Source> latest = new ConcurrentHashMap<>();
+    /** Latest accepted response decision per id, not the last response (which may be a prefetched next item). */
+    private static final ConcurrentHashMap<String, List<Source>> selected = new ConcurrentHashMap<>();
     /** Tokens of one stream of a track stay valid for in-flight responses; older ones are dropped beyond this many. */
     static final int TOKENS_PER_VIDEO = 4;
     /** Issue order per stream (id and kind), guarded by the class monitor; the maps above stay readable without it. */
     private static final Map<String, ArrayDeque<Source>> issued = new HashMap<>();
 
     private StreamSwapSources() {}
+
+    static void select(List<Source> sources) {
+        selected.put(sources.get(0).videoId, sources);
+    }
+
+    static void selectOnline(String videoId) {
+        selected.remove(videoId);
+    }
+
+    /** No storage access: the current item's accepted sources, not merely the existence of a downloaded copy. */
+    static boolean playsLocal(String videoId) {
+        List<Source> sources = selected.get(videoId);
+        if (sources == null) return false;
+
+        for (Source source : sources) {
+            if (!source.available) return false;
+        }
+        return true;
+    }
 
     /** The format's own URL may be empty (SABR): the source then has no online fallback. */
     static Source issue(String videoId, RawAudioFiles.Entry raw, String formatUrl) {
@@ -142,12 +164,14 @@ final class StreamSwapSources {
             if (source.videoId.equals(videoId)) source.available = false;
         }
         latest.values().removeIf(source -> source.videoId.equals(videoId));
+        selected.remove(videoId);
     }
 
     /** Every stream copy was deleted: no issued source may serve from a file again. */
     static void invalidateAll() {
         for (Source source : sources.values()) source.available = false;
         latest.clear();
+        selected.clear();
     }
 
     static void invalidateMissing() {

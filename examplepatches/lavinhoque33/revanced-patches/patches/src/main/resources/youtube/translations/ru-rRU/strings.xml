@@ -2082,7 +2082,7 @@ Shorts
     <string name="revanced_override_video_download_button_title">Действие кнопки \"Скачать\" для видео</string>
     <string name="revanced_patched_date_title">Дата применения патчей</string>
     <string name="revanced_patches_excluded"><font color="#EA4335">Не применён</font></string>
-    <string name="revanced_patches_included"><font color="#4CAF50">Применён</font></string>
+    <string name="revanced_patches_included"><font color="#4CAF50">Включён</font></string>
     <string name="revanced_playback_audio_pitch_sync">Синхронизировать</string>
     <string name="revanced_playback_audio_pitch_sync_summary_off">Высота тона звука не зависит от скорости воспроизведения</string>
     <string name="revanced_playback_audio_pitch_sync_summary_on">Высота тона звука синхронизирована со скоростью воспроизведения</string>
@@ -2150,7 +2150,6 @@ Shorts
     <string name="revanced_preference_screen_misc_title">Разное</string>
     <string name="revanced_preference_screen_navigation_bar_summary">Настроить компоненты панели навигации</string>
     <string name="revanced_preference_screen_navigation_bar_title">Панель навигации</string>
-    <string name="revanced_preference_screen_patch_information_summary">Информация о примененных патчах</string>
     <string name="revanced_preference_screen_player_buttons_summary">Скрыть или показать кнопки в видео</string>
     <string name="revanced_preference_screen_player_buttons_title">Кнопки плеера</string>
     <string name="revanced_preference_screen_player_flyout_menu_summary">Скрыть или изменить \"Выдвижное меню\" в плеере</string>

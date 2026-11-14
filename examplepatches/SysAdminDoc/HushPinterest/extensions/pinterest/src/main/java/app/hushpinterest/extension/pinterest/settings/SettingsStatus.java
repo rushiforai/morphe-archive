@@ -45,6 +45,8 @@ public final class SettingsStatus {
     public static boolean feedVideoPins() { return false; }
     public static boolean feedMutedWords() { return false; }
     public static boolean feedSavedPins() { return false; }
+    public static boolean feedHomeSuggestions() { return false; }
+    public static boolean feedbackFlyout() { return false; }
     public static boolean keepHomeFeed() { return false; }
     public static boolean homeFeed() { return false; }
     public static boolean disableAnalytics() { return false; }
@@ -105,6 +107,8 @@ public final class SettingsStatus {
     public static boolean suggestedReplies() { return false; }
     public static boolean hideTopicSuggestions() { return false; }
     public static boolean topicSuggestions() { return false; }
+    public static boolean hideInboxUpdates() { return false; }
+    public static boolean inboxUpdates() { return false; }
     public static boolean quietEmailReminder() { return false; }
     public static boolean emailReminder() { return false; }
     public static boolean hideSurveyPrompts() { return false; }

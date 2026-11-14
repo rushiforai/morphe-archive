@@ -34,6 +34,7 @@ private const val ROW_ID = "$ROW->A00:I"
 private const val ROW_ICON = "$ROW->A08($ICONS)V"
 private const val ROW_TITLE = "$ROW->A09(Ljava/lang/CharSequence;)V"
 private const val ROW_DESCRIPTION = "$ROW->A06:Ljava/lang/String;"
+private const val ROW_DESCRIBE = "$ROW->A0A(Ljava/lang/String;)V"
 private const val ROW_BUILD = "$ROW->A02(${ROW}Ljava/lang/String;)$BUILT_ROW"
 private const val CHAT_KEY = "$THREAD_SUMMARY->A0e:$THREAD_KEY_TYPE"
 private const val CHAT_PEOPLE = "$THREAD_SUMMARY->A16:$IMMUTABLE_LIST"
@@ -109,6 +110,9 @@ private val ROW_BODY = """
     :done
     return-object v3
 """.trimIndent()
+
+/** 587's builder fills the description through a setter, as it does the title. */
+private val ROW_BODY_587 = ROW_BODY.replace("iput-object v2, v1, $ROW_DESCRIPTION", "invoke-virtual {v1, v2}, $ROW_DESCRIBE")
 
 private val TAP_BODY = """
     iget-object v0, p0, $MENU_CHAT
@@ -194,6 +198,21 @@ class HideChatsTest {
             ROW_FACTORY, ROW_ID, ROW_ICON, ROW_TITLE, ROW_DESCRIPTION, ROW_BUILD, INBOX_ROUTE.toString()).joinToString("|"), route.toString())
     }
 
+    @Test fun the587RowListThatSetsItsDescriptionThroughASetterIsFoundAndRoutesTheSetter() {
+        val classes = hiddenChatsFixture(menu = hiddenChatsMenuFixture(row = hiddenRow(ROW_BODY_587)))
+        val found = mirroredControls(classes)
+        assertEquals(listOf(SYNTHETIC_HIDDEN_ROW), found.getValue(HIDDEN_CHAT_ROW).map { it.hookId() })
+        validateControls(found, setOf(HIDDEN_CHAT_ROW))
+        val route = resolveHiddenChatRoute(classes.method(INBOX_ITEMS_HOOK), classes.method(SYNTHETIC_HIDDEN_ROW), classes.method(SYNTHETIC_HIDDEN_TAP), classes.classOf())
+        assertEquals(ROW_ICON, route.icon)
+        assertEquals(ROW_DESCRIBE, route.description)
+        // A second String setter leaves the description unknown.
+        val twoSetters = hiddenRow(ROW_BODY_587.replace("invoke-virtual {v1, v2}, $ROW_DESCRIBE", "invoke-virtual {v1, v2}, $ROW_DESCRIBE\ninvoke-virtual {v1, v2}, $ROW->A0B(Ljava/lang/String;)V"))
+        val before = twoSetters.code()
+        assertFailsWith<PatchException> { injectControl(HIDDEN_CHAT_ROW, mapOf(HIDDEN_CHAT_ROW to listOf(twoSetters))) }
+        assertEquals(before, twoSetters.code())
+    }
+
     @Test fun theWalkGoesOverTheListTheExtensionHandsBackAndABranchOntoItStillLandsFirst() {
         val items = walkItems()
         val before = items.code()
@@ -257,6 +276,34 @@ class HideChatsTest {
         assertEquals(HIDE_TAP_CALL, (code[2] as ReferenceInstruction).reference.toString())
         assertEquals(6, code.branchTarget(4))
         assertEquals(before, code.drop(6))
+    }
+
+    // Hide chosen chats, Special contacts and the message log's chat menu row (#172) all take the walk, the menu's rows
+    // and its tap; whichever patches first puts them in.
+    @Test fun hideChosenChatsAndSpecialContactsShareTheirHooksAndEachGoesInOnce() {
+        val shared = setOf(HIDDEN_CHAT_LIST, HIDDEN_CHAT_ROW, HIDDEN_CHAT_TAP)
+        assertEquals(shared, controlHooks.getValue(HIDDEN_CHATS))
+        assertEquals(shared + SPECIAL_CONTACTS, controlHooks.getValue(SPECIAL_CONTACTS))
+        assertTrue(controlHooks.getValue("message_log").containsAll(shared + MESSAGE_LOG))
+        val classes = hiddenChatsFixture()
+        val route = resolveHiddenChatRoute(classes.method(INBOX_ITEMS_HOOK), classes.method(SYNTHETIC_HIDDEN_ROW), classes.method(SYNTHETIC_HIDDEN_TAP), classes.classOf())
+        val methods = mapOf(HIDDEN_CHAT_LIST to listOf(walkItems()), HIDDEN_CHAT_ROW to listOf(hiddenRow()), HIDDEN_CHAT_TAP to listOf(hiddenTap()))
+        val stub = fixtureMethod(HIDDEN_CHAT_ROUTE, "const-string v0, \"\"\nreturn-object v0", 1, AccessFlags.STATIC.value)
+        injectControl(HIDDEN_CHATS, methods)
+        stub.writeHiddenChatRoute(route)
+        val first = methods.mapValues { (_, m) -> m.single().code() } + (HIDDEN_CHAT_ROUTE to stub.code())
+        injectControl(SPECIAL_CONTACTS, methods)
+        stub.writeHiddenChatRoute(route)
+        assertEquals(first, methods.mapValues { (_, m) -> m.single().code() } + (HIDDEN_CHAT_ROUTE to stub.code()))
+        injectControl("message_log", methods)
+        stub.writeHiddenChatRoute(route)
+        assertEquals(first, methods.mapValues { (_, m) -> m.single().code() } + (HIDDEN_CHAT_ROUTE to stub.code()))
+        for ((hook, call) in listOf(HIDDEN_CHAT_LIST to HIDDEN_ROWS_CALL, HIDDEN_CHAT_ROW to HIDE_ROW_CALL, HIDDEN_CHAT_TAP to HIDE_TAP_CALL)) {
+            assertEquals(1, methods.getValue(hook).single().code().count { (it as? ReferenceInstruction)?.reference?.toString() == call }, hook)
+        }
+        assertEquals(route.toString(), (stub.code()[0] as ReferenceInstruction).reference.toString())
+        // A stub that already holds some other route means the two halves disagree, so the patch stops.
+        assertFailsWith<PatchException> { stub.writeHiddenChatRoute(route.copy(key = "LX/0;->x:I")) }
     }
 
     @Test fun aWalkRowListOrTapItCantUseIsRefusedBeforeAnyEdit() {

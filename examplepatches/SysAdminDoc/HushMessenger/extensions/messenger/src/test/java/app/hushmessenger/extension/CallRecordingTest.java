@@ -444,6 +444,35 @@ public class CallRecordingTest {
         assertEquals(Boolean.FALSE, Settings.heldUntilRestart(CallRecording.KEY));
     }
 
+    @Test public void liveCaptionsAloneMoveTheAudioTooAndKeepTheRecordButtonAway() {
+        Settings.preferences.edit().putBoolean(CallCaptions.KEY, true).commit();
+        assertTrue(layerAdded());
+        assertTrue(Settings.hookErrors.isEmpty());
+        open();
+        callStarts();
+        assertNull(pill());
+    }
+
+    @Test public void eachSwitchsRestartRowFollowsWhatTheAudioActuallyDid() {
+        Settings.preferences.edit().putBoolean(CallCaptions.KEY, true).commit();
+        assertTrue(layerAdded());
+        assertNull(Settings.heldUntilRestart(CallCaptions.KEY));
+        assertNull("Record calls was never on, so it has nothing to wait for", Settings.heldUntilRestart(CallRecording.KEY));
+
+        on();
+        assertNull("The audio already moved for captions, so recording needs no restart", Settings.heldUntilRestart(CallRecording.KEY));
+        Settings.preferences.edit().putBoolean(CallCaptions.KEY, false).commit();
+        assertNull("Record calls still wants the audio where it is", Settings.heldUntilRestart(CallCaptions.KEY));
+        Settings.preferences.edit().putBoolean(CallRecording.KEY, false).commit();
+        assertEquals(Boolean.TRUE, Settings.heldUntilRestart(CallCaptions.KEY));
+
+        CallRecording.resetForTests();
+        assertFalse(layerAdded());
+        Settings.preferences.edit().putBoolean(CallCaptions.KEY, true).commit();
+        assertEquals(Boolean.FALSE, Settings.heldUntilRestart(CallCaptions.KEY));
+        assertNull(Settings.heldUntilRestart(CallRecording.KEY));
+    }
+
     @Test public void ourLayerGoesLastBecauseNativeReadsFromTheEnd() {
         on();
         OwnLayer own = new OwnLayer(LENGTH_586);

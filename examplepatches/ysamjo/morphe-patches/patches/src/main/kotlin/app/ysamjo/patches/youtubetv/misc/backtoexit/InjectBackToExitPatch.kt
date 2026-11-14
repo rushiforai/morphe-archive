@@ -4,8 +4,8 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.ysamjo.patches.shared.Constants.COMPATIBILITY_TIZENTUBE_COBALT
 import app.ysamjo.patches.shared.Constants.COMPATIBILITY_YOUTUBE_TV
-import app.ysamjo.patches.youtubetv.ads.Fingerprints.CobaltActivityOnCreateFingerprint
-import app.ysamjo.patches.youtubetv.ads.Fingerprints.GetActiveWebContentsFingerprint
+import app.ysamjo.patches.youtubetv.ads.CobaltActivityOnCreateFingerprint
+import app.ysamjo.patches.youtubetv.ads.GetActiveWebContentsFingerprint
 
 private const val EXTENSION_CLASS = "Lapp/ysamjo/extension/youtubetv/BackToExitInjector;"
 

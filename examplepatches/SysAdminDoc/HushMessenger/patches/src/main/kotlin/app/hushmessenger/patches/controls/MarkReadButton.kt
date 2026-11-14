@@ -256,7 +256,7 @@ internal fun ReadFlow.narrowConstantAt(target: Int, register: Int, depth: Int = 
 }
 
 /** Reads the recipe from the one builder that names the QR scanner plugin and reads it from the socket, or null. */
-internal fun resolveMarkReadRecipe(classes: Iterable<ClassDef>): MarkReadRecipe? {
+internal fun resolveMarkReadRecipe(classes: Iterable<ClassDef>, tables: Map<String, Map<Int, String>> = activeStringTables): MarkReadRecipe? {
     val byType = classes.associateBy { it.type }
     val bar = markReadBar(classes) ?: return null
     val c = bar.markCode()
@@ -316,8 +316,8 @@ internal fun resolveMarkReadRecipe(classes: Iterable<ClassDef>): MarkReadRecipe?
     val site = bar.markReadSite(list, pluginRead.registerB, socketType) ?: return null
     if (!bar.markReadCapMatches()) return null
     val tag = scan.tagField ?: return null
-    // The extension leaves a full bar's call buttons in place by these tags.
-    if (MARK_READ_CALL_TAGS.any { name -> c.none { (it.markRef() as? StringReference)?.string == name } }) return null
+    // The extension leaves a full bar's call buttons in place by these tags. 587's family B looks one up in a string table.
+    if (MARK_READ_CALL_TAGS.any { c.indexOfAnchor(it, tables) < 0 }) return null
     val detailsRef = markDetailsRef(byType, c, specType, tag) ?: return null
     val titleBar = markTitleBar(classes, detailsRef, bar.hookId()) ?: return null
     val titleBarSite = titleBar.markReadFactorySite(detailsRef) { it.isListBuildHelper(byType) } ?: return null

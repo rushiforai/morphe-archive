@@ -298,6 +298,9 @@ Still scroll reels from Search and Explore	Vẫn cuộn reel mở từ Tìm ki�
 With Stop Reels scrolling on, reels you open from Search, Explore, a hashtag or a place still move on when you swipe.	Khi bật Ngừng cuộn Reels, reel bạn mở từ Tìm kiếm, Khám phá, hashtag hoặc địa điểm vẫn chuyển tiếp khi bạn vuốt.
 Still scroll reels from a song page	Vẫn cuộn reel mở từ trang bài hát
 With Stop Reels scrolling on, reels you open from a song or audio page still move on when you swipe.	Khi bật Ngừng cuộn Reels, reel bạn mở từ trang bài hát hoặc âm thanh vẫn chuyển tiếp khi bạn vuốt.
+# context: Reels page, a switch of its own after the three above (#656). It names the Messages page switch Swipe through a chat's reels by its label.
+Play only the reel you opened	Chỉ phát reel bạn đã mở
+A reel you open from a post on Home, a suggested reels row or a message plays on its own. Swiping, pulling down and auto scroll won't move on to another reel, so it plays again when it ends. The Reels tab scrolls as usual. With Swipe through a chat's reels on, a chat's reels still swipe.	Reel bạn mở từ một bài viết trên Trang chủ, một hàng reel gợi ý hoặc một tin nhắn sẽ phát riêng. Vuốt, kéo xuống và tự động cuộn sẽ không chuyển sang reel khác, nên reel phát lại khi kết thúc. Tab Reels vẫn cuộn như bình thường. Khi bật Vuốt qua các reel của cuộc trò chuyện, reel trong cuộc trò chuyện vẫn vuốt được.
 A swipe in Reels no longer moves on to the next reel, and pulling down doesn't load new ones. The reel you opened still plays. Restart Instagram to see the change.	Vuốt trong Reels không chuyển sang reel kế tiếp nữa và kéo xuống không tải reel mới. Reel bạn đã mở vẫn phát. Hãy khởi động lại Instagram để thấy thay đổi.
 Lock a reel at 2x (hold its edge, then slide down) and the next reels play at 2x too. Slide the lock off, or hold the edge and let go, to go back to normal speed.	Khóa reel ở tốc độ 2x (giữ mép màn hình rồi trượt xuống), các reel kế tiếp cũng phát ở 2x. Trượt khóa ra, hoặc giữ mép màn hình rồi thả, để về tốc độ bình thường.
 Open links in external browser	Mở liên kết trong trình duyệt ngoài
@@ -337,6 +340,9 @@ Hide the Explore grid	Ẩn lưới Khám phá
 Hides the grid of posts and reels under the Search tab's bar. Search, recent searches and results stay.	Ẩn lưới bài viết và reel bên dưới thanh của tab Tìm kiếm. Tìm kiếm, nội dung tìm gần đây và kết quả vẫn giữ.
 Hide suggested accounts in search	Ẩn tài khoản gợi ý trong tìm kiếm
 Leaves the Suggested for you accounts out of what shows when you tap the search bar. Recent searches stay.	Bỏ các tài khoản Gợi ý cho bạn khỏi nội dung hiện khi bạn nhấn vào thanh tìm kiếm. Nội dung tìm gần đây vẫn giữ.
+# context: You may also like is the header Instagram's server puts on the recommended posts after search results; it isn't a fixed string in the app, so the rows describe it.
+Hide You may also like in search	Ẩn bài viết đề xuất trong kết quả tìm kiếm
+Leaves out the You may also like posts Instagram adds below your search results. The results you searched for stay.	Bỏ các bài viết Instagram đề xuất bên dưới kết quả tìm kiếm của bạn. Kết quả bạn tìm vẫn giữ.
 # context: Instagram's Messages tab and inbox, Tin nhắn. Direct, the name of Instagram's chat feature, is kept as it is in Instagram's Vietnamese.
 Messages	Tin nhắn
 # context: the row of notes at the top of Instagram's messages. Notes is Ghi chú in Instagram's Vietnamese.
@@ -514,6 +520,9 @@ Reply with a comment's GIF	Trả lời bằng GIF của bình luận
 When a comment has a GIF, its menu gets a GIF reply that sends that same GIF back as your reply, animated.	Khi bình luận có GIF, menu của nó có mục trả lời bằng GIF, gửi lại đúng GIF đó làm câu trả lời của bạn, vẫn chuyển động.
 Show a comment GIF's name	Hiện tên GIF của bình luận
 When a comment has a GIF or sticker, its menu shows its name. Tap the name to copy it.	Khi bình luận có GIF hoặc nhãn dán, menu của nó hiện tên của chúng. Chạm vào tên để sao chép.
+Send saved GIFs as GIFs	Gửi GIF đã lưu dưới dạng GIF
+A comment GIF you saved with Save comment photo, picked from your gallery in the comment box, goes up right away as the same GIF, animated. Other pictures go up as before.	GIF bình luận bạn đã lưu bằng Lưu ảnh trong bình luận, khi chọn từ Thư viện trong ô bình luận, sẽ được đăng ngay dưới dạng chính GIF đó, vẫn chuyển động. Các ảnh khác vẫn tải lên như trước.
+Couldn't send this GIF	Không gửi được GIF này
 GIF name	Tên GIF
 GIF name copied	Đã sao chép tên GIF
 Couldn't copy the GIF name	Không sao chép được tên GIF
@@ -762,7 +771,7 @@ Ask before a refresh	Hỏi trước khi làm mới
 Continue	Tiếp tục
 Like or unlike this post?	Thích hay bỏ thích bài viết này?
 Like or unlike this comment?	Thích hay bỏ thích bình luận này?
-Asks before pulling down refreshes Home, Reels or another list. Cancel keeps what's on screen.	Hỏi trước khi kéo xuống làm mới trang chủ, Reels hoặc danh sách khác. Hủy giữ nguyên nội dung trên màn hình.
+Asks before a pull down or another tap on its tab refreshes Home, Reels or another list. Cancel keeps what's on screen.	Hỏi trước khi kéo xuống hoặc chạm lại vào thẻ làm mới trang chủ, Reels hoặc danh sách khác. Hủy giữ nguyên nội dung trên màn hình.
 Skip the collections tray	Bỏ qua khay bộ sưu tập
 Saving a post or reel shows Instagram's Saved message instead of the tray that asks you to start a collection.	Lưu bài viết hoặc reel sẽ hiện thông báo Đã lưu của Instagram thay vì khay hỏi bạn tạo bộ sưu tập.
 Refresh	Làm mới
@@ -964,7 +973,12 @@ Chat %1$s	Cuộc trò chuyện %1$s
 Hidden chats	Cuộc trò chuyện đã ẩn
 Hide single chats. A hidden chat leaves your inbox and its notifications don't post until you show it here again.	Ẩn từng cuộc trò chuyện. Cuộc trò chuyện đã ẩn rời khỏi hộp thư và thông báo của nó không hiện cho đến khi bạn hiện lại ở đây.
 Double-tap Messages for hidden chats	Nhấn đúp Tin nhắn để vào cuộc trò chuyện đã ẩn
-Two quick taps on the Messages button, on the tab bar or at the top of Home, open your hidden chats. While a lock is on, it asks for it first. One tap opens Messages as usual.	Hai lần nhấn nhanh vào nút Tin nhắn, trên thanh tab hoặc ở đầu trang chủ, sẽ mở các cuộc trò chuyện đã ẩn. Khi đang bật khóa, sẽ yêu cầu khóa trước. Một lần nhấn vẫn mở Tin nhắn như thường.
+Two quick taps on the Messages button, on the tab bar or at the top of Home, show your hidden chats in your inbox after your screen lock or PIN. Two more taps hide them again. Long press a chat to hide or unhide it. One tap opens Messages as usual.	Hai lần nhấn nhanh vào nút Tin nhắn, trên thanh tab hoặc ở đầu trang chủ, sẽ hiện các cuộc trò chuyện đã ẩn trong hộp thư sau khi mở khóa màn hình hoặc nhập PIN. Nhấn thêm hai lần để ẩn lại. Nhấn giữ một cuộc trò chuyện để ẩn hoặc bỏ ẩn. Một lần nhấn vẫn mở Tin nhắn như thường.
+# context: Hide chat and Unhide chat in a chat's long press menu in the inbox (#661), and the toasts when two quick taps on Messages show the hidden chats in the inbox or hide them again
+Hide chat	Ẩn cuộc trò chuyện
+Unhide chat	Bỏ ẩn cuộc trò chuyện
+Showing your hidden chats	Đang hiện cuộc trò chuyện đã ẩn
+Hidden chats locked again	Đã khóa lại cuộc trò chuyện ẩn
 Open a chat in Instagram, then come back here to hide it.	Hãy mở một cuộc trò chuyện trong Instagram rồi quay lại đây để ẩn.
 Pinned chats	Cuộc trò chuyện đã ghim
 Keeps the chats you pick at the top of your inbox. The pins stay on this phone, and Instagram's own order holds for every other chat.	Giữ các cuộc trò chuyện bạn chọn ở đầu hộp thư. Các ghim ở lại trên điện thoại này và thứ tự của Instagram vẫn áp dụng cho mọi cuộc trò chuyện khác.
@@ -1152,6 +1166,10 @@ Pick friends	Chọn bạn bè
 Open the Friends tab first.	Hãy mở tab Bạn bè trước.
 No friends to pick yet.	Chưa có bạn bè nào để chọn.
 Applies to the next reels loaded.	Áp dụng cho các reel tải tiếp theo.
+Hide the Like button on reels	Ẩn nút Thích trên reel
+Takes the heart out of the column of buttons beside a reel, and the like count under it. Double tap still likes a reel.	Gỡ biểu tượng trái tim khỏi cột nút bên cạnh reel và số lượt thích bên dưới. Bạn vẫn có thể nhấn đúp để thích reel.
+Hide the Comment button on reels	Ẩn nút Bình luận trên reel
+Takes the Comment button out of the column of buttons beside a reel, and the count under it. The comment bar under a reel has its own switch.	Gỡ nút Bình luận khỏi cột nút bên cạnh reel và số lượng bên dưới. Thanh bình luận dưới reel có công tắc riêng.
 Hide the Save button on reels	Ẩn nút Lưu trên reel
 Burn-in guard	Chống ám màn hình
 Dim when idle	Làm mờ khi không dùng
@@ -1637,6 +1655,8 @@ Couldn't read that picture.	Không đọc được ảnh đó.
 This launcher can't add it.	Launcher này không thêm được.
 Glass in chats	Kính trong trò chuyện
 Gives a chat's top bar and message bar frosted glass and puts the back, call and video buttons on round glass circles. It shows the next time you open a chat. Needs Android 12 or newer for the blur.	Làm thanh trên cùng và thanh tin nhắn của cuộc trò chuyện có hiệu ứng kính mờ và đặt các nút quay lại, gọi và video lên những vòng tròn kính. Hiện ở lần mở cuộc trò chuyện tiếp theo. Hiệu ứng làm mờ cần Android 12 trở lên.
+Glass top bar in chats	Kính ở thanh trên cùng của cuộc trò chuyện
+Turn it off to leave a chat's top bar as Instagram draws it, with no frosted band behind it. The round glass buttons and the glass message bar stay.	Tắt để thanh trên cùng của cuộc trò chuyện giữ nguyên như Instagram vẽ, không có dải kính mờ phía sau. Các nút kính tròn và thanh tin nhắn kính vẫn giữ nguyên.
 # context: Reels switch Hide reels with few views, its summary, the Minimum views row, its dialog message and the row's summary, then the Minimum likes row, its dialog message, its summary and its summary at 0; %1$s is a number with thousands separators (#444)
 Hide reels with few views	Ẩn reel có ít lượt xem
 Leaves out reels in the Reels tab with fewer views or likes than the numbers below. Reels from accounts you follow, reels sent to you and reels with no count still play.	Bỏ qua các reel trong tab Reels có lượt xem hoặc lượt thích ít hơn các con số bên dưới. Reel của tài khoản bạn theo dõi, reel được gửi cho bạn và reel không có con số vẫn phát bình thường.
@@ -1893,6 +1913,8 @@ Save in the post menu	Lưu trong menu bài viết
 Adds Save to the menu behind a post's three dots, or Remove from saved when you saved it already.	Thêm Lưu vào menu ba dấu chấm của bài viết, hoặc Gỡ khỏi mục đã lưu khi bạn đã lưu nó.
 Hide the Save button	Ẩn nút Lưu
 Takes the Save button off the bottom of posts in your feed, so a stray tap can't save one.	Bỏ nút Lưu khỏi cuối các bài viết trong bảng feed, để chạm nhầm không lưu bài nào.
+Hide the Like button	Ẩn nút Thích
+Takes the heart and the like count off the bottom of posts in your feed. Double tap still likes a post.	Gỡ biểu tượng trái tim và số lượt thích khỏi phía dưới bài viết trong bảng feed của bạn. Bạn vẫn có thể nhấn đúp để thích bài viết.
 # context: the row in a feed post's three-dot menu for a post you already saved, and the row that takes an account off Saved profiles, on its profile's menu and on the Saved profiles page (#629)
 Remove from saved	Gỡ khỏi mục đã lưu
 # context: a switch on the Reels page
@@ -2039,6 +2061,10 @@ Takes the invite to someone's broadcast channel from under their bio. Yours keep
 Hide the other profile banners	Ẩn các biểu ngữ khác trên trang cá nhân
 # context: Profiles > summary of Hide the other profile banners (#627)
 Takes the rest of the banners under the bio off other people's profiles, like events, fundraisers, schools and business hours. Yours keeps them.	Gỡ các biểu ngữ còn lại bên dưới tiểu sử trên trang cá nhân của người khác, như sự kiện, gây quỹ, trường học và giờ mở cửa. Trang của bạn vẫn giữ.
+# context: Profiles > title of the switch that hides the row of links (a website, a business's links) under the bio on other people's profiles (#627)
+Hide links	Ẩn liên kết
+# context: Profiles > summary of Hide links (#627)
+Takes the row of links, like a website or a business's links, from under the bio on other people's profiles. Yours keeps it.	Gỡ hàng liên kết, như trang web hoặc các liên kết của doanh nghiệp, bên dưới tiểu sử trên trang cá nhân của người khác. Trang của bạn vẫn giữ.
 # context: the row HushGram adds to the menu on someone's profile; it puts the account on the Saved profiles list (#629)
 Save profile	Lưu trang cá nhân
 # context: toast after Save profile; %s is the account's username (#629)
@@ -2120,3 +2146,10 @@ Haptic strength	Độ mạnh của rung
 Tap sound on the tab bar	Âm thanh chạm trên thanh tab
 A click each time the highlight moves to another tab, even with the phone's touch sounds off. Silent and vibrate mode keep it quiet.	Một tiếng tách mỗi khi phần đánh dấu chuyển sang tab khác, kể cả khi âm thanh chạm của điện thoại đang tắt. Chế độ im lặng và rung sẽ giữ yên lặng.
 Tap sound volume	Âm lượng âm thanh chạm
+Auto scroll in Home	Tự động cuộn ở Trang chủ
+Moves Home on to the next post by itself. A video moves on when it ends, a photo or carousel after Time on each post. Touch the screen to hold it.	Trang chủ tự chuyển sang bài viết tiếp theo. Video chuyển khi phát xong, ảnh hoặc bài nhiều trang chuyển sau Thời gian mỗi bài viết. Chạm vào màn hình để giữ lại.
+Time on each post	Thời gian mỗi bài viết
+# context: Reels settings: switch that lets a tap on the reel shown above an open comments sheet pause or play it, and a hold play it at 2x, without closing the comments (#665)
+Control the reel above comments	Điều khiển reel phía trên bình luận
+# context: Summary of Control the reel above comments (#665)
+With a reel's comments open, tap the reel above them to pause or play it, or hold it to play at 2x. The comments stay open.	Khi bình luận của reel đang mở, chạm vào reel phía trên để tạm dừng hoặc phát, hoặc giữ để phát ở tốc độ 2x. Bình luận vẫn mở.

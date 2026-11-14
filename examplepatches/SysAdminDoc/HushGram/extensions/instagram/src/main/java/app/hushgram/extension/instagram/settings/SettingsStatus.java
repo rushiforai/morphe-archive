@@ -364,6 +364,11 @@ public final class SettingsStatus {
         return false;
     }
 
+    /** Hide links, the profile banners patch's switch for the row of links, which a build can lack. */
+    public static boolean profileLinks() {
+        return false;
+    }
+
     public static boolean profilePostsList() {
         return false;
     }
@@ -440,6 +445,11 @@ public final class SettingsStatus {
         return false;
     }
 
+    /** Send saved GIFs as GIFs, Save comment photo's fourth switch, which needs the GIF reply's send. */
+    public static boolean commentGifPick() {
+        return false;
+    }
+
     /** Rewritten by the Save profile picture patch. */
     public static boolean profilePicture() {
         return false;
@@ -502,6 +512,10 @@ public final class SettingsStatus {
     }
 
     public static boolean feedAudioIcon() {
+        return false;
+    }
+
+    public static boolean feedAutoScroll() {
         return false;
     }
 
@@ -571,6 +585,11 @@ public final class SettingsStatus {
     }
 
     public static boolean keepReelSpeed() {
+        return false;
+    }
+
+    /** Rewritten by the Control the reel above comments patch. */
+    public static boolean reelAboveComments() {
         return false;
     }
 

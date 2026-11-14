@@ -30,6 +30,24 @@ final class Strings {
         put("max_length", "Hide videos longer than", "Ocultar videos de más de");
         put("length_summary", "m:ss, h:mm:ss, or minutes; blank shows every length",
                 "m:ss, h:mm:ss o minutos; en blanco muestra todas las duraciones");
+        put("min_views", "Hide videos with fewer views than", "Ocultar videos con menos visualizaciones que");
+        put("min_views_summary", "5000, 5k, or 1.5m; blank shows every video. Videos under a day old stay, since they have had no time to gain views",
+                "5000, 5k o 1.5m; en blanco muestra todos. Los videos de menos de un día se quedan, pues no tuvieron tiempo de sumar visualizaciones");
+        put("max_age", "Hide videos older than", "Ocultar videos de más de");
+        put("max_age_summary", "Days (30), weeks (8w), months (6m), or years (2y); blank shows every age",
+                "Días (30), semanas (8w), meses (6m) o años (2y); en blanco muestra todas las edades");
+        put("members_only", "Hide members-only videos", "Ocultar videos solo para miembros");
+        put("members_only_summary", "Videos only a channel's paying members can watch, in every feed",
+                "Videos que solo pueden ver los miembros de pago de un canal, en todos los feeds");
+        put("upcoming", "Hide upcoming premieres and scheduled streams", "Ocultar estrenos y directos programados");
+        put("upcoming_summary", "Videos and streams which have not started yet (\"Premieres in 3 hours\", \"Scheduled for\"), in every feed",
+                "Videos y directos que aún no empezaron (\"Se estrena en 3 horas\", \"Programado para\"), en todos los feeds");
+        put("sleep_timer", "Stop playback after (minutes)", "Detener la reproducción tras (minutos)");
+        put("sleep_timer_summary", "A sleep timer: the first playback starts the countdown, and a video still playing when it ends is paused; playing again starts a new one. Blank is off",
+                "Un temporizador: la primera reproducción inicia la cuenta atrás y un video que sigue sonando al terminar se pausa; reproducir de nuevo inicia otra. En blanco está desactivado");
+        put("home_more", "Keep Home going", "Mantener Inicio sin fin");
+        put("home_more_summary", "When Home runs out of videos, it reloads with a new batch and hides the videos it showed before, so scrolling keeps finding new ones",
+                "Cuando Inicio se queda sin videos, se recarga con un lote nuevo y oculta los que ya mostró, así que al desplazarte siguen apareciendo videos nuevos");
         put("home_playlists", "Hide playlists on Home", "Ocultar playlists en Inicio");
         put("resuggested", "Not interested after repeated suggestions", "No me interesa tras sugerencias repetidas");
         put("resuggested_summary", "Now %d: a video Home suggests this many times (visits 10 minutes or more apart) which you never opened gets Not interested and is hidden",
@@ -104,6 +122,10 @@ final class Strings {
         put("auto_like", "Like every video watched", "Dar Me gusta a cada video que mires");
         put("auto_like_summary", "When a video opens; an existing like or dislike stays",
                 "Al abrir un video; un Me gusta o No me gusta existente se mantiene");
+        put("save_style", "Style of the playlist list on feed cards", "Estilo de la lista de playlists en las tarjetas");
+        put("save_style_sheet", "With thumbnails, as on the watch page", "Con miniaturas, como en la página del video");
+        put("save_style_list", "Text list", "Lista de texto");
+        put("save_style_summary", "What a feed card's Save opens when the option above is on", "Lo que abre Guardar en una tarjeta del feed con la opción de arriba activada");
         put("save_chooser", "Save button opens the playlist list", "El botón Guardar abre la lista de playlists");
         put("save_chooser_summary", "In place of saving to Watch later or the last playlist",
                 "En vez de guardar en Ver más tarde o en la última playlist");
@@ -123,13 +145,19 @@ final class Strings {
         put("dearrow_suggest_message", "Describe the video plainly, in sentence case, with no clickbait. DeArrow shows a title once enough users vote for it.",
                 "Describe el video con claridad, con mayúscula solo al inicio y sin clickbait. DeArrow muestra un título cuando suficientes usuarios lo votan.");
         put("dearrow_send", "Send", "Enviar");
+        put("dearrow_vote_title", "Vote on this DeArrow title", "Votar este título de DeArrow");
+        put("dearrow_vote_message", "Upvote the title as it is, edit it and send your own (the edit is a new suggestion), or downvote it. DeArrow shows a title once enough users vote for it.",
+                "Vota a favor del título tal como está, edítalo y envía el tuyo (la edición es una sugerencia nueva), o vota en contra. DeArrow muestra un título cuando suficientes usuarios votan por él.");
+        put("dearrow_upvote", "Upvote", "A favor");
+        put("dearrow_downvote", "Downvote", "En contra");
+        put("dearrow_downvoted", "Downvote sent to DeArrow", "Voto en contra enviado a DeArrow");
         put("dearrow_sent", "Title sent to DeArrow", "Título enviado a DeArrow");
         put("dearrow_refused", "DeArrow refused the title", "DeArrow rechazó el título");
         put("dearrow_failed", "The title was not sent (no connection to DeArrow)", "No se envió el título (sin conexión con DeArrow)");
         put("dearrow_no_original", "The video's own title was not found", "No se encontró el título propio del video");
         put("live_catch_up", "Catch up to live streams", "Alcanzar el directo");
-        put("live_catch_up_summary", "A live stream up to 15 s behind its live edge plays faster until it cannot get closer, and again whenever it falls 1 s behind; a stream further behind (rewound on purpose) is left alone",
-                "Un directo con hasta 15 s de retraso respecto al momento en vivo se reproduce más rápido hasta que no puede acercarse más, y otra vez cada vez que se atrasa 1 s; un directo más atrasado (retrocedido a propósito) se deja como está");
+        put("live_catch_up_summary", "A live stream 0 to 15 s behind its live edge plays faster, and stays faster at the edge (where it cannot get ahead), so it catches up again at once whenever it falls behind; a stream more than 15 s behind (rewound on purpose) is left alone",
+                "Un directo a 0 a 15 s de su borde en vivo se reproduce más rápido y sigue así en el borde (donde no puede adelantarse), por lo que se pone al día de inmediato cada vez que se retrasa; un directo a más de 15 s (retrocedido a propósito) no se toca");
         put("live_catch_up_speed", "Catch-up speed", "Velocidad para alcanzar el directo");
         put("live_catch_up_speed_summary", "From 1.25 to 4; 2 by default", "De 1.25 a 4; 2 por defecto");
         put("cat_playback", "Playback", "Reproducción");

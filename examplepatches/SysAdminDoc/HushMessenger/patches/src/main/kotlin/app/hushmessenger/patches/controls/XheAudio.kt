@@ -52,7 +52,8 @@ private fun ReferenceInstruction.ref() = reference.toString()
  *     invoke-virtual {vOut}, OutputStream->close()V
  *     invoke-static {vFile}, Uri->fromFile(File)Uri             <- the helper goes in before this
  *
- * Null when the method has no such site, or more than one.
+ * 587's copy returns the byte count as a long, which the share drops. Null when the method has no such site, or more
+ * than one.
  */
 internal fun Method.shareCopySite(): Int? {
     val code = implementation?.instructions?.toList() ?: return null
@@ -65,7 +66,7 @@ internal fun Method.shareCopySite(): Int? {
         point != null && close != null && copy != null && open != null && copier != null &&
             point.opcode == Opcode.INVOKE_STATIC && (point as ReferenceInstruction).ref() == FROM_FILE &&
             close.opcode == Opcode.INVOKE_VIRTUAL && (close as ReferenceInstruction).ref() == CLOSE_COPY &&
-            copy.opcode == Opcode.INVOKE_STATIC && copier.returnType == "V" &&
+            copy.opcode == Opcode.INVOKE_STATIC && copier.returnType in setOf("V", "J") &&
             copier.parameterTypes.map { it.toString() } == listOf("Ljava/io/InputStream;", "Ljava/io/OutputStream;") &&
             open.opcode == Opcode.INVOKE_DIRECT && (open as ReferenceInstruction).ref() == OPEN_COPY &&
             open.registerD == point.registerC && open.registerC == close.registerC && copy.registerD == close.registerC

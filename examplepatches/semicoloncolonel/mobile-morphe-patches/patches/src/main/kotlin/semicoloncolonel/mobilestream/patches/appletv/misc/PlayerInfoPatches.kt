@@ -109,6 +109,7 @@ val hidePlayerOverlaysPatch = bytecodePatch(
         "and photosensitivity and high-motion warnings.",
     default = false,
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
     dependsOn(playerInfoHookPatch)
 
@@ -153,6 +154,7 @@ val disableUpNextPatch = bytecodePatch(
         "to show the next episode or a recommendation.",
     default = false,
 ) {
+    category("Playback")
     compatibleWith(Constants.COMPATIBILITY)
     dependsOn(playerInfoHookPatch)
 

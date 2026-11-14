@@ -1,3 +1,17 @@
+## [1.2.0](https://github.com/ysamjo/morphe-patches/compare/v1.1.2...v1.2.0) (2026-11-13)
+
+### 🐛 Bug Fixes
+
+* Kompilierfehler in Back-To-Exit beheben ([52e2886](https://github.com/ysamjo/morphe-patches/commit/52e288672f3497f9ece5ec276fb87b80fdb3f93d))
+* Sky Sport News aus dem Sport-Kanalsatz entfernen ([3f5cc22](https://github.com/ysamjo/morphe-patches/commit/3f5cc22f65fa91a049c55422b7e0963bdf727b0d))
+* statisches ChannelSpeedPayload dauerhaft ausschließen ([ed11aa3](https://github.com/ysamjo/morphe-patches/commit/ed11aa392ec6e58fa3c7b2f0f0e34a611196a878))
+
+### ✨ New Features
+
+* Back-Taste beendet App auf YouTube-TV-Startseite; Kanalgeschwindigkeit 1,0x für Sky Sport, DAZN, RTL Sport, NBA und NFL ([9e01a80](https://github.com/ysamjo/morphe-patches/commit/9e01a80b71d21f3eb4be6f32e9f70cbdfa9bf20b))
+* Sport-Kanalsatz um Sportschau, Prime Video Sport und weitere Sportkanäle erweitern ([2f07151](https://github.com/ysamjo/morphe-patches/commit/2f071512b5e281703ee96f628fe132458eac5ea9))
+* TV-Kanalregeln mit den Sport-Kanälen der Chrome-Erweiterung synchronisieren ([532bd3a](https://github.com/ysamjo/morphe-patches/commit/532bd3a4bc7350d5f471111822453f67e19ff065))
+
 ## [1.1.2](https://github.com/ysamjo/morphe-patches/compare/v1.1.1...v1.1.2) (2026-11-06)
 
 ### 🐛 Bug Fixes

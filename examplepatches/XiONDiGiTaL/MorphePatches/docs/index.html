@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>XiØN Patches — Android patches for Morphe</title>
-<meta name="description" content="Independent Android patches for Morphe by XiØN (XiONDiGiTaL). Five Tandem 6.38.0 patches shipped as a prebuilt bundle, installable straight from a Morphe patch source.">
+<meta name="description" content="Independent Android patches for Morphe by XiØN (XiONDiGiTaL). Five Tandem 6.38.0 patches plus two Amazon A to Z patches — universal force dark mode and an opt-in clone — shipped as a prebuilt bundle and installable straight from a Morphe patch source.">
 <meta name="theme-color" content="#050607">
 <link rel="canonical" href="https://xiondigital.net/MorphePatches/">
 <meta property="og:type" content="website">
 <meta property="og:title" content="XiØN Patches — Android patches for Morphe">
-<meta property="og:description" content="Five working Tandem 6.38.0 patches for Morphe, shipped as a prebuilt bundle you can add as a patch source.">
+<meta property="og:description" content="Five Tandem 6.38.0 patches and two Amazon A to Z patches (force dark mode and an opt-in clone) for Morphe, shipped as a prebuilt bundle you can add as a patch source.">
 <meta property="og:url" content="https://xiondigital.net/MorphePatches/">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -54,7 +54,7 @@
           <h1 class="hero__title">Xi<span class="o">Ø</span>N<br>Patches</h1>
           <p class="hero__tagline">
             Android patches, built for Morphe.
-            <em>Five of them, for Tandem.</em>
+            <em>Five for Tandem, one for any A to Z.</em>
           </p>
           <p class="hero__lede">
             Each patch is a real change to the app's own dex — documented down to the method it anchors on
@@ -65,9 +65,10 @@
             <a class="btn btn--ghost" href="https://github.com/XiONDiGiTaL/MorphePatches/releases/latest">Download bundle</a>
           </div>
           <ul class="hero__meta">
-            <li><span>Release</span> <strong>v1.1.0</strong></li>
-            <li><span>Patches</span> <strong>5</strong></li>
-            <li><span>Target</span> <strong>net.tandem 6.38.0</strong></li>
+            <li><span>Release</span> <strong>v0.1.0</strong></li>
+            <li><span>Apps</span> <strong>2</strong></li>
+            <li><span>Patches</span> <strong>7</strong></li>
+            <li><span>Target</span> <strong>net.tandem · com.amazon.atozm</strong></li>
             <li><span>Status</span> <strong>Experimental</strong></li>
           </ul>
         </div>
@@ -85,10 +86,12 @@
             <li><span>03</span> Remove ads</li>
             <li><span>04</span> Disable Adjust tracking</li>
             <li><span>05</span> Clone package</li>
+            <li><span>06</span> Force dark mode — Amazon A to Z</li>
+            <li><span>07</span> Clone package — Amazon A to Z</li>
           </ul>
           <p class="source-card__note">
-            Morphe reads <code class="inline-code">patches-list.json</code> from this repository, so the five
-            patches above are the five you get.
+            Morphe reads <code class="inline-code">patches-list.json</code> from this repository, so the seven
+            patches above are the seven you get.
           </p>
         </aside>
       </div>
@@ -100,13 +103,15 @@
         <div class="section__head">
           <div>
             <p class="eyebrow">01 / The collection</p>
-            <h2 class="section__title">Five patches, <em>one app</em></h2>
+            <h2 class="section__title">Seven patches, <em>two apps</em></h2>
           </div>
           <p class="section__note">
-            Tandem: Language exchange, <code class="inline-code">net.tandem</code> 6.38.0. Nineteen method
+            Tandem: Language exchange, <code class="inline-code">net.tandem</code> 6.38.0 — nineteen method
             anchors across <code class="inline-code">classes.dex</code>,
             <code class="inline-code">classes2.dex</code> and <code class="inline-code">classes4.dex</code>,
-            plus ten package-name literals the clone patch rewrites.
+            plus ten package-name literals the clone patch rewrites. Amazon A to Z,
+            <code class="inline-code">com.amazon.atozm</code>, any version — one method anchor, two theme
+            styles, and a manifest rewrite for the optional clone.
           </p>
         </div>
 
@@ -191,6 +196,66 @@
               <span class="chip">Experimental</span>
             </div>
           </article>
+
+          <article class="card">
+            <div class="card__top">
+              <span class="card__num">06</span>
+              <span class="chip chip--blue chip--dot">Default on</span>
+            </div>
+            <h3 class="card__title">Force dark mode — Amazon A to Z</h3>
+            <p class="card__copy">
+              Universal: applies to any version of <code class="inline-code">com.amazon.atozm</code>. Opts the
+              app's themes into Android's automatic dark transform and sets night mode before the first screen
+              exists, so the React Native interface is dark even when the phone is in light mode.
+            </p>
+            <div class="card__tags">
+              <span class="chip">interface</span>
+              <span class="chip">Any version</span>
+              <span class="chip">Experimental</span>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card__top">
+              <span class="card__num">07</span>
+              <span class="chip chip--blue chip--dot">Opt-in</span>
+            </div>
+            <h3 class="card__title">Clone package — Amazon A to Z</h3>
+            <p class="card__copy">
+              Installs the patched A to Z under its own application id —
+              <code class="inline-code">app.xiondigital.atoz</code> by default — so it sits beside the
+              official app. The six provider authorities, the app's runtime permission and the launcher
+              label move with it, and the Amazon SDK permission declarations a re-signed build cannot
+              own are dropped.
+            </p>
+            <div class="card__tags">
+              <span class="chip">packaging</span>
+              <span class="chip">Any version</span>
+              <span class="chip">Experimental</span>
+            </div>
+          </article>
+        </div>
+
+        <div class="panel" style="margin-top: 18px;">
+          <h3 class="panel__title">Why A to Z needs a transform, not a theme</h3>
+          <p class="panel__note">
+            The interface is React Native on Expo, painted from a 119 MB Hermes bundle that has no dark
+            palette — no theme to switch and no source to rebuild. Android's Force Dark transform is the only
+            thing that reaches those pixels, and AOSP gates it on three conditions the patch sets:
+            <code class="inline-code">forceDarkAllowed</code> on the theme, a Light parent so the theme does not
+            switch the transform off in night mode, and <code class="inline-code">uiMode</code> night applied by
+            <code class="inline-code">AppCompatDelegate</code> at the top of
+            <code class="inline-code">MainApplication.onCreate()</code>. Both edits are additive, the app id is
+            untouched, and the patch fails loudly if a future build moves either anchor.
+            <br><br>
+            <strong>Clone package</strong> is the opt-in counterpart: it rewrites the application id, the
+            six provider authorities, the app's own runtime permission and the launcher label, and drops
+            the Amazon SDK permission declarations that would otherwise make Android refuse the install
+            with <code class="inline-code">INSTALL_FAILED_DUPLICATE_PERMISSION</code> while the official app
+            is on the phone. What a new application id cannot carry over is Play services registration,
+            FCM targeting, attestation verdicts and verified App Links — all bound to the original package
+            and signing certificate.
+          </p>
         </div>
       </div>
     </section>
@@ -203,7 +268,7 @@
             <p class="eyebrow">02 / Install</p>
             <h2 class="section__title">Three steps, <em>no build</em></h2>
           </div>
-          <p class="section__note">You need Morphe Manager and a stock Tandem 6.38.0 APK or APKM. That's it.</p>
+          <p class="section__note">You need Morphe Manager and a stock APK — Tandem 6.38.0, or any Amazon A to Z build. That's it.</p>
         </div>
 
         <div class="steps">
@@ -213,7 +278,7 @@
               <h3 class="step__title">Add the source</h3>
               <p class="step__copy">
                 Open the add-source link and confirm it in Morphe, or add
-                <code class="inline-code">XiONDiGiTaL/MorphePatches</code> by hand. The five patches then
+                <code class="inline-code">XiONDiGiTaL/MorphePatches</code> by hand. The seven patches then
                 appear inside Morphe.
               </p>
             </div>
@@ -221,10 +286,11 @@
           <div class="step">
             <span class="step__num">STEP 02</span>
             <div>
-              <h3 class="step__title">Select your Tandem file</h3>
+              <h3 class="step__title">Select your app file</h3>
               <p class="step__copy">
-                Pick a stock <code class="inline-code">6.38.0</code> (versionCode 11568) APK or APKM. Any
-                other version is refused instead of being patched blindly.
+                Pick a stock Tandem <code class="inline-code">6.38.0</code> (versionCode 11568) APK or APKM — any
+                other version is refused instead of being patched blindly. For Amazon A to Z, pick any version:
+                the dark-mode patch is version-agnostic, and the arm64 APK is the one a 64-bit-only phone runs.
               </p>
             </div>
           </div>
@@ -246,9 +312,10 @@
         <div class="panel" style="margin-top: 14px;">
           <h3 class="panel__title">Prefer a file?</h3>
           <p class="panel__note">
-            Import <code class="inline-code">patches.mpp</code> straight into Morphe Manager — from the
-            <a class="text-link" href="https://github.com/XiONDiGiTaL/MorphePatches/releases/tag/v1.1.0">v1.1.0 release</a>
-            or from the repository. Same five patches, no source needed.
+                        Import
+            <code class="inline-code">patches-&lt;version&gt;.mpp</code> straight into Morphe Manager from the
+            <a class="text-link" href="https://github.com/XiONDiGiTaL/MorphePatches/releases/latest">latest release</a>
+            — one bundle for every app here, with no source needed.
           </p>
         </div>
       </div>
@@ -262,7 +329,7 @@
             <p class="eyebrow">03 / Compatibility &amp; checksums</p>
             <h2 class="section__title">What it targets, <em>byte for byte</em></h2>
           </div>
-          <p class="section__note">Check the file you downloaded against the hash below before you patch anything.</p>
+          <p class="section__note">Each release page lists its bundle's size and SHA-256 — check yours before you patch anything.</p>
         </div>
 
         <div class="panel panel--split">
@@ -270,46 +337,49 @@
             <table class="table">
               <caption>Compatibility</caption>
               <tbody>
-                <tr><th scope="row">App</th><td>Tandem: Language exchange (<code>net.tandem</code>)</td></tr>
-                <tr><th scope="row">Version</th><td>6.38.0 — versionCode 11568</td></tr>
+                <tr><th scope="row">Apps</th><td>Tandem (<code>net.tandem</code>) · Amazon A to Z (<code>com.amazon.atozm</code>)</td></tr>
+                <tr><th scope="row">Versions</th><td>Tandem 6.38.0 · A to Z any version</td></tr>
                 <tr><th scope="row">Input</th><td>APK or APKM</td></tr>
-                <tr><th scope="row">minSdk</th><td>32</td></tr>
+                <tr><th scope="row">minSdk</th><td>Tandem 32 · A to Z 24</td></tr>
                 <tr><th scope="row">Patcher</th><td>Morphe <code>2.1.0</code></td></tr>
-                <tr><th scope="row">Anchors</th><td>19 methods + 10 package literals</td></tr>
+                <tr><th scope="row">Anchors</th><td>Tandem 19 methods + 10 literals · A to Z 1 method + 2 styles + manifest</td></tr>
               </tbody>
             </table>
           </div>
 
           <div>
             <table class="table">
-              <caption>Bundle checksums</caption>
+              <caption>The bundle</caption>
               <tbody>
                 <tr>
-                  <th scope="row">Release asset<br><a class="text-link" href="https://github.com/XiONDiGiTaL/MorphePatches/releases/download/v1.1.0/patches-1.1.0.mpp">patches-1.1.0.mpp</a></th>
+                  <th scope="row">Download<br><a class="text-link" href="https://github.com/XiONDiGiTaL/MorphePatches/releases/latest">latest release ↗</a></th>
                   <td>
-                    <span class="hash">
-                      <code id="hash-release">0034159ee9a8ba74d7f540f2ca48f5c57cf4d805f68639da575d991e1f5f2af9</code>
-                      <button class="btn btn--ghost btn--sm" type="button" data-copy="#hash-release">Copy</button>
-                    </span>
-                    <span style="font-family: var(--font-mono); font-size: 0.6rem; color: var(--muted-dim);">74,124 bytes · SHA-256</span>
+                    <span class="hash"><code>patches-&lt;version&gt;.mpp</code></span>
+                    <span style="font-family: var(--font-mono); font-size: 0.6rem; color: var(--muted-dim);">size and SHA-256 on the release page</span>
                   </td>
                 </tr>
                 <tr>
-                  <th scope="row">Repository<br><a class="text-link" href="https://github.com/XiONDiGiTaL/MorphePatches/blob/main/Tandem/patches.mpp">Tandem/patches.mpp</a></th>
+                  <th scope="row">Inside</th>
+                  <td>Every app's patches in one file — Morphe lists only the ones that match your APK</td>
+                </tr>
+                <tr>
+                  <th scope="row">Declares</th>
+                  <td><code class="inline-code">Patcher-Version: 2.1.0</code></td>
+                </tr>
+                <tr>
+                  <th scope="row">Per app</th>
                   <td>
-                    <span class="hash">
-                      <code id="hash-repo">0034159ee9a8ba74d7f540f2ca48f5c57cf4d805f68639da575d991e1f5f2af9</code>
-                      <button class="btn btn--ghost btn--sm" type="button" data-copy="#hash-repo">Copy</button>
-                    </span>
-                    <span style="font-family: var(--font-mono); font-size: 0.6rem; color: var(--muted-dim);">74,124 bytes · SHA-256</span>
+                    <a class="text-link" href="https://github.com/XiONDiGiTaL/MorphePatches/blob/main/Tandem/patches.mpp">Tandem/patches.mpp</a> ·
+                    <a class="text-link" href="https://github.com/XiONDiGiTaL/MorphePatches/blob/main/AmazonAtoZ/patches.mpp">AmazonAtoZ/patches.mpp</a>
+                    — one app's patches on their own, built at the same version
                   </td>
                 </tr>
               </tbody>
             </table>
             <p class="panel__note">
-              Both files are the same build and carry the same
-              <code class="inline-code">Patcher-Version: 2.1.0</code>, so either download matches the one
-              hash above.
+              The release asset is canonical — the workflow builds it, attaches it and regenerates the
+              patch list from it. The per-app bundles inside each app's folder are the same sources at the
+              same version, for a direct single-app import.
             </p>
           </div>
         </div>
@@ -324,7 +394,7 @@
             <p class="eyebrow">04 / Releases</p>
             <h2 class="section__title">Versioned, <em>automated</em></h2>
           </div>
-          <p class="section__note">Every push to <code class="inline-code">main</code> runs semantic-release, which tags the next version and attaches the freshly built bundle.</p>
+          <p class="section__note">Every push to <code class="inline-code">main</code> tags the next patch version, builds the bundle and attaches it to the release.</p>
         </div>
 
         <div class="panel">
@@ -335,45 +405,38 @@
             </thead>
             <tbody>
               <tr>
-                <th scope="row"><a class="text-link" href="https://github.com/XiONDiGiTaL/MorphePatches/releases/tag/v1.1.0">v1.1.0</a></th>
-                <td>2026-11-04</td>
-                <td><a class="text-link" href="https://github.com/XiONDiGiTaL/MorphePatches/releases/download/v1.1.0/patches-1.1.0.mpp">patches-1.1.0.mpp</a></td>
-                <td>Adds <strong>Clone package</strong>: the patched build installs under its own application id beside the official app, with the signature permission, all nine provider authorities, the WeChat task affinity and ten dex literals renamed to match. Opt-in; the other four patches unchanged</td>
-              </tr>
-              <tr>
-                <th scope="row"><a class="text-link" href="https://github.com/XiONDiGiTaL/MorphePatches/releases/tag/v1.0.2">v1.0.2</a></th>
-                <td>2026-11-04</td>
-                <td><a class="text-link" href="https://github.com/XiONDiGiTaL/MorphePatches/releases/download/v1.0.2/patches-1.0.2.mpp">patches-1.0.2.mpp</a></td>
-                <td>The four original patches plus the offline companion app. Empties PairIP's licence paywall, error dialog and delayed shutdown</td>
-              </tr>
-              <tr>
-                <th scope="row"><a class="text-link" href="https://github.com/XiONDiGiTaL/MorphePatches/releases/tag/v1.0.1">v1.0.1</a></th>
-                <td>2026-11-03</td>
-                <td><a class="text-link" href="https://github.com/XiONDiGiTaL/MorphePatches/releases/download/v1.0.1/patches-1.0.1.mpp">patches-1.0.1.mpp</a></td>
-                <td>Superseded: applied cleanly but still left PairIP's licence screen reachable, so a build could be sent to Google Play at launch. Use v1.1.0</td>
-              </tr>
-              <tr>
-                <th scope="row">v1.0.0</th>
-                <td>2026-11-01</td>
-                <td>—</td>
-                <td>Retired: built before the patch-time fixes, so patching aborted. Use v1.1.0</td>
+                <th scope="row"><a class="text-link" href="https://github.com/XiONDiGiTaL/MorphePatches/releases/tag/v0.1.0">v0.1.0</a><br><span style="font-family: var(--font-mono); font-size: 0.6rem; color: var(--muted-dim);">baseline</span></th>
+                <td>2026-11-13</td>
+                <td>patches-0.1.0.mpp</td>
+                <td>Seven patches for two apps in one bundle: the five Tandem patches (6.38.0 · 6.12.0) and the two Amazon A to Z patches (any version). Renumbers the collection onto the 0.1.x line</td>
               </tr>
             </tbody>
           </table>
           <p class="panel__note">
-            Only patch bundles are distributed here — never original or prepatched application packages.
+            Versions move by one patch number at a time — 0.1.0, 0.1.1, 0.1.2 — whether the change adds a
+            patch, fixes one or adds an app, so no number is skipped and the number no longer implies what
+            is inside. The v1.0.x and v1.1.x tags were retired when the collection was renumbered; their
+            history stays in git. Only patch bundles are distributed here — never original or prepatched
+            application packages.
           </p>
         </div>
 
         <div class="panel" style="margin-top: 14px; border-color: rgba(63, 128, 255, 0.28); background: linear-gradient(180deg, rgba(63, 128, 255, 0.07), var(--panel));">
           <h3 class="panel__title">Where this stands</h3>
           <p class="panel__note">
-            The bundle applies to the APKMirror 6.38.0 APKM: all five patches complete, the patched dex was
-            decompiled to confirm every replaced body and the injected night-mode call, and with
-            <strong>Clone package</strong> enabled the installed id, provider authorities, signature permission
-            and task affinity are renamed as documented. It has since been run on a device
+            Tandem: the bundle applies to the APKMirror 6.38.0 and 6.12.0 APKMs — all five patches complete,
+            the patched dex was decompiled to confirm every replaced body and the injected night-mode call,
+            and with <strong>Clone package</strong> enabled the installed id, provider authorities, signature
+            permission and task affinity are renamed as documented. It has also been run on a device
             (SM-S918U, Android 17): the clone installs as its own app, but Tandem's licence gate opens Google
             Play and the process dies inside <code class="inline-code">libpairipcore.so</code> before the UI.
+            <br><br>
+            Amazon A to Z: both patches were applied to the real 6.0.5098.0 arm64 APK with the same engine.
+            Dark mode came to one class changed and 1,325 values re-encoded, with the injected night-mode call
+            decompiling ahead of <code class="inline-code">invoke-super</code>; the clone build renames all six
+            authorities, leaves one permission declaration and labels the launcher differently. Neither has
+            been run on a device yet.
+            <br><br>
             That is why every patch is still listed as <strong>Experimental</strong>. When a build survives
             launch on hardware, that status changes — not before.
           </p>
@@ -455,6 +518,7 @@
             <li><a href="https://github.com/XiONDiGiTaL/MorphePatches/releases">Releases</a></li>
             <li><a href="https://github.com/XiONDiGiTaL/MorphePatches/issues">Report an issue</a></li>
             <li><a href="https://github.com/XiONDiGiTaL/MorphePatches/blob/main/Tandem/README.md">Tandem docs</a></li>
+            <li><a href="https://github.com/XiONDiGiTaL/MorphePatches/blob/main/AmazonAtoZ/README.md">A to Z docs</a></li>
           </ul>
         </div>
         <div class="footer__col">
@@ -468,7 +532,7 @@
       </div>
       <div class="footer__base">
         <span>Morphe patches — XIONDIGITAL</span>
-        <span>v1.1.0 · updated 2026-11-04</span>
+        <span>v0.1.0 · updated 2026-11-13</span>
       </div>
     </div>
   </footer>

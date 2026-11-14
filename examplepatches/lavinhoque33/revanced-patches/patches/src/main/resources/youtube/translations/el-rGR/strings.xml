@@ -1969,7 +1969,6 @@ Playlists
     <string name="revanced_preference_screen_misc_title">Διάφορα</string>
     <string name="revanced_preference_screen_navigation_bar_summary">Απόκρυψη ή εμφάνιση των στοιχείων της γραμμής πλοήγησης</string>
     <string name="revanced_preference_screen_navigation_bar_title">Γραμμή πλοήγησης</string>
-    <string name="revanced_preference_screen_patch_information_summary">Πληροφορίες σχετικά με τις εφαρμοσμένες τροποποιήσεις</string>
     <string name="revanced_preference_screen_player_buttons_summary">Απόκρυψη ή εμφάνιση κουμπιών στην οθόνη αναπαραγωγής βίντεο</string>
     <string name="revanced_preference_screen_player_buttons_title">Κουμπιά οθόνης αναπαραγωγής</string>
     <string name="revanced_preference_screen_player_flyout_menu_summary">Απόκρυψη ή αλλαγή στοιχείων του αναδυόμενου μενού της οθόνης αναπαραγωγής βίντεο</string>

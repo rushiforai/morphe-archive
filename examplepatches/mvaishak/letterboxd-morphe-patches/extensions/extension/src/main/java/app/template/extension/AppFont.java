@@ -2,6 +2,7 @@ package app.template.extension;
 
 import android.content.Context;
 import android.graphics.Typeface;
+import android.os.Build;
 
 /**
  * Letterboxd ships its own "Graphik" font family ({@code res/font/graphik_app_*}). Text drawn by
@@ -37,6 +38,7 @@ final class AppFont {
     }
 
     private static Typeface load(Context context, String fontName) {
+        if (Build.VERSION.SDK_INT < 26) return null;
         try {
             int id = context.getResources().getIdentifier(fontName, "font", context.getPackageName());
             return id == 0 ? null : context.getResources().getFont(id);

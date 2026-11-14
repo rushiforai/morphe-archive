@@ -18,6 +18,14 @@ public final class XSettings {
     public static final StringSetting MIN_LENGTH = new StringSetting("yx_min_length", "");
     public static final StringSetting MAX_LENGTH = new StringSetting("yx_max_length", "");
 
+    // More feed filters, read from an item's metadata line (see Metadata): views, age, members-only, and upcoming.
+    /** Hide videos with fewer views than this (5000, 5k, 1.5m); blank is no bound; videos under a day old stay. */
+    public static final StringSetting MIN_VIEWS = new StringSetting("yx_min_views", "");
+    /** Hide videos older than this (30 days, 8w, 6m, 2y); blank is no bound. */
+    public static final StringSetting MAX_AGE = new StringSetting("yx_max_age", "");
+    public static final BooleanSetting HIDE_MEMBERS_ONLY = new BooleanSetting("yx_hide_members_only", FALSE);
+    public static final BooleanSetting HIDE_UPCOMING = new BooleanSetting("yx_hide_upcoming", FALSE);
+
     // Where the feed filters of this bundle apply.
     public static final BooleanSetting APPLY_HOME = new BooleanSetting("yx_apply_home", true);
     public static final BooleanSetting APPLY_SUBSCRIPTIONS = new BooleanSetting("yx_apply_subscriptions", true);
@@ -30,6 +38,8 @@ public final class XSettings {
     public static final StringSetting RESUGGESTED_LIMIT = new StringSetting("yx_resuggested_limit", "3");
     /** Seconds between two visits of Home which count a video's suggestion twice (not shown; tests shorten it). */
     public static final StringSetting RESUGGESTED_GAP = new StringSetting("yx_resuggested_gap_s", "600");
+    /** When Home runs out, it reloads and hides the videos already shown, so scrolling keeps finding new ones. */
+    public static final BooleanSetting HOME_MORE = new BooleanSetting("yx_home_more", FALSE);
     public static final BooleanSetting HIDE_PAST_STREAMS = new BooleanSetting("yx_hide_past_streams", FALSE);
 
     // Topic presets (comma-separated keys of Topics.KEYS) and the user's own channels to hide.
@@ -56,6 +66,8 @@ public final class XSettings {
 
     // The Save button opens the playlist chooser.
     public static final BooleanSetting SAVE_OPENS_CHOOSER = new BooleanSetting("yx_save_opens_chooser", FALSE);
+    /** The Save to... style a feed card's Save opens: "sheet" (thumbnails, as the watch page's) or "list" (text). */
+    public static final StringSetting SAVE_STYLE = new StringSetting("yx_save_style", "sheet");
 
     // DeArrow: a tap on Morphe's title icon switches the title, and a pencil on the open video's title suggests one.
     public static final BooleanSetting DEARROW_TAP = new BooleanSetting("yx_dearrow_tap", true);
@@ -68,6 +80,9 @@ public final class XSettings {
     // Live streams play faster while behind their live edge, until caught up.
     public static final BooleanSetting LIVE_CATCH_UP = new BooleanSetting("yx_live_catch_up", FALSE);
     public static final StringSetting LIVE_CATCH_UP_SPEED = new StringSetting("yx_live_catch_up_speed", "2");
+
+    /** Minutes of playback before a pause (0.5, 30, 90); blank is no timer. */
+    public static final StringSetting SLEEP_MINUTES = new StringSetting("yx_sleep_minutes", "");
 
     // Playback with the screen off: a pause right after the screen turns off is undone; the lowest quality while off.
     public static final BooleanSetting KEEP_PLAYING_SCREEN_OFF = new BooleanSetting("yx_keep_playing_screen_off", true);

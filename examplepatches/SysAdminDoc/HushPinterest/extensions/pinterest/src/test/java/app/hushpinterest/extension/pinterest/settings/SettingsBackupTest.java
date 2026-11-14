@@ -242,7 +242,7 @@ public class SettingsBackupTest {
                 Collections.emptyList(), notSwitches);
         assertEquals(Arrays.asList(Settings.MUTED_WORDS, SaveButtonColorSetting.SAVE_BUTTON_COLOR), SettingsBackup.TEXTS);
         assertEquals(Arrays.asList(Settings.HIDE_ADS, Settings.HIDE_AI_PINS, Settings.HIDE_AI_SELF_DESCRIBED,
-                        Settings.HIDE_SHOPPING, Settings.HIDE_VIDEO_PINS, Settings.HIDE_SAVED_PINS, Settings.KEEP_HOME_FEED, Settings.DISABLE_ANALYTICS, Settings.STRIP_LINK_TRACKING, Settings.PLAIN_PIN_LINKS,
+                        Settings.HIDE_SHOPPING, Settings.HIDE_VIDEO_PINS, Settings.HIDE_SAVED_PINS, Settings.HIDE_HOME_SUGGESTIONS, Settings.KEEP_HOME_FEED, Settings.DISABLE_ANALYTICS, Settings.STRIP_LINK_TRACKING, Settings.PLAIN_PIN_LINKS,
                         Settings.HIDE_ADVERTISING_ID, Settings.DOWNLOAD_PINS, Settings.SAVE_IN_PINTEREST_FOLDER,
                         Settings.DOWNLOAD_UNMETERED_ONLY, Settings.DOWNLOAD_NO_ROAMING, Settings.COPY_IMAGE, Settings.SHARE_IMAGE, Settings.SAVE_DOWNLOADED_PINS, Settings.DOWNLOAD_SAVED_PINS, Settings.DOWNLOAD_BOARD, Settings.LONG_PRESS_DOWNLOAD,
                         Settings.LONG_PRESS_HIDE_SAVE, Settings.LONG_PRESS_HIDE_SEND, Settings.LONG_PRESS_HIDE_SEARCH,
@@ -256,7 +256,7 @@ public class SettingsBackupTest {
                         Settings.SMALLER_SAVE_BUTTON,
                         Settings.HIDE_PIN_MENU_COLLAGE, Settings.HIDE_PIN_MENU_VISUAL_SEARCH,
                         Settings.HIDE_PIN_MENU_PIN_BOOST, Settings.HIDE_COMMENTS, Settings.HIDE_SUGGESTED_REPLIES, Settings.HIDE_TOPIC_SUGGESTIONS,
-                        Settings.QUIET_EMAIL_REMINDER, Settings.HIDE_SURVEY_PROMPTS, Settings.HIDE_SAVE_TOASTS, Settings.ORIGINAL_IMAGES,
+                        Settings.HIDE_INBOX_UPDATES, Settings.QUIET_EMAIL_REMINDER, Settings.HIDE_SURVEY_PROMPTS, Settings.HIDE_SAVE_TOASTS, Settings.ORIGINAL_IMAGES,
                         Settings.SHOW_POSTED_DATE, Settings.DISABLE_UPDATE_NAG, Settings.FIX_PUSH_NOTIFICATIONS),
                 SettingsBackup.ALLOWLIST);
     }

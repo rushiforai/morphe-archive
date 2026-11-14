@@ -16,6 +16,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstructio
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
@@ -101,6 +102,8 @@ private fun Instruction.argumentRegisters(): List<Int> = when (this) {
  *     const/4 vC, 0x0
  *     :build
  *     ... new Button(..., vC as its Controller argument, ...)
+ *
+ * 587 puts vC into a builder's Controller field at :build and hands the builder to the button.
  */
 internal fun Method.facebookBadgeCheck(): Int? {
     if (definingClass != FACEBOOK_BUTTON || AccessFlags.STATIC.isSet(accessFlags) || parameterTypes.isNotEmpty() ||
@@ -134,7 +137,14 @@ internal fun Method.facebookBadgeCheck(): Int? {
         val name = parameter.toString()
         (arguments.getOrNull(word) to name).also { word += if (name == "J" || name == "D") 2 else 1 }
     }
-    if (slots.count { it.first == controller } != 1 || slots.single { it.first == controller }.second != type) return null
+    // 587 hands the controller over through a builder: right after the check it goes into the builder's field of its
+    // type, and the builder goes into the button.
+    val stored = code[at + 4].takeIf { it.opcode == Opcode.IPUT_OBJECT && (it as TwoRegisterInstruction).registerA == controller }
+    val field = stored?.let { (it as ReferenceInstruction).reference as FieldReference }
+    if (field != null && field.type != type) return null
+    val carrier = (stored as? TwoRegisterInstruction)?.registerB ?: controller
+    val carried = field?.definingClass ?: type
+    if (slots.count { it.first == carrier } != 1 || slots.single { it.first == carrier }.second != carried) return null
     return at + 1
 }
 

@@ -125,7 +125,8 @@ public final class ResponseMenuSettings {
     }
     private static String longPressKey(int id){
         return id==75?"wacchoiLongPressSearch":id==76?"wacchoiLongPressSuffixNg":id==0x7e000077?"wacchoiLongPressSuffixSearch":
-                id==0x7e000078?"wacchoiLongPressPrefixSearch":id==0x7e000079?"wacchoiLongPressPrefixNg":null;
+                id==0x7e000078?"wacchoiLongPressPrefixSearch":id==0x7e000079?"wacchoiLongPressPrefixNg":
+                id==WacchoiLongPressMenu.COPY_PREFIX_ITEM_ID?"wacchoiLongPressCopyPrefix":id==WacchoiLongPressMenu.COPY_SUFFIX_ITEM_ID?"wacchoiLongPressCopySuffix":null;
     }
     private static String visibilityKey(int id){return longPressKey(id)==null?"visibility."+id:"responseVisibility."+id;}
     private static int visibilityMode(android.content.SharedPreferences prefs,int id){
@@ -138,12 +139,15 @@ public final class ResponseMenuSettings {
         Context context=Haiagaru.applicationContextForExtension();String key=longPressKey(id);
         if(context!=null&&key!=null){android.content.SharedPreferences prefs=context.getSharedPreferences("haiagaru_response_actions",0);
             if(prefs.contains(key))return prefs.getBoolean(key,true);}
+        if(id==WacchoiLongPressMenu.COPY_PREFIX_ITEM_ID||id==WacchoiLongPressMenu.COPY_SUFFIX_ITEM_ID)return true;
         return id==76?defaultVisible(id):visible(id);
     }
     static void storeVisibility(android.content.SharedPreferences prefs,int id,int mode){
         prefs.edit().putInt(visibilityKey(id),mode).apply();
     }
     static void addWacchoiSearchSetting(android.widget.LinearLayout layout, android.app.Activity activity) {
+        addWacchoiLongPressToggle(layout,activity,"ワッチョイ長押しに「上4桁をコピー」を表示","wacchoiLongPressCopyPrefix",WacchoiLongPressMenu.COPY_PREFIX_ITEM_ID);
+        addWacchoiLongPressToggle(layout,activity,"ワッチョイ長押しに「下4桁をコピー」を表示","wacchoiLongPressCopySuffix",WacchoiLongPressMenu.COPY_SUFFIX_ITEM_ID);
         addWacchoiLongPressToggle(layout, activity, "ワッチョイ長押しに「ワッチョイ検索」を表示",
                 "wacchoiLongPressSearch", 75);
         addWacchoiLongPressToggle(layout, activity, "ワッチョイ長押しに「下4桁で検索」を表示",

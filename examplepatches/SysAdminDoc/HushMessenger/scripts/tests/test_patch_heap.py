@@ -119,7 +119,7 @@ class PatchHeapChecks(unittest.TestCase):
             ):
                 self.assertEqual(0, checker.main())
             self.assertEqual(sorted(checker.recorded_builds()), sorted(checked))
-            self.assertIn(347215348, checked)
+            self.assertIn(347415354, checked)
 
     def test_corrupt_output_entry_fails_that_build_and_keeps_the_others(self):
         with tempfile.TemporaryDirectory() as directory:

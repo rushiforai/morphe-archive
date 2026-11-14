@@ -120,6 +120,7 @@ public class PatchFamilyTest {
         Settings.FORWARD_HIDE_SENDER.resetToDefault();
         Settings.VOICE_MUSIC_PLAYER.resetToDefault();
         Settings.PLAYBACK_POSITION.resetToDefault();
+        Settings.VOICE_SKIP.resetToDefault();
         Settings.SILENCE_NON_CONTACTS.resetToDefault();
         Settings.DISABLE_ARCHIVE_PULL.resetToDefault();
         Settings.REAR_CAMERA_FIRST.resetToDefault();
@@ -635,13 +636,15 @@ public class PatchFamilyTest {
     public void voiceMusicPlayerHasItsOwnOffByDefaultSwitchThatAppliesAtOnce() {
         PatchFamily family = PatchFamily.VOICE_MUSIC_PLAYER;
         assertEquals("Voice messages in the music player", family.patchName);
-        assertEquals(Arrays.asList(Settings.VOICE_MUSIC_PLAYER, Settings.PLAYBACK_POSITION), family.switches);
+        assertEquals(Arrays.asList(Settings.VOICE_MUSIC_PLAYER, Settings.PLAYBACK_POSITION, Settings.VOICE_SKIP), family.switches);
         for (BooleanSetting setting : family.switches) {
             assertFalse(setting.key, setting.defaultValue);
             assertFalse(setting.key, setting.rebootApp);
         }
-        assertEquals(EnumSet.of(PatchFamily.Capability.PLAYBACK_POSITION), family.expectedCapabilities());
+        assertEquals(EnumSet.of(PatchFamily.Capability.PLAYBACK_POSITION, PatchFamily.Capability.VOICE_SKIP),
+                family.expectedCapabilities());
         assertEquals("playbackPosition", PatchFamily.Capability.PLAYBACK_POSITION.statusMethod);
+        assertEquals("voiceSkip", PatchFamily.Capability.VOICE_SKIP.statusMethod);
         assertOnItsPage(family);
     }
 

@@ -32,6 +32,7 @@ val disableSignatureCheckPatch = bytecodePatch(
     name = "Disable signature check",
     description = "Lets the patched app start, since CBS News closes when it is not signed by CBS.",
 ) {
+    category("Setup")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

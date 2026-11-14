@@ -3,6 +3,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/3471
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ * Modified by lavinhoque33, 2026-11-12.
  *
  * modified by lavinhoque33, 2026-10-17: collected from Morphe's
  * music/layout/hide/general/Fingerprints.kt (pill container).
@@ -17,6 +18,7 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.opcode
+import app.morphe.patches.music.misc.album.SharedPreferencesGetBooleanFingerprint
 import app.morphe.patches.shared.mapping.ResourceType
 import app.morphe.patches.shared.mapping.resourceLiteral
 import com.android.tools.smali.dexlib2.Opcode
@@ -31,4 +33,11 @@ internal object AudioVideoSwitchPillContainerFingerprint : Fingerprint(
         ),
         opcode(Opcode.MOVE_RESULT_OBJECT, location = MatchAfterImmediately())
     )
+)
+
+/** Preferences that prefix every key with the account, including Don't play music videos. */
+internal object AccountPreferencesConstructorFingerprint : Fingerprint(
+    classFingerprint = SharedPreferencesGetBooleanFingerprint,
+    name = "<init>",
+    returnType = "V",
 )

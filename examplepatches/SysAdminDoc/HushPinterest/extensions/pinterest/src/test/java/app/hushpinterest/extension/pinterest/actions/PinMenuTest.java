@@ -503,7 +503,7 @@ public class PinMenuTest {
 
     @Test public void adaptiveOnlyPinGetsAnAccessibleExplanationAndNeverDownloadsItsThumbnail() {
         Host host = host(Map.of("id", "123", "videos", Map.of("video_list", Map.of(
-                "adaptive", Map.of("url", "https://v.pinimg.com/master.m3u8"))), "images", Map.of(
+                "adaptive", Map.of("url", "https://v.pinimg.com/master.mpd"))), "images", Map.of(
                 "orig", Map.of("url", "https://i.pinimg.com/originals/thumbnail.jpg"))));
         PinDownloads.attach(host);
         assertEquals(1, host.layout.getChildCount());
@@ -591,7 +591,7 @@ public class PinMenuTest {
 
     @Test public void unavailablePinsGetNoCopyRow() {
         Host host = host(Map.of("id", "123", "videos", Map.of("video_list", Map.of(
-                "adaptive", Map.of("url", "https://v.pinimg.com/master.m3u8")))));
+                "adaptive", Map.of("url", "https://v.pinimg.com/master.mpd")))));
         PinDownloads.attach(host);
         assertEquals(1, host.layout.getChildCount());
         assertNull(host.layout.findViewWithTag(PinDownloads.COPY_TAG));
@@ -637,7 +637,7 @@ public class PinMenuTest {
         assertEquals("Download pin", ((TextView) supported.layout.getChildAt(0)).getText());
 
         Host adaptive = host(Map.of("id", "123", "videos", Map.of("video_list", Map.of(
-                "adaptive", Map.of("url", "https://v.pinimg.com/master.m3u8")))));
+                "adaptive", Map.of("url", "https://v.pinimg.com/master.mpd")))));
         View kept = nativeDownload(adaptive);
         PinDownloads.attach(adaptive);
         assertEquals("Download unavailable", ((TextView) adaptive.layout.getChildAt(0)).getText());

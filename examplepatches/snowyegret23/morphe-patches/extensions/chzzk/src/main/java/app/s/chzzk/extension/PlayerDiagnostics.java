@@ -40,6 +40,7 @@ public final class PlayerDiagnostics extends View implements Runnable, View.OnLa
         boolean television = context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_LEANBACK);
         textSize = (television ? 14f : 12f) * getResources().getDisplayMetrics().scaledDensity;
         paint.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        paint.setStrokeJoin(Paint.Join.ROUND);
         setClickable(false);
         setFocusable(false);
         setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
@@ -117,6 +118,7 @@ public final class PlayerDiagnostics extends View implements Runnable, View.OnLa
         }
         view.layout(0, 0, player.getWidth(), player.getHeight());
         view.run();
+        view.invalidate();
     }
 
     // Replaced with validated native DEX calls when the APK is patched.
@@ -230,10 +232,20 @@ public final class PlayerDiagnostics extends View implements Runnable, View.OnLa
         float line = paint.descent() - paint.ascent() + 3 * density;
         float bottom = getHeight() - margin;
         float top = Math.max(margin, bottom - 2 * line - 2 * padding);
+        paint.setStyle(Paint.Style.FILL);
         paint.setColor(0xb8000000);
         canvas.drawRoundRect(margin, top, margin + width + 2 * padding, bottom, 4 * density, 4 * density, paint);
-        paint.setColor(0xfff0f0f0);
         float baseline = top + padding - paint.ascent();
+        int outline = ChzzkSettings.number("statistics_outline_width", 0);
+        if (outline > 0) {
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(outline);
+            paint.setColor(ChzzkSettings.number("statistics_outline_color", 0) | 0xff000000);
+            canvas.drawText(first, margin + padding, baseline, paint);
+            canvas.drawText(second, margin + padding, baseline + line, paint);
+        }
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(0xfff0f0f0);
         canvas.drawText(first, margin + padding, baseline, paint);
         canvas.drawText(second, margin + padding, baseline + line, paint);
     }

@@ -45,6 +45,15 @@ internal fun BytecodePatchContext.patchSiteThreadMetadata(version:String){
     formatterClass.methods.add(formatterWrapper)
     val checkCall=if(old)"Ljp/syoboi/a2chMate/data/BBSThread;->c(J)Z" else if(middle)"Ljp/syoboi/a2chMate/data/BBSThread;->d(J)Z" else "Lo/TopLayoutDislike2;->b(J)Z"
     val runtime="Lapp/morphe/extension/chmate/SiteThreadMetadata;"
+    if(!old&&!middle){
+        val popup=mutableClassDefBy("Lo/zzabe;").methods.single{it.name=="c"&&it.parameterTypes==listOf("Ljp/syoboi/a2chMate/ui/reslist/ResListFragment;")&&it.returnType=="V"}
+        val instructions=popup.implementation!!.instructions.toList()
+        val unbox=instructions.withIndex().single{(_,i)->((i as? ReferenceInstruction)?.reference as? MethodReference)?.toString()=="Ljava/lang/Number;->longValue()J"}.index
+        val result=instructions[unbox+1] as com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+        check(instructions[unbox+1].opcode==Opcode.MOVE_RESULT_WIDE&&result.registerA==6)
+        check(instructions.take(unbox).any{it.opcode==Opcode.IGET_OBJECT&&((it as? ReferenceInstruction)?.reference as? FieldReference)?.toString()=="Lo/zzacr;->o:Lo/KeJ12;"&&(it as TwoRegisterInstruction).registerA==3})
+        popup.addInstructionsWithLabels(unbox+2,"invoke-static {v6, v7, v3}, $runtime->popupEpoch(JLjava/lang/Object;)J\nmove-result-wide v6")
+    }
     val bind=owner.methods.single{it.name==if(old||middle)"getView" else "onBindViewHolder"}
     val code=bind.implementation!!.instructions.toList()
     val formatCall=code.withIndex().single{((it.value as? ReferenceInstruction)?.reference as? MethodReference)?.toString()==formatter}.index

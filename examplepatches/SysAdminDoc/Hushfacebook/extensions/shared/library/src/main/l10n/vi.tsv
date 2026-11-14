@@ -684,7 +684,7 @@ Your list of people, Pages and sites to hide will be empty.	Danh sách người,
 Your list of people, Pages and sites to hide will hold %1$d entry.	Danh sách người, Trang và trang web cần ẩn sẽ có %1$d mục.
 Your list of people, Pages and sites to hide will hold %1$d entries.	Danh sách người, Trang và trang web cần ẩn sẽ có %1$d mục.
 # context: summary of that switch; the keep list is the second list under it, and a settings file is the one Export settings writes
-Hides posts containing a word or phrase from your list below. Words that keep a post win over it. Your words stay on this phone unless you export them.	Ẩn bài viết chứa từ hoặc cụm từ trong danh sách bên dưới. Từ giữ lại bài viết được ưu tiên hơn. Các từ chỉ ở trên điện thoại này trừ khi bạn xuất chúng.
+Hides posts containing a word or phrase from your list below. Words that keep a post win over it. Your words stay on this phone unless you export them. Posts on profiles, Pages and in groups go too, and Reels tab reels go by their captions.	Ẩn bài viết chứa từ hoặc cụm từ trong danh sách bên dưới. Từ giữ lại bài viết được ưu tiên hơn. Các từ chỉ ở trên điện thoại này trừ khi bạn xuất chúng. Bài viết trên trang cá nhân, Trang và trong nhóm cũng bị ẩn, còn reel trong tab Reels được lọc theo chú thích.
 # context: title of the row and dialog holding the list of words and phrases that hide a post
 Words to hide	Từ cần ẩn
 # context: title of the row and dialog holding the list of words and phrases that keep a post even when it has a word to hide
@@ -1404,7 +1404,7 @@ Hides posts with a photo or album, including shares.	Ẩn bài viết có ảnh 
 # context: summary of the Hide video posts switch
 Hides posts with a video, including shares. Reels in the feed have their own switch.	Ẩn bài viết có video, kể cả bài chia sẻ lại. Reels trên bảng tin có công tắc riêng.
 # context: summary of the Hide link posts switch
-Hides posts that share a link to a website, with its preview card.	Ẩn bài viết chia sẻ liên kết đến trang web, kèm thẻ xem trước.
+Hides posts that share a link to a website, with its preview card. On profiles, Pages, groups and the Reels tab, a post or reel whose words name a website goes too.	Ẩn bài viết chia sẻ liên kết đến trang web, kèm thẻ xem trước. Trên trang cá nhân, Trang, nhóm và tab Reels, bài viết hoặc reel có nội dung nêu tên trang web cũng bị ẩn.
 # context: summary of the Hide posts on a colored background switch
 Hides short posts shown as big text on a colored background.	Ẩn bài viết ngắn hiển thị dạng chữ lớn trên nền màu.
 # context: switch title under News feed: hides posts that share someone else's post, the ones Facebook heads "shared a post"; use Facebook's own word for a shared post in this language
@@ -1781,6 +1781,16 @@ Leaving Facebook doesn't open the window. Tap Picture-in-picture in a reel's Mor
 Picture-in-picture button	Nút hình trong hình
 # context: summary of that switch; "the window" is the small picture-in-picture window
 Shows a small button at the left edge of a reel or video that has the window ready. Tap it to open the window right away. Works with Picture-in-picture on.	Hiện một nút nhỏ ở mép trái của reel hoặc video đã sẵn sàng cửa sổ. Chạm vào để mở cửa sổ ngay. Hoạt động khi bật Hình trong hình.
+# context: switch title under Playback; on, a video you started keeps its sound after you leave Facebook; also the label of a headphones button in the picture-in-picture window
+Keep playing in the background	Tiếp tục phát trong nền
+# context: summary of that switch; the notification is the one Facebook shows with the video's play and pause buttons
+A video you started with a tap keeps its sound after you leave Facebook, and its notification can pause it. Swiping the notification away or taking a call stops it.	Video bạn bắt đầu bằng một lần chạm vẫn tiếp tục phát âm thanh sau khi bạn rời Facebook, và thông báo của nó có thể tạm dừng video. Vuốt bỏ thông báo hoặc nghe cuộc gọi sẽ dừng video.
+# context: title of that notification when the video has none of its own
+Facebook video	Video Facebook
+# context: switch title under Playback; on, the small picture-in-picture window gets a headphones button that keeps the sound playing after the window closes
+Background play button in the window	Nút phát trong nền trên cửa sổ
+# context: summary of that switch; "the window" is the small picture-in-picture window
+Adds a headphones button to the picture-in-picture window. Tap it to close the window and keep the sound playing, with a notification to pause it.	Thêm nút tai nghe vào cửa sổ Hình trong hình. Chạm vào để đóng cửa sổ và tiếp tục phát âm thanh, kèm thông báo để tạm dừng.
 # context: switch title under Stories; it makes videos you post to your own Story ask for high quality when they upload
 Upload Stories in HD	Tải tin lên ở chất lượng HD
 # context: summary of that switch; standard is the normal upload quality, high the better one
@@ -2004,6 +2014,10 @@ A video you open from Saved goes on to the next one in Saved when it ends or whe
 Skip "Are you still watching?"	Bỏ qua "Bạn vẫn đang xem chứ?"
 # context: summary of that switch; reels and videos go on to the next one by themselves
 Reels and videos keep going to the next one without pausing to ask if you're still watching.	Reels và video tiếp tục chuyển sang cái tiếp theo mà không dừng lại để hỏi bạn có còn đang xem không.
+# context: switch title under Reels and Watch; on, a reel that would show black bars above and below (or at the sides) is enlarged until it fills the whole screen
+Fill the screen with reels	Cho Reels lấp đầy màn hình
+# context: summary of that switch; the reel is zoomed in until it reaches every edge, so a little of the picture at two of its edges is cut off
+Reels and full-screen videos that would leave black bars fill the screen instead, with a little cut off the edges. Pinch in on a reel to see all of it, or pinch out to fill it again.	Reels và video toàn màn hình lẽ ra để lại dải đen sẽ lấp đầy màn hình, cắt bớt một chút ở các cạnh. Chụm hai ngón tay trên một reel để xem toàn bộ, hoặc tách ra để lấp đầy lại.
 Hide the new comments pop-up	Ẩn bong bóng bình luận mới
 # context: the bubble Facebook shows over an open comment list when new comments arrive, like "3 new comments"
 The "new comments" bubble no longer pops up while you read comments. New comments still show in the list.	Bong bóng "bình luận mới" không còn bật lên khi bạn đọc bình luận. Bình luận mới vẫn hiện trong danh sách.
@@ -2242,6 +2256,10 @@ Adds buttons to feed videos that jump back or ahead 10 seconds, like Facebook's 
 Adds a button to feed videos that shows their speed. Each tap moves to the next one: 1x, 1.25x, 1.5x, 2x, then 0.5x. Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	Thêm vào video bảng tin một nút hiển thị tốc độ. Mỗi lần nhấn chuyển sang tốc độ tiếp theo: 1x, 1.25x, 1.5x, 2x, rồi 0.5x. Video trực tiếp và quảng cáo vẫn giữ điều khiển riêng. Khi Nhấn để phát bật, Nút điều khiển video trong bảng tin cũng phải bật.
 Shows how far into a feed video you are at the left end of its seek bar, and how much is left at the right end. Needs Seek bar on feed videos on.	Hiển thị thời gian đã xem ở đầu trái thanh tua của video bảng tin, và thời gian còn lại ở đầu phải. Cần bật Thanh tua trên video bảng tin.
 Adds a button to feed videos that opens the video in Facebook's own full player, with all its controls. Live videos get it too. With Tap to play on, it needs Inline feed video controls on too.	Thêm nút vào video bảng tin để mở video trong trình phát đầy đủ của Facebook, với mọi nút điều khiển. Video trực tiếp cũng có nút này. Khi Nhấn để phát bật, Nút điều khiển video trong bảng tin cũng phải bật.
+# context: switch title under Playback; on, the full player button sits in a feed video's bottom corner next to Facebook's speaker (mute) button
+Full player button by the speaker	Nút trình phát đầy đủ cạnh nút loa
+# context: summary of that switch; "the other buttons" are the play/pause and skip buttons along the video's top
+Puts a feed video's full player button in its bottom corner, next to Facebook's speaker button, which moves over to make room. Live videos, and videos without Facebook's speaker, keep it up with the other buttons. Needs Full player button on feed videos on.	Đặt nút trình phát đầy đủ của video bảng tin ở góc dưới, cạnh nút loa của Facebook, nút loa sẽ dời sang để nhường chỗ. Video trực tiếp và video không có nút loa của Facebook vẫn giữ nút ở trên cùng các nút khác. Cần bật Nút trình phát đầy đủ trên video bảng tin.
 # context: a switch under Video and audio; with it on, a video opened full screen starts with its details and comments panel closed, so the video is in the middle of the screen
 Open full screen videos centered	Mở video toàn màn hình ở giữa
 # context: that switch's summary; the arrow is the small button under the video that opens and closes the details and comments panel
@@ -2306,6 +2324,21 @@ Shows when a reel or a video you open full screen was posted, under the name of 
 Keeps the Comment button on reels whose comments are turned off, so you can still read the ones already there. A change shows from the next reel.	Giữ nút Bình luận trên các reel đã tắt bình luận, để bạn vẫn đọc được các bình luận đã có. Thay đổi có hiệu lực từ reel tiếp theo.
 Select part of a post's text	Chọn một phần văn bản của bài viết
 Holding a post's text opens it in a box where you can select just the part you want and copy that, or copy all of it. The hold itself copies nothing.	Nhấn giữ văn bản của bài viết sẽ mở nó trong một hộp để bạn chọn đúng phần mình muốn và sao chép, hoặc sao chép tất cả. Chỉ nhấn giữ thì không sao chép gì.
+Hold a post to react	Nhấn giữ bài viết để bày tỏ cảm xúc
+Holding a post's photo or video opens its reactions, as holding Like does. On a feed post it comes before Long press opens comments.	Nhấn giữ ảnh hoặc video của bài viết sẽ mở các cảm xúc, giống như nhấn giữ nút Thích. Trên bài viết trong bảng tin, điều này được ưu tiên trước Nhấn giữ mở bình luận.
+Reaction	Cảm xúc
+Pick one each time	Chọn mỗi lần
+Like	Thích
+Love	Yêu thích
+Care	Thương thương
+Haha	Haha
+Wow	Wow
+Sad	Buồn
+Angry	Phẫn nộ
+Pick one each time. The reactions open over the post, so slide to one and let go, or let go and tap one.	Chọn mỗi lần. Các cảm xúc mở ra trên bài viết, nên hãy trượt đến một cảm xúc rồi thả tay, hoặc thả tay rồi chạm vào một cảm xúc.
+%1$s. Holding a post gives it straight away.	%1$s. Nhấn giữ bài viết sẽ bày tỏ cảm xúc đó ngay.
+Hold a post to react will open the reactions to pick from.	Nhấn giữ bài viết để bày tỏ cảm xúc sẽ mở các cảm xúc để chọn.
+Hold a post to react will give %1$s.	Nhấn giữ bài viết để bày tỏ cảm xúc sẽ chọn %1$s.
 Select text	Chọn văn bản
 Done	Xong
 Copy all	Sao chép tất cả
@@ -2684,7 +2717,7 @@ Tab bar width	Chiều rộng thanh tab
 Percent of the screen's width, from %1$s to %2$s. The icons grow and shrink with it. Leave it blank for %3$s.	Phần trăm chiều rộng màn hình, từ %1$s đến %2$s. Các biểu tượng to lên và nhỏ đi theo nó. Để trống để dùng %3$s.
 The rounded tab bar is %1$s percent of the screen wide.	Thanh tab bo tròn rộng %1$s phần trăm màn hình.
 Tab bar height	Chiều cao thanh tab
-Percent of its full height the rounded tab bar keeps, from %1$s to %2$s, trimmed above and below the icons. Leave it blank for %3$s.	Phần trăm chiều cao đầy đủ mà thanh tab bo tròn giữ lại, từ %1$s đến %2$s, được cắt bớt phía trên và phía dưới các biểu tượng. Để trống để dùng %3$s.
+Percent of its full height the rounded tab bar keeps, from %1$s to %2$s, trimmed above and below the icons. Over 100 makes it taller, mostly toward the bottom of the screen. Leave it blank for %3$s.	Phần trăm chiều cao đầy đủ mà thanh tab bo tròn giữ lại, từ %1$s đến %2$s, được cắt bớt phía trên và phía dưới các biểu tượng. Trên 100 làm thanh cao hơn, chủ yếu về phía cuối màn hình. Để trống để dùng %3$s.
 The rounded tab bar keeps %1$s percent of its height.	Thanh tab bo tròn giữ lại %1$s phần trăm chiều cao.
 # context: title of a row under About that picks how long a dot marks settings an update added
 Mark new settings	Đánh dấu cài đặt mới
@@ -2722,7 +2755,7 @@ Double tap the right side of a playing feed video to jump ahead 10 seconds, or t
 Show only comments that match	Chỉ hiện bình luận khớp
 While the search box holds words, comments without them are hidden. Clearing the box brings them back.	Khi ô tìm kiếm có chữ, các bình luận không chứa chữ đó sẽ bị ẩn. Xóa ô tìm kiếm để hiện lại.
 Queue reel saves	Xếp hàng lưu reel
-Each reel you tap Download on joins a queue that saves one reel at a time in the background. Pause or cancel it from its notification or from Downloads here. A reel already in the queue is skipped, and one that fails gets one more try. The queue lasts until Facebook closes.	Mỗi reel bạn nhấn Tải xuống sẽ vào một hàng đợi lưu từng reel một ở chế độ nền. Bạn có thể tạm dừng hoặc hủy hàng đợi từ thông báo của nó hoặc từ mục Tải xuống tại đây. Reel đã có trong hàng đợi sẽ được bỏ qua, và reel bị lỗi sẽ được thử lại một lần nữa. Hàng đợi tồn tại cho đến khi Facebook đóng.
+Each reel you tap Download on joins a queue that saves one reel at a time in the background. Pause or cancel it from its notification or from Downloads here. A reel already in the queue is skipped, and one that fails gets one more try. The queue lasts until Facebook closes. Hold Download to save that reel and the ones after it, 10 to 150 at a time.	Mỗi reel bạn nhấn Tải xuống sẽ vào một hàng đợi lưu từng reel một ở chế độ nền. Bạn có thể tạm dừng hoặc hủy hàng đợi từ thông báo của nó hoặc từ mục Tải xuống tại đây. Reel đã có trong hàng đợi sẽ được bỏ qua, và reel bị lỗi sẽ được thử lại một lần nữa. Hàng đợi tồn tại cho đến khi Facebook đóng. Nhấn giữ Tải xuống để lưu reel đó và các reel sau nó, mỗi lần từ 10 đến 150.
 Added to the reel queue	Đã thêm vào hàng đợi reel
 Added to the reel queue. To pause or cancel it, open Downloads in Hushfacebook settings.	Đã thêm vào hàng đợi reel. Để tạm dừng hoặc hủy, hãy mở Tải xuống trong cài đặt Hushfacebook.
 Already in the reel queue	Đã có trong hàng đợi reel
@@ -2734,3 +2767,25 @@ Reel queue done	Hàng đợi reel đã xong
 %1$d saved, %2$d waiting, %3$d failed	Đã lưu %1$d, đang chờ %2$d, lỗi %3$d
 Reel queue canceled	Đã hủy hàng đợi reel
 Cancel the reel queue	Hủy hàng đợi reel
+Save this reel and the ones after it	Lưu reel này và các reel sau nó
+%1$d reels	%1$d reel
+Going through %1$d reels for the reel queue. Hold Download again or cancel the queue to stop.	Đang duyệt %1$d reel cho hàng đợi reel. Nhấn giữ Tải xuống lần nữa hoặc hủy hàng đợi để dừng.
+Put %1$d reels in the reel queue	Đã đưa %1$d reel vào hàng đợi reel
+No more reels came. %1$d went in the reel queue.	Không còn reel nào nữa. %1$d reel đã vào hàng đợi reel.
+Stopped going through reels	Đã dừng duyệt reel
+Reel from %1$s	Reel của %1$s
+Reel %1$d	Reel %1$d
+Saving now	Đang lưu
+Waiting	Đang chờ
+Paused	Đã tạm dừng
+Pause this reel	Tạm dừng reel này
+Resume this reel	Tiếp tục reel này
+Cancel this reel	Hủy reel này
+Hide stories you scrolled past	Ẩn tin bạn đã lướt qua
+A story you scrolled past in the Stories tray leaves it the next time you open Facebook, even if you didn't watch it. A new story brings that person back.	Tin bạn đã lướt qua trong khay tin sẽ rời khỏi khay vào lần tới bạn mở Facebook, kể cả khi bạn chưa xem. Tin mới sẽ đưa người đó trở lại.
+# context: row under Home header picture that puts Hushfacebook's logo there (#467)
+Use the Hushfacebook logo	Dùng logo Hushfacebook
+# context: summary under Use the Hushfacebook logo
+Shows Hushfacebook's logo at the top of Home in place of your words and Facebook's logo. Restart Facebook to see it.	Hiện logo Hushfacebook ở đầu Trang chủ thay cho chữ của bạn và logo Facebook. Khởi động lại Facebook để thấy.
+# context: the name Home header picture shows once the logo is picked
+Hushfacebook logo	logo Hushfacebook

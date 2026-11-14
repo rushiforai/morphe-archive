@@ -1,0 +1,132 @@
+name: Build and release
+
+# Every push to main builds the patches and the SoundSync app.
+# When gradle.properties has a version with no release yet, it also publishes
+# "Soundsync vX" (patch bundle + app) and updates patches-bundle.json, which is
+# what Morphe Manager reads when this repository is added as a patch source.
+#
+# To rebuild a version that's already released, put [republish] in the commit message.
+# Releases of a higher version than gradle.properties (after going back a version) are removed.
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: [patches-bundle.json]
+  workflow_dispatch:
+
+permissions:
+  contents: write   # releases and patches-bundle.json
+  packages: read    # Morphe's build tools
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: gradle/actions/setup-gradle@v5
+
+      - name: Read the version
+        id: v
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MSG: ${{ github.event.head_commit.message }}
+        run: |
+          v=$(sed -nE 's/^version *= *([^ ]+).*/\1/p' gradle.properties | tr -d '[:space:]')
+          [ -n "$v" ] || { echo "::error::No version in gradle.properties"; exit 1; }
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          if gh release view "v$v" >/dev/null 2>&1 && printf '%s' "$MSG" | grep -qF '[republish]'; then
+            echo "release=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::Rebuilding Soundsync v$v ([republish])."
+          elif gh release view "v$v" >/dev/null 2>&1; then
+            echo "release=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Soundsync v$v is already released; this run only checks that everything builds."
+          else
+            echo "release=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build the patch bundle
+        env:
+          # Morphe's build tools come from GitHub Packages; the workflow's own token can read them.
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ./gradlew :patches:buildAndroid --no-daemon --stacktrace
+          cp patches/build/libs/*.mpp "SoundSync-patches-${{ steps.v.outputs.version }}.mpp"
+          unzip -l "SoundSync-patches-${{ steps.v.outputs.version }}.mpp"
+
+      - name: Build the SoundSync app
+        env:
+          KS_B64: ${{ secrets.SOUNDSYNC_KEYSTORE_B64 }}
+          KS_PW: ${{ secrets.SOUNDSYNC_KEYSTORE_PASSWORD }}
+        run: |
+          if [ -z "$KS_B64" ] || [ -z "$KS_PW" ]; then
+            echo "::warning::The signing key secrets aren't set, so the SoundSync app isn't built."
+            exit 0
+          fi
+          echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/soundsync.jks"
+          companion-app/ci-build.sh "${{ github.run_number }}" "${{ steps.v.outputs.version }}" \
+            "$RUNNER_TEMP/soundsync.jks" "$KS_PW"
+          cp companion-app/build/soundsync.apk "SoundSync-app-${{ steps.v.outputs.version }}.apk"
+          rm -f "$RUNNER_TEMP/soundsync.jks"
+
+      - name: Publish Soundsync v${{ steps.v.outputs.version }}
+        if: steps.v.outputs.release == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          V: ${{ steps.v.outputs.version }}
+          REPO: ${{ github.repository }}
+        run: |
+          if [ ! -f "SoundSync-app-$V.apk" ]; then
+            echo "::warning::Not releasing v$V yet: add the signing key secrets so the app can be included, then push again."
+            exit 0
+          fi
+          notes="release-notes/$V.md"
+          [ -f "$notes" ] || { echo "Soundsync v$V" > "$RUNNER_TEMP/notes.md"; notes="$RUNNER_TEMP/notes.md"; }
+          files=("SoundSync-patches-$V.mpp")
+          [ -f "SoundSync-app-$V.apk" ] && files+=("SoundSync-app-$V.apk")
+
+          # Replace this version if it's being republished, and remove any higher versions
+          for t in $(gh release list --limit 100 --json tagName --jq '.[].tagName' | grep -E '^v[0-9]'); do
+            n=${t#v}
+            if [ "$n" = "$V" ] || [ "$(printf '%s\n%s\n' "$V" "$n" | sort -V | tail -1)" = "$n" ]; then
+              echo "Removing release $t"
+              gh release delete "$t" --yes --cleanup-tag
+            fi
+          done
+
+          gh release create "v$V" "${files[@]}" --target "$GITHUB_SHA" \
+            --title "Soundsync v$V" --notes-file "$notes" --latest
+
+          # The old rolling release from before versioned releases
+          gh release delete latest --yes --cleanup-tag 2>/dev/null || true
+
+          # What Morphe Manager reads from this repository's main branch
+          python3 - "$V" "$REPO" "$notes" <<'PY'
+          import json, sys, datetime
+          version, repo, notes = sys.argv[1], sys.argv[2], sys.argv[3]
+          bundle = {
+              "created_at": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S"),
+              "description": open(notes, encoding="utf-8").read().strip(),
+              "download_url": f"https://github.com/{repo}/releases/download/v{version}/SoundSync-patches-{version}.mpp",
+              "version": version,
+          }
+          with open("patches-bundle.json", "w", encoding="utf-8") as f:
+              json.dump(bundle, f, indent=2, ensure_ascii=False)
+              f.write("\n")
+          PY
+          cat patches-bundle.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add patches-bundle.json
+          git commit -m "chore: patches-bundle.json for Soundsync v$V [skip ci]"
+          git push

@@ -1,3 +1,14 @@
+## [1.7.0](https://github.com/toidicakhia/morphe-app-patches/compare/v1.6.0...v1.7.0) (2026-11-13)
+
+### 🐛 Bug Fixes
+
+* correct app icon colors and show app icons in README ([da698b3](https://github.com/toidicakhia/morphe-app-patches/commit/da698b30c6204ad53cdd68559258d25f6f564f29))
+
+### ✨ New Features
+
+* **devolutions:** add patches for Remote Desktop Manager 2026.3.1.5 ([128121c](https://github.com/toidicakhia/morphe-app-patches/commit/128121c1ae46415be8075b44b3236275d9085845))
+* **vtvgo:** add patches for VTVGo 12.11.05 ([8f49fe0](https://github.com/toidicakhia/morphe-app-patches/commit/8f49fe0a8e618e021892ee47e94661b43130c3a6))
+
 ## [1.6.0](https://github.com/toidicakhia/morphe-app-patches/compare/v1.5.0...v1.6.0) (2026-11-07)
 
 ### ✨ New Features

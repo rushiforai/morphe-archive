@@ -20,16 +20,16 @@ internal const val AI_MENTION_ROWS = "ai_mention_rows"
 internal const val CAPABILITIES = "Lcom/facebook/xapp/messaging/capability/vector/Capabilities;"
 
 /**
- * The server flags each Meta AI row check reads in 586, and the one each imagine check reads. Meta renumbers them with
+ * The server flags each Meta AI row check reads in 587, and the one each imagine check reads. Meta renumbers them with
  * each release, so a check reading another release's numbers isn't taken. META_AI_SHARED_FLAG is the one every Meta AI
  * check reads.
  */
-internal const val META_AI_SHARED_FLAG = 0x81060e011b2d7fL
-internal val META_AI_ROW_FLAGS = setOf(META_AI_SHARED_FLAG, 0x81060e01042d78L)
-internal val META_AI_CHAT_FLAGS = setOf(META_AI_SHARED_FLAG, 0x81060e00042d35L)
-internal const val META_AI_ENCRYPTED_FLAG = 0x81060e00052d36L
-internal const val IMAGINE_ROW_FLAG = 0x81060e00402d46L
-internal const val IMAGINE_YOURSELF_ROW_FLAG = 0x81060e00f92d74L
+internal const val META_AI_SHARED_FLAG = 0x810606011b2d20L
+internal val META_AI_ROW_FLAGS = setOf(META_AI_SHARED_FLAG, 0x81060601042d19L)
+internal val META_AI_CHAT_FLAGS = setOf(META_AI_SHARED_FLAG, 0x81060600042cd6L)
+internal const val META_AI_ENCRYPTED_FLAG = 0x81060600052cd7L
+internal const val IMAGINE_ROW_FLAG = 0x81060600402ce7L
+internal const val IMAGINE_YOURSELF_ROW_FLAG = 0x81060600f92d15L
 
 private fun rowsChanged(detail: String): Nothing =
     throw PatchException("Messenger controls: the @ list's Meta AI checks moved ($detail)")

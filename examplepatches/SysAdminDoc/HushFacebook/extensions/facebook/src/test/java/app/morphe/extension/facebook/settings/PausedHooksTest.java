@@ -116,6 +116,7 @@ import app.morphe.extension.facebook.comments.MetaAiSummaries;
 import app.morphe.extension.facebook.comments.ReactorBlock;
 import app.morphe.extension.facebook.composer.TagSuggestionsForTests;
 import app.morphe.extension.facebook.media.HdrBrightnessForTests;
+import app.morphe.extension.facebook.media.BackgroundPlayForTests;
 import app.morphe.extension.facebook.media.PictureInPictureForTests;
 import app.morphe.extension.facebook.media.CenteredFullscreenForTests;
 import app.morphe.extension.facebook.media.FeedSound;
@@ -172,6 +173,7 @@ import app.morphe.extension.facebook.reels.FeedVideoAloneForTests;
 import app.morphe.extension.facebook.reels.FollowedReelsForTests;
 import app.morphe.extension.facebook.reels.ReelCleanMode;
 import app.morphe.extension.facebook.reels.ReelDeclutter;
+import app.morphe.extension.facebook.reels.ReelFillForTests;
 import app.morphe.extension.facebook.reels.ReelLoopForTests;
 import app.morphe.extension.facebook.reels.NewestReelsForTests;
 import app.morphe.extension.facebook.reels.ReelMidCardsForTests;
@@ -698,6 +700,7 @@ public class PausedHooksTest {
                 ReelDeclutter::hideFollowingButton,
                 ReelDeclutter::skipHotComment,
                 ReelDeclutter::skipSocialBubbles,
+                ReelDeclutter::skipCaptionComment,
                 ReelMidCardsForTests::dropsAThreadsCard,
                 FollowedReelsForTests::dropsANotFollowedReel,
                 () -> ReelCleanMode.startClean(false),
@@ -769,7 +772,9 @@ public class PausedHooksTest {
                 // A video tapped in Saved plays in the video player instead of the Reels viewer (#404).
                 () -> SavedVideos.staysInPlayer("vod_watchfeed_saved"),
                 // The next video isn't held back to ask "Are you still watching?" (#427).
-                () -> !StillWatching.idle(1)));
+                () -> !StillWatching.idle(1),
+                // A reel Facebook would fit between black bars fills the screen (#453).
+                ReelFillForTests::fillsAFullScreenReel));
         // A reel that would get the interest prompt is answered as one that doesn't.
         probes.put(PatchFamily.REEL_PROMPTS, Collections.singletonList(() -> !ReelPrompts.keep(true)));
         // The Reels batcher's send of the reels you watched never reaches its executor.
@@ -1185,6 +1190,8 @@ public class PausedHooksTest {
                 PictureInPictureForTests::immersiveAllows, PictureInPictureForTests::homeGateAllows,
                 PictureInPictureForTests::homeFlagAllows, PictureInPictureForTests::offersTheMenuRow,
                 PictureInPictureForTests::offersTheButton));
+        // A video you started keeps going when its manager asks about the pause as you leave.
+        probes.put(PatchFamily.BACKGROUND_PLAY, Collections.singletonList(BackgroundPlayForTests::continuesAVideoYouStarted));
         // An HDR window comes out in the default colour mode, a headroom as none, the screen
         // answers as one that shows no HDR, a manifest loses the HDR twin of an SDR rendition, and
         // a player goes from its SurfaceView to its TextureView.

@@ -101,6 +101,7 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_PAGE_STORIES) return L10n.t("Hide stories from Pages");
         if (setting == Settings.HIDE_SEEN_STORIES) return L10n.t("Hide seen stories");
         if (setting == Settings.SHOW_ONLY_WATCHED_STORIES) return L10n.t("Show only watched stories");
+        if (setting == Settings.HIDE_PASSED_STORIES) return L10n.t("Hide stories you scrolled past");
         if (setting == Settings.BLOCK_STORY_AUTO_ADVANCE) return L10n.t("Stop Story auto-advance");
         if (setting == Settings.LOOP_STORIES) return L10n.t("Loop stories");
         if (setting == Settings.VIEW_STORIES_ANONYMOUSLY) return L10n.t("View stories anonymously");
@@ -216,6 +217,7 @@ final class SwitchLabels {
         if (setting == Settings.SAVED_VIDEOS_IN_PLAYER) return L10n.t("Open saved videos in the video player");
         if (setting == Settings.SAVED_VIDEOS_IN_ORDER) return L10n.t("Play saved videos in a row");
         if (setting == Settings.SKIP_STILL_WATCHING) return L10n.t("Skip \"Are you still watching?\"");
+        if (setting == Settings.FILL_REELS) return L10n.t("Fill the screen with reels");
         if (setting == Settings.PLAY_FEED_REELS_WHOLE) return L10n.t("Play whole reels in the feed's Reels row");
         if (setting == Settings.DONT_SEND_REEL_WATCH_HISTORY) return L10n.t("Don't send reel watch history");
         if (setting == Settings.NEWEST_REELS_FIRST) return L10n.t("Sort loaded reels");
@@ -243,6 +245,7 @@ final class SwitchLabels {
         if (setting == Settings.DOUBLE_TAP_OPENS_COMMENTS) return L10n.t("Double tap opens comments");
         if (setting == Settings.LONG_PRESS_OPENS_COMMENTS) return L10n.t("Long press opens comments");
         if (setting == Settings.SELECT_POST_TEXT) return L10n.t("Select part of a post's text");
+        if (setting == Settings.HOLD_POST_TO_REACT) return L10n.t("Hold a post to react");
         if (setting == Settings.KEEP_REEL_SPEED) return L10n.t("Keep the reel speed");
         if (setting == Settings.KEEP_VIDEO_SPEED) return L10n.t("Keep the video speed");
         if (setting == Settings.SLOWER_REEL_SPEEDS) return L10n.t("Slower speeds");
@@ -270,6 +273,7 @@ final class SwitchLabels {
         if (setting == Settings.FEED_VIDEO_SEEK_BAR_LOWER) return L10n.t("Lower the seek bar and speaker");
         if (setting == Settings.FEED_VIDEO_SEEK_BAR_EDGE) return L10n.t("Seek bar on the bottom edge");
         if (setting == Settings.FEED_VIDEO_FULL_PLAYER_BUTTON) return L10n.t("Full player button on feed videos");
+        if (setting == Settings.FEED_VIDEO_FULL_PLAYER_CORNER) return L10n.t("Full player button by the speaker");
         if (setting == Settings.FEED_VIDEO_SKIP_BUTTONS) return L10n.t("Skip buttons on feed videos");
         if (setting == Settings.FEED_VIDEO_DOUBLE_TAP_SKIP) return L10n.t("Double tap to skip on feed videos");
         if (setting == Settings.FEED_VIDEO_SPEED_BUTTON) return L10n.t("Speed button on feed videos");
@@ -284,6 +288,8 @@ final class SwitchLabels {
         if (setting == Settings.PICTURE_IN_PICTURE) return L10n.t("Picture-in-picture");
         if (setting == Settings.PICTURE_IN_PICTURE_FROM_MENU) return L10n.t("Only from a reel's More menu");
         if (setting == Settings.PICTURE_IN_PICTURE_BUTTON) return L10n.t("Picture-in-picture button");
+        if (setting == Settings.KEEP_PLAYING_IN_BACKGROUND) return L10n.t("Keep playing in the background");
+        if (setting == Settings.BACKGROUND_PLAY_BUTTON) return L10n.t("Background play button in the window");
         if (setting == Settings.TURN_OFF_HDR_BRIGHTNESS) return L10n.t("Turn off HDR brightness");
         if (setting == Settings.PREFER_SDR_RENDITIONS) return L10n.t("Play SDR versions of HDR videos");
         if (setting == Settings.DRAW_VIDEOS_WITH_THE_SCREEN) return L10n.t("Fix washed-out video colors");

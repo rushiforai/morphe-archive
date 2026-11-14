@@ -141,36 +141,48 @@ class DarkBackgroundFixtureTest {
     }
 
     /**
-     * The footer under a post hands the color it paints itself with to the extension right after
-     * reading it, before the background modifier takes it, and the answer goes back where the color
-     * was. Nothing else in the footer moves.
+     * The footer under a post and the row under your own posts (Blaze, delete, edit) each hand the
+     * color they paint themselves with to the extension right after reading it, before the background
+     * modifier takes it, and the answer goes back where the color was. Nothing else in either moves.
+     * The row reads the same raised gray as the footer, so without its own call it stays a lighter
+     * strip under a post on a black background.
      */
     @Test
-    fun `each declared build hands the post footer's color to the extension`() {
+    fun `each declared build hands the post footer's and your own posts' row colors to the extension`() {
         for (build in Fixtures.declaredBuilds()) {
-            val footers = FixtureDex.classesWhere(build, { true }) { method ->
-                method.strings().any { it.startsWith(POST_FOOTER_NOTE) }
+            val panels = FixtureDex.classesWhere(build, { true }) { method ->
+                method.strings().any { it.startsWith(POST_FOOTER_NOTE) || it.startsWith(AUTHOR_ACTIONS_NOTE) }
             }
-            val context = PatchContexts.of((ExtensionDex.classes() + themeClasses(build) + designClasses(build) + footers + pageClasses(build)).distinctBy { it.type })
-            val (footer, read) = context.resolvePostFooterColor()
-                ?: throw AssertionError("${build.name}: the post footer's color wasn't found")
-            val before = footer.instructionList()
+            val context = PatchContexts.of((ExtensionDex.classes() + themeClasses(build) + designClasses(build) + panels + pageClasses(build)).distinctBy { it.type })
+            val reads = listOf(
+                POST_FOOTER_NOTE to context.resolvePostFooterColor(),
+                AUTHOR_ACTIONS_NOTE to context.resolveAuthorActionsColor(),
+            ).map { (note, found) -> found ?: throw AssertionError("${build.name}: the color of $note wasn't found") }
+            assertEquals("${build.name}: two functions", 2, reads.map { it.first.toString() }.toSet().size)
+            val before = reads.associate { (method, _) -> method.toString() to method.instructionList() }
 
             val warnings = PatchLogCapture.warnings { darkBackgroundPatch.execute(context) }
 
             assertEquals(build.name, emptyList<String>(), warnings)
-            val after = context.mutableClassDefBy(footer.definingClass).methods
-                .single { it.name == footer.name && it.parameterTypes == footer.parameterTypes }
-                .instructionList()
-            val at = read.index
-            assertEquals("${footer.name}: a call and its answer", before.size + 2, after.size)
-            assertEquals("${footer.name} $at: after the color is kept", Opcode.MOVE_RESULT_WIDE, after[at - 1].opcode)
-            assertEquals("${footer.name} $at", DESIGN_FOOTER_HOOK, after[at].descriptor())
-            assertEquals("${footer.name} $at: on the long just kept", listOf(read.register, read.register + 1), after[at].namedRegisters())
-            assertEquals("${footer.name} $at: goes back where the color was", read.register, (after[at + 1] as OneRegisterInstruction).registerA)
-            assertEquals("${footer.name}: the background takes the answer", before[at].methodRef(), after[at + 2].methodRef())
-            assertEquals("${footer.name}: Tumblr's own code around it", before.map { it.opcode },
-                after.filterIndexed { index, _ -> index != at && index != at + 1 }.map { it.opcode })
+            for ((panel, read) in reads) {
+                val was = before.getValue(panel.toString())
+                val after = context.mutableClassDefBy(panel.definingClass).methods
+                    .single { it.name == panel.name && it.parameterTypes == panel.parameterTypes }
+                    .instructionList()
+                val at = read.index
+                val name = "${panel.definingClass}->${panel.name}"
+                assertEquals("$name: a call and its answer", was.size + 2, after.size)
+                assertEquals("$name $at: after the color is kept", Opcode.MOVE_RESULT_WIDE, after[at - 1].opcode)
+                assertEquals("$name $at", DESIGN_FOOTER_HOOK, after[at].descriptor())
+                assertEquals("$name $at: on the long just kept", listOf(read.register, read.register + 1), after[at].namedRegisters())
+                assertEquals("$name $at: goes back where the color was", read.register, (after[at + 1] as OneRegisterInstruction).registerA)
+                val background = (at + 2 until after.size).first { after[it].opcode != Opcode.CONST_4 && after[it].opcode != Opcode.CONST_16 }
+                val modifier = after[background].methodRef()
+                assertEquals("$name: the background takes the answer", "Landroidx/compose/foundation/b;", modifier?.definingClass)
+                assertEquals("$name: the color is its second argument", "J", modifier?.parameterTypes?.get(1)?.toString())
+                assertEquals("$name: Tumblr's own code around it", was.map { it.opcode },
+                    after.filterIndexed { index, _ -> index != at && index != at + 1 }.map { it.opcode })
+            }
         }
     }
 

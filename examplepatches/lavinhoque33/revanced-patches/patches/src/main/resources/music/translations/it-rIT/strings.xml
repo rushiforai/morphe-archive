@@ -118,7 +118,6 @@ Riproduzione SABR (simulazione dei flussi video disattivata)"</string>
     <string name="morphe_music_crossfade_screen_title">Dissolvenza incrociata</string>
     <string name="morphe_music_crossfade_session_control_summary">Tieni premuto il pulsante di riproduzione casuale per mettere in pausa o riprendere la dissolvenza incrociata</string>
     <string name="morphe_music_crossfade_session_control_title">Controllo di sessione</string>
-    <string name="morphe_music_crossfade_video_mode_disabled_toast">La modalità video non è disponibile quando la dissolvenza incrociata è abilitata</string>
     <string name="morphe_music_deezer_arl_dialog_instruction">"Incolla il cookie arl di Deezer
 
 Passaggi:
@@ -1056,4 +1055,6 @@ L'ID del video che guardi viene inviato all'API di Return YouTube Dislike, e i t
     <string name="revanced_webview_toast_empty">%s è vuota</string>
     <string name="revanced_webview_toast_no_network">Controlla la tua connessione di rete</string>
     <string name="revanced_webview_toast_unavailable">WebView non è disponibile</string>
+    <string name="morphe_music_auto_song_version_title">Riproduci sempre la versione brano</string>
+    <string name="morphe_music_auto_song_version_summary">Sostituisce i video musicali ufficiali in coda con il brano corrispondente. Richiede di attivare «Non riprodurre video musicali» nelle impostazioni dell’app. I brani senza corrispondenza esatta restano invariati</string>
 </resources>

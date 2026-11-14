@@ -61,6 +61,9 @@ final class RegisteredImageNativeCache {
         }
         return null;
     }
+    InputStream cachedOnly(String url) throws Exception {
+        return ready(info.invoke(manager,url))?(InputStream)stream.invoke(manager,url):null;
+    }
 
     private boolean ready(Object data) throws Exception {
         if (data == null) return false;

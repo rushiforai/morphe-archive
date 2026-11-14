@@ -25,6 +25,7 @@ val fixLaunchWithDnsBlockersPatch = bytecodePatch(
     description = "Opens the app when a DNS blocker stops OneTrust, the app's privacy consent service. " +
         "Without it, the app stays on its splash screen.",
 ) {
+    category("Setup")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

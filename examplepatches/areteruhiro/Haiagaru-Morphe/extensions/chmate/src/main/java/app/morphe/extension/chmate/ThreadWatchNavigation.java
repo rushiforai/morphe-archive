@@ -6,6 +6,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import java.lang.ref.WeakReference;
 
 /** Resolve a notification's response after native DAT download and adapter binding. */
@@ -20,6 +21,8 @@ public final class ThreadWatchNavigation {
         WeakReference<Object> fragment;
         WeakReference<View> list;
         int lastRefreshAttempt=-1;
+        boolean positioned;
+        ViewTreeObserver.OnPreDrawListener guard;
         Pending(String url,int number,long expires){this.url=url;this.number=number;this.expires=expires;}
     }
 
@@ -28,6 +31,7 @@ public final class ThreadWatchNavigation {
         long expires=System.currentTimeMillis()+TIMEOUT;
         context.getSharedPreferences(PREFS,0).edit().putString("url",url).putInt("number",number)
                 .putLong("expires",expires).apply();
+        if(pending!=null)removeGuard(pending);
         pending=new Pending(url,number,expires);
     }
 
@@ -47,7 +51,9 @@ public final class ThreadWatchNavigation {
             if(opened==null||expected==null||!opened.url.equals(expected.url))return;
         }catch(Exception unavailable){return;}
         if(target.fragment!=null&&target.fragment.get()==fragment&&target.list.get()==list)return;
+        removeGuard(target);
         target.fragment=new WeakReference<>(fragment);target.list=new WeakReference<>(list);
+        XPostPreviewPosition.opening(list);
         poll(target,fragment,list,0);
     }
 
@@ -69,8 +75,36 @@ public final class ThreadWatchNavigation {
     }
 
     private static void clear(Context context,Pending target){
-        if(pending!=target)return;
+        if(pending!=target){removeGuard(target);return;}
+        removeGuard(target);
         pending=null;context.getSharedPreferences(PREFS,0).edit().clear().apply();
+    }
+
+    private static void removeGuard(Pending target){
+        View list=target.list==null?null:target.list.get();
+        if(list!=null&&target.guard!=null&&list.getViewTreeObserver().isAlive())list.getViewTreeObserver().removeOnPreDrawListener(target.guard);
+        target.guard=null;
+    }
+    private static void guardPosition(Pending target,Object fragment,View list,String version){
+        if(target.guard!=null)return;
+        WeakReference<Object> owner=new WeakReference<>(fragment);
+        target.guard=()->{
+            if(pending!=target||System.currentTimeMillis()>target.expires||XPostPreviewPosition.hasUserInteraction(list)){
+                clear(list.getContext(),target);return true;
+            }
+            if(!list.isShown()||list.isLayoutRequested()||owner.get()==null)return true;
+            try{
+                if(!FilterPosition.responseVisible(list,target.number)){
+                    Object current=owner.get();
+                    String url=NativeThreadContext.url(NativeThreadContext.board(current,version),version,1);
+                    ThreadWatchRules.Target opened=url==null?null:ThreadWatchRules.target(url),requested=ThreadWatchRules.target(target.url);
+                    if(opened==null||requested==null||!opened.url.equals(requested.url)){clear(list.getContext(),target);return true;}
+                    if(FilterPosition.jumpToResponse(current,target.number))return false;
+                }
+            }catch(Exception error){Log.w("Haiagaru","Watched response position guard unavailable",error);removeGuard(target);}
+            return true;
+        };
+        list.getViewTreeObserver().addOnPreDrawListener(target.guard);
     }
 
     private static void poll(Pending target,Object fragment,View list,int attempt){
@@ -90,10 +124,17 @@ public final class ThreadWatchNavigation {
                 // Keep the target pending for that reader instead of discarding it.
                 if(!opened.url.equals(requested.url))return;
                 if(XPostPreviewPosition.hasUserInteraction(list)){clear(list.getContext(),target);return;}
-                if(FilterPosition.jumpToResponse(fragment,target.number)){clear(list.getContext(),target);return;}
+                if(target.positioned){
+                    // The original DAT refresh may still replace the adapter and
+                    // restore an older unread position. Keep the explicit target
+                    // until the bounded request expires; never start extra refreshes.
+                    guardPosition(target,fragment,list,version);
+                }else if(FilterPosition.jumpToResponse(fragment,target.number)){
+                    target.positioned=true;guardPosition(target,fragment,list,version);
+                }
                 // The worker may finish after the activity appears. Ask the native
                 // reader to refresh once, then retry its real response adapter.
-                if(attempt>=6&&(target.lastRefreshAttempt<0||attempt-target.lastRefreshAttempt>=12)){
+                if(!target.positioned&&attempt>=6&&(target.lastRefreshAttempt<0||attempt-target.lastRefreshAttempt>=12)){
                     target.lastRefreshAttempt=attempt;
                     OpenTabsRefresh.refreshWatchedFragment(fragment);
                 }

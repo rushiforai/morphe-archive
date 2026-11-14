@@ -1549,6 +1549,10 @@ Rule saved	Kural kaydedildi
 Open restricted channels	Kısıtlanmış kanalları aç
 Channels, groups and messages Telegram says are unavailable for copyright or local law open anyway, as long as Telegram still sends them.	Telegram'ın telif hakkı veya yerel yasalar nedeniyle kullanılamıyor dediği kanallar, gruplar ve mesajlar, Telegram onları göndermeye devam ettiği sürece yine de açılır.
 channels restricted for copyright or local law	telif hakkı veya yerel yasalar nedeniyle kısıtlanmış kanallar
+banned channels on the web	sizi engelleyen kanallar, web'de
+A channel that banned you offers Open on the web, which shows its public posts in your browser.	Sizi engelleyen bir kanal, herkese açık gönderilerini tarayıcınızda gösteren Web'de aç seçeneğini sunar.
+Open on the web	Web'de aç
+No browser could open %1$s.	Hiçbir tarayıcı %1$s adresini açamadı.
 Send photos and videos in the best quality	Fotoğraf ve videoları en iyi kalitede gönder
 Photos go out in HD and videos at their own size and quality, without touching the quality button first. You can still lower one before sending. Only sending as a file keeps a photo exactly as it is.	Fotoğraflar HD, videolar kendi boyutu ve kalitesiyle gider, önce kalite düğmesine dokunmana gerek kalmaz. Göndermeden önce birinin kalitesini yine düşürebilirsin. Bir fotoğrafı tam olduğu gibi yalnızca dosya olarak göndermek korur.
 photos and videos in their best quality	en iyi kalitede fotoğraf ve videolar
@@ -1566,7 +1570,7 @@ When you send a message in a chat, the read receipt Ghost mode held back there g
 # context: a switch under Ghost mode (#69). With it on, a double check button sits at the top of the chat list, next to the ghost.
 Read receipts button	Okundu bilgisi düğmesi
 # context: that switch's summary. A double check is the two tick marks Telegram shows on a read message.
-A double check at the top of the chat list sends the read receipts Ghost mode is holding for the account you're on, from chats read since Telegram last started. Shows with Ghost mode and No read receipts on.	Sohbet listesinin üstündeki çift tik, Hayalet modunun kullandığınız hesap için tuttuğu okundu bilgilerini, Telegram son açıldığından beri okunan sohbetlerden gönderir. Hayalet modu ve Okundu bilgisi gönderme açıkken görünür.
+A double check at the top of the chat list sends the read receipts Ghost mode is holding for the account you're on, from chats read since Telegram last started. Send read receipts in a chat's menu sends just that chat's. Shows with Ghost mode and No read receipts on.	Sohbet listesinin üstündeki çift tik, Hayalet modunun kullandığınız hesap için tuttuğu okundu bilgilerini, Telegram son açıldığından beri okunan sohbetlerden gönderir. Bir sohbetin menüsündeki Okundu bilgilerini gönder yalnızca o sohbetinkileri gönderir. Hayalet modu ve Okundu bilgisi gönderme açıkken görünür.
 # context: what a screen reader says for the chat list's double check button.
 Send read receipts	Okundu bilgilerini gönder
 # context: short message after a tap on the chat list's double check button sent the held read receipts.
@@ -1587,6 +1591,7 @@ The phone number screen always has the proxy button, so you can add a proxy befo
 Looking for free proxies now.	Ücretsiz proxy'ler aranıyor.
 Downloads a public list of proxies now, times them and adds the fastest to Telegram's proxy list, even with the switch above off.	Şimdi herkese açık bir proxy listesi indirir, proxy'lerin hızını ölçer ve en hızlılarını Telegram'ın proxy listesine ekler, yukarıdaki anahtar kapalı olsa bile.
 Proxies added last time: %1$s. They're in Telegram's proxy list.	Geçen sefer eklenen proxy'ler: %1$s. Telegram'ın proxy listesindeler.
+Proxies added last time: %1$s of %2$s read. They're in Telegram's proxy list.	Geçen sefer eklenen proxy'ler: %2$s okunan proxy'den %1$s. Telegram'ın proxy listesindeler.
 Couldn't download a proxy list last time. Check your connection and try again.	Geçen sefer proxy listesi indirilemedi. Bağlantınızı kontrol edip tekrar deneyin.
 None of the listed proxies answered last time. Try again later.	Geçen sefer listedeki proxy'lerin hiçbiri yanıt vermedi. Daha sonra tekrar deneyin.
 Telegram didn't take the proxies last time.	Geçen sefer Telegram proxy'leri kabul etmedi.
@@ -1906,3 +1911,9 @@ Adds a Select all button to the bar that shows while you pick messages, in chats
 selecting every loaded message in a chat	bir sohbette yüklenen tüm mesajları seçme
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the Select all button in a chat's shared media.
 selecting everything in shared media	paylaşılan medyada her şeyi seçme
+# context: Switch on the Playback page under Voice messages in the music player (#77). It gives voice messages the next and previous buttons Telegram gives songs.
+Skip between voice messages	Sesli mesajlar arasında geç
+# context: Summary of the switch Skip between voice messages. Next and previous are the media buttons Telegram shows for songs. With the switch on they move between the voice messages of the chat that's playing.
+Next and previous on headphones, in a car, in the notification, on the lock screen and in the full player move between a chat's voice messages, as they do for songs.	Kulaklıkta, arabada, bildirimde, kilit ekranında ve tam müzik çalarda ileri ve geri, şarkılarda olduğu gibi bir sohbetin sesli mesajları arasında geçer.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the Skip between voice messages switch.
+skipping between voice messages	sesli mesajlar arasında geçiş

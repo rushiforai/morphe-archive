@@ -16,6 +16,7 @@
         { id: 'UC5dCegXiWjE57wKrhWnCo0g', handle: '@skysportaustria', name: 'Sky Sport Austria', speed: 1 },
         { id: 'UCdi3n18zcIZeTk_x9qvSgZw', handle: '@dazn', name: 'DAZN', speed: 1 },
         { id: 'UC-XArLCeEw91r9gmaDi-Ajw', handle: '@daznde', name: 'DAZN DE', speed: 1 },
+        { id: 'UClBFnQJMlinWDCvfSXj60CA', handle: '@daznfussball', name: 'DAZN Fußball', speed: 1 },
         RTL_SPORT,
         { id: 'UCK2izXoHvraUFaPMU5B7vMQ', handle: '@primevideosportde', name: 'Prime Video Sport', speed: 1 },
         { id: 'UCk452F_ypT9Q8b1S38-Ok8A', handle: '@eurosportdeutschland', name: 'Eurosport Deutschland', speed: 1 },

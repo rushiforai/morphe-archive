@@ -43,7 +43,7 @@ Long-press the Tumblr logo at the top of your dashboard. You can also tap **Hush
 
 ## Patches
 
-There are 55 patches.
+There are 57 patches.
 
 | Patch | What it does |
 |---|---|
@@ -53,11 +53,11 @@ There are 55 patches.
 | `Disable update prompts` | Stops Tumblr asking Google Play for a newer version and showing Play's update prompt. Starts off. Turn it on in Tumblr settings > HushTumblr > Updates. |
 | `Filter activity notifications` | Hides selected likes, reblogs, replies, follows, mentions, asks and boops from the activity list as pages load. Each switch starts off. Choose them in Tumblr settings > HushTumblr > Notifications. |
 | `Fix push notifications` | Lets the patched app sign up for push notifications. Firebase can refuse a patched Tumblr whose request doesn't name Tumblr's original signature, so this sends its fingerprint. On by default. Turn it off in Tumblr settings > HushTumblr > Notifications. |
-| `Hide Blaze prompts` | Hides the prompts to pay for Blaze, Tumblr's way to promote a post. That covers the Blaze buttons on your blog and dashboard, the nudge after you post, and the Blaze banners. Starts off. Turn it on in Tumblr settings > HushTumblr > Interface. |
+| `Hide Blaze prompts` | Hides the prompts to pay for Blaze, Tumblr's way to promote a post. That covers the Blaze buttons on your blog and dashboard, the nudge after you post, the Blaze banners, and the Blaze buttons on posts: the flame under your own posts, Blaze in a post's menu and the share sheet, and Promote in community posts. Starts off. Turn it on in Tumblr settings > HushTumblr > Interface. |
 | `Hide Featured posts` | Takes the staff-picked posts Tumblr shows under a Featured header out of your dashboard and other feeds. Starts off. Turn it on in Tumblr settings > HushTumblr > Feed. |
 | `Hide Tumblr TV` | Takes the Tumblr TV tab out of the bottom bar, and stops sign-up from sending you there. Starts off. Turn it on in Tumblr settings > HushTumblr > Interface. |
 | `Hide Watch it rows` | Takes Tumblr TV's Watch it rows and video hub cards out of your dashboard and other feeds, along with their headings. Starts off. Turn it on in Tumblr settings > HushTumblr > Feed. |
-| `Hide ads` | Takes ad cards and paid Blaze posts out of your dashboard and other feeds. Sponsored banners go too, and a sponsored header at the top of Explore stays empty. Tumblr stops asking its ad networks for more and stops showing a full-screen ad when you open a blog, and the ad networks don't start when Tumblr launches. Its Keep Blaze posts option leaves the Blaze posts in. On by default. Turn it off in Tumblr settings > HushTumblr > Feed. |
+| `Hide ads` | Takes ad cards and paid Blaze posts out of your dashboard and other feeds. Sponsored banners go too, along with the one-line app promos (Made with WordPress and its Install button) on tag pages and in search. A sponsored header at the top of Explore stays empty. Tumblr stops asking its ad networks for more and stops showing a full-screen ad when you open a blog, and the ad networks don't start when Tumblr launches. Its Keep Blaze posts option leaves the Blaze posts in. On by default. Turn it off in Tumblr settings > HushTumblr > Feed. |
 | `Hide advertising ID` | Tumblr and the ad companies inside it see an empty advertising ID with ad tracking limited, as if you'd deleted your ad ID in Android. On by default. Turn it off in Tumblr settings > HushTumblr > Privacy. |
 | `Hide blog notification reminders` | Hides the pop-up suggesting you turn on notifications for a blog. Your subscriptions and notification settings stay as they are. Starts off. Turn it on in Tumblr settings > HushTumblr > Interface. |
 | `Hide filtered posts` | Takes the posts Tumblr covers with "This post contains filtered content" out of your dashboard, searches and other feeds, so your filtered tags and words hide them completely. Starts off. Turn it on in Tumblr settings > HushTumblr > Feed. |
@@ -70,6 +70,7 @@ There are 55 patches.
 | `Hide photo posts` | Takes photo posts out of your dashboard and other feeds as each page loads. A post with pictures and no video, its reblog trail included, counts as a photo post. Starts off. Turn it on in Tumblr settings > HushTumblr > Feed. |
 | `Hide posts with these words` | Hides posts matching your word list. Choose whether to check current text, the reblog trail, tags or summaries. Allowed words can keep a matching post, but other enabled filters still apply. Both word editors let you type a made-up post and see what the word filter would do with it. Starts off. Turn it on in Tumblr settings > HushTumblr > Feed. |
 | `Hide reblogs` | Takes reblogs out of your dashboard and other feeds as each page loads, and keeps the posts people made themselves. Starts off. Turn it on in Tumblr settings > HushTumblr > Feed. |
+| `Hide reblogs of your posts` | Takes other people's reblogs of your posts out of your dashboard as each page loads. Your blog and the rest of Tumblr still show them. Starts off. Turn it on in Tumblr settings > HushTumblr > Feed. |
 | `Hide suggested blogs` | Takes the blogs Tumblr suggests you follow out of your dashboard and other feeds, whether as cards, rows or carousels, along with their headings. Starts off. Turn it on in Tumblr settings > HushTumblr > Feed. |
 | `Hide suggested communities` | Takes the communities Tumblr suggests you join out of your dashboard and other feeds, along with their headings. Starts off. Turn it on in Tumblr settings > HushTumblr > Feed. |
 | `Hide suggested tags` | Takes the tags Tumblr suggests you follow out of your dashboard and other feeds, along with their headings. Starts off. Turn it on in Tumblr settings > HushTumblr > Feed. |
@@ -97,6 +98,7 @@ There are 55 patches.
 | `Show post timestamps` | Shows when posts were made using Tumblr's own timestamp layout. Starts off. Turn it on in Tumblr settings > HushTumblr > Posts. |
 | `Show mutual markers` | Marks blogs that follow your primary blog when you follow them. Starts off. Turn it on in Tumblr settings > HushTumblr > Posts. |
 | `Skip review prompts` | Stops the pop-up that asks what you think of the Tumblr app and then asks you for a store rating or feedback. Starts off. Turn it on in Tumblr settings > HushTumblr > Interface. |
+| `Tags open the blog's tag search` | Tapping a tag under a post opens that blog's own search for the tag, like blog.tumblr.com/tagged, in place of a search of all of Tumblr. Works on posts in the dashboard, other feeds and a post opened by itself. Starts off. Turn it on in Tumblr settings > HushTumblr > Posts. |
 | `Turn off screenshot sharing` | Stops Tumblr watching for screenshots, so taking one doesn't bring up its offer to save the post as an image. Starts off. Turn it on in Tumblr settings > HushTumblr > Interface. |
 | `Visible image descriptions` | Shows author-provided image descriptions below each image, including galleries and reblogs. Starts off. Turn it on in Tumblr settings > HushTumblr > Posts. |
 

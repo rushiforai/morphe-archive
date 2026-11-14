@@ -19,6 +19,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -75,7 +76,7 @@ class BloksFillFixtureTest {
                 val builders = box.methods.filter { method ->
                     AccessFlags.STATIC.isSet(method.accessFlags) && method.parameterTypes.size == 3 &&
                         method.parameterTypes.last().toString() == "I" &&
-                        method.body().any { it.setsPaintColour(method.parameterRegisterNumber(2)) }
+                        paintsFrom(method.body(), method.parameterRegisterNumber(2))
                 }
                 assertEquals("$name: one builder paints its int parameter", 1, builders.size)
                 val builder = builders.single()
@@ -99,8 +100,52 @@ class BloksFillFixtureTest {
                     assertEquals("$name: and the answer", Opcode.MOVE_RESULT, after[1].opcode)
                     assertEquals("$name: goes back into the fill", fill, (after[1] as OneRegisterInstruction).registerA)
                     assertEquals("$name: the rest of the builder is as it was", builder.body().size + 2, after.size)
-                    assertTrue("$name: and still paints the fill", after.drop(2).any { it.setsPaintColour(fill) })
+                    assertTrue("$name: and still paints the fill", paintsFrom(after.drop(2), fill))
                 }
+                checked += version
+            }
+        }
+        assertEquals("a declared build has no fixture", versions, checked)
+    }
+
+    /**
+     * A build with every patch hooks the builder three times, AMOLED and Material You before Accent
+     * color or after it, so each search has to find a builder another theme already hooked. On 587
+     * the search followed the fill through a copy and lost it at the first hook's move-result, and
+     * patching every patch stopped at Accent color (2026-11-13).
+     */
+    @Test
+    fun `the three themes hook one Bloks box builder in turn, on each declared build`() {
+        val checked = mutableSetOf<String>()
+        for (version in versions) {
+            for (bundle in bundles(version)) {
+                val name = bundle.name
+                val box = FixtureDex.classesHolding(bundle, BOX_DECORATION_BORDER_ERROR).single()
+                val builder = box.methods.single { method ->
+                    AccessFlags.STATIC.isSet(method.accessFlags) && method.parameterTypes.size == 3 &&
+                        method.parameterTypes.last().toString() == "I" &&
+                        paintsFrom(method.body(), method.parameterRegisterNumber(2))
+                }
+                val fill = builder.parameterRegisterNumber(2)
+                val targets = listOf(AMOLED_BLOKS_FILL, MATERIAL_YOU_BLOKS_FILL, ACCENT_BLOKS_FILL)
+                val context = PatchContexts.of(listOf(box))
+                for (target in targets) {
+                    BoxDecorationBorderFingerprint.clearMatch()
+                    with(context) { hookBloksFills(target) }
+                }
+                val after = context.mutableClassDefBy(box.type).methods.single { it.descriptor() == builder.descriptor() }.body()
+
+                // Each hook goes in at the top, so the last one asked runs first.
+                targets.reversed().forEachIndexed { index, target ->
+                    val hook = after[index * 2]
+                    assertEquals("$name: hook ${index + 1} is $target", target,
+                        ((hook as ReferenceInstruction).reference as MethodReference).toString())
+                    assertEquals("$name: on the fill's register", fill, (hook as RegisterRangeInstruction).startRegister)
+                    assertEquals("$name: its answer goes back into the fill", fill,
+                        (after[index * 2 + 1] as OneRegisterInstruction).registerA)
+                }
+                assertEquals("$name: the rest of the builder is as it was", builder.body().size + 6, after.size)
+                assertTrue("$name: and still paints the fill", paintsFrom(after.drop(6), fill))
                 checked += version
             }
         }
@@ -241,5 +286,27 @@ class BloksFillFixtureTest {
         val call = (this as? ReferenceInstruction)?.reference as? MethodReference ?: return false
         return call.definingClass == "Landroid/graphics/Paint;" && call.name == "setColor" &&
             (this as FiveRegisterInstruction).registerD == register
+    }
+
+    /**
+     * Whether [code] sets a Paint's colour to the int in [register] or a plain copy of it, in code
+     * order: 587's builder copies its fill to another register first (`move/from16 v15, v16`, arm64
+     * `LX/05nv;->A02`) and paints the copy. Any other write to a register drops it.
+     */
+    private fun paintsFrom(code: List<Instruction>, register: Int): Boolean {
+        val holders = mutableSetOf(register)
+        for (instruction in code) {
+            if (holders.any { instruction.setsPaintColour(it) }) return true
+            if (!instruction.opcode.setsRegister()) continue
+            val target = (instruction as? OneRegisterInstruction)?.registerA ?: continue
+            val source = (instruction as? TwoRegisterInstruction)?.registerB
+            if (instruction.opcode in setOf(Opcode.MOVE, Opcode.MOVE_FROM16, Opcode.MOVE_16) && source in holders) {
+                holders += target
+                continue
+            }
+            holders -= target
+            if (instruction.opcode.setsWideRegister()) holders -= target + 1
+        }
+        return false
     }
 }

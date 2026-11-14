@@ -3,7 +3,6 @@ package app.hushmessenger.patches.coexist
 import app.hushmessenger.patches.MessengerTarget
 import app.hushmessenger.patches.controls.DEFAULT_STRINGS
 import app.hushmessenger.patches.controls.MANIFEST_STRINGS
-import app.hushmessenger.patches.controls.PROFILE_347215273
 import app.hushmessenger.patches.controls.RESTART_LABEL
 import app.hushmessenger.patches.controls.SETTINGS_AUTHORITY_SUFFIX
 import app.hushmessenger.patches.controls.SETTINGS_LABEL
@@ -11,7 +10,6 @@ import app.hushmessenger.patches.controls.SHORTCUT_HOST
 import app.hushmessenger.patches.controls.addSettingsEntry
 import app.hushmessenger.patches.controls.addStrings
 import app.hushmessenger.patches.controls.collectLifecycle
-import app.hushmessenger.patches.controls.controlProfileFor
 import app.hushmessenger.patches.controls.fixtureClass
 import app.hushmessenger.patches.controls.fixtureMethod
 import app.hushmessenger.patches.controls.hookId
@@ -297,7 +295,7 @@ private fun otherIntents() = fixtureMethod("LX/A5j;->BkS(Landroid/content/Contex
 """.trimIndent(), 5)
 
 /**
- * 347215273's Hatch share sheet, with the helper the other builds call inlined: one constant for Messenger's name goes
+ * 347415280's Hatch share sheet, with the helper the other builds call inlined: one constant for Messenger's name goes
  * to the installed check, the intent and the start.
  */
 private fun hatchShare() = fixtureMethod("LX/Hhn;->A00(Landroid/content/Context;)V", """
@@ -342,7 +340,7 @@ class CloneInstallPatchTest {
             TAM_AUTHORITY to "$COPY$TAM_SUFFIX", "com.facebook.orca.hush.settings" to "$COPY.hush.settings"), result.authorities)
         assertEquals("androidx.car.app.connection", manifest.elements("queries").single().getElementsByTagName("provider")
             .let { (it.item(0) as Element).getAttribute("android:authorities") })
-        // 586 asks to see Messenger itself, which for the copy is the copy. Other apps it asks for stay.
+        // Messenger asks to see itself, which for the copy is the copy. Other apps it asks for stay.
         assertEquals(listOf("com.facebook.katana", COPY), manifest.elements("queries").single().getElementsByTagName("package")
             .let { nodes -> (0 until nodes.length).map { (nodes.item(it) as Element).getAttribute("android:name") } })
 
@@ -654,21 +652,25 @@ class CloneInstallPatchTest {
 
     @Test fun eachBuildFamilyHasItsOwnPinnedSites() {
         val families = MessengerTarget.VERSION_CODES.map { expectedCloneSitesFor(it.toString()) }.toSet()
-        assertEquals(3, families.size)
+        assertEquals(4, families.size)
         assertTrue(families.all { it.size == 7 && it.count { id -> '@' in id } == 5 })
-        assertEquals(setOf("LX/Lut;-><init>()V", "LX/4MC;->A00(Ljava/lang/String;)Z",
-            "LX/38z;->A00(Landroid/content/Intent;Landroid/content/Context;)V@1",
-            "LX/90T;->A04(Landroid/os/Bundle;)LX/9UX;@228", "LX/90T;->A04(Landroid/os/Bundle;)LX/9UX;@323",
-            "LX/CbF;->onClick(Landroid/view/View;)V@81", "LX/S5L;->onClick(Landroid/view/View;)V@62"), expectedCloneSitesFor("347215273"))
-        assertEquals(expectedCloneSitesFor("347215273"), expectedCloneSitesFor("347215277"))
-        assertEquals(setOf("LX/Y7a;-><init>()V", "LX/4NY;->A00(Ljava/lang/String;)Z",
-            "LX/391;->A00(Landroid/content/Intent;Landroid/content/Context;)V@1",
-            "LX/93D;->A04(Landroid/os/Bundle;)LX/9Xq;@228", "LX/93D;->A04(Landroid/os/Bundle;)LX/9Xq;@323",
-            "LX/Cg3;->onClick(Landroid/view/View;)V@83", "LX/Jm8;->onClick(Landroid/view/View;)V@155"), expectedCloneSitesFor("347215348"))
-        assertEquals(setOf("LX/MJk;-><init>()V", "LX/4No;->A00(Ljava/lang/String;)Z",
-            "LX/39H;->A00(Landroid/content/Intent;Landroid/content/Context;)V@1",
-            "LX/947;->A05(Landroid/os/Bundle;)LX/9Z4;@186", "LX/947;->A05(Landroid/os/Bundle;)LX/9Z4;@281",
-            "LX/Cgh;->onClick(Landroid/view/View;)V@83", "LX/Jrm;->onClick(Landroid/view/View;)V@151"), expectedCloneSitesFor("347215341"))
+        assertEquals(setOf("LX/OfE;-><init>()V", "LX/4Dn;->A00(Ljava/lang/String;)Z",
+            "LX/3Ao;->A00(Landroid/content/Intent;Landroid/content/Context;)V@1",
+            "LX/8U5;->A04(Landroid/os/Bundle;)LX/9Lz;@226", "LX/8U5;->A04(Landroid/os/Bundle;)LX/9Lz;@321",
+            "LX/JOV;->onClick(Landroid/view/View;)V@71", "LX/JOi;->onClick(Landroid/view/View;)V@169"), expectedCloneSitesFor("347415280"))
+        assertEquals(expectedCloneSitesFor("347415280"), expectedCloneSitesFor("347415285"))
+        assertEquals(setOf("LX/RtJ;-><init>()V", "LX/4ER;->A00(Ljava/lang/String;)Z",
+            "LX/3Ap;->A00(Landroid/content/Intent;Landroid/content/Context;)V@1",
+            "LX/8TJ;->A04(Landroid/os/Bundle;)LX/9Lc;@226", "LX/8TJ;->A04(Landroid/os/Bundle;)LX/9Lc;@319",
+            "LX/JeJ;->onClick(Landroid/view/View;)V@71", "LX/JeW;->onClick(Landroid/view/View;)V@169"), expectedCloneSitesFor("347415354"))
+        // The main build's code under other class names: only the backup lookup and the two click classes are renamed.
+        assertEquals(expectedCloneSitesFor("347415354").map { it.replace("RtJ", "RtH").replace("JeJ", "JeI").replace("JeW", "JeV") }.toSet(),
+            expectedCloneSitesFor("347415302"))
+        assertEquals(expectedCloneSitesFor("347415302"), expectedCloneSitesFor("347415355"))
+        assertEquals(setOf("LX/Oam;-><init>()V", "LX/4Eu;->A00(Ljava/lang/String;)Z",
+            "LX/3BB;->A00(Landroid/content/Intent;Landroid/content/Context;)V@1",
+            "LX/8Uf;->A05(Landroid/os/Bundle;)LX/9Mz;@185", "LX/8Uf;->A05(Landroid/os/Bundle;)LX/9Mz;@282",
+            "LX/Jal;->onClick(Landroid/view/View;)V@71", "LX/Jaz;->onClick(Landroid/view/View;)V@169"), expectedCloneSitesFor("347415262"))
         assertFailsWith<PatchException> { expectedCloneSitesFor("347015062") }
         assertFailsWith<PatchException> { expectedCloneSitesFor("346611999") }
     }
@@ -741,8 +743,8 @@ class CloneInstallPatchTest {
             val classes: List<ClassDef> = dex.dexEntryNames.flatMap { dex.getEntry(it)!!.dexFile.classes }
             val expected = expectedCloneSitesFor(code)
             val pools = ownNamePoolKeys(classes)
-            // 347215273, 347215275 and 347215277 load Messenger's name as a constant everywhere.
-            assertEquals(if (controlProfileFor(code) === PROFILE_347215273) 0 else 1, pools.size, code)
+            // Every 587 build's two inbox clicks take Messenger's name from one string pool key (586's family B used constants).
+            assertEquals(1, pools.size, code)
             assertEquals(expected, findCloneSites(classes, pools), code)
             families += expected
             val methods = expected.map { it.substringBefore('@') }.distinct().associateWith { id ->

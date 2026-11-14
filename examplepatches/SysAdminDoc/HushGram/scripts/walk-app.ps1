@@ -59,6 +59,11 @@ param(
     [string]$KeyAlias = 'sideload',
     [AllowEmptyString()][string]$KeystorePassword,
     [AllowEmptyString()][string]$KeyPassword,
+    # A BKS key (the Morphe device keys) signs the capture APK only with its store type and the
+    # BouncyCastle provider class and jar, which apksigner needs to open it.
+    [string]$KeystoreType,
+    [string]$ProviderClass,
+    [string]$ProviderJar,
     [string]$Sdk,
     [string]$Java,
     # The checkout whose release bundle is walked, the one holding this script unless given.
@@ -169,6 +174,23 @@ function Test-WalkSettingsVisible {
     @($nodes | Where-Object { $_.GetAttribute('text') -ceq 'HushGram' }).Count -eq 1 -and
         @($nodes | Where-Object { $_.GetAttribute('resource-id') -ceq 'android:id/list' -and
             $_.GetAttribute('class') -ceq 'android.widget.ListView' }).Count -eq 1
+}
+
+function Test-WalkCategoryPage {
+    param([xml]$Document, [string]$Package, [string]$Title)
+    # With categories on (hushgram_category_pages, the default) a category opens as its own page, and the bar
+    # beside Back carries the category's name where the overview carries HushGram's. Back leaves that page.
+    $nodes = @(Get-WalkVisibleNodes -Document $Document | Where-Object { $_.GetAttribute('package') -ceq $Package })
+    $backs = @($nodes | Where-Object { $_.GetAttribute('content-desc') -ceq 'Back' -and $_.GetAttribute('clickable') -ceq 'true' })
+    if ($backs.Count -ne 1) { return $false }
+    $bar = [regex]::Match($backs[0].GetAttribute('bounds'), '^\[(-?\d+),(-?\d+)\]\[(-?\d+),(-?\d+)\]$')
+    if (-not $bar.Success) { return $false }
+    $barTop = [int]$bar.Groups[2].Value; $barBottom = [int]$bar.Groups[4].Value
+    @($nodes | Where-Object {
+        $titleBounds = [regex]::Match($_.GetAttribute('bounds'), '^\[(-?\d+),(-?\d+)\]\[(-?\d+),(-?\d+)\]$')
+        if ($_.GetAttribute('text') -cne $Title -or -not $titleBounds.Success) { return $false }
+        $middle = ([int]$titleBounds.Groups[2].Value + [int]$titleBounds.Groups[4].Value) / 2
+        $middle -ge $barTop -and $middle -le $barBottom }).Count -eq 1
 }
 
 function Get-WalkCaptureActionArea {
@@ -287,6 +309,20 @@ function Invoke-WalkApp {
             }
             [pscustomobject]@{ Capture=$Capture; Area=$area }
         }
+        function Get-WalkFlatHeadingY($Capture, [string]$Title) {
+            # With categories off a heading is a plain label. Both snapshots must hold it at one place,
+            # so a list still moving is never swiped from.
+            $places = foreach ($document in @($Capture.ParsedXml,$Capture.AfterParsedXml)) {
+                $headings = @(Get-WalkVisibleNodes -Document $document | Where-Object {
+                    $_.GetAttribute('package') -ceq $Package -and $_.GetAttribute('text') -ieq $Title })
+                if ($headings.Count -ne 1) { return $null }
+                $headingBounds = [regex]::Match($headings[0].GetAttribute('bounds'), '^\[(\d+),(\d+)\]\[(\d+),(\d+)\]$')
+                if (-not $headingBounds.Success) { return $null }
+                [int](([int]$headingBounds.Groups[2].Value + [int]$headingBounds.Groups[4].Value) / 2)
+            }
+            if (@($places).Count -ne 2 -or $places[0] -ne $places[1]) { return $null }
+            return $places[0]
+        }
         function Find-WalkSettingsSection($Destination) {
             # Preferences can be reordered. Search both directions using only the verified settings list.
             # A category heading expands its rows in place under it, so it is tapped once, never Back
@@ -295,6 +331,7 @@ function Invoke-WalkApp {
             # downward first and to its foot. The signature check still ends a search at either end.
             $directions = if ($Destination.page) { @('up','down') } else { @('down','up') }
             $swipeLimit = if ($Destination.page) { 24 } else { 400 }
+            $flatLifts = 0
             foreach ($direction in $directions) {
                 $signature = $null
                 for ($scrollIndex=0; $scrollIndex -lt $swipeLimit; $scrollIndex++) {
@@ -311,6 +348,28 @@ function Invoke-WalkApp {
                             if ($content.Valid) { return [pscustomobject]@{ Capture=$current; Expanded=$false } }
                         }
                         $section = $settled.Area
+                    }
+                    if ($Destination.page -and $null -eq $section -and $flatLifts -lt 3) {
+                        # A flat list's section can run more than a screen below its heading (Profiles in 0.0.20
+                        # on the S22), and rows only count under a visible heading. Lift a visible heading to
+                        # the top of the list slowly, starting no lower than the gesture-safe line.
+                        $headingY = Get-WalkFlatHeadingY $current $Destination.title
+                        $listBounds = Get-WalkCaptureActionArea -Capture $current -Package $Package -Scroll
+                        if ($null -ne $headingY -and $null -ne $listBounds) {
+                            $target = [int]($listBounds.Top + ($listBounds.Bottom-$listBounds.Top)*0.06)
+                            $safeLine = [int]($listBounds.Top + ($listBounds.Bottom-$listBounds.Top)*0.8)
+                            if ($headingY -gt $target + 40) {
+                                $flatLifts++
+                                $from = [Math]::Min($headingY, $safeLine)
+                                $to = [Math]::Max([int]$listBounds.Top, $from - ($headingY - $target))
+                                [void](Invoke-WalkAdb @('shell','input','swipe',[string]$listBounds.X,[string]$from,[string]$listBounds.X,[string]$to,'1000'))
+                                Start-Sleep -Milliseconds 400
+                                $current = Read-WalkSettingsCapture
+                                $content = Test-WalkDestinationContent -Destination $Destination -Document $current.ParsedXml -Package $Package
+                                if ($content.Valid) { return [pscustomobject]@{ Capture=$current; Expanded=$false } }
+                                continue
+                            }
+                        }
                     }
                     if ($null -ne $section) {
                         # A heading at the foot of the list can sit in the system's bottom gesture area, where a
@@ -424,7 +483,15 @@ function Invoke-WalkApp {
                         page=($pages -and $destination.page); anchors=$destination.anchors; headings=$destination.headings }
                     $found = Find-WalkSettingsSection $navigationDestination
                     Add-WalkObservation $destination $found.Capture
-                    if ($found.Expanded) {
+                    if ($found.Expanded -and (Test-WalkCategoryPage $found.Capture.ParsedXml $Package $destination.title)) {
+                        # The category opened as its own page. Back returns to the category list, as a person leaves it.
+                        [void](Invoke-WalkAdb @('shell','input','keyevent','KEYCODE_BACK'))
+                        Start-Sleep -Milliseconds 600
+                        $left = Read-WalkSettingsCapture
+                        if (Test-WalkCategoryPage $left.ParsedXml $Package $destination.title) {
+                            throw "The settings page '$($destination.title)' stayed open after Back."
+                        }
+                    } elseif ($found.Expanded) {
                         # Fold it again from a verified heading, so a still-open section can't lend its rows to a later one.
                         $heading = (Get-WalkSettledArea $found.Capture $destination.title).Area
                         if ($null -eq $heading) { throw "The settings section '$($destination.title)' could not be folded. Its heading was not steady on screen." }
@@ -492,6 +559,9 @@ if ($MyInvocation.InvocationName -ne '.') {
         if ([string]::IsNullOrEmpty($KeyPassword)) { $KeyPassword = $KeystorePassword }
     }
     $signing = @{ Keystore=$Keystore; KeyAlias=$KeyAlias; KeystorePassword=$KeystorePassword; KeyPassword=$KeyPassword }
+    foreach ($providerField in @('KeystoreType','ProviderClass','ProviderJar')) {
+        if ($PSBoundParameters.ContainsKey($providerField)) { $signing[$providerField] = Get-Variable -Name $providerField -ValueOnly }
+    }
     Invoke-WalkApp -Serial $Serial -ExpectedModel $ExpectedModel -ExpectedAvd $ExpectedAvd -Package $Package `
         -Visit $Visit -SkipPatch:$SkipPatch -SkipSettings:$SkipSettings -SettleSeconds $SettleSeconds `
         -SignedApk $SignedApk -Report $Report -Record $Record `

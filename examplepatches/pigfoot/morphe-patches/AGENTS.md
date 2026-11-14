@@ -166,3 +166,8 @@ consumers, pinned upstream references and non-coverage. Similar UI labels do not
 prove equivalent mechanisms. Pairip licensing is not installer spoofing, native
 VM support or server attestation.
 Pointer: [feature-comparison identity map](docs/shared-components.md#feature-comparison-identity-map).
+
+### Re-signing risk checks
+Trigger: qualifying a new app that uses Firebase/FCM push, Google or Facebook sign-in, API keys bound to a signer, payments or integrity SDKs.
+Guard: list the signer-bound dependencies before delivering a candidate and say what only the phone can verify. For Firebase, offer the signer probe to the user first: it makes external requests to Google, so run it only after a clear yes, never print the key, and report its limits and side effects. Do not claim push or sign-in works from a build or APK comparison.
+Pointer: [re-signing risk checks](docs/resign-risk-checks.md), [probe script](scripts/firebase-signer-probe.py).

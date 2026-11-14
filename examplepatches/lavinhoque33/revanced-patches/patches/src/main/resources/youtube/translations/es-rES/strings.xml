@@ -2169,7 +2169,6 @@ Para mostrar el botón de descarga nativo de la lista de reproducción, activa �
     <string name="revanced_preference_screen_misc_title">Otros</string>
     <string name="revanced_preference_screen_navigation_bar_summary">Ocultar o mostrar los componentes de la sección de la barra de navegación</string>
     <string name="revanced_preference_screen_navigation_bar_title">Barra de navegación</string>
-    <string name="revanced_preference_screen_patch_information_summary">Información sobre los parches aplicados</string>
     <string name="revanced_preference_screen_player_buttons_summary">Ocultar o mostrar botones en vídeos</string>
     <string name="revanced_preference_screen_player_buttons_title">Botones del reproductor</string>
     <string name="revanced_preference_screen_player_flyout_menu_summary">Ocultar o cambiar componentes del menú desplegable en el reproductor de vídeo</string>

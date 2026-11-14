@@ -17,11 +17,12 @@ import app.morphe.extension.shared.settings.Setting;
 /**
  * The suggested threads Threads adds under an opened post's replies.
  *
- * <p>Each page of replies Threads loads for an opened post can carry a list of related threads,
- * which it shows as cards under the replies, below a header of its own. The patch hands that list
- * to {@link #relatedThreads} as Threads reads it off the page, and with the switch on the answer is
- * empty, so Threads keeps no cards and draws neither the header nor the cards. The post, its replies
- * and their paging are left as they are.
+ * <p>Threads shows related threads as cards under an opened post's replies, below a "More threads
+ * for you" header. They come two ways: on a page of replies, and (from 455 on) from a query of
+ * their own that Threads runs beside the replies. The patch hands both lists to
+ * {@link #relatedThreads} as Threads reads them, and with the switch on the answer is empty, so
+ * Threads keeps no cards and draws neither the header nor the cards. The post, its replies and
+ * their paging are left as they are.
  *
  * <p>It's the third switch of Hide suggested users, next to the feed and profile switch and the one
  * for Search, and each works without the others. Off, paused, before the settings are ready, or a

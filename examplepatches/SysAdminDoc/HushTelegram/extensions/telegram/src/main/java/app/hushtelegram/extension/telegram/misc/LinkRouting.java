@@ -172,35 +172,52 @@ public final class LinkRouting {
         try {
             if (context == null || internal || nativeFlags == null || nativeFlags.length != 1 ||
                     nativeFlags[0] || !ordinaryHttp(uri) || protectedByTelegram(uri)) return false;
-            PackageManager manager = context.getPackageManager();
-            List<String> packages = browserPackages(manager, context.getPackageName());
-            if (packages.isEmpty()) return false;
-            String chosen = requestedPackage;
-            if (chosen != null && !chosen.isEmpty()) {
-                if (!packages.contains(chosen)) return false;
-            } else {
-                ResolveInfo selected = manager.resolveActivity(Intent.makeMainSelectorActivity(
-                        Intent.ACTION_MAIN, Intent.CATEGORY_APP_BROWSER), PackageManager.MATCH_DEFAULT_ONLY);
-                chosen = selected != null && selected.activityInfo != null ? selected.activityInfo.packageName : null;
-                if (!packages.contains(chosen)) chosen = packages.size() == 1 ? packages.get(0) : null;
-            }
-            Intent launch;
-            if (chosen != null) launch = browserIntent(context, uri, chosen);
-            else {
-                launch = Intent.createChooser(browserIntent(context, uri, packages.get(0)), null);
-                Intent[] others = new Intent[packages.size() - 1];
-                for (int i = 1; i < packages.size(); i++) others[i - 1] = browserIntent(context, uri, packages.get(i));
-                launch.putExtra(Intent.EXTRA_INITIAL_INTENTS, others);
-                if (!(context instanceof Activity)) launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            }
-            context.startActivity(launch);
-            HookStatus.counted(FamilyNames.OPEN_EXTERNAL_LINKS,
-                    chosen == null ? "browser chooser launches" : "external browser opens");
+            String opened = launchBrowser(context, uri, requestedPackage);
+            if (opened == null) return false;
+            HookStatus.counted(FamilyNames.OPEN_EXTERNAL_LINKS, opened);
             return true;
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.OPEN_EXTERNAL_LINKS, "external browser", failure);
             return false;
         }
+    }
+
+    /**
+     * Opens [uri] in a browser whatever Open links in your browser says, for a page this Telegram
+     * would only take back (a t.me link). False when no browser could take it.
+     */
+    static boolean openInBrowser(Context context, Uri uri) {
+        return launchBrowser(context, uri, null) != null;
+    }
+
+    /**
+     * Starts [uri] in [requestedPackage] when that's a browser, else in the default browser, else
+     * in a chooser of browsers. Null when none could take it; otherwise which of those it was.
+     */
+    private static String launchBrowser(Context context, Uri uri, String requestedPackage) {
+        PackageManager manager = context.getPackageManager();
+        List<String> packages = browserPackages(manager, context.getPackageName());
+        if (packages.isEmpty()) return null;
+        String chosen = requestedPackage;
+        if (chosen != null && !chosen.isEmpty()) {
+            if (!packages.contains(chosen)) return null;
+        } else {
+            ResolveInfo selected = manager.resolveActivity(Intent.makeMainSelectorActivity(
+                    Intent.ACTION_MAIN, Intent.CATEGORY_APP_BROWSER), PackageManager.MATCH_DEFAULT_ONLY);
+            chosen = selected != null && selected.activityInfo != null ? selected.activityInfo.packageName : null;
+            if (!packages.contains(chosen)) chosen = packages.size() == 1 ? packages.get(0) : null;
+        }
+        Intent launch;
+        if (chosen != null) launch = browserIntent(context, uri, chosen);
+        else {
+            launch = Intent.createChooser(browserIntent(context, uri, packages.get(0)), null);
+            Intent[] others = new Intent[packages.size() - 1];
+            for (int i = 1; i < packages.size(); i++) others[i - 1] = browserIntent(context, uri, packages.get(i));
+            launch.putExtra(Intent.EXTRA_INITIAL_INTENTS, others);
+            if (!(context instanceof Activity)) launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        }
+        context.startActivity(launch);
+        return chosen == null ? "browser chooser launches" : "external browser opens";
     }
 
     private static Intent browserIntent(Context context, Uri uri, String packageName) {

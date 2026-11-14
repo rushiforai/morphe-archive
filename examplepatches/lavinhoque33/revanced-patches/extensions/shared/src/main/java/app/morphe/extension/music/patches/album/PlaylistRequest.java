@@ -3,6 +3,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/2556
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ * Modified by lavinhoque33, 2026-11-12.
  *
  * Modified by lavinhoque33, 2026-10-24: ported to the RVX fork (shared extension module,
  * fork Logger/Utils packages, fork stream request class).
@@ -149,11 +150,11 @@ public final class PlaylistRequest {
      * Waits for the album to be fetched, and returns at once if it already is.
      * Must not be called from the main thread.
      *
-     * @return The album track at the given position, or null if the album could not be
+     * @return Album tracks indexed by position, or null if the album could not be
      *         fetched in time.
      */
     @Nullable
-    public Song awaitSong(int playlistIndex, long timeoutMilliseconds) {
+    private Song[] awaitAlbum(long timeoutMilliseconds) {
         try {
             if (!fetchCompleted.await(timeoutMilliseconds, TimeUnit.MILLISECONDS)) {
                 Logger.printDebug(() -> "Timed out waiting for album: " + playlistId);
@@ -163,12 +164,23 @@ public final class PlaylistRequest {
             Thread.currentThread().interrupt();
             return null;
         }
+        return songs;
+    }
 
-        Song[] albumSongs = songs;
+    /** The album track at this position, or null if it could not be fetched in time. */
+    @Nullable
+    public Song awaitSong(int playlistIndex, long timeoutMilliseconds) {
+        Song[] albumSongs = awaitAlbum(timeoutMilliseconds);
         if (albumSongs == null || playlistIndex < 0 || playlistIndex >= albumSongs.length) {
             return null;
         }
         return albumSongs[playlistIndex];
+    }
+
+    /** The album tracks, or an empty array if they could not be fetched in time. */
+    public Song[] awaitSongs(long timeoutMilliseconds) {
+        Song[] albumSongs = awaitAlbum(timeoutMilliseconds);
+        return albumSongs == null ? NO_SONGS : albumSongs;
     }
 
     @NonNull

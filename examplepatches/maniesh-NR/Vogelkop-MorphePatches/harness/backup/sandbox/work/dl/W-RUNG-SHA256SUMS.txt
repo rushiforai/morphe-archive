@@ -1,2 +1,0 @@
-1584a87927885ff523788704ac0df58bb8f20ef536781eb37a33cbb695ff39b3  W1-rung-universal_signed.apk
-ac83c18e43585da0705467e95fbfd87ad89931bae96753bcb2850d78f3dfecc8  W2-rung-universal_signed.apk

@@ -52,6 +52,7 @@ public final class ChatUi {
     public static void appendText(Object builder, String text, long size) {}
     public static void appendDevice(Object builder, Map<?, ?> inline, int device, long size) {}
     public static Object resizeModifier(Object modifier) { return modifier; }
+    public static Object playerInfoModifier(Object modifier) { return modifier; }
     public static float[] chatBounds(Object coordinates) { return null; }
     public static int seekToLive(Object viewModel) { return 0; }
     public static int seekBack(Object viewModel) { return 0; }

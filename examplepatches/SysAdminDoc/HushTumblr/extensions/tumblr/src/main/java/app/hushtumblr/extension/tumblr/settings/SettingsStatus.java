@@ -77,6 +77,7 @@ public final class SettingsStatus {
     public static boolean communitiesTabButton() { return false; }
     public static boolean hideBlazePrompts() { return false; }
     public static boolean blazePromptFlags() { return false; }
+    public static boolean blazeButtons() { return false; }
     public static boolean skipReviewPrompts() { return false; }
     public static boolean reviewPrompt() { return false; }
     public static boolean hideBlogNotificationReminders() { return false; }
@@ -105,6 +106,8 @@ public final class SettingsStatus {
     public static boolean postTags() { return false; }
     public static boolean hideFollowButton() { return false; }
     public static boolean followButton() { return false; }
+    public static boolean tagBlogSearch() { return false; }
+    public static boolean tagBlogLinks() { return false; }
     public static boolean hideTumblrMart() { return false; }
     public static boolean premiumDiamond() { return false; }
     public static boolean tumblrMartButtons() { return false; }
@@ -126,6 +129,8 @@ public final class SettingsStatus {
     public static boolean reblogPosts() { return false; }
     public static boolean hideOwnReblogs() { return false; }
     public static boolean ownReblogPosts() { return false; }
+    public static boolean hideReblogsOfYours() { return false; }
+    public static boolean reblogsOfYours() { return false; }
     public static boolean hideLikedPosts() { return false; }
     public static boolean likedPosts() { return false; }
     public static boolean hideVideoPosts() { return false; }

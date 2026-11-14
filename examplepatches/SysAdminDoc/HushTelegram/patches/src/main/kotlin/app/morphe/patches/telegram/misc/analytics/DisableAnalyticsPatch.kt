@@ -201,7 +201,7 @@ val disableAnalyticsPatch = bytecodePatch(
         if (ghost.missing == null) {
             ghost.apply(GHOST_MODE_DROP)
             enableCapability("ghostMode")
-            writeHeldReadSend()
+            if (writeHeldReadSend()) writeReadsMenu()
         } else {
             patchLog.warning("$PATCH: ${ghost.missing}. The patch goes on without Ghost mode.")
         }
@@ -249,10 +249,10 @@ val disableAnalyticsPatch = bytecodePatch(
 
 /**
  * Lets Ghost mode send a read it held back, after a reply or from the read receipts button (#69).
- * A build whose send can't be reached keeps Ghost mode, with held reads staying held.
+ * A build whose send can't be reached keeps Ghost mode, with held reads staying held: false then.
  */
-private fun BytecodePatchContext.writeHeldReadSend() {
-    try {
+private fun BytecodePatchContext.writeHeldReadSend(): Boolean {
+    return try {
         requireReachable(CONNECTIONS_INSTANCE, true)
         requireReachable(CONNECTIONS_SEND, false)
         writeStub(GHOST_MODE, "sendRequest", 5, """
@@ -265,9 +265,25 @@ private fun BytecodePatchContext.writeHeldReadSend() {
             const/4 v0, 0x1
             return v0
         """)
+        true
     } catch (unreachable: PatchException) {
         patchLog.warning("$PATCH: ${unreachable.message}. Ghost mode keeps held reads on the phone.")
+        false
     }
+}
+
+/**
+ * Puts Send read receipts in each chat's menu at the top, for that chat's held read (#69). A build
+ * whose chat menu moved keeps Ghost mode and the chat list's button.
+ */
+private fun BytecodePatchContext.writeReadsMenu() {
+    val site = try {
+        resolveReadsMenu(PATCH)
+    } catch (unfit: PatchException) {
+        patchLog.warning("$PATCH: ${unfit.message}. Ghost mode goes on without Send read receipts in the chat menu.")
+        return
+    }
+    installReadsMenu(site)
 }
 
 /**

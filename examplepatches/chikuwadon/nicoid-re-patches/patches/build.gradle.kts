@@ -339,7 +339,7 @@ val dev111Smali = tasks.register<JavaExec>("dev111Smali") {
 val prepareNicoidHelpers = tasks.register<Exec>("prepareNicoidHelpers") {
     // Keep the verified v2.0.0 live payload once it is committed by the release workflow.
     // Never replace it with the earlier 1.11.1-only overlay on subsequent Gradle builds.
-    onlyIf { project.version.toString() !in setOf("2.0.0", "2.0.1") }
+    onlyIf { project.version.toString() !in setOf("2.0.0", "2.0.1", "2.0.2") }
     dependsOn(dev111Smali)
     val revision = rootProject.file("porting/revisions/v1.11.1")
     val payloads = rootProject.file("patches/src/main/resources/nicoid")

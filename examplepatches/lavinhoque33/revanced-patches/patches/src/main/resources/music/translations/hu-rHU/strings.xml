@@ -111,7 +111,6 @@ SABR lejátszás (a videostreamek spoofolása kikapcsolva)"</string>
     <string name="morphe_music_crossfade_screen_title">Áttűnés</string>
     <string name="morphe_music_crossfade_session_control_summary">Az áttűnés megállításához vagy indításához tartsd nyomva a véletlenszerű lejátszás gombot</string>
     <string name="morphe_music_crossfade_session_control_title">Lejátszás kezelése</string>
-    <string name="morphe_music_crossfade_video_mode_disabled_toast">Bekapcsolt áttűnés mellett a videómód nem használható</string>
     <string name="morphe_music_deezer_arl_dialog_instruction">"Illeszd be a Deezer arl cookie-ját
 
 Lépések:
@@ -1009,4 +1008,6 @@ A megtekintett videó azonosítóját elküldjük a Return YouTube Dislike API-n
     <string name="revanced_webview_toast_empty">%s üres</string>
     <string name="revanced_webview_toast_no_network">Kérem ellenőrizze a hálózati kapcsolatot</string>
     <string name="revanced_webview_toast_unavailable">A webes nézet nem elérhető</string>
+    <string name="morphe_music_auto_song_version_title">Mindig a dalverzió lejátszása</string>
+    <string name="morphe_music_auto_song_version_summary">A sorban lévő hivatalos zenei videókat a megfelelő dalra cseréli. A „Ne játsszon le zenei videókat” alkalmazásbeállítás bekapcsolása szükséges. Pontos egyezés nélkül a számok változatlanok maradnak</string>
 </resources>

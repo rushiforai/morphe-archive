@@ -4,7 +4,7 @@ import app.morphe.patcher.Fingerprint
 
 object PremiumFingerprint : Fingerprint(
     definingClass = "Lcom/softissimo/reverso/context/CTXPreferences;",
-    name = "P",
-    returnType = "Z",
-    parameters = emptyList(),
+    name = "b1",
+    returnType = "V",
+    parameters = listOf("Z"),
 )

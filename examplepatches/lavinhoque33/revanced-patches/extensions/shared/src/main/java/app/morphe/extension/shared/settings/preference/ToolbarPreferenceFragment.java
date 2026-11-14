@@ -6,7 +6,7 @@
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
- * Modified by lavinhoque33, 2026-11-10.
+ * Modified by lavinhoque33, 2026-11-11.
  */
 
 package app.morphe.extension.shared.settings.preference;
@@ -279,7 +279,13 @@ public class ToolbarPreferenceFragment extends AbstractPreferenceFragment {
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("text/plain");
         intent.putExtra(Intent.EXTRA_TITLE, sb.toString());
-        startActivityForResult(intent, WRITE_REQUEST_CODE);
+
+        try {
+            startActivityForResult(intent, WRITE_REQUEST_CODE);
+        } catch (RuntimeException ex) {
+            showExportFailure(ex);
+            settingExportInProgress = false;
+        }
     }
 
     /**
@@ -317,8 +323,12 @@ public class ToolbarPreferenceFragment extends AbstractPreferenceFragment {
             return;
         }
 
-        if (requestCode == WRITE_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-            exportText(data.getData());
+        if (requestCode == WRITE_REQUEST_CODE) {
+            if (resultCode == Activity.RESULT_OK && data != null && data.getData() != null) {
+                exportText(data.getData());
+            } else {
+                settingExportInProgress = false;
+            }
         } else if (requestCode == READ_REQUEST_CODE && resultCode == Activity.RESULT_OK && data != null) {
             importText(data.getData());
         }
@@ -355,14 +365,18 @@ public class ToolbarPreferenceFragment extends AbstractPreferenceFragment {
             } else {
                 showToastShort(str("revanced_debug_logs_export_success"));
             }
-        } catch (IOException e) {
-            if (settingExportInProgress) {
-                showToastShort(str("revanced_settings_export_failed"));
-            } else {
-                showToastShort(String.format(str("revanced_debug_logs_failed_to_export"), e.getMessage()));
-            }
+        } catch (IOException | RuntimeException ex) {
+            showExportFailure(ex);
         } finally {
             settingExportInProgress = false;
+        }
+    }
+
+    private void showExportFailure(Exception exception) {
+        if (settingExportInProgress) {
+            showToastShort(str("revanced_settings_export_failed"));
+        } else {
+            showToastShort(String.format(str("revanced_debug_logs_failed_to_export"), exception.getMessage()));
         }
     }
 

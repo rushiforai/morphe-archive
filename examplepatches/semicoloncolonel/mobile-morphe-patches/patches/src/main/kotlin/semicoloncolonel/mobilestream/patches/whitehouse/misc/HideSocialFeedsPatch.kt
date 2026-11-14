@@ -41,6 +41,7 @@ val hideSocialFeedsPatch = bytecodePatch(
     description = "Hides the social feeds you choose in the patch options.",
     default = false,
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")

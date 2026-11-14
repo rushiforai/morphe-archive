@@ -10,13 +10,19 @@ public final class TLRPC {
 
     /** A group, as Telegram keeps a basic one. */
     public static class Chat {
+        public long id;
         public String title;
+        public String username;
+        public java.util.ArrayList<TL_username> usernames = new java.util.ArrayList<>();
         public boolean broadcast;
         public boolean megagroup;
     }
 
     /** A channel or supergroup. */
     public static class TL_channel extends Chat { }
+
+    /** A channel that banned you: Telegram sends its ID and title, and no public name. */
+    public static class TL_channelForbidden extends Chat { }
 
     public static class TL_boolTrue { }
 

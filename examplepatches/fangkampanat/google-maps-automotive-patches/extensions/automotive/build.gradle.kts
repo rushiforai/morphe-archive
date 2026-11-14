@@ -40,6 +40,22 @@ if (!Regex("https://github\\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+").matches(proje
     throw GradleException("projectUrl must be https://github.com/<owner>/<repository>, without .git or a trailing slash")
 }
 
+// The in-app update (gradle.properties): the SHA-256 of the signing certificate that an APK offered by the report
+// server must have. Empty: the app never asks the server for an APK and says to patch with Morphe Desktop.
+val apkUpdateSigner = providers.gradleProperty("apkUpdateSigner").orNull?.trim()?.lowercase().orEmpty()
+if (apkUpdateSigner.isNotEmpty()) {
+    if (!Regex("[0-9a-f]{64}").matches(apkUpdateSigner)) {
+        throw GradleException("apkUpdateSigner must be the APK certificate's SHA-256, 64 hex digits")
+    }
+}
+logger.lifecycle(
+    "Maps Car in-app update: " + when {
+        apkUpdateSigner.isEmpty() -> "off (no apkUpdateSigner)"
+        reportUrl.isEmpty() -> "off (no report server, which offers the APK)"
+        else -> "APKs signed by ${apkUpdateSigner.take(12)}… from the report server"
+    },
+)
+
 configure<ApplicationExtension> {
     namespace = "app.morphe.extension"
     compileSdk = 36
@@ -49,6 +65,7 @@ configure<ApplicationExtension> {
         buildConfigField("String", "MAPS_CAR_REPORT_URL", "\"$reportUrl\"")
         buildConfigField("String", "MAPS_CAR_REPORT_KEY", "\"$reportKey\"")
         buildConfigField("String", "MAPS_CAR_PROJECT_URL", "\"$projectUrl\"")
+        buildConfigField("String", "MAPS_CAR_APK_SIGNER", "\"$apkUpdateSigner\"")
     }
 
     buildFeatures {

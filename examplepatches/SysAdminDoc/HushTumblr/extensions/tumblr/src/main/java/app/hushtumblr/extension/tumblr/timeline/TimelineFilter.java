@@ -93,10 +93,14 @@ public final class TimelineFilter {
      * of your own Blaze dashboard, which loads through the same page. A paid Blaze post in a feed is
      * a post served as sponsored, see {@link Model#isPaidPlacement}. {@code RICH_BANNER} is the
      * server's {@code sponsored_day}, a sponsor's banner carrying ad verification beacons.
+     * {@code SINGLE_LINE_CTA} is the server's {@code single_line_cta}, the one-line promotion with a
+     * button that tag pages and search results carry between posts ("Made with WordPress" and
+     * Install, #16). Its button only opens the link it was served with.
      */
     static final Set<String> AD_TYPES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
             "GEMINI_AD", "FACEBOOK_BIDDAABLE", "NIMBUS_AD", "DISPLAY_IO_INTERSCROLLER_S2S_ADS", "VUNGLE_AD",
-            "CLIENT_SIDE_AD", "CLIENT_SIDE_MEDIATION", "DISPLAY_IO_INTERSCROLLER_AD", "GOOGLE_NATIVE", "RICH_BANNER")));
+            "CLIENT_SIDE_AD", "CLIENT_SIDE_MEDIATION", "DISPLAY_IO_INTERSCROLLER_AD", "GOOGLE_NATIVE", "RICH_BANNER",
+            "SINGLE_LINE_CTA")));
 
     /**
      * The server's {@code takeover_banner}. It's an ad when it names a sponsor. The same kind also

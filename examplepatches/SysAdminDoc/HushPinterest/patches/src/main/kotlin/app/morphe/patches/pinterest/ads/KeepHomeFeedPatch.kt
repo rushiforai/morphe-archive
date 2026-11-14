@@ -49,8 +49,8 @@ internal const val HOME_AWAY_MS = 300_000L
  * mask)`. Its 0x2 bit drops the map. Two kinds of call refresh without anyone asking:
  *
  * - The Home fragment's return check, `(J)V`, which hands the time away to the presenter's `(J, Z)V`,
- *   and that refreshes when it's more than [HOME_AWAY_MS]. The hook reads that time away in the
- *   fragment and returns early, so the presenter's check never starts.
+ *   and that refreshes when it's more than [HOME_AWAY_MS] (14.44.0 inlines that check into the
+ *   fragment). The hook reads that time away in the fragment and returns early, so the check never starts.
  * - The sticky refresh event, which the presenter's subscriber and its replay hand over with the
  *   0x2 bit clear and the event's map. Pinterest posts it with no map when Home is picked from the
  *   bottom bar after five minutes, on Back out of search results and for its server-side
@@ -103,7 +103,10 @@ val keepHomeFeedPatch = bytecodePatch(
     }
 }
 
-/** The Home fragment's `(J)V` return check: the scroll offset and the call handing the time away to the presenter. */
+/**
+ * The Home fragment's `(J)V` return check: the scroll offset and the call handing the time away to
+ * the presenter, or from 14.44.0 the presenter's check inlined into it.
+ */
 private fun BytecodePatchContext.homeResumeCheck(): MutableMethod =
     mutableClassDefBy(HOME_FEED_FRAGMENT).methods.filter { method ->
         !AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "V" &&
@@ -111,7 +114,7 @@ private fun BytecodePatchContext.homeResumeCheck(): MutableMethod =
             method.instructions().any {
                 ((it as? ReferenceInstruction)?.reference as? MethodReference)?.name == "computeVerticalScrollOffset"
             } &&
-            homeAwayCalls(method).isNotEmpty()
+            (homeAwayCalls(method).isNotEmpty() || isHomeAwayCheck(method))
     }.one("$PATCH: Home return check")
 
 /** The `(J, Z)V` instance calls in [method]: the presenter's check of the time away. */
@@ -136,11 +139,13 @@ internal fun homeRefreshCalls(method: Method): List<MethodReference> = method.in
     .distinctBy { it.toString() }
 
 private fun BytecodePatchContext.homeRefresh(resume: Method): MutableMethod {
-    val away = homeAwayCalls(resume).one("$PATCH: presenter check the return check calls")
-    val check = mutableClassDefBy(away.definingClass).methods.filter {
-        !AccessFlags.STATIC.isSet(it.accessFlags) && it.name == away.name && it.returnType == away.returnType &&
-            it.parameters() == away.parameters() && isHomeAwayCheck(it)
-    }.one("$PATCH: presenter check of the time away")
+    val check = if (isHomeAwayCheck(resume)) resume else {
+        val away = homeAwayCalls(resume).one("$PATCH: presenter check the return check calls")
+        mutableClassDefBy(away.definingClass).methods.filter {
+            !AccessFlags.STATIC.isSet(it.accessFlags) && it.name == away.name && it.returnType == away.returnType &&
+                it.parameters() == away.parameters() && isHomeAwayCheck(it)
+        }.one("$PATCH: presenter check of the time away")
+    }
     val call = homeRefreshCalls(check).one("$PATCH: refresh the presenter check calls")
     return mutableClassDefBy(call.definingClass).methods.filter {
         AccessFlags.STATIC.isSet(it.accessFlags) && it.name == call.name && it.returnType == call.returnType &&

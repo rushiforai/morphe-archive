@@ -301,6 +301,9 @@ Still scroll reels from Search and Explore	검색과 탐색에서 연 릴스는 
 With Stop Reels scrolling on, reels you open from Search, Explore, a hashtag or a place still move on when you swipe.	릴스 스크롤 정지가 켜져 있어도 검색, 탐색, 해시태그, 장소에서 연 릴스는 스와이프하면 다음으로 넘어갑니다.
 Still scroll reels from a song page	노래 페이지에서 연 릴스는 계속 스크롤
 With Stop Reels scrolling on, reels you open from a song or audio page still move on when you swipe.	릴스 스크롤 정지가 켜져 있어도 노래나 오디오 페이지에서 연 릴스는 스와이프하면 다음으로 넘어갑니다.
+# context: Reels page, a switch of its own after the three above (#656). It names the Messages page switch Swipe through a chat's reels by its label.
+Play only the reel you opened	연 릴스만 재생
+A reel you open from a post on Home, a suggested reels row or a message plays on its own. Swiping, pulling down and auto scroll won't move on to another reel, so it plays again when it ends. The Reels tab scrolls as usual. With Swipe through a chat's reels on, a chat's reels still swipe.	홈의 게시물, 추천 릴스 줄 또는 메시지에서 연 릴스는 그 릴스만 재생됩니다. 스와이프, 아래로 당기기, 자동 스크롤로 다른 릴스로 넘어가지 않으므로 끝나면 다시 재생됩니다. 릴스 탭은 평소처럼 스크롤됩니다. 채팅의 릴스 넘겨보기가 켜져 있으면 채팅의 릴스는 계속 넘겨볼 수 있습니다.
 A swipe in Reels no longer moves on to the next reel, and pulling down doesn't load new ones. The reel you opened still plays. Restart Instagram to see the change.	릴스에서 넘겨도 다음 릴스로 이동하지 않고, 아래로 당겨도 새 릴스를 불러오지 않습니다. 연 릴스는 계속 재생됩니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
 Lock a reel at 2x (hold its edge, then slide down) and the next reels play at 2x too. Slide the lock off, or hold the edge and let go, to go back to normal speed.	릴스를 2배속으로 고정하면 (릴스 가장자리를 길게 탭한 다음 아래로 밀기), 다음 릴스도 2배속으로 재생됩니다. 일반 속도로 돌아가려면 잠금 표시를 밀어서 해제하거나, 가장자리를 길게 누른 후 손을 떼세요
 Open links in external browser	외부 브라우저에서 링크 열기
@@ -339,6 +342,9 @@ Hide the Explore grid	탐색 그리드 숨기기
 Hides the grid of posts and reels under the Search tab's bar. Search, recent searches and results stay.	검색 탭 검색창 아래의 게시물과 릴스 격자를 숨깁니다. 검색, 최근 검색, 검색 결과는 그대로입니다.
 Hide suggested accounts in search	검색에서 추천 계정 숨기기
 Leaves the Suggested for you accounts out of what shows when you tap the search bar. Recent searches stay.	검색창을 누르면 나오는 화면에서 '추천 계정'을 숨깁니다. 최근 검색은 그대로입니다.
+# context: You may also like is the header Instagram's server puts on the recommended posts after search results; it isn't a fixed string in the app, so the rows describe it.
+Hide You may also like in search	검색 결과의 추천 게시물 숨기기
+Leaves out the You may also like posts Instagram adds below your search results. The results you searched for stay.	Instagram이 검색 결과 아래에 추가하는 추천 게시물을 숨깁니다. 검색한 결과는 그대로입니다.
 Messages	메시지
 Hide the notes row	메모 목록 숨기기
 Takes the row of notes off the top of your messages, the Map bubble in it too. Your chats, search and requests stay.	메시지 상단에서 메모 목록을 숨깁니다. 목록 안의 지도 버블도 함께 숨겨집니다. 채팅, 검색 및 메시지 요청은 그대로 유지됩니다
@@ -515,6 +521,9 @@ Reply with a comment's GIF	댓글의 GIF로 답글 달기
 When a comment has a GIF, its menu gets a GIF reply that sends that same GIF back as your reply, animated.	댓글에 GIF가 있으면 메뉴에 GIF 답글이 추가되어 같은 GIF를 움직이는 그대로 답글로 보냅니다
 Show a comment GIF's name	댓글 GIF 이름 표시
 When a comment has a GIF or sticker, its menu shows its name. Tap the name to copy it.	댓글에 GIF나 스티커가 있으면 메뉴에 그 이름이 표시됩니다. 이름을 탭하면 복사됩니다.
+Send saved GIFs as GIFs	저장한 GIF를 GIF로 보내기
+A comment GIF you saved with Save comment photo, picked from your gallery in the comment box, goes up right away as the same GIF, animated. Other pictures go up as before.	'댓글 사진 저장'으로 저장한 댓글 GIF를 댓글 입력창에서 갤러리로 고르면 같은 GIF가 움직이는 그대로 바로 올라갑니다. 다른 사진은 전처럼 올라갑니다.
+Couldn't send this GIF	이 GIF를 보내지 못했습니다
 GIF name	GIF 이름
 GIF name copied	GIF 이름을 복사했습니다
 Couldn't copy the GIF name	GIF 이름을 복사할 수 없습니다
@@ -766,7 +775,7 @@ Ask before a refresh	새로고침 전에 묻기
 Continue	계속
 Like or unlike this post?	이 게시물에 좋아요를 누르거나 취소할까요?
 Like or unlike this comment?	이 댓글에 좋아요를 누르거나 취소할까요?
-Asks before pulling down refreshes Home, Reels or another list. Cancel keeps what's on screen.	아래로 당겨 홈, 릴스 또는 다른 목록을 새로고침하기 전에 먼저 묻습니다. 취소하면 화면에 있는 내용이 그대로 유지됩니다.
+Asks before a pull down or another tap on its tab refreshes Home, Reels or another list. Cancel keeps what's on screen.	아래로 당기거나 탭을 다시 눌러 홈, 릴스 또는 다른 목록을 새로고침하기 전에 먼저 묻습니다. 취소하면 화면에 있는 내용이 그대로 유지됩니다.
 Skip the collections tray	컬렉션 창 건너뛰기
 Saving a post or reel shows Instagram's Saved message instead of the tray that asks you to start a collection.	게시물이나 릴스를 저장하면 컬렉션을 만들라는 창 대신 저장되었다는 Instagram 메시지만 표시됩니다.
 Refresh	새로고침
@@ -980,7 +989,12 @@ Chat %1$s	채팅 %1$s
 Hidden chats	숨긴 채팅
 Hide single chats. A hidden chat leaves your inbox and its notifications don't post until you show it here again.	채팅을 하나씩 숨깁니다. 숨긴 채팅은 받은 메시지함에서 사라지고, 여기서 다시 표시하기 전까지 알림도 울리지 않습니다.
 Double-tap Messages for hidden chats	메시지를 두 번 탭해 숨긴 채팅 열기
-Two quick taps on the Messages button, on the tab bar or at the top of Home, open your hidden chats. While a lock is on, it asks for it first. One tap opens Messages as usual.	탭 바나 홈 상단의 메시지 버튼을 빠르게 두 번 탭하면 숨긴 채팅이 열립니다. 잠금이 켜져 있으면 먼저 잠금을 확인합니다. 한 번 탭하면 평소처럼 메시지가 열립니다.
+Two quick taps on the Messages button, on the tab bar or at the top of Home, show your hidden chats in your inbox after your screen lock or PIN. Two more taps hide them again. Long press a chat to hide or unhide it. One tap opens Messages as usual.	탭 바나 홈 상단의 메시지 버튼을 빠르게 두 번 탭하면 화면 잠금이나 PIN을 확인한 뒤 받은 메시지함에 숨긴 채팅이 표시됩니다. 다시 두 번 탭하면 다시 숨겨집니다. 채팅을 길게 누르면 숨기거나 다시 표시할 수 있습니다. 한 번 탭하면 평소처럼 메시지가 열립니다.
+# context: Hide chat and Unhide chat in a chat's long press menu in the inbox (#661), and the toasts when two quick taps on Messages show the hidden chats in the inbox or hide them again
+Hide chat	채팅 숨기기
+Unhide chat	채팅 숨기기 해제
+Showing your hidden chats	숨긴 채팅을 표시합니다
+Hidden chats locked again	숨긴 채팅을 다시 잠갔습니다
 Open a chat in Instagram, then come back here to hide it.	Instagram에서 채팅을 연 다음 이곳으로 돌아와 숨기세요.
 Pinned chats	고정한 채팅
 Keeps the chats you pick at the top of your inbox. The pins stay on this phone, and Instagram's own order holds for every other chat.	고른 채팅을 받은 메시지함 맨 위에 둡니다. 고정은 이 휴대폰에만 저장되고, 나머지 채팅은 Instagram의 순서를 따릅니다.
@@ -1180,6 +1194,10 @@ Pick friends	친구 선택
 Open the Friends tab first.	먼저 친구 탭을 여세요.
 No friends to pick yet.	아직 고를 친구가 없어요.
 Applies to the next reels loaded.	다음에 불러오는 릴스부터 적용됩니다.
+Hide the Like button on reels	릴스의 좋아요 버튼 숨기기
+Takes the heart out of the column of buttons beside a reel, and the like count under it. Double tap still likes a reel.	릴스 옆 버튼 열에서 하트와 그 아래 좋아요 수를 없앱니다. 두 번 탭하면 여전히 릴스에 좋아요를 누를 수 있습니다.
+Hide the Comment button on reels	릴스의 댓글 버튼 숨기기
+Takes the Comment button out of the column of buttons beside a reel, and the count under it. The comment bar under a reel has its own switch.	릴스 옆 버튼 열에서 댓글 버튼과 그 아래 숫자를 없앱니다. 릴스 아래 댓글창은 별도의 스위치가 있습니다.
 Hide the Save button on reels	릴스의 저장 버튼 숨기기
 Burn-in guard	번인 방지
 Dim when idle	사용하지 않을 때 어둡게
@@ -1721,6 +1739,8 @@ Couldn't read that picture.	사진을 읽을 수 없습니다.
 This launcher can't add it.	이 런처는 추가할 수 없습니다.
 Glass in chats	채팅 유리 효과
 Gives a chat's top bar and message bar frosted glass and puts the back, call and video buttons on round glass circles. It shows the next time you open a chat. Needs Android 12 or newer for the blur.	채팅 상단 바와 메시지 입력 바에 반투명 유리 효과를 주고 뒤로가기, 통화, 영상 버튼을 둥근 유리 원 위에 올립니다. 다음에 채팅을 열 때부터 적용됩니다. 흐림 효과는 Android 12 이상이 필요합니다.
+Glass top bar in chats	채팅 상단 바 유리 효과
+Turn it off to leave a chat's top bar as Instagram draws it, with no frosted band behind it. The round glass buttons and the glass message bar stay.	끄면 채팅 상단 바가 Instagram 기본 모습 그대로 남고 뒤에 반투명 유리 띠가 생기지 않습니다. 둥근 유리 버튼과 유리 메시지 입력 바는 그대로 유지됩니다.
 # context: Reels switch Hide reels with few views, its summary, the Minimum views row, its dialog message and the row's summary, then the Minimum likes row, its dialog message, its summary and its summary at 0; %1$s is a number with thousands separators (#444)
 Hide reels with few views	조회수가 적은 릴스 숨기기
 Leaves out reels in the Reels tab with fewer views or likes than the numbers below. Reels from accounts you follow, reels sent to you and reels with no count still play.	조회수나 좋아요 수가 아래 숫자보다 적은 릴스를 릴스 탭에서 숨깁니다. 팔로우하는 계정의 릴스, 받은 릴스, 숫자가 없는 릴스는 그대로 재생됩니다.
@@ -1977,6 +1997,8 @@ Save in the post menu	게시물 메뉴에 저장 추가
 Adds Save to the menu behind a post's three dots, or Remove from saved when you saved it already.	게시물의 점 세 개 메뉴에 저장을 추가합니다. 이미 저장한 게시물에는 저장됨에서 삭제가 표시됩니다.
 Hide the Save button	저장 버튼 숨기기
 Takes the Save button off the bottom of posts in your feed, so a stray tap can't save one.	피드 게시물 아래쪽의 저장 버튼을 없애서 실수로 눌러 저장되는 일이 없게 합니다.
+Hide the Like button	좋아요 버튼 숨기기
+Takes the heart and the like count off the bottom of posts in your feed. Double tap still likes a post.	피드 게시물 아래쪽에서 하트와 좋아요 수를 없앱니다. 두 번 탭하면 여전히 게시물에 좋아요를 누를 수 있습니다.
 # context: the row in a feed post's three-dot menu for a post you already saved, and the row that takes an account off Saved profiles, on its profile's menu and on the Saved profiles page (#629)
 Remove from saved	저장됨에서 삭제
 # context: a switch on the Reels page
@@ -2123,6 +2145,10 @@ Takes the invite to someone's broadcast channel from under their bio. Yours keep
 Hide the other profile banners	다른 프로필 배너 숨기기
 # context: Profiles > summary of Hide the other profile banners (#627)
 Takes the rest of the banners under the bio off other people's profiles, like events, fundraisers, schools and business hours. Yours keeps them.	다른 사람 프로필의 소개 아래에 있는 나머지 배너(이벤트, 기부 캠페인, 학교, 영업시간 등)를 없앱니다. 내 프로필에는 그대로 남습니다.
+# context: Profiles > title of the switch that hides the row of links (a website, a business's links) under the bio on other people's profiles (#627)
+Hide links	링크 숨기기
+# context: Profiles > summary of Hide links (#627)
+Takes the row of links, like a website or a business's links, from under the bio on other people's profiles. Yours keeps it.	다른 사람 프로필의 소개 아래에 있는 링크 줄(웹사이트, 비즈니스 링크 등)을 없앱니다. 내 프로필에는 그대로 남습니다.
 # context: the row HushGram adds to the menu on someone's profile; it puts the account on the Saved profiles list (#629)
 Save profile	프로필 저장
 # context: toast after Save profile; %s is the account's username (#629)
@@ -2204,3 +2230,10 @@ Haptic strength	햅틱 강도
 Tap sound on the tab bar	탭 바 터치음
 A click each time the highlight moves to another tab, even with the phone's touch sounds off. Silent and vibrate mode keep it quiet.	하이라이트가 다른 탭으로 옮겨갈 때마다 딸깍 소리가 납니다. 휴대전화의 터치음이 꺼져 있어도 들리며, 무음 및 진동 모드에서는 소리가 나지 않습니다.
 Tap sound volume	터치음 음량
+Auto scroll in Home	홈 자동 스크롤
+Moves Home on to the next post by itself. A video moves on when it ends, a photo or carousel after Time on each post. Touch the screen to hold it.	홈이 저절로 다음 게시물로 넘어갑니다. 동영상은 끝나면, 사진이나 캐러셀은 게시물당 시간이 지나면 넘어갑니다. 화면을 터치하면 멈춥니다.
+Time on each post	게시물당 시간
+# context: Reels settings: switch that lets a tap on the reel shown above an open comments sheet pause or play it, and a hold play it at 2x, without closing the comments (#665)
+Control the reel above comments	댓글 위 릴스 제어
+# context: Summary of Control the reel above comments (#665)
+With a reel's comments open, tap the reel above them to pause or play it, or hold it to play at 2x. The comments stay open.	릴스 댓글이 열려 있을 때 위쪽 릴스를 탭하면 일시 정지하거나 재생하고, 길게 누르면 2배속으로 재생합니다. 댓글은 열린 채로 유지됩니다.

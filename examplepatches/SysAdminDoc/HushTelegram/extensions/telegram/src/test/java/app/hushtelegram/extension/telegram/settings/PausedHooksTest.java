@@ -323,9 +323,10 @@ public class PausedHooksTest {
         // New forwards start with the sender hidden.
         probes.put(PatchFamily.FORWARD_HIDE_SENDER, Collections.singletonList(
                 () -> app.hushtelegram.extension.telegram.misc.ForwardSenderForTests.on()));
-        // A voice message opens the full player.
-        probes.put(PatchFamily.VOICE_MUSIC_PLAYER, Collections.singletonList(
-                () -> app.hushtelegram.extension.telegram.misc.VoicePlayerForTests.voiceOpensThePlayer()));
+        // A voice message opens the full player and gets next and previous.
+        probes.put(PatchFamily.VOICE_MUSIC_PLAYER, Arrays.asList(
+                () -> app.hushtelegram.extension.telegram.misc.VoicePlayerForTests.voiceOpensThePlayer(),
+                () -> app.hushtelegram.extension.telegram.misc.VoiceSkipForTests.voiceGetsSkipButtons()));
         // A download the server didn't flag keeps Telegram's small pieces, Data Saver on a metered
         // network holds neither automatic downloads nor the download mask, and a photo nobody pressed
         // HD on and a video under 1000 MB go out at Telegram's usual quality.

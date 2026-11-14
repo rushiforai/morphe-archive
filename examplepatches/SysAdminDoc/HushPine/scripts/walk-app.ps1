@@ -296,9 +296,11 @@ function Find-WalkRow([string]$Label, [int]$Width, [int]$Height, [string]$Name, 
     # Settings rows: scroll the page to its top, then down until the row shows. HushPine's page
     # rows carry the id "title", which keeps the walk off HushPine home's quick setup buttons
     # (one of them is "Privacy", like the page). The top margin keeps it off the title bar; a
-    # row that sits right under the bar when scrolled to the top passes a smaller one.
+    # row that sits right under the bar when scrolled to the top passes a smaller one. The climb
+    # stops when the page stops moving, so its cap only has to match Invoke-WalkScrollToEnd's: an
+    # expanded Feed filter took 13 swipes down on a 720x1600 screen and 8 back up left it mid-page.
     $before = ''
-    for ($i = 0; $i -lt 8; $i++) {
+    for ($i = 0; $i -lt 40; $i++) {
         $nodes = Get-WalkScreen "$Name-top"
         $print = Get-UiFingerprint $nodes
         if ($print -ceq $before) { break }

@@ -5,6 +5,7 @@ import app.morphe.patches.music.utils.compatibility.Constants.COMPATIBILITY_YOUT
 import app.morphe.patches.music.utils.patch.PatchList.ENABLE_DEBUG_LOGGING
 import app.morphe.patches.music.utils.settings.CategoryType
 import app.morphe.patches.music.utils.settings.ResourceUtils.updatePatchStatus
+import app.morphe.patches.music.utils.settings.addCustomPreference
 import app.morphe.patches.music.utils.settings.addSwitchPreference
 import app.morphe.patches.music.utils.settings.settingsPatch
 
@@ -34,6 +35,12 @@ val debuggingPatch = resourcePatch(
             "revanced_debug_spannable",
             "false",
             "revanced_debug"
+        )
+        addCustomPreference(
+            category = CategoryType.MISC,
+            key = "revanced_debug_export_logs_to_file",
+            tag = "Preference",
+            dependencyKey = "revanced_debug"
         )
 
         updatePatchStatus(ENABLE_DEBUG_LOGGING)

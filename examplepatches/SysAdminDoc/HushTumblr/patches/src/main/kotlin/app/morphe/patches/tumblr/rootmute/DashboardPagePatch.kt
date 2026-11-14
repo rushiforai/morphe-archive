@@ -58,10 +58,10 @@ internal data class DashboardPagePlan(val delivery: MutableMethod, val wrapperCo
 
 /**
  * The filter a dashboard page passes through before Tumblr shows it, shared by Mute posts locally,
- * Hide liked posts and Hide your own reblogs. A dashboard page, a post you open, a review queue and
- * a Blaze list all come from one response, so parsing can't tell them apart. The fragment a page is
- * delivered to can, so the page is filtered there, and each card's wrapper notes what the filter
- * needs from its post as it's built.
+ * Hide liked posts, Hide your own reblogs and Hide reblogs of your posts. A dashboard page, a post
+ * you open, a review queue and a Blaze list all come from one response, so parsing can't tell them
+ * apart. The fragment a page is delivered to can, so the page is filtered there, and each card's
+ * wrapper notes what the filter needs from its post as it's built.
  */
 internal val dashboardPagePatch = bytecodePatch {
     dependsOn(tumblrExtensionPatch)

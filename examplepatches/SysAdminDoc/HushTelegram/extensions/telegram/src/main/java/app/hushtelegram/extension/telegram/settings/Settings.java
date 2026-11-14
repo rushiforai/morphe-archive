@@ -426,10 +426,6 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushtelegram_voice_music_player", FALSE);
 
     /**
-     * Videos, voice messages and music remember where they stopped, however short they are, and
-     * pick up from there the next time they play (#53).
-     */
-    /**
      * A button in a chat's selection bar that selects every message between the first and last
      * one selected, and a range that grows when a message past it is picked (#53).
      */
@@ -444,8 +440,19 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting SELECT_ALL =
             new BooleanSetting("hushtelegram_select_all", FALSE);
 
+    /**
+     * Videos, voice messages and music remember where they stopped, however short they are, and
+     * pick up from there the next time they play (#53).
+     */
     public static final BooleanSetting PLAYBACK_POSITION =
             new BooleanSetting("hushtelegram_playback_position", FALSE);
+
+    /**
+     * Next and previous in the notification, on the lock screen, on headphones and in the full
+     * player move between the voice messages of a chat, as they do between songs (#77).
+     */
+    public static final BooleanSetting VOICE_SKIP =
+            new BooleanSetting("hushtelegram_voice_skip", FALSE);
 
     /**
      * The music player's menu has Lyrics, which finds the song's words on lrclib.net and shows them

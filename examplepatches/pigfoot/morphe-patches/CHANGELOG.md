@@ -1,3 +1,15 @@
+## [0.7.0](https://github.com/pigfoot/morphe-patches/compare/v0.6.3...v0.7.0) (2026-11-13)
+
+### ✨ New Features
+
+* **kingnet:** remove ads and marketing messages for 智生活 4.20.8 ([#15](https://github.com/pigfoot/morphe-patches/issues/15)) ([44a5329](https://github.com/pigfoot/morphe-patches/commit/44a5329dee1c5962f9cfa94cf4fd469c8f7b7a4e))
+
+## [0.6.3](https://github.com/pigfoot/morphe-patches/compare/v0.6.2...v0.6.3) (2026-11-13)
+
+### 🐛 Bug Fixes
+
+* **gps:** edit the Maps key through the decoded manifest API for Patcher 2.3 ([#14](https://github.com/pigfoot/morphe-patches/issues/14)) ([43df073](https://github.com/pigfoot/morphe-patches/commit/43df073e4bac22c19c8116ee6f387e1074df8fb5))
+
 ## [0.6.2](https://github.com/pigfoot/morphe-patches/compare/v0.6.1...v0.6.2) (2026-11-13)
 
 ### 🐛 Bug Fixes

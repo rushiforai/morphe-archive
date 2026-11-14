@@ -144,6 +144,14 @@ public class PausedHooksTest {
         @Json("created_at") Date createdAt;
     }
 
+    /** 14.44.0's "More ideas for your board" card: a board's name and header over its images. */
+    static final class ProbeBoardIdeas {
+        @Json("board_id") String boardId = "4242";
+        @Json("board_name") String boardName = "Kitchen";
+        @Json("header_text") String header = "More ideas for your board";
+        @Json("image_dominant_color_rgb") List<String> colors = Collections.singletonList("#aabbcc");
+    }
+
     /** One hook with its switch on: true when it changed what Pinterest would have done. */
     interface Probe {
         boolean changedPinterest();
@@ -322,6 +330,11 @@ public class PausedHooksTest {
         // Home's request asks whether each pin is saved, which is what its pages are judged by.
         probes.put(Settings.HIDE_SAVED_PINS, Collections.singletonList(
                 () -> !"pin.{id}".equals(SavedPins.homeFields("pin.{id}"))));
+        // Home's board ideas card leaves the page, and a pin's "See more like this?" bubble is turned down.
+        probes.put(Settings.HIDE_HOME_SUGGESTIONS, Arrays.asList(() -> {
+            List<Object> page = new ArrayList<>(Arrays.asList(new ProbeBoardIdeas(), new ProbePin()));
+            return FeedFilter.filter(page).size() != page.size();
+        }, () -> UiHooks.feedbackFlyout(Boolean.TRUE) != Boolean.TRUE));
         probes.put(Settings.KEEP_HOME_FEED, Arrays.asList(() -> HomeFeed.holdResumeRefresh(10 * 60 * 1000L),
                 () -> HomeFeed.holdHomeRefresh(null, 1)));
         probes.put(Settings.DISABLE_ANALYTICS, Arrays.asList(Analytics::blockUpload,
@@ -443,6 +456,7 @@ public class PausedHooksTest {
                 () -> UiHooks.suggestedRepliesVisibility(View.INVISIBLE) != View.INVISIBLE,
                 () -> UiHooks.suggestedRepliesMeasureSpec(MEASURE_SPEC) != MEASURE_SPEC));
         probes.put(Settings.HIDE_TOPIC_SUGGESTIONS, Arrays.asList(PausedHooksTest::hidesTopicRow, PausedHooksTest::foldsTopicRow));
+        probes.put(Settings.HIDE_INBOX_UPDATES, Collections.singletonList(UiHooks::hideInboxUpdates));
         probes.put(Settings.QUIET_EMAIL_REMINDER, Collections.singletonList(UiHooks::quietEmailReminder));
         probes.put(Settings.HIDE_SURVEY_PROMPTS, Arrays.asList(UiHooks::hideSurveyPrompts, UiHooks::hideSponsoredPolls));
         probes.put(Settings.HIDE_SAVE_TOASTS, Arrays.asList(PausedHooksTest::dropsSaveToast, UiHooksForTests::quietsSavedToast));

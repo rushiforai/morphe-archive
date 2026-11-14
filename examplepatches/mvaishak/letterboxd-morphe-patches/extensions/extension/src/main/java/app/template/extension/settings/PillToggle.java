@@ -8,6 +8,7 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.animation.DecelerateInterpolator;
 
 /** A rounded pill switch: grey track when off, accent-filled when on, with a springy thumb. */
@@ -34,6 +35,7 @@ final class PillToggle extends View {
         super(c);
         this.density = c.getResources().getDisplayMetrics().density;
         setClickable(true);
+        setFocusable(true);
     }
 
     void setAccent(int argb) {
@@ -57,6 +59,7 @@ final class PillToggle extends View {
 
     void setEnabledLook(boolean value) {
         enabledLook = value;
+        setEnabled(value);
         setClickable(value);
         setAlpha(value ? 1f : 0.4f);
         invalidate();
@@ -98,7 +101,6 @@ final class PillToggle extends View {
                 return true;
             case MotionEvent.ACTION_UP:
                 setPressScale(1f);
-                toggle();
                 performClick();
                 return true;
             case MotionEvent.ACTION_CANCEL:
@@ -106,6 +108,20 @@ final class PillToggle extends View {
                 return true;
         }
         return super.onTouchEvent(event);
+    }
+
+    @Override public boolean performClick() {
+        if (!isEnabled()) return false;
+        super.performClick();
+        toggle();
+        return true;
+    }
+
+    @Override public void onInitializeAccessibilityNodeInfo(AccessibilityNodeInfo info) {
+        super.onInitializeAccessibilityNodeInfo(info);
+        info.setClassName(android.widget.Switch.class.getName());
+        info.setCheckable(true);
+        info.setChecked(checked);
     }
 
     private void toggle() {

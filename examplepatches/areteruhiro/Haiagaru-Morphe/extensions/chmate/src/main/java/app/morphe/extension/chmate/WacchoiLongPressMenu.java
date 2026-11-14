@@ -21,6 +21,23 @@ public final class WacchoiLongPressMenu {
     private static final int ITEM_ID = 75;
     private static final int SUFFIX_SEARCH_ITEM_ID = 0x7e000077;
     private static final int PREFIX_SEARCH_ITEM_ID = 0x7e000078;
+    static final int COPY_PREFIX_ITEM_ID = 0x7e00007a;
+    static final int COPY_SUFFIX_ITEM_ID = 0x7e00007b;
+    static void copyPart(Context context,String query,boolean upper){
+        String value=upper?WacchoiSuffixNg.prefix(query):WacchoiSuffixNg.suffix(query);
+        if(value==null)return;
+        android.content.ClipboardManager clipboard=(android.content.ClipboardManager)context.getSystemService(Context.CLIPBOARD_SERVICE);
+        if(clipboard==null)return;
+        clipboard.setPrimaryClip(android.content.ClipData.newPlainText(upper?"ﾜｯﾁｮｲ上4桁":"ﾜｯﾁｮｲ下4桁",value));
+        if(android.os.Build.VERSION.SDK_INT<33)android.widget.Toast.makeText(context,value+" をコピーしました",android.widget.Toast.LENGTH_SHORT).show();
+    }
+    private static Object copyCallback(Class<?> type,Context context,String query,boolean upper){
+        return java.lang.reflect.Proxy.newProxyInstance(type.getClassLoader(),new Class<?>[]{type},(proxy,method,args)->{
+            if(method.getDeclaringClass()==Object.class){if(method.getName().equals("hashCode"))return System.identityHashCode(proxy);if(method.getName().equals("equals"))return proxy==args[0];return "HaiagaruWacchoiCopy";}
+            if(method.getName().equals("invoke")&&method.getParameterTypes().length==0)copyPart(context,query,upper);
+            return null;
+        });
+    }
     private static final java.util.Map<MenuItem,Runnable> PREFIX_NG_ACTIONS=new java.util.WeakHashMap<>();
     public static boolean handlePrefixNg(Object object){
         if(!(object instanceof MenuItem)||((MenuItem)object).getItemId()!=0x7e000079)return false;
@@ -331,6 +348,13 @@ public final class WacchoiLongPressMenu {
                 Class<?> callbackType = types[types.length - 1];
                 Object callback = searchCallback(callbackType, launchContext, intent);
                 method.setAccessible(true);
+                for(boolean upper:new boolean[]{true,false}){
+                    int id=upper?COPY_PREFIX_ITEM_ID:COPY_SUFFIX_ITEM_ID;
+                    if(ResponseMenuSettings.nameMenuVisible(id)&&(upper?WacchoiSuffixNg.prefix(query):WacchoiSuffixNg.suffix(query))!=null){
+                        appendSheetItem(method,builder,hasIcon,upper?"ﾜｯﾁｮｲ上4桁をコピー":"ﾜｯﾁｮｲ下4桁をコピー",android.R.drawable.ic_menu_save,copyCallback(callbackType,launchContext,query,upper));
+                        moveLastSheetItem(builder,ResponseMenuSettings.order(id,Integer.MAX_VALUE));
+                    }
+                }
                 if (found.host != null && found.board != null) {
                     if (ResponseMenuSettings.nameMenuVisible(ITEM_ID)) {
                         appendSheetItem(method, builder, hasIcon, preferredOrderEnabled() ? "必死チェッカーもどき(ﾜｯﾁｮｲ)" : "ﾜｯﾁｮｲで検索",
@@ -488,7 +512,7 @@ public final class WacchoiLongPressMenu {
         if (!(menuObject instanceof Menu) || fragmentObject == null || responseObject == null) return;
         Menu menu = (Menu) menuObject;
         removeToolbarOnlyChoices(menu);
-        for(int id:new int[]{ITEM_ID,76,SUFFIX_SEARCH_ITEM_ID,PREFIX_SEARCH_ITEM_ID,0x7e000079})
+        for(int id:new int[]{ITEM_ID,76,SUFFIX_SEARCH_ITEM_ID,PREFIX_SEARCH_ITEM_ID,0x7e000079,COPY_PREFIX_ITEM_ID,COPY_SUFFIX_ITEM_ID})
             if(!menuVisible(id,nameMenu))menu.removeItem(id);
         SearchContext found = new SearchContext();
         // 191 stores the displayed name in n and the date/SLIP text in q.
@@ -517,6 +541,12 @@ public final class WacchoiLongPressMenu {
         if (!(activity instanceof Context)) return;
 
         final Context ngContext = (Context) activity;
+        if(nameMenu)for(boolean upper:new boolean[]{true,false}){
+            int id=upper?COPY_PREFIX_ITEM_ID:COPY_SUFFIX_ITEM_ID;
+            if(ResponseMenuSettings.nameMenuVisible(id)&&menu.findItem(id)==null&&(upper?WacchoiSuffixNg.prefix(context.query):WacchoiSuffixNg.suffix(context.query))!=null)
+                menu.add(Menu.NONE,id,ResponseMenuSettings.order(id,menu.size()),upper?"ﾜｯﾁｮｲ上4桁をコピー":"ﾜｯﾁｮｲ下4桁をコピー")
+                    .setOnMenuItemClickListener(item->{copyPart(ngContext,context.query,upper);return true;});
+        }
         if(menuVisible(0x7e000079,nameMenu)&&WacchoiSuffixNg.prefix(context.query)!=null&&menu.findItem(0x7e000079)==null){
             MenuItem upperNg=menu.add(Menu.NONE,0x7e000079,ResponseMenuSettings.order(0x7e000079,menu.size()),"ﾜｯﾁｮｲ上4桁をNG登録");
             PREFIX_NG_ACTIONS.put(upperNg,()->WacchoiSuffixNg.confirmPrefix(ngContext,context.query,context.nativeBoard));

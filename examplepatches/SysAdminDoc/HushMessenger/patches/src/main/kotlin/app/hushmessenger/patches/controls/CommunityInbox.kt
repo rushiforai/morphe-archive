@@ -452,14 +452,15 @@ private fun communitySplitKey(byType: Map<String, ClassDef>, predicate: Method, 
 internal data class CommunityLayout(val read: Int, val list: Int, val alias: Int, val moves: Int, val scratch: List<Int>)
 
 /**
- * Two pinned layouts, picked by the body's register count. 348 and 341 (21 registers) read the list into v1 at 60,
- * alias it into v17 and move the $onThreadInViewport after it, with v0 and v3 free. Family B (22 registers) inlines the
+ * Two pinned layouts, picked by the body's register count. 587's builds (21 registers) read the list into v1 at 63,
+ * alias it into v17 and move the $onThreadInViewport after it, with v0 and v3 free. 586 read it at 60, before a flag
+ * helper was inlined into the session-gated block. Family B (22 registers) inlines the
  * section builder's helpers, reads the list into v2 at 76, aliases it into v18 and moves the callback and the data key
  * after it, with v3 holding the builder and v0 and v1 free. CompatReport's communityLayout keeps the same table.
  */
 internal fun Method.communityLayout(): CommunityLayout? = if (implementation == null || AccessFlags.STATIC.isSet(accessFlags)) null
     else when (implementation!!.registerCount) {
-        21 -> CommunityLayout(60, 1, 17, 1, listOf(0, 3))
+        21 -> CommunityLayout(63, 1, 17, 1, listOf(0, 3))
         22 -> CommunityLayout(76, 2, 18, 2, listOf(0, 1))
         else -> null
     }

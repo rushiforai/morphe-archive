@@ -18,7 +18,10 @@ final class GlobalTitleSearchBoards {
     static void show(Activity activity,ArrayList<GlobalTitleSearch.Board> boards){
         SharedPreferences prefs=activity.getSharedPreferences("io.github.areteruhiro.chmate.haiagaru.ui-config",0);
         Set<String> saved=GlobalTitleSearch.selected(prefs),selected=new LinkedHashSet<>();
-        if(saved==null)for(GlobalTitleSearch.Board board:boards)selected.add(board.url);else selected.addAll(saved);
+        if(saved==null)for(GlobalTitleSearch.Board board:boards)selected.add(board.url);else{
+            Map<String,String> current=new HashMap<>();for(GlobalTitleSearch.Board board:boards)current.put(GlobalTitleSearch.identity(activity,board.url),board.url);
+            for(String url:saved)selected.add(current.getOrDefault(GlobalTitleSearch.identity(activity,url),url));
+        }
         LinearLayout root=new LinearLayout(activity);root.setOrientation(LinearLayout.VERTICAL);
         EditText search=new EditText(activity);search.setSingleLine(true);search.setHint("板名・URLで検索");root.addView(search);
         TextView count=new TextView(activity);root.addView(count);

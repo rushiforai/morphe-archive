@@ -307,7 +307,7 @@ public final class Settings {
     /** Puts the People tab back in the bar on accounts where Messenger no longer builds it. */
     static final String SHOW_PEOPLE_TAB = "tab_people_show";
     /** Bottom tabs with a switch of their own, held for the run like the Meta AI tab. */
-    static final List<String> BOTTOM_TABS = Collections.unmodifiableList(Arrays.asList("tab_people", "tab_notifications", SHOW_PEOPLE_TAB));
+    static final List<String> BOTTOM_TABS = Collections.unmodifiableList(Arrays.asList("tab_people", "tab_notifications", "tab_stories", SHOW_PEOPLE_TAB));
     /** First answer this process gave for each of {@link #BOTTOM_TABS}, by key, once the bottom bar asked. */
     static final ConcurrentHashMap<String, Boolean> bottomTabs = new ConcurrentHashMap<>();
 
@@ -384,16 +384,17 @@ public final class Settings {
     }
 
     /** Every switch that changes the bottom bar's tabs, so each one's list goes through {@link #visibleTabs}. */
-    static final List<String> TAB_CONTROLS = Collections.unmodifiableList(Arrays.asList("tab_people", "tab_notifications", "meta_ai", SHOW_PEOPLE_TAB));
+    static final List<String> TAB_CONTROLS = Collections.unmodifiableList(Arrays.asList("tab_people", "tab_notifications", "tab_stories", "meta_ai", SHOW_PEOPLE_TAB));
 
     /**
      * The switch that hides a bottom tab, by the tab's constant in Messenger's tab enum, or null for a tab with none. MUSE
-     * is the AI agent tab some accounts get in Meta AI's place, so Hide Meta AI takes it too.
+     * is the AI agent tab some accounts get in Meta AI's place, so Hide Meta AI takes it too. MONTAGE is the Stories tab.
      */
     static String barTabKey(String name) {
         switch (name) {
             case "PEOPLE": return "tab_people";
             case "JEWEL": return "tab_notifications";
+            case "MONTAGE": return "tab_stories";
             case "AI":
             case "MUSE": return "meta_ai";
             default: return null;
@@ -425,10 +426,15 @@ public final class Settings {
         owners.put(Settings.AVATAR_ROUNDED, Settings.AVATAR_SHAPE);
         for (String keep : KEEP_BADGES.values()) owners.put(keep, TAB_BADGES);
         owners.put(QuietCalls.CHOSEN_ONLY, QuietCalls.KEY);
+        owners.put(CameraActivity.ASK, CameraActivity.KEY);
         owners.put(MessageLog.SAVE_EXPIRING, MessageLog.KEY);
         owners.put(QuietChats.KEY, MessageLog.KEY);
         owners.put(MessageLogButton.KEY, MessageLog.KEY);
         owners.put(MessageLogButton.MENU_KEY, MessageLog.KEY);
+        owners.put(MessageLogButton.CHAT_KEY, MessageLog.KEY);
+        owners.put(StoryEye.KEY, StoryEye.OWNER);
+        owners.put(CallCaptions.SPEAK, CallCaptions.KEY);
+        owners.put(CallCaptions.DUCK, CallCaptions.KEY);
         SUB_SWITCHES = Collections.unmodifiableMap(owners);
     }
 
@@ -616,8 +622,10 @@ public final class Settings {
             // Square to rounded and back takes effect after a restart; only going back to circles stays in effect.
             return shape < 0 || shape == now ? null : now == AVATAR_CIRCLE;
         }
+        // Record calls and Live captions share the one audio choice native makes per run.
+        if (CallRecording.KEY.equals(key) || CallCaptions.KEY.equals(key)) return CallRecording.heldPlayout(key);
         Boolean held = "meta_ai".equals(key) ? metaAiTab : "emoji_drawer".equals(key) ? oldEmojiDrawer
-            : SEARCH_BAR.equals(key) ? keptSearchBar : LANDSCAPE.equals(key) ? landscape : OwnFont.KEY.equals(key) ? customFont : CallRecording.KEY.equals(key) ? CallRecording.heldPlayout()
+            : SEARCH_BAR.equals(key) ? keptSearchBar : LANDSCAPE.equals(key) ? landscape : OwnFont.KEY.equals(key) ? customFont
             : FLOATING_TAB_BAR.equals(key) ? floatingBar : TAB_BAR_SCROLL_AWAY.equals(key) ? scrollAwayBar : bottomTabs.get(key);
         return held == null || held == wouldUse(key) ? null : held;
     }
@@ -854,8 +862,10 @@ public final class Settings {
     public static boolean tabBarOverlay(int stock) { return stock != 0 || heldTabBar(TAB_BAR_SCROLL_AWAY); }
 
     /**
-     * The Chats page's answer on whether the tab bar slides away while its list scrolls. It follows the overlay's held
-     * answer, or the switch itself when Messenger chose the overlay on its own and never asked.
+     * The Chats page's two answers on the tab bar sliding away (how far it may go, and whether a scroll may move it at
+     * all), and the bar's own check as each scroll starts, which Messenger only fills in for the floating pill, from its
+     * own overlay flag. Each follows the overlay's held answer, or the switch itself when Messenger chose the overlay on
+     * its own and never asked.
      */
     public static boolean tabBarScrollAway(int stock) {
         if (stock != 0) return true;
@@ -1417,6 +1427,11 @@ public final class Settings {
             Context context = appContext;
             return context == null || GalleryPicker.screenIntent(context) != null;
         }
+        // The same for the Instants pick screen.
+        if (InstantGallery.KEY.equals(key)) {
+            Context context = appContext;
+            return context == null || InstantGallery.screenIntent(context) != null;
+        }
         // A Root Mount install keeps the stock manifest, with no search screen.
         if (LocalChatSearch.KEY.equals(key)) {
             Context context = appContext;
@@ -1426,6 +1441,10 @@ public final class Settings {
         if (HIDE_ICON_SHORTCUTS.equals(key) || HIDE_LOGO_PRESS.equals(key)) return anotherWayIn(key);
         // Android 9 lets no app add to the shared Recordings or Music folders without the storage permission.
         if (VoiceMessages.KEY.equals(key) || SaveVoiceMenu.KEY.equals(key) || CallRecording.KEY.equals(key)) return Build.VERSION.SDK_INT >= 29;
+        // Windows blur what's behind them from Android 12.
+        if (MenuBlur.KEY.equals(key)) return Build.VERSION.SDK_INT >= 31;
+        // An app can feed the phone's recognizer its own sound from Android 13.
+        if (CallCaptions.KEY.equals(key)) return Build.VERSION.SDK_INT >= 33;
         if (!"bubbles".equals(key)) return true;
         if (Build.VERSION.SDK_INT < 30) return false;
         if (!HostScreens.started) HostScreens.initializeLate();
@@ -1509,6 +1528,20 @@ public final class Settings {
     }
     public static boolean keepUnsent() { return wouldUse("keep_unsent"); }
     public static boolean viewStoriesAnonymously() { return enabled("anonymous_stories"); }
+
+    /**
+     * View stories anonymously's gate in the story mark-read handler: true keeps the seen from going out. The card it
+     * held goes to the Mark as seen button (#169), whose tap runs the same handler while this lets it through.
+     */
+    public static boolean holdStorySeen(Object handler, Object card, int flag) {
+        if (StoryEye.replaying() || !viewStoriesAnonymously()) return false;
+        try {
+            StoryEye.hold(handler, card, flag != 0);
+        } catch (RuntimeException error) {
+            hookFailed("anonymous_stories", "Can't keep the story for the Mark as seen button", error);
+        }
+        return true;
+    }
     public static boolean saveAnyStory() { return enabled("save_stories"); }
 
     /** Story cards read on this phone, as "account:card:time kept". A story is up for a day; each entry lasts two. */

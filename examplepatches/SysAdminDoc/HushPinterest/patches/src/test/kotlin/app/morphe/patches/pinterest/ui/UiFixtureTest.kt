@@ -18,6 +18,7 @@ import app.morphe.patches.pinterest.misc.extension.SETTINGS_STATUS
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.BuilderInstruction
+import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
@@ -58,13 +59,16 @@ class UiFixtureTest {
     private val patches = listOf(
         hideScreenshotSharePatch, hideAssistantPatch, hideSearchHistoryPatch, hideNavigationButtonsPatch, hideHeaderButtonsPatch,
         hidePinMenuItemsPatch, hideCommentsPatch, quietEmailReminderPatch, disableUpdateNagPatch, amoledBlackPatch,
+        hideInboxUpdatesPatch,
     )
     private val flags = listOf(
         "hideScreenshotShare" to "screenshotShare", "hideAssistant" to "assistantEntries", "hideSearchHistory" to "searchHistory",
         "hideNavigationButtons" to "navigationButtons", "hideHeaderButtons" to "headerButtons",
         "hidePinMenuItems" to "pinMenuItems", "hideComments" to "comments",
         "quietEmailReminder" to "emailReminder", "disableUpdateNag" to "updateNag",
-        "amoledBlack" to "blackBottomBar", "amoledBlack" to "blackComments", "amoledBlack" to "blackPinMenu",
+        "amoledBlack" to "blackBottomBar", "hideInboxUpdates" to "inboxUpdates",
+        // Capabilities past here have no patch of their own at the same index.
+        "amoledBlack" to "blackComments", "amoledBlack" to "blackPinMenu",
         "hideSearchHistory" to "recentSearchRows", "hideSearchHistory" to "recentSearchHeading",
         "hideComments" to "suggestedReplies",
     )
@@ -82,12 +86,22 @@ class UiFixtureTest {
             assertFlag(rejectedComments, "hideComments", false)
             assertFlag(rejectedComments, "comments", false)
             val context = PatchContexts.of(ExtensionDex.classes() + classes)
+            val inbox = context.inboxUpdates()
             val warnings = PatchLogCapture.warnings { patches.forEach { it.execute(context) } }
             assertEquals("${build.name} warnings", emptyList<String>(), warnings)
             for ((family, capability) in flags) {
                 assertFlag(context, family, true)
                 assertFlag(context, capability, true)
             }
+            // The Inbox asks the hook right before it adds Updates, and a yes jumps past that one call.
+            val sections = context.mutable(inbox.presenter).instructions()
+            val inboxAsked = sections.indexOfFirst { (it as? ReferenceInstruction)?.reference?.toString() == INBOX_UPDATES_HOOK }
+            assertEquals("${build.name}: the Inbox hook", inbox.addAt, inboxAsked)
+            assertEquals(build.name, listOf(Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.IF_NEZ, Opcode.INVOKE_VIRTUAL),
+                sections.subList(inboxAsked, inboxAsked + 4).map { it.opcode })
+            assertEquals("${build.name}: the Inbox hook skips more than the Updates call", inboxAsked + 4,
+                sections.indexOf((sections[inboxAsked + 2] as BuilderOffsetInstruction).target.location.instruction))
+            assertEquals(build.name, sections.size, inbox.presenter.instructions().size + 3)
             for (type in SEARCH_HISTORY_VIEWS + COMMENT_PREVIEW + commentsModules.map { it.type }) {
                 val view = context.mutableClassDefBy(type)
                 for (name in listOf("setVisibility", "onMeasure")) {
@@ -526,12 +540,15 @@ class UiFixtureTest {
     private fun read(build: File): List<ClassDef> {
         val anchors = setOf("sg_android_new_screenshot_api_14", "ai_fwd_android_assistant_ask_mode", "BottomNavTabModel(type=",
             "BottomNavBar tab insertion out of range", "confirmEmailButton", "inAppUpdateManager",
-            "unifiedCommentsModulePresenterFactory", "CommentsZone(isVisible=")
+            "unifiedCommentsModulePresenterFactory", "CommentsZone(isVisible=", INBOX_UPDATES_FEED)
         val required = (SEARCH_HISTORY_VIEWS + TYPEAHEAD_ROW + COMMENT_PREVIEW + COMMENTS_QUICK_REPLIES + HEADER_BAR + BOTTOM_BAR +
             BLUR_VIEW + PIN_MENU + "Lcom/pinterest/activity/pin/view/modules/PinCloseupVideoModule;").toSet()
         val found = mutableMapOf<String, ClassDef>()
+        // Every class with a section adder, kept below only when it holds the Updates feed.
+        val adders = mutableListOf<ClassDef>()
         FixtureDex.forEach(build) { dex ->
             for (owner in dex.classes) {
+                if (owner.methods.any { it.name == INBOX_ADD_SECTIONS }) adders += ImmutableClassDef.of(owner)
                 val match = owner.type in required || owner.isCommentsModule() || owner.methods.any { it.buildsRecentSearchCell() } ||
                     (owner.superclass == "Ljava/lang/Enum;" && owner.fields.map { it.name }
                         .containsAll(listOf("HOME", "PROFILE", "CREATE", "NOTIFICATIONS"))) ||
@@ -542,6 +559,10 @@ class UiFixtureTest {
                 if (match) found[owner.type] = ImmutableClassDef.of(owner)
             }
         }
+        // The Inbox presenter is the section adder holding the Updates feed, found above by its endpoint.
+        val feeds = found.values.filter { owner -> owner.methods.any { it.name == "<init>" && INBOX_UPDATES_FEED in it.strings() } }
+            .map { it.type }.toSet()
+        adders.filter { owner -> owner.fields.any { it.type in feeds } }.forEach { found[it.type] = it }
         // The greeting header's ids class, which Hide navigation buttons checks for Create's id.
         found += FixtureDex.classes(build, found.values.flatMap { it.methods }.flatMap { it.fields() }
             .filter { it.name == GREETING_NEWSHUB }.map { it.definingClass }.toSet() - found.keys)

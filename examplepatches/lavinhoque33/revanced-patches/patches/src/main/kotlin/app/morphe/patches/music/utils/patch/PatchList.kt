@@ -5,6 +5,10 @@ internal enum class PatchList(
     val summary: String,
     var included: Boolean? = false
 ) {
+    PATCHES_UPDATE_NOTICE(
+        "Patches update notice",
+        "Notifies about newer fork patches and opens Manager to re-patch. Does not download APKs."
+    ),
     APP_REFRESH_RATE(
         "App refresh rate",
         "Adds an option to change the app refresh rate."

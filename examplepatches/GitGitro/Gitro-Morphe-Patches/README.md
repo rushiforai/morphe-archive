@@ -12,7 +12,7 @@ Patches for fun/to learn, nothing serious
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.1.0](https://github.com/GitGitro/Gitro-Morphe-Patches/releases/tag/v1.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;13 patches total
+> **[v1.2.0](https://github.com/GitGitro/Gitro-Morphe-Patches/releases/tag/v1.2.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;15 patches total
 <details open>
 <summary>📦 AI Detector&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -35,7 +35,7 @@ Patches for fun/to learn, nothing serious
 
 **🎯 Supported versions:**
 
-| 4.4.1-NRS.V4 |
+| 4.5.1-NRS.V5 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -52,7 +52,7 @@ Patches for fun/to learn, nothing serious
 
 **🎯 Supported versions:**
 
-| 2.1.1 |
+| 3.0.1 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -68,7 +68,7 @@ Patches for fun/to learn, nothing serious
 
 **🎯 Supported versions:**
 
-| 2.3 |
+| 2.3.3 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -94,12 +94,27 @@ Patches for fun/to learn, nothing serious
 </details>
 
 <details open>
+<summary>📦 Sticker Maker&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 1.0.12-7 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock Premium](#unlock-premium) | Unlocks Sticker Maker premium. |  |
+
+</details>
+
+<details open>
 <summary>📦 Reverso Context&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 16.5.0 |
+| 17.2.0 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -129,12 +144,27 @@ Patches for fun/to learn, nothing serious
 
 **🎯 Supported versions:**
 
-| 0.5.6 |
+| 0.7.3 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Unlock premium](#unlock-premium) | Unlocks premium features. |  |
+
+</details>
+
+<details open>
+<summary>📦 Monitee&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 0.42.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock pro](#unlock-pro) | Unlocks pro features |  |
 
 </details>
 

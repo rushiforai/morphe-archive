@@ -42,8 +42,8 @@ private const val KIND = "LX/50e;"
 private const val SHEET = "LX/619;"
 private const val SHEET_TAP = "LX/6UH;"
 private const val HOLD_TYPE = "LX/ANe;"
-private const val HOLD = "LX/5OQ;"
 private const val ROW_MODEL = "LX/6mm;"
+private const val MODEL_GETTER = "$HOLD_TYPE->BK8()$ROW_MODEL"
 private const val AUDIO_MESSAGE = "LX/5HS;"
 private const val CASTER = "LX/COq;"
 private const val LISTENER = "LX/F3N;"
@@ -73,16 +73,19 @@ private val ROWS_BODY = """
 """.trimIndent()
 
 private val TAP_BODY = """
-    move-object/from16 v3, v20
     move-object/from16 v4, v22
-    iget v0, v3, $TAP_OWNER->A01:I
+    const/4 v2, 0x0
     move-object/from16 v11, v21
-    const/4 v1, 0x0
-    if-eqz v0, :other
     const-string v0, "$MENU_TAP_NAME"
-    iget-object v3, v3, $TAP_OWNER->A00:$OBJECT
-    check-cast v3, $HANDLER
+    move-object/from16 v3, v20
+    iget-object v1, v3, $TAP_OWNER->A00:$HANDLER
+    instance-of v0, v4, Landroid/os/Bundle;
+    if-eqz v0, :other
+    check-cast v4, Landroid/os/Bundle;
     const-string v0, "$MENU_ROW_MESSAGE"
+    invoke-virtual {v4, v0}, Landroid/os/Bundle;->getParcelable(Ljava/lang/String;)Landroid/os/Parcelable;
+    move-result-object v12
+    check-cast v12, $MESSAGE
     const/4 v0, 0x1
     return v0
     :other
@@ -128,8 +131,8 @@ private val SHEET_BODY = """
     move-object/from16 v5, v20
     move-object/from16 v4, v23
     move-object v0, v4
-    check-cast v0, $HOLD
-    iget-object v0, v0, $HOLD->A00:$ROW_MODEL
+    invoke-interface {v0}, $MODEL_GETTER
+    move-result-object v0
     if-eqz v5, :none
     new-instance v8, $PARAMS_BUILDER
     invoke-direct {v8}, $PARAMS_BUILDER-><init>()V
@@ -164,8 +167,8 @@ private val SHEET_TAP_BODY = """
 """.trimIndent()
 
 private val CASTER_BODY = """
-    check-cast v0, $HOLD
-    iget-object v9, v0, $HOLD->A00:$ROW_MODEL
+    invoke-interface {v10}, $MODEL_GETTER
+    move-result-object v9
     const-string v0, "$AUDIO_MESSAGE_CAST"
     invoke-static {v9, v0}, LX/Zkv;->A0n($OBJECT${'L'}java/lang/String;)V
     move-object v8, v9
@@ -173,7 +176,7 @@ private val CASTER_BODY = """
     return-void
 """.trimIndent()
 
-// 586's reader takes the message and a name, no session, and asks the classifier's static step itself.
+// 587's reader takes the message and a name, no session, and asks the classifier's static step itself.
 private val READ_AUDIO = "$READER->A0A(${MESSAGE}Ljava/lang/String;)$MENU_AUDIO_DATA"
 private val CLASSIFY = "$CLASSIFIER->A00($CLASSIFIER$MESSAGE)$KIND"
 private val ASK = "$CLASSIFIER->A01($FB_USER_SESSION$MESSAGE)$KIND"
@@ -209,8 +212,8 @@ private fun constructor(owner: String, parameters: String = "", registers: Int =
 
 private fun rowsMethod(body: String = ROWS_BODY) = fixtureMethod(MENU_ROWS_CTOR, body, 7)
 private fun tapMethod(id: String = MENU_TAP, body: String = TAP_BODY, flags: Int = PUBLIC) = fixtureMethod(id, body, 23, flags)
-private fun tapClass(method: Method = tapMethod(), fieldFlags: Int = PUBLIC, flags: Int = PUBLIC) =
-    fixtureClass(TAP_OWNER, listOf(method), extraFields = listOf(field(TAP_OWNER, "A00", OBJECT, fieldFlags), field(TAP_OWNER, "A01", "I")), flags = flags)
+private fun tapClass(method: Method = tapMethod(), fieldFlags: Int = PUBLIC, flags: Int = PUBLIC, handler: String = HANDLER) =
+    fixtureClass(TAP_OWNER, listOf(method), extraFields = listOf(field(TAP_OWNER, "A00", handler, fieldFlags)), flags = flags)
 private fun handlerClass(sessionFlags: Int = PUBLIC, flags: Int = PUBLIC, sessions: Int = 1) = fixtureClass(HANDLER, extraFields = (0 until sessions).map {
     field(HANDLER, "A0h$it", FB_USER_SESSION, sessionFlags)
 }, flags = flags)
@@ -244,7 +247,7 @@ private fun sheetBuilderClass(addFlags: Int = PUBLIC) = fixtureClass(PARAMS_BUIL
 private fun sheetTapMethod(body: String = SHEET_TAP_BODY, registers: Int = 8) = fixtureMethod(MENU_SHEET_TAP, body, registers)
 private fun sheetTapClass(method: Method = sheetTapMethod(), fieldFlags: Int = PUBLIC, flags: Int = PUBLIC) = fixtureClass(SHEET_TAP, listOf(method, constructor(SHEET_TAP)),
     extraFields = listOf(field(SHEET_TAP, "A01", OBJECT, fieldFlags), field(SHEET_TAP, "A03", OBJECT), field(SHEET_TAP, "${'$'}t", "I")), flags = flags)
-private fun holdClass(modelFlags: Int = PUBLIC) = fixtureClass(HOLD, extraFields = listOf(field(HOLD, "A00", ROW_MODEL, modelFlags)))
+private fun holdClass(modelFlags: Int = PUBLIC) = fixtureClass(HOLD_TYPE, listOf(fixtureMethod(MODEL_GETTER, "const/4 v0, 0x0\nreturn-object v0", 2, modelFlags)))
 private fun audioMessageClass(uriFlags: Int = PUBLIC, uris: Int = 1, flags: Int = PUBLIC) = fixtureClass(AUDIO_MESSAGE,
     extraFields = (0 until uris).map { field(AUDIO_MESSAGE, "A0$it", URI, uriFlags) }, flags = flags)
 private fun casterClass(body: String = CASTER_BODY) = fixtureClass(CASTER, listOf(fixtureMethod("$CASTER->A00($HOLD_TYPE)V", body, 11, PUBLIC_STATIC)))
@@ -291,7 +294,7 @@ class SaveVoiceMenuTest {
         assertEquals("$ITEM_BUILDER->A07:Ljava/lang/String;", recipe.builderTag)
         assertEquals("$MENU_ITEM->A03:I", recipe.itemId)
         assertEquals(ICON, recipe.icon)
-        assertEquals("$TAP_OWNER->A00:$OBJECT", recipe.tapHandler)
+        assertEquals("$TAP_OWNER->A00:$HANDLER", recipe.tapHandler)
         assertEquals(HANDLER, recipe.handler)
         assertEquals("$HANDLER->A0h0:$FB_USER_SESSION", recipe.session)
         assertEquals(AUDIO_FETCHER, recipe.fetcher)
@@ -315,8 +318,8 @@ class SaveVoiceMenuTest {
         assertEquals("$SHEET_TAP->A01:$OBJECT", recipe.heldField)
         assertEquals(SHEET, recipe.sheetClass)
         assertEquals("$SHEET->A010:$FB_USER_SESSION", recipe.sheetSession)
-        assertEquals(HOLD, recipe.holdClass)
-        assertEquals("$HOLD->A00:$ROW_MODEL", recipe.rowModel)
+        assertEquals(HOLD_TYPE, recipe.holdClass)
+        assertEquals(MODEL_GETTER, recipe.rowModel)
         assertEquals(AUDIO_MESSAGE, recipe.audioMessage)
         assertEquals("$AUDIO_MESSAGE->A00:$URI", recipe.audioMessageUri)
     }
@@ -333,6 +336,7 @@ class SaveVoiceMenuTest {
             "a tap that overwrites its item first" to saveVoiceMenuFixture(tapClass(tapMethod(body = "const/16 v21, 0x0\n$TAP_BODY"))),
             "a tap with no free register" to saveVoiceMenuFixture(tapClass(tapMethod().starved())),
             "a tap that keeps its handler private" to saveVoiceMenuFixture(tapClass(fieldFlags = privateField)),
+            "a tap whose handler could be anything" to saveVoiceMenuFixture(tapClass(tapMethod(body = changed(TAP_BODY, "A00:$HANDLER", "A00:$OBJECT")), handler = OBJECT)),
             "a tap in a private class" to saveVoiceMenuFixture(tapClass(flags = 0)),
             "a private account" to saveVoiceMenuFixture(handlerClass(sessionFlags = privateField)),
             "two accounts" to saveVoiceMenuFixture(handlerClass(sessions = 2)),
@@ -382,8 +386,10 @@ class SaveVoiceMenuTest {
             "a sheet tap that keeps the hold private" to saveVoiceMenuFixture(sheetTapClass(fieldFlags = privateField)),
             "a sheet tap in a private class" to saveVoiceMenuFixture(sheetTapClass(flags = 0)),
             "no place that takes a voice message" to saveVoiceMenuFixture().filter { it.type != CASTER },
-            "a voice message cast with no row model" to saveVoiceMenuFixture(casterClass(changed(CASTER_BODY, "iget-object v9, v0, $HOLD->A00:$ROW_MODEL", "move-object v9, v0"))),
-            "a row model the sheet doesn't read" to saveVoiceMenuFixture(sheetClass(sheetMethod(changed(SHEET_BODY, "iget-object v0, v0, $HOLD->A00:$ROW_MODEL\n", "")))),
+            "a voice message cast with no row model" to saveVoiceMenuFixture(casterClass(changed(CASTER_BODY, "invoke-interface {v10}, $MODEL_GETTER\nmove-result-object v9", "move-object v9, v10"))),
+            "a row model read off a field" to saveVoiceMenuFixture(casterClass(changed(CASTER_BODY, "invoke-interface {v10}, $MODEL_GETTER\nmove-result-object v9",
+                "iget-object v9, v10, $HOLD_TYPE->A00:$ROW_MODEL"))),
+            "a row model the sheet doesn't read" to saveVoiceMenuFixture(sheetClass(sheetMethod(changed(SHEET_BODY, "invoke-interface {v0}, $MODEL_GETTER\nmove-result-object v0\n", "")))),
             "a voice message cast with nothing cast" to saveVoiceMenuFixture(casterClass(changed(CASTER_BODY, "check-cast v8, $AUDIO_MESSAGE\n", ""))),
             "a private row model" to saveVoiceMenuFixture(holdClass(privateField)),
             "a voice message with no Uri" to saveVoiceMenuFixture(audioMessageClass(uris = 0)),
@@ -418,8 +424,13 @@ class SaveVoiceMenuTest {
     @Test fun twoTapsAreTooManyToTrust() {
         val other = "LX/9qS;"
         val second = fixtureClass(other, listOf(tapMethod(MENU_TAP.replace(TAP_OWNER, other), TAP_BODY.replace(TAP_OWNER, other))),
-            extraFields = listOf(field(other, "A00", OBJECT), field(other, "A01", "I")))
+            extraFields = listOf(field(other, "A00", HANDLER)))
         assertEquals(emptySet(), found(saveVoiceMenuFixture() + second))
+    }
+
+    @Test fun aModelAskedForThroughARangeCallStillCounts() {
+        val caster = casterClass(changed(CASTER_BODY, "invoke-interface {v10}, $MODEL_GETTER", "invoke-interface/range {v10 .. v10}, $MODEL_GETTER"))
+        assertEquals(MODEL_GETTER, assertNotNull(resolveSaveVoiceMenu(saveVoiceMenuFixture(caster))).rowModel)
     }
 
     @Test fun anotherMethodThatOnlyLooksLikeTheTapIsLeftAlone() {
@@ -428,7 +439,7 @@ class SaveVoiceMenuTest {
         assertEquals(setOf(MENU_ROWS_CTOR, MENU_TAP, MENU_SHEET, MENU_SHEET_TAP), found(saveVoiceMenuFixture() + named))
     }
 
-    /** 586 family B's string pool, cut down to the menu Bundle's two keys under 0x26f and 0x270. */
+    /** A Redex string pool like 587's, cut down to the menu Bundle's two keys under 0x26f and 0x270. */
     private val rowPool = "LX/6pu;->A00(I)Ljava/lang/String;"
     private fun rowPoolClass(key: String = MENU_ROW_MESSAGE) = fixtureClass("LX/6pu;", listOf(fixtureMethod(rowPool, """
         packed-switch p0, :keys
@@ -447,18 +458,14 @@ class SaveVoiceMenuTest {
         .end packed-switch
     """.trimIndent(), 1, PUBLIC_STATIC)))
 
-    /** The tap as family B reads its Bundle: the key from the pool, and the message straight out by it. */
+    /** The tap as the pooled builds read its Bundle: the key from the pool, then the message by it. */
     private fun pooledTapBody(key: Int = 0x270) = changed(TAP_BODY, "const-string v0, \"$MENU_ROW_MESSAGE\"", """
-        check-cast v4, Landroid/os/Bundle;
         const/16 v0, $key
         invoke-static {v0}, $rowPool
         move-result-object v0
-        invoke-virtual {v4, v0}, Landroid/os/Bundle;->getParcelable(Ljava/lang/String;)Landroid/os/Parcelable;
-        move-result-object v12
-        check-cast v12, $MESSAGE
     """.trimIndent())
 
-    @Test fun familyBsTapTakesItsBundleKeyFromAStringPool() {
+    @Test fun aTapCanTakeItsBundleKeyFromAStringPool() {
         val tap = tapClass(tapMethod(body = pooledTapBody()))
         assertEquals(setOf(MENU_ROWS_CTOR, MENU_TAP, MENU_SHEET, MENU_SHEET_TAP), found(saveVoiceMenuFixture(tap) + rowPoolClass()))
         validateControls(mirroredControls(saveVoiceMenuFixture(tap) + rowPoolClass()), setOf(SAVE_VOICE_MENU))
@@ -528,9 +535,9 @@ class SaveVoiceMenuTest {
         assertEquals(1, (code[at + 3] as NarrowLiteralInstruction).narrowLiteral, "Ours counts as handled")
         assertEquals(Opcode.RETURN, code[at + 4].opcode)
         assertEquals(MENU_TAP_NAME, code[at + 5].reference())
-        // The branch that isn't this menu's still skips all of it.
-        val skip = code.indexOfFirst { it.opcode == Opcode.IF_EQZ }
-        assertTrue(skip < at)
+        // Messenger's own check that there's a Bundle still goes to its own way out.
+        val skip = code.indexOfLast { it.opcode == Opcode.IF_EQZ }
+        assertTrue(skip > at + 5)
         assertEquals(code.indexOfLast { it.opcode == Opcode.CONST_4 }, code.branchTarget(skip))
     }
 
@@ -608,7 +615,7 @@ class SaveVoiceMenuTest {
         assertEquals(listOf(PARAMS_BUILDER, MENU_ITEM, recipe.addRow), built(SAVE_VOICE_MENU_ADD_ROW))
         assertEquals(listOf(SHEET_TAP, recipe.heldField), built(SAVE_VOICE_MENU_HELD))
         assertEquals(listOf(SHEET_TAP, recipe.sheetField, SHEET, recipe.sheetSession), built(SAVE_VOICE_MENU_SHEET_SESSION))
-        assertEquals(listOf(HOLD, HOLD, recipe.rowModel, AUDIO_MESSAGE, AUDIO_MESSAGE, recipe.audioMessageUri), built(SAVE_VOICE_MENU_VOICE_URI))
+        assertEquals(listOf(HOLD_TYPE, HOLD_TYPE, recipe.rowModel, AUDIO_MESSAGE, AUDIO_MESSAGE, recipe.audioMessageUri), built(SAVE_VOICE_MENU_VOICE_URI))
         assertEquals(listOf(AUDIO_FETCHER, "$AUDIO_FETCHER-><init>()V", FB_USER_SESSION, AUDIO_REQUEST, "$AUDIO_REQUEST-><init>(Z$URI)V", VOICE_DOWNLOAD), built(SAVE_VOICE_MENU_FETCH_URI))
     }
 
@@ -635,7 +642,7 @@ class SaveVoiceMenuTest {
         val fetch = saveVoiceMenuBuilder(saveVoiceMenuStub(SAVE_VOICE_MENU_FETCH), recipe)
         val code = fetch.code()
         val read = code.indexOfFirst { it.reference() == READ_AUDIO }
-        // The reader, the message (p1) and the null name, as many as 586's reader takes with its receiver.
+        // The reader, the message (p1) and the null name, as many as 587's reader takes with its receiver.
         assertEquals(listOf(1, fetch.implementation!!.registerCount - 1, 2), code[read].arguments())
         assertEquals(0, (code[read - 1] as NarrowLiteralInstruction).narrowLiteral)
     }

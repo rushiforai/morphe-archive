@@ -14,6 +14,7 @@ val showSensitiveMediaPatch = bytecodePatch(
     description = "Shows media in posts marked sensitive without blurring it first.",
     default = false,
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

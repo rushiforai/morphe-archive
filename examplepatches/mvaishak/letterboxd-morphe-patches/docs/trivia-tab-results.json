@@ -1,0 +1,1023 @@
+{
+  "benchmarkBeforeFinalReview": {
+    "Primer": {
+      "entries": 17,
+      "popupCold": {
+        "n": 2,
+        "medianMs": 4821.5,
+        "p95Ms": 5057
+      },
+      "tabCold": {
+        "n": 2,
+        "medianMs": 2080.5,
+        "p95Ms": 2554
+      },
+      "tabFull": {
+        "n": 2,
+        "medianMs": 4224.5,
+        "p95Ms": 4364
+      },
+      "tabWarm": {
+        "n": 4,
+        "medianMs": 43.5,
+        "p95Ms": 50
+      },
+      "paginationClicks": [
+        2
+      ]
+    },
+    "Parasite": {
+      "entries": 112,
+      "popupCold": {
+        "n": 2,
+        "medianMs": 6961.0,
+        "p95Ms": 7800
+      },
+      "tabCold": {
+        "n": 2,
+        "medianMs": 1780.0,
+        "p95Ms": 2344
+      },
+      "tabFull": {
+        "n": 2,
+        "medianMs": 6851.0,
+        "p95Ms": 8284
+      },
+      "tabWarm": {
+        "n": 3,
+        "medianMs": 49,
+        "p95Ms": 54
+      },
+      "paginationClicks": [
+        4
+      ]
+    },
+    "Inception": {
+      "entries": 137,
+      "popupCold": {
+        "n": 2,
+        "medianMs": 7036.0,
+        "p95Ms": 8223
+      },
+      "tabCold": {
+        "n": 2,
+        "medianMs": 1823.0,
+        "p95Ms": 1894
+      },
+      "tabFull": {
+        "n": 2,
+        "medianMs": 6284.0,
+        "p95Ms": 7422
+      },
+      "tabWarm": {
+        "n": 3,
+        "medianMs": 61,
+        "p95Ms": 61
+      },
+      "paginationClicks": [
+        5
+      ]
+    },
+    "The Matrix": {
+      "entries": 279,
+      "popupCold": {
+        "n": 2,
+        "medianMs": 9216.5,
+        "p95Ms": 9989
+      },
+      "tabCold": {
+        "n": 2,
+        "medianMs": 1814.5,
+        "p95Ms": 2048
+      },
+      "tabFull": {
+        "n": 2,
+        "medianMs": 9113.0,
+        "p95Ms": 10684
+      },
+      "tabWarm": {
+        "n": 3,
+        "medianMs": 45,
+        "p95Ms": 48
+      },
+      "paginationClicks": [
+        7
+      ]
+    },
+    "The Dark Knight": {
+      "entries": 501,
+      "popupCold": {
+        "n": 2,
+        "medianMs": 12545.0,
+        "p95Ms": 14701
+      },
+      "tabCold": {
+        "n": 2,
+        "medianMs": 1489.5,
+        "p95Ms": 1492
+      },
+      "tabFull": {
+        "n": 2,
+        "medianMs": 13499.0,
+        "p95Ms": 17508
+      },
+      "tabWarm": {
+        "n": 4,
+        "medianMs": 56.0,
+        "p95Ms": 61
+      },
+      "paginationClicks": [
+        12,
+        13
+      ]
+    }
+  },
+  "benchmarkRuns": [
+    {
+      "film": "primer",
+      "cold": {
+        "elapsedMs": 2554,
+        "frameWaitMs": 19
+      },
+      "retrieval": {
+        "responseStartMs": 1710.7000000029802,
+        "responseEndMs": 2222.10000000149,
+        "groups": {
+          "uncategorized": 15,
+          "uncategorized--spoilers": 2
+        },
+        "entries": 17,
+        "empty": false,
+        "stalled": false,
+        "pagesRequested": 2,
+        "waiting": false,
+        "hasMore": false,
+        "imdbId": "tt0390384",
+        "status": "observed",
+        "method": "public_page_webview",
+        "items": 17,
+        "webViewInstances": 1,
+        "webViewResourceDispatches": 84,
+        "webViewMainFrameDispatches": 1,
+        "webViewMs": 127,
+        "documentCommitMs": 2095,
+        "previewMs": 2457,
+        "jsCalls": 10,
+        "jsRoundTripMs": 781,
+        "finalParseMs": 1,
+        "elapsedMs": 4364
+      },
+      "appPssKbBefore": 301064,
+      "appPssKbAtFirstEntry": 334798,
+      "warm": [
+        {
+          "elapsedMs": 45,
+          "frameWaitMs": 14
+        },
+        {
+          "elapsedMs": 36,
+          "frameWaitMs": 14
+        },
+        {
+          "elapsedMs": 50,
+          "frameWaitMs": 13
+        }
+      ]
+    },
+    {
+      "film": "the-dark-knight",
+      "cold": {
+        "elapsedMs": 1487,
+        "frameWaitMs": 14
+      },
+      "retrieval": {
+        "responseStartMs": 969.4000000059605,
+        "responseEndMs": 1471.9000000059605,
+        "groups": {
+          "uncategorized": 397,
+          "uncategorized--spoilers": 101,
+          "cameo": 1,
+          "cameo--spoilers": 2
+        },
+        "entries": 501,
+        "empty": false,
+        "stalled": false,
+        "pagesRequested": 13,
+        "waiting": false,
+        "hasMore": false,
+        "imdbId": "tt0468569",
+        "status": "observed",
+        "method": "public_page_webview",
+        "items": 501,
+        "webViewInstances": 1,
+        "webViewResourceDispatches": 201,
+        "webViewMainFrameDispatches": 1,
+        "webViewMs": 133,
+        "documentCommitMs": 1352,
+        "previewMs": 1401,
+        "jsCalls": 47,
+        "jsRoundTripMs": 2950,
+        "finalParseMs": 23,
+        "elapsedMs": 17508
+      },
+      "appPssKbBefore": 284464,
+      "appPssKbAtFirstEntry": 327988,
+      "warm": [
+        {
+          "elapsedMs": 59,
+          "frameWaitMs": 18
+        },
+        {
+          "elapsedMs": 44,
+          "frameWaitMs": 14
+        },
+        {
+          "elapsedMs": 53,
+          "frameWaitMs": 15
+        }
+      ]
+    },
+    {
+      "film": "the-matrix",
+      "cold": {
+        "elapsedMs": 2048,
+        "frameWaitMs": 19
+      },
+      "retrieval": {
+        "responseStartMs": 1165.7999999970198,
+        "responseEndMs": 1696.3999999985099,
+        "groups": {
+          "uncategorized": 195,
+          "uncategorized--spoilers": 84
+        },
+        "entries": 279,
+        "empty": false,
+        "stalled": false,
+        "pagesRequested": 7,
+        "waiting": false,
+        "hasMore": false,
+        "imdbId": "tt0133093",
+        "status": "observed",
+        "method": "public_page_webview",
+        "items": 279,
+        "webViewInstances": 1,
+        "webViewResourceDispatches": 168,
+        "webViewMainFrameDispatches": 1,
+        "webViewMs": 117,
+        "documentCommitMs": 1548,
+        "previewMs": 1969,
+        "jsCalls": 28,
+        "jsRoundTripMs": 1607,
+        "finalParseMs": 7,
+        "elapsedMs": 10684
+      },
+      "appPssKbBefore": 258315,
+      "appPssKbAtFirstEntry": 301143,
+      "warm": [
+        {
+          "elapsedMs": 42,
+          "frameWaitMs": 16
+        },
+        {
+          "elapsedMs": 48,
+          "frameWaitMs": 16
+        },
+        {
+          "elapsedMs": 45,
+          "frameWaitMs": 15
+        }
+      ]
+    },
+    {
+      "film": "inception",
+      "cold": {
+        "elapsedMs": 1894,
+        "frameWaitMs": 12
+      },
+      "retrieval": {
+        "responseStartMs": 955.6000000014901,
+        "responseEndMs": 1465.8999999985099,
+        "groups": {
+          "uncategorized": 117,
+          "uncategorized--spoilers": 18,
+          "director-trademark": 2
+        },
+        "entries": 137,
+        "empty": false,
+        "stalled": false,
+        "pagesRequested": 5,
+        "waiting": false,
+        "hasMore": false,
+        "imdbId": "tt1375666",
+        "status": "observed",
+        "method": "public_page_webview",
+        "items": 137,
+        "webViewInstances": 1,
+        "webViewResourceDispatches": 131,
+        "webViewMainFrameDispatches": 1,
+        "webViewMs": 120,
+        "documentCommitMs": 1322,
+        "previewMs": 1788,
+        "jsCalls": 18,
+        "jsRoundTripMs": 1244,
+        "finalParseMs": 3,
+        "elapsedMs": 7422
+      },
+      "appPssKbBefore": 262384,
+      "appPssKbAtFirstEntry": 304949,
+      "warm": [
+        {
+          "elapsedMs": 61,
+          "frameWaitMs": 17
+        },
+        {
+          "elapsedMs": 57,
+          "frameWaitMs": 18
+        },
+        {
+          "elapsedMs": 61,
+          "frameWaitMs": 19
+        }
+      ]
+    },
+    {
+      "film": "parasite-2019",
+      "cold": {
+        "elapsedMs": 2344,
+        "frameWaitMs": 8
+      },
+      "retrieval": {
+        "responseStartMs": 1761.5,
+        "responseEndMs": 2305.10000000149,
+        "groups": {
+          "uncategorized": 84,
+          "uncategorized--spoilers": 28
+        },
+        "entries": 112,
+        "empty": false,
+        "stalled": false,
+        "pagesRequested": 4,
+        "waiting": false,
+        "hasMore": false,
+        "imdbId": "tt6751668",
+        "status": "observed",
+        "method": "public_page_webview",
+        "items": 112,
+        "webViewInstances": 1,
+        "webViewResourceDispatches": 129,
+        "webViewMainFrameDispatches": 1,
+        "webViewMs": 121,
+        "documentCommitMs": 2245,
+        "previewMs": 2297,
+        "jsCalls": 22,
+        "jsRoundTripMs": 934,
+        "finalParseMs": 31,
+        "elapsedMs": 8284
+      },
+      "appPssKbBefore": 262727,
+      "appPssKbAtFirstEntry": 293171,
+      "warm": [
+        {
+          "elapsedMs": 54,
+          "frameWaitMs": 15
+        },
+        {
+          "elapsedMs": 49,
+          "frameWaitMs": 17
+        },
+        {
+          "elapsedMs": 38,
+          "frameWaitMs": 16
+        }
+      ]
+    },
+    {
+      "film": "primer",
+      "cold": {
+        "elapsedMs": 1607,
+        "frameWaitMs": 21
+      },
+      "retrieval": {
+        "responseStartMs": 1012.7999999970198,
+        "responseEndMs": 1536.1999999955297,
+        "groups": {
+          "uncategorized": 15,
+          "uncategorized--spoilers": 2
+        },
+        "entries": 17,
+        "empty": false,
+        "stalled": false,
+        "pagesRequested": 2,
+        "waiting": false,
+        "hasMore": false,
+        "imdbId": "tt0390384",
+        "status": "observed",
+        "method": "public_page_webview",
+        "items": 17,
+        "webViewInstances": 1,
+        "webViewResourceDispatches": 91,
+        "webViewMainFrameDispatches": 1,
+        "webViewMs": 119,
+        "documentCommitMs": 1448,
+        "previewMs": 1505,
+        "jsCalls": 9,
+        "jsRoundTripMs": 865,
+        "finalParseMs": 2,
+        "elapsedMs": 4085
+      },
+      "appPssKbBefore": 311022,
+      "appPssKbAtFirstEntry": 338938,
+      "warm": [
+        {
+          "elapsedMs": 42,
+          "frameWaitMs": 13
+        }
+      ]
+    },
+    {
+      "film": "the-dark-knight",
+      "cold": {
+        "elapsedMs": 1492,
+        "frameWaitMs": 24
+      },
+      "retrieval": {
+        "responseStartMs": 786.6999999955297,
+        "responseEndMs": 1329.6999999955297,
+        "groups": {
+          "uncategorized": 397,
+          "uncategorized--spoilers": 101,
+          "cameo": 1,
+          "cameo--spoilers": 2
+        },
+        "entries": 501,
+        "empty": false,
+        "stalled": false,
+        "pagesRequested": 12,
+        "waiting": false,
+        "hasMore": false,
+        "imdbId": "tt0468569",
+        "status": "observed",
+        "method": "public_page_webview",
+        "items": 501,
+        "webViewInstances": 1,
+        "webViewResourceDispatches": 174,
+        "webViewMainFrameDispatches": 1,
+        "webViewMs": 125,
+        "documentCommitMs": 1082,
+        "previewMs": 1400,
+        "jsCalls": 21,
+        "jsRoundTripMs": 2644,
+        "finalParseMs": 44,
+        "elapsedMs": 9490
+      },
+      "appPssKbBefore": 282404,
+      "appPssKbAtFirstEntry": 325425,
+      "warm": [
+        {
+          "elapsedMs": 61,
+          "frameWaitMs": 17
+        }
+      ]
+    },
+    {
+      "film": "the-matrix",
+      "cold": {
+        "elapsedMs": 1581,
+        "frameWaitMs": 5
+      },
+      "retrieval": {
+        "responseStartMs": 1036.5,
+        "responseEndMs": 1559.7999999970198,
+        "groups": {
+          "uncategorized": 195,
+          "uncategorized--spoilers": 84
+        },
+        "entries": 279,
+        "empty": false,
+        "stalled": false,
+        "pagesRequested": 7,
+        "waiting": false,
+        "hasMore": false,
+        "imdbId": "tt0133093",
+        "status": "observed",
+        "method": "public_page_webview",
+        "items": 279,
+        "webViewInstances": 1,
+        "webViewResourceDispatches": 139,
+        "webViewMainFrameDispatches": 1,
+        "webViewMs": 125,
+        "documentCommitMs": 1474,
+        "previewMs": 1527,
+        "jsCalls": 18,
+        "jsRoundTripMs": 1573,
+        "finalParseMs": 5,
+        "elapsedMs": 7542
+      },
+      "appPssKbBefore": 261298,
+      "appPssKbAtFirstEntry": 304288
+    },
+    {
+      "film": "inception",
+      "cold": {
+        "elapsedMs": 1752,
+        "frameWaitMs": 13
+      },
+      "retrieval": {
+        "responseStartMs": 965.7000000029802,
+        "responseEndMs": 1542,
+        "groups": {
+          "uncategorized": 117,
+          "uncategorized--spoilers": 18,
+          "director-trademark": 2
+        },
+        "entries": 137,
+        "empty": false,
+        "stalled": false,
+        "pagesRequested": 5,
+        "waiting": false,
+        "hasMore": false,
+        "imdbId": "tt1375666",
+        "status": "observed",
+        "method": "public_page_webview",
+        "items": 137,
+        "webViewInstances": 1,
+        "webViewResourceDispatches": 121,
+        "webViewMainFrameDispatches": 1,
+        "webViewMs": 117,
+        "documentCommitMs": 1350,
+        "previewMs": 1665,
+        "jsCalls": 11,
+        "jsRoundTripMs": 1106,
+        "finalParseMs": 6,
+        "elapsedMs": 5146
+      },
+      "appPssKbBefore": 267374,
+      "appPssKbAtFirstEntry": 312909
+    },
+    {
+      "film": "parasite-2019",
+      "cold": {
+        "elapsedMs": 1216,
+        "frameWaitMs": 15
+      },
+      "retrieval": {
+        "responseStartMs": 761,
+        "responseEndMs": 1257.2999999970198,
+        "groups": {
+          "uncategorized": 84,
+          "uncategorized--spoilers": 28
+        },
+        "entries": 112,
+        "empty": false,
+        "stalled": false,
+        "pagesRequested": 4,
+        "waiting": false,
+        "hasMore": false,
+        "imdbId": "tt6751668",
+        "status": "observed",
+        "method": "public_page_webview",
+        "items": 112,
+        "webViewInstances": 1,
+        "webViewResourceDispatches": 122,
+        "webViewMainFrameDispatches": 1,
+        "webViewMs": 113,
+        "documentCommitMs": 1121,
+        "previewMs": 1166,
+        "jsCalls": 12,
+        "jsRoundTripMs": 1272,
+        "finalParseMs": 6,
+        "elapsedMs": 5418
+      },
+      "appPssKbBefore": 254474,
+      "appPssKbAtFirstEntry": 296019
+    }
+  ],
+  "finalBuildRuns": [
+    {
+      "film": "primer",
+      "cold": {
+        "elapsedMs": 2478,
+        "frameWaitMs": 14
+      },
+      "retrieval": {
+        "responseStartMs": 1700.1000000014901,
+        "responseEndMs": 2289.7999999970198,
+        "groups": {
+          "uncategorized": 15,
+          "uncategorized--spoilers": 2
+        },
+        "entries": 17,
+        "empty": false,
+        "stalled": false,
+        "readyToFinish": true,
+        "pagesRequested": 2,
+        "waiting": false,
+        "hasMore": false,
+        "imdbId": "tt0390384",
+        "status": "observed",
+        "method": "public_page_webview",
+        "items": 17,
+        "webViewInstances": 1,
+        "webViewResourceDispatches": 176,
+        "webViewMainFrameDispatches": 1,
+        "webViewMs": 119,
+        "documentCommitMs": 2064,
+        "previewMs": 2411,
+        "jsCalls": 16,
+        "jsRoundTripMs": 756,
+        "finalParseMs": 0,
+        "elapsedMs": 6112
+      },
+      "appPssKbBefore": 251854,
+      "appPssKbAtFirstEntry": 294054,
+      "warm": [
+        {
+          "elapsedMs": 44,
+          "frameWaitMs": 13
+        }
+      ]
+    },
+    {
+      "film": "the-dark-knight",
+      "cold": {
+        "elapsedMs": 1350,
+        "frameWaitMs": 11
+      },
+      "retrieval": {
+        "responseStartMs": 849.1000000014901,
+        "responseEndMs": 1363.8999999985099,
+        "groups": {
+          "uncategorized": 397,
+          "uncategorized--spoilers": 101,
+          "cameo": 1,
+          "cameo--spoilers": 2
+        },
+        "entries": 501,
+        "empty": false,
+        "stalled": false,
+        "readyToFinish": true,
+        "pagesRequested": 12,
+        "waiting": false,
+        "hasMore": false,
+        "imdbId": "tt0468569",
+        "status": "observed",
+        "method": "public_page_webview",
+        "items": 501,
+        "webViewInstances": 1,
+        "webViewResourceDispatches": 175,
+        "webViewMainFrameDispatches": 1,
+        "webViewMs": 123,
+        "documentCommitMs": 1227,
+        "previewMs": 1276,
+        "jsCalls": 24,
+        "jsRoundTripMs": 2443,
+        "finalParseMs": 65,
+        "elapsedMs": 10361
+      },
+      "appPssKbBefore": 280763,
+      "appPssKbAtFirstEntry": 322968
+    },
+    {
+      "film": "the-matrix",
+      "cold": {
+        "elapsedMs": 2016,
+        "frameWaitMs": 17
+      },
+      "retrieval": {
+        "responseStartMs": 1056.6999999955297,
+        "responseEndMs": 1600.1999999955297,
+        "groups": {
+          "uncategorized": 195,
+          "uncategorized--spoilers": 84
+        },
+        "entries": 279,
+        "empty": false,
+        "stalled": false,
+        "readyToFinish": true,
+        "pagesRequested": 7,
+        "waiting": false,
+        "hasMore": false,
+        "imdbId": "tt0133093",
+        "status": "observed",
+        "method": "public_page_webview",
+        "items": 279,
+        "webViewInstances": 1,
+        "webViewResourceDispatches": 160,
+        "webViewMainFrameDispatches": 1,
+        "webViewMs": 140,
+        "documentCommitMs": 1437,
+        "previewMs": 1932,
+        "jsCalls": 18,
+        "jsRoundTripMs": 1687,
+        "finalParseMs": 10,
+        "elapsedMs": 7635
+      },
+      "appPssKbBefore": 258424,
+      "appPssKbAtFirstEntry": 304760
+    },
+    {
+      "film": "inception",
+      "cold": {
+        "elapsedMs": 1578,
+        "frameWaitMs": 12
+      },
+      "retrieval": {
+        "responseStartMs": 895.6999999955297,
+        "responseEndMs": 1447,
+        "groups": {
+          "uncategorized": 117,
+          "uncategorized--spoilers": 18,
+          "director-trademark": 2
+        },
+        "entries": 137,
+        "empty": false,
+        "stalled": false,
+        "readyToFinish": true,
+        "pagesRequested": 5,
+        "waiting": false,
+        "hasMore": false,
+        "imdbId": "tt1375666",
+        "status": "observed",
+        "method": "public_page_webview",
+        "items": 137,
+        "webViewInstances": 1,
+        "webViewResourceDispatches": 144,
+        "webViewMainFrameDispatches": 1,
+        "webViewMs": 123,
+        "documentCommitMs": 1412,
+        "previewMs": 1491,
+        "jsCalls": 15,
+        "jsRoundTripMs": 1253,
+        "finalParseMs": 10,
+        "elapsedMs": 6272
+      },
+      "appPssKbBefore": 303158,
+      "appPssKbAtFirstEntry": 332190
+    },
+    {
+      "film": "parasite-2019",
+      "cold": {
+        "elapsedMs": 1718,
+        "frameWaitMs": 19
+      },
+      "retrieval": {
+        "responseStartMs": 1171,
+        "responseEndMs": 1744,
+        "groups": {
+          "uncategorized": 84,
+          "uncategorized--spoilers": 28
+        },
+        "entries": 112,
+        "empty": false,
+        "stalled": false,
+        "readyToFinish": true,
+        "pagesRequested": 4,
+        "waiting": false,
+        "hasMore": false,
+        "imdbId": "tt6751668",
+        "status": "observed",
+        "method": "public_page_webview",
+        "items": 112,
+        "webViewInstances": 1,
+        "webViewResourceDispatches": 111,
+        "webViewMainFrameDispatches": 1,
+        "webViewMs": 119,
+        "documentCommitMs": 1591,
+        "previewMs": 1644,
+        "jsCalls": 11,
+        "jsRoundTripMs": 976,
+        "finalParseMs": 5,
+        "elapsedMs": 4987
+      },
+      "appPssKbBefore": 249663,
+      "appPssKbAtFirstEntry": 293051
+    }
+  ],
+  "deviceChecks": [
+    {
+      "check": "rapid film switching and Back",
+      "passed": true,
+      "nextFilm": {
+        "elapsedMs": 1032,
+        "frameWaitMs": 9
+      }
+    },
+    {
+      "check": "offline error and retry",
+      "passed": true,
+      "sourceStatus": "network_-2"
+    }
+  ],
+  "popupSuccessfulRuns": [
+    {
+      "startedAt": "2026-11-11T17:33:15.432327+00:00",
+      "requestedId": "tt0390384",
+      "summary": "17 entries",
+      "spoilerRevealAndReset": "pass",
+      "inMemoryCacheOnReopen": "pass",
+      "groups": {
+        "uncategorized": 15,
+        "uncategorized--spoilers": 2
+      },
+      "entries": 17,
+      "empty": false,
+      "stalled": false,
+      "pagesRequested": 2,
+      "waiting": false,
+      "hasMore": false,
+      "imdbId": "tt0390384",
+      "status": "observed",
+      "method": "public_page_webview",
+      "items": 17,
+      "elapsedMs": 4586
+    },
+    {
+      "startedAt": "2026-11-11T17:33:47.584118+00:00",
+      "requestedId": "tt0468569",
+      "summary": "501 entries",
+      "groups": {
+        "uncategorized": 397,
+        "uncategorized--spoilers": 101,
+        "cameo": 1,
+        "cameo--spoilers": 2
+      },
+      "entries": 501,
+      "empty": false,
+      "stalled": false,
+      "pagesRequested": 12,
+      "waiting": false,
+      "hasMore": false,
+      "imdbId": "tt0468569",
+      "status": "observed",
+      "method": "public_page_webview",
+      "items": 501,
+      "elapsedMs": 10389
+    },
+    {
+      "startedAt": "2026-11-11T17:35:30.026970+00:00",
+      "requestedId": "tt1375666",
+      "summary": "137 entries",
+      "groups": {
+        "uncategorized": 117,
+        "uncategorized--spoilers": 18,
+        "director-trademark": 2
+      },
+      "entries": 137,
+      "empty": false,
+      "stalled": false,
+      "pagesRequested": 5,
+      "waiting": false,
+      "hasMore": false,
+      "imdbId": "tt1375666",
+      "status": "observed",
+      "method": "public_page_webview",
+      "items": 137,
+      "elapsedMs": 5849
+    },
+    {
+      "startedAt": "2026-11-11T17:35:46.981227+00:00",
+      "requestedId": "tt6751668",
+      "summary": "112 entries",
+      "groups": {
+        "uncategorized": 84,
+        "uncategorized--spoilers": 28
+      },
+      "entries": 112,
+      "empty": false,
+      "stalled": false,
+      "pagesRequested": 4,
+      "waiting": false,
+      "hasMore": false,
+      "imdbId": "tt6751668",
+      "status": "observed",
+      "method": "public_page_webview",
+      "items": 112,
+      "elapsedMs": 6122
+    },
+    {
+      "startedAt": "2026-11-11T17:36:49.179204+00:00",
+      "requestedId": "tt0133093",
+      "summary": "279 entries",
+      "groups": {
+        "uncategorized": 195,
+        "uncategorized--spoilers": 84
+      },
+      "entries": 279,
+      "empty": false,
+      "stalled": false,
+      "pagesRequested": 7,
+      "waiting": false,
+      "hasMore": false,
+      "imdbId": "tt0133093",
+      "status": "observed",
+      "method": "public_page_webview",
+      "items": 279,
+      "elapsedMs": 8444
+    },
+    {
+      "startedAt": "2026-11-11T17:43:07.858373+00:00",
+      "requestedId": "tt0390384",
+      "summary": "17 entries",
+      "spoilerRevealAndReset": "pass",
+      "inMemoryCacheOnReopen": "pass",
+      "groups": {
+        "uncategorized": 15,
+        "uncategorized--spoilers": 2
+      },
+      "entries": 17,
+      "empty": false,
+      "stalled": false,
+      "pagesRequested": 2,
+      "waiting": false,
+      "hasMore": false,
+      "imdbId": "tt0390384",
+      "status": "observed",
+      "method": "public_page_webview",
+      "items": 17,
+      "elapsedMs": 5057
+    },
+    {
+      "startedAt": "2026-11-11T17:43:38.647812+00:00",
+      "requestedId": "tt0468569",
+      "summary": "501 entries",
+      "groups": {
+        "uncategorized": 397,
+        "uncategorized--spoilers": 101,
+        "cameo": 1,
+        "cameo--spoilers": 2
+      },
+      "entries": 501,
+      "empty": false,
+      "stalled": false,
+      "pagesRequested": 12,
+      "waiting": false,
+      "hasMore": false,
+      "imdbId": "tt0468569",
+      "status": "observed",
+      "method": "public_page_webview",
+      "items": 501,
+      "elapsedMs": 14701
+    },
+    {
+      "startedAt": "2026-11-11T17:45:41.226025+00:00",
+      "requestedId": "tt0133093",
+      "summary": "279 entries",
+      "groups": {
+        "uncategorized": 195,
+        "uncategorized--spoilers": 84
+      },
+      "entries": 279,
+      "empty": false,
+      "stalled": false,
+      "pagesRequested": 7,
+      "waiting": false,
+      "hasMore": false,
+      "imdbId": "tt0133093",
+      "status": "observed",
+      "method": "public_page_webview",
+      "items": 279,
+      "elapsedMs": 9989
+    },
+    {
+      "startedAt": "2026-11-11T17:46:01.662622+00:00",
+      "requestedId": "tt1375666",
+      "summary": "137 entries",
+      "groups": {
+        "uncategorized": 117,
+        "uncategorized--spoilers": 18,
+        "director-trademark": 2
+      },
+      "entries": 137,
+      "empty": false,
+      "stalled": false,
+      "pagesRequested": 5,
+      "waiting": false,
+      "hasMore": false,
+      "imdbId": "tt1375666",
+      "status": "observed",
+      "method": "public_page_webview",
+      "items": 137,
+      "elapsedMs": 8223
+    },
+    {
+      "startedAt": "2026-11-11T17:46:22.011419+00:00",
+      "requestedId": "tt6751668",
+      "summary": "112 entries",
+      "groups": {
+        "uncategorized": 84,
+        "uncategorized--spoilers": 28
+      },
+      "entries": 112,
+      "empty": false,
+      "stalled": false,
+      "pagesRequested": 4,
+      "waiting": false,
+      "hasMore": false,
+      "imdbId": "tt6751668",
+      "status": "observed",
+      "method": "public_page_webview",
+      "items": 112,
+      "elapsedMs": 7800
+    }
+  ]
+}

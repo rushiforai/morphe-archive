@@ -11,6 +11,8 @@ import android.widget.Toast;
 /** Adds an unassigned-by-default action to ChMate's own gesture registry. */
 public final class NgEditGesture {
     public static final String KEY = "haiagaruGestureNgEdit";
+    /** ChMate本体のジェスチャー設定から割り当てるレスフィルター表示。 */
+    public static final String FILTER_KEY = "haiagaruGestureQuickFilters";
     private static final int ACTION = 0x48690042;
     private static Class<?> previewOwner;
     private static Object previewAction;
@@ -31,6 +33,7 @@ public final class NgEditGesture {
         if (gesture == 0 || !view.isShown()) return false;
         if (assigned(view, gesture, OpenTabsRefresh.GESTURE)) return OpenTabsRefresh.gesture(view);
         if (assigned(view, gesture, DeleteReadThreads.KEY)) return DeleteReadThreads.gesture(view, start);
+        if (assigned(view, gesture, FILTER_KEY)) return ExtraQuickFilters.openFromGesture(view);
         if (!assigned(view, gesture)) return false;
         return handle(view, ACTION);
     }
@@ -58,8 +61,9 @@ public final class NgEditGesture {
         if (original != null || gesture == 0) return original;
         boolean delete = assigned(view, gesture, DeleteReadThreads.KEY);
         boolean refresh = assigned(view, gesture, OpenTabsRefresh.GESTURE);
-        if (!delete && !refresh && !assigned(view, gesture)) return original;
-        String label = delete ? "既読スレをすべて削除" : refresh ? "開いているスレ・板を一括更新" : "NG編集";
+        boolean filters = assigned(view, gesture, FILTER_KEY);
+        if (!delete && !refresh && !filters && !assigned(view, gesture)) return original;
+        String label = delete ? "既読スレをすべて削除" : refresh ? "開いているスレ・板を一括更新" : filters ? "フィルター" : "NG編集";
         synchronized (NgEditGesture.class) {
             Class<?> owner = view.getClass();
             // Preference assignment can change without changing the gesture sequence.

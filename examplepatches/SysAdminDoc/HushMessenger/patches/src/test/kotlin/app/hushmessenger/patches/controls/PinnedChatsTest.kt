@@ -35,7 +35,7 @@ private val STATIC = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value
 private val READ_BODY = """
     invoke-static {p0}, LX/2on;->A0F(Ljava/lang/Object;)LX/5bt;
     move-result-object p0
-    const-wide v0, 0x82059c00020fdeL
+    const-wide v0, 0x82059500020f8fL
     invoke-static {p0, v0, v1}, $CONFIG_READ
     move-result v0
     const/4 v1, 0x3
@@ -75,7 +75,7 @@ private val PIN_ASK_BODY = """
     new-instance v6, $PIN_LAMBDA
     invoke-static {v11}, LX/2on;->A0F(Ljava/lang/Object;)LX/5bt;
     move-result-object v5
-    const-wide v0, 0x82059c00020fdeL
+    const-wide v0, 0x82059500020f8fL
     invoke-static {v5, v0, v1}, $CONFIG_READ
     move-result v2
     return-void
@@ -103,6 +103,10 @@ private val PIN_FULL_BODY = pinAnswer(":under") + "\n" + """
     sget-object v0, LX/04C;->A00:LX/04C;
     return-object v0
 """.trimIndent()
+
+private val PIN_FULL_BODY_587 = PIN_FULL_BODY
+    .replace("iget-object v4, p0, $PIN_LAMBDA->A00:Ljava/lang/Object;\ncheck-cast v4, Landroid/content/Context;\n", "")
+    .replace("if-eqz v2, :under", "iget-object v4, p0, $PIN_LAMBDA->A00:Ljava/lang/Object;\ncheck-cast v4, Landroid/content/Context;\nif-eqz v2, :under")
 
 /** A menu row's check: no for a chat already pinned or a chat its capability bits refuse, the answer always in v4. */
 private val PIN_ROW_BODY = """
@@ -301,6 +305,39 @@ class PinnedChatsTest {
         }
     }
 
+    // 587 reads the dialog's Context before the branch, so the first read past it is the chat's key.
+    @Test fun the587AnswerThatReadsItsContextFirstIsFoundAndKeepsThePin() {
+        val full = pinFull(PIN_FULL_BODY_587)
+        val found = mirroredControls(pinnedChatsFixture(full = full) + pinnedChatLimitFixture())
+        assertEquals(listOf(SYNTHETIC_PIN_FULL), found.getValue(PIN_FULL).map { it.hookId() })
+        validateControls(found, setOf(PINNED_CHATS, PIN_ASK, PIN_DROP, PIN_FULL, PIN_ROWS))
+        val before = full.code()
+        injectControl(PIN_FULL, mapOf(PIN_FULL to listOf(full)))
+        val code = full.code()
+        assertEquals(before.take(7), code.take(7))
+        assertEquals("$PIN_LAMBDA->A03:Ljava/lang/Object;", (code[7] as ReferenceInstruction).reference.toString())
+        assertEquals(listOf(1, 10), (code[7] as TwoRegisterInstruction).let { listOf(it.registerA, it.registerB) })
+        assertEquals(PIN_FULL_CALL, (code[8] as ReferenceInstruction).reference.toString())
+        assertEquals(before.drop(7).map { it.opcode }, code.drop(11).map { it.opcode })
+        assertEquals(code.branchTarget(10), code.branchTarget(code.indexOfLast { it.opcode == Opcode.IF_EQZ }))
+        assertEquals(code.size - 3, code.branchTarget(6))
+    }
+
+    @Test fun a587ContextReadThatTouchesTheAnswerOrAnotherObjectIsRefused() {
+        val cases = mapOf(
+            "the read lands on the answer" to PIN_FULL_BODY_587.replace("iget-object v4, p0, $PIN_LAMBDA->A00:Ljava/lang/Object;\ncheck-cast v4,",
+                "iget-object v2, p0, $PIN_LAMBDA->A00:Ljava/lang/Object;\ncheck-cast v2,"),
+            "the read comes off the controller" to PIN_FULL_BODY_587.replace("iget-object v4, p0, $PIN_LAMBDA->A00", "iget-object v4, v3, $PIN_LAMBDA->A00"),
+        )
+        for ((case, body) in cases) {
+            val bad = pinFull(body)
+            assertTrue(mirroredControls(pinnedChatsFixture(full = bad) + pinnedChatLimitFixture()).getValue(PIN_FULL).isEmpty(), case)
+            val before = bad.code()
+            assertFailsWith<PatchException>(case) { injectControl(PIN_FULL, mapOf(PIN_FULL to listOf(bad))) }
+            assertEquals(before, bad.code(), case)
+        }
+    }
+
     @Test fun theListHookGoesRightAfterTheTraceWhicheverPatchComesFirst() {
         val orders = listOf(listOf(INBOX_REFRESH_HOOK, PIN_LIST), listOf(PIN_LIST, INBOX_REFRESH_HOOK))
         val results = orders.map { order ->
@@ -346,9 +383,9 @@ class PinnedChatsTest {
     // and one odd reader spoils them all rather than leave a check that still uses Messenger's own limit.
     @Test fun anythingButAStraightReadOfTheLimitIsLeftAlone() {
         val cases = mapOf(
-            "another config id" to pinnedChatLimitFixture(reader(READ_BODY.replace("0x82059c00020fdeL", "0x8205b900021070L"))),
-            "the id loaded twice" to pinnedChatLimitFixture(reader(READ_BODY.replace("const-wide v0, 0x82059c00020fdeL",
-                "const-wide v0, 0x82059c00020fdeL\nconst-wide v0, 0x82059c00020fdeL"))),
+            "another config id" to pinnedChatLimitFixture(reader(READ_BODY.replace("0x82059500020f8fL", "0x8205b900021070L"))),
+            "the id loaded twice" to pinnedChatLimitFixture(reader(READ_BODY.replace("const-wide v0, 0x82059500020f8fL",
+                "const-wide v0, 0x82059500020f8fL\nconst-wide v0, 0x82059500020f8fL"))),
             "something between the id and the read" to pinnedChatLimitFixture(reader(READ_BODY.replace("invoke-static {p0, v0, v1}",
                 "nop\ninvoke-static {p0, v0, v1}"))),
             "a long read" to pinnedChatLimitFixture(reader(READ_BODY.replace(CONFIG_READ, "LX/17P;->A0G(Ljava/lang/Object;J)J")
@@ -383,7 +420,7 @@ class PinnedChatsTest {
 
     @Test fun anUnusableMethodRefusesTheSwitchBeforeAnyEdit() {
         val cases = mapOf(
-            "another config id" to reader(READ_BODY.replace("0x82059c00020fdeL", "0x1L")),
+            "another config id" to reader(READ_BODY.replace("0x82059500020f8fL", "0x1L")),
             "no answer taken" to reader(READ_BODY.replace("move-result v0\n", "")),
             "another method" to fixtureMethod("LX/2na;->A01($FB_USER_SESSION)I", "const/4 v0, 0x3\nreturn v0", registers = 3, flags = STATIC),
         )

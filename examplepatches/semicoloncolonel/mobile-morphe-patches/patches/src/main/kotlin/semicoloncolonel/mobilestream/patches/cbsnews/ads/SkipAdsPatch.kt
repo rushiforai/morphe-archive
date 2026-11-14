@@ -75,6 +75,7 @@ val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
     description = "Removes the banner ads, the video ads, and the Taboola recommendations.",
 ) {
+    category("Ads")
     compatibleWith(Constants.COMPATIBILITY)
 
     dependsOn(disableSignatureCheckPatch)

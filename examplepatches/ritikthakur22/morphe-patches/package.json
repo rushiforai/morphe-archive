@@ -1,4 +1,9 @@
 {
+  "name": "crdy-patches",
+  "version": "1.1.2",
+  "description": "CRDY Patches — Custom, enhanced Android app patch suite maintained by Ritik Thakur (CRDY), based on Morphe & ReVanced",
+  "author": "Ritik Thakur <ritikthakur@duck.com>",
+  "license": "GPL-3.0",
   "devDependencies": {
     "@cleyrop-org/semantic-release-backmerge": "^6.2.0",
     "@MorpheApp/changelog": "git+https://github.com/MorpheApp/changelog.git#bundle",

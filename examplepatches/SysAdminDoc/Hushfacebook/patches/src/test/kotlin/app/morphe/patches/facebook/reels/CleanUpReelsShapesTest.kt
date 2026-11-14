@@ -18,9 +18,11 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
+import com.android.tools.smali.dexlib2.immutable.ImmutableField
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
+import com.android.tools.smali.dexlib2.immutable.value.ImmutableStringEncodedValue
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -551,6 +553,56 @@ class CleanUpReelsShapesTest {
         assertEquals(Opcode.RETURN_OBJECT, body[4].opcode)
     }
 
+    /** A TreeJNI tree class behind [flags] whose [name]()Z reads [key]. */
+    private fun flagTree(flags: String, name: String, key: Int): ClassDef = ImmutableClassDef(
+        "Lfixture/FlagTree;", AccessFlags.PUBLIC.value, "Ljava/lang/Object;", listOf(flags), null, null, emptyList(),
+        listOf(
+            method(name, emptyList(), "Z", 2, static = false, """
+                const v0, $key
+                invoke-virtual { p0, v0 }, Lcom/facebook/graphservice/tree/TreeJNI;->getBooleanValue(I)Z
+                move-result v0
+                return v0
+            """),
+        ),
+    )
+
+    /**
+     * 587 asks a tree model's interface for the Edits flag (arm64 LX/0DXO;->HdZ) instead of reading the
+     * tree in the render. The TreeJNI class behind the interface names the getter, and the render asking
+     * it is the line. A render asking another getter, one reading a second flag beside it and a static
+     * helper asking it are not.
+     */
+    @Test
+    fun `587's Edits line asks the tree model's getter for the flag`() {
+        val flags = "Lfixture/Flags;"
+        val getters = editsGetterCalls(flagTree(flags, "HdZ", MADE_WITH_EDITS))
+        assertEquals(setOf("$flags->HdZ", "Lfixture/FlagTree;->HdZ"), getters)
+        assertTrue("another flag's getter was taken",
+            editsGetterCalls(flagTree(flags, "HdZ", "can_viewer_comment".hashCode())).isEmpty())
+        val tail = """
+            new-instance v2, Lfixture/Row;
+            return-object v2
+            :none
+            const/4 v2, 0x0
+            return-object v2
+        """
+        val asks = """
+            invoke-interface { p1 }, $flags->HdZ()Z
+            move-result v0
+            if-eqz v0, :none
+        """
+        val line = render(asks + tail)
+        assertTrue(isEditsLabelRender(line, getters))
+        assertTrue("a render asking a getter no tree class named was taken", !isEditsLabelRender(line))
+        val asksAnother = render(asks.replace("HdZ", "HdY") + tail)
+        assertTrue("a render asking another getter was taken", !isEditsLabelRender(asksAnother, getters))
+        val alsoReads = render(asks + readFlag("can_viewer_comment".hashCode()) + tail)
+        assertTrue("a render reading a second flag was taken", !isEditsLabelRender(alsoReads, getters))
+        val helper = method(RENDER, listOf("Lfixture/Context;"), "Lfixture/Component;", 6, static = true,
+            asks.replace("p1", "p0") + tail)
+        assertTrue("a static helper was taken", !isEditsLabelRender(helper, getters))
+    }
+
     /** A reel header: p0 the row, p1 the search bar, p2 its send button, each wrapped and tagged when there is one. */
     private fun header(add: String = "Lfixture/Row;->add(Lfixture/Component;)V", sendTag: String = SEARCH_BAR_SEND) = method(
         "A00", listOf("Lfixture/Row;", "Lfixture/Component;", "Lfixture/Component;"), "Lfixture/Component;", 6, static = true, """
@@ -634,6 +686,34 @@ class CleanUpReelsShapesTest {
         assertTrue("no name", !footerRunnableNamed(null, HOT_COMMENT_RUNNABLE))
         assertTrue(footerRunnableNamed(SOCIAL_BUBBLES_RUNNABLE, SOCIAL_BUBBLES_RUNNABLE))
         assertTrue("the bubbles name is exact", !footerRunnableNamed(SOCIAL_BUBBLES_RUNNABLE.dropLast(1) + "2", SOCIAL_BUBBLES_RUNNABLE))
+    }
+
+    /** A class Redex named [redexName], a Runnable unless [runnable] is false, whose run() loads [loads]. */
+    private fun namedRunnableClass(redexName: String, loads: String?, runnable: Boolean = true): ClassDef {
+        val type = "Lfixture/Row;"
+        val flags = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value or AccessFlags.FINAL.value
+        val run = method("run", emptyList(), "V", 2, static = false, (loads?.let { "const-string v0, \"$it\"\n" } ?: "") + "return-void")
+        return ImmutableClassDef(
+            type, AccessFlags.PUBLIC.value, "Ljava/lang/Object;", if (runnable) listOf("Ljava/lang/Runnable;") else null, null, null,
+            listOf(ImmutableField(type, "__redex_internal_original_name", "Ljava/lang/String;", flags, ImmutableStringEncodedValue(redexName), null, null)),
+            listOf(run),
+        )
+    }
+
+    /**
+     * #464: the caption row's comment runnable is the one of its numbered runnables loading either
+     * comment query. A hot comment runnable needs only its name, since 587's `$2` hands a lambda the
+     * query and loads none itself.
+     */
+    @Test
+    fun `the caption row's comment runnable loads a comment query, a hot comment one needs only its name`() {
+        assertNotNull(captionCommentRunnable(namedRunnableClass("${CAPTION_ROW_RUNNABLE}1", XAR_INLINE_COMMENTS_QUERY)))
+        assertNotNull(captionCommentRunnable(namedRunnableClass("${CAPTION_ROW_RUNNABLE}1", INLINE_COMMENTS_QUERY)))
+        assertNull("another of the row's runnables", captionCommentRunnable(namedRunnableClass("${CAPTION_ROW_RUNNABLE}2", null)))
+        assertNull("another row's", captionCommentRunnable(namedRunnableClass("${HOT_COMMENT_RUNNABLE}1", XAR_INLINE_COMMENTS_QUERY)))
+        assertNull("not a Runnable", captionCommentRunnable(namedRunnableClass("${CAPTION_ROW_RUNNABLE}1", INLINE_COMMENTS_QUERY, runnable = false)))
+        assertNotNull("a hot comment runnable loading no query", namedRunnable(namedRunnableClass("${HOT_COMMENT_RUNNABLE}2", null), HOT_COMMENT_RUNNABLE))
+        assertNull("a nested lambda", namedRunnable(namedRunnableClass("${HOT_COMMENT_RUNNABLE}2\$1", null), HOT_COMMENT_RUNNABLE))
     }
 
     private val lambdaType = "Lfixture/Lambda;"
@@ -913,5 +993,121 @@ class CleanUpReelsShapesTest {
 
         assertNotNull("the flag above v15", loopHookRefusal(LoopRead(1, 16, 5)))
         assertNotNull("the params above v15", loopHookRefusal(LoopRead(1, 0, 16)))
+    }
+
+    private val idleController = "Lfixture/Controller;"
+    private val idleTimer = "Lfixture/Timer;"
+    private val promptCallback = "Lkotlin/jvm/functions/Function0;"
+
+    private fun instanceField(owner: String, name: String, type: String) =
+        ImmutableField(owner, name, type, AccessFlags.PUBLIC.value, null, null, null)
+
+    /** A Runnable keeping one instance field per entry of [kept], with [run] as its run(). */
+    private fun idleRunnableClass(run: String, kept: List<String> = listOf(idleTimer)): ClassDef = ImmutableClassDef(
+        "Lfixture/IdleRunnable;", AccessFlags.PUBLIC.value, "Ljava/lang/Object;", listOf("Ljava/lang/Runnable;"), null, null,
+        kept.mapIndexed { at, type -> instanceField("Lfixture/IdleRunnable;", "kept$at", type) },
+        listOf(method("run", emptyList(), "V", 3, static = false, run)),
+    )
+
+    /** 585 and 586: the runnable keeps the controller, sets its flag and calls its prompt method. */
+    private fun controllerRun() = """
+        iget-object v1, p0, Lfixture/IdleRunnable;->kept0:$idleController
+        const/4 v0, 0x1
+        iput-boolean v0, v1, $idleController->idle:Z
+        iget-boolean v0, v1, $idleController->held:Z
+        if-eqz v0, :done
+        invoke-virtual { v1 }, $idleController->prompt()V
+        :done
+        return-void
+    """
+
+    /**
+     * 587: the runnable keeps the controller's idle timer, sets the timer's flag and invokes the
+     * Function0 the timer keeps for the prompt (LX/09mK;->run on arm64).
+     */
+    private fun timerRun(
+        set: String = "0x1",
+        load: String = "iget-object v0, v1, $idleTimer->show:$promptCallback",
+        invoke: String = "invoke-interface { v0 }, $promptCallback->invoke()Ljava/lang/Object;",
+        extra: String = "",
+    ) = """
+        iget-object v1, p0, Lfixture/IdleRunnable;->kept0:$idleTimer
+        const/4 v0, $set
+        iput-boolean v0, v1, $idleTimer->idle:Z
+        iget-boolean v0, v1, $idleTimer->held:Z
+        if-eqz v0, :done
+        $load
+        $invoke
+        $extra
+        :done
+        return-void
+    """
+
+    @Test
+    fun `the idle runnable is found on the controller and on the timer it keeps`() {
+        val old = idleRunnable(idleRunnableClass(controllerRun(), listOf(idleController)), setOf(idleController))
+        assertNotNull("586's runnable keeping the controller", old)
+        assertEquals(listOf("$idleController->idle", "held", "$idleController->prompt()V"),
+            listOf("${old!!.flag.definingClass}->${old.flag.name}", old.pending.name, described(old.prompt)))
+        assertNull("586's prompt is the controller's own method", old.callback)
+
+        val owners = setOf(idleController, idleTimer)
+        val new = idleRunnable(idleRunnableClass(timerRun()), owners)
+        assertNotNull("587's runnable keeping the timer", new)
+        assertEquals(listOf("$idleTimer->idle", "held", "$promptCallback->invoke()Ljava/lang/Object;", "$idleTimer->show"),
+            listOf("${new!!.flag.definingClass}->${new.flag.name}", new.pending.name, described(new.prompt),
+                "${new.callback?.definingClass}->${new.callback?.name}"))
+        // Positive control for the negatives below: the old shape still passes with both owners.
+        assertNotNull(idleRunnable(idleRunnableClass(controllerRun(), listOf(idleController)), owners))
+    }
+
+    @Test
+    fun `a runnable that isn't the idle runnable is refused`() {
+        val owners = setOf(idleController, idleTimer)
+        assertNull("a runnable keeping a class that keeps no idle flag",
+            idleRunnable(idleRunnableClass(timerRun()), setOf(idleController)))
+        assertNull("a runnable keeping two fields", idleRunnable(idleRunnableClass(timerRun(), listOf(idleTimer, idleTimer)), owners))
+        assertNull("a runnable clearing the flag", idleRunnable(idleRunnableClass(timerRun(set = "0x0")), owners))
+        assertNull("a prompt kept on another class",
+            idleRunnable(idleRunnableClass(timerRun(load = "iget-object v0, v1, Lfixture/Other;->show:$promptCallback")), owners))
+        assertNull("a prompt invoked from another register than the one loaded",
+            idleRunnable(idleRunnableClass(timerRun(invoke = "invoke-interface { v1 }, $promptCallback->invoke()Ljava/lang/Object;")), owners))
+        assertNull("a runnable with two prompts",
+            idleRunnable(idleRunnableClass(timerRun(extra = "invoke-virtual { v1 }, $idleTimer->prompt()V")), owners))
+    }
+
+    /** A controller keeping the timer in `timer`, with one method taking the controller doing [check]. */
+    private fun idleControllerClass(check: String, static: Boolean = true): ClassDef = ImmutableClassDef(
+        idleController, AccessFlags.PUBLIC.value, "Ljava/lang/Object;", null, null, null,
+        listOf(instanceField(idleController, "timer", idleTimer)),
+        listOf(method("isIdle", listOf(idleController), "Z", 3, static, check)),
+    )
+
+    private val timerCheck = """
+        iget-object v0, p0, $idleController->timer:$idleTimer
+        iget-boolean v0, v0, $idleTimer->idle:Z
+        return v0
+    """
+
+    @Test
+    fun `the timer is an idle state owner only when the idle check reads its flag off it`() {
+        assertEquals("587's check reading the timer, then its flag", setOf(idleController, idleTimer),
+            idleStateOwners(idleControllerClass(timerCheck)))
+        assertEquals("a check that isn't static", setOf(idleController), idleStateOwners(idleControllerClass(timerCheck, static = false)))
+        assertEquals("a flag read off another register", setOf(idleController), idleStateOwners(idleControllerClass("""
+            iget-object v0, p0, $idleController->timer:$idleTimer
+            iget-boolean v0, v1, $idleTimer->idle:Z
+            return v0
+        """)))
+        assertEquals("a field the controller doesn't keep", setOf(idleController), idleStateOwners(idleControllerClass("""
+            iget-object v0, p0, $idleController->other:$idleTimer
+            iget-boolean v0, v0, $idleTimer->idle:Z
+            return v0
+        """)))
+        assertEquals("a flag of another class", setOf(idleController), idleStateOwners(idleControllerClass("""
+            iget-object v0, p0, $idleController->timer:$idleTimer
+            iget-boolean v0, v0, Lfixture/Other;->idle:Z
+            return v0
+        """)))
     }
 }

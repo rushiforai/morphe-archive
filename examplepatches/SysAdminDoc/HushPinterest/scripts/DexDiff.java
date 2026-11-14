@@ -276,7 +276,7 @@ public class DexDiff {
     private static final Map<String, Integer> MUTATION_COLUMNS = Map.ofEntries(
             Map.entry("feed", 4), Map.entry("views", 3), Map.entry("guard", 2), Map.entry("refresh", 2), Map.entry("draw", 2), Map.entry("drawWash", 4), Map.entry("builtView", 3),
             Map.entry("navigation", 2), Map.entry("menu", 2), Map.entry("downloads", 2), Map.entry("comments", 5),
-            Map.entry("links", 6), Map.entry("analytics", 5), Map.entry("answers", 4), Map.entry("imageOrder", 1), Map.entry("closeupImage", 2), Map.entry("topicSuggestions", 2), Map.entry("recentSearchRows", 2), Map.entry("recentSearchHeading", 2), Map.entry("boardMenu", 1), Map.entry("settings", 4),
+            Map.entry("links", 6), Map.entry("analytics", 5), Map.entry("answers", 4), Map.entry("imageOrder", 1), Map.entry("closeupImage", 2), Map.entry("topicSuggestions", 2), Map.entry("inboxUpdates", 3), Map.entry("feedbackFlyout", 2), Map.entry("recentSearchRows", 2), Map.entry("recentSearchHeading", 2), Map.entry("boardMenu", 1), Map.entry("settings", 4),
             Map.entry("longPress", 4), Map.entry("surveyPrompts", 2), Map.entry("pinInvites", 2), Map.entry("browserId", 2), Map.entry("signInFailure", 1), Map.entry("saveAndDownload", 3), Map.entry("homePage", 3),
             Map.entry("firebaseCertificate", 1), Map.entry("closeupButtons", 3), Map.entry("closeupSearchLabel", 1),
             Map.entry("closeupRemix", 2), Map.entry("closeupActionBar", 2), Map.entry("closeupVisitSite", 2), Map.entry("closeupSaveButton", 1), Map.entry("postedDate", 1),
@@ -5058,6 +5058,121 @@ public class DexDiff {
             return false;
         }
 
+        /**
+         * The Inbox's Updates section. The feed is the class whose constructor holds the Updates
+         * endpoint, and the presenter the one class with an instance field of that type and a void
+         * one-argument method of the adder's name. In that method one read of the feed field is handed,
+         * alone, to a void call right after it. The hook goes right before that call, reached only from
+         * the read, and a yes jumps to the instruction after the call. Found in the clean target, never
+         * from the hook.
+         */
+        void inboxUpdates(Contract c) {
+            String hook = c.strings.get(0), endpoint = c.strings.get(1), adder = c.strings.get(2);
+            List<Method> constructors = new ArrayList<>();
+            for (Method m : clean.holding(endpoint)) if (m.getName().equals("<init>")) constructors.add(m);
+            Method constructor = unique(constructors, "Inbox Updates feed");
+            boolean found = false;
+            if (constructor != null) {
+                String feed = constructor.getDefiningClass();
+                List<Method> adders = new ArrayList<>();
+                for (ClassDef cd : clean.classes.values()) {
+                    if (cd.getType().startsWith(OWN)) continue;
+                    boolean holds = false;
+                    for (Field f : cd.getFields()) if (f.getType().equals(feed) && !AccessFlags.STATIC.isSet(f.getAccessFlags())) holds = true;
+                    if (holds) for (Method m : cd.getMethods()) if (m.getName().equals(adder) && m.getReturnType().equals("V")
+                            && m.getParameterTypes().size() == 1 && m.getImplementation() != null) adders.add(m);
+                }
+                Method presenter = unique(adders, "Inbox presenter " + adder);
+                List<Integer> adds = new ArrayList<>();
+                List<Instruction> was = presenter == null ? List.of() : instructions(presenter);
+                for (int at = 0; at + 1 < was.size(); at++) {
+                    Instruction read = was.get(at), add = was.get(at + 1);
+                    if (read.getOpcode() != Opcode.IGET_OBJECT || !(reference(read) instanceof FieldReference field) || !field.getType().equals(feed)) continue;
+                    if (add.getOpcode() != Opcode.INVOKE_VIRTUAL || !(reference(add) instanceof MethodReference call)
+                            || !call.getReturnType().equals("V") || call.getParameterTypes().size() != 1) continue;
+                    if (arguments(add).size() == 2 && arguments(add).get(1) == firstRegister(read)) adds.add(at + 1);
+                }
+                if (presenter != null && adds.size() != 1) fail(presenter + " has " + adds.size() + " calls that add the Updates feed, expected 1");
+                Method m = adds.size() == 1 ? actual(presenter) : null;
+                List<Integer> sites = calls(m, hook, 1);
+                if (m != null && sites.size() == 1) {
+                    int add = adds.get(0), at = sites.get(0);
+                    List<Instruction> body = instructions(m);
+                    Layout layout = new Layout(m.getImplementation());
+                    found = at == add && at + 4 < body.size() && arguments(body.get(at)).isEmpty()
+                            && body.get(at + 1).getOpcode() == Opcode.MOVE_RESULT && body.get(at + 2).getOpcode() == Opcode.IF_NEZ
+                            && firstRegister(body.get(at + 1)) == firstRegister(body.get(at + 2))
+                            && String.valueOf(reference(body.get(at + 3))).equals(String.valueOf(reference(was.get(add))))
+                            && arguments(body.get(at + 3)).equals(arguments(was.get(add)))
+                            && layout.addresses.get(at + 2) + ((OffsetInstruction) body.get(at + 2)).getCodeOffset() == layout.addresses.get(at + 4)
+                            && onlyFrom(m, at, at - 1);
+                    if (!found) fail(hook + " does not skip only the call that adds Updates in " + m);
+                    else remove(m, at, at + 3);
+                }
+            }
+            capability(c.callee, found);
+        }
+
+        /**
+         * The pin's "See more like this?" answer. The pin model is the outer class of the classes that
+         * load the JSON name, the one holding a Boolean field annotated with it, and the getter is its
+         * one instance method taking nothing and answering a Boolean that reads the field. The hook takes
+         * the register the getter's one return hands back, right before that return, and its answer
+         * replaces it, and the return is reached only through the hook. Found in the clean target, never
+         * from the hook.
+         */
+        void feedbackFlyout(Contract c) {
+            String hook = c.strings.get(0), json = c.strings.get(1);
+            Set<String> owners = new TreeSet<>();
+            for (Method m : clean.holding(json)) {
+                String type = m.getDefiningClass();
+                owners.add(type.contains("$") ? type.substring(0, type.indexOf('$')) + ";" : type);
+            }
+            List<Field> fields = new ArrayList<>();
+            for (String owner : owners) {
+                ClassDef cd = clean.classes.get(owner);
+                if (cd != null) for (Field f : cd.getFields()) if (f.getType().equals("Ljava/lang/Boolean;") && jsonNamed(f, json)) fields.add(f);
+            }
+            boolean found = false;
+            if (fields.size() != 1) fail("the pin's " + json + " field has " + fields.size() + " clean fields, expected 1");
+            else {
+                Field field = fields.get(0);
+                List<Method> getters = new ArrayList<>();
+                for (Method m : clean.classes.get(field.getDefiningClass()).getMethods()) {
+                    if (AccessFlags.STATIC.isSet(m.getAccessFlags()) || !m.getParameterTypes().isEmpty()
+                            || !m.getReturnType().equals("Ljava/lang/Boolean;") || m.getImplementation() == null) continue;
+                    for (Instruction i : instructions(m)) if (i.getOpcode() == Opcode.IGET_OBJECT && reference(i) instanceof FieldReference read
+                            && read.getDefiningClass().equals(field.getDefiningClass()) && read.getName().equals(field.getName())
+                            && read.getType().equals(field.getType())) { getters.add(m); break; }
+                }
+                Method getter = unique(getters, "the pin's " + json + " getter");
+                List<Integer> returns = new ArrayList<>();
+                List<Instruction> was = getter == null ? List.of() : instructions(getter);
+                for (int at = 0; at < was.size(); at++) if (was.get(at).getOpcode() == Opcode.RETURN_OBJECT) returns.add(at);
+                if (getter != null && returns.size() != 1) fail(getter + " has " + returns.size() + " returns, expected 1");
+                Method m = returns.size() == 1 ? actual(getter) : null;
+                List<Integer> sites = calls(m, hook, 1);
+                if (m != null && sites.size() == 1) {
+                    int handed = firstRegister(was.get(returns.get(0))), at = sites.get(0);
+                    List<Instruction> body = instructions(m);
+                    found = at == returns.get(0) && at + 2 < body.size() && arguments(body.get(at)).equals(List.of(handed))
+                            && body.get(at + 1).getOpcode() == Opcode.MOVE_RESULT_OBJECT && firstRegister(body.get(at + 1)) == handed
+                            && body.get(at + 2).getOpcode() == Opcode.RETURN_OBJECT && firstRegister(body.get(at + 2)) == handed
+                            && onlyFrom(m, at + 1, at) && onlyFrom(m, at + 2, at + 1);
+                    if (!found) fail(hook + " does not stand between every path and the return in " + m);
+                    else remove(m, at, at + 2);
+                }
+            }
+            capability(c.callee, found);
+        }
+
+        /** True when one of [f]'s annotations names it [json], the way Pinterest's models name their JSON. */
+        static boolean jsonNamed(Field f, String json) {
+            for (var annotation : f.getAnnotations()) for (var element : annotation.getElements())
+                if (element.getName().equals("value") && element.getValue() instanceof StringEncodedValue value && value.getValue().equals(json)) return true;
+            return false;
+        }
+
         static final String TOPIC_BINDER = "Presenter bound to BubblesListView must be of type BubblesListPresenter";
 
         /**
@@ -6795,6 +6910,8 @@ public class DexDiff {
                     case "imageOrder": imageOrder(c); break;
                     case "closeupImage": closeupImage(c); break;
                     case "topicSuggestions": topicSuggestions(c); break;
+                    case "inboxUpdates": inboxUpdates(c); break;
+                    case "feedbackFlyout": feedbackFlyout(c); break;
                     case "recentSearchRows": recentSearchRows(c); break;
                     case "recentSearchHeading": recentSearchHeading(c); break;
                     case "closeupButtons": closeupButtons(c); break;

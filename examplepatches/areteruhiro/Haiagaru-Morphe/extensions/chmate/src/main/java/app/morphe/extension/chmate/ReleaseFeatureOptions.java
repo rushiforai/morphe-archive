@@ -14,21 +14,23 @@ final class ReleaseFeatureOptions {
         IMAGE_NG("1.25.0"), COPY_PASTE_NG("1.25.0"), REPLACE_TXT("1.25.0"),
         HISTORY_TARGETS("1.25.0"), WATCH_AFTER_POSTING("1.25.0"), DELETE_READ("1.25.0"),
         IP_WIFI("1.25.0"), IP_MOBILE("1.25.0"), IMAGE_NG_SETTINGS("1.25.0"),
-        ORG("1.26.0");
+        ORG("1.26.0"), LOCAL_IMAGES("1.28.0"), WACCHOI_COPY_UPPER("1.28.0"), WACCHOI_COPY_LOWER("1.28.0");
 
         final String version;
         Option(String version) { this.version = version; }
         String category() {
             switch(this){
                 case SETTINGS_LINKS:case SITE_GROUPS:case EDGE:case ORG:case BAKUSAI:case FUTABA:case ANIMAN:return "アプリ・通信";
-                case REPORTER_SEARCH:case REPORTER_MENU:case REPORTER_BOARD:return "表示・検索";
-                case THREAD_THUMBNAILS:case VIDEO_THUMBNAILS:case VIDEO_IMMERSIVE:return "画像・動画";
+                case WACCHOI_COPY_UPPER:case WACCHOI_COPY_LOWER:case REPORTER_SEARCH:case REPORTER_MENU:case REPORTER_BOARD:return "表示・検索";
+                case LOCAL_IMAGES:case THREAD_THUMBNAILS:case VIDEO_THUMBNAILS:case VIDEO_IMMERSIVE:return "画像・動画";
                 case IMAGE_NG:case COPY_PASTE_NG:case REPLACE_TXT:case IMAGE_NG_SETTINGS:return "NG・文字列置換";
                 default:return "履歴・投稿";
             }
         }
         String description() {
             switch(this){
+                case LOCAL_IMAGES:return "保存画像の内容と元URLを照合して表示します。追加の検索フォルダや、改名済み画像との手動関連付けも設定できます。";
+                case WACCHOI_COPY_UPPER:case WACCHOI_COPY_LOWER:return "ワッチョイ部分の長押しから、上4桁・下4桁をそれぞれコピーできます。ハイフンを含めず、大文字・小文字・記号を保持します。";
                 case SETTINGS_LINKS:return "本文に書かれたHaiagaruの設定リンクから、設定を開いたり切り替えたりできます。";
                 case SITE_GROUPS:return "標準の分類にない外部板を、ホストごとの項目にまとめます。反映には再起動が必要です。";
                 case EDGE:case ORG:case BAKUSAI:case FUTABA:case ANIMAN:return "このサイトを使用するか切り替えます。板の追加・取得はChMateの掲示板設定から行います。OFFにしても保存済みのログは削除しません。";
@@ -75,7 +77,7 @@ final class ReleaseFeatureOptions {
         }
         if (base.equals("1.27.4")) result.add(Option.THREAD_THUMBNAILS);
         // The history-control correction affects every control in this screen.
-        if (base.equals("1.27.5")) java.util.Collections.addAll(result, Option.values());
+        if (base.equals("1.27.5")) for(Option option:Option.values()) if(!option.version.equals("1.28.0")) result.add(option);
         return result;
     }
 

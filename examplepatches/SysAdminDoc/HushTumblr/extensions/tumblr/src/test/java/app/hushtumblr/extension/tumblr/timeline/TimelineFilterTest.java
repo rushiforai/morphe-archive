@@ -102,6 +102,29 @@ public class TimelineFilterTest {
         }
     }
 
+    /**
+     * A tag's page and search results carry a one-line promotion between posts, "Made with
+     * WordPress" with an Install button (#16). Hide ads takes it out of both, and with Hide ads off or
+     * paused it stays.
+     */
+    @Test
+    public void theOneLinePromotionGoesFromTagPagesAndSearch() {
+        List<Object> page = Arrays.asList(TimelineItems.post(), TimelineItems.of(TimelineObjectType.SINGLE_LINE_CTA),
+                TimelineItems.post());
+        List<Object> posts = Arrays.asList(page.get(0), page.get(2));
+        assertEquals(posts, TimelineItems.onATagPage(page));
+        assertEquals(posts, TimelineItems.inSearchResults(page));
+        String report = String.join("\n", HookStatus.report(""));
+        assertTrue(report, report.contains("ad removed 2"));
+
+        Settings.HIDE_ADS.save(false);
+        assertSame(page, TimelineItems.onATagPage(page));
+        assertSame(page, TimelineItems.inSearchResults(page));
+        Settings.HIDE_ADS.save(true);
+        PauseForTests.pause(HushTumblrPause.Reason.SWITCH);
+        assertSame(page, TimelineItems.onATagPage(page));
+    }
+
     @Test
     public void aPostTumblrLabelsSponsoredIsTakenOut() {
         List<Object> page = Arrays.asList(TimelineItems.sponsoredPost(), TimelineItems.post());

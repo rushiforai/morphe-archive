@@ -1,3 +1,18 @@
+## [1.16.0](https://github.com/mich111discord/MightyMichs-Patches/compare/v1.15.0...v1.16.0) (2026-11-13)
+
+### 🐛 Bug Fixes
+
+* Fixed Idrama Unlock Premium patch ([1c239ff](https://github.com/mich111discord/MightyMichs-Patches/commit/1c239ffccc5df0665d47b57dfa9807b6bc12dba2))
+* Fixed unlock premium for Dramawave ([7ea021c](https://github.com/mich111discord/MightyMichs-Patches/commit/7ea021cc0f734804702207ca464a3a4204294284))
+* whatsapp fix ([2d52264](https://github.com/mich111discord/MightyMichs-Patches/commit/2d52264a9efb465feea1ff320f8c603b050c2ddb))
+
+### ✨ New Features
+
+* add MT Manager, Pou, CCleaner telemetry, ESET, Mago, TikTok, PairIP, InShot engine, WhatsApp icon patches ([56f9a2d](https://github.com/mich111discord/MightyMichs-Patches/commit/56f9a2d0fe4fdeb65b6b13fd4e0120564e035d1a))
+* CCleaner Unlock Premium, ESET Enable Premium, MT Manager Unlock/SkipLogin ([186c1a5](https://github.com/mich111discord/MightyMichs-Patches/commit/186c1a5acd47a5eeee7c2f222ce0b7c9d19f31a6))
+* MT Manager SkipLogin patch ([93a5bcc](https://github.com/mich111discord/MightyMichs-Patches/commit/93a5bcc3fe4ba562ae8bdbb322cba6715cf1b1c7))
+* release pending patches (MT Manager, Pou, CCleaner, PairIP, TikTok, InShot, ESET, WhatsApp icon) ([ead1b7e](https://github.com/mich111discord/MightyMichs-Patches/commit/ead1b7e1ed0fea8d235b3077c15e1af4628d0d23))
+
 ## [1.15.0](https://github.com/mich111discord/MightyMichs-Patches/compare/v1.14.1...v1.15.0) (2026-11-12)
 
 ### 🐛 Bug Fixes

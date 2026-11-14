@@ -1963,7 +1963,6 @@ A beépített lejátszási lista letöltése gomb megjelenítéséhez kapcsolja 
     <string name="revanced_preference_screen_misc_title">Vegyes</string>
     <string name="revanced_preference_screen_navigation_bar_summary">Navigációs sáv komponenseinek láthatósága</string>
     <string name="revanced_preference_screen_navigation_bar_title">Navigációs sáv</string>
-    <string name="revanced_preference_screen_patch_information_summary">Információ az alkalmazott patchekről</string>
     <string name="revanced_preference_screen_player_buttons_summary">A videólejátszó gombok elrejtése vagy megjelenítése</string>
     <string name="revanced_preference_screen_player_buttons_title">Lejátszó gombok</string>
     <string name="revanced_preference_screen_player_flyout_menu_summary">A videólejátszóban található felugró menü elemeinek elrejtése vagy módosítása</string>

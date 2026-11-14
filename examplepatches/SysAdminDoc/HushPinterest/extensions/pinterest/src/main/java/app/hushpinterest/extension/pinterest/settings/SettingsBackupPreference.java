@@ -456,6 +456,7 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             case "hushpinterest_hide_shopping": return L10n.t("Hide shopping and product pins");
             case "hushpinterest_hide_video_pins": return L10n.t("Hide video pins");
             case "hushpinterest_hide_saved_pins": return L10n.t("Hide pins you've already saved");
+            case "hushpinterest_hide_home_suggestions": return L10n.t("Hide Home suggestions");
             case "hushpinterest_keep_home_feed": return L10n.t("Keep Home feed");
             case "hushpinterest_disable_analytics": return L10n.t("Disable analytics");
             case "hushpinterest_strip_link_tracking": return L10n.t("Strip link tracking");
@@ -502,6 +503,7 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             case "hushpinterest_hide_comments": return L10n.t("Hide comments");
             case "hushpinterest_hide_suggested_replies": return L10n.t("Hide suggested replies");
             case "hushpinterest_hide_topic_suggestions": return L10n.t("Hide topic suggestions");
+            case "hushpinterest_hide_inbox_updates": return L10n.t("Hide Inbox updates");
             case "hushpinterest_quiet_email_reminder": return L10n.t("Quiet email reminders");
             case "hushpinterest_hide_survey_prompts": return L10n.t("Hide survey prompts");
             case "hushpinterest_hide_save_toasts": return L10n.t("Hide save toasts");

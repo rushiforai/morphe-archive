@@ -15,6 +15,8 @@ package app.morphe
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.PatcherConfig
+import app.morphe.patcher.PatcherContext
+import app.morphe.patcher.PatcherProgress
 import app.morphe.patcher.patch.BytecodePatchContext
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -27,7 +29,7 @@ import java.lang.ref.WeakReference
  *
  * The patcher fills its class pool from an APK's dex files, and what takes a pool directly is
  * internal to it: the context's constructor, the pool's class and its setter. They are reached by
- * their JVM names, pinned to morphe-patcher 2.0.0. A bump that renames one fails here, naming it,
+ * their JVM names, pinned to morphe-patcher 2.3.0. A bump that renames one fails here, naming it,
  * rather than leaving a test that never ran the patch. Nothing is written to disk: the context only
  * names its work folders until something compiles the dex, which no test here asks for.
  */
@@ -50,10 +52,28 @@ internal object PatchContexts {
         val context = BytecodePatchContext::class.java.getConstructor(PatcherConfig::class.java, metadataType)
             .newInstance(config, metadata)
         val poolType = Class.forName("app.morphe.patcher.util.PatchClasses")
-        val pool = poolType.getConstructor(Set::class.java).newInstance(classes.toSet())
+        // Patcher 2.3.0 hands PatchClasses a PatcherProgress beside the classes; tests report none.
+        val pool = poolType.getConstructor(Set::class.java, PatcherProgress::class.java).newInstance(classes.toSet(), null)
         BytecodePatchContext::class.java.getMethod("setPatchClasses\$morphe_patcher", poolType).invoke(context, pool)
         BytecodePatchContext::class.java.getMethod("setOpcodes\$morphe_patcher", Opcodes::class.java)
             .invoke(context, Opcodes.getDefault())
+        makeCurrent(context, metadata)
         return context
+    }
+
+    /**
+     * Patcher 2.3.0's global lookups (classDefBy and the rest) read the patcher's current context,
+     * which only its own run sets. A context built here becomes current the same way, through an
+     * instance that skips the constructor's APK reading and holds just the bytecode context and
+     * package metadata. The newest context built is the current one, as in the patcher.
+     */
+    private fun makeCurrent(context: BytecodePatchContext, metadata: Any) {
+        val unsafeField = Class.forName("sun.misc.Unsafe").getDeclaredField("theUnsafe").apply { isAccessible = true }
+        val unsafe = unsafeField.get(null)
+        val patcher = unsafe.javaClass.getMethod("allocateInstance", Class::class.java)
+            .invoke(unsafe, PatcherContext::class.java)
+        PatcherContext::class.java.getDeclaredField("bytecodeContext").apply { isAccessible = true }.set(patcher, context)
+        PatcherContext::class.java.getDeclaredField("packageMetadata").apply { isAccessible = true }.set(patcher, metadata)
+        PatcherContext::class.java.getDeclaredField("current").apply { isAccessible = true }.set(null, patcher)
     }
 }

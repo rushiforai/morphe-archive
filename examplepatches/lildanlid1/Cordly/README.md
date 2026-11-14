@@ -126,13 +126,3 @@ python3 scripts/build.py    # builds and tests patches/build/libs/*.mpp
 ## Conduit additions
 
 [![Add Conduit to Morphe](.github/assets/add-to-morphe.svg)](https://morphe.software/add-source?github=lildanlid1/Cordly)
-
-Conduit 1.25.0 incorporates Venus Patches 1.21.1 for Discord **351.11 Stable**. Original authorship and GPL-3.0 credits remain in NOTICE. The Android app keeps the Discord name and package.
-
-Server info shows server emojis directly. Tap artwork or an emoji to preview it; hold the image to open Save. Show all opens the searchable gallery with selection and ZIP export. Server layout exports and the bot importer remain available. The upstream **View raw data** tool replaces Inspect message JSON and covers more object types; its previous enabled setting migrates.
-
-**Rich Presence** publishes through Discord's local activity pipeline. Enter your Discord application ID, activity name, details, state, type and image URLs. Enable elapsed time to count from Start/update. Start explicitly after reopening; Stop removes only Conduit's custom activity. Visibility follows Discord's activity-sharing and privacy settings; other users do not need Conduit. Publishing still needs an on-device, second-account check.
-
-For device images, choose an upload channel ID and press Upload large/small image. This posts an attachment in that channel and uses its CDN URL. Anyone able to read the channel can see that message. URLs must be publicly accessible HTTPS images. Uploads are limited to 8 MiB.
-
-Unlock experiments waits until the signed-in connection has initialized and never loads UserStore from a startup staff check. Existing experiment overrides are not cleared automatically.

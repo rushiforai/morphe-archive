@@ -56,6 +56,7 @@ public final class ChatHiding {
             Route target = route();
             if (target == null || supplier == null || !(rows instanceof List)) return rows;
             List<?> list = (List<?>) rows;
+            if (!list.isEmpty()) SpecialContacts.chats(target, list);
             synchronized (ChatHiding.class) {
                 remember(supplier);
                 Map<String, String> saved = saved();
@@ -73,33 +74,68 @@ public final class ChatHiding {
     }
 
     /**
-     * The chat menu's finished rows. Messenger pads the list with empty slots up to the count it expected, but its menu
-     * reads every entry and usually gets a full list, so the row takes the first empty slot when there is one and goes on
-     * the end otherwise.
+     * The chat menu's finished rows, which also carry Special contacts' Track this person and the Message log row. Messenger pads the list with
+     * empty slots up to the count it expected, but its menu reads every entry and usually gets a full list, so each row
+     * takes the first empty slot when there is one and goes on the end otherwise.
      */
     public static void menuRows(Object menu, ArrayList<Object> rows) {
+        Route target;
+        Object summary;
         try {
-            Route target = route();
-            if (target == null || rows == null || !target.menu.isInstance(menu) || !Settings.wouldUse(KEY)) return;
-            int slot = rows.indexOf(null);
-            Object summary = target.menuSummary.get(menu);
+            target = route();
+            if (target == null || rows == null || !target.menu.isInstance(menu)) return;
+            summary = target.menuSummary.get(menu);
             if (!target.summary.isInstance(summary)) return;
-            boolean shown;
-            synchronized (ChatHiding.class) {
-                shown = !asked().containsKey(target.key(summary));
-            }
-            Object row = target.row(label(shown ? "hidden_chats_hide" : "hidden_chats_show"), shown ? "EYE_CROSS" : "EYE");
-            if (row == null) return;
-            if (slot < 0) rows.add(row);
-            else rows.set(slot, row);
-            Settings.enabled(KEY);
         } catch (Throwable error) {
             Settings.hookFailed(KEY, "Can't add Hide from chat list", error);
+            return;
         }
+        if (Settings.wouldUse(KEY)) {
+            try {
+                boolean shown;
+                synchronized (ChatHiding.class) {
+                    shown = !asked().containsKey(target.key(summary));
+                }
+                Object row = target.row(label(shown ? "hidden_chats_hide" : "hidden_chats_show"), shown ? "EYE_CROSS" : "EYE");
+                if (row != null) {
+                    place(rows, row);
+                    Settings.enabled(KEY);
+                }
+            } catch (Throwable error) {
+                Settings.hookFailed(KEY, "Can't add Hide from chat list", error);
+            }
+        }
+        SpecialContacts.menuRow(target, summary, rows);
+        MessageLogButton.chatRow(target, summary, rows);
+    }
+
+    /** A row of ours in the first empty slot, or on the end of a full menu. */
+    static void place(ArrayList<Object> rows, Object row) {
+        int slot = rows.indexOf(null);
+        if (slot < 0) rows.add(row);
+        else rows.set(slot, row);
     }
 
     /** The chat menu's tap asks this first. False for Messenger's own rows, which it then handles as before. */
     public static boolean menuTapped(Object menu, int id) {
+        if (id == SpecialContacts.ROW_ID) {
+            try {
+                Route target = route();
+                if (target != null) SpecialContacts.menuTapped(target, menu);
+            } catch (Throwable error) {
+                Settings.hookFailed(SpecialContacts.KEY, "Can't track this person", error);
+            }
+            return true;
+        }
+        if (id == MessageLogButton.CHAT_ROW_ID) {
+            try {
+                Route target = route();
+                if (target != null) MessageLogButton.chatTapped(target, menu);
+            } catch (Throwable error) {
+                Settings.hookFailed(MessageLog.KEY, "Can't open the message log", error);
+            }
+            return true;
+        }
         if (id != ROW_ID) return false;
         try {
             Route target = route();
@@ -233,7 +269,7 @@ public final class ChatHiding {
      * What the patch proved, as "|"-joined parts: the chat's key, name and people, each person's info, account key and
      * id, the info's name and the text inside it, the menu's chat, then the row builder's factory, id, icon, title,
      * description and build, and the chat list's "subscribe|listed". Fields are "Lowner;->name:type" and calls
-     * "Lowner;->name(params)return".
+     * "Lowner;->name(params)return". The description is its field, or the setter 587's builder fills it through.
      */
     static final class Route {
         final Class<?> summary;
@@ -251,12 +287,12 @@ public final class ChatHiding {
         final Field id;
         final Method icon;
         final Method title;
-        final Field description;
+        final Setter description;
         final Method build;
         final String refresh;
         private final Method copyOf;
 
-        private Route(Field[] fields, Method[] calls, String refresh) throws NoSuchMethodException {
+        private Route(Field[] fields, Setter description, Method[] calls, String refresh) throws NoSuchMethodException {
             key = fields[0];
             name = fields[1];
             participants = fields[2];
@@ -267,7 +303,7 @@ public final class ChatHiding {
             secretText = fields[7];
             menuSummary = fields[8];
             id = fields[9];
-            description = fields[10];
+            this.description = description;
             factory = calls[0];
             icon = calls[1];
             title = calls[2];
@@ -285,12 +321,39 @@ public final class ChatHiding {
         static Route of(String text, ClassLoader loader) throws ReflectiveOperationException {
             String[] parts = text.split("\\|", -1);
             if (parts.length != 17) throw shape();
-            Field[] fields = new Field[11];
+            Field[] fields = new Field[10];
             for (int i = 0; i < 9; i++) fields[i] = field(parts[i], loader);
             fields[9] = field(parts[10], loader);
-            fields[10] = field(parts[13], loader);
             Method[] calls = {method(parts[9], loader), method(parts[11], loader), method(parts[12], loader), method(parts[14], loader)};
-            return new Route(fields, calls, parts[15] + "|" + parts[16]);
+            return new Route(fields, Setter.of(parts[13], loader), calls, parts[15] + "|" + parts[16]);
+        }
+
+        /** A String the builder keeps: its field, or a one-String setter that returns nothing. */
+        static final class Setter {
+            private final Field field;
+            private final Method method;
+
+            private Setter(Field field, Method method) {
+                this.field = field;
+                this.method = method;
+            }
+
+            static Setter of(String reference, ClassLoader loader) throws ReflectiveOperationException {
+                if (reference.indexOf('(') < 0) {
+                    Field field = field(reference, loader);
+                    if (field.getType() != String.class) throw shape();
+                    return new Setter(field, null);
+                }
+                Method method = method(reference, loader);
+                if (Modifier.isStatic(method.getModifiers()) || method.getReturnType() != void.class
+                        || method.getParameterTypes().length != 1 || method.getParameterTypes()[0] != String.class) throw shape();
+                return new Setter(null, method);
+            }
+
+            void set(Object builder, String text) throws Throwable {
+                if (field != null) field.set(builder, text);
+                else call(method, builder, text);
+            }
         }
 
         String key(Object chat) throws IllegalAccessException {
@@ -318,27 +381,62 @@ public final class ChatHiding {
             return clean(String.join(", ", people));
         }
 
+        /**
+         * The one other person in a one-to-one chat, as {id, name}, the name empty when Messenger has none. Null for a
+         * group, a chat with nobody else listed, or when this account isn't one of its people.
+         */
+        String[] other(Object chat, String self) throws IllegalAccessException {
+            if (self == null) return null;
+            Object everyone = participants.get(chat);
+            if (!(everyone instanceof Iterable)) return null;
+            String[] other = null;
+            boolean mine = false;
+            for (Object person : (Iterable<?>) everyone) {
+                if (!participant.getDeclaringClass().isInstance(person)) continue;
+                Object info = participant.get(person);
+                Object account = info == null ? null : user.get(info);
+                Object id = account == null ? null : userId.get(account);
+                if (!(id instanceof String) || ((String) id).isEmpty()) return null;
+                if (id.equals(self) && !mine) {
+                    mine = true;
+                    continue;
+                }
+                if (other != null) return null;
+                Object secret = secretName.get(info);
+                Object text = secret == null ? null : secretText.get(secret);
+                other = new String[] {(String) id, text instanceof String ? clean((String) text) : ""};
+            }
+            return mine ? other : null;
+        }
+
         private static String clean(String text) {
             return text.replace('\t', ' ').replace('\n', ' ').replace('\r', ' ').trim();
         }
 
-        /** A new row from Messenger's own builder, with the icon named [icon] from its enum. */
+        /** A new Hide from chat list row from Messenger's own builder, with the icon named [iconName] from its enum. */
         Object row(String text, String iconName) throws Throwable {
+            return row(ROW_ID, ROW_NAME, text, iconName);
+        }
+
+        /** A new row from Messenger's own builder, with the first of [iconNames] its icon enum has. */
+        Object row(int rowId, String rowName, String text, String... iconNames) throws Throwable {
             Object constant = null;
             Class<?> icons = icon.getParameterTypes()[0];
-            for (Field field : icons.getDeclaredFields()) {
-                if (!Modifier.isStatic(field.getModifiers()) || field.getType() != icons) continue;
-                field.setAccessible(true);
-                Object value = field.get(null);
-                if (value instanceof Enum && ((Enum<?>) value).name().equals(iconName)) constant = value;
+            for (int i = 0; constant == null && i < iconNames.length; i++) {
+                for (Field field : icons.getDeclaredFields()) {
+                    if (!Modifier.isStatic(field.getModifiers()) || field.getType() != icons) continue;
+                    field.setAccessible(true);
+                    Object value = field.get(null);
+                    if (value instanceof Enum && ((Enum<?>) value).name().equals(iconNames[i])) constant = value;
+                }
             }
             if (constant == null) return null;
             Object builder = call(factory, null);
-            id.setInt(builder, ROW_ID);
+            id.setInt(builder, rowId);
             call(icon, builder, constant);
             call(title, builder, text);
             description.set(builder, text);
-            return call(build, null, builder, ROW_NAME);
+            return call(build, null, builder, rowName);
         }
 
         Object copyOf(List<Object> rows) throws Throwable {

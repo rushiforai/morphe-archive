@@ -30,6 +30,7 @@ val hidePredictionMarketsPatch = bytecodePatch(
     name = "Hide prediction markets",
     description = "Removes Kalshi and Polymarket market widgets from articles and live blogs.",
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")

@@ -78,6 +78,30 @@ private val PUBLIC_STATIC = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value
 private fun coroutineClass(body: String = EDITOR_BODY, type: String = COROUTINE) = fixtureClass(type,
     listOf(fixtureMethod(GALLERY_CHAT_EDITOR.replace(COROUTINE, type), body.replace(COROUTINE, type), registers = 9)), flags = FINAL_PUBLIC)
 
+private const val STEP = "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"
+private const val MERGED_EDITOR = "$COROUTINE->A03$STEP"
+
+/** 587 armv7's merged coroutines: the resume hands this and the result to each one's static helper. Locals v0, this in v1. */
+private val MERGED_RESUME = """
+    iget v0, p0, $COROUTINE->A00:I
+    if-nez v0, :other
+    invoke-static {p0, p1}, $MERGED_EDITOR
+    move-result-object v0
+    return-object v0
+    :other
+    invoke-static {p0, p1}, $COROUTINE->A02$STEP
+    move-result-object v0
+    return-object v0
+""".trimIndent()
+
+/** The editor's helper: the coroutine body with this handed in as an Object, in the same frame. */
+private val MERGED_STEP_BODY = "check-cast p0, $COROUTINE\n$EDITOR_BODY"
+
+private fun mergedCoroutineClass(resume: String = MERGED_RESUME, editor: String = MERGED_STEP_BODY, other: String = "const/4 v0, 0x0\nreturn-object v0") =
+    fixtureClass(COROUTINE, listOf(fixtureMethod(GALLERY_CHAT_EDITOR, resume, registers = 3),
+        fixtureMethod(MERGED_EDITOR, editor, registers = 9, flags = PUBLIC_STATIC),
+        fixtureMethod("$COROUTINE->A02$STEP", other, registers = 9, flags = PUBLIC_STATIC)), flags = FINAL_PUBLIC)
+
 private fun insertClass(initFlags: Int = AccessFlags.PUBLIC.value or AccessFlags.CONSTRUCTOR.value, flags: Int = FINAL_PUBLIC) =
     fixtureClass(INSERT_PREVIEW, listOf(fixtureMethod(INSERT_PREVIEW_INIT, "return-void", registers = 3, flags = initFlags)), flags = flags)
 
@@ -239,12 +263,39 @@ class GalleryToChatTest {
     }
 
     @Test fun theCoroutinePutsTheCopiedItemInTheTrayInsteadOfOpeningTheEditor() {
-        for (body in listOf(EDITOR_BODY, EDITOR_BODY_ARMV7)) trayInsteadOfEditor(body)
+        for (body in listOf(EDITOR_BODY, EDITOR_BODY_ARMV7)) trayInsteadOfEditor({ coroutineClass(body) })
+        trayInsteadOfEditor({ mergedCoroutineClass() }, MERGED_EDITOR)
     }
 
-    private fun trayInsteadOfEditor(body: String) {
-        findGalleryToChat(chatClasses(coroutineClass(body)))
-        val editor = MutableMethod(coroutineClass(body).methods.single())
+    @Test fun aMergedCoroutineIsHookedInTheHelperItsResumeHandsTheEditorTo() {
+        val found = found(chatClasses(mergedCoroutineClass()))
+        assertEquals(listOf(GALLERY_ITEMS, MERGED_EDITOR, GALLERY_TRAY_GATE), found.map { it.hookId() })
+        assertEquals(MERGED_EDITOR, galleryChatRoute!!.editor)
+        // The synthetic profile names the plain coroutine's resume, so this one is checked against a profile that names the helper.
+        val base = SYNTHETIC_PROFILE
+        activeProfile = ControlProfile(base.hooks + (GALLERY_TO_CHAT to setOf(GALLERY_ITEMS, MERGED_EDITOR, GALLERY_TRAY_GATE)),
+            base.pluginSentinel, base.preferenceGetter, base.peopleKey, base.peopleFlagCheck, base.subtabsSupplier,
+            base.browserPreferenceKey, base.browserPreferenceIndex, base.bubbleCapabilityGetter, base.bubbleRolloutGetter,
+            base.nativeBubbleRoutes, base.nativeCommunityInbox)
+        validateControls(mapOf(GALLERY_TO_CHAT to found), setOf(GALLERY_TO_CHAT))
+        val site = found[1].galleryChatSite(setOf(CHAT))!!
+        assertEquals(listOf(10, 1, 0, 2, 4), listOf(site.at, site.intent, site.media, site.chat, site.params))
+        val cases = mapOf(
+            "this and the result swapped" to chatClasses(mergedCoroutineClass(MERGED_RESUME.replace("{p0, p1}, $MERGED_EDITOR", "{p1, p0}, $MERGED_EDITOR"))),
+            "another class's helper" to chatClasses(mergedCoroutineClass(MERGED_RESUME.replace(MERGED_EDITOR, "LX/NFh;->A03$STEP"), editor = "const/4 v0, 0x0\nreturn-object v0")) +
+                fixtureClass("LX/NFh;", listOf(fixtureMethod("LX/NFh;->A03$STEP", MERGED_STEP_BODY, registers = 9, flags = PUBLIC_STATIC))),
+            "two helpers with the editor" to chatClasses(mergedCoroutineClass(other = MERGED_STEP_BODY)),
+            "a helper the resume never calls" to chatClasses(mergedCoroutineClass(MERGED_RESUME.replace("{p0, p1}, $MERGED_EDITOR", "{p0, p1}, $COROUTINE->A01$STEP"))),
+        )
+        for ((case, classes) in cases) {
+            assertTrue(found(classes).isEmpty(), case)
+            assertEquals(null, galleryChatRoute, case)
+        }
+    }
+
+    private fun trayInsteadOfEditor(coroutine: () -> MutableClass, editorId: String = GALLERY_CHAT_EDITOR) {
+        findGalleryToChat(chatClasses(coroutine()))
+        val editor = MutableMethod(coroutine().methods.single { it.hookId() == editorId })
         val before = editor.code()
         val site = editor.galleryChatSite(setOf(CHAT))!!
         injectControl(GALLERY_TO_CHAT, mapOf(GALLERY_TO_CHAT to listOf(editor)))

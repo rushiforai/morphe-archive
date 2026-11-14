@@ -5,7 +5,7 @@ import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
 
 object CheckProStatusFingerprint : Fingerprint(
-    definingClass = "Lzx2;",
+    definingClass = "Lf13;",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "V",
     parameters = emptyList(),

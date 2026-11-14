@@ -49,6 +49,7 @@ import app.morphe.extension.facebook.comments.CommentsHeight;
 import app.morphe.extension.facebook.reels.BurnInMode;
 import app.morphe.extension.facebook.reels.BurnInWait;
 import app.morphe.extension.facebook.reels.GrayOver;
+import app.morphe.extension.facebook.reels.HoldReaction;
 import app.morphe.extension.facebook.reels.ReelDateStyle;
 import app.morphe.extension.facebook.reels.ReelsOrder;
 import app.morphe.extension.facebook.download.DownloadQuality;
@@ -108,6 +109,7 @@ import app.morphe.extension.facebook.settings.ValueRows.PauseLengthRow;
 import app.morphe.extension.facebook.settings.ValueRows.WatchedKeepRow;
 import app.morphe.extension.facebook.settings.ValueRows.BurnInGuardRow;
 import app.morphe.extension.facebook.settings.ValueRows.BurnInWaitRow;
+import app.morphe.extension.facebook.settings.ValueRows.HoldReactionRow;
 import app.morphe.extension.facebook.settings.ValueRows.NewRowMarkRow;
 import app.morphe.extension.facebook.settings.ValueRows.ReelDateStyleRow;
 import app.morphe.extension.facebook.settings.ValueRows.CommentsHeightRow;
@@ -229,6 +231,9 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
     /** The rows of the saves running now, by save number. */
     private final Map<Integer, SaveRow> saveRows = new HashMap<>();
 
+    /** The rows of the reels in the reel queue (#462), by their number in its run. */
+    private final Map<Integer, SettingsRows.QueuedReelRow> reelRows = new HashMap<>();
+
     /** Keeps the rows in step with the saves while the page is showing. Saves tell it from their own thread. */
     private final SaveControl.Watcher saves = () -> Utils.runOnMainThread(this::showSaves);
 
@@ -246,6 +251,8 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
     /** Goes to the row the request that opened the page named, if it named one this build has. */
     void showRequestedSetting() {
         String key = SettingsEntry.takeRequestedSetting();
+        // The queue's card opens the page at the queue (#462), whose rows go up with the saves'.
+        if (ReelQueue.ROW_KEY.equals(key)) showSaves();
         Preference target = key == null ? null : findPreference(key);
         // The tab bar switches have no rows of their own: each pair is one choice row.
         TabBarChoices.Pair pair = TabBarChoices.Pair.forKey(key);
@@ -455,8 +462,11 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         }
     }
 
-    /** The reel queue's row (#449) while it holds reels, above the running saves. Changed in place while it stays. */
-    private static void showReelQueue(PreferenceCategory group) {
+    /**
+     * The reel queue's row (#449) while it holds reels, with a row under it for each reel in it
+     * (#462), above the running saves. Rows that stay are changed in place.
+     */
+    private void showReelQueue(PreferenceCategory group) {
         ReelQueue.Status queue = ReelQueue.status();
         Preference shown = group.findPreference(SettingsRows.QueueRow.KEY);
         if (queue == null) {
@@ -465,6 +475,26 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
             ((SettingsRows.QueueRow) shown).show(queue);
         } else {
             group.addPreference(new SettingsRows.QueueRow(group.getContext(), queue));
+        }
+        List<ReelQueue.Item> items = queue == null ? new ArrayList<>() : ReelQueue.items();
+        Set<Integer> now = new HashSet<>();
+        for (ReelQueue.Item item : items) now.add(item.number);
+        for (java.util.Iterator<Map.Entry<Integer, SettingsRows.QueuedReelRow>> rows = reelRows.entrySet().iterator(); rows.hasNext(); ) {
+            Map.Entry<Integer, SettingsRows.QueuedReelRow> row = rows.next();
+            if (now.contains(row.getKey())) continue;
+            group.removePreference(row.getValue());
+            rows.remove();
+        }
+        for (int place = 0; place < items.size(); place++) {
+            ReelQueue.Item item = items.get(place);
+            SettingsRows.QueuedReelRow row = reelRows.get(item.number);
+            if (row != null) {
+                row.show(item, place);
+                continue;
+            }
+            row = new SettingsRows.QueuedReelRow(group.getContext(), item, place);
+            reelRows.put(item.number, row);
+            group.addPreference(row);
         }
     }
 
@@ -1911,6 +1941,57 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
                 + "stay faded.", burnInWaitLabel(wait));
     }
 
+    /** What Hold a post to react gives, right under its switch (#454). */
+    static HoldReactionRow holdReactionRow(Context context) {
+        HoldReactionRow row = new HoldReactionRow(context);
+        row.setKey(Settings.HOLD_REACTION.key);
+        row.setTitle(L10n.t("Reaction"));
+        row.setDialogTitle(L10n.t("Reaction"));
+        row.setNegativeButtonText(L10n.t("Cancel"));
+        HoldReaction[] choices = HoldReaction.values();
+        CharSequence[] entries = new CharSequence[choices.length];
+        CharSequence[] values = new CharSequence[choices.length];
+        for (int i = 0; i < choices.length; i++) {
+            entries[i] = holdReactionLabel(choices[i]);
+            values[i] = choices[i].name();
+        }
+        row.setEntries(entries);
+        row.setEntryValues(values);
+        row.setValue(Settings.HOLD_REACTION.savedValue().name());
+        return row;
+    }
+
+    /** What the list and the sentences about it call [reaction]. */
+    static String holdReactionLabel(HoldReaction reaction) {
+        switch (reaction) {
+            case LIKE:
+                return L10n.t("Like");
+            case LOVE:
+                return L10n.t("Love");
+            case CARE:
+                return L10n.t("Care");
+            case HAHA:
+                return L10n.t("Haha");
+            case WOW:
+                return L10n.t("Wow");
+            case SAD:
+                return L10n.t("Sad");
+            case ANGRY:
+                return L10n.t("Angry");
+            default:
+                return L10n.t("Pick one each time");
+        }
+    }
+
+    /** What the choice does, for the row's summary. */
+    static String holdReactionSummary(HoldReaction reaction) {
+        if (reaction == HoldReaction.PICK) {
+            return L10n.t("Pick one each time. The reactions open over the post, so slide to one and let go, or let go "
+                    + "and tap one.");
+        }
+        return L10n.f("%1$s. Holding a post gives it straight away.", holdReactionLabel(reaction));
+    }
+
     /** How long Show Reels in gray takes to go from full color to gray, right under its switch. */
     static BreakRow grayOverRow(Context context) {
         BreakRow row = new BreakRow(context, value -> grayOverSummary(grayOver(value)), Settings.GRAY_REELS);
@@ -2604,7 +2685,8 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
     static ValueRows.PercentRow tabBarHeightRow(Context context) {
         return percentRow(context, Settings.TAB_BAR_HEIGHT, L10n.t("Tab bar height"),
                 L10n.f("Percent of its full height the rounded tab bar keeps, from %1$s to %2$s, trimmed above and "
-                        + "below the icons. Leave it blank for %3$s.", RoundedTabBar.MIN_HEIGHT, RoundedTabBar.MAX_HEIGHT,
+                        + "below the icons. Over 100 makes it taller, mostly toward the bottom of the screen. Leave it "
+                        + "blank for %3$s.", RoundedTabBar.MIN_HEIGHT, RoundedTabBar.MAX_HEIGHT,
                         RoundedTabBar.DEFAULT_HEIGHT),
                 RoundedTabBar.DEFAULT_HEIGHT, HushfacebookPreferenceFragment::tabBarHeightSummary);
     }
@@ -2812,6 +2894,8 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
             ((BurnInGuardRow) listPreference).showSummary();
         } else if (listPreference instanceof BurnInWaitRow) {
             ((BurnInWaitRow) listPreference).showSummary();
+        } else if (listPreference instanceof HoldReactionRow) {
+            ((HoldReactionRow) listPreference).showSummary();
         } else if (listPreference instanceof ReelDateStyleRow) {
             ((ReelDateStyleRow) listPreference).showSummary();
         } else if (listPreference instanceof CommentsHeightRow) {

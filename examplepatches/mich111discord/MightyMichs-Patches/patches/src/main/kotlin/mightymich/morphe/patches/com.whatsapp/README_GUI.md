@@ -19,9 +19,11 @@ Target: `com.whatsapp` 2.26.43.75 (+ nearby 2.26.43.x experimental)
 
 Morphe option **Icon style**:
 
-- Whatsapp Red
-- Whatsapp Blue
-- Whatsapp Gold
+- Classic green
+- Premium dark (default when patch enabled)
+- Premium gold
+- Premium purple
+- Business teal
 
 Preview PNGs: `icons/icon_*.png`
 

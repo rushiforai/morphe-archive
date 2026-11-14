@@ -152,7 +152,7 @@ class ControlLifecycleTest {
             "${selection.name}: chat list route")
         // Every run records the build it started from, which the manifest's own mapping names here.
         val build = host.methods.single { it.hookId() == ORIGINAL_BUILD }
-        assertEquals("586.0.0.55.92|$LIFECYCLE_VERSION_CODE|$LIFECYCLE_VERSION_CODE",
+        assertEquals("587.0.0.54.96|$LIFECYCLE_VERSION_CODE|$LIFECYCLE_VERSION_CODE",
             ((build.implementation!!.instructions.first() as ReferenceInstruction).reference as StringReference).string,
             "${selection.name}: original build")
         val factory = classes.single { it.type == FACTORY_TYPE }

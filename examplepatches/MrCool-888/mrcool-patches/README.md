@@ -2,6 +2,8 @@
 
 Morphe patches based on [Morphe's patches template](https://github.com/MorpheApp/morphe-patches-template).
 
+MrCool Patches is an independent project and is not affiliated with or endorsed by the developers or publishers of any apps it patches.
+
 ## Downloads
 
 Get the Morphe patch bundle from the [latest stable release](https://github.com/MrCool-888/mrcool-patches/releases/latest). Release notes identify the app builds supported by each bundle and any supplied patched APKs. The watch app is also available from [OpenBubbles Wear releases](https://github.com/MrCool-888/OB-wearos/releases/latest).

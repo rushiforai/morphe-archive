@@ -24,6 +24,7 @@ val skipSplashVideoPatch = bytecodePatch(
     name = "Skip lion intro",
     description = "Opens the app after the MGM+ logo, without the lion intro video.",
 ) {
+    category("Playback")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

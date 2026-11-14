@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.LinearLayout;
+import android.widget.CheckBox;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
@@ -31,6 +32,22 @@ final class ModDialog {
                      String positiveText, final Runnable onPositive,
                      String negativeText, final Runnable onNegative,
                      final Runnable onDismiss) {
+        show(ctx, title, message, positiveText, onPositive, negativeText, onNegative,
+                onDismiss, null, null);
+    }
+
+    static void choose(Context ctx, String title, String[] labels, String action,
+                       java.util.function.Consumer<boolean[]> onConfirm) {
+        boolean[] checked = new boolean[labels.length];
+        java.util.Arrays.fill(checked, true);
+        show(ctx, title, null, action, () -> onConfirm.accept(checked), "Cancel", null,
+                null, labels, checked);
+    }
+
+    private static void show(Context ctx, String title, CharSequence message,
+                             String positiveText, Runnable onPositive,
+                             String negativeText, Runnable onNegative, Runnable onDismiss,
+                             String[] labels, boolean[] checked) {
         try {
             Prefs.load(ctx);
             final float d = ctx.getResources().getDisplayMetrics().density;
@@ -60,15 +77,17 @@ final class ModDialog {
             head.setPadding(0, 0, 0, Math.round(12 * d));
             root.addView(head);
 
-            TextView body = new TextView(ctx);
-            body.setText(message);
-            body.setTextColor(0xFFC7C7C7);
-            body.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14.5f);
-            body.setLineSpacing(Math.round(3 * d), 1f);
-            body.setLinkTextColor(accent);
-            body.setMovementMethod(android.text.method.LinkMovementMethod.getInstance());
             ScrollView scroll = new ScrollView(ctx);
-            scroll.addView(body);
+            if (labels == null) {
+                TextView body = new TextView(ctx);
+                body.setText(message);
+                body.setTextColor(0xFFC7C7C7);
+                body.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14.5f);
+                body.setLineSpacing(Math.round(3 * d), 1f);
+                body.setLinkTextColor(AccentPresets.readableText(accent, SurfaceColors.elevated(ctx)));
+                body.setMovementMethod(android.text.method.LinkMovementMethod.getInstance());
+                scroll.addView(body);
+            }
             // Weighted (not WRAP_CONTENT): once the window height below is clamped to fit the
             // screen, this is what has to give. Without a weight the body just kept growing past
             // the screen edge — on a long message (the what's-new dialog) that pushed the buttons
@@ -97,7 +116,7 @@ final class ModDialog {
                 buttons.addView(neg, lp);
             }
 
-            int onAccent = AccentPresets.isLight(accent) ? 0xFF141414 : 0xFFFFFFFF;
+            int onAccent = AccentPresets.readableText(0xFFFFFFFF, accent);
             TextView pos = pill(ctx, d, positiveText, accent, accent, onAccent);
             pos.setOnClickListener(new View.OnClickListener() {
                 @Override public void onClick(View v) {
@@ -108,6 +127,39 @@ final class ModDialog {
             LinearLayout.LayoutParams plp = new LinearLayout.LayoutParams(
                     0, ViewGroup.LayoutParams.WRAP_CONTENT, negativeText != null ? 1f : 2f);
             buttons.addView(pos, plp);
+
+            if (labels != null) {
+                LinearLayout choices = new LinearLayout(ctx);
+                choices.setOrientation(LinearLayout.VERTICAL);
+                int selectedColor = AccentPresets.readableText(accent, SurfaceColors.elevated(ctx));
+                android.content.res.ColorStateList tint = new android.content.res.ColorStateList(
+                        new int[][]{{android.R.attr.state_checked}, {}},
+                        new int[]{selectedColor, 0xFF99AABB});
+                for (int i = 0; i < labels.length; i++) {
+                    final int index = i;
+                    CheckBox choice = new CheckBox(ctx);
+                    choice.setText(labels[i]);
+                    int appearance = ctx.getResources().getIdentifier(
+                            "TextAppearance.Letterboxd.BodyMedium", "style", ctx.getPackageName());
+                    if (appearance != 0) choice.setTextAppearance(appearance);
+                    else choice.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f);
+                    choice.setTextColor(0xFFFFFFFF);
+                    choice.setButtonTintList(tint);
+                    choice.setCompoundDrawablePadding(Math.round(8 * d));
+                    choice.setMinHeight(Math.round(48 * d));
+                    choice.setChecked(checked[i]);
+                    choice.setOnCheckedChangeListener((button, selected) -> {
+                        checked[index] = selected;
+                        boolean any = false;
+                        for (boolean item : checked) any |= item;
+                        pos.setEnabled(any);
+                        pos.setAlpha(any ? 1f : 0.45f);
+                    });
+                    choices.addView(choice, new LinearLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+                }
+                scroll.addView(choices);
+            }
 
             root.addView(buttons);
             dialog.setContentView(root);
@@ -135,7 +187,7 @@ final class ModDialog {
             }
             // Dismiss only via a button — no outside-touch, no back-button.
             dialog.setCanceledOnTouchOutside(false);
-            dialog.setCancelable(false);
+            dialog.setCancelable(labels != null);
             dialog.show();
         } catch (Throwable ignored) {
         }

@@ -99,10 +99,12 @@ class HideSuggestedUsersFixtureTest {
                 .toSet() - FEED_CACHE).values
             // The row Threads builds after a follow comes from builders that name it by a prefix.
             val chaining = FixtureDex.classesWhere(build, { true }) { it.hasString(CHAINING_PREFIX) }
-            // An opened post's suggested threads are read in the parse of its page of replies.
+            // An opened post's suggested threads are read in the parse of its page of replies, and
+            // the ones Threads fetches on their own by a collector holding the same repository.
             val permalink = FixtureDex.classes(build, setOf(PERMALINK_REPOSITORY)).values
+            val fetched = RelatedThreadsFetchFixture.classes(build)
             val classes = (anchors + cache + done + item + kinds + rawParsers + wrappers.values + profile + search +
-                chaining + permalink).distinctBy { it.type }
+                chaining + permalink + fetched).distinctBy { it.type }
             return Vendor(build.name, classes, parser.type)
         }
 
@@ -153,8 +155,9 @@ class HideSuggestedUsersFixtureTest {
             assertEquals(vendor.name, 1, profileHooks.count { it == SHOW_ROW })
             // And Search's carousel asks once.
             assertEquals(vendor.name, 1, profileHooks.count { it == SHOW_SEARCH_CAROUSEL })
-            // And an opened post hands over its suggested threads once.
-            assertEquals(vendor.name, 1, profileHooks.count { it == RELATED_THREADS_CALL })
+            // And an opened post hands over its suggested threads twice: off its page of replies, and
+            // the ones Threads fetches on their own.
+            assertEquals(vendor.name, 2, profileHooks.count { it == RELATED_THREADS_CALL })
             val capture = context.mutableClassDefBy(targets.wrapper.definingClass).instanceFields.single {
                 it.name == targets.capturedRaw.name
             }

@@ -20,6 +20,11 @@
     public static java.net.URL filterJsRequestUrl(java.net.URL);
 }
 -keep class semicoloncolonel.mobilestream.extension.shared.privacy.TrackerBlocker$BlockInterceptor { *; }
+-keep class semicoloncolonel.mobilestream.extension.yttvshell.TvScripts {
+    public static void setWebContents(java.lang.Object);
+    public static void onPageEvent(java.lang.String);
+    public static void onTitle(java.lang.String);
+}
 
 # Pluto TV — "Skip ads". filter is called only from
 # injected smali via invoke-static.
@@ -100,6 +105,13 @@
 -keep class semicoloncolonel.mobilestream.extension.dealseek.links.DealSeekLinkCleaner {
     public static java.lang.String clean(java.lang.String);
     public static android.net.Uri parse(java.lang.String);
+}
+
+# DealSeek — "Stop behavioral tracking". filterJsRequestUrl is called only from
+# injected smali via invoke-static, so R8 must keep both overloads as they are.
+-keep class semicoloncolonel.mobilestream.extension.dealseek.privacy.BehaviorBlocker {
+    public static java.lang.String filterJsRequestUrl(java.lang.String);
+    public static java.net.URL filterJsRequestUrl(java.net.URL);
 }
 
 # Shared "Hide Wi-Fi networks" / "Block Bluetooth scanning" / "Hide cell
@@ -295,3 +307,27 @@
 # Shared "Hide rating prompt". launchReviewFlow() replaces Google Play's
 # ReviewManager.launchReviewFlow at app call sites via injected invoke-static.
 -keep class semicoloncolonel.mobilestream.extension.shared.misc.RatingPromptBlocker { public static *; }
+
+# RetailMeNot — "Remove location access". Called only from injected smali in
+# Expo's PermissionsService.
+-keep class semicoloncolonel.mobilestream.extension.retailmenot.privacy.LocationBlocker { public static *; }
+
+# Shared "Strip affiliate links". Every public static method replaces a
+# startActivity / loadUrl call at app call sites via injected invoke-static.
+-keep class semicoloncolonel.mobilestream.extension.shared.links.AffiliateLinkCleaner {
+    public static *;
+}
+
+# Checkout 51 — "Show gas offers on OpenStreetMap". onMarkers and onDetailsView are called only from injected smali.
+-keep class semicoloncolonel.mobilestream.extension.checkout51.GasOfferList {
+    public static void onMarkers(java.lang.Object, java.lang.Object);
+    public static void onDetailsView(java.lang.Object, android.view.View);
+}
+
+# Yahoo Finance — the flag lists and prompt steps, read from injected smali.
+-keep class semicoloncolonel.mobilestream.extension.yahoofinance.FinanceFlags {
+    public static *;
+}
+-keep class semicoloncolonel.mobilestream.extension.yahoofinance.ArticleCleanup {
+    public static *;
+}

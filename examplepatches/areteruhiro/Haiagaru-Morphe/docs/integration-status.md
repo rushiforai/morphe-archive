@@ -1,5 +1,11 @@
 # 主開発先と統合状況
 
+2026-11-13 設定整理・過去ログ調整を実機191へ更新（未公開）: GENERAL/DISPLAY/SOCIALを用途別に整理、子項目の折りたたみと親OFF時の無効化。タブの追加先選択は全体ON/OFFではないためラベル明確化。重複フィルター設定を入口へ集約し関連語検索/旧リンクを保持。内側丸カードを廃止、背景統一。過去ログは一覧URL非表示、検索欄3〜70%つまみ・高さ固定・元サイトで開く設定、元サイトの不要な外側ヘッダー省略。最終Lint/R8 build3分28秒、191適用成功。検索49+12/高さ19/既存スレURL検査成功。XIG05/730eae72の既存Haiagaru（jp.co.airfrt.android.chMate.haiagartu）へ利用者指定install-r Success、23:20:19 JST、初回導入日時保持、端末APK SHA一致。設定cold起動/検索入口1件/背景とカードの最終画面確認。新規fatalなし。詳細docs/settings-organization-archive-20261113.md、台帳docs/android-installations.md。
+
+2026-11-13 人気レス絞り込み負荷の削減（未公開）: 191/OPPO CPH2797/Android16で1.9.3にないカクつき報告。直接返信判定OFF、切替/スクロール双方で発生。追加フィルターの表示が初期ONだと、未選択でも全レスのAA/自分/返信集計を行う経路を修正。件数OFF/追加選択なしの標準判定はnative表示をそのまま返し、追加選択時も必要な情報のみ集計。直接返信判定では同一再構築/同一一覧の本文解析だけ共有し、更新や別一覧へ持越さない。最終通常Lint/R8 build2分55秒成功。実Java+Android/native模擬部品の1000レス83項目、直接返信/本文/一覧変更8項目、既存ルール7例成功。新規native hookなし。報告端末での再現/スクロール改善は未確認、APK導入/公開なし。詳細docs/popular-filter-performance-20261113.md。
+
+2026-11-13 Haiagaru 1.27.5公式Release公開完了: 更新履歴の設定を上・詳細を下へ配置し、関連版への設定表示と状態同期を修正。「追加された機能をすべて見る」を設定トップ／更新履歴へ追加し、目的別の設定・短い説明・追加20項目の詳しい説明を表示。版ごとの履歴は過去の累積差分の繰り返しを省く。公開文は利用者指定の「最適化」のみ。最終ローカルLint/R8 build3m26s、公開後ソースの版別232／履歴22項目成功。Release CI43369176724のRelease／AttestとBuild43369176758成功、公開6assetのSHA256がGitHub digestと一致。master/mainの両JSON計4経路の全項目一致と本文「最適化」のみを確認。draft=false／prerelease=false、2026-11-13 14:05:23 JST公開、生成d1e801f7。端末操作は省略指示に従い実施せず。https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.27.5
+
 2026-11-13 追加機能一覧・説明文・更新履歴改善（公式Release候補）: Haiagaru設定トップと更新履歴へ「追加された機能をすべて見る」を追加。既存22コントロールの目的別設定・短い説明と、過去の累積ソースにある追加20項目の説明を別画面で表示。各版は設定が上、詳しい更新内容が下となり、過去版の全差分の繰り返しを省く。公開文「最適化」とアプリ内の詳細を分離。版別・説明188／履歴・一覧22項目成功。先行の通常Lint/R8 build3m54s成功、追加画面を含む最終ビルドへ進む。端末操作は省略指示に従う。
 
 2026-11-13 更新履歴の機能設定表示（公式Release候補）: 各版の開閉内を機能スイッチ／設定ボタン→更新内容の順に変更。変更版にも対応する既存設定を表示し、最新の修正対象の22コントロールも表示。複数版の同じ設定はattach時のSharedPreferences監視で同期し、detachで解除、同期による再保存・副作用は抑制。公開説明の「最適化」は維持し、アプリ内の詳細説明を別に用意。版別144／履歴19項目成功、新規native hookなし。端末操作は省略指示に従う。
@@ -1697,3 +1703,57 @@ emulator-5580の既存reporter3版へ署名一致install-r。試験用通知権�
 基本設定に「1.24.1以降の追加機能（オン・オフ）」を追加。既存の各機能の設定値を共有し、設定リンク・記者ID検索・動画横画面表示にも切替入口を追加。Catbox画像のUA変更ではブラウザ形式のUAを使用し、ネイティブ識別子の付加を画像ホストに適用しない。
 
 最終 :patches:buildAndroid 成功（build/followups-20261112/final-build.log）。UAルール45件・ネイティブidentity19件、setter/prepare/prepareRequestの3経路回帰、対象一覧のSQL新着件数を確認。指定Catbox画像はブラウザUAでHTTP200/image/jpeg/322263 bytes。実機は未接続、画面・タップ・ジェスチャーの実操作は未検証。公開・APK導入なし。先行ビルドのpackageRelease失敗後、最終ビルド成功を確認。
+
+## 2026-11-13 ローカル保存画像・ﾜｯﾁｮｲコピー・1.27.5再発調査（開発中）
+
+作業先はこのローカルフォルダ、dev。OneDriveは未使用。ローカル画像復元は通常キャッシュの読み取りだけを観測し、URLハッシュ→画像内容SHA-256を記録。自動保存先と2つのSAF検索先（既定の補助指定・追加1フォルダ）をバックグラウンドで索引化し、改名後は内容一致で復元。導入前に対応不明の画像にはACTION_OPEN_DOCUMENTによる手動関連付けを追加。画像ファイルは変更しない。OFF・フォルダ解除・移動失効時の再索引、32MiB/2万ファイル/深さ8上限、ローカル専用relay、元URLのコピー/保存名維持に対応。設定は画像・動画と追加機能一覧から開く。
+
+ﾜｯﾁｮｲ長押しの上4桁/下4桁コピーを191のMenu経路と226/242の名前sheet経路へ追加。4文字そのまま（区切りなし・大小/記号保持）。個別表示スイッチと追加機能一覧の切替を共有。設定トップとNativeToolTabsの重複する「追加された機能をすべて見る」を削除し、更新履歴内の入口は保持。新機能の履歴割り当ては次のminor用1.28.0とし、過去1.27.5の修正項目へ新機能を遡って追加しない。
+
+あにまんarc/imgは通常img優先、失敗時に元arcへfallback。本文中の拡張子なし画像URLも256件以内で補完し、既存配列の順序/重複を保持。未分類のあにまんスレURLはネット取得なしで専用ルート板へ変換し、明示OFFを尊重。242のタイトル情報popupは共通日時formatterを使わずIDを直接1000倍していたため、読込済み1レス目の日付を直前に適用する固定フックを追加。
+
+検証: 通常Lint/R8ビルド成功（followups-build.log）。242原本適用成功。191/226も適用成功、新規cache stream wrapperの元命令/レジスター保持を全3版で検査成功。242 popupも原本APKと照合して元命令/レジスター保持成功。host画像URL8項目・日時18項目・ﾜｯﾁｮｲ並び順・履歴割当240項目成功。Mi Note 10/Android11/d5497008の隔離sitefix242で最終機能試験33項目成功（result9.log）：追加SAF形状provider、改名後内容一致、URL手動関連付け・索引reset後保持、OFF/フォルダ解除、native URL parser、読込済み日時、通常/タブレット設定ON時の直接起動editor、実clipboard上下4桁、画像設定画面のinsets/トグル状態保存。試験の最後にclipboardを復元。新しいユーザー本体アプリの置換/データ消去/公開投稿/EULA同意なし。端末導入はandroid-installations.md。
+
+試験途中: 検証専用DocumentsProviderのMANAGE_DOCUMENTS不足を修正してSAF形状のread-only ContentProviderへ置換。ロック中のclipboard拒否はロック解除処理の反映後に再試験。前回の手動関連付けfixtureが残りフォルダ解除試験が失敗したため、隔離試験DB/fixtureだけを初期化。Switch.performClickのbooleanがfalseでもCompoundButtonは切り替わるため、実状態/保存値の検査に修正。いずれも失敗を成功扱いせず最終再試験で確認。
+
+未解決: 利用者のPixel11の書き込み欄非表示は未再現。タブレット表示ONも直接起動では内部viewが生成されるが、実TabletHomeActivityからの操作/Pixel11の画面は未確認。原本242と候補の浮動editor root Lo/zzbgcは命令一致。1.27.0→1.27.5のThreadCommands差分はオルグ表記のみで、書き込みlayoutへの直接変更はない。書き込み画面の表示方法（自動/ダイアログ/全画面）を質問中。原因特定や修正完了とは報告しない。例示のあにまん実ページは環境のCloudflare HTTP403で実内容を取得できず、実ページ画像成功も未確認。ローカル修正・未公開、Release/tag/生成metadataは変更していない。
+
+最終source buildは `build/site-regressions-1275/final-build.log` で通常Lint/R8成功（3m5s）。追加機能一覧の新項目/過去版への誤配置防止も反映。この最終MPP自体のAPK再生成・再導入は未実施で、端末33項目は直前のfollowups候補に対する結果（機能実装は同じ、差は追加機能一覧の項目接続のみ）。最終の公開・push・tag操作なし。
+
+## 2026-11-13 242ダイアログの画面外配置・対象タブ・外部板OFF/検索方式（ローカル）
+
+利用者の表示方法は「ダイアログ」、242へのパッチ適用時に発生と確認。従来の判定は任意のEditTextのisShownを見ていたため本文の実可視性を保証しなかった。新しいEditorDialogInstrumentationは本文のID2131296421とgetGlobalVisibleRectを検査。修正前候補で縦表示は成功、横表示は本文Rect(502,-553..1838,-438)、パネルtop=-788となり非表示を再現した。PostEditorDialogLayout.fitを242のLo/zzbgc.onLayout末尾へ追加し、既存パネルを表示領域内で再計測・配置する。本文や送信処理は変更しない。修正候補で縦・横・実TabletHomeActivityのnative書き込みコマンドからの8項目成功。VerifyPostEditorDialogHooksで元レジスター・全命令保持を確認。Pixel11実機の同一症状を確認した結果とは扱わない。
+
+原本との実行比較のためパッケージ名のみ変えたnativeeditor242も作ったが、native providerの改変検知divide-by-zeroで画面起動前に停止した。原本UIの比較ができたとは扱わない。利用者の「パッチ適用時」報告と、候補の画面外配置の再現に基づく限定修正。詳細・導入台帳はandroid-installations.md。
+
+対象履歴は242のnative RecyclerView ItemAnimatorを対象タブのbinding中だけnullにし、通常タブへ戻る際に元オブジェクトへ戻す。新規adapterの初回diffを並べ替えとして毎回表示させない。外部板の登録済みレコードがprovider OFF後にその他へ残るため、ExternalBoardGroupsの表示モデルでOFFサイトを除外。synthetic loopback alias・direct edge/org/bakusai/animanch/futabaに対応。DBの板・ログは削除しない。同じ判定を全板検索候補にも使う。
+
+スレ検索はユーザー指定により2方式を実装。高速（初期値）は保存済みsubjectのみを端末内で検索し、追加通信なし。最新は従来の2並列・30秒予算で取得、未完了時は取得範囲を通知。8,000件のFutureを先行生成せず、常時2件以内の取得を順次進める。subjectをGZIP/SQLiteへ保存（圧縮64MiB・1万板目安・原文1板2MiB上限）、通常の追加掲示板の板表示からも索引を更新。高速追加処理の上限8秒・取得済み板数を表示。クエリの正規化/検索語分解はJobにつき1回。管理対象のloopback板URLをHTTPSで作っていた経路はHTTPへ修正し、保存索引のキーは実サイトの板URLにしてport変更を吸収。無効サイトを検索前に除外、設定共有はMODEの整数0/1を検証。詳細docs/global-title-search.md。
+
+途中候補で8,000板ON/OFF、板レコード保持、再ON、HTTP URL、ItemAnimator除外/復元、最新modeのloopback取得、高速modeの追加通信0/永続snapshot読込、OFF時のキャッシュ結果除外の16項目成功。公開POSTなし・模擬上流2回。host検索1018項目成功。最終の圧縮索引ガード/共有MODE/encoded aliasを含むrelease-candidate-build.logで通常Lint/R8ビルド成功（3m31s）。最終APKの再適用と機能試験を継続。まだ公開/push/tag作成なし。
+
+最終APK再適用・隔離端末更新後も、ダイアログ8＋板/履歴/検索16＋保存画像33項目成功。高速検索の測定は試験用の永続一覧1板、8,000件の登録板DBから対象を絞った状態で35ms、検索中の追加上流0。8,000板すべての実一覧を索引化した実負荷の測定ではない。無効8,000板の除外・sourceレコード保持/再ON、native ItemAnimatorの対象時だけnull/復元を確認。最終静的検査は242 onLayoutフックと全板検索フックとcache/popupフックで原本レジスター/命令保持が成功。ホスト検索ルール1018項目成功。
+
+最終版の最初の追加試験はSettingsProfiles.RULESをcatalog初期化前に読み（加えてprivate RuleをPredicateと誤認）、共有設定のassertionで停止した。製品のRule登録はcatalog(Activity)にあり、共有/読み込み側がcatalogを呼ぶことをソースで確認。未初期化mapの不適切なassertionを除去し、16項目の実機能試験を再実行して成功。共有ファイルの実書き出し/読み込みそのものをこの16項目で実行したとは扱わない。MODEの登録はnumberKey(0,1)/default0。
+
+詳細docs/global-title-search.md、最終のAPK/MPP fingerprint・導入結果はandroid-installations.md。公開/コミット/push/tag作成はまだ行っていない。その他の未追跡実験スクリプトとGradle daemon設定を維持。
+
+利用者から公式Releaseを指示。公開説明の『最適化のみ』制約は明示的に解除されたため、既存.releasercのnotes writerを日本語のcommit本文を掲載する形式へ変更。実際のgeneratorで1.28.0の追加・改善/修正/57項目の確認説明をpreview成功。README・機能説明も現行機能へ更新。公開は既存Semantic Release CIとdev→master通常マージを使用する。
+
+
+## 2026-11-14 履歴標準タブ・191通知位置（公開指示あり）
+
+詳細history-native-notification-20261114.md。191/226/242のnativeタブモデルへ更新対象を追加し、OFFはpopup加工なし。191通知の初期移動直後に追跡を破棄せず、既存40秒以内で更新後の対象位置を維持し手動操作で解除。最終Lint/R8 build成功、3版適用・native popup各18、通知位置8、サムネイル123/121/121、既存命令/レジスター保持3版検査成功。新規crash空。隔離emulator-5580のみ、実機本体の変更・公開POSTなし。利用者から公式Release指示、既存CIでdev→master通常マージへ進む。
+
+
+## 2026-11-14 通常版書込連携・容量エラー・レス限定送信先・226/242通知位置
+
+通常版連携の完成純差分を統合し、成功/戻る結果のrelay、確認省略、鉛筆長押しの任意切替、ツールバー起動を追加。容量超過はFridaでHTTP413を実測し、容量エラーと送信先設定への案内に変更。Imgurログインを送信先設定へ集約し、利用者の修正指示に従って1ファイル限定案を「このレスでだけ」に変更。191だけだった更新後の対象維持を226/242の実リストにも適用。
+
+主開発先のreply-build.logは通常Lint/R8成功、3版適用成功。Mi Note 10の隔離reporter191/226/242へインストールし、通知位置/容量ダイアログ/レス限定経路を各16、ネイティブ画像110/110/106、通常版relayの模擬結果15、ホスト送信71項目成功。新規対象crashなし。実際の公開投稿・テスト用画像送信なし。利用者から実機確認済み・公式Release許可あり。既存アプリ/通常版/無関係な未追跡ファイルは保持。詳細upload-navigation-20261114.md、stock-chmate-posting.md、android-installations.md。既存Semantic Release CIでdev→master通常マージして公開する。
+
+利用者の追加指示でstockPostingShowMenuを追加（初期ON）。書き込み︙の通常版連携項目だけを切り替え、長押し/ツールバーは独立。最初の公式CI43558484230は公開前にcancel完了、1.31.0 Release未作成を確認し、追加をまとめて再実行する。
+
+さらに利用者指示でthreadPostingNamesを追加（初期OFF）、未保存スレは空欄を利用者が選択。専用のネイティブ名前欄を既存ThreadCommandsから登録し、スレ別の私有設定へ保存。新規スレ立て/不明URLは標準のまま。最終thread-name-build.logは通常Lint/R8成功2分16秒。
+
+最終候補は3版適用・ネイティブ名前欄接続成功。Mi Note 10へ署名一致で更新し、スレ別名前15項目ずつ、191の通常版relay/確認省略/メニュー初期ON・OFF/復帰/長押し・ツールバー独立動作19項目成功。公開投稿なし。証跡thread-names/result{191,226,242}.log、stock-return/final-result.log。

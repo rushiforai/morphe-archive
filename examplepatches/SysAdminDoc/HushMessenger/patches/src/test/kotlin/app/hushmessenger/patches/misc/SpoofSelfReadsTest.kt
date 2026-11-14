@@ -5,6 +5,7 @@ import app.hushmessenger.patches.controls.controlProfileFor
 import app.hushmessenger.patches.controls.fixtureMethod
 import app.hushmessenger.patches.controls.hookId
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.SupportedAbi
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcode
@@ -213,10 +214,11 @@ class SpoofSelfReadsTest {
         assertTrue(spoofSelfReadsPatch in spoofPackageVersionPatch.dependencies)
     }
 
-    /** The armv7 build expects its pre-Android 9 branches' reads too, 75 to the arm64 builds' 66. */
+    /** The armv7 builds expect their pre-Android 9 branches' reads too, 75 to the arm64 builds' 66. */
     @Test fun theArmv7BuildExpectsItsOlderBranches() {
         for (code in MessengerTarget.VERSION_CODES) {
-            assertEquals(if (code == 347215341) 75 else 66, selfVersionReadsFor(controlProfileFor(code.toString())), "$code")
+            val armv7 = MessengerTarget.ABIS[code] == SupportedAbi.ARMEABI_V7A
+            assertEquals(if (armv7) 75 else 66, selfVersionReadsFor(controlProfileFor(code.toString())), "$code")
         }
     }
 
@@ -238,7 +240,7 @@ class SpoofSelfReadsTest {
                 continue
             }
             val found = planSelfVersionReads(methods, expected)
-            // The obfuscated owners move between 586's arm64 and armv7 builds, so those two go by the version check's log line and the trace hook's name.
+            // The obfuscated owners move between 587's arm64 and armv7 builds, so those two go by the version check's log line and the trace hook's name.
             val versionCheck = methods.filter { m ->
                 m.implementation?.instructions?.any { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string?.startsWith(VERSION_CHECK_LOG) == true } == true
             }.map { it.hookId() }.distinct()

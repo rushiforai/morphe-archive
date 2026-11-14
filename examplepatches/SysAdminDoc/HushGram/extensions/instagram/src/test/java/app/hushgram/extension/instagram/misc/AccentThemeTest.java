@@ -383,6 +383,75 @@ public class AccentThemeTest {
     }
 
     /**
+     * A tab's icon told Reels' white takes the picked color's shade for a dark screen, and told the
+     * dark text color Instagram resets to after Reels takes its shade for a light one, alpha kept, with
+     * both switches on (#663). Either switch off or paused leaves the color as told, and a missing
+     * unselected color stays missing.
+     */
+    @Test
+    public void tabIconsTakeThePickedShadeForTheColorTheyreTold() {
+        int white = 0xffffffff;
+        int dark = 0xff0c1014;
+        int faded = 0x99ffffff;
+        assertEquals("off", white, AccentTheme.tabIcons(white));
+        Settings.ACCENT_COLOR.save(true);
+        Settings.ACCENT_HUE.save(AccentHue.TEAL);
+        assertEquals("icons off", white, AccentTheme.tabIcons(white));
+        Settings.ACCENT_ICONS.save(true);
+
+        int onDark = 0xff000000 | AccentColor.swap(0xff85a1ff, AccentHue.TEAL);
+        int onLight = 0xff000000 | AccentColor.swap(0xff3143e3, AccentHue.TEAL);
+        assertFalse("the two shades differ", onDark == onLight);
+        assertEquals("white on the black Reels bar", onDark, AccentTheme.tabIcons(white));
+        assertEquals("the text color after Reels", onLight, AccentTheme.tabIcons(dark));
+        assertEquals("alpha kept", (faded & 0xff000000) | (onDark & 0xffffff), AccentTheme.tabIcons(faded));
+        assertEquals("boxed", Integer.valueOf(onLight), AccentTheme.tabIcons(Integer.valueOf(dark)));
+        assertNull("no unselected color", AccentTheme.tabIcons((Integer) null));
+        assertEquals("already the shade, not counted", onDark, AccentTheme.tabIcons(onDark));
+
+        BaseSettings.PAUSED.save(true);
+        PauseForTests.pause(HushgramPause.Reason.SWITCH);
+        assertEquals("paused", white, AccentTheme.tabIcons(white));
+        assertEquals("paused, boxed", Integer.valueOf(dark), AccentTheme.tabIcons(Integer.valueOf(dark)));
+        BaseSettings.PAUSED.save(false);
+        PauseForTests.resume();
+        String report = HookStatus.report().toString();
+        assertTrue(report, report.contains(AccentTheme.TAB_ICONS + " 4"));
+    }
+
+    /**
+     * The Messages folder chip's unread dot, which Compose paints red from a palette in the code, takes
+     * the picked color's fill with both switches on, alpha kept (#671). Either switch off or paused
+     * leaves it red, and a color outside sRGB comes back opaque in the fill.
+     */
+    @Test
+    public void theFolderChipsDotTakesThePickedFill() {
+        long red = (long) 0xffff3040 << 32;
+        long faded = (long) 0x80ff3040 << 32;
+        assertEquals("off", red, AccentTheme.composeBadge(red));
+        Settings.ACCENT_COLOR.save(true);
+        Settings.ACCENT_HUE.save(AccentHue.TEAL);
+        assertEquals("badges off", red, AccentTheme.composeBadge(red));
+        Settings.ACCENT_BADGES.save(true);
+
+        int fill = AccentColor.swap(0xff4a5df9, AccentHue.TEAL) & 0xffffff;
+        assertFalse("teal's fill isn't the red", fill == 0xff3040);
+        assertEquals("the dot", (long) (0xff000000 | fill) << 32, AccentTheme.composeBadge(red));
+        assertEquals("alpha kept", (long) (0x80000000 | fill) << 32, AccentTheme.composeBadge(faded));
+        assertEquals("outside sRGB", (long) (0xff000000 | fill) << 32, AccentTheme.composeBadge(red | 7));
+        assertEquals("already the fill, not counted", (long) (0xff000000 | fill) << 32,
+                AccentTheme.composeBadge((long) (0xff000000 | fill) << 32));
+
+        BaseSettings.PAUSED.save(true);
+        PauseForTests.pause(HushgramPause.Reason.SWITCH);
+        assertEquals("paused", red, AccentTheme.composeBadge(red));
+        BaseSettings.PAUSED.save(false);
+        PauseForTests.resume();
+        String report = HookStatus.report().toString();
+        assertTrue(report, report.contains(AccentTheme.COMPOSE_BADGES + " 3"));
+    }
+
+    /**
      * Home's older header bakes the primary text color into each icon, so each one gets the theme's
      * icon color laid over it with both switches on (#8), and none with either off, paused, or no icon
      * attribute.

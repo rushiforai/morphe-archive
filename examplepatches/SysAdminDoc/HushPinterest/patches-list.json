@@ -15,7 +15,7 @@
       ],
       "compatiblePackages": {
         "com.pinterest": [
-          "14.43.0"
+          "14.44.0"
         ]
       },
       "compatibility": [
@@ -29,10 +29,10 @@
           ],
           "targets": [
             {
-              "version": "14.43.0",
+              "version": "14.44.0",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 14438020
+                "ARM64_V8A": 14448030
               }
             }
           ]
@@ -52,7 +52,7 @@
       ],
       "compatiblePackages": {
         "com.pinterest": [
-          "14.43.0"
+          "14.44.0"
         ]
       },
       "compatibility": [
@@ -66,10 +66,10 @@
           ],
           "targets": [
             {
-              "version": "14.43.0",
+              "version": "14.44.0",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 14438020
+                "ARM64_V8A": 14448030
               }
             }
           ]
@@ -88,7 +88,7 @@
       ],
       "compatiblePackages": {
         "com.pinterest": [
-          "14.43.0"
+          "14.44.0"
         ]
       },
       "compatibility": [
@@ -102,10 +102,10 @@
           ],
           "targets": [
             {
-              "version": "14.43.0",
+              "version": "14.44.0",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 14438020
+                "ARM64_V8A": 14448030
               }
             }
           ]
@@ -124,7 +124,7 @@
       ],
       "compatiblePackages": {
         "com.pinterest": [
-          "14.43.0"
+          "14.44.0"
         ]
       },
       "compatibility": [
@@ -138,10 +138,10 @@
           ],
           "targets": [
             {
-              "version": "14.43.0",
+              "version": "14.44.0",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 14438020
+                "ARM64_V8A": 14448030
               }
             }
           ]
@@ -161,7 +161,7 @@
       ],
       "compatiblePackages": {
         "com.pinterest": [
-          "14.43.0"
+          "14.44.0"
         ]
       },
       "compatibility": [
@@ -175,10 +175,10 @@
           ],
           "targets": [
             {
-              "version": "14.43.0",
+              "version": "14.44.0",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 14438020
+                "ARM64_V8A": 14448030
               }
             }
           ]
@@ -188,7 +188,7 @@
     },
     {
       "name": "Filter feed",
-      "description": "Lets you take video pins (photos and GIFs stay) and pins that mention words you mute out of your home feed, search, related pins and boards, and pins you've already saved out of your home feed. Starts off. Set it up in HushPinterest settings > Feed.",
+      "description": "Lets you take video pins (photos and GIFs stay) and pins that mention words you mute out of your home feed, search, related pins and boards, and pins you've already saved and Pinterest's suggestion rows out of your home feed. Starts off. Set it up in HushPinterest settings > Feed.",
       "category": "Feed",
       "use": true,
       "dependencies": [
@@ -197,7 +197,7 @@
       ],
       "compatiblePackages": {
         "com.pinterest": [
-          "14.43.0"
+          "14.44.0"
         ]
       },
       "compatibility": [
@@ -211,10 +211,10 @@
           ],
           "targets": [
             {
-              "version": "14.43.0",
+              "version": "14.44.0",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 14438020
+                "ARM64_V8A": 14448030
               }
             }
           ]
@@ -233,7 +233,7 @@
       ],
       "compatiblePackages": {
         "com.pinterest": [
-          "14.43.0"
+          "14.44.0"
         ]
       },
       "compatibility": [
@@ -247,10 +247,10 @@
           ],
           "targets": [
             {
-              "version": "14.43.0",
+              "version": "14.44.0",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 14438020
+                "ARM64_V8A": 14448030
               }
             }
           ]
@@ -269,7 +269,7 @@
       ],
       "compatiblePackages": {
         "com.pinterest": [
-          "14.43.0"
+          "14.44.0"
         ]
       },
       "compatibility": [
@@ -283,10 +283,10 @@
           ],
           "targets": [
             {
-              "version": "14.43.0",
+              "version": "14.44.0",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 14438020
+                "ARM64_V8A": 14448030
               }
             }
           ]
@@ -306,7 +306,7 @@
       ],
       "compatiblePackages": {
         "com.pinterest": [
-          "14.43.0"
+          "14.44.0"
         ]
       },
       "compatibility": [
@@ -320,10 +320,10 @@
           ],
           "targets": [
             {
-              "version": "14.43.0",
+              "version": "14.44.0",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 14438020
+                "ARM64_V8A": 14448030
               }
             }
           ]
@@ -342,7 +342,7 @@
       ],
       "compatiblePackages": {
         "com.pinterest": [
-          "14.43.0"
+          "14.44.0"
         ]
       },
       "compatibility": [
@@ -356,10 +356,10 @@
           ],
           "targets": [
             {
-              "version": "14.43.0",
+              "version": "14.44.0",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 14438020
+                "ARM64_V8A": 14448030
               }
             }
           ]
@@ -378,7 +378,7 @@
       ],
       "compatiblePackages": {
         "com.pinterest": [
-          "14.43.0"
+          "14.44.0"
         ]
       },
       "compatibility": [
@@ -392,10 +392,46 @@
           ],
           "targets": [
             {
-              "version": "14.43.0",
+              "version": "14.44.0",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 14438020
+                "ARM64_V8A": 14448030
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Hide Inbox updates",
+      "description": "Leaves the Updates section out of your Inbox, so it doesn't load. The pin ideas Pinterest puts there go, and so do the activity updates in that section. Your messages stay. Starts off. Turn it on in HushPinterest settings > Notifications.",
+      "category": "Notifications",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "HushPinterest settings"
+      ],
+      "compatiblePackages": {
+        "com.pinterest": [
+          "14.44.0"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Pinterest",
+          "packageName": "com.pinterest",
+          "description": null,
+          "appIconColor": 15073315,
+          "signatures": [
+            "341d6881b1ecf38361fbf8c8fbae0aa516b45375c39ef5e78b161869acc1bcfa"
+          ],
+          "targets": [
+            {
+              "version": "14.44.0",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 14448030
               }
             }
           ]
@@ -414,7 +450,7 @@
       ],
       "compatiblePackages": {
         "com.pinterest": [
-          "14.43.0"
+          "14.44.0"
         ]
       },
       "compatibility": [
@@ -428,10 +464,10 @@
           ],
           "targets": [
             {
-              "version": "14.43.0",
+              "version": "14.44.0",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 14438020
+                "ARM64_V8A": 14448030
               }
             }
           ]
@@ -450,7 +486,7 @@
       ],
       "compatiblePackages": {
         "com.pinterest": [
-          "14.43.0"
+          "14.44.0"
         ]
       },
       "compatibility": [
@@ -464,10 +500,10 @@
           ],
           "targets": [
             {
-              "version": "14.43.0",
+              "version": "14.44.0",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 14438020
+                "ARM64_V8A": 14448030
               }
             }
           ]
@@ -486,7 +522,7 @@
       ],
       "compatiblePackages": {
         "com.pinterest": [
-          "14.43.0"
+          "14.44.0"
         ]
       },
       "compatibility": [
@@ -500,10 +536,10 @@
           ],
           "targets": [
             {
-              "version": "14.43.0",
+              "version": "14.44.0",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 14438020
+                "ARM64_V8A": 14448030
               }
             }
           ]
@@ -522,7 +558,7 @@
       ],
       "compatiblePackages": {
         "com.pinterest": [
-          "14.43.0"
+          "14.44.0"
         ]
       },
       "compatibility": [
@@ -536,10 +572,10 @@
           ],
           "targets": [
             {
-              "version": "14.43.0",
+              "version": "14.44.0",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 14438020
+                "ARM64_V8A": 14448030
               }
             }
           ]
@@ -558,7 +594,7 @@
       ],
       "compatiblePackages": {
         "com.pinterest": [
-          "14.43.0"
+          "14.44.0"
         ]
       },
       "compatibility": [
@@ -572,10 +608,10 @@
           ],
           "targets": [
             {
-              "version": "14.43.0",
+              "version": "14.44.0",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 14438020
+                "ARM64_V8A": 14448030
               }
             }
           ]
@@ -594,7 +630,7 @@
       ],
       "compatiblePackages": {
         "com.pinterest": [
-          "14.43.0"
+          "14.44.0"
         ]
       },
       "compatibility": [
@@ -608,10 +644,10 @@
           ],
           "targets": [
             {
-              "version": "14.43.0",
+              "version": "14.44.0",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 14438020
+                "ARM64_V8A": 14448030
               }
             }
           ]
@@ -630,7 +666,7 @@
       ],
       "compatiblePackages": {
         "com.pinterest": [
-          "14.43.0"
+          "14.44.0"
         ]
       },
       "compatibility": [
@@ -644,10 +680,10 @@
           ],
           "targets": [
             {
-              "version": "14.43.0",
+              "version": "14.44.0",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 14438020
+                "ARM64_V8A": 14448030
               }
             }
           ]
@@ -666,7 +702,7 @@
       ],
       "compatiblePackages": {
         "com.pinterest": [
-          "14.43.0"
+          "14.44.0"
         ]
       },
       "compatibility": [
@@ -680,10 +716,10 @@
           ],
           "targets": [
             {
-              "version": "14.43.0",
+              "version": "14.44.0",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 14438020
+                "ARM64_V8A": 14448030
               }
             }
           ]
@@ -702,7 +738,7 @@
       ],
       "compatiblePackages": {
         "com.pinterest": [
-          "14.43.0"
+          "14.44.0"
         ]
       },
       "compatibility": [
@@ -716,10 +752,10 @@
           ],
           "targets": [
             {
-              "version": "14.43.0",
+              "version": "14.44.0",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 14438020
+                "ARM64_V8A": 14448030
               }
             }
           ]
@@ -738,7 +774,7 @@
       ],
       "compatiblePackages": {
         "com.pinterest": [
-          "14.43.0"
+          "14.44.0"
         ]
       },
       "compatibility": [
@@ -752,10 +788,10 @@
           ],
           "targets": [
             {
-              "version": "14.43.0",
+              "version": "14.44.0",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 14438020
+                "ARM64_V8A": 14448030
               }
             }
           ]
@@ -774,7 +810,7 @@
       ],
       "compatiblePackages": {
         "com.pinterest": [
-          "14.43.0"
+          "14.44.0"
         ]
       },
       "compatibility": [
@@ -788,10 +824,10 @@
           ],
           "targets": [
             {
-              "version": "14.43.0",
+              "version": "14.44.0",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 14438020
+                "ARM64_V8A": 14448030
               }
             }
           ]
@@ -810,7 +846,7 @@
       ],
       "compatiblePackages": {
         "com.pinterest": [
-          "14.43.0"
+          "14.44.0"
         ]
       },
       "compatibility": [
@@ -824,10 +860,10 @@
           ],
           "targets": [
             {
-              "version": "14.43.0",
+              "version": "14.44.0",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 14438020
+                "ARM64_V8A": 14448030
               }
             }
           ]
@@ -846,7 +882,7 @@
       ],
       "compatiblePackages": {
         "com.pinterest": [
-          "14.43.0"
+          "14.44.0"
         ]
       },
       "compatibility": [
@@ -860,10 +896,10 @@
           ],
           "targets": [
             {
-              "version": "14.43.0",
+              "version": "14.44.0",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 14438020
+                "ARM64_V8A": 14448030
               }
             }
           ]
@@ -883,7 +919,7 @@
       ],
       "compatiblePackages": {
         "com.pinterest": [
-          "14.43.0"
+          "14.44.0"
         ]
       },
       "compatibility": [
@@ -897,10 +933,10 @@
           ],
           "targets": [
             {
-              "version": "14.43.0",
+              "version": "14.44.0",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 14438020
+                "ARM64_V8A": 14448030
               }
             }
           ]
@@ -919,7 +955,7 @@
       ],
       "compatiblePackages": {
         "com.pinterest": [
-          "14.43.0"
+          "14.44.0"
         ]
       },
       "compatibility": [
@@ -933,10 +969,10 @@
           ],
           "targets": [
             {
-              "version": "14.43.0",
+              "version": "14.44.0",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 14438020
+                "ARM64_V8A": 14448030
               }
             }
           ]
@@ -956,7 +992,7 @@
       ],
       "compatiblePackages": {
         "com.pinterest": [
-          "14.43.0"
+          "14.44.0"
         ]
       },
       "compatibility": [
@@ -970,10 +1006,10 @@
           ],
           "targets": [
             {
-              "version": "14.43.0",
+              "version": "14.44.0",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 14438020
+                "ARM64_V8A": 14448030
               }
             }
           ]
@@ -992,7 +1028,7 @@
       ],
       "compatiblePackages": {
         "com.pinterest": [
-          "14.43.0"
+          "14.44.0"
         ]
       },
       "compatibility": [
@@ -1006,10 +1042,10 @@
           ],
           "targets": [
             {
-              "version": "14.43.0",
+              "version": "14.44.0",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 14438020
+                "ARM64_V8A": 14448030
               }
             }
           ]
@@ -1028,7 +1064,7 @@
       ],
       "compatiblePackages": {
         "com.pinterest": [
-          "14.43.0"
+          "14.44.0"
         ]
       },
       "compatibility": [
@@ -1042,10 +1078,10 @@
           ],
           "targets": [
             {
-              "version": "14.43.0",
+              "version": "14.44.0",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 14438020
+                "ARM64_V8A": 14448030
               }
             }
           ]
@@ -1065,7 +1101,7 @@
       ],
       "compatiblePackages": {
         "com.pinterest": [
-          "14.43.0"
+          "14.44.0"
         ]
       },
       "compatibility": [
@@ -1079,10 +1115,10 @@
           ],
           "targets": [
             {
-              "version": "14.43.0",
+              "version": "14.44.0",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 14438020
+                "ARM64_V8A": 14448030
               }
             }
           ]
@@ -1101,7 +1137,7 @@
       ],
       "compatiblePackages": {
         "com.pinterest": [
-          "14.43.0"
+          "14.44.0"
         ]
       },
       "compatibility": [
@@ -1115,10 +1151,10 @@
           ],
           "targets": [
             {
-              "version": "14.43.0",
+              "version": "14.44.0",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 14438020
+                "ARM64_V8A": 14448030
               }
             }
           ]
@@ -1138,7 +1174,7 @@
       ],
       "compatiblePackages": {
         "com.pinterest": [
-          "14.43.0"
+          "14.44.0"
         ]
       },
       "compatibility": [
@@ -1152,10 +1188,10 @@
           ],
           "targets": [
             {
-              "version": "14.43.0",
+              "version": "14.44.0",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 14438020
+                "ARM64_V8A": 14448030
               }
             }
           ]
@@ -1174,7 +1210,7 @@
       ],
       "compatiblePackages": {
         "com.pinterest": [
-          "14.43.0"
+          "14.44.0"
         ]
       },
       "compatibility": [
@@ -1188,10 +1224,10 @@
           ],
           "targets": [
             {
-              "version": "14.43.0",
+              "version": "14.44.0",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 14438020
+                "ARM64_V8A": 14448030
               }
             }
           ]
@@ -1210,7 +1246,7 @@
       ],
       "compatiblePackages": {
         "com.pinterest": [
-          "14.43.0"
+          "14.44.0"
         ]
       },
       "compatibility": [
@@ -1224,10 +1260,10 @@
           ],
           "targets": [
             {
-              "version": "14.43.0",
+              "version": "14.44.0",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 14438020
+                "ARM64_V8A": 14448030
               }
             }
           ]

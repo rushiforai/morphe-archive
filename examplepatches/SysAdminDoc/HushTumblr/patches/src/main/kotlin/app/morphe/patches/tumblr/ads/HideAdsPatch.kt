@@ -29,7 +29,8 @@ import app.morphe.patches.tumblr.timeline.paidPostBridgePatch
 val hideAdsPatch = bytecodePatch(
     name = "Hide ads",
     description = "Takes ad cards and paid Blaze posts out of your dashboard and other feeds. Sponsored banners go too," +
-        " and a sponsored header at the top of Explore stays empty. Tumblr stops asking its" +
+        " along with the one-line app promos (Made with WordPress and its Install button) on tag pages and in search." +
+        " A sponsored header at the top of Explore stays empty. Tumblr stops asking its" +
         " ad networks for more and stops showing a full-screen ad when you open a blog, and the ad networks" +
         " don't start when Tumblr launches. Its Keep Blaze posts option leaves the Blaze posts in. On by default." +
         " Turn it off in Tumblr settings > HushTumblr > Feed.",

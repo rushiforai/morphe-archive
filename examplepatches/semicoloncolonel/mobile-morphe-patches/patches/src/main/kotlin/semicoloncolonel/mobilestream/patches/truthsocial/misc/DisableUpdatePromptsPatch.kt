@@ -12,6 +12,7 @@ val disableUpdatePromptsPatch = bytecodePatch(
     name = "Disable update and review prompts",
     description = "Stops the Play Store update and rating prompts.",
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

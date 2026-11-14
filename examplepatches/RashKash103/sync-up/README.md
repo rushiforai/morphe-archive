@@ -35,9 +35,9 @@ Add this patch source to Morphe Manager: https://morphe.software/add-source?gith
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.11.0](https://github.com/RashKash103/sync-up/releases/tag/v1.11.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;36 patches total
+> **[v1.12.0](https://github.com/RashKash103/sync-up/releases/tag/v1.12.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;37 patches total
 <details open>
-<summary>📦 Sync for Reddit&nbsp;&nbsp;•&nbsp;&nbsp;35 patches</summary>
+<summary>📦 Sync for Reddit&nbsp;&nbsp;•&nbsp;&nbsp;36 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -50,6 +50,7 @@ Add this patch source to Morphe Manager: https://morphe.software/add-source?gith
 | [Add archive links to menus](#add-archive-links-to-menus) | Adds Wayback Machine and archive.today options to the menus behind a post and behind a link. |  |
 | [Automatically undelete Imgur media](#automatically-undelete-imgur-media) | Loads Imgur images and videos that no longer exist from the Wayback Machine. |  |
 | [Automatically undelete Reddit content](#automatically-undelete-reddit-content) | Restores the text of removed posts and comments, and the names of deleted authors, from Project Arctic Shift. |  |
+| [Choose what the bottom bar shows](#choose-what-the-bottom-bar-shows) | Lets each item on the bottom navigation bar — Posts, Actions, Explore and Inbox — be left alone, taken off, or replaced with one of the actions from Sync's own actions sheet, and adds one further button beside them. Covers the navigation rail used in tablet mode as well. |  |
 | [Disable Sync for Lemmy bottom sheet](#disable-sync-for-lemmy-bottom-sheet) | Disables the bottom sheet at the startup that asks you to signup to "Sync for Lemmy". |  |
 | [Disable ads](#disable-ads) | Removes the ads shown between posts. |  |
 | [Fix /s/ links](#fix-s-links) | Opens Reddit's shortened /s/ share links in the app. |  |
@@ -379,8 +380,50 @@ decision rather than a default.
   with the bottom navigation away while that bar is still on the screen — for a frame or two on a
   refresh or a jump to the top, and for as long as a finger keeps moving on a pull to refresh —
   so the actions are never drawn across a bar that is up, and follow the button down only once
-  the bar has actually gone. Where *Autohide FAB* is turned off and Sync then never shows its
-  button at all, it is shown.
+  the bar has actually gone. A soft keyboard moves Sync's button most of the way up the screen
+  in the same way — opening the search and tapping its field is enough — and the actions stay
+  where they are through that rather than being left stranded in the middle of the feed. Where
+  *Autohide FAB* is turned off and Sync then never shows its button at all, it is shown.
+- <a name="choose-what-the-bottom-bar-shows"></a>**Choose what the bottom bar shows** — The bottom navigation bar carries four items — Posts,
+  Actions, Explore and Inbox — and Sync offers a choice about one of them, *Show actions*, kept
+  in Experimental and off by default. This replaces that with five rows under
+  *General > Navigation buttons*, named for the place each button sits: **Button 1 (Posts)**,
+  **Button 2 (Actions)**, **Button 3 (Explore)**, **Button 4 (Inbox)** and **Button 5 (Extra)**.
+
+  Each of the first four can be left alone, taken off, or **replaced** with one of the actions
+  from Sync's own actions sheet — Saved, Search, Submit, Profile, Settings and eighteen others —
+  drawn under the name and the icon Sync gives it there. Button 5 is a further button beside
+  them, which is *None* until something is chosen for it.
+
+  Only one further button, because the bottom bar has room for five and the rail for seven,
+  counted over every item the menu holds rather than over the ones being drawn — so taking
+  something off does not make room for anything. Replacing needs no room, which is what makes
+  four custom buttons possible on a bar that only fits five.
+
+  **Button 2 has taken over Sync's own *Show actions*.** That switch is hidden where it stood
+  rather than taken out, and follows this row: choosing *Show* turns it on, anything else turns
+  it off. A copy of Sync that already had it on arrives with Button 2 set to *Show*, and one that
+  had it off arrives set to *Hide*, so nothing changes under anyone who had already chosen. Both
+  settings still travel in a backup and still mean what they say.
+
+  Elsewhere the app keeps the last word: *Show* can never put something on the bar that Sync
+  decided to leave off, so the inbox stays away while nobody is signed in. A replacement is
+  different and deliberately so — a button carrying out an action is no longer the thing the app
+  made that decision about, so it is drawn either way. Turning everything off leaves the first
+  button rather than an empty strip; *Use bottom navigation* is what takes the bar away.
+
+  **The unread count follows the inbox.** Wherever the inbox has been put — left where it was,
+  chosen as the action on another button, or on Button 5 — that is where the badge is drawn, and
+  no other button is left wearing it.
+
+  One rough edge: the pill under the button for the screen you are on belongs to Material, and
+  nothing here touches it. So replacing **Button 1 (Posts)** leaves that pill on the replacement
+  when the app opens, since the app really is on the Posts screen and that screen no longer has a
+  button. It stays where it is put rather than moving about.
+
+  A row takes effect as it is chosen, without restarting the app. The navigation rail that
+  replaces the bar in tablet mode is covered by the same rows; its fifth item, Settings, has none
+  and is left alone.
 - <a name="keep-transparency-in-a-picture"></a>**Keep transparency in a picture** — The zooming view Sync opens a picture in decodes in a
   format with no alpha channel unless something says otherwise, so everything transparent
   arrived opaque, showing whatever the file was saved over — white, for most. The format to

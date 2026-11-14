@@ -29,6 +29,7 @@ val hideRatingPromptPatch = bytecodePatch(
     name = "Hide rating prompt",
     description = "Removes the \"How are we doing?\" pop-up and the Play Store rating request.",
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     // Also stops Google Play's review sheet, where the app calls it by name.

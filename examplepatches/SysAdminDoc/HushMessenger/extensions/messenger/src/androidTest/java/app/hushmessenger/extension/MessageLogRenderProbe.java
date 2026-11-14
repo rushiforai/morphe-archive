@@ -14,7 +14,7 @@ import java.lang.reflect.Field;
 import java.util.Locale;
 
 /**
- * Measures the message log viewer with a small log and one at its retention limit, on the UI preview only. The log is
+ * Measures the message log viewer with a small log, one at its size limit and one at its count limit, on the UI preview only. The log is
  * filled through MessageLog's own queue and write, so it's encrypted with the preview's keystore key like a real one,
  * and every entry is made-up text. The viewer is opened from its button. The longest gap between two frames while it
  * opens and while its list scrolls is what a person sees as a freeze. The log is cleared and the switch put back after.
@@ -47,7 +47,9 @@ final class MessageLogRenderProbe {
         boolean wasPaused = Settings.preferences.getBoolean("paused", false);
         Settings.preferences.edit().putBoolean(MessageLog.KEY, true).putBoolean("paused", false).commit();
         try {
-            return measure("small", 10, 120) + "\n" + measure("limit", MessageLog.MAX_ENTRIES, 4_000);
+            // "limit" fills the size cap with long messages; "count" fills the count cap with short ones, the most cards.
+            return measure("small", 10, 120) + "\n" + measure("limit", MessageLog.MAX_ENTRIES, 4_000) + "\n"
+                + measure("count", MessageLog.MAX_ENTRIES, 60);
         } finally {
             try {
                 MessageLog.clear();
@@ -123,14 +125,14 @@ final class MessageLogRenderProbe {
                     scroll.scrollBy(0, step);
                     travelled[0] += scroll.getScrollY() - before;
                     boolean atEnd = scroll.getScrollY() >= scroll.getChildAt(0).getHeight() - scroll.getHeight();
-                    if (!(atEnd && cards.getChildCount() >= total) && SystemClock.elapsedRealtime() - scrollStart < 120_000) {
+                    if (!(atEnd && cards.getChildCount() >= total) && SystemClock.elapsedRealtime() - scrollStart < 300_000) {
                         Choreographer.getInstance().postFrameCallback(this);
                         return;
                     }
                     synchronized (done) { finished[0] = true; done.notifyAll(); }
                 }
             }));
-            synchronized (done) { long until = SystemClock.elapsedRealtime() + 125_000; while (!finished[0] && SystemClock.elapsedRealtime() < until) done.wait(1_000); }
+            synchronized (done) { long until = SystemClock.elapsedRealtime() + 305_000; while (!finished[0] && SystemClock.elapsedRealtime() < until) done.wait(1_000); }
             long scrolledMs = SystemClock.elapsedRealtime() - scrollStart;
             instrumentation.waitForIdleSync();
             instrumentation.runOnMainSync(scrolling::stop);

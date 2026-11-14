@@ -77,6 +77,7 @@ import app.morphe.extension.facebook.comments.CommentSheetOptions;
 import app.morphe.extension.facebook.comments.FullHeightComments;
 import app.morphe.extension.facebook.comments.MetaAiSummaries;
 import app.morphe.extension.facebook.media.HdrBrightnessForTests;
+import app.morphe.extension.facebook.media.BackgroundPlayForTests;
 import app.morphe.extension.facebook.media.PictureInPictureForTests;
 import app.morphe.extension.facebook.media.ProgressBar;
 import app.morphe.extension.facebook.media.FeedSound;
@@ -121,6 +122,7 @@ import app.morphe.extension.facebook.reels.ReelHold;
 import app.morphe.extension.facebook.reels.ReelHoldForTests;
 import app.morphe.extension.facebook.reels.ReelCleanMode;
 import app.morphe.extension.facebook.reels.ReelDeclutter;
+import app.morphe.extension.facebook.reels.ReelFillForTests;
 import app.morphe.extension.facebook.reels.NewestReelsForTests;
 import app.morphe.extension.facebook.reels.ReelMidCardsForTests;
 import app.morphe.extension.facebook.reels.SavedVideos;
@@ -294,11 +296,13 @@ public class ColdStartHooksTest {
         assertFalse(ReelDeclutter.hideFollowingButton());
         assertFalse(ReelDeclutter.skipHotComment());
         assertFalse(ReelDeclutter.skipSocialBubbles());
+        assertFalse(ReelDeclutter.skipCaptionComment());
         assertFalse("a Threads card read before the context came off", ReelMidCardsForTests.dropsAThreadsCard());
         assertFalse("a reel made before the context started in Clean mode", ReelCleanMode.startClean(false));
         assertTrue("a Watch again tap before the context came off replayed in place", WatchAgain.opensElsewhere(true));
         assertFalse("a saved video tapped before the context stayed in the player", SavedVideos.staysInPlayer("vod_watchfeed_saved"));
         assertTrue("an idle answer before the context was dropped", StillWatching.idle(1));
+        assertFalse("a reel before the context filled the screen", ReelFillForTests.fillsAFullScreenReel());
         assertFalse("a batch of watched reels sent before the context was held back", SeenStateSendForTests.heldBack());
         assertFalse("a Reels rerank before the context put the newest first", NewestReelsForTests.putsTheNewestFirst());
         assertFalse("a double-tap skip test read before the context was turned on", DoubleTapSkip.flag(false));
@@ -326,6 +330,8 @@ public class ColdStartHooksTest {
         assertFalse("the Watch viewer's flag before the context said yes", PictureInPictureForTests.immersiveAllows());
         assertFalse("the Video tab's gate before the context said yes", PictureInPictureForTests.homeGateAllows());
         assertFalse("the Video tab's flag before the context said yes", PictureInPictureForTests.homeFlagAllows());
+        assertFalse("a background handler took a video on before the context said yes",
+                BackgroundPlayForTests.continuesAVideoYouStarted());
         assertFalse("an HDR window kept in the usual range before the context said yes",
                 HdrBrightnessForTests.keepsAnHdrWindowInTheUsualRange());
         assertFalse("a headroom held before the context said yes", HdrBrightnessForTests.holdsTheHeadroom());

@@ -13,7 +13,7 @@ object Constants {
         appIconColor = 0xE20074,
         targets = listOf(
             // Patches apply, but this version has not been tested on a device.
-            AppTarget(version = "19.5.2", isExperimental = true),
+            AppTarget("19.5.2"),
             AppTarget("19.4.4"),
         )
     )

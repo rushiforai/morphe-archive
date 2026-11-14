@@ -55,6 +55,7 @@ import app.morphe.extension.facebook.download.SavedFileActions;
 import app.morphe.extension.facebook.feed.HomeBack;
 import app.morphe.extension.facebook.feed.LinkedPost;
 import app.morphe.extension.facebook.feed.ReturnRefresh;
+import app.morphe.extension.facebook.media.FeedSound;
 import app.morphe.extension.facebook.media.ResumePlayback;
 import app.morphe.extension.facebook.menu.MenuLayoutDump;
 import app.morphe.extension.facebook.media.TapToPlay;
@@ -182,6 +183,8 @@ public final class SettingsEntry {
             ReturnRefresh.register(context);
             // The Back that closes comments over the feed, told apart by the focus coming back (#378).
             if (SettingsStatus.returnRefresh()) HomeBack.watch(context);
+            // Keep feed videos muted: a sound left on goes off again when Facebook comes back (#465).
+            if (SettingsStatus.keepFeedVideosMuted()) FeedSound.watch(context);
             watchLauncherChanges(context);
             TextSize.application(context);
             // Only with the theme in the build, so its class and palette aren't loaded otherwise.
@@ -855,10 +858,16 @@ public final class SettingsEntry {
             if (SettingsStatus.suggestedStories()) SuggestedStories.activityCreated(activity);
         }
 
-        @Override public void onActivityStarted(Activity activity) { }
+        @Override
+        public void onActivityStarted(Activity activity) {
+            // Hide stories you scrolled past waits for the next visit (#463).
+            if (SettingsStatus.suggestedStories()) SuggestedStories.activityStarted(activity);
+        }
+
         @Override
         public void onActivityStopped(Activity activity) {
             TapToPlay.activityStopped(activity);
+            if (SettingsStatus.suggestedStories()) SuggestedStories.activityStopped(activity);
         }
 
         @Override public void onActivitySaveInstanceState(Activity activity, Bundle state) { }

@@ -20,6 +20,7 @@ val hideSponsoredTitlesPatch = bytecodePatch(
     name = "Hide sponsored titles",
     description = "Removes JustWatch's own sponsored title cards and sponsored trailers before videos.",
 ) {
+    category("Ads")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")

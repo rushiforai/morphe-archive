@@ -694,7 +694,7 @@ Your list of people, Pages and sites to hide will hold %1$d entries.	В спис
 Your list of people, Pages and sites to hide will hold %1$d entries.|few	В списке людей, Страниц и сайтов для скрытия будет %1$d записи.
 Your list of people, Pages and sites to hide will hold %1$d entries.|many	В списке людей, Страниц и сайтов для скрытия будет %1$d записей.
 # context: summary of that switch; the keep list is the second list under it, and a settings file is the one Export settings writes
-Hides posts containing a word or phrase from your list below. Words that keep a post win over it. Your words stay on this phone unless you export them.	Скрывает публикации, содержащие слово или фразу из списка ниже. Слова, разрешающие публикацию, имеют приоритет. Список хранится на этом телефоне, если вы не экспортируете его.
+Hides posts containing a word or phrase from your list below. Words that keep a post win over it. Your words stay on this phone unless you export them. Posts on profiles, Pages and in groups go too, and Reels tab reels go by their captions.	Скрывает публикации, содержащие слово или фразу из списка ниже. Слова, разрешающие публикацию, имеют приоритет. Список хранится на этом телефоне, если вы не экспортируете его. Публикации в профилях, на Страницах и в группах тоже скрываются, а видео во вкладке Reels фильтруются по подписи.
 # context: title of the row and dialog holding the list of words and phrases that hide a post
 Words to hide	Слова для скрытия
 # context: title of the row and dialog holding the list of words and phrases that keep a post even when it has a word to hide
@@ -1430,7 +1430,7 @@ Hides posts with a photo or album, including shares.	Скрывает публи
 # context: summary of the Hide video posts switch
 Hides posts with a video, including shares. Reels in the feed have their own switch.	Скрывает публикации с видео, включая репосты. Для Reels в Ленте есть отдельный переключатель.
 # context: summary of the Hide link posts switch
-Hides posts that share a link to a website, with its preview card.	Скрывает публикации со ссылкой на сайт и карточкой предпросмотра.
+Hides posts that share a link to a website, with its preview card. On profiles, Pages, groups and the Reels tab, a post or reel whose words name a website goes too.	Скрывает публикации со ссылкой на сайт и карточкой предпросмотра. В профилях, на Страницах, в группах и во вкладке Reels тоже скрываются публикации и видео, в тексте которых указан сайт.
 # context: summary of the Hide posts on a colored background switch
 Hides short posts shown as big text on a colored background.	Скрывает короткие публикации, отображаемые крупным текстом на цветном фоне.
 # context: switch title under News feed: hides posts that share someone else's post, the ones Facebook heads "shared a post"; use Facebook's own word for a shared post in this language
@@ -1821,6 +1821,16 @@ Leaving Facebook doesn't open the window. Tap Picture-in-picture in a reel's Mor
 Picture-in-picture button	Кнопка «Картинка в картинке»
 # context: summary of that switch; "the window" is the small picture-in-picture window
 Shows a small button at the left edge of a reel or video that has the window ready. Tap it to open the window right away. Works with Picture-in-picture on.	Показывает небольшую кнопку у левого края Reels или видео, чтобы быстро открыть плавающее окно. Нажмите ее, чтобы сразу открыть окно. Работает при включенной функции «Картинка в картинке».
+# context: switch title under Playback; on, a video you started keeps its sound after you leave Facebook; also the label of a headphones button in the picture-in-picture window
+Keep playing in the background	Продолжать воспроизведение в фоне
+# context: summary of that switch; the notification is the one Facebook shows with the video's play and pause buttons
+A video you started with a tap keeps its sound after you leave Facebook, and its notification can pause it. Swiping the notification away or taking a call stops it.	Видео, которое вы запустили нажатием, продолжает звучать после выхода из Facebook, а его уведомление позволяет поставить его на паузу. Если смахнуть уведомление или ответить на звонок, воспроизведение остановится.
+# context: title of that notification when the video has none of its own
+Facebook video	Видео Facebook
+# context: switch title under Playback; on, the small picture-in-picture window gets a headphones button that keeps the sound playing after the window closes
+Background play button in the window	Кнопка фонового воспроизведения в окне
+# context: summary of that switch; "the window" is the small picture-in-picture window
+Adds a headphones button to the picture-in-picture window. Tap it to close the window and keep the sound playing, with a notification to pause it.	Добавляет кнопку с наушниками в окно «Картинка в картинке». Нажмите ее, чтобы закрыть окно и продолжить слушать звук, а уведомление позволит поставить его на паузу.
 # context: switch title under Stories; it makes videos you post to your own Story ask for high quality when they upload
 Upload Stories in HD	Загружать Истории в HD
 # context: summary of that switch; standard is the normal upload quality, high the better one
@@ -2048,6 +2058,10 @@ A video you open from Saved goes on to the next one in Saved when it ends or whe
 Skip "Are you still watching?"	Пропускать «Вы ещё смотрите?»
 # context: summary of that switch; reels and videos go on to the next one by themselves
 Reels and videos keep going to the next one without pausing to ask if you're still watching.	Reels и видео переходят к следующему без остановки и не спрашивают, смотрите ли вы ещё.
+# context: switch title under Reels and Watch; on, a reel that would show black bars above and below (or at the sides) is enlarged until it fills the whole screen
+Fill the screen with reels	Растягивать Reels на весь экран
+# context: summary of that switch; the reel is zoomed in until it reaches every edge, so a little of the picture at two of its edges is cut off
+Reels and full-screen videos that would leave black bars fill the screen instead, with a little cut off the edges. Pinch in on a reel to see all of it, or pinch out to fill it again.	Reels и полноэкранные видео, которые оставили бы чёрные полосы, заполняют экран, а края немного обрезаются. Сведите пальцы на Reels, чтобы увидеть его целиком, или разведите, чтобы снова заполнить экран.
 Hide the new comments pop-up	Скрывать всплывающее уведомление о новых комментариях
 # context: the bubble Facebook shows over an open comment list when new comments arrive, like "3 new comments"
 The "new comments" bubble no longer pops up while you read comments. New comments still show in the list.	Пузырь «Новые комментарии» больше не появляется во время чтения комментариев. Новые комментарии по-прежнему отображаются в списке.
@@ -2286,6 +2300,10 @@ Adds buttons to feed videos that jump back or ahead 10 seconds, like Facebook's 
 Adds a button to feed videos that shows their speed. Each tap moves to the next one: 1x, 1.25x, 1.5x, 2x, then 0.5x. Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	Добавляет к видео в Ленте кнопку, которая показывает скорость. Каждое нажатие переключает на следующую: 1x, 1.25x, 1.5x, 2x, затем 0.5x. Для прямых эфиров и рекламы остаются собственные элементы управления. Если включено воспроизведение по нажатию, необходимо также включить встроенные элементы управления видео в Ленте.
 Shows how far into a feed video you are at the left end of its seek bar, and how much is left at the right end. Needs Seek bar on feed videos on.	Показывает на левом конце полосы перемотки видео в Ленте, сколько уже просмотрено, а на правом, сколько осталось. Нужна включённая «Полоса перемотки для видео в Ленте».
 Adds a button to feed videos that opens the video in Facebook's own full player, with all its controls. Live videos get it too. With Tap to play on, it needs Inline feed video controls on too.	Добавляет к видео в Ленте кнопку, которая открывает видео в полном плеере Facebook со всеми его элементами управления. Прямые эфиры тоже ее получают. Если включено воспроизведение по нажатию, необходимо также включить встроенные элементы управления видео в Ленте.
+# context: switch title under Playback; on, the full player button sits in a feed video's bottom corner next to Facebook's speaker (mute) button
+Full player button by the speaker	Кнопка полного плеера рядом с кнопкой звука
+# context: summary of that switch; "the other buttons" are the play/pause and skip buttons along the video's top
+Puts a feed video's full player button in its bottom corner, next to Facebook's speaker button, which moves over to make room. Live videos, and videos without Facebook's speaker, keep it up with the other buttons. Needs Full player button on feed videos on.	Ставит кнопку полного плеера видео в Ленте в нижний угол, рядом с кнопкой звука Facebook, которая сдвигается, освобождая место. У прямых эфиров и видео без кнопки звука Facebook она остаётся наверху с другими кнопками. Нужна включённая «Кнопка полного плеера для видео в Ленте».
 # context: a switch under Video and audio; with it on, a video opened full screen starts with its details and comments panel closed, so the video is in the middle of the screen
 Open full screen videos centered	Открывать полноэкранные видео по центру
 # context: that switch's summary; the arrow is the small button under the video that opens and closes the details and comments panel
@@ -2350,6 +2368,21 @@ Shows when a reel or a video you open full screen was posted, under the name of 
 Keeps the Comment button on reels whose comments are turned off, so you can still read the ones already there. A change shows from the next reel.	Оставляет кнопку «Комментировать» в Reels, где комментарии отключены, чтобы вы могли читать уже существующие комментарии. Изменение применяется начиная со следующего Reels.
 Select part of a post's text	Выбирать часть текста публикации
 Holding a post's text opens it in a box where you can select just the part you want and copy that, or copy all of it. The hold itself copies nothing.	Удержание текста публикации открывает его в окне, где можно выделить только нужную часть и скопировать её или скопировать всё. Само удержание ничего не копирует.
+Hold a post to react	Удержание публикации для реакции
+Holding a post's photo or video opens its reactions, as holding Like does. On a feed post it comes before Long press opens comments.	Удержание фото или видео публикации открывает её реакции, как удержание кнопки «Нравится». В публикации ленты это срабатывает раньше, чем «Долгое нажатие открывает комментарии».
+Reaction	Реакция
+Pick one each time	Выбирать каждый раз
+Like	Нравится
+Love	Супер
+Care	Мы вместе
+Haha	Ха-ха
+Wow	Ух ты
+Sad	Сочувствую
+Angry	Возмутительно
+Pick one each time. The reactions open over the post, so slide to one and let go, or let go and tap one.	Выбирать каждый раз. Реакции открываются поверх публикации: проведите к нужной и отпустите или отпустите и нажмите на неё.
+%1$s. Holding a post gives it straight away.	%1$s. Удержание публикации сразу ставит эту реакцию.
+Hold a post to react will open the reactions to pick from.	Удержание публикации для реакции откроет реакции для выбора.
+Hold a post to react will give %1$s.	Удержание публикации для реакции поставит «%1$s».
 Select text	Выбрать текст
 Done	Готово
 Copy all	Копировать всё
@@ -2738,7 +2771,7 @@ Tab bar width	Ширина панели вкладок
 Percent of the screen's width, from %1$s to %2$s. The icons grow and shrink with it. Leave it blank for %3$s.	Процент ширины экрана, от %1$s до %2$s. Значки увеличиваются и уменьшаются вместе с ней. Оставьте поле пустым, чтобы использовать %3$s.
 The rounded tab bar is %1$s percent of the screen wide.	Ширина скруглённой панели вкладок: %1$s процентов ширины экрана.
 Tab bar height	Высота панели вкладок
-Percent of its full height the rounded tab bar keeps, from %1$s to %2$s, trimmed above and below the icons. Leave it blank for %3$s.	Сколько процентов полной высоты сохраняет скруглённая панель вкладок, от %1$s до %2$s, с обрезкой сверху и снизу от значков. Оставьте поле пустым, чтобы использовать %3$s.
+Percent of its full height the rounded tab bar keeps, from %1$s to %2$s, trimmed above and below the icons. Over 100 makes it taller, mostly toward the bottom of the screen. Leave it blank for %3$s.	Сколько процентов полной высоты сохраняет скруглённая панель вкладок, от %1$s до %2$s, с обрезкой сверху и снизу от значков. Больше 100 делает её выше, в основном к нижнему краю экрана. Оставьте поле пустым, чтобы использовать %3$s.
 The rounded tab bar keeps %1$s percent of its height.	Скруглённая панель вкладок сохраняет %1$s процентов своей высоты.
 # context: title of a row under About that picks how long a dot marks settings an update added
 Mark new settings	Отмечать новые настройки
@@ -2776,7 +2809,7 @@ Double tap the right side of a playing feed video to jump ahead 10 seconds, or t
 Show only comments that match	Показывать только подходящие комментарии
 While the search box holds words, comments without them are hidden. Clearing the box brings them back.	Пока в поле поиска есть слова, комментарии без них скрыты. Если очистить поле, они вернутся.
 Queue reel saves	Очередь сохранения Reels
-Each reel you tap Download on joins a queue that saves one reel at a time in the background. Pause or cancel it from its notification or from Downloads here. A reel already in the queue is skipped, and one that fails gets one more try. The queue lasts until Facebook closes.	Каждое видео Reels, на котором вы нажимаете «Скачать», попадает в очередь, которая сохраняет видео по одному в фоновом режиме. Приостановить или отменить её можно из её уведомления или здесь, в разделе «Загрузки». Видео, которое уже есть в очереди, пропускается, а несохранившееся получает ещё одну попытку. Очередь существует, пока Facebook не закроется.
+Each reel you tap Download on joins a queue that saves one reel at a time in the background. Pause or cancel it from its notification or from Downloads here. A reel already in the queue is skipped, and one that fails gets one more try. The queue lasts until Facebook closes. Hold Download to save that reel and the ones after it, 10 to 150 at a time.	Каждое видео Reels, на котором вы нажимаете «Скачать», попадает в очередь, которая сохраняет видео по одному в фоновом режиме. Приостановить или отменить её можно из её уведомления или здесь, в разделе «Загрузки». Видео, которое уже есть в очереди, пропускается, а несохранившееся получает ещё одну попытку. Очередь существует, пока Facebook не закроется. Удерживайте «Скачать», чтобы сохранить это видео и следующие за ним, от 10 до 150 за раз.
 Added to the reel queue	Добавлено в очередь Reels
 Added to the reel queue. To pause or cancel it, open Downloads in Hushfacebook settings.	Добавлено в очередь Reels. Чтобы приостановить или отменить её, откройте раздел «Загрузки» в настройках Hushfacebook.
 Already in the reel queue	Уже в очереди Reels
@@ -2788,3 +2821,25 @@ Reel queue done	Очередь Reels завершена
 %1$d saved, %2$d waiting, %3$d failed	Сохранено: %1$d, в очереди: %2$d, с ошибкой: %3$d
 Reel queue canceled	Очередь Reels отменена
 Cancel the reel queue	Отменить очередь Reels
+Save this reel and the ones after it	Сохранить это видео Reels и следующие
+%1$d reels	Видео Reels: %1$d
+Going through %1$d reels for the reel queue. Hold Download again or cancel the queue to stop.	Просматриваю видео для очереди Reels: %1$d. Чтобы остановить, снова удерживайте «Скачать» или отмените очередь.
+Put %1$d reels in the reel queue	В очередь Reels добавлено видео: %1$d
+No more reels came. %1$d went in the reel queue.	Больше видео не появилось. В очередь Reels добавлено: %1$d.
+Stopped going through reels	Просмотр видео Reels остановлен
+Reel from %1$s	Reels от %1$s
+Reel %1$d	Reels %1$d
+Saving now	Сохраняется
+Waiting	Ожидает
+Paused	Приостановлено
+Pause this reel	Приостановить это видео
+Resume this reel	Возобновить это видео
+Cancel this reel	Отменить это видео
+Hide stories you scrolled past	Скрывать пролистанные Истории
+A story you scrolled past in the Stories tray leaves it the next time you open Facebook, even if you didn't watch it. A new story brings that person back.	История, мимо которой вы пролистали в панели Историй, исчезает из неё при следующем открытии Facebook, даже если вы её не смотрели. Новая История возвращает этого человека.
+# context: row under Home header picture that puts Hushfacebook's logo there (#467)
+Use the Hushfacebook logo	Использовать логотип Hushfacebook
+# context: summary under Use the Hushfacebook logo
+Shows Hushfacebook's logo at the top of Home in place of your words and Facebook's logo. Restart Facebook to see it.	Показывает логотип Hushfacebook в верхней части Главной вместо вашего текста и логотипа Facebook. Перезапустите Facebook, чтобы увидеть его.
+# context: the name Home header picture shows once the logo is picked
+Hushfacebook logo	логотип Hushfacebook

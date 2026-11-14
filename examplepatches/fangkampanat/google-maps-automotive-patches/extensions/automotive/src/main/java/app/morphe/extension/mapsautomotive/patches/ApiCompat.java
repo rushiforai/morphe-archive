@@ -127,15 +127,18 @@ public final class ApiCompat {
      * Whether Car.createCar can run. The patch sends Maps' Car.createCar calls through ApiCompat.createCar
      * methods that it generates with the same parameters. They call this first and, without android.car,
      * return null, which Car.createCar also returns when no car service is reachable, instead of throwing
-     * NoClassDefFoundError. Each calling Maps method is logged once.
+     * NoClassDefFoundError. Each calling Maps method is logged once. An android.car without
+     * Car.createCar(Context), the method Maps' car setup needs (Android 9 head units such as issue #11's),
+     * counts as none: Maps crashed there with NoSuchMethodError.
      */
     public static boolean canCreateCar() {
         Boolean available = carApi;
         if (available == null) {
             try {
-                Class.forName("android.car.Car", false, ApiCompat.class.getClassLoader());
+                Class<?> car = Class.forName("android.car.Car", false, ApiCompat.class.getClassLoader());
+                car.getMethod("createCar", Context.class);
                 available = true;
-            } catch (ClassNotFoundException | LinkageError error) {
+            } catch (ClassNotFoundException | NoSuchMethodException | SecurityException | LinkageError error) {
                 available = false;
             }
             carApi = available;
@@ -151,7 +154,8 @@ public final class ApiCompat {
         synchronized (loggedCarCallers) {
             if (loggedCarCallers.size() >= 50 || !loggedCarCallers.add(caller)) return;
         }
-        ReportLog.w(TAG, "android.car is not available: Car.createCar returns null for " + caller);
+        ReportLog.w(TAG, "android.car is not available or lacks Car.createCar(Context): Car.createCar returns null for "
+                + caller);
     }
 
     // Android Automotive runs apps in a user of their own; DiLink runs them as user 0.

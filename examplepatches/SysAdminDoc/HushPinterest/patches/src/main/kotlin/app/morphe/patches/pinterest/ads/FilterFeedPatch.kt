@@ -24,13 +24,15 @@ private const val PATCH = "Filter feed"
  * words are a list of words and phrases matched whole against a pin's title, grid title and
  * description. The fields are read by JSON name at run time; a GIF is an image to Pinterest and stays.
  * Saved pins go from Home alone, on two hooks of their own ([installHomeFields], [installHomePage]).
+ * Home suggestions are rows of Pinterest's own on the same list hook, plus the pin's "See more like
+ * this?" bubble on a hook of its own ([installFeedbackFlyout]).
  */
 @Suppress("unused")
 val filterFeedPatch = bytecodePatch(
     name = PATCH,
     description = "Lets you take video pins (photos and GIFs stay) and pins that mention words you mute out of your " +
-        "home feed, search, related pins and boards, and pins you've already saved out of your home feed. " +
-        "Starts off. Set it up in HushPinterest settings > Feed.",
+        "home feed, search, related pins and boards, and pins you've already saved and Pinterest's suggestion rows " +
+        "out of your home feed. Starts off. Set it up in HushPinterest settings > Feed.",
 ) {
     category("Feed")
     dependsOn(settingsPatch, pinterestExtensionPatch, feedListHookPatch)
@@ -41,6 +43,8 @@ val filterFeedPatch = bytecodePatch(
         requireStatusMethod("feedVideoPins")
         requireStatusMethod("feedMutedWords")
         requireStatusMethod("feedSavedPins")
+        requireStatusMethod("feedHomeSuggestions")
+        requireStatusMethod("feedbackFlyout")
         if (feedListHoldersHooked == 0) throw PatchException("$PATCH: no list holder was hooked")
         val homeFields = homeFieldsOrNull()
         val homePage = homePageOrNull()
@@ -49,8 +53,13 @@ val filterFeedPatch = bytecodePatch(
             installHomePage(homePage)
             enableCapability("feedSavedPins")
         }
+        feedbackFlyoutOrNull()?.let { flyout ->
+            installFeedbackFlyout(flyout)
+            enableCapability("feedbackFlyout")
+        }
         enableCapability("feedVideoPins")
         enableCapability("feedMutedWords")
+        enableCapability("feedHomeSuggestions")
         enableStatus("filterFeed")
     }
 }

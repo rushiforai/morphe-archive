@@ -87,6 +87,12 @@ class ChatMenuItemsTest {
         assertEquals(listOf(ITEMS_FACTORY, ITEMS_TITLE, ITEMS_DESCRIPTION, ITEMS_BUILD).joinToString("|"), site.builder.menuItemsRoute())
     }
 
+    @Test fun on587TheRouteNamesTheDescriptionSetter() {
+        val setter = "$ITEMS_BUILDER->A0A(Ljava/lang/String;)V"
+        val site = assertNotNull(menuItemsRows(ITEMS_BODY.replace("iput-object v2, v1, $ITEMS_DESCRIPTION", "invoke-virtual {v1, v2}, $setter")).hiddenRowSite())
+        assertEquals(listOf(ITEMS_FACTORY, ITEMS_TITLE, setter, ITEMS_BUILD).joinToString("|"), site.builder.menuItemsRoute())
+    }
+
     @Test fun theExtensionGetsTheListJustBeforeItGoesBackAndThePaddingLoopStillEndsThere() {
         val rows = menuItemsRows()
         val before = rows.items()

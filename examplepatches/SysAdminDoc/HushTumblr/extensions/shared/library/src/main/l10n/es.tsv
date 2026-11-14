@@ -245,7 +245,7 @@ Hide the Communities tab	Ocultar la pestaña Comunidades
 Takes the Communities tab out of the bottom bar and stops Communities tips in the post editor.	Quita la pestaña Comunidades de la barra inferior y detiene los consejos sobre comunidades en el editor de publicaciones.
 # context: the Hide Blaze prompts switch on the Interface page. Blaze is Tumblr's paid post promotion.
 Hide Blaze prompts	Ocultar avisos de Blaze
-Hides the Blaze buttons, banners and the nudge to promote a post after you share it. The Blaze item in a post's menu stays.	Oculta los botones y banners de Blaze y el aviso para promocionar una publicación después de compartirla. La opción Blaze del menú de una publicación se queda.
+Hides the Blaze buttons and banners, the nudge to promote a post after you share it, and Blaze in post menus and the share sheet.	Oculta los botones y banners de Blaze, el aviso para promocionar una publicación después de compartirla y Blaze en los menús de las publicaciones y en el menú para compartir.
 # context: the Skip review prompts switch on the Interface page. It stops Tumblr's rate-this-app pop-up.
 # context: the Skip review prompts switch on the Interface page. It stops Tumblr's "What do you think of the Tumblr app?" pop-up.
 Skip review prompts	Omitir solicitudes de reseña
@@ -273,6 +273,8 @@ That isn't a font file. Nothing changed.	Eso no es un archivo de fuente. No camb
 That file is too big to be a font.	Ese archivo es demasiado grande para ser una fuente.
 Blog notification reminder	Recordatorio de notificaciones de un blog
 Gift purchase popup	Ventana de compra de regalos
+# context: a part of Hide Blaze prompts, named on the status card when a build has or lacks it. The flame under your own posts, Blaze in post menus and the share sheet, and Promote in community posts.
+Blaze buttons on posts	Botones de Blaze en las publicaciones
 Stops the pop-up that asks what you think of the Tumblr app and then asks for a rating or feedback.	Evita la ventana emergente que pregunta qué opinas de la app de Tumblr y luego pide una valoración o comentarios.
 # context: the Turn off screenshot sharing switch on the Interface page. Tumblr watches for screenshots and offers to save the post as an image.
 Turn off screenshot sharing	Desactivar compartir capturas de pantalla
@@ -298,6 +300,9 @@ Hide hashtags	Ocultar hashtags
 Hide the Follow button	Ocultar el botón Seguir
 Takes the Follow button out of the header of posts from blogs you don't follow yet.	Quita el botón Seguir de la cabecera de las publicaciones de blogs que aún no sigues.
 Takes the tags off the bottom of posts in your dashboard and other feeds, and keeps the source link.	Quita las etiquetas de la parte de abajo de las publicaciones en tu panel y otros feeds, y deja el enlace a la fuente.
+# context: a switch on the Posts page. A tag is a hashtag under a post, and tapping it opens a search. The blog's tag search is the screen blog.tumblr.com/tagged/<tag> shows, only that blog's posts.
+Tags open the blog's tag search	Las etiquetas abren la búsqueda del blog
+Tapping a tag under a post searches that blog's posts for the tag, in the dashboard, other feeds and a post opened by itself.	Al tocar una etiqueta debajo de una publicación se buscan las publicaciones de ese blog con esa etiqueta, en el panel, en otros feeds y en una publicación abierta por sí sola.
 # context: the switch for Tumblr's Premium diamond and TumblrMart button on the Interface page. TumblrMart and Premium are Tumblr's names; keep them. The last two are parts named in "This build handles %1$s."
 Hide the diamond and TumblrMart	Ocultar el diamante y TumblrMart
 Hides the Premium diamond on your dashboard, Explore and notifications when you return to them. Open screens keep their TumblrMart button until Tumblr restarts.	Oculta el diamante Premium en tu escritorio, Explorar y notificaciones al volver a esas pantallas. Las pantallas abiertas conservan su botón de TumblrMart hasta que reinicies Tumblr.
@@ -394,6 +399,9 @@ Keep reblogs with added content	Conservar reblogs con contenido añadido
 When reblogs are hidden, keep ones where the reblogger added something of their own. Other post filters still apply.	Al ocultar reblogs, conserva aquellos en los que quien rebloguea añadió algo propio. Los demás filtros siguen aplicándose.
 Hide your own reblogs	Ocultar tus propios reblogs
 Takes the reblogs you made out of your dashboard. Your blog and the rest of Tumblr still show them.	Quita los reblogs que hiciste de tu panel. Tu blog y el resto de Tumblr los siguen mostrando.
+# context: a switch on the Feed page, next to Hide your own reblogs. It hides posts where someone else reblogged a post you made, or reblogged it from you.
+Hide reblogs of your posts	Ocultar reblogs de tus publicaciones
+Takes other people's reblogs of your posts out of your dashboard. Your blog and the rest of Tumblr still show them.	Quita de tu panel los reblogs que otras personas hacen de tus publicaciones. Tu blog y el resto de Tumblr los siguen mostrando.
 Hide liked posts	Ocultar publicaciones que te gustan
 Takes the posts you've already liked out of your dashboard. Your likes and the rest of Tumblr still show them.	Quita de tu panel las publicaciones que ya te gustaron. Tus Me gusta y el resto de Tumblr las siguen mostrando.
 Match current post text	Buscar en el texto de la publicación actual

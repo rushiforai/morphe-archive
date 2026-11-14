@@ -54,6 +54,23 @@ public final class UiHooks {
     }
 
     /**
+     * The Inbox is about to add its Updates section to the page. True leaves it out, and with it
+     * the request that fills it. Off or paused, Updates load as they always did.
+     */
+    public static boolean hideInboxUpdates() {
+        return enabled(FamilyNames.HIDE_INBOX_UPDATES, Settings.HIDE_INBOX_UPDATES);
+    }
+
+    /**
+     * A pin's answer to whether it shows the "See more like this?" bubble, on its way out of the
+     * pin. With Hide Home suggestions on, the answer is no; otherwise it's the pin's own, null
+     * included. Never throws.
+     */
+    public static Boolean feedbackFlyout(Boolean shown) {
+        return enabled(FamilyNames.FILTER_FEED, Settings.HIDE_HOME_SUGGESTIONS) ? Boolean.FALSE : shown;
+    }
+
+    /**
      * Pinterest has built a "Got a minute?" survey invite and is about to post it. True hands the
      * invite Maybe later's dismissal instead, so Pinterest marks it dismissed the way it would if
      * you'd tapped that, and it never shows. Off or paused, the invite shows as it always did.

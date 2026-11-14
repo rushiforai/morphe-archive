@@ -1,8 +1,8 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-12
  * Written by lavinhoque33, 2026-11-08.
- * Modified by lavinhoque33, 2026-11-10
  */
 package app.morphe.extension.music.patches.downloads;
 
@@ -76,25 +76,31 @@ public class OfflineReplayLogicTest {
 
     // region seek snap
 
-    @Test public void aSnapOfZeroIsDroppedOfflineWhenTheReplayIsOn() {
-        assertTrue(OfflineReplayLogic.dropsSeekSnap(true, false, 0));
+    @Test public void emptyCacheSnapsAreDroppedOfflineWithOrWithoutASwapDecision() {
+        for (boolean localPlayback : new boolean[]{false, true}) {
+            assertTrue(OfflineReplayLogic.dropsSeekSnap(true, false, localPlayback, 0));
+            assertTrue(OfflineReplayLogic.dropsSeekSnap(true, false, localPlayback, -1));
+        }
     }
 
-    @Test public void aSnapOfMinusOneOfAVideoStreamIsDroppedOfflineToo() {
-        assertTrue(OfflineReplayLogic.dropsSeekSnap(true, false, -1));
+    @Test public void emptyCacheSnapsAreDroppedOnlineOnlyForCurrentLocalPlayback() {
+        assertTrue(OfflineReplayLogic.dropsSeekSnap(true, true, true, 0));
+        assertTrue(OfflineReplayLogic.dropsSeekSnap(true, true, true, -1));
+        assertFalse(OfflineReplayLogic.dropsSeekSnap(true, true, false, 0));
+        assertFalse(OfflineReplayLogic.dropsSeekSnap(true, true, false, -1));
     }
 
-    @Test public void aRealSnapOfflineIsKept() {
-        assertFalse(OfflineReplayLogic.dropsSeekSnap(true, false, 12_000));
-    }
-
-    @Test public void theSnapOnlineIsAlwaysLeftAlone() {
-        assertFalse(OfflineReplayLogic.dropsSeekSnap(true, true, 0));
-        assertFalse(OfflineReplayLogic.dropsSeekSnap(true, true, -1));
+    @Test public void realSnapsAreKeptForLocalAndOnlinePlayback() {
+        for (boolean online : new boolean[]{false, true}) {
+            for (boolean localPlayback : new boolean[]{false, true}) {
+                assertFalse(OfflineReplayLogic.dropsSeekSnap(true, online, localPlayback, 12_000));
+            }
+        }
     }
 
     @Test public void theSnapIsLeftAloneWhileTheSettingIsOff() {
-        assertFalse(OfflineReplayLogic.dropsSeekSnap(false, false, 0));
+        assertFalse(OfflineReplayLogic.dropsSeekSnap(false, false, true, 0));
+        assertFalse(OfflineReplayLogic.dropsSeekSnap(false, true, true, -1));
     }
 
     // endregion

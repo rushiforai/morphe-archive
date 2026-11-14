@@ -3,9 +3,11 @@
 Patches for **Tandem: Language exchange** (`net.tandem`) by XiONDiGiTaL, built for
 [Morphe](https://morphe.software).
 
-The patches ship compiled in this folder: **[`patches.mpp`](patches.mpp)**, and as the `v1.1.0`
-release asset. Import either file in Morphe Manager and patch a stock Tandem **6.38.0** or **6.12.0** APK or APKM —
-nothing else is needed, and no build step is required to use it.
+The patches ship in the repository's release bundle, `patches-<version>.mpp`, together with the
+Amazon A to Z patches. Import the
+[latest release](https://github.com/XiONDiGiTaL/MorphePatches/releases/latest) in Morphe Manager and
+patch a stock Tandem **6.38.0** or **6.12.0** APK or APKM — nothing else is needed, and no build step
+is required to use it.
 
 Adding `XiONDiGiTaL/MorphePatches` as a source
 (`https://morphe.software/add-source?github=XiONDiGiTaL/MorphePatches`) lists the same five patches
@@ -17,21 +19,17 @@ review — live in a separate offline app, [Tandem Study](../companion/README.md
 
 | | |
 | :--- | :--- |
-| Release | [`v1.1.0`](https://github.com/XiONDiGiTaL/MorphePatches/releases/tag/v1.1.0) — `patches-1.1.0.mpp`, 74,124 bytes (2026-11-04) |
-| Bundle | [`patches.mpp`](patches.mpp) — 74,124 bytes (the same build as the release asset) |
-| SHA-256 | `0034159ee9a8ba74d7f540f2ca48f5c57cf4d805f68639da575d991e1f5f2af9` (both files) |
+| Release | the [latest](https://github.com/XiONDiGiTaL/MorphePatches/releases/latest) `patches-<version>.mpp` — the combined bundle, every app's patches |
+| Bundle | [`patches.mpp`](patches.mpp) — Tandem-only, split from the release bundle by the release workflow |
+| Checksum | [`patches.mpp.sha256`](patches.mpp.sha256) — written with the bundle, so it cannot go stale |
 | Contents | 5 patches: Force dark mode, Bypass PairIP checks, Remove ads, Disable Adjust tracking, Clone package |
 | Target | `net.tandem` — Tandem **6.38.0** (versionCode **11568**, minSdk 32) and **6.12.0** (versionCode **11503**, minSdk 26; the bundle needs API 31) |
 | Patcher | Morphe patcher **2.1.0** (the bundle declares `Patcher-Version: 2.1.0`) |
 | Format | APK and APKM (compatibility entries for both) |
 | Status | **Experimental** — applies to the real 6.38.0 and 6.12.0 APKMs and the patched dex is verified; the first device test installs the clone but is stopped by Tandem's licence gate at launch ([DEVICE-TEST.md](DEVICE-TEST.md)) |
 
-Verify the download before importing:
-
-```bash
-sha256sum patches.mpp
-# 0034159ee9a8ba74d7f540f2ca48f5c57cf4d805f68639da575d991e1f5f2af9
-```
+Verify the download before importing — the release page lists the asset's size and SHA-256, so
+compare the file you saved against those two values.
 
 ## Patches in the bundle
 
@@ -285,7 +283,7 @@ local data is not migrated, and there is no supported way to copy it across with
 ## Install
 
 1. Use Tandem **6.38.0** (versionCode 11568) — APKM bundle or single APK.
-2. In Morphe Manager, either import [`patches.mpp`](patches.mpp) (or the [`v1.1.0`](https://github.com/XiONDiGiTaL/MorphePatches/releases/tag/v1.1.0) asset), or add `XiONDiGiTaL/MorphePatches` as a patch source and let it list the five patches.
+2. In Morphe Manager, either import the [latest release](https://github.com/XiONDiGiTaL/MorphePatches/releases/latest) bundle, or add `XiONDiGiTaL/MorphePatches` as a patch source and let it list the five Tandem patches.
 3. Select your Tandem file. Keep **Bypass PairIP checks** enabled (a re-signed build will not start
    without it); enable the others as wanted.
 4. **Either** keep **Clone package** off and uninstall the stock app first — the result is signed
@@ -324,8 +322,8 @@ the same native check described in [DEVICE-TEST.md](DEVICE-TEST.md).
 | `:patches:buildAndroid` produces the bundle | Pass |
 | Bundle loads via Morphe's `loadPatchesFromJar` | Pass |
 | Metadata identifies `net.tandem`, 6.38.0, minSdk 32 | Pass |
-| Bundle applies to the APKMirror 6.38.0 APKM (fingerprint match + dex assembly) | Pass — all five patches complete; 20 classes rewritten |
-| Bundle applies to the APKMirror 6.12.0 APKM | Pass — applied with Morphe's patcher, five patches, zero failures, `--validate` on |
+| Published **0.1.0** bundle applies to the reference 6.38.0 APKM (fingerprint match + dex assembly) | Pass, re-run 2026-11-13 with the release asset itself: all five patches applied, `--validate` on, **20 of 36,279 classes** rewritten, and the patched manifest carries the clone id |
+| Published **0.1.0** bundle applies to 6.12.0 | **Not re-run** — the 6.12.0 reference file is not in the fixtures repository and APKMirror's download is bot-gated, so that build is still only verified against the bundle that shipped it (1.1.1) |
 | Patched 6.12.0 dex contains the intended changes | Pass — `verifyIntegrity`, `connectToLicensingService`, `showPaywallAndCloseApp`, `initSdk` and `Lcl3;->a` are a single `return-void`; `LicenseActivity.onStart()` is `finish()`; `TandemApp.onCreate()` gained the night-mode call |
 | Every patch applies in CI on each push | [`patch-regression.yml`](../.github/workflows/patch-regression.yml), against the pinned reference APKM — including the opt-in clone patch, whose result is checked for the clone's id in the manifest |
 | Clone package renames the installed app | Pass — applied to the reference APKM and the result decompiled: `package="app.xiondigital.tandem"`, all nine authorities, the signature permission and `WXEntryActivity`'s task affinity renamed, and all ten dex literals rewritten |
@@ -343,12 +341,21 @@ the same native check described in [DEVICE-TEST.md](DEVICE-TEST.md).
 The last rows decide whether this bundle is usable. It stays experimental until a build survives launch
 on hardware.
 
+The 2026-11-13 re-run used the published `patches-0.1.0.mpp` (99,685 bytes) against the reference APKM
+whose SHA-256 is `17539cc6…2e3ca`, with `--validate`, the clone patch enabled and all five patches
+applied: the patcher reported `success: true`, no failed patches, and wrote a 268,880,129-byte APK.
+The 6.12.0 half of the same run is the one gap above — that file is not on this machine and the
+fixtures repository holds only 6.38.0, so it needs to be supplied (or uploaded there) before it can be
+re-checked.
+
 ## Known limitations
 
 - **Does not launch on a device yet.** The 2026-11-04 hardware test installs the clone but Tandem's
   licence gate opens Google Play and the process dies inside `libpairipcore.so`; see
   [DEVICE-TEST.md](DEVICE-TEST.md). Every other result above is a check against the APK's own dex and
   resources, not screen behaviour.
+- **The Play prompt has no dex-level workaround.** See
+  [below](#why-the-play-prompt-cannot-be-patched-away).
 - **No in-app toggle.** Each patch is on or off at patch time; a runtime switch would need a settings
   destination and a persisted preference inside Tandem's settings architecture.
 - **Only night-aware UI changes.** Screens, WebViews or creatives that ignore `uiMode` look the same as
@@ -365,6 +372,34 @@ on hardware.
 - **A clone does not hide its origin.** The application id and icon differ, but the code, resources and
   network behaviour are Tandem's, so anything Tandem's servers decide from a client signal is unaffected.
 
+## Why the Play prompt cannot be patched away
+
+The launch failure is not a gap in the PairIP patch; it is what PairIP is for. The dex gates
+(`SignatureCheck.verifyIntegrity`, `LicenseClient.checkLicense`) are the part a patch can reach, and
+this bundle reaches them. They are not the whole check:
+
+| Layer | Where | What this bundle does | What remains |
+| :--- | :--- | :--- | :--- |
+| Certificate comparison | `classes2.dex` | `verifyIntegrity` reduced to `return-void` | — |
+| Licence client | `classes2.dex` | `checkLicense` reduced to `return-void` | The screen it falls back to still opens Play for an unlicensed package |
+| Native verifier | `libpairipcore.so` | nothing a dex patch can do | The 2026-11-04 run dies here, after the Play prompt |
+
+Morphe necessarily re-signs the APK it builds, and the re-signed certificate is exactly what PairIP
+tests for. A patch can silence the two Java checks, but it cannot make the package carry Play's
+signature, and the native verifier is not driven by the dex.
+
+That leaves three options, none of which is a patch change:
+
+1. **Modify the app without re-signing it** — keep the Play-installed package and hook at runtime
+   (root with an LSPosed-style loader). This is the only route that preserves the certificate, and it
+   is outside what Morphe produces; it also needs root, which the test device does not have.
+2. **A build without PairIP** — none of the builds inspected here qualify (6.12.0 and 6.38.0 both ship
+   `com.pairip.application.Application`), and Tandem's servers still refuse long-obsolete versions.
+3. **Use the unmodified app.**
+
+So the Tandem line stays **blocked at launch**: the patches are correct against the APK, and no later
+version of this bundle will change the outcome unless one of the first two conditions is met.
+
 ## Warnings
 
 - Do not apply to any Tandem build other than 6.38.0, and do not force a version mismatch.
@@ -376,7 +411,7 @@ on hardware.
 ```bash
 # JDK 21, from the repository root
 ./gradlew :patches:buildAndroid
-# -> patches/build/libs/patches-*.mpp   (copy over Tandem/patches.mpp when it changes)
+# -> patches/build/libs/patches-*.mpp   (the release workflow attaches this)
 ```
 
 Patch sources live in `patches/src/main/kotlin/app/xiondigital/patches/tandem/` — one package per
@@ -408,6 +443,17 @@ Without the variable the job still builds the bundle and reports the apply step 
 also what happens on pull requests from forks, where the token is not available.
 
 ## Changelog
+
+### 0.1.0 — 2026-11-13 (baseline)
+
+The collection was renumbered onto a single 0.1.x line: every release now moves one patch number at
+a time (0.1.1, 0.1.2, ...) instead of a `feat:` commit bumping a minor and skipping the numbers in
+between.
+
+- No Tandem patch changed in this release. The bundle now carries both apps' patches, and each app
+documents its work in its own folder (`Tandem/` here, `AmazonAtoZ/` for A to Z).
+- The per-folder `Tandem/patches.mpp` copy was retired. The release asset is the one artifact to
+download, so a bundle in the repository can no longer drift from the released one.
 
 ### 1.1.1 — 2026-11-06
 

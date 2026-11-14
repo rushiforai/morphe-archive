@@ -13,6 +13,10 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.view.View;
+
+import com.tumblr.rumblr.model.TimelineObjectType;
+import com.tumblr.rumblr.model.Timelineable;
 
 import org.junit.After;
 import org.junit.Before;
@@ -20,6 +24,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.GraphicsMode;
 
@@ -52,6 +57,7 @@ public class PostLinesTest {
         canvas = new Canvas(page);
         tumblrs = new Paint();
         tumblrs.setColor(Color.RED);
+        PostLines.drawingRow(new View(RuntimeEnvironment.getApplication()));
     }
 
     @After
@@ -81,7 +87,9 @@ public class PostLinesTest {
     @Test
     public void aThinLineGoesThroughTheGapsMiddleAndTheRestStaysAsItWas() {
         Settings.LINE_BETWEEN_POSTS.save(true);
+        View row = measured(item(TimelineObjectType.POST), item(TimelineObjectType.POST));
 
+        PostLines.drawingRow(row);
         PostLines.paintGap(canvas, 0f, 4f, 10f, 12f, tumblrs);
 
         assertEquals("above the line", Color.BLACK, page.getPixel(5, 4));
@@ -99,15 +107,93 @@ public class PostLinesTest {
     @Test
     public void aRowWithNoGapGetsNoLine() {
         Settings.LINE_BETWEEN_POSTS.save(true);
+        PostLines.drawingRow(measured(item(TimelineObjectType.POST), item(TimelineObjectType.POST)));
 
         PostLines.paintGap(canvas, 0f, 7f, 10f, 7f, tumblrs);
 
         for (int y = 0; y < page.getHeight(); y++) assertEquals("row " + y, Color.BLACK, page.getPixel(5, y));
     }
 
+    /** #15: a heading such as "Looking for more?", a carousel or a button between posts isn't a post. */
+    @Test
+    public void aGapBesideAnythingButAPostGetsNoLine() {
+        Settings.LINE_BETWEEN_POSTS.save(true);
+        View underHeading = measured(item(TimelineObjectType.TITLE), item(TimelineObjectType.POST));
+        View heading = measured(item(TimelineObjectType.POST), item(TimelineObjectType.TITLE));
+        View carousel = measured(item(TimelineObjectType.POST), item(TimelineObjectType.CAROUSEL));
+        View button = measured(item(TimelineObjectType.POST), item(TimelineObjectType.BUTTON));
+        View top = measured(null, item(TimelineObjectType.POST));
+
+        for (View row : new View[]{underHeading, heading, carousel, button, top}) {
+            PostLines.drawingRow(row);
+            PostLines.paintGap(canvas, 0f, 4f, 10f, 12f, tumblrs);
+        }
+
+        for (int y = 0; y < page.getHeight(); y++) assertEquals("row " + y, Color.BLACK, page.getPixel(5, y));
+    }
+
+    /** A sponsored post and a Blaze campaign show as post cards, so they get the line too. */
+    @Test
+    public void sponsoredAndBlazedPostsCountAsPosts() {
+        Settings.LINE_BETWEEN_POSTS.save(true);
+        PostLines.drawingRow(measured(item(TimelineObjectType.BLAZED_POST), item(TimelineObjectType.GEMINI_AD)));
+
+        PostLines.paintGap(canvas, 0f, 4f, 10f, 12f, tumblrs);
+
+        assertTrue(Color.red(page.getPixel(5, 8)) > 0x40);
+    }
+
+    /** A row that's measured again, now under a heading, loses the line it had. */
+    @Test
+    public void aRowMeasuredAgainTakesItsNewNeighbors() {
+        Settings.LINE_BETWEEN_POSTS.save(true);
+        View row = measured(item(TimelineObjectType.POST), item(TimelineObjectType.POST));
+        PostLines.offsetsOf(row);
+        PostLines.between(item(TimelineObjectType.TITLE), item(TimelineObjectType.POST));
+
+        PostLines.drawingRow(row);
+        PostLines.paintGap(canvas, 0f, 4f, 10f, 12f, tumblrs);
+
+        assertEquals(Color.BLACK, page.getPixel(5, 8));
+    }
+
+    /** Rows are worked out while the switch is off too, so turning it on lines up the open screen. */
+    @Test
+    public void rowsMeasuredWhileOffGetTheirLineOnceItsOn() {
+        View row = measured(item(TimelineObjectType.POST), item(TimelineObjectType.POST));
+
+        Settings.LINE_BETWEEN_POSTS.save(true);
+        PostLines.drawingRow(row);
+        PostLines.paintGap(canvas, 0f, 4f, 10f, 12f, tumblrs);
+
+        assertTrue(Color.red(page.getPixel(5, 8)) > 0x40);
+    }
+
+    /** Neighbors handed over without a row being worked out first don't land on the last one. */
+    @Test
+    public void neighborsWithoutARowGoNowhere() {
+        Settings.LINE_BETWEEN_POSTS.save(true);
+        View row = measured(item(TimelineObjectType.TITLE), item(TimelineObjectType.POST));
+        PostLines.between(item(TimelineObjectType.POST), item(TimelineObjectType.POST));
+
+        PostLines.drawingRow(row);
+        PostLines.paintGap(canvas, 0f, 4f, 10f, 12f, tumblrs);
+
+        assertEquals(Color.BLACK, page.getPixel(5, 8));
+    }
+
+    @Test
+    public void somethingThatIsntAnItemsPayloadIsntAPost() throws ReflectiveOperationException {
+        assertFalse(PostLines.isPostCard("POST"));
+        assertFalse(PostLines.isPostCard(null));
+        assertTrue(PostLines.isPostCard(item(TimelineObjectType.POST)));
+    }
+
     /** The same call site serves Tumblr's debug switch, and it paints as Tumblr wrote it. */
     @Test
     public void withTheSwitchOffAGapIsPaintedTumblrsWay() {
+        PostLines.drawingRow(measured(item(TimelineObjectType.TITLE), item(TimelineObjectType.POST)));
+
         PostLines.paintGap(canvas, 0f, 4f, 10f, 12f, tumblrs);
 
         assertEquals(Color.RED, page.getPixel(5, 4));
@@ -123,10 +209,38 @@ public class PostLinesTest {
         assertEquals(0, PostLines.paintsGaps(0));
     }
 
+    /** A row drawn while the hook isn't in the build marks nothing for the next gap. */
+    @Test
+    public void aRowDrawnWithoutTheHookMarksNothing() {
+        Settings.LINE_BETWEEN_POSTS.save(true);
+        View row = measured(item(TimelineObjectType.POST), item(TimelineObjectType.POST));
+
+        PatchFamilyForTests.capabilities(EnumSet.noneOf(PatchFamily.Capability.class));
+        PostLines.drawingRow(row);
+        PatchFamilyForTests.capabilities(EnumSet.allOf(PatchFamily.Capability.class));
+        PostLines.paintGap(canvas, 0f, 4f, 10f, 12f, tumblrs);
+
+        assertEquals(Color.BLACK, page.getPixel(5, 8));
+    }
+
     @Test
     public void beforeTheSettingsAreReadyItsTumblrsAnswer() {
         Settings.LINE_BETWEEN_POSTS.save(true);
 
         SettingsContextRule.beforeThePauseIsDecided(() -> assertEquals(0, PostLines.paintsGaps(0)));
+    }
+
+    private static View measured(Timelineable above, Timelineable here) {
+        View row = new View(RuntimeEnvironment.getApplication());
+        PostLines.offsetsOf(row);
+        PostLines.between(above, here);
+        return row;
+    }
+
+    private static Timelineable item(TimelineObjectType type) {
+        return new Timelineable() {
+            @Override public String getId() { return "1"; }
+            @Override public TimelineObjectType getTimelineObjectType() { return type; }
+        };
     }
 }

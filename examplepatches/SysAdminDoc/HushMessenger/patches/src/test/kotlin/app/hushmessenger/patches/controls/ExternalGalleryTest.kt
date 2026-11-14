@@ -279,6 +279,35 @@ class ExternalGalleryTest {
     @AfterTest fun reset() {
         activeProfile = SYNTHETIC_PROFILE
         galleryRoute = null
+        activeStringTables = emptyMap()
+    }
+
+    @Test fun aHandlerThatLooksTheGalleryEventUpInAStringTableStillOpensTheRoute() {
+        // 587's armv7 handler loads the gallery event's name from a Redex string table by key, not as a literal.
+        val looked = handlerClass(GALLERY_HANDLER_BODY.replace("const-string v1, \"${ACTIVATE_GALLERY.removePrefix("L").removeSuffix(";").replace('/', '.')}\"",
+            "const/16 v1, 0x10f\ninvoke-static {v1}, LX/9rP;->A00(I)Ljava/lang/String;\nmove-result-object v1"))
+        fun table(name: String) = fixtureClass("LX/9rP;", listOf(fixtureMethod("LX/9rP;->A00(I)Ljava/lang/String;", """
+            packed-switch p0, :cases
+            const/4 v0, 0x0
+            return-object v0
+            :name
+            const-string v0, "$name"
+            return-object v0
+            :cases
+            .packed-switch 0x10f
+                :name
+            .end packed-switch
+        """.trimIndent(), registers = 2, flags = STATIC)))
+        val all = setOf(GALLERY_HANDLER, GALLERY_PLUGIN, CHAT_CAMERA_START, COMPOSER_RESULT, GALLERY_ITEMS)
+        val found = mirroredControls(galleryClasses(looked) + table("com.facebook.xapp.messaging.composer.gallery.event.ActivateGalleryEvent"))
+            .getValue(EXTERNAL_GALLERY)
+        assertEquals(all, found.map { it.hookId() }.toSet())
+        assertEquals(GalleryHandler(GALLERY_HANDLER, GALLERY_PROVIDER, "LX/0c8;"), galleryRoute!!.handlers.single { it.id == GALLERY_HANDLER })
+        // No table, or one that answers the key with another event, leaves it Messenger's own.
+        for ((case, classes) in listOf("no table" to galleryClasses(looked),
+            "another event" to galleryClasses(looked) + table("com.facebook.xapp.messaging.composer.gallery.event.CloseGalleryEvent"))) {
+            assertEquals(all - GALLERY_HANDLER, mirroredControls(classes).getValue(EXTERNAL_GALLERY).map { it.hookId() }.toSet(), case)
+        }
     }
 
     @Test fun theGalleryButtonHandsTheChatCameraLauncherAMarkedBundle() {
@@ -499,7 +528,8 @@ class ExternalGalleryTest {
             activeProfile = controlProfileFor(code)
             val dex = DexFileFactory.loadDexContainer(apk.toFile(), Opcodes.forApi(35))
             val classes = dex.dexEntryNames.flatMap { dex.getEntry(it)!!.dexFile.classes }
-            val found = findExternalGallery(classes)
+            // The build's own string tables, as findControls hands them over: armv7 looks the gallery event up by key.
+            val found = findExternalGallery(classes, redexStringTables(classes))
             assertEquals(activeProfile.hooks.getValue(EXTERNAL_GALLERY), found.map { it.hookId() }.toSet(), code)
             validateControls(mapOf(EXTERNAL_GALLERY to found), setOf(EXTERNAL_GALLERY))
             // The composer plugin a chat's gallery button goes through, the older by-name handler, the launcher's start,

@@ -18,9 +18,12 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.ParcelFileDescriptor;
 
+import androidx.annotation.Nullable;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -57,6 +60,20 @@ public final class DownloadLedger {
     static final String EARLIER = "earlier_v1";
     /** One earlier history line: a request ID, then the pin ID. */
     private static final Pattern EARLIER_LINE = Pattern.compile("([0-9]{1,19}),([0-9]{1,30})");
+    /**
+     * The saves HushPinterest made itself ({@link InAppDownloads}), keyed by the history entry's ID:
+     * `id,STATE,type,address` lines, where the address is the MediaStore entry it wrote, or empty.
+     * Written only once a save happens.
+     */
+    static final String SAVED = "saved_v1";
+    private static final Pattern SAVED_LINE = Pattern.compile("([0-9]{1,19}),(RUNNING|COMPLETED|FAILED),"
+            + "(image/(?:jpeg|png|webp|gif)|video/mp4),"
+            + "((?:content://media/[a-z0-9_.-]{1,40}/(?:images/media|video/media|downloads|file)/[0-9]{1,19})?)");
+    /**
+     * History IDs from here up belong to saves HushPinterest started itself and never handed to
+     * Android's Downloads (a streamed video). Android numbers its requests from 1, so it never gets near them.
+     */
+    static final long IN_APP = 1L << 62;
     static final String SENDER_PERMISSION = "android.permission.SEND_DOWNLOAD_COMPLETED_INTENTS";
     private static final Object LOCK = new Object();
     private static final Object RECEIVER_LOCK = new Object();
@@ -112,6 +129,12 @@ public final class DownloadLedger {
 
         private Job with(State state, int reason, PinMedia.Source source, String image, String folder) {
             return new Job(id, pinId, createdAt, state, reason, source, image, folder);
+        }
+
+        /** This entry as HushPinterest's own save of it left it. One that stopped part way failed. */
+        private Job with(Saved saved) {
+            State shown = saved.state == State.RUNNING && !InAppDownloads.saving(id) ? State.FAILED : saved.state;
+            return with(shown, 0, null, shown == State.COMPLETED ? image(saved.mime) : null, folder);
         }
 
         public boolean canRetry() { return state == State.FAILED && source != null; }
@@ -208,6 +231,31 @@ public final class DownloadLedger {
         }
     }
 
+    /**
+     * Records a save HushPinterest starts itself, with no request for Android (a streamed video),
+     * as being written. Returns its history ID, or -1 when the history couldn't be written.
+     */
+    static long recordInApp(Context context, String pinId, @Nullable String folder, String mime) {
+        if (context == null || !Utils.isMainProcess() || pinId == null || !pinId.matches("[0-9]{1,30}")) return -1;
+        try {
+            DownloadLedger ledger = new DownloadLedger(context);
+            synchronized (LOCK) {
+                long id = IN_APP;
+                for (Job job : ledger.load()) if (job.id >= id) id = job.id + 1;
+                for (Job job : ledger.earlier()) if (job.id >= id) id = job.id + 1;
+                // Claimed first, so the entry never reads as a save that stopped part way.
+                InAppDownloads.claim(id);
+                ledger.insert(id, pinId, -1, folder);
+                if (ledger.keep(new Saved(id, State.RUNNING, mime, null))) return id;
+                InAppDownloads.release(id);
+                return -1;
+            }
+        } catch (RuntimeException failure) {
+            HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "record in-app download", failure);
+            return -1;
+        }
+    }
+
     /** Records a terminal batch outcome without inventing a native download ID or retaining its URL. */
     static boolean recordResult(Context context, String pinId, State state) {
         if (context == null || !Utils.isMainProcess() || pinId == null || !pinId.matches("[0-9]{1,30}") ||
@@ -284,6 +332,8 @@ public final class DownloadLedger {
             HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "watch native download results", failure);
         }
         schedule(app, ledger -> ledger.reconcile(), null, null);
+        // Requests Android still holds from before the app last stopped are looked at again.
+        InAppDownloads.watch(app);
     }
 
     private static final BroadcastReceiver COMPLETIONS = new BroadcastReceiver() {
@@ -414,24 +464,38 @@ public final class DownloadLedger {
                     Utils.showToastLong(gone);
                     return;
                 }
-                DownloadManager manager = ledger.manager();
-                String mime = null, filed = null;
-                try (Cursor cursor = manager.query(new DownloadManager.Query().setFilterById(job.id))) {
-                    if (cursor != null && cursor.moveToFirst() && cursor.getInt(cursor.getColumnIndexOrThrow(
-                            DownloadManager.COLUMN_STATUS)) == DownloadManager.STATUS_SUCCESSFUL) {
-                        int type = cursor.getColumnIndex(DownloadManager.COLUMN_MEDIA_TYPE);
-                        mime = type < 0 ? null : cursor.getString(type);
-                        int media = cursor.getColumnIndex(DownloadManager.COLUMN_MEDIAPROVIDER_URI);
-                        filed = media < 0 ? null : cursor.getString(media);
+                Saved own;
+                synchronized (LOCK) { own = ledger.saved().get(job.id); }
+                String mime = null;
+                Uri file;
+                if (own != null) {
+                    // HushPinterest saved this one itself, into the MediaStore entry it keeps.
+                    mime = own.state == State.COMPLETED && own.address != null ? (image ? image(own.mime) : media(own.mime)) : null;
+                    if (mime == null || !readable(app, own.address)) {
+                        Utils.showToastLong(gone);
+                        return;
                     }
+                    file = own.address;
+                } else {
+                    DownloadManager manager = ledger.manager();
+                    String filed = null;
+                    try (Cursor cursor = manager.query(new DownloadManager.Query().setFilterById(job.id))) {
+                        if (cursor != null && cursor.moveToFirst() && cursor.getInt(cursor.getColumnIndexOrThrow(
+                                DownloadManager.COLUMN_STATUS)) == DownloadManager.STATUS_SUCCESSFUL) {
+                            int type = cursor.getColumnIndex(DownloadManager.COLUMN_MEDIA_TYPE);
+                            mime = type < 0 ? null : cursor.getString(type);
+                            int media = cursor.getColumnIndex(DownloadManager.COLUMN_MEDIAPROVIDER_URI);
+                            filed = media < 0 ? null : cursor.getString(media);
+                        }
+                    }
+                    mime = image ? image(mime) : media(mime);
+                    if (mime == null || !readable(manager, job.id)) {
+                        Utils.showToastLong(gone);
+                        return;
+                    }
+                    file = address(manager, job.id, filed);
+                    if (file == null) throw new IllegalStateException("Finished download has no content URI");
                 }
-                mime = image ? image(mime) : media(mime);
-                if (mime == null || !readable(manager, job.id)) {
-                    Utils.showToastLong(gone);
-                    return;
-                }
-                Uri file = address(manager, job.id, filed);
-                if (file == null) throw new IllegalStateException("Finished download has no content URI");
                 Intent intent = handoff.apply(file, mime);
                 Utils.runOnMainThread(() -> {
                     if (open(app, intent, error)) HookStatus.counted(FamilyNames.DOWNLOAD_PINS, handed);
@@ -474,6 +538,15 @@ public final class DownloadLedger {
         try (ParcelFileDescriptor file = manager.openDownloadedFile(id)) {
             return file != null;
         } catch (IOException missing) {
+            return false;
+        }
+    }
+
+    /** The same for a file HushPinterest saved itself. Someone may have deleted it in a gallery app. */
+    private static boolean readable(Context app, Uri address) {
+        try (ParcelFileDescriptor file = app.getContentResolver().openFileDescriptor(address, "r")) {
+            return file != null;
+        } catch (IOException | SecurityException | IllegalArgumentException missing) {
             return false;
         }
     }
@@ -545,11 +618,17 @@ public final class DownloadLedger {
 
     private List<Job> query(List<Job> owned) {
         if (owned.isEmpty()) return Collections.emptyList();
-        long[] ids = owned.stream().filter(job -> job.id >= 0).mapToLong(job -> job.id).toArray();
+        // Android no longer has a request HushPinterest took over, and never had one it saved itself.
+        Map<Long, Saved> saves = saved();
+        long[] ids = owned.stream().filter(job -> job.id >= 0 && job.id < IN_APP && !saves.containsKey(job.id))
+                .mapToLong(job -> job.id).toArray();
         Map<Long, Job> results = new LinkedHashMap<>();
         for (int i = 0; i < owned.size(); i++) {
             Job job = owned.get(i);
-            results.put(job.id, job.id < 0 ? job : job.with(State.MISSING, 0, null));
+            Saved own = saves.get(job.id);
+            // A save of its own whose record didn't stick never finished.
+            results.put(job.id, job.id < 0 ? job : own != null ? job.with(own)
+                    : job.with(job.id >= IN_APP ? State.FAILED : State.MISSING, 0, null));
         }
         if (ids.length == 0) return Collections.unmodifiableList(new ArrayList<>(results.values()));
         try (Cursor cursor = manager().query(new DownloadManager.Query().setFilterById(ids))) {
@@ -563,7 +642,7 @@ public final class DownloadLedger {
             while (cursor.moveToNext()) {
                 long id = cursor.getLong(idColumn);
                 Job job = results.get(id);
-                if (job == null || job.id < 0) continue;
+                if (job == null || job.id < 0 || saves.containsKey(id)) continue;
                 State state = state(cursor.getInt(statusColumn));
                 int reason = state == State.PAUSED || state == State.FAILED ? cursor.getInt(reasonColumn) : 0;
                 PinMedia.Source source = null;
@@ -585,7 +664,10 @@ public final class DownloadLedger {
         } catch (RuntimeException failure) {
             HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "query native download history", failure);
             List<Job> unavailable = new ArrayList<>();
-            for (Job job : owned) unavailable.add(job.id < 0 ? job : job.with(State.UNAVAILABLE, 0, null));
+            for (Job job : owned) {
+                boolean android = job.id >= 0 && job.id < IN_APP && !saves.containsKey(job.id);
+                unavailable.add(android ? job.with(State.UNAVAILABLE, 0, null) : results.get(job.id));
+            }
             return Collections.unmodifiableList(unavailable);
         }
     }
@@ -703,6 +785,14 @@ public final class DownloadLedger {
             for (Job job : earlier) kept.append(job.id).append(',').append(job.pinId).append('\n');
             edit.putString(EARLIER, kept.toString());
         }
+        // A save is kept only while its entry is in one of the histories.
+        Map<Long, Saved> saves = saved();
+        if (!saves.isEmpty()) {
+            Set<Long> held = new HashSet<>();
+            for (Job job : jobs) held.add(job.id);
+            for (Job job : earlier != null ? earlier : earlier()) held.add(job.id);
+            if (saves.keySet().retainAll(held)) putSaved(edit, saves);
+        }
         if (!edit.commit()) {
             throw new IllegalStateException("Download history write failed");
         }
@@ -714,7 +804,214 @@ public final class DownloadLedger {
         jobs.add(0, new Job(id, pinId, System.currentTimeMillis(), State.QUEUED, 0, null, null, folder));
         store(jobs, trim(jobs));
         publish(jobs);
+        // Android may hold the request back for hours (#27, #29). HushPinterest looks again shortly.
+        InAppDownloads.watch(app);
     }
+
+    /** A save HushPinterest made itself, in place of Android's Downloads. */
+    static final class Saved {
+        final long id;
+        /** RUNNING while it's being written, then COMPLETED or FAILED. */
+        final State state;
+        final String mime;
+        /** The MediaStore entry written, or null when none was made. */
+        @Nullable final Uri address;
+
+        Saved(long id, State state, String mime, @Nullable Uri address) {
+            this.id = id;
+            this.state = state;
+            this.mime = mime;
+            this.address = address;
+        }
+    }
+
+    /** The saves HushPinterest made itself, by history ID. Lines that don't read whole are dropped. */
+    private Map<Long, Saved> saved() {
+        Map<Long, Saved> saves = new LinkedHashMap<>();
+        String text;
+        try { text = preferences.getString(SAVED, ""); }
+        catch (ClassCastException invalid) { return saves; }
+        int most = LIMIT + EARLIER_LIMIT;
+        if (text == null || text.length() > most * 160) return saves;
+        for (String line : text.split("\n")) {
+            Matcher fields = SAVED_LINE.matcher(line);
+            if (!fields.matches()) continue;
+            try {
+                long id = Long.parseLong(fields.group(1));
+                String address = fields.group(4);
+                saves.putIfAbsent(id, new Saved(id, State.valueOf(fields.group(2)), fields.group(3),
+                        address.isEmpty() ? null : Uri.parse(address)));
+                if (saves.size() == most) break;
+            } catch (IllegalArgumentException invalid) {
+                // Invalid private metadata cannot become a file to hand over.
+            }
+        }
+        return saves;
+    }
+
+    private static void putSaved(SharedPreferences.Editor edit, Map<Long, Saved> saves) {
+        if (saves.isEmpty()) {
+            edit.remove(SAVED);
+            return;
+        }
+        StringBuilder text = new StringBuilder();
+        for (Saved save : saves.values()) {
+            text.append(save.id).append(',').append(save.state.name()).append(',').append(save.mime).append(',')
+                    .append(save.address == null ? "" : save.address.toString()).append('\n');
+        }
+        edit.putString(SAVED, text.toString());
+    }
+
+    /**
+     * Records [save] for an entry this history holds, shown or earlier, and refreshes the in-memory
+     * view. False when the entry is gone (its history was removed) or the write failed.
+     */
+    private boolean keep(Saved save) {
+        boolean held = false;
+        for (Job job : load()) if (job.id == save.id) { held = true; break; }
+        if (!held) for (Job job : earlier()) if (job.id == save.id) { held = true; break; }
+        if (!held) return false;
+        Map<Long, Saved> saves = saved();
+        saves.remove(save.id);
+        saves.put(save.id, save);
+        SharedPreferences.Editor edit = preferences.edit();
+        putSaved(edit, saves);
+        return edit.commit();
+    }
+
+    /** A request Android's Downloads hasn't started, as {@link InAppDownloads} needs it to save it instead. */
+    static final class Stalled {
+        final long id;
+        final String pinId;
+        /** Where it saves, null for Download. */
+        @Nullable final String folder;
+        final PinMedia.Source source;
+        /** The file name Android was given. */
+        final String name;
+        final long createdAt;
+        /** PENDING, or waiting for a network. */
+        final int status;
+
+        Stalled(long id, String pinId, @Nullable String folder, PinMedia.Source source, String name, long createdAt, int status) {
+            this.id = id;
+            this.pinId = pinId;
+            this.folder = folder;
+            this.source = source;
+            this.name = name;
+            this.createdAt = createdAt;
+            this.status = status;
+        }
+    }
+
+    /** Where this app's requests stand in Android's Downloads, for {@link InAppDownloads}. */
+    static final class Queue {
+        /** Requests Android hasn't started, oldest last as the history keeps them. */
+        final List<Stalled> stalled;
+        /** Whether Android is downloading one of this app's requests right now. */
+        final boolean running;
+        /** Saves recorded as being written that no live save is writing: the app stopped part way. */
+        final List<Saved> abandoned;
+
+        Queue(List<Stalled> stalled, boolean running, List<Saved> abandoned) {
+            this.stalled = stalled;
+            this.running = running;
+            this.abandoned = abandoned;
+        }
+    }
+
+    /** One file name Android was given for a pin, the only kind HushPinterest asks for. */
+    private static final Pattern FILE_NAME = Pattern.compile("Pinterest_[0-9]{1,30}_[0-9]{1,20}\\.(?:jpg|png|webp|gif|mp4)");
+
+    /** Reads where this app's requests stand. Worker threads only: it asks Android's Downloads. */
+    static Queue queue(Context context) {
+        DownloadLedger ledger = new DownloadLedger(context);
+        synchronized (LOCK) {
+            List<Job> jobs = ledger.load();
+            Set<Long> shown = new HashSet<>();
+            for (Job job : jobs) shown.add(job.id);
+            for (Job job : ledger.earlier()) if (shown.add(job.id)) jobs.add(job);
+            Map<Long, Saved> saves = ledger.saved();
+            List<Saved> abandoned = new ArrayList<>();
+            for (Saved save : saves.values()) {
+                if (save.state == State.RUNNING && !InAppDownloads.saving(save.id)) abandoned.add(save);
+            }
+            Map<Long, Job> asked = new LinkedHashMap<>();
+            for (Job job : jobs) if (job.id >= 0 && job.id < IN_APP && !saves.containsKey(job.id)) asked.put(job.id, job);
+            List<Stalled> stalled = new ArrayList<>();
+            boolean running = false;
+            if (asked.isEmpty()) return new Queue(stalled, false, abandoned);
+            long[] ids = asked.keySet().stream().mapToLong(Long::longValue).toArray();
+            try (Cursor cursor = ledger.manager().query(new DownloadManager.Query().setFilterById(ids))) {
+                if (cursor == null) throw new IllegalStateException("Download query unavailable");
+                int idColumn = cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_ID);
+                int statusColumn = cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS);
+                int reasonColumn = cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_REASON);
+                int sourceColumn = cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_URI);
+                int mimeColumn = cursor.getColumnIndex(DownloadManager.COLUMN_MEDIA_TYPE);
+                int localColumn = cursor.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI);
+                Map<Long, Stalled> found = new HashMap<>();
+                while (cursor.moveToNext()) {
+                    Job job = asked.get(cursor.getLong(idColumn));
+                    if (job == null) continue;
+                    int status = cursor.getInt(statusColumn);
+                    if (status == DownloadManager.STATUS_RUNNING) running = true;
+                    // Waiting for a network Android says it lacks, or never started at all.
+                    boolean held = status == DownloadManager.STATUS_PENDING || (status == DownloadManager.STATUS_PAUSED
+                            && (cursor.getInt(reasonColumn) == DownloadManager.PAUSED_WAITING_FOR_NETWORK
+                            || cursor.getInt(reasonColumn) == DownloadManager.PAUSED_QUEUED_FOR_WIFI));
+                    if (!held) continue;
+                    String url = cursor.getString(sourceColumn);
+                    String mime = mimeColumn < 0 ? null : cursor.getString(mimeColumn);
+                    PinMedia.Source source = PinMedia.sourceUrl(url, false);
+                    if (source == null) source = PinMedia.sourceUrl(url, true);
+                    if (source == null || !source.mime.equalsIgnoreCase(mime)) continue;
+                    String local = localColumn < 0 ? null : cursor.getString(localColumn);
+                    String name = local == null ? null : Uri.decode(local.substring(local.lastIndexOf('/') + 1));
+                    if (name == null || !FILE_NAME.matcher(name).matches() || !name.endsWith(source.suffix)) {
+                        name = "Pinterest_" + job.pinId + "_" + Long.toUnsignedString(System.nanoTime()) + source.suffix;
+                    }
+                    String folder = job.folder != null ? job.folder : DownloadFolder.of(local);
+                    found.put(job.id, new Stalled(job.id, job.pinId, folder, source, name, job.createdAt, status));
+                }
+                for (Job job : jobs) {
+                    Stalled one = found.get(job.id);
+                    if (one != null) stalled.add(one);
+                }
+            }
+            return new Queue(stalled, running, abandoned);
+        }
+    }
+
+    /** Marks [id] as being saved by HushPinterest into [address]. False when its entry is gone. */
+    static boolean saving(Context context, long id, String mime, Uri address) {
+        DownloadLedger ledger = new DownloadLedger(context);
+        synchronized (LOCK) { return ledger.keep(new Saved(id, State.RUNNING, mime, address)); }
+    }
+
+    /** Marks [id] saved, into [address]. */
+    static boolean saved(Context context, long id, String mime, Uri address) {
+        DownloadLedger ledger = new DownloadLedger(context);
+        synchronized (LOCK) { return ledger.keep(new Saved(id, State.COMPLETED, mime, address)); }
+    }
+
+    /** Marks [id] failed. Nothing of it was kept. */
+    static boolean failed(Context context, long id, String mime) {
+        DownloadLedger ledger = new DownloadLedger(context);
+        synchronized (LOCK) { return ledger.keep(new Saved(id, State.FAILED, mime, null)); }
+    }
+
+    /** Drops HushPinterest's save of [id]: Android's request is shown as Android reports it again. */
+    static void forget(Context context, long id) {
+        DownloadLedger ledger = new DownloadLedger(context);
+        synchronized (LOCK) {
+            Map<Long, Saved> saves = ledger.saved();
+            if (saves.remove(id) == null) return;
+            SharedPreferences.Editor edit = ledger.preferences.edit();
+            putSaved(edit, saves);
+            if (!edit.commit()) throw new IllegalStateException("Download history write failed");
+        }
+    }
+
 
     private void publish(List<Job> jobs) {
         cachedContext = app;

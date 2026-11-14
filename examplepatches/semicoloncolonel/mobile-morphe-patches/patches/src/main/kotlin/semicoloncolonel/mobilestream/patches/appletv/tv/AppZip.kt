@@ -7,7 +7,7 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 
-// Apple TV Android TV 17.0.2. The app is JavaScript run by Apple's native
+// Apple TV Android TV 17.0.2 and 17.0.3. The app is JavaScript run by Apple's native
 // engine (libluna), shipped as assets/app.zip. The Java side copies app.zip
 // into the app's data folder each time the APK is installed or updated, with
 // no signature check, so the patches below change the JavaScript in it.
@@ -18,8 +18,20 @@ private const val APP_ZIP = "assets/app.zip"
  * One text replacement in a file of app.zip. [all] allows several matches.
  * An edit whose replacement is already there (another patch made it) is
  * skipped.
+ *
+ * [file] is the file's name, or a [chunk] for a file whose name changes
+ * between builds.
  */
 internal class AppZipEdit(val file: String, val from: String, val to: String, val all: Boolean = false)
+
+/**
+ * A webpack chunk of app.zip, found by a string that only it contains. A
+ * chunk's number can change between builds, so edits to it cannot name the
+ * file.
+ */
+internal fun chunk(marker: String) = CHUNK_PREFIX + marker
+
+private const val CHUNK_PREFIX = "chunk containing "
 
 /**
  * Over-the-air updates: the app downloads a diff of its JavaScript from
@@ -39,30 +51,45 @@ internal fun ResourcePatchContext.editAppZip(edits: List<AppZipEdit>): Boolean {
     val zip = get(APP_ZIP)
     if (!zip.exists()) return false
 
-    val pending = edits.groupBy { it.file }.toMutableMap()
-    val out = ByteArrayOutputStream()
+    val entries = mutableListOf<Pair<String, ByteArray>>()
     ZipInputStream(zip.inputStream()).use { input ->
-        ZipOutputStream(out).use { output ->
-            while (true) {
-                val entry = input.nextEntry ?: break
-                var bytes = input.readBytes()
-                val name = entry.name.substringAfterLast('/')
-                pending.remove(name)?.let { fileEdits ->
-                    var text = bytes.toString(Charsets.UTF_8)
-                    fileEdits.forEach { edit ->
-                        if (text.contains(edit.to)) return@forEach
-                        val count = text.split(edit.from).size - 1
-                        if (count == 0 || (count > 1 && !edit.all)) {
-                            throw PatchException("Apple TV $name: expected code not found (${edit.from.take(40)})")
-                        }
-                        text = text.replace(edit.from, edit.to)
+        while (true) {
+            val entry = input.nextEntry ?: break
+            entries += entry.name to input.readBytes()
+        }
+    }
+
+    // A chunk named by content becomes the name of the one file that has the marker.
+    val chunkNames = edits.map { it.file }.filter { it.startsWith(CHUNK_PREFIX) }.distinct().associateWith { file ->
+        val marker = file.removePrefix(CHUNK_PREFIX)
+        val names = entries
+            .filter { (name, bytes) -> name.endsWith(".js") && bytes.toString(Charsets.UTF_8).contains(marker) }
+            .map { (name, _) -> name.substringAfterLast('/') }
+        names.singleOrNull()
+            ?: throw PatchException("Apple TV app.zip: ${names.size} files match the $file")
+    }
+
+    val pending = edits.groupBy { chunkNames[it.file] ?: it.file }.toMutableMap()
+    val out = ByteArrayOutputStream()
+    ZipOutputStream(out).use { output ->
+        entries.forEach { (entryName, original) ->
+            var bytes = original
+            val name = entryName.substringAfterLast('/')
+            pending.remove(name)?.let { fileEdits ->
+                var text = bytes.toString(Charsets.UTF_8)
+                fileEdits.forEach { edit ->
+                    if (text.contains(edit.to)) return@forEach
+                    val count = text.split(edit.from).size - 1
+                    if (count == 0 || (count > 1 && !edit.all)) {
+                        throw PatchException("Apple TV $name: expected code not found (${edit.from.take(40)})")
                     }
-                    bytes = text.toByteArray(Charsets.UTF_8)
+                    text = text.replace(edit.from, edit.to)
                 }
-                output.putNextEntry(ZipEntry(entry.name))
-                output.write(bytes)
-                output.closeEntry()
+                bytes = text.toByteArray(Charsets.UTF_8)
             }
+            output.putNextEntry(ZipEntry(entryName))
+            output.write(bytes)
+            output.closeEntry()
         }
     }
     if (pending.isNotEmpty()) throw PatchException("Apple TV app.zip is missing ${pending.keys.joinToString()}")

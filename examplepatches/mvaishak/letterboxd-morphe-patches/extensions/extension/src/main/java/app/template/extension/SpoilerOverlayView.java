@@ -16,7 +16,7 @@ import java.util.Random;
  * <p>Covers ({@code mode}), chosen from Mod settings:
  * <ul>
  *   <li>{@link #PANEL} — a flat panel with an eye glyph.</li>
- *   <li>{@link #SHIMMER} — particles drift and twinkle continuously.</li>
+ *   <li>{@link #SHIMMER} — stars fade in and out at changing positions.</li>
  *   <li>{@link #BURST} — a static speckle of particles over the panel.</li>
  * </ul>
  *
@@ -58,6 +58,7 @@ final class SpoilerOverlayView extends View {
 
     private final Paint backing = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint stroke = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final android.graphics.Path star = new android.graphics.Path();
     private final Paint dots = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint label = new Paint(Paint.ANTI_ALIAS_FLAG);
 
@@ -65,7 +66,9 @@ final class SpoilerOverlayView extends View {
     private final float density;
 
     // Particle field: SHIMMER, BURST.
-    private float[] px, py, phase;
+    private float[] px, py, shimmerPeriod;
+    private long[] shimmerStart;
+    private long shimmerTime;
     private int[] baseAlpha;
     private int count;
     // transition == CRUMBLE: a grid of blocks, each with its own reveal delay.
@@ -119,19 +122,26 @@ final class SpoilerOverlayView extends View {
     }
 
     private void setUpParticles(int w, int h) {
-        float cell = dp(9f);
-        count = clamp(Math.round((w * h) / (cell * cell)), 48, 900);
+        float cell = dp(mode == SHIMMER ? 14f : 9f);
+        count = clamp(Math.round((w * h) / (cell * cell)), mode == SHIMMER ? 20 : 48, 900);
         px = new float[count];
         py = new float[count];
-        phase = new float[count];
+        if (mode == SHIMMER) {
+            shimmerPeriod = new float[count];
+            shimmerStart = new long[count];
+            shimmerTime = android.os.SystemClock.uptimeMillis();
+        }
         baseAlpha = new int[count];
         for (int i = 0; i < count; i++) {
             px[i] = rnd.nextFloat() * w;
             py[i] = rnd.nextFloat() * h;
-            phase[i] = rnd.nextFloat() * (float) (Math.PI * 2.0);
+            if (mode == SHIMMER) {
+                shimmerPeriod[i] = 3100f + rnd.nextFloat() * 2300f;
+                shimmerStart[i] = shimmerTime - (long) (rnd.nextFloat() * shimmerPeriod[i]);
+            }
             baseAlpha[i] = 120 + rnd.nextInt(136);
         }
-        if (mode == SHIMMER) postInvalidateOnAnimation();
+        if (mode == SHIMMER && ValueAnimator.areAnimatorsEnabled()) postInvalidateOnAnimation();
     }
 
     private void setUpBlocks(int w, int h) {
@@ -178,8 +188,8 @@ final class SpoilerOverlayView extends View {
             if (mode == BURST) drawLabel(canvas, w, h, visible);
         }
 
-        if (mode == SHIMMER && !revealing && !dead && isAttachedToWindow()) {
-            stepShimmer(w, h);
+        if (mode == SHIMMER && !revealing && !dead && isAttachedToWindow()
+                && ValueAnimator.areAnimatorsEnabled()) {
             postInvalidateOnAnimation();
         }
     }
@@ -203,10 +213,25 @@ final class SpoilerOverlayView extends View {
         // CONFETTI's real spectacle is the floating overlay; internally this still just fades
         // out like DEFAULT rather than also pushing particles outward on top of it.
         boolean push = revealing && transition == DEFAULT;
+        if (mode == SHIMMER && !revealing && ValueAnimator.areAnimatorsEnabled()) {
+            shimmerTime = android.os.SystemClock.uptimeMillis();
+        }
         for (int i = 0; i < count; i++) {
+            if (mode == SHIMMER && shimmerTime - shimmerStart[i] >= shimmerPeriod[i]) {
+                px[i] = rnd.nextFloat() * w;
+                py[i] = rnd.nextFloat() * h;
+                shimmerStart[i] = shimmerTime;
+                shimmerPeriod[i] = 3100f + rnd.nextFloat() * 2300f;
+            }
             float x = px[i];
             float y = py[i];
             int alpha = baseAlpha[i];
+            if (mode == SHIMMER) {
+                float progress = (shimmerTime - shimmerStart[i]) / shimmerPeriod[i];
+                // Ease from invisible to visible and back before moving the star.
+                float glow = (float) Math.sin(Math.PI * clamp01(progress));
+                alpha = (int) (alpha * glow * glow);
+            }
             if (push) {
                 float t = revealT * revealT * 2.4f;
                 x = px[i] + (px[i] - cx) * t;
@@ -214,11 +239,14 @@ final class SpoilerOverlayView extends View {
                 alpha = (int) (alpha * (1f - revealT));
             } else if (revealing) {
                 alpha = (int) (alpha * (1f - revealT));
-            } else if (mode == SHIMMER) {
-                alpha = (int) (alpha * (0.55f + 0.45f * (float) Math.sin(phase[i])));
             }
             dots.setAlpha(clamp(alpha, 0, 255));
-            canvas.drawPoint(x, y, dots);
+            if (mode == SHIMMER && i % 3 == 0) {
+                drawStar(canvas, x, y, dp(2.1f + i % 5 * 0.36f));
+            } else {
+                if (mode == SHIMMER) dots.setAlpha(clamp(alpha / 2, 0, 255));
+                canvas.drawPoint(x, y, dots);
+            }
         }
     }
 
@@ -246,14 +274,19 @@ final class SpoilerOverlayView extends View {
         canvas.drawText("Tap to reveal", w / 2f, baseline, label);
     }
 
-    private void stepShimmer(int w, int h) {
-        for (int i = 0; i < count; i++) {
-            px[i] += (rnd.nextFloat() - 0.5f) * 0.9f;
-            py[i] += (rnd.nextFloat() - 0.5f) * 0.9f;
-            if (px[i] < 0) px[i] += w; else if (px[i] > w) px[i] -= w;
-            if (py[i] < 0) py[i] += h; else if (py[i] > h) py[i] -= h;
-            phase[i] += 0.18f;
-        }
+    private void drawStar(Canvas canvas, float x, float y, float radius) {
+        float inner = radius * 0.24f;
+        star.rewind();
+        star.moveTo(x, y - radius);
+        star.lineTo(x + inner, y - inner);
+        star.lineTo(x + radius, y);
+        star.lineTo(x + inner, y + inner);
+        star.lineTo(x, y + radius);
+        star.lineTo(x - inner, y + inner);
+        star.lineTo(x - radius, y);
+        star.lineTo(x - inner, y - inner);
+        star.close();
+        canvas.drawPath(star, dots);
     }
 
     // --- reveal ------------------------------------------------------------
@@ -302,7 +335,9 @@ final class SpoilerOverlayView extends View {
     // --- helpers ---------------------------------------------------------
 
     private int pickSurface(Context c) {
-        String[] names = {"morphe_my_surface_elevated", "gray202830", "gray1C242C", "gray283038"};
+        String[] names = mode == SHIMMER
+                ? new String[]{"windowBackground", "gray181C20"}
+                : new String[]{"morphe_my_surface_elevated", "gray202830", "gray1C242C", "gray283038"};
         for (String n : names) {
             try {
                 int id = c.getResources().getIdentifier(n, "color", c.getPackageName());

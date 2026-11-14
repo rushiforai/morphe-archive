@@ -1,8 +1,8 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-12.
  * Written by lavinhoque33, 2026-11-07.
- * Modified by lavinhoque33, 2026-11-09.
  */
 package app.morphe.extension.music.patches.downloads;
 
@@ -13,6 +13,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
+import java.util.List;
 
 public class StreamSwapSourcesTest {
     @Rule public TemporaryFolder temporary = new TemporaryFolder();
@@ -104,5 +105,69 @@ public class StreamSwapSourcesTest {
         assertFalse(video.available);
         assertFalse(audio.available);
         assertNotSame(video, StreamSwapSources.issueVideo("gone00000000", copy, null));
+    }
+
+    @Test public void issuedButDeclinedSourcesDoNotCountAsLocalPlayback() throws Exception {
+        StreamSwapSources.issue("declined", raw(), null);
+
+        assertFalse(StreamSwapSources.playsLocal("declined"));
+    }
+
+    @Test public void localDecisionDoesNotLeakToTheNextItemOrUnknownId() throws Exception {
+        StreamSwapSources.Source source = StreamSwapSources.issue("current_local", raw(), null);
+        StreamSwapSources.select(List.of(source));
+
+        assertTrue(StreamSwapSources.playsLocal("current_local"));
+        assertFalse(StreamSwapSources.playsLocal("next_online"));
+        assertFalse(StreamSwapSources.playsLocal(""));
+        assertFalse(OfflineReplayLogic.dropsSeekSnap(true, true,
+                StreamSwapSources.playsLocal("next_online"), 0));
+    }
+
+    @Test public void nextResponseCannotHideTheCurrentItemsLocalDecision() throws Exception {
+        StreamSwapSources.select(List.of(StreamSwapSources.issue("still_playing", raw(), null)));
+        StreamSwapSources.select(List.of(StreamSwapSources.issue("prefetched", raw(), null)));
+        StreamSwapSources.selectOnline("prefetched");
+
+        assertTrue(StreamSwapSources.playsLocal("still_playing"));
+    }
+
+    @Test public void anOnlineReloadOfTheSameItemReplacesItsOldLocalDecision() throws Exception {
+        StreamSwapSources.select(List.of(StreamSwapSources.issue("reload_online", raw(), null)));
+        StreamSwapSources.selectOnline("reload_online");
+
+        assertFalse(StreamSwapSources.playsLocal("reload_online"));
+        assertFalse(OfflineReplayLogic.dropsSeekSnap(true, true,
+                StreamSwapSources.playsLocal("reload_online"), -1));
+    }
+
+    @Test public void aNewLocalResponseReplacesTheInvalidSourceOfTheSameItem() throws Exception {
+        StreamSwapSources.Source old = StreamSwapSources.issue("reload_local", raw(), null);
+        StreamSwapSources.select(List.of(old));
+        old.available = false;
+        StreamSwapSources.select(List.of(StreamSwapSources.issue("reload_local", raw(), null)));
+
+        assertTrue(StreamSwapSources.playsLocal("reload_local"));
+    }
+
+    @Test public void aDeletedOrFallbackSourceDoesNotCountAsCurrentLocalPlayback() throws Exception {
+        StreamSwapSources.Source source = StreamSwapSources.issue("fallback_seek", raw(), null);
+        StreamSwapSources.select(List.of(source));
+        source.available = false;
+
+        assertFalse(StreamSwapSources.playsLocal("fallback_seek"));
+    }
+
+    @Test public void bothPillsOfAVideoCopyKeepTheSeekTargetOnline() throws Exception {
+        VideoCopyFiles.Entry copy = copy();
+        StreamSwapSources.Source video = StreamSwapSources.issueVideo("seek_video", copy, null);
+        StreamSwapSources.Source audio = StreamSwapSources.issueVideoAudio("seek_video", copy, null);
+        StreamSwapSources.select(List.of(video, audio));
+
+        assertTrue(OfflineReplayLogic.dropsSeekSnap(true, true, StreamSwapSources.playsLocal("seek_video"), 0));
+        assertTrue(OfflineReplayLogic.dropsSeekSnap(true, true, StreamSwapSources.playsLocal("seek_video"), -1));
+
+        StreamSwapSources.invalidate("seek_video");
+        assertFalse(StreamSwapSources.playsLocal("seek_video"));
     }
 }

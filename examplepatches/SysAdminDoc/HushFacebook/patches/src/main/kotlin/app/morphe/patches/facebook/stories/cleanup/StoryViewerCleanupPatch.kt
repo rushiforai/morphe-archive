@@ -61,13 +61,25 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
  *   builds the chip row (ContextualReplyOnViewerComponent, LX/0Ca2;). Its render answers null.
  * - The chooser isn't hooked: its registers are reused for other types further on, so an early
  *   answer there could fail verification. Each component's render is hooked first thing instead.
- * - On most stories the song is a pill under the name instead (#380, que102's video, 11-05), drawn by
- *   StoryViewerMultipleAttributionLinksColumnComponent (LX/0cVh;). Its render walks the story's
- *   links, reads each one's type (an enum, LX/05KM;, whose names are MUSIC, EFFECT, SPOTIFY and so
- *   on) and switches on its ordinal to build that pill, the switch's fall-through being the step to
- *   the next link. The patch asks the extension about the type right before the ordinal and, on a
- *   yes, takes that step, so the pill is never built. 586 (LX/0dVe;) tests a boolean field of the
- *   column between the type's null check and the ordinal, and skips to the step when it's off.
+ * - On most stories the song is a pill under the name instead, with a "Try it" button on it (#380,
+ *   que102's video, 11-05). 587 draws that row in StoryViewerAugmentChipGroupComponent (arm64
+ *   LX/0HEi;). Its render first keeps the story's links of the types it supports, then walks them,
+ *   reads each one's type (an enum, 587 LX/05Ad;, whose names are MUSIC, EFFECT, SPOTIFY and so on)
+ *   and switches on its ordinal to build that chip, the switch's fall-through being the step to the
+ *   next link. The patch asks the extension about the type right before the ordinal and, on a yes,
+ *   takes that step, so the chip is never built. A tap on the pill opens a sheet listing the same
+ *   links, StoryViewerMultipleAttributionLinksColumnComponent (585 LX/0cVh;, 587 LX/0V7E;), walked
+ *   and hooked the same way. Until 2026-11-13 only that sheet was hooked, so the pill stayed. 586
+ *   (LX/0dVe;) tests a boolean field of the column between the type's null check and the ordinal,
+ *   and skips to the step when it's off.
+ * - That row isn't what a story whose first credit is a song gets, though. The factory for the slot
+ *   under the name (587 arm64 LX/0Bni;->A00) builds the chip row only when Facebook says so, and for
+ *   a song first builds a pill of its own (LX/0CDf;, v7 LX/0CD7;): "artist · song" with the "Try it"
+ *   button, whose spoken label "Playing <song> by <artist>" the subtitle builder (LX/0BlI;) writes.
+ *   It names nothing itself. Its render is the only one in the app that keys its button's transition
+ *   "pill_cta_button_transition_key", and it answers null itself for a song with no title, so the
+ *   patch answers null first thing on a yes. Found on que102's "demo" highlight, 2026-11-13, where
+ *   the pill stayed with the row and the sheet both hooked and neither one ever ran.
  * - The Subscribe pill under the name (LX/0b2T;) names nothing itself. Its click handler, a shared
  *   lambda class, casts it back from a field in the case that hands "SubscribeButtonComponent" to
  *   the subscribe call, so the pill is the nearest component cast before that string with the
@@ -98,14 +110,26 @@ internal const val HIDE_REPLY_SUGGESTIONS = "$STORY_VIEWER_CLEANUP->hideReplySug
 internal const val DROP_CREDIT = "$STORY_VIEWER_CLEANUP->dropCredit(Ljava/lang/Enum;)Z"
 internal const val HIDE_SUBSCRIBE = "$STORY_VIEWER_CLEANUP->hideSubscribe()Z"
 internal const val HIDE_CREATE_STORY_CARD = "$STORY_VIEWER_CLEANUP->hideCreateStoryCard()Z"
+internal const val HIDE_SONG_PILL = "$STORY_VIEWER_CLEANUP->hideSongPill()Z"
+
+/** What the song pill under the poster's name keys its "Try it" button's transition with. */
+internal const val SONG_PILL_BUTTON = "pill_cta_button_transition_key"
+
+private const val STORY_CARD = "Lcom/facebook/stories/model/StoryCard;"
 
 private const val IMMUTABLE_LIST = "Lcom/google/common/collect/ImmutableList;"
 
 /** What the "Add to story" card's source tags it with: the plain card or one built from the gallery (#439). */
 internal val CREATE_CARD_SOURCES = listOf("ats_tile", "camera_roll")
 
-/** The column of credit pills under the poster's name, by the name it gives itself. */
+/** The row of credit pills under the poster's name, by the name it gives itself. */
+internal const val CHIP_GROUP = "StoryViewerAugmentChipGroupComponent"
+
+/** The list of credits in the sheet a tap on one of those pills opens, by the name it gives itself. */
 internal const val LINKS_COLUMN = "StoryViewerMultipleAttributionLinksColumnComponent"
+
+/** Every component that walks a story's credit links and builds one per type, the pill row first. */
+internal val CREDIT_WALKERS = listOf(CHIP_GROUP, LINKS_COLUMN)
 
 /** Two of the pill types' names, which the type enum's static initializer must hold. */
 internal val PILL_TYPE_NAMES = listOf("MUSIC", "EFFECT")
@@ -141,6 +165,7 @@ val storyViewerCleanupPatch = bytecodePatch(
         requireStatusMethod("storyViewerCleanup")
         cleanUpStoryViewer()
         dropCreditPills()
+        hideSongPill()
         hideSubscribePill()
         hideCreateStoryCards()
         followStoryProgress()
@@ -268,7 +293,7 @@ internal fun BytecodePatchContext.cleanUpStoryViewer() {
 }
 
 /**
- * Where the links column's render sorts a pill by its type: the call at [read] answers the type
+ * Where a credit walker's render sorts a pill by its type: the call at [read] answers the type
  * into [type], a null check follows, then the ordinal at [ordinal] goes into [scratch] for the
  * switch, whose fall-through at [next] is the step to the next link. [typeClass] is the enum.
  */
@@ -324,19 +349,22 @@ internal fun pillSwitch(render: Method): PillSwitch? {
     return found.singleOrNull()
 }
 
+/** Leaves the song and effect pills out of the row under the poster's name and the sheet a tap on one opens. */
+internal fun BytecodePatchContext.dropCreditPills() = CREDIT_WALKERS.forEach { dropCredits(it) }
+
 /**
- * Leaves the song and effect pills out of the column under the poster's name: right before the
+ * Leaves the song and effect pills out of the component naming itself [name]: right before the
  * ordinal, the extension hears the pill's type, and on a yes the loop takes its step to the next
  * link. The switch register is free there, since the ordinal is about to fill it.
  */
-internal fun BytecodePatchContext.dropCreditPills() {
-    val (_, render) = component(LINKS_COLUMN)
-    val site = pillSwitch(render) ?: refuse("$LINKS_COLUMN doesn't switch on one pill type's ordinal inside its loop")
+internal fun BytecodePatchContext.dropCredits(name: String) {
+    val (_, render) = component(name)
+    val site = pillSwitch(render) ?: refuse("$name doesn't switch on one pill type's ordinal inside its loop")
     val enum = classDefByOrNull(site.typeClass)?.takeIf { it.superclass == "Ljava/lang/Enum;" }
-        ?: refuse("$LINKS_COLUMN's pill type ${site.typeClass} isn't an enum")
+        ?: refuse("$name's pill type ${site.typeClass} isn't an enum")
     val names = enum.methods.singleOrNull { it.name == "<clinit>" }
     if (names == null || PILL_TYPE_NAMES.any { !holdsString(names, it) }) {
-        refuse("$LINKS_COLUMN's pill type ${site.typeClass} doesn't name $PILL_TYPE_NAMES")
+        refuse("$name's pill type ${site.typeClass} doesn't name $PILL_TYPE_NAMES")
     }
     render.addInstructionsWithLabels(
         site.ordinal,
@@ -347,6 +375,25 @@ internal fun BytecodePatchContext.dropCreditPills() {
         """,
         ExternalLabel("next_pill", render.getInstruction(site.next)),
     )
+}
+
+/** Whether [classDef] is the song pill: a component built for a story card whose render keys its button [SONG_PILL_BUTTON]. */
+internal fun isSongPill(classDef: ClassDef): Boolean {
+    val render = renderOf(classDef) ?: return false
+    return holdsString(render, SONG_PILL_BUTTON) &&
+        classDef.methods.any { it.name == "<init>" && it.parameterTypes.any { type -> type.toString() == STORY_CARD } }
+}
+
+/** Hooks the song pill's render to answer null, as it does itself for a song with no title. */
+internal fun BytecodePatchContext.hideSongPill() {
+    val pills = classDefByStrings(SONG_PILL_BUTTON, StringComparisonType.EQUALS)
+        .filterNot { it.type.startsWith(EXTENSION_PACKAGE) }.distinctBy { it.type }.filter(::isSongPill)
+    val pill = pills.singleOrNull() ?: refuse("expected one story song pill keying its button $SONG_PILL_BUTTON, found ${pills.size}")
+    val render = renderOf(pill)!!
+    mutableClassDefBy(pill.type).methods.single {
+        it.name == render.name && it.returnType == render.returnType &&
+            it.parameterTypes.map(CharSequence::toString) == render.parameterTypes.map(CharSequence::toString)
+    }.answerWhen(HIDE_SONG_PILL, "const/4 v0, 0x0")
 }
 
 /** Whether [classDef] is a component with the Subscribe pill's three instance fields and a render. */

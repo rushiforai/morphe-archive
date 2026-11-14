@@ -1,7 +1,6 @@
 package app.hushmessenger.patches.controls
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -61,14 +60,15 @@ private fun Method.actionCovered(index: Int): Boolean {
 }
 
 private class ActionsBarSite(val at: Int, val list: Int, val scratch: Int, val held: Int, val sizeCall: String, val sizeOnInterface: Boolean,
-    val holdType: String, val sentField: String, val sentCall: String)
+    val rowCall: String, val sentCall: String)
 
 /**
  * The method that builds a held message's actions: an instance method of (held message, EnumMap) that names
  * [MESSAGE_ACTIONS_MARK]. Its only copy that's measured right away is the full list just before the cut: copyOf, its
  * result, its size, and a compare against how many fit in the row. The size's result register is free at the size call,
  * the held message is still in its parameter register, and the message's own sent flag is the boolean read off it as
- * (held message cast to its row type).field.call().
+ * held.row().call(), the row getter declared on the held message's own type. 586 cast the message to its row type and
+ * read a field instead.
  */
 private fun Method.actionsBarSite(): ActionsBarSite? {
     if (AccessFlags.STATIC.isSet(accessFlags) || !returnType.startsWith("L") || parameterTypes.size != 2 ||
@@ -91,66 +91,69 @@ private fun Method.actionsBarSite(): ActionsBarSite? {
     val held = parameterRegister(1)
     if (code.any { it.actionWrites(held) }) return null
 
-    // A copy of the held message, made straight from its parameter or from one earlier copy of it.
-    fun copiesHeld(move: Int): Boolean {
-        val source = code.getOrNull(move)?.actionMoveSource() ?: return false
-        if (source == held) return true
-        val first = code.indices.firstOrNull { code[it].actionWrites(source) } ?: return false
-        return first < move && code[first].actionMoveSource() == held
+    // The held message itself, or a copy of it made straight from its parameter or from one earlier copy of it.
+    fun holdsHeld(register: Int, at: Int, hops: Int = 2): Boolean {
+        if (register == held) return true
+        val first = code.indices.firstOrNull { code[it].actionWrites(register) } ?: return false
+        val source = code[first].actionMoveSource() ?: return false
+        return first < at && hops > 0 && holdsHeld(source, first, hops - 1)
     }
+    val heldType = parameterTypes[0].toString()
     val reads = code.indices.filter { j ->
-        if (j < 1 || j + 3 >= code.size || code[j].opcode != Opcode.CHECK_CAST) return@filter false
-        val cast = code[j] as OneRegisterInstruction
-        val type = code[j].actionRef()?.toString()
-        val field = code[j + 1].actionField()
+        if (j + 3 >= code.size || code[j].opcode != Opcode.INVOKE_INTERFACE) return@filter false
+        val row = code[j].actionCall()
         val call = code[j + 2].actionCall()
-        (code[j - 1] as? OneRegisterInstruction)?.registerA == cast.registerA && copiesHeld(j - 1) &&
-            code[j + 1].opcode == Opcode.IGET_OBJECT && (code[j + 1] as TwoRegisterInstruction).registerB == cast.registerA &&
-            field?.definingClass == type && code[j + 2].opcode == Opcode.INVOKE_INTERFACE && call?.definingClass == field?.type &&
-            call?.returnType == "Z" && call.parameterTypes.isEmpty() && code[j + 2].actionArgs() == listOf((code[j + 1] as TwoRegisterInstruction).registerA) &&
+        val args = code[j].actionArgs()
+        row?.definingClass == heldType && row.parameterTypes.isEmpty() && row.returnType.startsWith("L") &&
+            args.size == 1 && holdsHeld(args[0], j) && code[j + 1].opcode == Opcode.MOVE_RESULT_OBJECT &&
+            code[j + 2].opcode == Opcode.INVOKE_INTERFACE && call?.definingClass == row.returnType &&
+            call.returnType == "Z" && call.parameterTypes.isEmpty() && code[j + 2].actionArgs() == listOf((code[j + 1] as OneRegisterInstruction).registerA) &&
             code[j + 3].opcode == Opcode.MOVE_RESULT
     }
-    val sent = reads.map { Triple(code[it].actionRef().toString(), code[it + 1].actionRef().toString(), code[it + 2].actionRef().toString()) }
-        .distinct().singleOrNull() ?: return null
-    return ActionsBarSite(at, list, scratch, held, size.actionRef().toString(), size.opcode == Opcode.INVOKE_INTERFACE, sent.first, sent.second, sent.third)
+    val sent = reads.map { code[it].actionRef().toString() to code[it + 2].actionRef().toString() }.distinct().singleOrNull() ?: return null
+    return ActionsBarSite(at, list, scratch, held, size.actionRef().toString(), size.opcode == Opcode.INVOKE_INTERFACE, sent.first, sent.second)
 }
 
-private class ActionsMoreSite(val at: Int, val list: Int, val scratch: Int, val handed: Int)
+private class ActionsMoreSite(val at: Int, val list: Int, val scratch: Int, val sheet: Int, val field: String)
 
 /**
  * The held message's More sheet, the one method that names [MORE_SHEET_TAG]. It reads the list it was handed off its
- * own ImmutableList field once and keeps a copy, then either sorts it into a new list or goes straight on. Both ways
- * meet at the new row builder, right after the sorted list's result, and only the skip lands there by a branch. The
- * builder's register is free before it's made, and the copy still holds the handed list there.
+ * own ImmutableList field, then either sorts it into a new list or goes straight on. Both ways meet at the new row
+ * builder, right after the sorted list's result, and only the skip lands there by a branch. The sort folds its last
+ * addAll into the static build, `build(builder, rest)`. The builder's register is free before it's made, and the
+ * register the field was read through still holds the sheet there, so the handed list can be read again. 586 kept a
+ * copy of the handed list and built with `build(builder)`.
  */
 private fun Method.actionsMoreSite(): ActionsMoreSite? {
     if (returnType != "V" || AccessFlags.STATIC.isSet(accessFlags) || parameterTypes.size != 4) return null
     val code = actionCode()
     if (code.none { it.actionString() == MORE_SHEET_TAG }) return null
-    val read = code.indices.singleOrNull {
+    val reads = code.indices.filter {
         code[it].opcode == Opcode.IGET_OBJECT && code[it].actionField()?.definingClass == definingClass && code[it].actionField()?.type == ACTIONS_LIST
-    } ?: return null
-    if (read + 2 >= code.size) return null
+    }
+    if (reads.isEmpty() || reads.map { code[it].actionRef().toString() }.distinct().size != 1) return null
+    val read = reads.first()
+    if (read + 1 >= code.size) return null
     val list = (code[read] as TwoRegisterInstruction).registerA
-    if (code[read + 1].actionMoveSource() != list) return null
-    val handed = (code[read + 1] as TwoRegisterInstruction).registerA
-    if (code[read + 2].opcode != Opcode.IF_EQZ && code[read + 2].opcode != Opcode.IF_NEZ) return null
-    val at = code.branchTarget(read + 2)
-    if (at < read + 5) return null
+    val sheet = (code[read] as TwoRegisterInstruction).registerB
+    if (code[read + 1].opcode != Opcode.IF_EQZ && code[read + 1].opcode != Opcode.IF_NEZ) return null
+    val at = code.branchTarget(read + 1)
+    if (at < read + 4) return null
     val made = code[at]
     if (made.opcode != Opcode.NEW_INSTANCE) return null
     val scratch = (made as OneRegisterInstruction).registerA
     val sorted = code[at - 1]
     if (sorted.opcode != Opcode.MOVE_RESULT_OBJECT || (sorted as OneRegisterInstruction).registerA != list) return null
     val built = code[at - 2].actionCall()
-    if (code[at - 2].opcode != Opcode.INVOKE_STATIC || built?.returnType != ACTIONS_LIST || built.parameterTypes.map { it.toString() } != listOf(ACTIONS_LIST_BUILDER)) return null
-    if (list > 15 || scratch > 15 || setOf(list, scratch, handed).size != 3) return null
-    if (code.subList(read + 2, at).any { it.actionWrites(handed) }) return null
+    if (code[at - 2].opcode != Opcode.INVOKE_STATIC || built?.returnType != ACTIONS_LIST ||
+        built.parameterTypes.map { it.toString() } != listOf(ACTIONS_LIST_BUILDER, "Ljava/lang/Iterable;")) return null
+    if (list > 15 || scratch > 15 || sheet > 15 || setOf(list, scratch, sheet).size != 3) return null
+    if (code.subList(read + 1, at).any { it.actionWrites(sheet) }) return null
     val landings = code.indices.count {
         code[it] is OffsetInstruction && code[it].opcode != Opcode.PACKED_SWITCH && code[it].opcode != Opcode.SPARSE_SWITCH && code.branchTarget(it) == at
     }
     if (landings != 1 || at in jumpTargets(branches = false) || actionCovered(at)) return null
-    return ActionsMoreSite(at, list, scratch, handed)
+    return ActionsMoreSite(at, list, scratch, sheet, code[read].actionRef().toString())
 }
 
 /** The method that builds a held message's actions, or none when this build has no single one that reads as expected. */
@@ -170,9 +173,10 @@ internal fun MutableMethod.validateMessageActionsMore() {
 }
 
 /**
- * Hands the full list to the extension on its way to the cut, with 1 for a message you sent, 0 for one you got, and -1
- * when the held thing isn't a message row. The size call is a branch target, so its slot becomes the first step and
- * every way in runs the hook. The list goes back as an ImmutableList, the type the rest of the method reads it as.
+ * Hands the full list to the extension on its way to the cut, with 1 for a message you sent and 0 for one you got.
+ * Messenger reads the same flag off every held message at the top of the method, so the row is never null here. The
+ * size call is a branch target, so its slot becomes the first step and every way in runs the hook. The list goes back
+ * as an ImmutableList, the type the rest of the method reads it as.
  */
 internal fun MutableMethod.injectMessageActions() {
     validateMessageActions()
@@ -181,18 +185,11 @@ internal fun MutableMethod.injectMessageActions() {
     val l = site.list
     val size = if (site.sizeOnInterface) "invoke-interface" else "invoke-virtual"
     replaceInstruction(site.at, "move-object/from16 v$s, v${site.held}")
-    addInstructionsWithLabels(site.at + 1, """
-        instance-of v$s, v$s, ${site.holdType}
-        if-nez v$s, :known
-        const/4 v$s, -0x1
-        goto :side
-        :known
-        move-object/from16 v$s, v${site.held}
-        check-cast v$s, ${site.holdType}
-        iget-object v$s, v$s, ${site.sentField}
+    addInstructions(site.at + 1, """
+        invoke-interface {v$s}, ${site.rowCall}
+        move-result-object v$s
         invoke-interface {v$s}, ${site.sentCall}
         move-result v$s
-        :side
         invoke-static {v$l, v$s}, $MESSAGE_ACTIONS_ARRANGE
         move-result-object v$l
         invoke-static {v$l}, $ACTIONS_COPY
@@ -209,7 +206,7 @@ internal fun MutableMethod.injectMessageActionsMore() {
     validateMessageActionsMore()
     val site = actionsMoreSite()!!
     addInstructions(site.at, """
-        move-object/from16 v${site.scratch}, v${site.handed}
+        iget-object v${site.scratch}, v${site.sheet}, ${site.field}
         invoke-static {v${site.list}, v${site.scratch}}, $MESSAGE_ACTIONS_REORDER
         move-result-object v${site.list}
         invoke-static {v${site.list}}, $ACTIONS_COPY

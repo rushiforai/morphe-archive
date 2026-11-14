@@ -74,7 +74,7 @@ internal fun MutableMethod.writeBundledControls(keys: Collection<String>) {
 }
 
 /**
- * "586.0.0.55.92|347215348|base": the build being patched and the mapping its hooks come from ("base", or the lowest
+ * "587.0.0.54.96|347415354|base": the build being patched and the mapping its hooks come from ("base", or the lowest
  * version code of the builds that share another profile). Settings' reports show it, since Spoof package version changes
  * Android's version code and a Root Mount install has no patched manifest to read. A name or code of any other shape
  * gives "", which the reports show as unknown; a report line never stops a patch.

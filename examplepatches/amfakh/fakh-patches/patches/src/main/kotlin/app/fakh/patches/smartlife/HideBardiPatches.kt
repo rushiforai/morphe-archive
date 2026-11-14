@@ -1,34 +1,22 @@
 package app.fakh.patches.smartlife
 
 import app.fakh.patches.smartlife.shared.Constants.COMPATIBILITY_BARDI
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.rawResourcePatch
 
 // BARDI renames the visibility method (`d` instead of `f`), so the cells are matched by their signature alone.
 private val advertisingFingerprint = cellVisibilityFingerprint("AdvertisingCell", name = null)
 private val miniWidgetFingerprint = cellVisibilityFingerprint("PersonalMiniWidgetCell", name = null)
 private val appMallFingerprint = cellVisibilityFingerprint("MallCell", name = null)
 
-private const val MALL_TAB =
-    """{"tabGetter":"com.thingclips.smart.thingmall.MallTabGetter","index":30,"url":"","name":"mall","ngName":"mall"},"""
-
 @Suppress("unused")
-val hideMallTabPatch = rawResourcePatch(
+val hideMallTabPatch = bytecodePatch(
     name = "Hide Mall tab",
     description = "Removes the Mall tab from the navigation bar.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_BARDI)
     category("Layout")
-
-    execute {
-        val config = get("assets/tab_config.json")
-        val json = config.readText()
-        if (MALL_TAB !in json) throw PatchException("BARDI: the Mall tab entry was not found in tab_config.json.")
-        config.writeText(json.replace(MALL_TAB, ""))
-    }
+    dependsOn(tabFilterPatch, switchRow("fakh_hide_mall_tab"), settingsSwitchesPatch)
 }
 
 @Suppress("unused")
@@ -39,11 +27,13 @@ val hideMeBannerPatch = bytecodePatch(
 ) {
     compatibleWith(COMPATIBILITY_BARDI)
     category("Layout")
+    extendWith("extensions/extension.mpe")
+    dependsOn(switchRow("fakh_hide_me_banner"), settingsSwitchesPatch)
 
     execute {
         // The banner is a mini-app card the Tuya cloud configures; the advertising cell is the ad slot above it.
-        advertisingFingerprint.method.addInstructions(0, HIDE_CELL)
-        miniWidgetFingerprint.method.addInstructions(0, HIDE_CELL)
+        advertisingFingerprint.method.whenSwitchOn("fakh_hide_me_banner", HIDE_CELL)
+        miniWidgetFingerprint.method.whenSwitchOn("fakh_hide_me_banner", HIDE_CELL)
     }
 }
 
@@ -55,6 +45,8 @@ val hideAppMallPatch = bytecodePatch(
 ) {
     compatibleWith(COMPATIBILITY_BARDI)
     category("Layout")
+    extendWith("extensions/extension.mpe")
+    dependsOn(switchRow("fakh_hide_app_mall"), settingsSwitchesPatch)
 
-    execute { appMallFingerprint.method.addInstructions(0, HIDE_CELL) }
+    execute { appMallFingerprint.method.whenSwitchOn("fakh_hide_app_mall", HIDE_CELL) }
 }

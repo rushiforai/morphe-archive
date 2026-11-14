@@ -15,6 +15,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.patches.facebook.comments.options.UFI_DOCK
 import app.morphe.patches.facebook.misc.extension.enableStatus
 import app.morphe.patches.facebook.misc.extension.localRegisterCount
 import app.morphe.patches.facebook.misc.extension.parameterRegister
@@ -74,7 +75,8 @@ val openCommentsWithGesturePatch = bytecodePatch(
     description = "Open a reel's comments with a double tap or a long press, on the sheet the Comment button opens, " +
         "instead of liking or holding, and a feed post's with a long press on its photo or name line. Starts off. " +
         "Turn it on in Hushfacebook settings > Reels and Watch. It also lets a long press on a post's text open " +
-        "that text to select part of it, a switch in Hushfacebook settings > News feed.",
+        "that text to select part of it, a switch in Hushfacebook settings > News feed. Another switch there makes " +
+        "holding a post's photo or video open its reactions, or give one reaction you pick.",
 ) {
     category("Reels")
     dependsOn(settingsPatch, turnOffDoubleTapLikePatch, holdReelFor2xPatch)
@@ -118,6 +120,8 @@ internal class GestureAnchors(
     val sheet: SheetCalls,
     /** The story holder's constructor taking the reel and an Integer, for a handler that keeps no holder. */
     val holderInit: Method,
+    /** The reaction tray's constructors, which hand each tray to Hold a post to react. */
+    val docks: List<Method>,
 )
 
 /**
@@ -129,8 +133,9 @@ internal class LongPressHook(val invoke: Method, val unit: FieldReference, val c
 /**
  * The calls the Comment button's click makes to build the comment sheet and show it, and the log
  * names and number it hands the builder: [build] takes the context, the view, the session, the reel,
- * the environment's [surface], the reel's props ([wrap] of [merge] of the reel and its holder's
- * [story]) and the viewer config among nulls. Each invoke is written in its range form.
+ * the reel's feedback (null here), the environment's [surface], the reel's props ([wrap] of [merge] of
+ * the reel and its holder's [story]) and the viewer config among nulls. Each invoke is written in its
+ * range form.
  */
 internal class SheetCalls(
     val build: MethodReference,
@@ -156,13 +161,20 @@ internal class SheetCalls(
 /** Where [build] takes its number: right before the two booleans it ends with. */
 private fun numberArgumentOf(build: MethodReference) = build.parameterTypes.size - 3
 
-/** Where the comment sheet's builder takes the viewer config and its two log names. */
+/**
+ * Where the comment sheet's builder takes the reel's feedback, the surface, the props, the viewer
+ * config and its two log names. 587 moved the feedback from argument 8 to 4, ahead of the surface
+ * and the props, and left the rest where 586 had them.
+ */
+private const val FEEDBACK_ARGUMENT = 4
+private const val SURFACE_ARGUMENT = 5
+private const val PROPS_ARGUMENT = 6
 private const val CONFIG_ARGUMENT = 11
 private val NAME_ARGUMENTS = listOf(12, 13)
 
-// 584's builder took 19 arguments. 585 put a List after the four log names (the click passes null),
-// moving the number from 16 to 17.
-private val SHEET_BUILD_SIZES = setOf(19, 20)
+// 585 put a List after the four log names (the click passes null), so the builder takes 20 arguments
+// with the number at 17.
+private const val SHEET_BUILD_SIZE = 20
 
 private val STATIC_INVOKES = setOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE)
 
@@ -181,15 +193,16 @@ private fun rangeInvoke(call: Instruction) = when (call.opcode) {
 
 /**
  * The comment sheet's builder as [click] calls it, once, with its shape checked: the context, the
- * view, the session and the reel ([itemType]) first, the two comments, the reel's feedback, the
- * composer action and the search prompt, four log names, on 585 a List, then a number and two booleans.
+ * view, the session and the reel ([itemType]) first, the reel's feedback, the surface and the props
+ * (objects), the two comments, the composer action and the search prompt, the config, four log names,
+ * a List, then a number and two booleans.
  */
 private fun isSheetBuild(call: MethodReference, itemType: String): Boolean {
     val types = call.parameters()
-    return types.size in SHEET_BUILD_SIZES && types.take(4) == listOf(CONTEXT, VIEW, FB_USER_SESSION, itemType) &&
-        types[6] == GRAPHQL_COMMENT && types[7] == GRAPHQL_COMMENT && types[9] == COMPOSER_ACTION &&
-        types[10] == SEARCH_PROMPT && types.subList(12, 16).all { it == STRING } &&
-        types.subList(16, types.size - 3).all { it == LIST } &&
+    return types.size == SHEET_BUILD_SIZE && types.take(4) == listOf(CONTEXT, VIEW, FB_USER_SESSION, itemType) &&
+        listOf(FEEDBACK_ARGUMENT, SURFACE_ARGUMENT, PROPS_ARGUMENT, CONFIG_ARGUMENT).all { types[it].startsWith("L") } &&
+        types[7] == GRAPHQL_COMMENT && types[8] == GRAPHQL_COMMENT && types[9] == COMPOSER_ACTION &&
+        types[10] == SEARCH_PROMPT && types.subList(12, 16).all { it == STRING } && types[16] == LIST &&
         types.takeLast(3) == listOf("I", "Z", "Z") && call.returnType.startsWith("L")
 }
 
@@ -231,8 +244,10 @@ internal fun sheetCalls(click: Method, itemType: String): SheetCalls {
     val (_, show) = distinct("call showing the sheet (${CONTEXT}, ${build.returnType})") { call, it ->
         call.opcode in STATIC_INVOKES && it.parameters() == listOf(CONTEXT, build.returnType)
     }
-    val (surfaceCall, surface) = distinct("call answering the sheet's surface (${build.parameterTypes[4]})") { call, it ->
-        rangeInvoke(call) != null && it.parameterTypes.isEmpty() && it.returnType == build.parameterTypes[4].toString()
+    val surfaceType = build.parameterTypes[SURFACE_ARGUMENT].toString()
+    val propsType = build.parameterTypes[PROPS_ARGUMENT].toString()
+    val (surfaceCall, surface) = distinct("call answering the sheet's surface ($surfaceType)") { call, it ->
+        rangeInvoke(call) != null && it.parameterTypes.isEmpty() && it.returnType == surfaceType
     }
     val (mergeCall, merge) = distinct("static merging the reel and its story") { call, it ->
         call.opcode in STATIC_INVOKES && it.parameters() == listOf(itemType, GRAPHQL_STORY) && it.returnType == GRAPHQL_STORY
@@ -248,9 +263,9 @@ internal fun sheetCalls(click: Method, itemType: String): SheetCalls {
         refuse("$where doesn't ask the reel's story holder for its story right before merging it")
     }
     if (wrap == null || code[mergeAt + 2].opcode !in STATIC_INVOKES || wrap.parameters() !in listOf(listOf(GRAPHQL_STORY), listOf(OBJECT)) ||
-        wrap.returnType != build.parameterTypes[5].toString() || code[mergeAt + 1].opcode != Opcode.MOVE_RESULT_OBJECT
+        wrap.returnType != propsType || code[mergeAt + 1].opcode != Opcode.MOVE_RESULT_OBJECT
     ) {
-        refuse("$where doesn't wrap the merged story as the sheet's props (${build.parameterTypes[5]}) right after merging it")
+        refuse("$where doesn't wrap the merged story as the sheet's props ($propsType) right after merging it")
     }
     return SheetCalls(
         build, show, surface, rangeInvoke(surfaceCall)!!, story, rangeInvoke(storyCall)!!, merge, wrap,
@@ -348,8 +363,24 @@ internal fun BytecodePatchContext.findGestureAnchors(): GestureAnchors {
         ?: refuse("expected $FEEDBACK_PARAMS to have one constructor besides the Parcel one, found ${builds.size}")
     keyboardStore(params, keyboard)
         ?: refuse("expected $FEEDBACK_PARAMS's constructor to store ${keyboard.name} once, from a register nothing reads after the store")
-    return GestureAnchors(button, click, constructor, itemParameter, doubleTapLike, heart, handlers, dispatch, params, keyboard, sheet, holderInit)
+    val docks = dockConstructors(classDefByOrNull(UFI_DOCK) ?: refuse("this build has no $UFI_DOCK"))
+    return GestureAnchors(button, click, constructor, itemParameter, doubleTapLike, heart, handlers, dispatch, params, keyboard, sheet, holderInit, docks)
 }
+
+/** Every constructor of the reaction tray, each still holding the tray in this at every return. */
+internal fun dockConstructors(dock: ClassDef): List<Method> {
+    val inits = dock.methods.filter { it.name == "<init>" }
+    if (inits.isEmpty()) refuse("${dock.type} has no constructor")
+    inits.forEach { init ->
+        val ends = returnsOf(init)
+        if (ends.isEmpty()) refuse("${dock.type}'s constructor never returns")
+        init.requireThisIntact(GESTURE_PATCH, ends)
+    }
+    return inits
+}
+
+private fun returnsOf(method: Method): List<Int> =
+    method.implementation!!.instructions.withIndex().filter { it.value.opcode == Opcode.RETURN_VOID }.map { it.index }
 
 /**
  * [holder]'s one public constructor taking the reel ([itemType]) and an Integer, which leaves the story
@@ -476,6 +507,14 @@ internal fun BytecodePatchContext.applyGestureAnchors(anchors: GestureAnchors) {
         )
     }
 
+    // Each reaction tray, as its constructor returns, for Hold a post to react to click a chosen reaction in.
+    anchors.docks.forEach { init ->
+        val made = mutableClassDefBy(init.definingClass).findMutableMethodOf(init)
+        returnsOf(made).asReversed().forEach { index ->
+            made.addInstructionsAtControlFlowLabel(index, "invoke-static/range { p0 .. p0 }, $DOCK_MADE")
+        }
+    }
+
     // Every touch on a Facebook screen, with the activity, for a press held on a feed post. The
     // extension may turn the rest of a gesture it took into a cancel; the range form borrows no register.
     mutableClassDefBy(FRAGMENT_ACTIVITY).findMutableMethodOf(anchors.dispatch)
@@ -498,12 +537,11 @@ internal fun BytecodePatchContext.applyGestureAnchors(anchors: GestureAnchors) {
 }
 
 /**
- * The builder's arguments from the comments on, in v6 up to its last: the config, the click's own log
- * names and number, and null or false for the rest. The click passes the button's copy of the reel's
- * feedback and sometimes a search prompt, but the builder takes the feedback from the props when it
- * gets none, and on 585 it passes null for the List too.
+ * The builder's arguments from the comments on, in v7 up to its last: the config, the click's own log
+ * names and number, and null or false for the rest. The click passes sometimes a search prompt and null
+ * for the List.
  */
-private fun sheetArguments(sheet: SheetCalls): String = (6 until sheet.arguments).joinToString("\n") { argument ->
+private fun sheetArguments(sheet: SheetCalls): String = (PROPS_ARGUMENT + 1 until sheet.arguments).joinToString("\n") { argument ->
     val register = "v$argument"
     val zero = if (argument < 16) "const/4" else "const/16"
     when (argument) {
@@ -522,7 +560,8 @@ private fun sheetArguments(sheet: SheetCalls): String = (6 until sheet.arguments
  * story holder and the config): it builds the comment sheet with the values the click passes, shows
  * it, and answers whether there was one. v0 up are the builder's arguments, one register each. With no story holder
  * it makes one from the reel with [holderInit], as Facebook does for a reel it has no story for yet;
- * v6 is free until the arguments fill it.
+ * v7 is free until the arguments fill it. The feedback (v4) goes in null: the click passes the
+ * button's copy of the reel's feedback, but the builder takes the props' own when it gets none.
  */
 private fun sheetHelper(sheet: SheetCalls, types: List<String>, holderInit: Method): MutableMethod {
     val build = sheet.build
@@ -547,21 +586,22 @@ private fun sheetHelper(sheet: SheetCalls, types: List<String>, holderInit: Meth
                 move-result-object v0
                 move-object/from16 v2, p1
                 move-object/from16 v3, p2
-                move-object/from16 v4, p3
-                ${sheet.surfaceInvoke} { v4 .. v4 }, ${surface.key()}
-                move-result-object v4
-                move-object/from16 v5, p4
-                if-nez v5, :holder
-                new-instance v5, ${sheet.holder}
-                const/4 v6, 0x0
-                invoke-direct { v5, v3, v6 }, $holder
+                const/4 v4, 0x0
+                move-object/from16 v5, p3
+                ${sheet.surfaceInvoke} { v5 .. v5 }, ${surface.key()}
+                move-result-object v5
+                move-object/from16 v6, p4
+                if-nez v6, :holder
+                new-instance v6, ${sheet.holder}
+                const/4 v7, 0x0
+                invoke-direct { v6, v3, v7 }, $holder
                 :holder
-                ${sheet.storyInvoke} { v5 .. v5 }, ${story.key()}
-                move-result-object v5
-                invoke-static { v3, v5 }, ${sheet.merge.key()}
-                move-result-object v5
-                invoke-static { v5 }, ${sheet.wrap.key()}
-                move-result-object v5
+                ${sheet.storyInvoke} { v6 .. v6 }, ${story.key()}
+                move-result-object v6
+                invoke-static { v3, v6 }, ${sheet.merge.key()}
+                move-result-object v6
+                invoke-static { v6 }, ${sheet.wrap.key()}
+                move-result-object v6
 ${sheetArguments(sheet)}
                 invoke-static/range { v0 .. v${sheet.arguments - 1} }, ${build.key()}
                 move-result-object v1

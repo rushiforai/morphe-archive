@@ -56,6 +56,7 @@ val maskLiveAdBreaksPatch = bytecodePatch(
     description = "Covers and mutes the ads YouTube TV inserts into live breaks, but not the commercials built into the broadcast.",
     default = false,
 ) {
+    category("Ads")
     compatibleWith(Constants.COMPATIBILITY)
 
     dependsOn(cuePointProviderHookPatch, streamTypePatch)

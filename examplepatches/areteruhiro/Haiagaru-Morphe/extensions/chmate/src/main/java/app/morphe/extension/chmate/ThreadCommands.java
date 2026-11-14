@@ -75,12 +75,18 @@ public final class ThreadCommands {
             EditText body = (EditText) field(binding, bodyName);
             attachSiteImage(root,body,url);
             ExternalBoardAuth.target(fragment, url, body);
+            // 191's authentication target is a board URL even for replies. Handoff
+            // must use its native thread permalink, or a reply becomes a new thread.
+            String stockTarget = thread ? url : (String) target.getClass().getMethod(
+                    fragment.getClass().getName().equals("o.p9ExternalSyntheticLambda6") ? "o" : urlMethod).invoke(target);
+            StockChmatePosting.target(fragment, stockTarget, body);
+            EditText name = (EditText) field(binding, nameName);
+            ThreadPostingNames.bind(name,stockTarget,thread);
             BeAutoLogout.editor(fragment, target, thread, url);
             PostingIpWarning.editor(fragment, model);
             // Commands belong only to thread creation, not ordinary replies.
             // Keep target registration above for external-board authentication.
             if (!thread||!FeatureSwitches.enabled("threadCommandsEnabled",true)) return;
-            EditText name = (EditText) field(binding, nameName);
             String profile = ThreadCommandRules.profile(url);
             // Insert alongside the body container, preserving its native listeners and layout params.
             View anchor = body;

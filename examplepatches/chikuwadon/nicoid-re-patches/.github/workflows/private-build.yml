@@ -434,7 +434,12 @@ jobs:
         run: python3 porting/revisions/v2.0.0-dev.1/tests/verify-dev12.py
       - name: Verify v2.0.1 stable release configuration without publishing
         if: github.ref == 'refs/heads/dev'
-        run: python3 porting/revisions/v2.0.1-release/test_release.py
+        run: |
+          if grep -Eq '^version[[:space:]]*=[[:space:]]*2\.0\.1[[:space:]]*$' gradle.properties; then
+            python3 porting/revisions/v2.0.1-release/test_release.py
+          elif grep -Eq '^version[[:space:]]*=[[:space:]]*2\.0\.2[[:space:]]*$' gradle.properties; then
+            python3 porting/revisions/v2.0.2-release/test_release.py
+          fi
 
       - name: Verify local playlist gesture policy and shared regressions
         if: github.ref == 'refs/heads/dev'
@@ -482,13 +487,38 @@ jobs:
             porting/revisions/v2.0.1-dev.4/tests/ScrollRestorePolicy204Test.java
           java -cp /tmp/nicoid-scroll-restore-tests ScrollRestorePolicy204Test
 
+      - name: Verify all six app/tab placements stay visible at each tab height
+        if: github.ref == 'refs/heads/dev'
+        run: |
+          mkdir -p /tmp/nicoid-layout-math-tests
+          javac --release 8 -d /tmp/nicoid-layout-math-tests \
+            porting/revisions/v2.0.2-dev.4/java/e/e/a/AppBarLayoutMath202.java \
+            porting/revisions/v2.0.2-dev.4/tests/e/e/a/AppBarLayoutMath202Test.java
+          java -cp /tmp/nicoid-layout-math-tests e.e.a.AppBarLayoutMath202Test
+
+      - name: Verify NicoLive popup edge sizing and guarded tap sequences
+        if: github.ref == 'refs/heads/dev'
+        run: |
+          mkdir -p /tmp/nicoid-live-popup-tests
+          javac --release 8 -d /tmp/nicoid-live-popup-tests \
+            porting/revisions/v2.0.2-dev.4/java/e/e/a/NicolivePopupCorner202.java \
+            porting/revisions/v2.0.2-dev.4/tests/e/e/a/NicolivePopupCorner202Test.java \
+            porting/revisions/v1.10.6/java/e/e/a/PopupTouchPolicy125.java \
+            porting/revisions/v2.0.2-dev.4/tests/e/e/a/NicolivePopupTap202Test.java
+          java -cp /tmp/nicoid-live-popup-tests e.e.a.NicolivePopupCorner202Test
+          java -cp /tmp/nicoid-live-popup-tests e.e.a.NicolivePopupTap202Test
+
+      - name: Verify v2.0.2 layout previews, presets, and source compatibility
+        if: github.ref == 'refs/heads/dev'
+        run: python3 porting/revisions/v2.0.2-dev.4/tests/verify.py
+
       - name: Verify tab creation arity, visible-list restore and twelve-page LRU
         if: github.ref == 'refs/heads/dev'
         shell: bash
         run: |
           set -euo pipefail
           revision=porting/revisions/v2.0.1-dev.5
-          python3 porting/revisions/v2.0.1-dev.8/tests/verify.py
+          # Native tab arity and v2.0.2 LRU assertions run in the earlier source contract step.
           mkdir -p /tmp/nicoid-scroll-restore205
           javac --release 8 -d /tmp/nicoid-scroll-restore205 \
             "$revision/java/e/e/a/ScrollRestorePolicy205.java" \
@@ -616,8 +646,8 @@ jobs:
           builder="$revision"
           version=2.0.0-dev.1-27
           if [[ "$GITHUB_REF" == "refs/heads/dev" ]]; then
-            builder=porting/revisions/v2.0.1-dev.8
-            version=2.0.1-dev.8
+            builder=porting/revisions/v2.0.2-dev.4
+            version=2.0.2-dev.4
           fi
           output="/tmp/nicoid-re-$version.mpp"
           python3 "$builder/build_mpp.py" \
@@ -628,6 +658,7 @@ jobs:
             --compile-jar /tmp/nicoid-v2-okio.jar \
             --output "$output"
           python3 "$builder/verify_ci_candidate.py" /tmp/stable-nicoid.mpp "$output"
+          unzip -p "$output" META-INF/MANIFEST.MF | grep -Fq "Version: $version"
           mkdir -p /tmp/nicoid-v2-delivery
           cp "$output" /tmp/nicoid-v2-delivery/
           {
@@ -644,7 +675,7 @@ jobs:
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: nicoid-re-v2.0.1-dev.8-mpp
+          name: nicoid-re-v2.0.2-dev.4-mpp
           path: /tmp/nicoid-v2-delivery/*
           compression-level: 0
           if-no-files-found: error
@@ -655,14 +686,14 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p /tmp/nicoid-v2-source
-          git archive --format=zip --output=/tmp/nicoid-v2-source/nicoid-re-v2.0.1-dev.8-source.zip HEAD
-          git archive --format=tar.gz --output=/tmp/nicoid-v2-source/nicoid-re-v2.0.1-dev.8-source.tar.gz HEAD
-          unzip -tq /tmp/nicoid-v2-source/nicoid-re-v2.0.1-dev.8-source.zip
-          tar -tzf /tmp/nicoid-v2-source/nicoid-re-v2.0.1-dev.8-source.tar.gz > /dev/null
+          git archive --format=zip --output=/tmp/nicoid-v2-source/nicoid-re-v2.0.2-dev.4-source.zip HEAD
+          git archive --format=tar.gz --output=/tmp/nicoid-v2-source/nicoid-re-v2.0.2-dev.4-source.tar.gz HEAD
+          unzip -tq /tmp/nicoid-v2-source/nicoid-re-v2.0.2-dev.4-source.zip
+          tar -tzf /tmp/nicoid-v2-source/nicoid-re-v2.0.2-dev.4-source.tar.gz > /dev/null
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: nicoid-re-v2.0.1-dev.8-source
+          name: nicoid-re-v2.0.2-dev.4-source
           path: /tmp/nicoid-v2-source/*
           if-no-files-found: error
           retention-days: 2

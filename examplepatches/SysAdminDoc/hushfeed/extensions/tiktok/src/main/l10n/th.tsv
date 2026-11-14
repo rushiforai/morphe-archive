@@ -2202,7 +2202,7 @@ Let the video reach the bottom of the screen on the main feed and show the tabs 
 LIVE chat auto-translate	แปลแชท LIVE โดยอัตโนมัติ
 
 The Translate comments button in a LIVE room also needs a Japanese SIM. Turn on Override SIM details in Hushfeed settings > Region, set SIM country preset to Japan, NTT DOCOMO (44010), then restart TikTok.	ปุ่มแปลความคิดเห็นในห้อง LIVE จำเป็นต้องใช้ SIM ของญี่ปุ่นด้วย ให้เปิด "แทนที่รายละเอียด SIM" ในการตั้งค่า Hushfeed > ภูมิภาค แล้วตั้งค่า SIM ประเทศล่วงหน้าเป็นญี่ปุ่น, NTT DOCOMO (44010) จากนั้นรีสตาร์ท TikTok
-Comments only scroll on videos TikTok has turned them on for, so most videos stay the same.	ความคิดเห็นจะเลื่อนผ่านเฉพาะในวิดีโอที่ TikTok เปิดใช้งานไว้เท่านั้น ดังนั้นวิดีโอส่วนใหญ่จะยังคงเหมือนเดิม
+Wide videos TikTok allows it on get an Add one-liner button under the video and a one-liner bar in full screen. Other videos stay the same.	วิดีโอแนวนอนที่ TikTok อนุญาตจะมีปุ่มเพิ่มความคิดเห็นบรรทัดเดียวใต้วิดีโอ และมีแถบสำหรับความคิดเห็นเหล่านั้นเมื่อดูแบบเต็มจอ วิดีโออื่นยังคงเหมือนเดิม
 
 Pick videos to save from profile grids	เลือกวิดีโอที่จะบันทึกจากตารางโปรไฟล์
 Puts a circle on each video in a profile, Liked or Favorites grid. Pick up to %1$s, then tap Save to save them one after another, with a count and Cancel.	วางวงกลมบนแต่ละวิดีโอในตารางโปรไฟล์ วิดีโอที่ถูกใจ หรือรายการโปรด เลือกได้สูงสุด %1$s รายการ จากนั้นแตะ "บันทึก" เพื่อบันทึกทีละรายการอย่างต่อเนื่อง พร้อมตัวนับและปุ่มยกเลิก
@@ -2271,7 +2271,7 @@ Hide the Add friends button at the top of your profile. The menu button stays wh
 Hide Balance in the profile menu	ซ่อนยอดคงเหลือในเมนูโปรไฟล์
 Hide Balance from the menu your profile's top right button opens. Your coins and gifts stay as they are.	ซ่อนยอดคงเหลือจากเมนูที่เปิดด้วยปุ่มมุมขวาบนของโปรไฟล์คุณ เหรียญและของขวัญของคุณจะยังคงอยู่เหมือนเดิม
 See-through status bar	แถบสถานะแบบโปร่งใส
-Let the video reach the top of the screen on the main feed, with the clock and status icons over it. The tabs at the top stay where they are.	ให้วิดีโอขยายไปจนถึงขอบบนสุดของหน้าจอในฟีดหลัก โดยมีนาฬิกาและไอคอนสถานะแสดงทับอยู่ด้านบน แท็บที่ด้านบนจะยังคงอยู่ที่เดิม
+Let the video reach the top of the screen, with the clock and status icons over it. Works on the main feed and on videos you open from search, a profile or your Liked and Favorites. The tabs at the top stay where they are.	ให้วิดีโอขยายไปจนถึงขอบบนสุดของหน้าจอ โดยมีนาฬิกาและไอคอนสถานะแสดงทับอยู่ด้านบน ใช้ได้ในฟีดหลักและในวิดีโอที่คุณเปิดจากการค้นหา โปรไฟล์ หรือรายการที่ถูกใจและรายการโปรดของคุณ แท็บที่ด้านบนจะยังคงอยู่ที่เดิม
 Floating bottom bar	แถบด้านล่างแบบลอย
 Show the main feed's tabs on a rounded, see-through dark pill that floats over the video. Needs See-through bottom bar.	แสดงแท็บของฟีดหลักบนแถบแคปซูลสีเข้มโปร่งใสขอบมนที่ลอยอยู่เหนือวิดีโอ จำเป็นต้องเปิดใช้แถบด้านล่างแบบโปร่งใส
 Liquid glass look	รูปลักษณ์ Liquid glass
@@ -2769,3 +2769,18 @@ Pick the tabs to remove from the top of the search results, such as Shop, LIVE o
 # context: Shown in that checklist before TikTok has served any search tabs on this phone
 No search tabs have been seen yet	ยังไม่พบแท็บการค้นหา
 Search for something once, then return here to choose its tabs.	ค้นหาอะไรสักอย่างหนึ่งครั้ง แล้วกลับมาที่นี่เพื่อเลือกแท็บ
+Video download codec	โคเดกการดาวน์โหลดวิดีโอ
+HEVC first	HEVC ก่อน
+H.264 only	H.264 เท่านั้น
+At the same quality, Automatic saves H.264, which nearly every player opens. HEVC is often sharper, but some older players and TVs can't play it.	ที่คุณภาพเดียวกัน อัตโนมัติจะบันทึกเป็น H.264 ซึ่งแทบทุกเครื่องเล่นเปิดได้ HEVC มักคมชัดกว่า แต่เครื่องเล่นและทีวีรุ่นเก่าบางรุ่นเล่นไม่ได้
+Pick which stories to save	เลือกสตอรี่ที่จะบันทึก
+When someone has more than one story, saving asks which ones to keep. The story you're watching is already checked.	เมื่อมีคนมีสตอรี่มากกว่าหนึ่งเรื่อง การบันทึกจะถามว่าจะเก็บเรื่องไหน สตอรี่ที่คุณกำลังดูถูกเลือกไว้แล้ว
+Pick stories to save	เลือกสตอรี่ที่จะบันทึก
+%1$s of %2$s stories are loaded. Watch further to load the rest.	โหลดสตอรี่แล้ว %1$s จาก %2$s เรื่อง ดูต่อเพื่อโหลดที่เหลือ
+Story %1$s	สตอรี่ %1$s
+On screen	บนหน้าจอ
+Pick at least one story	เลือกอย่างน้อยหนึ่งสตอรี่
+Shade behind the status bar	เงาด้านหลังแถบสถานะ
+A soft dark fade behind the clock and status icons, so they stay easy to read over a bright video. Needs See-through status bar.	ไล่เฉดสีเข้มแบบนุ่มนวลด้านหลังนาฬิกาและไอคอนสถานะ เพื่อให้อ่านได้ง่ายบนวิดีโอที่สว่าง ต้องเปิดใช้แถบสถานะแบบโปร่งใส
+Glass Stories button on Following	ปุ่มสตอรี่แบบกระจกในกำลังติดตาม
+The Stories button at the top of the Following feed turns to glass with round ends. On Android 12 and up, the video behind it is blurred too.	ปุ่มสตอรี่ที่ด้านบนของฟีดกำลังติดตามจะกลายเป็นกระจกที่มีปลายโค้งมน บน Android 12 ขึ้นไป วิดีโอที่อยู่ด้านหลังจะเบลอด้วย

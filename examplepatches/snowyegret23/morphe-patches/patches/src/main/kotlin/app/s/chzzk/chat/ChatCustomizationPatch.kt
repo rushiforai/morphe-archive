@@ -63,12 +63,15 @@ val chatCustomizationPatch = bytecodePatch(
     dependsOn(localFeaturesResources)
 
     execute {
+        addCodecWorkarounds()
         if (packageMetadata.versionName in setOf("1.3.0", "1.4.0")) {
             addTvCustomization()
             return@execute
         }
+        addStartupPopupHooks()
         addSettingsEntry()
         addChatUiHooks()
+        addPlayerInfoBackgroundHooks()
         addPlayerHooks()
         addAudioHooks()
         addViewerCountHooks()

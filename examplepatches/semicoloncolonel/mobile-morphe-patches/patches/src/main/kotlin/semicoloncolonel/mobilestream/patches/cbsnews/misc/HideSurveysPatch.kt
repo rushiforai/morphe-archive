@@ -22,6 +22,7 @@ val hideSurveysPatch = bytecodePatch(
     name = "Hide surveys",
     description = "Stops the Qualtrics surveys and the rating prompt they can lead to.",
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     dependsOn(disableSignatureCheckPatch)

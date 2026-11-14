@@ -143,6 +143,12 @@ final class ReelsCategory {
                     L10n.t("Hold the Friends tab on Reels and pick from the friends it has shown you. It then keeps "
                             + "only reels they liked or shared. A page with none of them keeps one reel so the next "
                             + "page can load.")));
+            reels.add(toggle(context, Settings.HIDE_REEL_LIKE_BUTTON, L10n.t("Hide the Like button on reels"),
+                    L10n.t("Takes the heart out of the column of buttons beside a reel, and the like count under it. "
+                            + "Double tap still likes a reel.")));
+            reels.add(toggle(context, Settings.HIDE_REEL_COMMENT_BUTTON, L10n.t("Hide the Comment button on reels"),
+                    L10n.t("Takes the Comment button out of the column of buttons beside a reel, and the count under "
+                            + "it. The comment bar under a reel has its own switch.")));
             reels.add(toggle(context, Settings.HIDE_REEL_SAVE_BUTTON, L10n.t("Hide the Save button on reels"),
                     L10n.t("Takes the Save button out of the column of buttons beside a reel, and the count under it. "
                             + "Posts in your feed keep theirs.")));
@@ -232,6 +238,11 @@ final class ReelsCategory {
                     L10n.t("Lock a reel at 2x (hold its edge, then slide down) and the next reels play at 2x too. "
                             + "Slide the lock off, or hold the edge and let go, to go back to normal speed.")));
         }
+        if (build.contains(PatchFamily.REEL_ABOVE_COMMENTS)) {
+            reels.add(toggle(context, Settings.REEL_ABOVE_COMMENTS, L10n.t("Control the reel above comments"),
+                    L10n.t("With a reel's comments open, tap the reel above them to pause or play it, "
+                            + "or hold it to play at 2x. The comments stay open.")));
+        }
         if (build.contains(PatchFamily.REEL_LINKS)) {
             reels.add(toggle(context, Settings.OPEN_REEL_LINKS_FIRST, L10n.t("Open reel links on that reel"),
                     L10n.t("A reel link opens on the reel it points to. Instagram doesn't play another reel "
@@ -308,6 +319,11 @@ final class ReelsCategory {
             reels.add(toggle(context, Settings.REEL_SCROLL_FROM_AUDIO, L10n.t("Still scroll reels from a song page"),
                     L10n.t("With Stop Reels scrolling on, reels you open from a song or audio page still move on "
                             + "when you swipe.")));
+            reels.add(toggle(context, Settings.PLAY_ONE_REEL, L10n.t("Play only the reel you opened"),
+                    L10n.t("A reel you open from a post on Home, a suggested reels row or a message plays on its own. "
+                            + "Swiping, pulling down and auto scroll won't move on to another reel, so it plays again "
+                            + "when it ends. The Reels tab scrolls as usual. With Swipe through a chat's reels on, a "
+                            + "chat's reels still swipe.")));
             reels.add(toggle(context, Settings.REEL_CAP, L10n.t("Stop after a set number of reels"),
                     L10n.t("After the reels you pick below, swiping in Reels stops until Instagram has been in the "
                             + "background for the time you pick. A reel you open from a message or a post still "

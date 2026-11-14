@@ -152,6 +152,7 @@ public final class QualityAudioRow {
             }
         }
         if (at < 0) return;
+        ViewGroup list = (ViewGroup) column.getChildAt(at);
         boolean on = AudioOnly.isOn();
         int height = dp(column, 48);
         LinearLayout row = new LinearLayout(column.getContext());
@@ -162,7 +163,7 @@ public final class QualityAudioRow {
         row.setContentDescription(Strings.get("audio_only"));
         int ink = dark(column) ? Color.WHITE : Color.BLACK;
         TextView mark = new TextView(column.getContext());
-        mark.setText(on ? "✓" : "");
+        mark.setText(on ? "\u2713" : "");
         mark.setTextColor(ink);
         mark.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
         mark.setGravity(Gravity.CENTER);
@@ -183,11 +184,86 @@ public final class QualityAudioRow {
             Utils.runOnMainThreadDelayed(() -> pickedByRow = false, 1500);
             close(root);
         });
-        LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, height);
-        // The list below starts with 26 dp of padding of its own, so the row overlaps it to sit one row apart.
-        rowParams.bottomMargin = -dp(column, 22);
-        column.addView(row, at, rowParams);
+        // The resolutions and the footer note are one Litho view. The row takes a slot above the list, then the list
+        // moves up into the slot, the row moves down to where the resolutions end, and the footer note ("This
+        // selection only applies to the current video...") is hidden, since the sheet has no room for both.
+        column.setClipChildren(false);
+        list.setClipChildren(false);
+        column.addView(row, at, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, height));
+        placeRow(column, list, row, height, 0);
         Logger.printDebug(() -> "YouTube Extras: quality sheet row added, audio only " + on);
+    }
+
+    /** Waits for the resolutions to be laid out, then moves the row and the footer; tries again every 60 ms for 3 s. */
+    private static void placeRow(ViewGroup column, ViewGroup list, View row, int height, int tries) {
+        if (!row.isAttachedToWindow() || tries > 50) return;
+        try {
+            ViewGroup litho = list.getChildCount() > 0 && list.getChildAt(0) instanceof ViewGroup g ? g : null;
+            if (litho != null && row.getHeight() > 0) {
+                java.util.List<View> rows = new java.util.ArrayList<>();
+                collectRows(litho, rows, list.getWidth() * 8 / 10, dp(column, 36), dp(column, 64));
+                if (rows.size() >= 3) {
+                    int[] loc = new int[2];
+                    int lastBottom = 0;
+                    for (View r : rows) {
+                        r.getLocationInWindow(loc);
+                        lastBottom = Math.max(lastBottom, loc[1] + r.getHeight());
+                    }
+                    ViewGroup footer = footerBelow(litho, lastBottom, dp(column, 24));
+                    row.getLocationInWindow(loc);
+                    final float dy = lastBottom - height - (loc[1] - row.getTranslationY());
+                    list.setTranslationY(-height);
+                    row.setTranslationY(dy);
+                    if (footer != null) {
+                        for (android.view.ViewParent p = footer.getParent(); p instanceof ViewGroup g && g != column; p = g.getParent()) {
+                            g.setClipChildren(false);
+                        }
+                        footer.setVisibility(View.INVISIBLE);
+                    }
+                    // Litho may lay the sheet out again (a resize, a rebinding): the offsets are set again each frame.
+                    row.getViewTreeObserver().addOnPreDrawListener(() -> {
+                        if (row.isAttachedToWindow()) {
+                            list.setTranslationY(-height);
+                            row.setTranslationY(dy);
+                            if (footer != null) footer.setVisibility(View.INVISIBLE);
+                        }
+                        return true;
+                    });
+                    return;
+                }
+            }
+        } catch (Throwable t) {
+            Logger.printDebug(() -> "YouTube Extras: quality sheet row not placed: " + t);
+        }
+        Utils.runOnMainThreadDelayed(() -> placeRow(column, list, row, height, tries + 1), 60);
+    }
+
+    /** The resolution rows: clickable groups as wide as the list and about 48 dp high. */
+    private static void collectRows(View v, java.util.List<View> out, int minWidth, int minHeight, int maxHeight) {
+        if (!(v instanceof ViewGroup g)) return;
+        if (g.isClickable() && g.getWidth() >= minWidth && g.getHeight() >= minHeight && g.getHeight() <= maxHeight) {
+            out.add(g);
+            return;
+        }
+        for (int i = 0; i < g.getChildCount(); i++) collectRows(g.getChildAt(i), out, minWidth, minHeight, maxHeight);
+    }
+
+    /** The outermost group starting where the last row ends (the footer note with its divider). */
+    private static ViewGroup footerBelow(ViewGroup root, int lastBottom, int minHeight) {
+        java.util.ArrayDeque<ViewGroup> queue = new java.util.ArrayDeque<>();
+        queue.add(root);
+        int[] loc = new int[2];
+        while (!queue.isEmpty()) {
+            ViewGroup g = queue.poll();
+            for (int i = 0; i < g.getChildCount(); i++) {
+                if (!(g.getChildAt(i) instanceof ViewGroup c) || !c.isShown()) continue;
+                c.getLocationInWindow(loc);
+                int top = loc[1] - Math.round(c.getTranslationY());
+                if (!c.isClickable() && c.getHeight() >= minHeight && top >= lastBottom - 6 && top <= lastBottom + 24) return c;
+                queue.add(c);
+            }
+        }
+        return null;
     }
 
     /** Closes the sheet's window with the back key, which its dialog dismisses on. */

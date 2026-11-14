@@ -79,6 +79,7 @@ val blockTelemetryPatch = bytecodePatch(
     description = "Stops quality reports, interaction logging, view tracking, ad measurement, and Firebase Analytics.",
     default = false,
 ) {
+    category("Privacy")
     compatibleWith(Constants.COMPATIBILITY)
 
     dependsOn(analyticsKillSwitchesPatch)

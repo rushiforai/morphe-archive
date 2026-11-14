@@ -86,6 +86,8 @@ public final class ImgurAlbumAttachments {
     }
     private static final Map<Object, Boolean> VIDEO_MODELS = java.util.Collections.synchronizedMap(new java.util.WeakHashMap<>());
     private static boolean videoRefreshPending;
+    static void watchLocal(Object model){if(model!=null)VIDEO_MODELS.put(model,Boolean.TRUE);}
+    static void localReady(Object model){watchLocal(model);refreshVideoModels();}
 
     static void refreshVideoModels() {
         synchronized (VIDEO_MODELS) {
@@ -164,7 +166,9 @@ public final class ImgurAlbumAttachments {
             Object raw = field.get(model);
             if (raw instanceof String) body = (String) raw;
         } catch (ReflectiveOperationException ignored) { }
+        urls = SiteNativeBoards.bodyImageAttachments(body, urls);
         urls = GifAutoFetch.project(model, body, urls);
+        urls = LocalImageArchive.project(model, urls);
         if (!ImageVpnController.enabled()) return urls;
         return ImageVpnController.attachments(Haiagaru.mediaImageFetchEnabled() ? body : null, urls);
     }

@@ -118,7 +118,6 @@ Wstrzymanie przenikania, aby obejrzeć teledysk, może skutkować czarnym ekrane
     <string name="morphe_music_crossfade_screen_title">Przenikanie</string>
     <string name="morphe_music_crossfade_session_control_summary">Przytrzymaj przycisk odtwarzania losowego, aby wstrzymać lub wznowić przenikanie</string>
     <string name="morphe_music_crossfade_session_control_title">Kontrola sesji</string>
-    <string name="morphe_music_crossfade_video_mode_disabled_toast">Tryb teledysku niedostępny podczas przenikania</string>
     <string name="morphe_music_deezer_arl_dialog_instruction">"Wklej ciasteczka arl z Deezera
 
 Kroki:
@@ -1065,4 +1064,6 @@ Efekt uboczny (blokada żądania):
     <string name="revanced_webview_toast_empty">%s jest puste</string>
     <string name="revanced_webview_toast_no_network">Sprawdź swoje połączenie internetowe</string>
     <string name="revanced_webview_toast_unavailable">WebView jest niedostępne</string>
+    <string name="morphe_music_auto_song_version_title">Zawsze odtwarzaj wersję utworu</string>
+    <string name="morphe_music_auto_song_version_summary">Zastępuje oficjalne teledyski w kolejce pasującymi utworami. Wymaga włączenia opcji „Nie odtwarzaj teledysków” w aplikacji. Utwory bez dokładnego dopasowania pozostają bez zmian</string>
 </resources>

@@ -2,7 +2,7 @@
 
 Google Maps Automotive on a BYD DiLink 3 head unit (Android 10) with [MicroG-RE 7.3.0](https://github.com/MorpheApp/MicroG-RE/releases/tag/7.3.0). The patched app, **Maps**, installs alongside phone Google Maps. This repository publishes `.mpp` bundles only; bring your own original APK.
 
-[Test Files](https://tryy.cc/byd), PIN: 344993
+[BYD Files](https://tryy.cc/byd), PIN: 344993
 
 ![The patched Maps in split screen on a BYD Dolphin: route preview to Nakhon Ratchasima showing "Arrive with 29%", next to MicroG-RE 7.2.2](docs/gmaps-cars-byd.webp)
 
@@ -13,7 +13,7 @@ Google Maps Automotive on a BYD DiLink 3 head unit (Android 10) with [MicroG-RE 
 - **UI density**: Fits the car layout to split screen.
 - **Language**: English or Thai for this app, whatever the head unit's language.
 - **Driver side**: Puts Maps' cards on the driver's side.
-- **Color scheme**: Auto uses night colors only while the low beam is on, since BYD keeps the head unit in night mode.
+- **Color scheme**: Auto (headlights) uses night colors only while the low beam is on, since BYD keeps the head unit in night mode. Auto (time) uses night colors between two times you set, 18:00 to 06:00 by default.
 - **3D buildings** in the map layer menu.
 
 ### BYD battery (EV)
@@ -27,10 +27,10 @@ Google Maps Automotive on a BYD DiLink 3 head unit (Android 10) with [MicroG-RE 
 
 - **Send to car** from phone Google Maps on the same Google account, with a status check.
 - **BYD navigation volume** for spoken directions.
-- **Updates**: A daily check for a new release, on by default. It sends only the patches version; the app cannot update itself.
+- **Updates**: A daily check for a new release, on by default. It sends only the patches version. Maps from the ready-made APK in BYD Files can install the next release after you confirm.
 - **Report Maps** icon for problem reports, and a safe mode.
 
-UI density, Language, Driver side, Color scheme, BYD battery, Send to car and Updates are in Maps' Settings. All patches are on by default; only that set is tested.
+UI density, Language, Driver side, Color scheme, BYD battery, Send to car and Updates are in Maps' Settings. All patches except Android 9 (API 28) are on by default; only that set is tested.
 
 ## Tested
 
@@ -75,6 +75,8 @@ Tested on a BYD Dolphin (DiLink 3.0, Android 10) with MicroG-RE 7.3.0.
 4. Optional: To rename the app, set **App name** under **Configure options** of "Google Maps Automotive for MicroG-RE".
 5. Click **Patch**. Leave **Continue on error** off, and don't patch in a synced folder such as Google Drive.
 
+If patching fails at **Rebuilding APK** on Windows set to Thai, start Morphe Desktop with [`_Start-Morphe.cmd`](https://github.com/fangkampanat/gmaps-patches#verifyexception-at-rebuilding-apk-windows) and patch again.
+
 ### 3. Maps on the head unit
 
 1. Install the result and start **Maps**.
@@ -92,13 +94,14 @@ Reports leave out your location, e-mail, VIN and push tokens, and are deleted af
 ## Patches list
 
 <!-- PATCHES_START -->
-[v0.1.7](https://github.com/fangkampanat/google-maps-automotive-patches/releases/tag/v0.1.7) · 6 patches
+[v0.1.8](https://github.com/fangkampanat/google-maps-automotive-patches/releases/tag/v0.1.8) · 7 patches
 
 Eligible versions: Any version.
 
 | Patch | Description | Options |
 | --- | --- | --- |
 | 3D buildings | Adds Maps' own 3D buildings to the map layers. Google hides them in this app. |  |
+| Android 9 (API 28) | Test builds for Android 9 head units (issue #11): lets the app install and start on Android 9. Tested on one Android 9 head unit; BYD head units do not need it. |  |
 | BYD battery (EV) | Feeds the BYD battery into Maps' EV routing (battery on arrival, chargers). On by default on the tested BYD Dolphin and on BYD model ids 128 and 138, where owners' reports show it working; off with an "untested" notice on other BYD models and on DiLink 5. A Settings row turns it on or off and sets the battery to arrive with at charging stops and at the destination. |  |
 | BYD location flicker fix | Holds back BYD's brief location off/on flips for up to 3 s, so Maps does not flash its location lockout. |  |
 | BYD navigation volume | Plays Maps' spoken directions on BYD's navigation volume instead of the media volume. |  |

@@ -26,16 +26,16 @@
 [HushTumblr settings]
 method Lapp/hushtumblr/extension/tumblr/settings/SettingsHubRow;->titleOf(Ljava/lang/Object;)I 321332d35ed669c814a9e4328d38c07848521d30055fda29d495430fd79a1817
 
-[Mute posts locally | Reveal allowed mature content | Show mutual markers]
+[Hide reblogs of your posts | Mute posts locally | Reveal allowed mature content | Show mutual markers]
 implements Lcom/tumblr/UserInfo; Lapp/hushtumblr/extension/tumblr/rootmute/HushAccountIdentity;
 method Lcom/tumblr/UserInfo;->hushAccountId()Ljava/lang/String; 7ddf84b382aecf3aa277bbb3a89141d858d7bc1027c0ff08f4ec48bd90311fed
 
-[Hide ads | Hide Featured posts | Hide your own reblogs | Mute posts locally]
+[Hide ads | Hide Featured posts | Hide reblogs of your posts | Hide your own reblogs | Mute posts locally]
 field Lcom/tumblr/rumblr/model/post/Post;->hushPaidContextKnown:Z 65ff3748645d34f8d3dcdebe39b70efe464ec5875cb9d4e0a0f1e75310cc9884
 field Lcom/tumblr/rumblr/model/post/Post;->hushRootTrailPresent:Z 65ff3748645d34f8d3dcdebe39b70efe464ec5875cb9d4e0a0f1e75310cc9884
 method Lcom/tumblr/rumblr/model/post/Post;->hushSetJsonPresence(II)V 86723271decc7319912a31885f9fa313cd79f702c6480bbc948e15f61a685a23
 
-[Hide ads | Hide Featured posts | Hide your own reblogs]
+[Hide ads | Hide Featured posts | Hide reblogs of your posts | Hide your own reblogs]
 implements Lcom/tumblr/rumblr/model/post/Post; Lapp/hushtumblr/extension/tumblr/timeline/HushPaidPost;
 method Lcom/tumblr/rumblr/model/post/Post;->hushCanEdit()Z 76a1a339c40ab73ebaead0fd8a2d92b0bc17ecd4db9b8684b17abfa7388f2cf2
 method Lcom/tumblr/rumblr/model/post/Post;->hushFollowed()Z 5b8c5016374b67d116ea06843b204737eec793ac02ca69e6dca0a4471e5d975f
@@ -65,12 +65,25 @@ method Lcom/tumblr/rumblr/model/post/asset/Filtered;->hushFilteredTags()Ljava/ut
 implements Lcom/tumblr/rumblr/model/post/Post; Lapp/hushtumblr/extension/tumblr/timeline/HushLikedPost;
 method Lcom/tumblr/rumblr/model/post/Post;->hushLiked()Z b46508ac7839e43be1b88acd71d672605653d0abc5b8ee7caf87436faac5b666
 
+[Hide reblogs of your posts]
+implements Lcom/tumblr/UserInfo; Lapp/hushtumblr/extension/tumblr/timeline/HushAccountBlogs;
+implements Lcom/tumblr/rumblr/model/blog/ShortBlogInfo; Lapp/hushtumblr/extension/tumblr/timeline/HushAccountBlog;
+implements Lcom/tumblr/rumblr/model/post/Post; Lapp/hushtumblr/extension/tumblr/timeline/HushReblogSource;
+method Lcom/tumblr/UserInfo;->hushAccountBlogs()Ljava/util/List; bed187eade6ddbf1d42f5d75f5114d385e37a09ef07d96c236b743c95ef0cc03
+method Lcom/tumblr/rumblr/model/blog/ShortBlogInfo;->hushAccountBlogName()Ljava/lang/String; 0dd780c24ccfb8ecd7530ce37ce6ca26b4dde537a9590d7fefe1088ac1cf9a7c
+method Lcom/tumblr/rumblr/model/post/Post;->hushRebloggedFromName()Ljava/lang/String; a435fbc749727a795f4cb0e0afaf24078362ef47f2f79cf6adb7997fa4a03572
+method Lcom/tumblr/rumblr/model/post/Post;->hushRebloggedRootName()Ljava/lang/String; 1153b166eafb4696c6ea33038fb5487355068c0801a9f5731e7945e7013bd7c6
+
 [Hide suggested blogs | Hide suggested communities | Hide suggested tags | Hide Watch it rows]
 method Lapp/hushtumblr/extension/tumblr/timeline/TimelineFilter;->carouselItems(Ljava/lang/Object;)Ljava/util/List; 2dc1b723104c35f6e3838b1abf38b7a3b90fed8a1f8a66d9c763620f651fffee
 
 [Filter activity notifications]
 implements Lcom/tumblr/rumblr/model/activity/ActivityNotification; Lapp/hushtumblr/extension/tumblr/notifications/HushActivityNotification;
 method Lcom/tumblr/rumblr/model/activity/ActivityNotification;->hushNotificationType()Ljava/lang/String; 5b196f54e07f695a284a8209f59cb22672809e2440873efbc47d59a24cf18346
+
+[Tags open the blog's tag search]
+implements Lcom/tumblr/ui/widget/t$b; Lapp/hushtumblr/extension/tumblr/ui/HushTagBlog;
+method Lcom/tumblr/ui/widget/t$b;->hushTagBlogName()Ljava/lang/String; e1559a150b2b9ab10f354ca7f22f46c8cfa42d2f2ddd4c4571b3af16ac9efa0a
 
 [Visible image descriptions]
 implements Lcom/tumblr/rumblr/model/post/blocks/ImageBlock; Lapp/hushtumblr/extension/tumblr/ui/HushImageDescription;
@@ -142,7 +155,7 @@ method Lcom/tumblr/rumblr/response/FollowerResponse;->hushMutualPagination()Ljav
 method Lcom/tumblr/rumblr/response/FollowerResponse;->hushMutualUsers()Ljava/util/List; 9ba8576d3ec242d4813be4215cf54d0fb522d72af7b2b0fe9c2c05af471816a3
 method Lcom/tumblr/ui/widget/PostCardHeader;->hushMutualNameView()Ljava/lang/Object; 80276fbf09a745b64838235d9f03ad6d1b9f255f344addf48bcfe905e5a2011d
 
-[Hide liked posts | Hide your own reblogs | Mute posts locally]
+[Hide liked posts | Hide reblogs of your posts | Hide your own reblogs | Mute posts locally]
 field Laf1;->hushPostFacts:I 01c2987b059c8dfc765747cac1285e595dd25e11018464cb658a52de0f6134b5
 implements Lcom/tumblr/ui/fragment/GraywaterDashboardFragment; Lapp/hushtumblr/extension/tumblr/rootmute/HushDashboardTimeline;
 implements Lcom/tumblr/tabbeddashboard/fragments/GraywaterTabFragment; Lapp/hushtumblr/extension/tumblr/rootmute/HushDashboardTimeline;

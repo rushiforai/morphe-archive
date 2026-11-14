@@ -55,7 +55,9 @@ public final class ModTheme {
     private static final class Lifecycle implements Application.ActivityLifecycleCallbacks {
         @Override
         public void onActivityPreCreated(Activity activity, Bundle savedInstanceState) {
-            if (activity != null) ModThemeApi31.applyTo(activity.getResources());
+            if (Build.VERSION.SDK_INT >= 31 && activity != null) {
+                ModThemeApi31.applyTo(activity.getResources());
+            }
         }
 
         @Override public void onActivityCreated(Activity a, Bundle b) {}

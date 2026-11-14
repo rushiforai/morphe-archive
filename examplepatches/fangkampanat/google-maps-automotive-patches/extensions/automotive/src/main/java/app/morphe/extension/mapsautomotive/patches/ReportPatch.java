@@ -7,7 +7,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -23,6 +22,7 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -452,13 +452,14 @@ public final class ReportPatch {
         boolean versionsFilled = bundleFilled && mapsFilled;
         AlertDialog.Builder builder = new AlertDialog.Builder(host).setTitle(thai ? "แจ้งปัญหาที่ GitHub" : "Report on GitHub");
         Views views = new Views(builder.getContext());
-        boolean landscape = host.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
+        int screen = Math.min(host.getResources().getDisplayMetrics().widthPixels, host.getResources().getDisplayMetrics().heightPixels);
+        QrLayout layout = QrLayout.of(host, views, Math.min(views.px(280), screen / 2));
+        boolean landscape = layout.sideBySide;
         LinearLayout content = landscape ? views.horizontal() : views.vertical();
         content.setPadding(views.px(24), views.px(8), views.px(24), views.px(8));
         if (code != null) {
-            int screen = Math.min(host.getResources().getDisplayMetrics().widthPixels, host.getResources().getDisplayMetrics().heightPixels);
             ImageView image = new ImageView(views.themed);
-            image.setImageBitmap(qrBitmap(code, Math.min(views.px(280), screen / 2)));
+            image.setImageBitmap(qrBitmap(code, layout.qrSide));
             image.setContentDescription(thai ? "QR code ของ issue ใหม่" : "QR code of a new issue");
             LinearLayout.LayoutParams imageLayout = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             imageLayout.gravity = Gravity.CENTER_HORIZONTAL;
@@ -505,8 +506,9 @@ public final class ReportPatch {
         if (browser) builder.setNeutralButton(thai ? "เปิดในเบราว์เซอร์" : "Open in browser", (dialog, which) -> openLink(host, view, thai));
         ReportLog.i(TAG, "GitHub dialog: " + (code == null ? "no QR code" : "QR version " + code.version + ", mask " + code.mask)
                 + ", filled:" + (idFilled ? " report-id" : "") + (bundleFilled ? " bundle" : "") + (mapsFilled ? " maps" : "")
-                + (idFilled || bundleFilled || mapsFilled ? "" : " none") + (browser ? ", browser" : ", no browser"));
-        builder.show();
+                + (idFilled || bundleFilled || mapsFilled ? "" : " none") + (browser ? ", browser" : ", no browser")
+                + ", " + layout.describe(views));
+        layout.apply(builder.show());
     }
 
     static boolean hasBrowser(Context context, Intent view) {
@@ -544,6 +546,55 @@ public final class ReportPatch {
         Bitmap bitmap = Bitmap.createBitmap(pixels, side, side, Bitmap.Config.ARGB_8888);
         bitmap.setDensity(Bitmap.DENSITY_NONE);
         return bitmap;
+    }
+
+    /**
+     * A QR dialog's width and layout, from the window's width rather than the screen's orientation: a half screen is
+     * still "landscape", but Maps gives a dialog there only about 320 dp, which left the text beside the code a few
+     * letters wide (before 0.1.8). The width is the window's less 16 dp a side, at most 672 dp (840 px at Maps Car's
+     * 200 dpi, the dialog's width on the full screen), so a half screen gets the full-screen layout. The code sits beside
+     * the text only when 280 dp of text fit next to it; else it goes above the text, no wider than the dialog's inside.
+     */
+    static final class QrLayout {
+        final int width, qrSide;
+        final boolean sideBySide;
+
+        private QrLayout(int width, int qrSide, boolean sideBySide) {
+            this.width = width;
+            this.qrSide = qrSide;
+            this.sideBySide = sideBySide;
+        }
+
+        /** For a code of at most [wantedQr] px. */
+        static QrLayout of(Activity host, Views views, int wantedQr) {
+            int window = 0;
+            try {
+                window = host.getWindow().getDecorView().getWidth();
+            } catch (RuntimeException error) {
+                ReportLog.w(TAG, "window width unreadable", error);
+            }
+            if (window <= 0) window = host.getResources().getDisplayMetrics().widthPixels;
+            int width = Math.max(Math.min(window - views.px(32), views.px(672)), Math.min(window, views.px(280)));
+            // 24 dp of padding a side, 24 dp between the code and the text, 280 dp of text.
+            boolean side = width >= wantedQr + views.px(24 + 24 + 24 + 280);
+            int qr = side ? wantedQr : Math.max(views.px(120), Math.min(wantedQr, width - views.px(48)));
+            return new QrLayout(width, qr, side);
+        }
+
+        /** After show(): the dialog's window takes the width. */
+        void apply(AlertDialog dialog) {
+            try {
+                Window window = dialog.getWindow();
+                if (window != null) window.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
+            } catch (RuntimeException error) {
+                ReportLog.w(TAG, "dialog width not set", error);
+            }
+        }
+
+        /** For the log: "672 dp, side by side" and the like. */
+        String describe(Views views) {
+            return Math.round(width / (views.px(100) / 100f)) + " dp, " + (sideBySide ? "side by side" : "code above the text");
+        }
     }
 
     // The feature switches. They apply when the app starts again, so the screen restarts it.
@@ -632,12 +683,12 @@ public final class ReportPatch {
         switch (feature) {
             case SafeMode.UI_DENSITY: return thai ? "ใช้ขนาดของระบบ" : "the system density";
             case SafeMode.LANGUAGE: return thai ? "ใช้ภาษาของระบบ" : "the system language";
-            case SafeMode.DRIVER_SIDE: return thai ? "Maps เลือกฝั่งการ์ดเอง (บน DiLink 3 อยู่ซ้าย)" : "Maps picks the cards' side (left on DiLink 3)";
-            case SafeMode.COLOR_SCHEME: return thai ? "ใช้สีของ Maps (บน BYD เป็นสีกลางคืนตลอด)" : "Maps' colors (night colors all day on BYD)";
+            case SafeMode.DRIVER_SIDE: return thai ? "Maps เลือกฝั่งการ์ดเอง" : "Maps picks the cards' side";
+            case SafeMode.COLOR_SCHEME: return thai ? "ใช้สีของ Maps" : "Maps' colors";
             case SafeMode.BUILDINGS_3D: return thai ? "ชั้นแผนที่ไม่มีอาคาร 3 มิติ" : "no 3D buildings in the map layers";
             case SafeMode.BYD_BATTERY: return thai ? "ไม่ส่งแบตเตอรี่ให้ Maps ไม่มีหน้าจอ EV" : "no battery for Maps, no EV screens";
             case SafeMode.SEND_TO_CAR: return thai ? "รับทริปจากมือถือไม่ได้ และมือถือเห็นชื่อรถของ Maps" : "trips from the phone do not arrive, and phone Maps shows Maps' car name";
-            case SafeMode.LOCATION_LOCKOUT_DELAY: return thai ? "หน้าจอตำแหน่งปิดกะพริบเมื่อ GPS ของ BYD หลุด" : "the location lockout flashes when BYD's GPS drops";
+            case SafeMode.LOCATION_LOCKOUT_DELAY: return thai ? "หน้าจอตำแหน่งปิดกะพริบเมื่อ GPS หลุด" : "the location lockout flashes when GPS drops";
             case SafeMode.BYD_NAVIGATION_VOLUME: return thai ? "เสียงนำทางใช้ระดับเสียงเพลง" : "voice guidance follows the media volume";
             case SafeMode.TTS_WARMUP: return thai ? "เสียงนำทางแรกอาจเป็นเสียงสำรอง" : "the first prompt may use the canned voice";
             case SafeMode.WINDOW_REFRESH: return thai ? "การ์ดอาจใหญ่เกินหลังแบ่งจอ" : "cards may stay too large after a split-screen change";

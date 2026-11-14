@@ -2370,7 +2370,7 @@ Let the video reach the bottom of the screen on the main feed and show the tabs 
 LIVE chat auto-translate	Автоперевод чата LIVE
 
 The Translate comments button in a LIVE room also needs a Japanese SIM. Turn on Override SIM details in Hushfeed settings > Region, set SIM country preset to Japan, NTT DOCOMO (44010), then restart TikTok.	Кнопке «Перевести комментарии» в LIVE-комнате нужна ещё и японская SIM. Включите «Переопределять данные SIM» в настройках Hushfeed > Регион, выберите в «Предустановка страны SIM» вариант Japan, NTT DOCOMO (44010) и перезапустите TikTok.
-Comments only scroll on videos TikTok has turned them on for, so most videos stay the same.	Бегущие комментарии появляются только на видео, для которых TikTok их включил, поэтому большинство видео не изменится.
+Wide videos TikTok allows it on get an Add one-liner button under the video and a one-liner bar in full screen. Other videos stay the same.	На широких видео, где TikTok это разрешает, под видео появляется кнопка для однострочных комментариев, а в полноэкранном режиме панель для них. Остальные видео не меняются.
 
 Pick videos to save from profile grids	Выбирать видео для сохранения в сетках профилей
 Puts a circle on each video in a profile, Liked or Favorites grid. Pick up to %1$s, then tap Save to save them one after another, with a count and Cancel.	Ставит кружок на каждое видео в сетке профиля, «Понравилось» или «Избранное». Выберите до %1$s, затем нажмите «Сохранить», чтобы сохранить их по очереди, со счётчиком и кнопкой «Отмена».
@@ -2448,7 +2448,7 @@ Hide the Add friends button at the top of your profile. The menu button stays wh
 Hide Balance in the profile menu	Скрывать «Баланс» в меню профиля
 Hide Balance from the menu your profile's top right button opens. Your coins and gifts stay as they are.	Скрывать «Баланс» в меню, которое открывает кнопка справа вверху вашего профиля. Ваши монеты и подарки остаются как есть.
 See-through status bar	Прозрачная строка состояния
-Let the video reach the top of the screen on the main feed, with the clock and status icons over it. The tabs at the top stay where they are.	В основной ленте видео доходит до верхнего края экрана, а часы и значки состояния показываются поверх него. Вкладки вверху остаются на месте.
+Let the video reach the top of the screen, with the clock and status icons over it. Works on the main feed and on videos you open from search, a profile or your Liked and Favorites. The tabs at the top stay where they are.	Видео доходит до верхнего края экрана, а часы и значки состояния показываются поверх него. Работает в основной ленте и в видео, которые вы открываете из поиска, профиля или своих разделов «Понравившиеся» и «Избранное». Вкладки вверху остаются на месте.
 Floating bottom bar	Плавающая нижняя панель
 Show the main feed's tabs on a rounded, see-through dark pill that floats over the video. Needs See-through bottom bar.	Вкладки основной ленты показываются на скруглённой полупрозрачной тёмной плашке, которая парит над видео. Нужна «Прозрачная нижняя панель».
 Liquid glass look	Эффект жидкого стекла
@@ -2949,3 +2949,18 @@ Pick the tabs to remove from the top of the search results, such as Shop, LIVE o
 # context: Shown in that checklist before TikTok has served any search tabs on this phone
 No search tabs have been seen yet	Вкладки поиска пока не встречались
 Search for something once, then return here to choose its tabs.	Один раз что-нибудь найдите, затем вернитесь сюда, чтобы выбрать вкладки.
+Video download codec	Кодек скачивания видео
+HEVC first	Сначала HEVC
+H.264 only	Только H.264
+At the same quality, Automatic saves H.264, which nearly every player opens. HEVC is often sharper, but some older players and TVs can't play it.	При одинаковом качестве Автоматически сохраняет в H.264, который открывает почти любой плеер. HEVC часто чётче, но некоторые старые плееры и телевизоры не могут его воспроизвести.
+Pick which stories to save	Выбирать, какие истории сохранить
+When someone has more than one story, saving asks which ones to keep. The story you're watching is already checked.	Когда у человека больше одной истории, при сохранении появляется вопрос, какие оставить. История, которую вы смотрите, уже отмечена.
+Pick stories to save	Выберите истории для сохранения
+%1$s of %2$s stories are loaded. Watch further to load the rest.	Загружено историй: %1$s из %2$s. Смотрите дальше, чтобы загрузить остальные.
+Story %1$s	История %1$s
+On screen	На экране
+Pick at least one story	Выберите хотя бы одну историю
+Shade behind the status bar	Затемнение под строкой состояния
+A soft dark fade behind the clock and status icons, so they stay easy to read over a bright video. Needs See-through status bar.	Мягкий тёмный градиент за часами и значками состояния, чтобы их было легко читать на светлом видео. Нужна «Прозрачная строка состояния».
+Glass Stories button on Following	Стеклянная кнопка историй в «Подписках»
+The Stories button at the top of the Following feed turns to glass with round ends. On Android 12 and up, the video behind it is blurred too.	Кнопка историй вверху ленты «Подписки» становится стеклянной с закруглёнными краями. На Android 12 и новее видео за ней тоже размывается.

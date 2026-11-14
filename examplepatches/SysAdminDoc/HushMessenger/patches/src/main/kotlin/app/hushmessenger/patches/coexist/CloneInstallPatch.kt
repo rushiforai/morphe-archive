@@ -9,8 +9,9 @@ import app.hushmessenger.patches.MessengerTarget
 import app.hushmessenger.patches.controls.BASE_PROFILE
 import app.hushmessenger.patches.controls.DEFAULT_STRINGS
 import app.hushmessenger.patches.controls.MANIFEST_STRINGS
-import app.hushmessenger.patches.controls.PROFILE_347215273
-import app.hushmessenger.patches.controls.PROFILE_347215341
+import app.hushmessenger.patches.controls.PROFILE_347415280
+import app.hushmessenger.patches.controls.PROFILE_347415262
+import app.hushmessenger.patches.controls.PROFILE_347415302
 import app.hushmessenger.patches.controls.SETTINGS_LABEL
 import app.hushmessenger.patches.controls.SETTINGS_LABEL_NAME
 import app.hushmessenger.patches.controls.SHORTCUTS_DIRECTORIES
@@ -181,7 +182,7 @@ internal fun Document.renameForClone(newPackage: String, label: String): CloneMa
         }
     }
     for (metadata in all("meta-data")) if (metadata.getAttribute("android:value") == ORIGINAL) metadata.setAttribute("android:value", newPackage)
-    // 586 lists Messenger itself among the apps it asks to see. The copy asks to see itself, not Messenger.
+    // Messenger lists itself among the apps it asks to see. The copy asks to see itself, not Messenger.
     for (queries in all("queries")) for (query in queries.children("package")) {
         if (query.getAttribute("android:name") == ORIGINAL) query.setAttribute("android:name", newPackage)
     }
@@ -301,7 +302,7 @@ private fun List<Instruction>.ownNameFromPool(load: Int, pools: Set<String>): Bo
 
 /**
  * Every setPackage call in [this] that gets Messenger's own name and is the only thing that reads it, by instruction
- * index. A name that other calls read too stays Messenger's: in 347215273, 347215275 and 347215277 the Hatch share
+ * index. A name that other calls read too stays Messenger's: in 586's family B builds the Hatch share
  * sheet checks the app and starts it with one name, where the other builds hand that name to helpers that call
  * setPackage on a parameter, which never was a clone site.
  */
@@ -339,18 +340,20 @@ private const val CLICK = "->onClick(Landroid/view/View;)V"
 /**
  * Each build family's backup lookup and attachment check, then every setPackage call that sends Messenger to itself:
  * the in-app broadcast sender, the push notification's click and link intents, the bulk delete link in the inbox and
- * the story link button. 586 has two arm64 families and an armv7 build. The native test checks them on every supported
+ * the story link button. 587 has three arm64 families and an armv7 one. The native test checks them on every supported
  * build.
  */
 internal fun expectedCloneSitesFor(versionCode: String): Set<String> {
     validateVersionCode(versionCode)
     return when (controlProfileFor(versionCode)) {
-        BASE_PROFILE -> setOf("LX/Y7a;-><init>()V", "LX/4NY;$ATTACHMENT_CHECK", "LX/391;$BROADCAST@1",
-            "LX/93D;->A04${NOTIFICATION}LX/9Xq;@228", "LX/93D;->A04${NOTIFICATION}LX/9Xq;@323", "LX/Cg3;$CLICK@83", "LX/Jm8;$CLICK@155")
-        PROFILE_347215341 -> setOf("LX/MJk;-><init>()V", "LX/4No;$ATTACHMENT_CHECK", "LX/39H;$BROADCAST@1",
-            "LX/947;->A05${NOTIFICATION}LX/9Z4;@186", "LX/947;->A05${NOTIFICATION}LX/9Z4;@281", "LX/Cgh;$CLICK@83", "LX/Jrm;$CLICK@151")
-        PROFILE_347215273 -> setOf("LX/Lut;-><init>()V", "LX/4MC;$ATTACHMENT_CHECK", "LX/38z;$BROADCAST@1",
-            "LX/90T;->A04${NOTIFICATION}LX/9UX;@228", "LX/90T;->A04${NOTIFICATION}LX/9UX;@323", "LX/CbF;$CLICK@81", "LX/S5L;$CLICK@62")
+        BASE_PROFILE -> setOf("LX/RtJ;-><init>()V", "LX/4ER;$ATTACHMENT_CHECK", "LX/3Ap;$BROADCAST@1",
+            "LX/8TJ;->A04${NOTIFICATION}LX/9Lc;@226", "LX/8TJ;->A04${NOTIFICATION}LX/9Lc;@319", "LX/JeJ;$CLICK@71", "LX/JeW;$CLICK@169")
+        PROFILE_347415302 -> setOf("LX/RtH;-><init>()V", "LX/4ER;$ATTACHMENT_CHECK", "LX/3Ap;$BROADCAST@1",
+            "LX/8TJ;->A04${NOTIFICATION}LX/9Lc;@226", "LX/8TJ;->A04${NOTIFICATION}LX/9Lc;@319", "LX/JeI;$CLICK@71", "LX/JeV;$CLICK@169")
+        PROFILE_347415262 -> setOf("LX/Oam;-><init>()V", "LX/4Eu;$ATTACHMENT_CHECK", "LX/3BB;$BROADCAST@1",
+            "LX/8Uf;->A05${NOTIFICATION}LX/9Mz;@185", "LX/8Uf;->A05${NOTIFICATION}LX/9Mz;@282", "LX/Jal;$CLICK@71", "LX/Jaz;$CLICK@169")
+        PROFILE_347415280 -> setOf("LX/OfE;-><init>()V", "LX/4Dn;$ATTACHMENT_CHECK", "LX/3Ao;$BROADCAST@1",
+            "LX/8U5;->A04${NOTIFICATION}LX/9Lz;@226", "LX/8U5;->A04${NOTIFICATION}LX/9Lz;@321", "LX/JOV;$CLICK@71", "LX/JOi;$CLICK@169")
         else -> fail("version code $versionCode has no checked clone sites")
     }
 }

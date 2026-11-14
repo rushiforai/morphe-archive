@@ -47,6 +47,7 @@ val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
     description = "Removes the banner, in-feed, and article ads, and skips the ad breaks in on-demand videos.",
 ) {
+    category("Ads")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")

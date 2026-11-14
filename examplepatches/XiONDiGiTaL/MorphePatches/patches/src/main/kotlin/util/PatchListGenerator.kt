@@ -100,6 +100,38 @@ private fun generatePatchList(version: String, patches: Set<Patch<*>>) {
     jsonObject.add("patches", gson.toJsonTree(patchesMap))
 
     listJson.writeText(gson.toJson(jsonObject))
+
+    writeStats(version, patchesMap)
+}
+
+/**
+ * Writes the counters the README badges and the site read, so neither has to be edited when an app
+ * or a patch is added: the release workflow regenerates this file next to patches-list.json.
+ *
+ * `apps` counts distinct declared package names, which is what "apps we patch" means here — the
+ * handful of patches with no compatibility entry are universal and patch no app in particular.
+ */
+private fun writeStats(version: String, patches: List<JsonPatch>) {
+    val packages = patches
+        .flatMap { patch -> patch.compatiblePackages.orEmpty() }
+        .map { compatibility -> compatibility.packageName }
+        .distinct()
+        .sorted()
+
+    val stats = JsonObject().apply {
+        addProperty("version", version)
+        addProperty("apps", packages.size)
+        addProperty("patches", patches.size)
+        add("packages", GsonBuilder().create().toJsonTree(packages))
+    }
+
+    File("../patches-stats.json").writeText(
+        GsonBuilder()
+            .serializeNulls()
+            .setPrettyPrinting()
+            .create()
+            .toJson(stats) + "\n",
+    )
 }
 
 /** JSON representation of a patch entry in patches-list.json. */

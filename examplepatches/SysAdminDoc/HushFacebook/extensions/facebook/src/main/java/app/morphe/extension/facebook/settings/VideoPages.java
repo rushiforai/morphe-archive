@@ -264,6 +264,12 @@ final class VideoPages {
             reels.addPreference(toggle(context, Settings.SKIP_STILL_WATCHING,
                     L10n.t("Reels and videos keep going to the next one without pausing to ask if you're still "
                             + "watching.")));
+            // Asked each time a player view is sized, so a change shows on the next reel (#453). A
+            // pinch on a reel shows it whole or fills it while this is on (#466).
+            reels.addPreference(toggle(context, Settings.FILL_REELS,
+                    L10n.t("Reels and full-screen videos that would leave black bars fill the screen instead, with "
+                            + "a little cut off the edges. Pinch in on a reel to see all of it, or pinch out to fill "
+                            + "it again.")));
             // Asked as each tile of the feed's Reels row is drawn, so a change shows on the next tiles.
             reels.addPreference(toggle(context, Settings.PLAY_FEED_REELS_WHOLE,
                     L10n.t("The reels in your feed's Reels row play from the start and keep going, instead of "
@@ -383,7 +389,8 @@ final class VideoPages {
             reels.addPreference(toggle(context, Settings.QUEUE_REEL_SAVES,
                     L10n.t("Each reel you tap Download on joins a queue that saves one reel at a time in the background. "
                             + "Pause or cancel it from its notification or from Downloads here. A reel already in the queue is "
-                            + "skipped, and one that fails gets one more try. The queue lasts until Facebook closes."))
+                            + "skipped, and one that fails gets one more try. The queue lasts until Facebook closes. "
+                            + "Hold Download to save that reel and the ones after it, 10 to 150 at a time."))
                     .needs(Settings.DOWNLOAD_REELS));
             reels.addPreference(toggle(context, Settings.REEL_CAST_BUTTON,
                     L10n.t("Adds a cast button to reels, under Download. It hands the reel to a casting app you have, such as Web Video Caster, which sends it to your TV.")));
@@ -398,7 +405,7 @@ final class VideoPages {
         if (build.contains(PatchFamily.TAP_TO_PLAY) || build.contains(PatchFamily.RESUME_LONG_VIDEOS)
                 || build.contains(PatchFamily.FRAME_STEP)
                 || build.contains(PatchFamily.PLAYBACK_QUALITY) || build.contains(PatchFamily.PICTURE_IN_PICTURE)
-                || build.contains(PatchFamily.HDR_BRIGHTNESS) || build.contains(PatchFamily.SKIP_SILENCE)
+                || build.contains(PatchFamily.BACKGROUND_PLAY) || build.contains(PatchFamily.HDR_BRIGHTNESS) || build.contains(PatchFamily.SKIP_SILENCE)
                 || build.contains(PatchFamily.KEEP_FEED_VIDEOS_MUTED) || build.contains(PatchFamily.PROGRESS_BAR)) {
             PreferenceCategory playback = category(screen, L10n.t("Video and audio"));
             subheading(playback, L10n.t("Autoplay and resume"));
@@ -423,6 +430,10 @@ final class VideoPages {
                 playback.addPreference(toggle(context, Settings.FEED_VIDEO_FULL_PLAYER_BUTTON,
                         L10n.t("Adds a button to feed videos that opens the video in Facebook's own full player, with all its controls. "
                                 + "Live videos get it too. With Tap to play on, it needs Inline feed video controls on too.")));
+                playback.addPreference(toggle(context, Settings.FEED_VIDEO_FULL_PLAYER_CORNER,
+                        L10n.t("Puts a feed video's full player button in its bottom corner, next to Facebook's speaker button, which moves over to make room. "
+                                + "Live videos, and videos without Facebook's speaker, keep it up with the other buttons. "
+                                + "Needs Full player button on feed videos on.")));
                 playback.addPreference(toggle(context, Settings.FEED_VIDEO_SKIP_BUTTONS,
                         L10n.t("Adds buttons to feed videos that jump back or ahead 10 seconds, like Facebook's own player has. "
                                 + "Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.")));
@@ -555,6 +566,18 @@ final class VideoPages {
                 playback.addPreference(toggle(context, Settings.PICTURE_IN_PICTURE_BUTTON,
                         L10n.t("Shows a small button at the left edge of a reel or video that has the window ready. Tap it to open "
                                 + "the window right away. Works with Picture-in-picture on.")));
+            }
+            if (build.contains(PatchFamily.BACKGROUND_PLAY)) {
+                // Asked on each stop of a Facebook screen, so a change counts from the next time you leave.
+                playback.addPreference(toggle(context, Settings.KEEP_PLAYING_IN_BACKGROUND,
+                        L10n.t("A video you started with a tap keeps its sound after you leave Facebook, and its "
+                                + "notification can pause it. Swiping the notification away or taking a call stops it.")));
+                if (build.contains(PatchFamily.PICTURE_IN_PICTURE)) {
+                    // Asked as each window's buttons are made, so a change shows from the next window.
+                    playback.addPreference(toggle(context, Settings.BACKGROUND_PLAY_BUTTON,
+                            L10n.t("Adds a headphones button to the picture-in-picture window. Tap it to close the window "
+                                    + "and keep the sound playing, with a notification to pause it.")));
+                }
             }
         }
     }

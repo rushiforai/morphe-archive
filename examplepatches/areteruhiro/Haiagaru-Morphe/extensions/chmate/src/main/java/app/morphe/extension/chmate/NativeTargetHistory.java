@@ -128,9 +128,15 @@ final class NativeTargetHistory {
                 false, context.getClassLoader());
         Method setter = surface.getClass().getMethod("setAdapter", adapterType);
         Method getter = surface.getClass().getMethod("getAdapter");
+        Method animatorGetter=surface.getClass().getMethod("getItemAnimator");
+        Method animatorSetter=surface.getClass().getMethod("setItemAnimator",animatorGetter.getReturnType());
         Binding binding = new Binding() {
-            Object original;
+            Object original,originalAnimator;
+            boolean animatorSaved;
             public void ensure() throws Exception {
+                if(!animatorSaved){originalAnimator=animatorGetter.invoke(surface);animatorSaved=true;}
+                // Each opening creates a fresh async list; its initial diff is not a user reorder.
+                if(animatorGetter.invoke(surface)!=null)animatorSetter.invoke(surface,new Object[]{null});
                 Object current = getter.invoke(surface);
                 if (current == adapter) return;
                 original = current;
@@ -138,6 +144,7 @@ final class NativeTargetHistory {
             }
             public void restore() throws Exception {
                 if (getter.invoke(surface) == adapter) setter.invoke(surface, original);
+                if(animatorSaved&&animatorGetter.invoke(surface)==null)animatorSetter.invoke(surface,originalAnimator);
             }
         };
         binding.ensure();

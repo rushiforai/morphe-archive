@@ -91,7 +91,7 @@ class CommunityInboxTest {
         val contract = assertNotNull(findCommunityInbox(communityInboxFixture()))
         val render = contract.render as MutableMethod
         val at = render.communityReadSite(contract.capturedScope)
-        assertEquals(60, at)
+        assertEquals(63, at)
         injectCommunityInbox(contract, render, communityStub(JOINED_COMMUNITY_ROW), communityStub(MAIN_INBOX_SCOPE))
         val code = body(render)
         val filter = code[at + 3] as FiveRegisterInstruction
@@ -105,13 +105,25 @@ class CommunityInboxTest {
         // v0 is scratch only because the closure writes it again before the sink reads it.
         val live = communityInboxFixture()
         val liveRender = assertNotNull(findCommunityInbox(live)).render as MutableMethod
-        liveRender.replaceInstruction(66, "nop")
+        liveRender.replaceInstruction(69, "nop")
         assertNull(findCommunityInbox(live))
     }
 
+    /**
+     * 280's profile in 586's family B shape, which no 587 build has: the scope getter moves from the loader to the
+     * loader's coordinator (347215273 named `LX/1zk;->A01()`), and the three key test IDs go.
+     */
+    private fun familyBProfile() = controlProfileFor("347415280").run {
+        val parts = nativeCommunityInbox.split('|')
+        val coordinatorGetter = "${parts[13].substringAfter(':')}->A01()${parts[2].substringAfter(')')}"
+        val inlined = (parts.take(2) + coordinatorGetter + parts.subList(3, 6) + parts.drop(9)).joinToString("|")
+        ControlProfile(hooks, pluginSentinel, preferenceGetter, peopleKey, peopleFlagCheck, subtabsSupplier, browserPreferenceKey,
+            browserPreferenceIndex, bubbleCapabilityGetter, bubbleRolloutGetter, nativeBubbleRoutes, inlined)
+    }
+
     @Test fun familyBFiltersTheListInV2AndKeepsTheSectionBuilderInV3() {
-        // 586's 347215273, 275 and 277 inline the section builder's helpers, the switch's loader getter and the joined key test.
-        activeProfile = controlProfileFor("347215273")
+        // 586's family B inlined the section builder's helpers, the switch's loader getter and the joined key test. A later build may again.
+        activeProfile = familyBProfile()
         val classes = communityInboxFixture()
         val contract = assertNotNull(findCommunityInbox(classes))
         assertEquals(15, contract.identity.split('|').size)
@@ -143,13 +155,13 @@ class CommunityInboxTest {
         assertFailsWith<PatchException> { validateControls(mirroredControls(twice), setOf(COMMUNITY_INBOX)) }
     }
 
-    @Test fun theSecondListReadIsTakenOnlyAt60() {
-        assertNotNull(findCommunityInbox(communityInboxFixture(secondRead = 60)))
-        // 585 read the list at 63 (inline search icon check). Every recorded build refuses a read elsewhere, and discovery fails before anything changes.
-        // A family B fixture moves its read at 76 by the same amount, so it lands at 75, 77 and 79.
-        for (profile in listOf(SYNTHETIC_PROFILE) + controlProfiles.values.toSet()) {
+    @Test fun theSecondListReadIsTakenOnlyAt63() {
+        assertNotNull(findCommunityInbox(communityInboxFixture(secondRead = 63)))
+        // 586 read the list at 60 (a getter call for the search icon flag). Every recorded build refuses a read elsewhere, and discovery fails before anything changes.
+        // A family B fixture moves its read at 76 by the same amount, so it lands at 75, 77 and 73.
+        for (profile in listOf(SYNTHETIC_PROFILE, familyBProfile()) + controlProfiles.values.toSet()) {
             activeProfile = profile
-            for (secondRead in listOf(59, 61, 63)) {
+            for (secondRead in listOf(62, 64, 60)) {
                 val classes = communityInboxFixture(secondRead = secondRead)
                 val before = classes.flatMap { it.methods }.associate { it.hookId() to body(it).map(::structural) }
                 assertNull(findCommunityInbox(classes), "read at $secondRead")

@@ -41,17 +41,22 @@ private fun worker(
     flags: Int = AccessFlags.PUBLIC.value,
 ): MutableMethod = fixtureMethod(id, body, registers, flags)
 
-/** The worker beside the job's own step that calls it and a helper that names only the send. Neither gets a hook. */
-internal fun attributionUploadFixture(workerMethod: MutableMethod = worker()): List<MutableClass> = listOf(
-    fixtureClass(workerMethod.definingClass, listOf(
-        workerMethod,
-        fixtureMethod("${workerMethod.definingClass}->A01($FB_USER_SESSION)V",
-            "const-string v0, \"$ATTRIBUTION_SEND_MARK\"\nreturn-void", registers = 3),
-    )),
-    fixtureClass(LAT_STATUS_JOB, listOf(
-        fixtureMethod("$LAT_STATUS_JOB->A00($LAT_STATUS_JOB$FB_USER_SESSION)V", "return-void", flags = STATIC),
-    )),
-)
+/** 587's worker: the job's own static step, with the work inlined into it. */
+private val STEP_WORKER = "$LAT_STATUS_JOB->A00($LAT_STATUS_JOB$FB_USER_SESSION)V"
+
+/**
+ * The worker beside the job's own step that calls it and a helper that names only the send. Neither gets a hook.
+ * When the worker is the step itself, as in 587, the job's class holds it and the helper.
+ */
+internal fun attributionUploadFixture(workerMethod: MutableMethod = worker()): List<MutableClass> {
+    val helper = fixtureMethod("${workerMethod.definingClass}->A01($FB_USER_SESSION)V",
+        "const-string v0, \"$ATTRIBUTION_SEND_MARK\"\nreturn-void", registers = 3)
+    if (workerMethod.definingClass == LAT_STATUS_JOB) return listOf(fixtureClass(LAT_STATUS_JOB, listOf(workerMethod, helper)))
+    return listOf(
+        fixtureClass(workerMethod.definingClass, listOf(workerMethod, helper)),
+        fixtureClass(LAT_STATUS_JOB, listOf(fixtureMethod(STEP_WORKER, "return-void", flags = STATIC))),
+    )
+}
 
 private fun Method.code() = implementation!!.instructions.toList()
 
@@ -73,19 +78,14 @@ class AttributionUploadsTest {
     }
 
     @Test fun everyProfileHooksOneWorkerOfTheSameShape() {
-        // Builds name the worker's class differently (585's families had 7je, 7nN and 7hg), so the method's shape is what every build shares.
-        val shape = Regex("""LX/\w+;->A02\(Landroid/content/Context;LX/\w+;${Regex.escape(FB_USER_SESSION)}IJZ\)V""")
+        // 585 and 586 kept the work on an obfuscated A02 that the static step called. Every 587 family inlines it into
+        // the step, so the job's own class names the one method all four profiles hook.
         for ((code, profile) in controlProfiles) {
-            val hooks = profile.hooks.getValue(ATTRIBUTION_UPLOADS)
-            assertEquals(1, hooks.size, "$code")
-            assertTrue(shape.matches(hooks.single()), "$code hooks ${hooks.single()}")
+            assertEquals(setOf(STEP_WORKER), profile.hooks.getValue(ATTRIBUTION_UPLOADS), "$code")
         }
-        // 586 renames the worker's class and its request, so the base profile gets a fixture under its own names.
-        val base = "LX/81f;->A02(Landroid/content/Context;LX/81g;${FB_USER_SESSION}IJZ)V"
-        for ((profile, id) in listOf(SYNTHETIC_PROFILE to ATTRIBUTION_WORKER, BASE_PROFILE to base)) {
-            assertEquals(setOf(id), profile.hooks.getValue(ATTRIBUTION_UPLOADS))
+        for ((profile, method) in listOf(SYNTHETIC_PROFILE to worker(), BASE_PROFILE to worker(id = STEP_WORKER, registers = 4, flags = STATIC))) {
             activeProfile = profile
-            validateControls(mirroredControls(attributionUploadFixture(worker(id = id))), setOf(ATTRIBUTION_UPLOADS))
+            validateControls(mirroredControls(attributionUploadFixture(method)), setOf(ATTRIBUTION_UPLOADS))
         }
     }
 

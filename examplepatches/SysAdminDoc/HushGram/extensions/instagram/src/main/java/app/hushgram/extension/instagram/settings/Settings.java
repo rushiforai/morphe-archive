@@ -540,6 +540,22 @@ public class Settings extends BaseSettings {
                     .withRange(5, 30);
 
     /**
+     * Home moves on to the next post by itself: a video post when its video starts over or ends, any
+     * other post after {@link #FEED_AUTO_SCROLL_SECONDS}, and a touch holds it (#660,
+     * {@link app.hushgram.extension.instagram.feed.FeedAutoScroll}). Off to start.
+     */
+    public static final BooleanSetting FEED_AUTO_SCROLL =
+            new BooleanSetting("hushgram_feed_auto_scroll", FALSE);
+
+    /**
+     * Under {@link #FEED_AUTO_SCROLL}: how many seconds a photo or carousel stays before Home moves on,
+     * from a slider (#660). Read at each post, so a change shows without a restart.
+     */
+    public static final IntegerSetting FEED_AUTO_SCROLL_SECONDS =
+            new IntegerSetting("hushgram_feed_auto_scroll_seconds", 6, false, parent(FEED_AUTO_SCROLL))
+                    .withRange(3, 30);
+
+    /**
      * A long press on a feed photo shows it zoomed in around the finger until the finger lifts, in
      * place of Instagram's own long press there ({@link app.hushgram.extension.instagram.feed.LongPressZoom}).
      * Off to start.
@@ -851,9 +867,11 @@ public class Settings extends BaseSettings {
             new StringSetting("hushgram_pinned_chats", "", false, false);
 
     /**
-     * Two quick taps on Messages' button, on the tab bar or at the top of Home, open the list of
-     * hidden chats over Instagram, after the phone's lock while a messages lock is on
-     * ({@link app.hushgram.extension.instagram.direct.HiddenChatsTap}, #358). Off to start.
+     * Two quick taps on Messages' button, on the tab bar or at the top of Home, show the hidden chats
+     * by themselves in the inbox after the phone's lock or the PIN, and two more hide them again
+     * ({@link app.hushgram.extension.instagram.direct.HiddenChatsTap}, #358, #661). It also puts Hide
+     * chat and Unhide chat in a chat's long press menu
+     * ({@link app.hushgram.extension.instagram.direct.HiddenChatsMenu}). Off to start.
      */
     public static final BooleanSetting DOUBLE_TAP_HIDDEN_CHATS =
             new BooleanSetting("hushgram_double_tap_hidden_chats", FALSE);
@@ -1017,6 +1035,12 @@ public class Settings extends BaseSettings {
      * ({@link app.hushgram.extension.instagram.direct.GlassChat}, #449). Off to start.
      */
     public static final BooleanSetting GLASS_CHAT = new BooleanSetting("hushgram_glass_chat", FALSE);
+    /**
+     * With Glass in chats on, the chat's top bar takes the frosted glass too. Off leaves the top bar as
+     * Instagram draws it while the round buttons and the message bar keep theirs (#670). On to start.
+     */
+    public static final BooleanSetting GLASS_CHAT_TOP_BAR =
+            new BooleanSetting("hushgram_glass_chat_top_bar", TRUE, parent(GLASS_CHAT));
     /** The Send message box on other people's stories takes the same glass, as a pill (#391). Off to start. */
     public static final BooleanSetting GLASS_STORY_REPLY_BOX = new BooleanSetting("hushgram_glass_story_reply_box", FALSE);
 
@@ -1513,6 +1537,13 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HIDE_SEARCH_SUGGESTIONS =
             new BooleanSetting("hushgram_hide_search_suggestions", FALSE);
+
+    /**
+     * The You may also like block {@link app.hushgram.extension.instagram.explore.SearchRecommendations}
+     * leaves out of the end of search results. The results stay. Off to start.
+     */
+    public static final BooleanSetting HIDE_SEARCH_RECOMMENDATIONS =
+            new BooleanSetting("hushgram_hide_search_recommendations", FALSE);
 
     /**
      * What you open from search stays out of Recent, in the app's cache and on Instagram's side
@@ -2448,6 +2479,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_hide_other_profile_banners", FALSE);
 
     /**
+     * The row of links under the bio on other people's profiles (a website, or a business's links),
+     * yours kept ({@link app.hushgram.extension.instagram.profile.ProfileBanners#links}, #627). Read
+     * each time Instagram draws a profile's header. Off to start.
+     */
+    public static final BooleanSetting HIDE_PROFILE_LINKS =
+            new BooleanSetting("hushgram_hide_profile_links", FALSE);
+
+    /**
      * Opening someone's profile goes on to their posts as a scrolling list, the one Instagram opens for a
      * tapped post, with the grid one Back away ({@link app.hushgram.extension.instagram.profile.PostsList}).
      * Read each time a posts tab comes up, so a change shows on the next profile opened. Off to start.
@@ -2624,6 +2663,13 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_show_comment_gif_names", FALSE);
 
     /**
+     * A comment's GIF that Save comment photo put in the gallery, picked there in the comment box,
+     * goes up as that GIF, animated, and not as a still of it (#402). Off until enabled.
+     */
+    public static final BooleanSetting SEND_SAVED_GIFS =
+            new BooleanSetting("hushgram_send_saved_gifs", FALSE);
+
+    /**
      * The menu on someone's profile gets Save profile picture
      * ({@link app.hushgram.extension.instagram.download.ProfilePicture}). Off until enabled.
      */
@@ -2763,6 +2809,15 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HIDE_FEED_SAVE_BUTTON =
             new BooleanSetting("hushgram_hide_feed_save_button", FALSE);
+
+    /**
+     * The Like button and the like count under a feed post (#668,
+     * {@link app.hushgram.extension.instagram.feed.FeedSaveRow}). The button is read before each frame
+     * of a resumed screen and the count as Feed builds a post's row, so it needs no restart. Off to
+     * start.
+     */
+    public static final BooleanSetting HIDE_FEED_LIKE_BUTTON =
+            new BooleanSetting("hushgram_hide_feed_like_button", FALSE);
 
     /**
      * "Watch again" on a feed reel's end card replays the reel in the feed instead of opening Reels
@@ -2950,6 +3005,20 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HIDE_REEL_SAVE_BUTTON =
             new BooleanSetting("hushgram_hide_reel_save_button", FALSE);
+
+    /**
+     * The Like (heart) button in the right-hand column of a reel, and the like count under it.
+     * Double tap still likes a reel. Off to start (#668).
+     */
+    public static final BooleanSetting HIDE_REEL_LIKE_BUTTON =
+            new BooleanSetting("hushgram_hide_reel_like_button", FALSE);
+
+    /**
+     * The Comment button in the right-hand column of a reel, and the comment count under it. Off
+     * to start (#668).
+     */
+    public static final BooleanSetting HIDE_REEL_COMMENT_BUTTON =
+            new BooleanSetting("hushgram_hide_reel_comment_button", FALSE);
 
     /**
      * Instagram's clear mode, once you turn it on for a reel, stays on for the next reels you swipe
@@ -3341,6 +3410,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_keep_reel_speed", TRUE);
 
     /**
+     * With a reel's comments open, a tap on the reel above them pauses or plays it and a hold plays it
+     * at 2x while held, and the comments stay open (#665, {@link app.hushgram.extension.instagram.reels.ReelAboveComments}).
+     * Read each time. Off to start.
+     */
+    public static final BooleanSetting REEL_ABOVE_COMMENTS =
+            new BooleanSetting("hushgram_reel_above_comments", FALSE);
+
+    /**
      * A Reels viewer opened from a link skips the reels Instagram kept on the phone, so the linked
      * reel is the first one it shows (#606, {@link app.hushgram.extension.instagram.reels.ReelLinks}).
      * Read as each viewer sets up. Starts on.
@@ -3480,6 +3557,16 @@ public class Settings extends BaseSettings {
     /** Under {@link #STOP_REELS_SCROLLING}: reels opened from a song or audio page still scroll (#508). Off to start. */
     public static final BooleanSetting REEL_SCROLL_FROM_AUDIO =
             new BooleanSetting("hushgram_reel_scroll_from_audio", FALSE, parent(STOP_REELS_SCROLLING));
+
+    /**
+     * A reel opened from a post on Home, a chat or a suggested reels unit on Home plays alone: no
+     * swipe, pull or auto scroll moves that viewer on, while the Reels tab scrolls as before (#656,
+     * {@link app.hushgram.extension.instagram.reels.ReelScrolling}). A chat's viewer keeps its swipe
+     * while {@link #SWIPE_CHAT_REELS} is on. Read as each viewer opens and at each auto scroll check,
+     * so no restart. Off to start.
+     */
+    public static final BooleanSetting PLAY_ONE_REEL =
+            new BooleanSetting("hushgram_play_one_reel", FALSE);
 
     /**
      * A left swipe on a reel opens its creator's profile ({@link app.hushgram.extension.instagram.reels.SwipeToProfile}),

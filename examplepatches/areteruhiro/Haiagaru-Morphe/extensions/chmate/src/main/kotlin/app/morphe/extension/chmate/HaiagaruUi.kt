@@ -24,6 +24,11 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 
 /** Shared expressive shapes, motion, color and accessible spacing for extension screens. */
 object HaiagaruUi {
+    /** Category headings stay blue even when ChMate's accent uses another hue. */
+    internal val settingsCategoryColor: Color
+        @Composable get() = if (MaterialTheme.colorScheme.surface.luminance() < .5f)
+            Color(0xFF9CCAFF) else Color(0xFF386A92)
+
     /** Same opaque backdrop as Compose; transparent native window colors must not reveal black. */
     @JvmStatic fun toolTabHeaderColors(context: android.content.Context): IntArray {
         val native = try { NativeThemeColors.colors(context)?.takeIf { it.size == 7 } }

@@ -5,6 +5,10 @@ internal enum class PatchList(
     val summary: String,
     var included: Boolean? = false
 ) {
+    PATCHES_UPDATE_NOTICE(
+        "Patches update notice",
+        "Notifies about newer fork patches and opens Manager to re-patch. Does not download APKs."
+    ),
     ADD_TO_QUEUE(
         "Add to queue",
         "Overrides the feed flyout 'Play next in queue' with the RVX video queue."

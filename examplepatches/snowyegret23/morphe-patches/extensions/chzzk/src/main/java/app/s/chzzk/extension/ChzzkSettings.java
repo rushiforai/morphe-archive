@@ -133,6 +133,7 @@ public final class ChzzkSettings {
 
     private static void updateFeatures() {
         if (preferences == null) return;
+        CodecWorkarounds.configure(preferences.getBoolean("avc_1080p_workaround", false));
         LocalFilter.configure(preferences.getString("blacklist_channels", ""),
             preferences.getString("blacklist_titles", ""), preferences.getString("blacklist_categories", ""));
         PlayerDiagnostics.configure(preferences.getBoolean("player_statistics", false),
@@ -149,6 +150,22 @@ public final class ChzzkSettings {
         } catch (ReflectiveOperationException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    public static List<?> filterStartupPopups(List<?> popups) {
+        if (popups != null && (preferences == null || preferences.getBoolean("hide_startup_popups", true))) {
+            return java.util.Collections.emptyList();
+        }
+        return popups;
+    }
+
+    public static boolean playerInfoBackgroundEnabled() {
+        return enabled("player_info_background");
+    }
+
+    public static int playerInfoColor() {
+        int alpha = Math.round(255f * number("player_info_opacity", 70) / 100f);
+        return (alpha << 24) | number("player_info_color", 0);
     }
 
     public static int settingsRevision() {
@@ -383,7 +400,8 @@ public final class ChzzkSettings {
         int seekUnit = rewind ? 5 : 1;
         boolean viewer = key.startsWith("viewer_");
         boolean stepped = seconds || rewind || viewer || "chat_width_scale".equals(key) || "font_scale".equals(key) || "audio_volume".equals(key);
-        int stepSize = seconds || "viewer_outline_width".equals(key) || "viewer_margin".equals(key) ? 1 : 5;
+        int stepSize = seconds || "viewer_outline_width".equals(key) || "statistics_outline_width".equals(key)
+            || "viewer_margin".equals(key) ? 1 : 5;
         TextView value = text(context, current + unit + (stepped && current == fallback ? " · 기본" : ""), 13, GREEN);
         value.setTypeface(null, Typeface.BOLD);
         row.addView(value);
@@ -701,6 +719,9 @@ public final class ChzzkSettings {
             case "chat_profile_button": case "chat_emoji_button": case "chat_donation_button":
             case "audio_compression": case "audio_boost":
             case "hide_cast_button": case "hide_share_button": case "viewer_count":
+            case "avc_1080p_workaround": case "hide_startup_popups": case "viewer_broadcast_time":
+            case "viewer_count_label": case "viewer_broadcast_time_label":
+            case "player_info_background":
                 return true;
             default: return false;
         }
@@ -721,10 +742,11 @@ public final class ChzzkSettings {
             case "live_rewind_seconds": return new int[] {5, 60};
             case "timestamp_size": return new int[] {60, 100};
             case "viewer_corner": return new int[] {0, 3};
-            case "viewer_color": case "viewer_outline_color": return new int[] {0, 0xffffff};
+            case "viewer_color": case "viewer_outline_color": case "statistics_outline_color":
+            case "player_info_color": return new int[] {0, 0xffffff};
             case "viewer_size": return new int[] {50, 250};
-            case "viewer_outline_width": return new int[] {0, 8};
-            case "viewer_opacity": return new int[] {0, 100};
+            case "viewer_outline_width": case "statistics_outline_width": return new int[] {0, 8};
+            case "viewer_opacity": case "player_info_opacity": return new int[] {0, 100};
             case "viewer_margin": return new int[] {0, 20};
             default: return null;
         }
@@ -830,11 +852,13 @@ public final class ChzzkSettings {
         navigation(sheet.content, "채팅 화면", "폭 · 글자 · 간격 · 전송 시각", () -> chatPage(sheet));
         navigation(sheet.content, "닉네임과 배지", "닉네임과 각 배지를 따로 표시", () -> badgePage(sheet));
         navigation(sheet.content, "메시지와 채팅 주변", "원문 표시 · 안내 메시지 · 순위", () -> messagePage(sheet));
-        navigation(sheet.content, "플레이어", TvSettings.active ? "되감기 · 실시간 따라잡기 · 시청자 수" : "실시간 따라잡기 · 버튼 표시", () -> playerPage(sheet));
+        navigation(sheet.content, "플레이어", TvSettings.active ? "되감기 · 실시간 따라잡기" : "실시간 따라잡기 · 버튼 표시", () -> playerPage(sheet));
+        navigation(sheet.content, "오버레이", "시청자 수 · 방송 시간 · 재생 통계", () -> overlayPage(sheet));
         navigation(sheet.content, "소리", "소리 평준화 · 추가 증폭", () -> audioPage(sheet));
         navigation(sheet.content, "로컬 팔로잉", "계정과 별도로 저장한 채널", () -> followingPage(sheet));
         navigation(sheet.content, "팔로잉 추가 알림 설정", "종료 · 제목 · 카테고리 변경", () -> followingNotifications(sheet));
         navigation(sheet.content, "방송 블랙리스트", "채널 · 제목 · 카테고리 로컬 필터", () -> blacklistPage(sheet));
+        if (!TvSettings.active) toggle(sheet.content, "앱 시작 광고·이벤트 팝업 숨기기", "hide_startup_popups", true);
         navigation(sheet.content, "최근 채팅", "화면에 표시된 대화 다시 보기", () -> showHistory(sheet));
         navigation(sheet.content, "설정 관리", "설정 복사 · 붙여넣기 · 초기화", () -> managePage(sheet));
     }
@@ -1311,10 +1335,10 @@ public final class ChzzkSettings {
 
     private static void playerPage(Sheet sheet) {
         LinearLayout content = page(sheet, "플레이어");
-        toggle(content, "재생 통계 표시", "player_statistics", false);
-        label(content, "해상도 · 재생 위치 · 버퍼 · 재생 가능한 라이브 구간 끝까지의 거리를 표시합니다. 계산할 수 없는 값은 —로 표시합니다.");
+        toggle(content, "1080p·60fps 호환성 보정", "avc_1080p_workaround", false);
+        label(content, "일부 샤오신패드 펌웨어에서 1080p를 선택해도 720p로 재생되는 문제를 보정합니다. 방송을 다시 열면 적용됩니다.");
         navigation(content, "재생 버퍼 설정", new String[] {"원본 설정", "지연 우선", "안정성 우선"}[number("playback_profile", 0)], () -> playbackProfilePage(sheet));
-        navigation(content, "시청자 수 표시", "모서리 위치 · 색 · 크기 · 외곽선 · 투명도", () -> viewerPage(sheet));
+        if (!TvSettings.active) navigation(content, "방송 정보 배경", "아래쪽 방송 정보 영역의 색 · 불투명도", () -> playerInfoPage(sheet));
         if (TvSettings.active) action(content, "지금 라이브 되감기", () -> TvSettings.seek(false));
         else toggle(content, "라이브 되감기 버튼", "live_rewind", true);
         slider(content, "한 번에 되감을 시간", "live_rewind_seconds", 5, 60, 5, "초");
@@ -1331,10 +1355,20 @@ public final class ChzzkSettings {
         if (autoClaimAvailable()) toggle(content, "통나무 파워 자동 수령", "auto_claim", true);
     }
 
+    private static void overlayPage(Sheet sheet) {
+        LinearLayout content = page(sheet, "오버레이");
+        navigation(content, "시청자 수·방송 시간", "표시 항목 · 위치 · 글자 · 외곽선", () -> viewerPage(sheet));
+        navigation(content, "재생 통계", "해상도 · 버퍼 · 외곽선", () -> statisticsPage(sheet));
+    }
+
     private static void viewerPage(Sheet sheet) {
-        LinearLayout content = page(sheet, "시청자 수 표시");
-        sheet.onBack = () -> playerPage(sheet);
+        LinearLayout content = page(sheet, "시청자 수·방송 시간");
+        sheet.onBack = () -> overlayPage(sheet);
         toggle(content, "방송 화면에 시청자 수 표시", "viewer_count", true);
+        toggle(content, "‘시청자’ 문구 표시", "viewer_count_label", true);
+        toggle(content, "방송 진행 시간 표시", "viewer_broadcast_time", false);
+        toggle(content, "‘방송’ 문구 표시", "viewer_broadcast_time_label", true);
+        label(content, "방송 시작 시각을 기준으로 시·분·초를 표시합니다. 시청자 수와 함께 켜면 나란히 표시됩니다.");
         label(content, "앱이 받는 시청자 수에 맞춰 자동 갱신됩니다. 보통 약 30초 간격입니다.");
         viewerPreview(content);
         label(content, "표시 위치");
@@ -1375,8 +1409,30 @@ public final class ChzzkSettings {
         slider(content, "모서리 여백", "viewer_margin", 0, 20, 3, "%");
     }
 
+    private static void statisticsPage(Sheet sheet) {
+        LinearLayout content = page(sheet, "재생 통계");
+        sheet.onBack = () -> overlayPage(sheet);
+        toggle(content, "재생 통계 표시", "player_statistics", false);
+        label(content, "해상도 · 재생 위치 · 버퍼 · 재생 가능한 라이브 구간 끝까지의 거리를 표시합니다. 계산할 수 없는 값은 —로 표시합니다.");
+        slider(content, "글자 외곽선 두께", "statistics_outline_width", 0, 8, 0, "px");
+        label(content, "0px로 설정하면 외곽선을 숨깁니다.");
+        navigation(content, "외곽선 색", hexColor(number("statistics_outline_color", 0)),
+            () -> colorPage(sheet, "외곽선 색", "statistics_outline_color", 0, () -> statisticsPage(sheet)));
+    }
+
+    private static void playerInfoPage(Sheet sheet) {
+        LinearLayout content = page(sheet, "방송 정보 배경");
+        sheet.onBack = () -> playerPage(sheet);
+        toggle(content, "방송 정보 배경 변경", "player_info_background", false);
+        label(content, "화면을 터치했을 때 나타나는 아래쪽 방송 정보 영역에만 적용합니다. 꺼 두면 앱 기본 배경을 사용합니다.");
+        navigation(content, "배경색", hexColor(number("player_info_color", 0)),
+            () -> colorPage(sheet, "방송 정보 배경색", "player_info_color", 0, () -> playerInfoPage(sheet)));
+        slider(content, "배경 불투명도", "player_info_opacity", 0, 100, 70, "%");
+        label(content, "0%는 투명, 100%는 선택한 단색입니다.");
+    }
+
     private static void viewerPreview(LinearLayout content) {
-        label(content, "미리보기 · 예시 시청자 수");
+        label(content, "미리보기 · 예시 방송 정보");
         View preview = ViewerCountOverlay.preview(content.getContext());
         preview.setBackground(background(content.getContext(), 0xff303844, 12));
         content.addView(preview, new LinearLayout.LayoutParams(-1, dp(content.getContext(), 150)));
@@ -1387,9 +1443,13 @@ public final class ChzzkSettings {
     }
 
     private static void viewerColorPage(Sheet sheet, String title, String key, int fallback) {
+        colorPage(sheet, title, key, fallback, () -> viewerPage(sheet));
+    }
+
+    private static void colorPage(Sheet sheet, String title, String key, int fallback, Runnable back) {
         LinearLayout content = page(sheet, title);
-        sheet.onBack = () -> viewerPage(sheet);
-        viewerPreview(content);
+        sheet.onBack = back;
+        if (key.startsWith("viewer_")) viewerPreview(content);
         label(content, "색상을 고르거나 #RRGGBB 형식의 색상 코드를 입력하세요.");
         EditText field = input(sheet, "#FFFFFF");
         field.setMinLines(1);
@@ -1423,7 +1483,7 @@ public final class ChzzkSettings {
             setNumber(key, Integer.parseInt(value.replace("#", ""), 16));
             ((android.view.inputmethod.InputMethodManager) sheet.host.getSystemService(Context.INPUT_METHOD_SERVICE))
                 .hideSoftInputFromWindow(field.getWindowToken(), 0);
-            viewerPage(sheet);
+            back.run();
         });
     }
 

@@ -1549,6 +1549,10 @@ Rule saved	Aturan disimpan
 Open restricted channels	Buka saluran yang dibatasi
 Channels, groups and messages Telegram says are unavailable for copyright or local law open anyway, as long as Telegram still sends them.	Saluran, grup, dan pesan yang menurut Telegram tidak tersedia karena hak cipta atau hukum setempat tetap terbuka, selama Telegram masih mengirimkannya.
 channels restricted for copyright or local law	saluran yang dibatasi karena hak cipta atau hukum setempat
+banned channels on the web	saluran yang memblokir Anda, di web
+A channel that banned you offers Open on the web, which shows its public posts in your browser.	Saluran yang memblokir Anda menawarkan Buka di web, yang menampilkan postingan publiknya di browser Anda.
+Open on the web	Buka di web
+No browser could open %1$s.	Tidak ada browser yang bisa membuka %1$s.
 Send photos and videos in the best quality	Kirim foto dan video dengan kualitas terbaik
 Photos go out in HD and videos at their own size and quality, without touching the quality button first. You can still lower one before sending. Only sending as a file keeps a photo exactly as it is.	Foto terkirim dalam HD dan video dengan ukuran serta kualitas aslinya, tanpa menyentuh tombol kualitas dulu. Kamu masih bisa menurunkannya sebelum mengirim. Hanya mengirim sebagai file yang menjaga foto persis seperti aslinya.
 photos and videos in their best quality	foto dan video dalam kualitas terbaik
@@ -1566,7 +1570,7 @@ When you send a message in a chat, the read receipt Ghost mode held back there g
 # context: a switch under Ghost mode (#69). With it on, a double check button sits at the top of the chat list, next to the ghost.
 Read receipts button	Tombol laporan dibaca
 # context: that switch's summary. A double check is the two tick marks Telegram shows on a read message.
-A double check at the top of the chat list sends the read receipts Ghost mode is holding for the account you're on, from chats read since Telegram last started. Shows with Ghost mode and No read receipts on.	Centang dua di bagian atas daftar obrolan mengirim laporan dibaca yang ditahan Mode hantu untuk akun yang sedang Anda pakai, dari obrolan yang dibaca sejak Telegram terakhir dibuka. Muncul saat Mode hantu dan Tanpa laporan dibaca aktif.
+A double check at the top of the chat list sends the read receipts Ghost mode is holding for the account you're on, from chats read since Telegram last started. Send read receipts in a chat's menu sends just that chat's. Shows with Ghost mode and No read receipts on.	Centang dua di bagian atas daftar obrolan mengirim laporan dibaca yang ditahan Mode hantu untuk akun yang sedang Anda pakai, dari obrolan yang dibaca sejak Telegram terakhir dibuka. Kirim laporan dibaca di menu obrolan hanya mengirim laporan obrolan itu. Muncul saat Mode hantu dan Tanpa laporan dibaca aktif.
 # context: what a screen reader says for the chat list's double check button.
 Send read receipts	Kirim laporan dibaca
 # context: short message after a tap on the chat list's double check button sent the held read receipts.
@@ -1587,6 +1591,7 @@ The phone number screen always has the proxy button, so you can add a proxy befo
 Looking for free proxies now.	Sedang mencari proxy gratis.
 Downloads a public list of proxies now, times them and adds the fastest to Telegram's proxy list, even with the switch above off.	Mengunduh daftar proxy publik sekarang, mengukur kecepatannya, lalu menambahkan yang tercepat ke daftar proxy Telegram, meski sakelar di atas nonaktif.
 Proxies added last time: %1$s. They're in Telegram's proxy list.	Proxy yang ditambahkan terakhir kali: %1$s. Semuanya ada di daftar proxy Telegram.
+Proxies added last time: %1$s of %2$s read. They're in Telegram's proxy list.	Proxy yang ditambahkan terakhir kali: %1$s dari %2$s yang terbaca. Semuanya ada di daftar proxy Telegram.
 Couldn't download a proxy list last time. Check your connection and try again.	Terakhir kali daftar proxy tidak bisa diunduh. Periksa koneksi Anda dan coba lagi.
 None of the listed proxies answered last time. Try again later.	Terakhir kali tidak ada proxy dalam daftar yang menjawab. Coba lagi nanti.
 Telegram didn't take the proxies last time.	Terakhir kali Telegram tidak menerima proxy tersebut.
@@ -1906,3 +1911,9 @@ Adds a Select all button to the bar that shows while you pick messages, in chats
 selecting every loaded message in a chat	memilih semua pesan yang dimuat di chat
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the Select all button in a chat's shared media.
 selecting everything in shared media	memilih semua di media bersama
+# context: Switch on the Playback page under Voice messages in the music player (#77). It gives voice messages the next and previous buttons Telegram gives songs.
+Skip between voice messages	Lompat antar pesan suara
+# context: Summary of the switch Skip between voice messages. Next and previous are the media buttons Telegram shows for songs. With the switch on they move between the voice messages of the chat that's playing.
+Next and previous on headphones, in a car, in the notification, on the lock screen and in the full player move between a chat's voice messages, as they do for songs.	Tombol berikutnya dan sebelumnya di headphone, di mobil, di notifikasi, di layar kunci, dan di pemutar musik penuh berpindah antar pesan suara dalam obrolan, seperti pada lagu.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the Skip between voice messages switch.
+skipping between voice messages	lompat antar pesan suara

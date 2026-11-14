@@ -1,0 +1,506 @@
+{
+  "hostBatchTimestampUtc": "2026-11-11T17:04Z",
+  "timestampPrecision": "approximate batch minute; individual request start times were not recorded",
+  "retrieval": "PASS",
+  "physicalDeviceTesting": "PASS",
+  "distributionSuitability": "restricted_to_authorized_personal_use",
+  "letterboxdIntegration": "completed",
+  "films": [
+    {
+      "title": "The Matrix",
+      "year": 1999,
+      "imdbId": "tt0133093",
+      "sourceUrl": "https://www.imdb.com/title/tt0133093/trivia/",
+      "host": {
+        "method": "curl GET with default user agent; no redirect following",
+        "httpStatus": 403,
+        "requestDurationMs": 191.183,
+        "contentType": "text/html",
+        "bodyBytes": 118,
+        "redirectUrl": null,
+        "error": "HTTP 403 Forbidden",
+        "entriesRetrieved": 0,
+        "sourceEntryCount": null,
+        "categoriesVerified": null,
+        "spoilerFlagsVerified": null,
+        "paginationVerified": null
+      },
+      "independentWebFetchStatus": 403,
+      "android": {
+        "method": "public_page_webview",
+        "httpStatus": null,
+        "entriesRetrieved": 279,
+        "requestDurationMs": 9989,
+        "initialChromeSourceCheck": "rendered_trivia_text_after_unlock",
+        "status": "observed",
+        "spoilerEntries": 84,
+        "sourceEntryCount": null,
+        "sourcePaginationControlsExhausted": true,
+        "diagnosticRuns": [
+          {
+            "startedAt": "2026-11-11T17:27:33.499686+00:00",
+            "requestedId": "tt0133093",
+            "groups": {
+              "uncategorized": 195,
+              "uncategorized--spoilers": 84
+            },
+            "entries": 279,
+            "stalled": false,
+            "pagesRequested": 7,
+            "waiting": false,
+            "hasMore": false,
+            "method": "public_page_webview",
+            "status": "observed",
+            "imdbId": "tt0133093",
+            "elapsedMs": 10791
+          }
+        ],
+        "nativeRuns": [
+          {
+            "requestedId": "tt0133093",
+            "error": "expected control or state was not present",
+            "status": "timeout",
+            "items": 0,
+            "elapsedMs": 35148
+          },
+          {
+            "startedAt": "2026-11-11T17:36:49.179204+00:00",
+            "requestedId": "tt0133093",
+            "summary": "279 entries",
+            "groups": {
+              "uncategorized": 195,
+              "uncategorized--spoilers": 84
+            },
+            "entries": 279,
+            "empty": false,
+            "stalled": false,
+            "pagesRequested": 7,
+            "waiting": false,
+            "hasMore": false,
+            "imdbId": "tt0133093",
+            "status": "observed",
+            "method": "public_page_webview",
+            "items": 279,
+            "elapsedMs": 8444
+          },
+          {
+            "startedAt": "2026-11-11T17:45:41.226025+00:00",
+            "requestedId": "tt0133093",
+            "summary": "279 entries",
+            "groups": {
+              "uncategorized": 195,
+              "uncategorized--spoilers": 84
+            },
+            "entries": 279,
+            "empty": false,
+            "stalled": false,
+            "pagesRequested": 7,
+            "waiting": false,
+            "hasMore": false,
+            "imdbId": "tt0133093",
+            "status": "observed",
+            "method": "public_page_webview",
+            "items": 279,
+            "elapsedMs": 9989
+          }
+        ]
+      }
+    },
+    {
+      "title": "Inception",
+      "year": 2010,
+      "imdbId": "tt1375666",
+      "sourceUrl": "https://www.imdb.com/title/tt1375666/trivia/",
+      "host": {
+        "method": "curl GET with default user agent; no redirect following",
+        "httpStatus": 403,
+        "requestDurationMs": 2311.277,
+        "contentType": "text/html",
+        "bodyBytes": 118,
+        "redirectUrl": null,
+        "error": "HTTP 403 Forbidden",
+        "entriesRetrieved": 0,
+        "sourceEntryCount": null,
+        "categoriesVerified": null,
+        "spoilerFlagsVerified": null,
+        "paginationVerified": null
+      },
+      "independentWebFetchStatus": 403,
+      "android": {
+        "method": "public_page_webview",
+        "httpStatus": null,
+        "entriesRetrieved": 137,
+        "requestDurationMs": 8223,
+        "initialChromeSourceCheck": "not_run",
+        "status": "observed",
+        "spoilerEntries": 18,
+        "sourceEntryCount": null,
+        "sourcePaginationControlsExhausted": true,
+        "diagnosticRuns": [
+          {
+            "startedAt": "2026-11-11T17:27:53.152568+00:00",
+            "requestedId": "tt1375666",
+            "groups": {
+              "uncategorized": 117,
+              "uncategorized--spoilers": 18,
+              "director-trademark": 2
+            },
+            "entries": 137,
+            "stalled": false,
+            "pagesRequested": 5,
+            "waiting": false,
+            "hasMore": false,
+            "method": "public_page_webview",
+            "status": "observed",
+            "imdbId": "tt1375666",
+            "elapsedMs": 8648
+          }
+        ],
+        "nativeRuns": [
+          {
+            "startedAt": "2026-11-11T17:35:30.026970+00:00",
+            "requestedId": "tt1375666",
+            "summary": "137 entries",
+            "groups": {
+              "uncategorized": 117,
+              "uncategorized--spoilers": 18,
+              "director-trademark": 2
+            },
+            "entries": 137,
+            "empty": false,
+            "stalled": false,
+            "pagesRequested": 5,
+            "waiting": false,
+            "hasMore": false,
+            "imdbId": "tt1375666",
+            "status": "observed",
+            "method": "public_page_webview",
+            "items": 137,
+            "elapsedMs": 5849
+          },
+          {
+            "startedAt": "2026-11-11T17:46:01.662622+00:00",
+            "requestedId": "tt1375666",
+            "summary": "137 entries",
+            "groups": {
+              "uncategorized": 117,
+              "uncategorized--spoilers": 18,
+              "director-trademark": 2
+            },
+            "entries": 137,
+            "empty": false,
+            "stalled": false,
+            "pagesRequested": 5,
+            "waiting": false,
+            "hasMore": false,
+            "imdbId": "tt1375666",
+            "status": "observed",
+            "method": "public_page_webview",
+            "items": 137,
+            "elapsedMs": 8223
+          }
+        ]
+      }
+    },
+    {
+      "title": "The Dark Knight",
+      "year": 2008,
+      "imdbId": "tt0468569",
+      "sourceUrl": "https://www.imdb.com/title/tt0468569/trivia/",
+      "host": {
+        "method": "curl GET with default user agent; no redirect following",
+        "httpStatus": 403,
+        "requestDurationMs": 187.368,
+        "contentType": "text/html",
+        "bodyBytes": 118,
+        "redirectUrl": null,
+        "error": "HTTP 403 Forbidden",
+        "entriesRetrieved": 0,
+        "sourceEntryCount": null,
+        "categoriesVerified": null,
+        "spoilerFlagsVerified": null,
+        "paginationVerified": null
+      },
+      "independentWebFetchStatus": 403,
+      "android": {
+        "method": "public_page_webview",
+        "httpStatus": null,
+        "entriesRetrieved": 501,
+        "requestDurationMs": 14701,
+        "initialChromeSourceCheck": "not_run",
+        "status": "observed",
+        "spoilerEntries": 103,
+        "sourceEntryCount": null,
+        "sourcePaginationControlsExhausted": true,
+        "diagnosticRuns": [
+          {
+            "startedAt": "2026-11-11T17:28:11.187976+00:00",
+            "requestedId": "tt0468569",
+            "groups": {
+              "uncategorized": 397,
+              "uncategorized--spoilers": 5,
+              "cameo": 1,
+              "cameo--spoilers": 2
+            },
+            "entries": 405,
+            "stalled": false,
+            "pagesRequested": 10,
+            "waiting": false,
+            "hasMore": true,
+            "method": "public_page_webview",
+            "status": "page_limit",
+            "imdbId": "tt0468569",
+            "elapsedMs": 12658
+          }
+        ],
+        "nativeRuns": [
+          {
+            "startedAt": "2026-11-11T17:33:47.584118+00:00",
+            "requestedId": "tt0468569",
+            "summary": "501 entries",
+            "groups": {
+              "uncategorized": 397,
+              "uncategorized--spoilers": 101,
+              "cameo": 1,
+              "cameo--spoilers": 2
+            },
+            "entries": 501,
+            "empty": false,
+            "stalled": false,
+            "pagesRequested": 12,
+            "waiting": false,
+            "hasMore": false,
+            "imdbId": "tt0468569",
+            "status": "observed",
+            "method": "public_page_webview",
+            "items": 501,
+            "elapsedMs": 10389
+          },
+          {
+            "startedAt": "2026-11-11T17:43:38.647812+00:00",
+            "requestedId": "tt0468569",
+            "summary": "501 entries",
+            "groups": {
+              "uncategorized": 397,
+              "uncategorized--spoilers": 101,
+              "cameo": 1,
+              "cameo--spoilers": 2
+            },
+            "entries": 501,
+            "empty": false,
+            "stalled": false,
+            "pagesRequested": 12,
+            "waiting": false,
+            "hasMore": false,
+            "imdbId": "tt0468569",
+            "status": "observed",
+            "method": "public_page_webview",
+            "items": 501,
+            "elapsedMs": 14701
+          }
+        ]
+      }
+    },
+    {
+      "title": "Parasite",
+      "year": 2019,
+      "imdbId": "tt6751668",
+      "sourceUrl": "https://www.imdb.com/title/tt6751668/trivia/",
+      "host": {
+        "method": "curl GET with default user agent; no redirect following",
+        "httpStatus": 403,
+        "requestDurationMs": 210.573,
+        "contentType": "text/html",
+        "bodyBytes": 118,
+        "redirectUrl": null,
+        "error": "HTTP 403 Forbidden",
+        "entriesRetrieved": 0,
+        "sourceEntryCount": null,
+        "categoriesVerified": null,
+        "spoilerFlagsVerified": null,
+        "paginationVerified": null
+      },
+      "independentWebFetchStatus": 403,
+      "android": {
+        "method": "public_page_webview",
+        "httpStatus": null,
+        "entriesRetrieved": 112,
+        "requestDurationMs": 7800,
+        "initialChromeSourceCheck": "not_run",
+        "status": "observed",
+        "spoilerEntries": 28,
+        "sourceEntryCount": null,
+        "sourcePaginationControlsExhausted": true,
+        "diagnosticRuns": [
+          {
+            "startedAt": "2026-11-11T17:28:33.607740+00:00",
+            "requestedId": "tt6751668",
+            "groups": {
+              "uncategorized": 84,
+              "uncategorized--spoilers": 28
+            },
+            "entries": 112,
+            "stalled": false,
+            "pagesRequested": 4,
+            "waiting": false,
+            "hasMore": false,
+            "method": "public_page_webview",
+            "status": "observed",
+            "imdbId": "tt6751668",
+            "elapsedMs": 6924
+          }
+        ],
+        "nativeRuns": [
+          {
+            "startedAt": "2026-11-11T17:35:46.981227+00:00",
+            "requestedId": "tt6751668",
+            "summary": "112 entries",
+            "groups": {
+              "uncategorized": 84,
+              "uncategorized--spoilers": 28
+            },
+            "entries": 112,
+            "empty": false,
+            "stalled": false,
+            "pagesRequested": 4,
+            "waiting": false,
+            "hasMore": false,
+            "imdbId": "tt6751668",
+            "status": "observed",
+            "method": "public_page_webview",
+            "items": 112,
+            "elapsedMs": 6122
+          },
+          {
+            "startedAt": "2026-11-11T17:46:22.011419+00:00",
+            "requestedId": "tt6751668",
+            "summary": "112 entries",
+            "groups": {
+              "uncategorized": 84,
+              "uncategorized--spoilers": 28
+            },
+            "entries": 112,
+            "empty": false,
+            "stalled": false,
+            "pagesRequested": 4,
+            "waiting": false,
+            "hasMore": false,
+            "imdbId": "tt6751668",
+            "status": "observed",
+            "method": "public_page_webview",
+            "items": 112,
+            "elapsedMs": 7800
+          }
+        ]
+      }
+    },
+    {
+      "title": "Primer",
+      "year": 2004,
+      "imdbId": "tt0390384",
+      "sourceUrl": "https://www.imdb.com/title/tt0390384/trivia/",
+      "host": {
+        "method": "curl GET with default user agent; no redirect following",
+        "httpStatus": 403,
+        "requestDurationMs": 145.433,
+        "contentType": "text/html",
+        "bodyBytes": 118,
+        "redirectUrl": null,
+        "error": "HTTP 403 Forbidden",
+        "entriesRetrieved": 0,
+        "sourceEntryCount": null,
+        "categoriesVerified": null,
+        "spoilerFlagsVerified": null,
+        "paginationVerified": null
+      },
+      "independentWebFetchStatus": 403,
+      "android": {
+        "method": "public_page_webview",
+        "httpStatus": null,
+        "entriesRetrieved": 17,
+        "requestDurationMs": 5057,
+        "initialChromeSourceCheck": "not_run",
+        "status": "observed",
+        "spoilerEntries": 2,
+        "sourceEntryCount": null,
+        "sourcePaginationControlsExhausted": true,
+        "diagnosticRuns": [
+          {
+            "startedAt": "2026-11-11T17:28:49.687871+00:00",
+            "requestedId": "tt0390384",
+            "groups": {
+              "uncategorized": 15,
+              "uncategorized--spoilers": 2
+            },
+            "entries": 17,
+            "stalled": false,
+            "pagesRequested": 2,
+            "waiting": false,
+            "hasMore": false,
+            "method": "public_page_webview",
+            "status": "observed",
+            "imdbId": "tt0390384",
+            "elapsedMs": 4950
+          }
+        ],
+        "nativeRuns": [
+          {
+            "startedAt": "2026-11-11T17:33:15.432327+00:00",
+            "requestedId": "tt0390384",
+            "summary": "17 entries",
+            "spoilerRevealAndReset": "pass",
+            "inMemoryCacheOnReopen": "pass",
+            "groups": {
+              "uncategorized": 15,
+              "uncategorized--spoilers": 2
+            },
+            "entries": 17,
+            "empty": false,
+            "stalled": false,
+            "pagesRequested": 2,
+            "waiting": false,
+            "hasMore": false,
+            "imdbId": "tt0390384",
+            "status": "observed",
+            "method": "public_page_webview",
+            "items": 17,
+            "elapsedMs": 4586
+          },
+          {
+            "startedAt": "2026-11-11T17:43:07.858373+00:00",
+            "requestedId": "tt0390384",
+            "summary": "17 entries",
+            "spoilerRevealAndReset": "pass",
+            "inMemoryCacheOnReopen": "pass",
+            "groups": {
+              "uncategorized": 15,
+              "uncategorized--spoilers": 2
+            },
+            "entries": 17,
+            "empty": false,
+            "stalled": false,
+            "pagesRequested": 2,
+            "waiting": false,
+            "hasMore": false,
+            "imdbId": "tt0390384",
+            "status": "observed",
+            "method": "public_page_webview",
+            "items": 17,
+            "elapsedMs": 5057
+          }
+        ]
+      }
+    }
+  ],
+  "device": {
+    "model": "OPPO CPH2293",
+    "androidApi": 33,
+    "letterboxdVersion": "3.6.7"
+  },
+  "nativeDeviceChecks": {
+    "modsToggle": "pass",
+    "spoilerRevealAndReset": "pass",
+    "inMemoryCacheOnReopen": "pass",
+    "rotation": "host_activity_portrait_only"
+  }
+}

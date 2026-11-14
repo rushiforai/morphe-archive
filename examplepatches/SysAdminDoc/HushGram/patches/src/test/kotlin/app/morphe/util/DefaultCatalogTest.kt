@@ -46,6 +46,7 @@ import app.morphe.patches.instagram.feed.back.backLeavesHomePatch
 import app.morphe.patches.instagram.feed.place.keepHomePlacePatch
 import app.morphe.patches.instagram.feed.commentkeyboard.commentKeyboardPatch
 import app.morphe.patches.instagram.feed.audioicon.feedAudioIconPatch
+import app.morphe.patches.instagram.feed.autoscroll.feedAutoScrollPatch
 import app.morphe.patches.instagram.feed.captions.hideCaptionsPatch
 import app.morphe.patches.instagram.feed.commentgifs.hideCommentGifsPatch
 import app.morphe.patches.instagram.feed.comments.hideCommentsPatch
@@ -126,6 +127,7 @@ import app.morphe.patches.instagram.reels.profiletabbar.reelProfileTabBarPatch
 import app.morphe.patches.instagram.reels.swipeprofile.swipeToProfilePatch
 import app.morphe.patches.instagram.reels.seekbar.reelSeekBarPatch
 import app.morphe.patches.instagram.reels.links.openReelLinksPatch
+import app.morphe.patches.instagram.reels.abovecomments.reelAboveCommentsPatch
 import app.morphe.patches.instagram.reels.speed.keepReelSpeedPatch
 import app.morphe.patches.instagram.reels.suggested.hideReelsSuggestionsPatch
 import app.morphe.patches.instagram.reels.tab.hideReelsTabPatch
@@ -231,6 +233,7 @@ class DefaultCatalogTest {
         hideFeedFollowPatch,
         hideCaptionsPatch,
         feedAudioIconPatch,
+        feedAutoScrollPatch,
         keepHomeTopBarPatch,
         keepReelsTopBarPatch,
         markViewOncePatch,
@@ -347,6 +350,7 @@ class DefaultCatalogTest {
         hideLiveReelsPatch,
         watchAgainInFeedPatch,
         reelProfileTabBarPatch,
+        reelAboveCommentsPatch,
     )
 
     private val prior = listOf<Patch>(
@@ -383,7 +387,7 @@ class DefaultCatalogTest {
     }
 
     @Test fun initiallyNeutralControlsAreAvailableInSimpleMode() {
-        assertEquals(153, neutral.size)
+        assertEquals(155, neutral.size)
         neutral.forEach { assertEquals(it.name, true, it.default) }
     }
 
@@ -395,7 +399,7 @@ class DefaultCatalogTest {
     @Test fun generatedCatalogMatchesAllReviewedDeclarations() {
         val all = prior + neutral + optIn
         val declarations = all.associate { it.name!! to it.default }
-        assertEquals("every named patch needs one reviewed decision", 175, all.size)
+        assertEquals("every named patch needs one reviewed decision", 177, all.size)
         assertEquals("the review must not name a patch twice", all.size, declarations.size)
         val file = File("patches-list.json").takeIf(File::isFile) ?: File("../patches-list.json")
         val rows = JsonParser.parseString(file.readText()).asJsonObject.getAsJsonArray("patches")

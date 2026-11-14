@@ -40,6 +40,7 @@ val hidePremiumUpsellsPatch = bytecodePatch(
     name = "Hide Premium upsells",
     description = "Removes the \"Ad-free Reading\" banners, Upgrade buttons, and Premium offers. Leave it off if you pay for Premium.",
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

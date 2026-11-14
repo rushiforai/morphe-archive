@@ -2,8 +2,10 @@ package app.morphe.extension.mapsautomotive.patches;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.TimePickerDialog;
 import android.content.ComponentCallbacks;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -18,6 +20,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.lang.ref.WeakReference;
+import java.util.Calendar;
+import java.util.Locale;
 import java.util.Objects;
 
 import app.morphe.extension.shared.Utils;
@@ -42,6 +46,10 @@ import app.morphe.extension.shared.Utils;
  * While Auto shows Maps' own value, a change of the system night flag is applied the same way as soon as
  * Maps' process sees it: a head unit that switches day and night by itself may give Maps' activity the new
  * configuration only when it comes back to the front.
+ * <p>
+ * Auto (time) ignores the lights: night colors from the set night start to the set day start (default 18:00 to 06:00,
+ * local time; the night may cross midnight). The clock is checked on the main thread just after each minute starts,
+ * while Auto (time) is chosen, and a change applies the same way; that check also catches a clock set after a start.
  */
 @SuppressWarnings("unused")
 public final class ColorScheme {
@@ -62,11 +70,18 @@ public final class ColorScheme {
     static final long LAST_LIGHTS_MAX_AGE_MS = 2 * 60 * 60 * 1000;
     /** While the state holds it is stored again this often, so its age counts from the last reading. */
     private static final long LAST_LIGHTS_STORE_EVERY_MS = 10 * 60 * 1000;
-    static final String AUTO = "auto", DAY = "day", NIGHT = "night";
-    private static final String[] CHOICES = {AUTO, DAY, NIGHT};
+    /** Auto (time): the minute of the day (local time) night colors start, and the one day colors start. */
+    private static final String KEY_NIGHT_FROM = "night_from", KEY_DAY_FROM = "day_from";
+    static final int DEFAULT_NIGHT_FROM = 18 * 60, DEFAULT_DAY_FROM = 6 * 60;
+    static final int MINUTES_PER_DAY = 24 * 60;
+    /** Auto (time) checks the clock this long after each minute starts. */
+    static final long CLOCK_MARGIN_MS = 250;
+    static final String AUTO = "auto", TIME = "time", DAY = "day", NIGHT = "night";
+    /** In the chooser's order. */
+    private static final String[] CHOICES = {AUTO, TIME, DAY, NIGHT};
     /** Where the night value comes from (report and log). */
-    static final String FROM_LIGHTS = "lights", FROM_WAITING = "waiting", FROM_MAPS = "maps", FROM_CHOICE = "choice",
-            FROM_OFF = "off";
+    static final String FROM_LIGHTS = "lights", FROM_TIME = "time", FROM_WAITING = "waiting", FROM_MAPS = "maps",
+            FROM_CHOICE = "choice", FROM_OFF = "off";
     /**
      * How long a new low beam reading has to hold before Auto follows it. A first new reading only marks it pending,
      * so Auto follows the second known reading in a row, about {@link #POLL_MS} later; half the poll interval leaves a
@@ -89,6 +104,10 @@ public final class ColorScheme {
     private static volatile String givenSource;
     /** The stored choice, read once and kept current by the chooser. */
     private static volatile String choice;
+    /** Auto (time)'s night start and day start (minutes of the day), read once and kept current by the chooser. */
+    private static volatile int[] times;
+    /** Auto (time)'s clock check is scheduled (main thread). */
+    private static boolean clockRunning;
     private static volatile Boolean switchOn;
     private static Handler main;
     private static Handler worker;
@@ -133,14 +152,16 @@ public final class ColorScheme {
             boolean on = on();
             String chosen = on ? choice() : AUTO;
             boolean auto = on && AUTO.equals(chosen);
+            boolean timed = on && TIME.equals(chosen);
             if (auto) startLights();
+            if (timed) startClock();
             // The wait flag first: the worker clears it only after it recorded the first reading.
             boolean awaiting = awaitingFirstRead;
             Boolean lights = auto ? lowBeamState.stable() : null;
             boolean waiting = auto && lights == null && awaiting;
             // While waiting: the colors given last, or at a start the low beam state of the last few hours.
             Boolean held = !waiting ? null : givenNight != null ? givenNight : lastLights();
-            boolean value = decide(on, chosen, mapsValue, lights, held);
+            boolean value = decide(on, chosen, mapsValue, lights, held, timed && clockNight());
             String source = source(on, chosen, lights, waiting);
             boolean changed = !Objects.equals(givenNight, value) || !source.equals(givenSource);
             givenNight = value;
@@ -183,13 +204,14 @@ public final class ColorScheme {
     }
 
     /**
-     * The night value: Maps' value when switched off; Day false, Night true; Auto the low beam, else [held] (the value
-     * given last, while waiting for the first reading), else Maps' value.
+     * The night value: Maps' value when switched off; Day false, Night true; Auto (time) [clockNight]; Auto the low beam,
+     * else [held] (the value given last, while waiting for the first reading), else Maps' value.
      */
-    static boolean decide(boolean on, String choice, boolean mapsValue, Boolean lowBeamOn, Boolean held) {
+    static boolean decide(boolean on, String choice, boolean mapsValue, Boolean lowBeamOn, Boolean held, boolean clockNight) {
         if (!on) return mapsValue;
         if (DAY.equals(choice)) return false;
         if (NIGHT.equals(choice)) return true;
+        if (TIME.equals(choice)) return clockNight;
         if (lowBeamOn != null) return lowBeamOn;
         return held != null ? held : mapsValue;
     }
@@ -198,8 +220,77 @@ public final class ColorScheme {
     static String source(boolean on, String choice, Boolean lowBeamOn, boolean waiting) {
         if (!on) return FROM_OFF;
         if (DAY.equals(choice) || NIGHT.equals(choice)) return FROM_CHOICE;
+        if (TIME.equals(choice)) return FROM_TIME;
         if (lowBeamOn != null) return FROM_LIGHTS;
         return waiting ? FROM_WAITING : FROM_MAPS;
+    }
+
+    /** Whether [minute] (of the day) is in the night from [nightFrom] to [dayFrom], which may cross midnight. */
+    static boolean nightAt(int minute, int nightFrom, int dayFrom) {
+        if (nightFrom == dayFrom) return false;
+        if (nightFrom < dayFrom) return minute >= nightFrom && minute < dayFrom;
+        return minute >= nightFrom || minute < dayFrom;
+    }
+
+    /** Milliseconds from [now] (wall clock) to {@link #CLOCK_MARGIN_MS} after the next minute starts. */
+    static long untilNextMinute(long now) {
+        return 60_000L - Math.floorMod(now, 60_000L) + CLOCK_MARGIN_MS;
+    }
+
+    /** Night start and day start that Auto (time) can use: each a minute of the day, and not the same. */
+    static boolean validTimes(int nightFrom, int dayFrom) {
+        return nightFrom >= 0 && nightFrom < MINUTES_PER_DAY && dayFrom >= 0 && dayFrom < MINUTES_PER_DAY && nightFrom != dayFrom;
+    }
+
+    /** A minute of the day as HH:MM (24-hour). */
+    static String hhmm(int minute) {
+        return String.format(Locale.US, "%02d:%02d", minute / 60, minute % 60);
+    }
+
+    /** Night start to day start, as the Settings row shows it. */
+    static String span(int[] window) {
+        return hhmm(window[0]) + "–" + hhmm(window[1]);
+    }
+
+    // Auto (time): the clock, checked on the main thread just after each minute starts while Auto (time) is chosen.
+
+    private static int minuteNow() {
+        Calendar now = Calendar.getInstance();
+        return now.get(Calendar.HOUR_OF_DAY) * 60 + now.get(Calendar.MINUTE);
+    }
+
+    private static boolean clockNight() {
+        int[] window = times();
+        return nightAt(minuteNow(), window[0], window[1]);
+    }
+
+    // Main thread.
+    private static void startClock() {
+        if (clockRunning) return;
+        clockRunning = true;
+        ReportLog.i(TAG, "Clock check started: night " + span(times()) + ", now " + hhmm(minuteNow()));
+        scheduleClock();
+    }
+
+    private static void scheduleClock() {
+        mainHandler().postDelayed(ColorScheme::clockTick, untilNextMinute(System.currentTimeMillis()));
+    }
+
+    // Main thread. When the clock's value differs from the colors given, Maps' update runs again. Stops once Auto (time)
+    // is no longer chosen or the switch is off.
+    private static void clockTick() {
+        try {
+            if (!on() || !TIME.equals(choice())) {
+                clockRunning = false;
+                ReportLog.i(TAG, "Clock check stopped");
+                return;
+            }
+            boolean night = clockNight();
+            if (!Objects.equals(givenNight, night)) refresh("clock " + hhmm(minuteNow()));
+        } catch (Throwable error) {
+            ReportLog.w(TAG, "Clock check failed", error);
+        }
+        scheduleClock();
     }
 
     /**
@@ -498,6 +589,29 @@ public final class ColorScheme {
         return value;
     }
 
+    private static int[] times() {
+        int[] value = times;
+        if (value != null) return value;
+        if (!Utils.isContextSet()) return new int[]{DEFAULT_NIGHT_FROM, DEFAULT_DAY_FROM};
+        value = storedTimes(Utils.getContext());
+        times = value;
+        return value;
+    }
+
+    /** Auto (time)'s stored night start and day start; the defaults when none or not {@link #validTimes}. */
+    static int[] storedTimes(Context context) {
+        try {
+            SharedPreferences preferences = context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE);
+            int nightFrom = preferences.getInt(KEY_NIGHT_FROM, DEFAULT_NIGHT_FROM);
+            int dayFrom = preferences.getInt(KEY_DAY_FROM, DEFAULT_DAY_FROM);
+            if (validTimes(nightFrom, dayFrom)) return new int[]{nightFrom, dayFrom};
+            ReportLog.w(TAG, "Ignoring stored color scheme times " + nightFrom + "/" + dayFrom);
+        } catch (RuntimeException error) {
+            ReportLog.w(TAG, "Could not read the color scheme times", error);
+        }
+        return new int[]{DEFAULT_NIGHT_FROM, DEFAULT_DAY_FROM};
+    }
+
     /** The stored choice, Auto when none or unknown. */
     static String stored(Context context) {
         String value = storedOrNull(context);
@@ -516,11 +630,14 @@ public final class ColorScheme {
         return null;
     }
 
-    /** For the problem report (main process): the choice, Maps' value, the value given and the lights. */
+    /** For the problem report (main process): the choice, Auto (time)'s times, Maps' value, the value given and the lights. */
     static JSONObject report(Context context) throws JSONException {
         Boolean maps = mapsNight, given = givenNight;
+        int[] window = storedTimes(context);
         return new JSONObject()
                 .put("choice", orNull(storedOrNull(context)))
+                .put("night_from", hhmm(window[0]))
+                .put("day_from", hhmm(window[1]))
                 .put("maps_night", orNull(maps))
                 .put("night", orNull(given))
                 .put("source", orNull(givenSource))
@@ -560,10 +677,11 @@ public final class ColorScheme {
         }
         // The row is built once per Settings screen, so it names the choice, not the colors at that moment.
         String chosen = stored(context);
+        int[] window = storedTimes(context);
         if (AUTO.equals(chosen) && lightsGivenUp) {
-            return choiceLabel(AUTO, thai) + " · " + (thai ? "อ่านไฟหน้าไม่ได้ ใช้สีของ Maps" : "headlights unreadable, Maps' colors");
+            return choiceLabel(AUTO, thai, window) + " · " + (thai ? "อ่านไฟหน้าไม่ได้ ใช้สีของ Maps" : "headlights unreadable, Maps' colors");
         }
-        return choiceLabel(chosen, thai);
+        return choiceLabel(chosen, thai, window);
     }
 
     /**
@@ -588,31 +706,103 @@ public final class ColorScheme {
         Activity host = activity;
         boolean thai = UiDensityPatch.isThai(host);
         String current = stored(host);
+        int[] window = storedTimes(host);
         String[] labels = new String[CHOICES.length];
         int checked = 0;
         for (int index = 0; index < CHOICES.length; index++) {
-            labels[index] = choiceLabel(CHOICES[index], thai);
+            labels[index] = choiceLabel(CHOICES[index], thai, window);
             if (CHOICES[index].equals(current)) checked = index;
         }
         new AlertDialog.Builder(host)
                 .setTitle(getSettingsTitle(host))
                 .setSingleChoiceItems(labels, checked, (dialog, which) -> {
                     dialog.dismiss();
+                    // Auto (time) opens its times, also when it is the current choice: that is where they change.
+                    if (TIME.equals(CHOICES[which])) {
+                        showTimes(host, container, shown, window[0], window[1]);
+                        return;
+                    }
                     if (CHOICES[which].equals(current)) return;
-                    choose(host, CHOICES[which], container, shown);
+                    choose(host, CHOICES[which], null, container, shown);
                 })
                 .setNegativeButton(thai ? "ยกเลิก" : "Cancel", null)
                 .show();
     }
 
+    /**
+     * Auto (time)'s times: a row for the night start and one for the day start, each opening Android's time picker,
+     * then Save. Nothing is stored before Save; Cancel keeps the choice and times as they were.
+     */
+    private static void showTimes(Activity host, View container, String[] shown, int nightFrom, int dayFrom) {
+        if (host.isFinishing() || host.isDestroyed()) return;
+        boolean thai = UiDensityPatch.isThai(host);
+        String[] rows = {
+                (thai ? "สีกลางคืนตั้งแต่ " : "Night colors from ") + hhmm(nightFrom),
+                (thai ? "สีกลางวันตั้งแต่ " : "Day colors from ") + hhmm(dayFrom),
+        };
+        new AlertDialog.Builder(host)
+                .setTitle(thai ? "อัตโนมัติ (ตามเวลา)" : "Auto (time)")
+                .setItems(rows, (dialog, which) -> pickTime(host, container, shown, nightFrom, dayFrom, which == 0))
+                .setPositiveButton(thai ? "บันทึก" : "Save", (dialog, which) -> {
+                    if (validTimes(nightFrom, dayFrom)) {
+                        choose(host, TIME, new int[]{nightFrom, dayFrom}, container, shown);
+                        return;
+                    }
+                    new AlertDialog.Builder(host)
+                            .setMessage(thai ? "เวลาเริ่มสีกลางคืนกับสีกลางวันต้องไม่ตรงกัน"
+                                    : "Night colors and day colors cannot start at the same time.")
+                            .setPositiveButton(thai ? "ตกลง" : "OK", null)
+                            .setOnDismissListener(message -> showTimes(host, container, shown, nightFrom, dayFrom))
+                            .show();
+                })
+                .setNegativeButton(thai ? "ยกเลิก" : "Cancel", null)
+                .show();
+    }
+
+    // Android's time picker (24-hour) for the night start ([night]) or the day start; back to the times either way.
+    private static void pickTime(Activity host, View container, String[] shown, int nightFrom, int dayFrom, boolean night) {
+        int current = night ? nightFrom : dayFrom;
+        try {
+            TimePickerDialog picker = new TimePickerDialog(host, (view, hour, minute) -> {
+                int picked = hour * 60 + minute;
+                showTimes(host, container, shown, night ? picked : nightFrom, night ? dayFrom : picked);
+            }, current / 60, current % 60, true);
+            picker.setOnCancelListener(dialog -> showTimes(host, container, shown, nightFrom, dayFrom));
+            picker.show();
+        } catch (Throwable error) {
+            // A head unit whose theme the picker cannot use: whole hours from a list instead.
+            ReportLog.w(TAG, "Time picker failed, hour list instead", error);
+            pickHour(host, container, shown, nightFrom, dayFrom, night);
+        }
+    }
+
+    private static void pickHour(Activity host, View container, String[] shown, int nightFrom, int dayFrom, boolean night) {
+        boolean thai = UiDensityPatch.isThai(host);
+        String[] hours = new String[24];
+        for (int hour = 0; hour < hours.length; hour++) hours[hour] = hhmm(hour * 60);
+        new AlertDialog.Builder(host)
+                .setTitle(night ? (thai ? "สีกลางคืนตั้งแต่" : "Night colors from") : (thai ? "สีกลางวันตั้งแต่" : "Day colors from"))
+                .setSingleChoiceItems(hours, (night ? nightFrom : dayFrom) / 60, (dialog, which) -> {
+                    dialog.dismiss();
+                    showTimes(host, container, shown, night ? which * 60 : nightFrom, night ? dayFrom : which * 60);
+                })
+                .setNegativeButton(thai ? "ยกเลิก" : "Cancel", (dialog, which) -> dialog.cancel())
+                .setOnCancelListener(dialog -> showTimes(host, container, shown, nightFrom, dayFrom))
+                .show();
+    }
+
     // No restart: Maps' controller applies the new value at once. While the switch is off, the choice is
-    // kept for when it is on again.
-    private static void choose(Activity activity, String chosen, View container, String[] shown) {
-        boolean saved = activity.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
-                .edit().putString(KEY_CHOICE, chosen).commit();
+    // kept for when it is on again. [window]: Auto (time)'s times to store with it, else null.
+    private static void choose(Activity activity, String chosen, int[] window, View container, String[] shown) {
+        SharedPreferences.Editor editor = activity.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+                .edit().putString(KEY_CHOICE, chosen);
+        if (window != null) editor.putInt(KEY_NIGHT_FROM, window[0]).putInt(KEY_DAY_FROM, window[1]);
+        boolean saved = editor.commit();
         choice = chosen;
+        if (window != null) times = window.clone();
         boolean on = SafeMode.on(activity, SafeMode.COLOR_SCHEME);
-        ReportLog.i(TAG, "Color scheme set to " + chosen + " (saved " + saved + ")" + (on ? "" : " while switched off"));
+        ReportLog.i(TAG, "Color scheme set to " + chosen + (window != null ? ", night " + span(window) : "")
+                + " (saved " + saved + ")" + (on ? "" : " while switched off"));
         ReportBuilder.saveSnapshot(activity.getApplicationContext(), true);
         // Maps keeps its Settings screen (no restart), so the row's subtitle is updated in place, and again after each
         // refresh of Maps' screens, which binds the row with the subtitle it was built with.
@@ -620,16 +810,18 @@ public final class ColorScheme {
         subtitleRow = subtitle != null ? new SubtitleRow(activity, subtitle, shown) : null;
         if (on) {
             if (AUTO.equals(chosen)) startLights();
+            if (TIME.equals(chosen)) startClock();
             refresh("choice " + chosen);
             return;
         }
         boolean thai = UiDensityPatch.isThai(activity);
+        int[] shownTimes = storedTimes(activity);
         new AlertDialog.Builder(activity)
                 .setTitle(getSettingsTitle(activity))
                 .setMessage(thai
-                        ? "บันทึกแล้ว จะใช้" + choiceLabel(chosen, true) + " เมื่อเปิด Color scheme อีกครั้งใน "
+                        ? "บันทึกแล้ว จะใช้" + choiceLabel(chosen, true, shownTimes) + " เมื่อเปิด Color scheme อีกครั้งใน "
                         + ReportPatch.reportPlace(activity, true)
-                        : "Saved. " + choiceLabel(chosen, false) + " is used once Color scheme is switched on again in "
+                        : "Saved. " + choiceLabel(chosen, false, shownTimes) + " is used once Color scheme is switched on again in "
                         + ReportPatch.reportPlace(activity, false) + ".")
                 .setPositiveButton(thai ? "ตกลง" : "OK", null)
                 .show();
@@ -712,9 +904,13 @@ public final class ColorScheme {
         return null;
     }
 
-    private static String choiceLabel(String chosen, boolean thai) {
+    /** The chooser's and the row's name of a choice; Auto (time) with its times ([window]). */
+    static String choiceLabel(String chosen, boolean thai, int[] window) {
         if (DAY.equals(chosen)) return thai ? "กลางวัน" : "Day";
         if (NIGHT.equals(chosen)) return thai ? "กลางคืน" : "Night";
+        if (TIME.equals(chosen)) {
+            return thai ? "อัตโนมัติ (ตามเวลา) · กลางคืน " + span(window) : "Auto (time) · night " + span(window);
+        }
         return thai ? "อัตโนมัติ (ตามไฟหน้า)" : "Auto (headlights)";
     }
 }

@@ -43,6 +43,21 @@ public final class SiteThreadMetadata {
         if(id==null)return;try{state.thread=field(row,id).getLong(row);state.count=field(row,count).getInt(row);String source=SiteThreadIds.source(Long.toString(state.thread));String key=state.board+":"+source;if(!CACHE.containsKey(key))acquire(state.gateway,state.board,source);}catch(Exception ignored){state.thread=0;state.count=0;}
     }
     static String currentBoard(){Binding binding=CURRENT.get();return binding==null?null:binding.board;}
+    public static long popupEpoch(long original,Object responses){
+        if(original<=SiteThreadIds.BASE||original>=SiteThreadIds.BASE*2)return original;
+        // The popup already owns the loaded responses; use their original header,
+        // including when there was no preceding list render or metadata cache.
+        if(responses instanceof List<?>){
+            List<?> rows=(List<?>)responses;
+            for(int i=0;i<Math.min(1,rows.size());i++){
+                Object row=rows.get(i);if(row==null)continue;
+                String name=row.getClass().getName();String date=name.equals("o.KeJ11")?"p":name.equals("o.BouncyCastleSocketAdapterCompanion")?"t":null;
+                if(date==null)continue;
+                try{long parsed=SiteThreadDates.parse((String)field(row,date).get(row));if(parsed>0)return parsed;}catch(Exception ignored){}
+            }
+        }
+        return epoch(original);
+    }
     public static long epoch(long original){
         try{
             String source=SiteThreadIds.source(Long.toString(original));

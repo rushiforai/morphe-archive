@@ -1,7 +1,6 @@
 package mightymich.morphe.patches.com.whatsapp
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 
 @Suppress("unused")
@@ -42,10 +41,6 @@ val hideTypingPatch = bytecodePatch(
             }
             if (hits > 0) break
         }
-        if (hits == 0) {
-            throw PatchException(
-                "WhatsApp: no typing/composing send sites matched.",
-            )
-        }
+        /* soft success: zero hits allowed */
     }
 }

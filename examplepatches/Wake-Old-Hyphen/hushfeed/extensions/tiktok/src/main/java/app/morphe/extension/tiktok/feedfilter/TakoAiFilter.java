@@ -119,36 +119,78 @@ public final class TakoAiFilter {
      */
     private static final Set<String> TAKO_TAB_KEYS = Set.of("tako", "ask_tako", "tako_tab", "asktako");
 
+    private static final String PICKED_TABS_FAMILY = "search tabs";
+
     /**
      * The search results tab strip (Ask Tako, Top, Users, Videos, ...) arrives as a list of
      * dynamic tab infos whose only consumer, the strip's view model, reads it through two getters
-     * the patch filters here. With Hide the Tako bubble on the Ask Tako tab is dropped, so the
-     * strip is built without it and the other tabs keep their order; with it off, and when the
-     * tab is not in the list, the list goes back as it came. Fails open, the way the banners do.
+     * the patch filters here. With Hide the Tako bubble on the Ask Tako tab is dropped, and so is
+     * every tab picked in Hide search result tabs, so the strip is built without them and the
+     * other tabs keep their order; when nothing is to go the list goes back as it came. The tabs
+     * served are recorded for that checklist. Fails open, the way the banners do.
      */
     public static List filterSearchTabs(List tabs) {
         HookStatus.bound(HOOK_FAMILY, SEARCH_TABS_READ);
         if (tabs == null || tabs.isEmpty()) return tabs;
         try {
             noteSearchTabKeys(tabs);
+            SearchTabs.observe(tabs);
             boolean hide = Settings.HIDE_TAKO_AI.get();
+            Set<String> picked = SearchTabs.hiddenKeys();
             List kept = null;
             boolean seen = false;
+            int pickedHidden = 0;
             for (int i = 0; i < tabs.size(); i++) {
                 Object tab = tabs.get(i);
                 boolean tako = isTakoTab(tab);
                 if (tako) seen = true;
-                if (tako && hide) {
+                boolean drop = tako ? hide : picked.contains(SearchTabs.key(tab));
+                if (drop) {
                     if (kept == null) kept = new ArrayList(tabs.subList(0, i));
+                    if (!tako) pickedHidden++;
                 } else if (kept != null) {
                     kept.add(tab);
                 }
             }
             if (seen) HookStatus.bound(HOOK_FAMILY, hide ? SEARCH_TAB_HIDDEN : SEARCH_TAB_LEFT);
+            if (!picked.isEmpty()) {
+                HookStatus.bound(PICKED_TABS_FAMILY,
+                        pickedHidden > 0 ? "picked tabs hidden" : "picked tabs not served");
+            }
             return kept == null ? tabs : kept;
         } catch (Throwable failure) {
             // A build whose tab model moved: leave the strip as TikTok sent it and say so.
             HookStatus.threw(HOOK_FAMILY, "search tabs", failure);
+            return tabs;
+        }
+    }
+
+    /**
+     * TikTok's own default strip, filled each time a search page opens and kept whenever the
+     * served list doesn't hold as many tabs as it does (47.7.3). The tabs the served list loses
+     * go from this one too, so the two still line up and the strip TikTok falls back on is
+     * filtered as well. Its tabs keep their key in the name field. Fails open.
+     */
+    public static List filterDefaultSearchTabs(List tabs) {
+        if (tabs == null || tabs.isEmpty()) return tabs;
+        try {
+            boolean hide = Settings.HIDE_TAKO_AI.get();
+            Set<String> picked = SearchTabs.hiddenKeys();
+            if (!picked.isEmpty()) HookStatus.bound(PICKED_TABS_FAMILY, "default tabs read");
+            if (picked.isEmpty() && !hide) return tabs;
+            List kept = null;
+            for (int i = 0; i < tabs.size(); i++) {
+                Object tab = tabs.get(i);
+                boolean drop = isTakoTab(tab) ? hide : picked.contains(SearchTabs.defaultKey(tab));
+                if (drop) {
+                    if (kept == null) kept = new ArrayList(tabs.subList(0, i));
+                } else if (kept != null) {
+                    kept.add(tab);
+                }
+            }
+            return kept == null ? tabs : kept;
+        } catch (Throwable failure) {
+            HookStatus.threw(PICKED_TABS_FAMILY, "default search tabs", failure);
             return tabs;
         }
     }

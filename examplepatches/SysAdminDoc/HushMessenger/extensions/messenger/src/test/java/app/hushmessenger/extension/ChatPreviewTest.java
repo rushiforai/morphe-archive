@@ -53,7 +53,7 @@ public class ChatPreviewTest {
         assertTrue(Settings.installed.contains("chat_preview"));
         String[] row = Arrays.stream(SettingsActivity.CONTROLS).filter(c -> c[0].equals("chat_preview")).findFirst().orElseThrow();
         assertEquals("Preview chats on long press", row[1]);
-        assertEquals("inbox", row[3]);
+        assertEquals("chat_menu", row[3]);
         assertTrue(SettingsActivity.EXPERIMENTAL.contains("chat_preview"));
         assertFalse(Settings.preferences.contains("chat_preview"));
         assertFalse(Settings.wouldUse("chat_preview"));

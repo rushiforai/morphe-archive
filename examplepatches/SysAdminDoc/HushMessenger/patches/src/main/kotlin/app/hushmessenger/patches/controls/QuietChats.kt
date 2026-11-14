@@ -1,17 +1,21 @@
 package app.hushmessenger.patches.controls
 
+import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21t
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
@@ -145,19 +149,56 @@ internal fun resolveQuietChatContract(classes: Iterable<ClassDef>, log: MessageL
 }
 
 /**
- * The thread check's mute check: [branch] is the `if-eqz`/`if-nez` on [register], the Z its chat's NotificationSetting
- * answered, [threadKey] the check's own ThreadKey field and [self] the register holding the check.
+ * The thread check's mute check: [branch] is the `if-eqz`/`if-nez` on [register] that decides it, [muted] whether a
+ * nonzero [register] means the chat is muted rather than that it notifies, [threadKey] the check's own ThreadKey field
+ * and [self] the register holding the check.
  */
-internal class MuteCheck(val branch: Int, val register: Int, val threadKey: String, val self: Int)
+internal class MuteCheck(val branch: Int, val register: Int, val muted: Boolean, val threadKey: String, val self: Int)
+
+private val PLAIN_MOVES = setOf(Opcode.MOVE, Opcode.MOVE_FROM16, Opcode.MOVE_16)
 
 /**
- * The one `invoke-virtual ThreadSummary->()NotificationSetting` whose result is asked a ()Z straight after, then branched
- * on. Nothing may land on the branch, nothing may write the check's own register, and the result register has to fit
- * the 4-bit reads the guard puts in front of it.
+ * The branch on 587's flipped answer: the first `if-eqz`/`if-nez` on the `xor-int/lit8 vM, vA, 0x1` at [xor], with only
+ * plain moves writing vM on the way. Those are the snooze check handing over its own muted answer, so the branch is
+ * where every muted answer meets.
+ */
+private fun List<Instruction>.flippedBranch(xor: Int): Int? {
+    val muted = (this[xor] as TwoRegisterInstruction).registerA
+    for (at in xor + 1 until size) {
+        val i = this[at]
+        if ((i.opcode == Opcode.IF_EQZ || i.opcode == Opcode.IF_NEZ) && (i as OneRegisterInstruction).registerA == muted) return at
+        if (i.opcode.setsRegister() && i is OneRegisterInstruction &&
+            (i.registerA == muted || (i.opcode.setsWideRegister() && i.registerA + 1 == muted)) && i.opcode !in PLAIN_MOVES) return null
+    }
+    return null
+}
+
+/**
+ * The check's own ThreadKey field, read once: a typed field up to 586, and in 587's merged class an Object field cast to
+ * ThreadKey straight after its read.
+ */
+private fun Method.threadKeyField(): String? {
+    val code = code()
+    return code.indices.mapNotNull { at ->
+        val field = (code[at] as? ReferenceInstruction)?.reference as? FieldReference
+        if (code[at].opcode != Opcode.IGET_OBJECT || field == null || field.definingClass != definingClass) return@mapNotNull null
+        val cast = code.getOrNull(at + 1)
+        fieldId(field).takeIf {
+            field.type == THREAD_KEY_TYPE || (field.type == "Ljava/lang/Object;" && cast?.opcode == Opcode.CHECK_CAST &&
+                (cast as OneRegisterInstruction).registerA == (code[at] as OneRegisterInstruction).registerA &&
+                (cast as ReferenceInstruction).reference.toString() == THREAD_KEY_TYPE)
+        }
+    }.distinct().singleOrNull()
+}
+
+/**
+ * The one `invoke-virtual ThreadSummary->()NotificationSetting` whose result is asked a ()Z straight after. Up to 586
+ * the answer, whether the chat notifies, is branched on straight away, and nothing may land on that branch. 587 flips it
+ * into whether the chat is muted and branches on that after its snooze check (see [flippedBranch]). Nothing may write
+ * the check's own register, and the branched register has to fit the 4-bit reads the guard puts in front of it.
  */
 internal fun Method.muteCheck(): MuteCheck? {
-    if (definingClass != THREAD_LEVEL_RESULT || name != "invokeSuspend" || AccessFlags.STATIC.isSet(accessFlags) ||
-        parameterTypes.map(CharSequence::toString) != listOf("Ljava/lang/Object;")) return null
+    if (!isThreadCheck()) return null
     val registers = implementation?.registerCount ?: return null
     val code = code()
     val sites = (0 until (code.size - 4).coerceAtLeast(0)).mapNotNull { at ->
@@ -171,19 +212,22 @@ internal fun Method.muteCheck(): MuteCheck? {
             ask.returnType != "Z" || ask.parameterTypes.isNotEmpty() || (code[at + 2] as FiveRegisterInstruction).registerC != setting) return@mapNotNull null
         if (code[at + 3].opcode != Opcode.MOVE_RESULT) return@mapNotNull null
         val result = (code[at + 3] as OneRegisterInstruction).registerA
-        val branch = code[at + 4]
-        if ((branch.opcode != Opcode.IF_EQZ && branch.opcode != Opcode.IF_NEZ) || (branch as OneRegisterInstruction).registerA != result) return@mapNotNull null
-        at + 4 to result
+        val next = code[at + 4]
+        when {
+            (next.opcode == Opcode.IF_EQZ || next.opcode == Opcode.IF_NEZ) && (next as OneRegisterInstruction).registerA == result ->
+                Triple(at + 4, result, false)
+            next.opcode == Opcode.XOR_INT_LIT8 && (next as TwoRegisterInstruction).registerB == result &&
+                (next as NarrowLiteralInstruction).narrowLiteral == 1 ->
+                code.flippedBranch(at + 4)?.let { Triple(it, (next as TwoRegisterInstruction).registerA, true) }
+            else -> null
+        }
     }
-    val (branch, register) = sites.singleOrNull() ?: return null
-    if (register > 15 || branch in jumpTargets()) return null
-    val threadKey = code.filter { it.opcode == Opcode.IGET_OBJECT }
-        .mapNotNull { (it as ReferenceInstruction).reference as? FieldReference }
-        .filter { it.definingClass == THREAD_LEVEL_RESULT && it.type == THREAD_KEY_TYPE }.map(::fieldId).distinct()
-        .singleOrNull() ?: return null
+    val (branch, register, muted) = sites.singleOrNull() ?: return null
+    if (register > 15 || (!muted && branch in jumpTargets())) return null
+    val threadKey = threadKeyField() ?: return null
     val self = registers - 2
     if (code.any { it.opcode.setsRegister() && it is OneRegisterInstruction && (it.registerA == self || (it.opcode.setsWideRegister() && it.registerA + 1 == self)) }) return null
-    return MuteCheck(branch, register, threadKey, self)
+    return MuteCheck(branch, register, muted, threadKey, self)
 }
 
 /** The thread check, taken when it has both the folder read the guard goes after and the mute check. */
@@ -204,7 +248,7 @@ internal fun MutableMethod.validateQuietLogCheck(): MuteCheck {
  * The folder goes through the same extension guard as Notify for restricted chats, which lets a restricted chat on as
  * Inbox while this switch is on. Then, at the mute check, a muted chat asks the extension whether to go on (only while
  * the switch is on), and a chat that notifies tells it so, which forgets an old quiet mark. Either way the branch sees a
- * plain Z, so Messenger's own mute path runs unchanged when the extension says no.
+ * plain Z in its own sense, so Messenger's own mute path runs unchanged when the extension says no.
  */
 internal fun MutableMethod.injectQuietLogCheck() {
     validateQuietLogCheck()
@@ -212,19 +256,26 @@ internal fun MutableMethod.injectQuietLogCheck() {
     if (!folderRouted()) injectRestrictedNotify()
     val site = validateQuietLogCheck()
     val result = "v${site.register}"
-    addInstructionsWithLabels(site.branch, """
-        if-nez $result, :hush_loud_chat
-        move-object/from16 $result, v${site.self}
-        iget-object $result, $result, ${site.threadKey}
-        invoke-static {$result}, $QUIET_CHAT
-        move-result $result
-        goto :hush_mute_check
-        :hush_loud_chat
-        move-object/from16 $result, v${site.self}
-        iget-object $result, $result, ${site.threadKey}
-        invoke-static {$result}, $SETTINGS->loudChat(Ljava/lang/Object;)V
-        const/4 $result, 0x1
-    """.trimIndent(), ExternalLabel("hush_mute_check", getInstruction(site.branch)))
+    val threadKey = "move-object/from16 $result, v${site.self}\niget-object $result, $result, ${site.threadKey}"
+    // quietChat answers whether the chat goes on, so 587's muted register takes it flipped.
+    val guard = listOfNotNull(
+        "${if (site.muted) "if-eqz" else "if-nez"} $result, :hush_loud_chat",
+        threadKey,
+        "invoke-static {$result}, $QUIET_CHAT",
+        "move-result $result",
+        "xor-int/lit8 $result, $result, 0x1".takeIf { site.muted },
+        "goto :hush_mute_check",
+        ":hush_loud_chat",
+        threadKey,
+        "invoke-static {$result}, $SETTINGS->loudChat(Ljava/lang/Object;)V",
+        "const/4 $result, ${if (site.muted) "0x0" else "0x1"}",
+    ).joinToString("\n")
+    // The branch moves down past the guard, keeping its own jump, and whatever jumped onto it lands on the guard instead.
+    // It goes in as a new instruction: the stock one listed twice would answer the guard's goto with its first place.
+    val stock = getInstruction<BuilderInstruction21t>(site.branch)
+    addInstruction(site.branch + 1, BuilderInstruction21t(stock.opcode, stock.registerA, stock.target))
+    addInstructionsWithLabels(site.branch + 1, guard, ExternalLabel("hush_mute_check", getInstruction(site.branch + 1)))
+    removeInstruction(site.branch)
 }
 
 /** The drop needs v0 to v3, read before stock code writes them. */

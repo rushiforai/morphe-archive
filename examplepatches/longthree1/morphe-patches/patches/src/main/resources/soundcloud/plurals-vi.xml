@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="accessibility_metalabel_count_label">
+        <item quantity="other">%s lượt nghe</item>
+    </plurals>
+    <plurals name="accessibility_metalabel_likes_label">
+        <item quantity="other">%s lượt thích</item>
+    </plurals>
+    <plurals name="add_music_add_tracks_success_message">
+        <item quantity="other">Đã thêm %1$d bài vào &lt;b&gt;%2$s&lt;/b&gt;</item>
+    </plurals>
+    <plurals name="add_track_to_playlist_success">
+        <item quantity="other">Đã thêm bài hát vào %1$d danh sách phát</item>
+    </plurals>
+    <plurals name="artist_studio_get_heard_days_left">
+        <item quantity="other">Còn %1$d ngày</item>
+    </plurals>
+    <plurals name="artist_studio_latest_uploads_count">
+        <item quantity="other">%1$d bản tải lên</item>
+    </plurals>
+    <plurals name="artist_studio_top_listener_plays">
+        <item quantity="other">%1$s lượt nghe</item>
+    </plurals>
+    <plurals name="artists_to_follow">
+        <item quantity="other">nghệ sĩ gợi ý theo dõi</item>
+    </plurals>
+    <plurals name="collections_albums_header_plural">
+        <item quantity="other">%d Album</item>
+    </plurals>
+    <plurals name="collections_albums_search_hint">
+        <item quantity="other">Tìm trong %d album</item>
+    </plurals>
+    <plurals name="collections_playlists_and_albums_header_plural">
+        <item quantity="other">%d Danh sách phát &amp; album</item>
+    </plurals>
+    <plurals name="collections_playlists_header_plural">
+        <item quantity="other">%d Danh sách phát</item>
+    </plurals>
+    <plurals name="collections_playlists_search_hint">
+        <item quantity="other">Tìm trong %d danh sách phát</item>
+    </plurals>
+    <plurals name="collections_recently_played_header_items">
+        <item quantity="other">%d mục đã phát gần đây</item>
+    </plurals>
+    <plurals name="collections_stations_header_plural">
+        <item quantity="other">%d Trạm phát</item>
+    </plurals>
+    <plurals name="collections_stations_search_hint">
+        <item quantity="other">Tìm trong %d trạm phát</item>
+    </plurals>
+    <plurals name="comment_count">
+        <item quantity="other">%s bình luận</item>
+    </plurals>
+    <plurals name="comment_likes">
+        <item quantity="other">%s lượt thích</item>
+    </plurals>
+    <plurals name="downloading_track_of_tracks">
+        <item quantity="other">%1$d / %2$d bài hát</item>
+    </plurals>
+    <plurals name="elapsed_days">
+        <item quantity="other">%d ngày</item>
+    </plurals>
+    <plurals name="elapsed_days_ago">
+        <item quantity="other">%d ngày trước</item>
+    </plurals>
+    <plurals name="elapsed_hours">
+        <item quantity="other">%d giờ</item>
+    </plurals>
+    <plurals name="elapsed_hours_ago">
+        <item quantity="other">%d giờ trước</item>
+    </plurals>
+    <plurals name="elapsed_minutes">
+        <item quantity="other">%d phút</item>
+    </plurals>
+    <plurals name="elapsed_minutes_ago">
+        <item quantity="other">%d phút trước</item>
+    </plurals>
+    <plurals name="elapsed_months">
+        <item quantity="other">%d tháng</item>
+    </plurals>
+    <plurals name="elapsed_months_ago">
+        <item quantity="other">%d tháng trước</item>
+    </plurals>
+    <plurals name="elapsed_seconds">
+        <item quantity="other">%d giây</item>
+    </plurals>
+    <plurals name="elapsed_seconds_ago">
+        <item quantity="other">%d giây trước</item>
+    </plurals>
+    <plurals name="elapsed_years">
+        <item quantity="other">%d năm</item>
+    </plurals>
+    <plurals name="elapsed_years_ago">
+        <item quantity="other">%d năm trước</item>
+    </plurals>
+    <plurals name="exo_controls_fastforward_by_amount_description">
+        <item quantity="other">Tua nhanh %d giây</item>
+    </plurals>
+    <plurals name="exo_controls_rewind_by_amount_description">
+        <item quantity="other">Tua lại %d giây</item>
+    </plurals>
+    <plurals name="file_replace_quota_description">
+        <item quantity="other">Gói Artist cho phép thay tệp bài hát %1$d lần mỗi tháng. Hạn mức làm mới vào %2$s</item>
+    </plurals>
+    <plurals name="file_replace_upsell_description_x_files">
+        <item quantity="other">Bạn đã thay thế %d tệp trong tháng này</item>
+    </plurals>
+    <plurals name="followers_label">
+        <item quantity="other">%s Người theo dõi</item>
+    </plurals>
+    <plurals name="get_heard_amplify_out_of_credits_paywall_description_with_reset">
+        <item quantity="other">Gói hiện tại cung cấp %1$d điểm quảng bá mỗi tháng. Điểm làm mới vào %2$s. Nâng cấp Artist Pro để nhận điểm không giới hạn.</item>
+    </plurals>
+    <plurals name="get_heard_amplify_out_of_credits_paywall_description_without_reset">
+        <item quantity="other">Gói hiện tại cung cấp %1$d điểm quảng bá mỗi tháng. Nâng cấp Artist Pro để nhận điểm không giới hạn.</item>
+    </plurals>
+    <plurals name="get_heard_opt_in_available_credits">
+        <item quantity="other">Còn %1$s điểm</item>
+    </plurals>
+    <plurals name="get_heard_sheet_out_of_credits_description_with_reset">
+        <item quantity="other">Artist Pro cung cấp %1$d điểm quảng bá mỗi tháng. Điểm làm mới vào %2$s.</item>
+    </plurals>
+    <plurals name="get_heard_sheet_out_of_credits_description_without_reset">
+        <item quantity="other">Artist Pro cung cấp %1$d điểm quảng bá mỗi tháng.</item>
+    </plurals>
+    <plurals name="library_search_likes_hint">
+        <item quantity="other">Tìm trong %d bài hát</item>
+    </plurals>
+    <plurals name="moving_x_likes_to_playlist">
+        <item quantity="other">Đang chuyển %d lượt thích vào danh sách phát...</item>
+    </plurals>
+    <plurals name="mtrl_badge_content_description">
+        <item quantity="other">%d thông báo mới</item>
+    </plurals>
+    <plurals name="number_of_followers">
+        <item quantity="other">%s Người theo dõi</item>
+    </plurals>
+    <plurals name="number_of_tracks">
+        <item quantity="other">%s bài hát</item>
+    </plurals>
+    <plurals name="offline_backup_track_count">
+        <item quantity="other">%d bài hát</item>
+    </plurals>
+    <plurals name="offline_dialog_go_online_warning_content">
+        <item quantity="other">Thiết bị cần kết nối mạng ít nhất 30 ngày một lần để xác minh gói dịch vụ. Hãy trực tuyến trong %d ngày để giữ các bài đã tải.</item>
+    </plurals>
+    <plurals name="offline_dialog_go_online_warning_title">
+        <item quantity="other">Xác minh gói dịch vụ trong %d ngày</item>
+    </plurals>
+    <plurals name="profile_tracks_username">
+        <item quantity="other">%1$d bài hát · %2$s</item>
+    </plurals>
+    <plurals name="quota_limit_description_message">
+        <item quantity="other">Gói Artist cho phép phân tích và gợi ý %1$d bài hát mỗi tháng. Hạn mức làm mới vào %2$s</item>
+    </plurals>
+    <plurals name="quota_limit_description_message_tracks">
+        <item quantity="other">Gói Artist cho phép phân tích và gợi ý %1$d bài hát mỗi tháng.</item>
+    </plurals>
+    <plurals name="quota_limit_title_message">
+        <item quantity="other">Bạn đã được gợi ý %d bài hát trong tháng này</item>
+    </plurals>
+    <plurals name="removed_track_from_playlist_success">
+        <item quantity="other">Đã xóa bài hát khỏi %1$d danh sách phát</item>
+    </plurals>
+    <plurals name="repost_followers_count_info">
+        <item quantity="other">%1$d người theo dõi sẽ thấy bài đăng lại này</item>
+    </plurals>
+    <plurals name="reverting_x_likes">
+        <item quantity="other">Đang hoàn tác %d lượt thích...</item>
+    </plurals>
+    <plurals name="subscriptions_active_plans_title">
+        <item quantity="other">Gói đang hoạt động:</item>
+    </plurals>
+    <plurals name="track_page_buying_options_title">
+        <item quantity="other">Tùy chọn mua</item>
+    </plurals>
+    <plurals name="updated_playlist_success">
+        <item quantity="other">Đã cập nhật %1$d danh sách phát</item>
+    </plurals>
+    <plurals name="upload_success_amplify_credits_available">
+        <item quantity="other">Còn %1$d điểm</item>
+    </plurals>
+    <plurals name="upload_success_amplify_credits_available_with_date">
+        <item quantity="other">Còn %1$d điểm · Gia hạn %2$s</item>
+    </plurals>
+    <plurals name="x_liked_tracks">
+        <item quantity="other">%d bài hát đã thích</item>
+    </plurals>
+    <plurals name="x_likes_to_revert">
+        <item quantity="other">Có thể hoàn tác %d lượt thích</item>
+    </plurals>
+    <plurals name="x_playlists_transferred">
+        <item quantity="other">Đã chuyển %d danh sách phát</item>
+    </plurals>
+</resources>

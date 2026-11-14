@@ -27,11 +27,12 @@ public class ToastLengthTest {
         "quick_missing", "local_search_open_failed", "call_recording_failed", "copied", "copy_failed", "message_log_set_aside_failed", "message_log_cleared",
         "message_log_clear_failed", "auto_reply_saved_none", "import_empty", "import_invalid", "import_no_choices",
         "import_auto_reply_off", "open_help", "no_browser", "page_blocked", "camera_missing", "camera_failed",
-        "camera_permission", "gallery_missing", "gallery_failed", "restart_save_failed", "restart_unavailable",
+        "camera_permission", "gallery_missing", "gallery_failed", "instant_gallery_shutter", "restart_save_failed", "restart_unavailable",
         "text_style_read_only", "text_style_bold_none", "text_style_italic_none", "mark_read_done", "mark_read_nothing",
         "settings_open_failed", "settings_open_instead", "message_log_restored", "message_log_restore_failed",
         "import_same", "save_voice_menu_failed", "home_header_saved", "home_header_removed", "home_header_remove_failed",
         "home_header_not_picture", "home_header_unreadable", "home_header_not_saved", "home_header_busy", "home_header_timeout",
+        "special_contacts_tracked", "special_contacts_untracked", "special_contacts_full", "special_contacts_failed", "special_contacts_cleared",
     };
 
     @Test public void everyToastFitsOnTwoLines() {
@@ -44,6 +45,9 @@ public class ToastLengthTest {
         check(cut, "auto_reply_saved", words.get("auto_reply_saved", 12));
         check(cut, "call_recording_saved", words.get("call_recording_saved", "Recordings/" + CallRecording.FOLDER));
         check(cut, "save_voice_menu_saved", words.get("save_voice_menu_saved", "Recordings/" + VoiceMessages.FOLDER));
+        check(cut, "call_captions_picked", words.get("call_captions_picked", CallCaptions.name("zh-TW")));
+        check(cut, "call_captions_picked untranslated", words.get("call_captions_picked", words.get("call_captions_untranslated_choice")));
+        check(cut, "call_captions_downloading_now", words.get("call_captions_downloading_now", CallCaptions.name("zh-TW")));
         // A restored or lifted pause adds its own sentence to the restore toast.
         for (String paused : new String[] {" " + words.get("changes_paused") + ".", " " + words.get("changes_resumed") + "."}) {
             for (int count : new int[] {1, 12}) check(cut, "imported", words.count("imported", count) + paused);

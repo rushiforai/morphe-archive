@@ -94,7 +94,7 @@
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "./gradlew generatePatchesList           && jq '.version=\"${nextRelease.version}\"' patches-list.json > patches-list.json.tmp && mv patches-list.json.tmp patches-list.json && if [ \"${nextRelease.version}\" = \"2.0.0\" ]; then NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.0.0-mpp.sh; elif [ \"${nextRelease.version}\" = \"2.0.1\" ]; then NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.0.1-mpp.sh; fi",
+        "prepareCmd": "./gradlew generatePatchesList           && jq '.version=\"${nextRelease.version}\"' patches-list.json > patches-list.json.tmp && mv patches-list.json.tmp patches-list.json && if [ \"${nextRelease.version}\" = \"2.0.0\" ]; then NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.0.0-mpp.sh; elif [ \"${nextRelease.version}\" = \"2.0.1\" ]; then NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.0.1-mpp.sh; elif [ \"${nextRelease.version}\" = \"2.0.2\" ]; then NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.0.2-mpp.sh; fi",
         "successCmd": "git restore -- gradlew.bat"
       }
     ],

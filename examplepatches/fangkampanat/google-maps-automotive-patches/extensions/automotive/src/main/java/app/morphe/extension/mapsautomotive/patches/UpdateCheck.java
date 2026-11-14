@@ -8,9 +8,13 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Configuration;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.Signature;
+import android.content.pm.SigningInfo;
 import android.graphics.drawable.Icon;
 import android.net.Uri;
+import android.os.Build;
 import android.os.SystemClock;
 import android.view.Gravity;
 import android.view.View;
@@ -39,6 +43,7 @@ import java.nio.channels.FileLock;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.security.MessageDigest;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -60,9 +65,15 @@ import app.morphe.extension.shared.Utils;
  * version (User-Agent) and nothing about the car or the account; GitHub sees its network address as for any web
  * page. While "Check once a day" is on (the default), the main process checks about a minute after a start and then
  * once a day, when there is a network and safe mode is off; the dialog's "Check now" checks at any time. A newer
- * release posts one silent notification per version. The app cannot update itself: the dialog leads to the project
- * page (QR code), whose steps patch the new version with Morphe Desktop. The state is a small JSON file that the
- * main process and the report screen's process both read and write, replaced atomically under a file lock.
+ * release posts one silent notification per version. From 0.1.8 each check also asks the report server which APK it
+ * offers (GET /v1/apk: version, direct link, size; the owner sets it in the server's viewer). When that APK is newer
+ * than this build, the dialog has "Download and install": ApkInstaller downloads it, checks that it is this app signed
+ * with the key in Gradle property apkUpdateSigner, and Android installs it over this app after the user confirms.
+ * A "-dev" APK is offered to test builds only. The server is not asked on Android 9 (the APK is the Android 10 build),
+ * by a build without a server or signer, or by an app signed with another key (Android would refuse the APK); the
+ * dialog then says to patch with Morphe Desktop, as the project page shows (its QR code). The state is a small JSON
+ * file that the main process and the report screen's process both read and write, replaced atomically under a file
+ * lock.
  */
 @SuppressWarnings("unused")
 public final class UpdateCheck {
@@ -134,12 +145,16 @@ public final class UpdateCheck {
         String etag;
         /** The newest version a notification was posted for or the dialog showed as newer. */
         String notified;
+        /** The APK the report server last offered: its patches version, direct link and size (null, 0: none). */
+        String apkVersion, apkUrl;
+        long apkSize;
 
         JSONObject toJson() throws JSONException {
             return new JSONObject().put("auto", auto).put("checked_at", checkedAt).put("failed_at", failedAt)
                     .putOpt("failure", failure).putOpt("tag", tag).putOpt("latest", latest)
                     .putOpt("published_at", publishedAt).putOpt("notes", notes)
-                    .put("no_release", noRelease).putOpt("etag", etag).putOpt("notified", notified);
+                    .put("no_release", noRelease).putOpt("etag", etag).putOpt("notified", notified)
+                    .putOpt("apk_version", apkVersion).putOpt("apk_url", apkUrl).put("apk_size", apkSize);
         }
 
         /**
@@ -162,6 +177,9 @@ public final class UpdateCheck {
                 state.noRelease = json.optBoolean("no_release", false);
                 state.etag = text(json, "etag");
                 state.notified = text(json, "notified");
+                state.apkVersion = text(json, "apk_version");
+                state.apkUrl = text(json, "apk_url");
+                state.apkSize = json.optLong("apk_size", 0);
             } catch (JSONException | RuntimeException error) {
                 return unreadable();
             }
@@ -246,6 +264,110 @@ public final class UpdateCheck {
         Matcher matcher = PROJECT.matcher(projectUrl.trim());
         if (!matcher.matches() || matcher.group(2).endsWith(".git")) return null;
         return API_PREFIX + "repos/" + matcher.group(1) + "/" + matcher.group(2) + "/releases/latest";
+    }
+
+    /** The APK the report server offers (GET /v1/apk): its patches version, direct link and size. Plain Java. */
+    static final class Offer {
+        final String version, url;
+        final long size;
+
+        Offer(String version, String url, long size) {
+            this.version = version;
+            this.url = url;
+            this.size = size;
+        }
+    }
+
+    /** The report server's answer to GET /v1/apk: the HTTP status (0: none, [failure] says why) and a 200's body. */
+    static final class OfferResponse {
+        int status;
+        String body, failure;
+    }
+
+    /**
+     * Whether this build asks the report server for an APK: Android 10 or newer (the APK is the Android 10 build), a
+     * server and a signing key set when the bundle was built, and this app not signed with another key (Android would
+     * refuse the APK; an unreadable signer still asks, and Android decides).
+     */
+    static boolean asksServer(int sdk, String serverUrl, String signer, Boolean sameSigner) {
+        return sdk >= 29 && serverUrl != null && !serverUrl.isEmpty() && signer != null && !signer.isEmpty()
+                && !Boolean.FALSE.equals(sameSigner);
+    }
+
+    /**
+     * The stored APK when this build can install it: the server is asked, and the APK is newer than [installed];
+     * a test version ("-dev.") only for a test build.
+     */
+    static Offer installable(State s, String installed, boolean asks) {
+        if (!asks || s.apkVersion == null || s.apkUrl == null || s.apkSize <= 0) return null;
+        Integer order = compare(s.apkVersion, installed);
+        if (order == null || order <= 0) return null;
+        if (s.apkVersion.contains("-dev.") && (installed == null || !installed.contains("-dev."))) return null;
+        return new Offer(s.apkVersion, s.apkUrl, s.apkSize);
+    }
+
+    /** Whether [offer] is [latest] or newer, so it is the update that the verdict names. */
+    static boolean covers(Offer offer, String latest) {
+        if (offer == null) return false;
+        Integer order = compare(offer.version, latest);
+        return order != null && order >= 0;
+    }
+
+    /** Applies the server's answer to [state]: 200 the APK, 204 none, anything else keeps what is stored. For the log. */
+    static String applyOffer(State state, OfferResponse response) {
+        if (response.status == 204) {
+            state.apkVersion = state.apkUrl = null;
+            state.apkSize = 0;
+            return "no APK offered";
+        }
+        if (response.status == 200) {
+            try {
+                JSONObject json = new JSONObject(response.body == null ? "" : response.body);
+                String version = text(json, "version"), url = text(json, "url");
+                long size = json.optLong("size", 0);
+                if (version(version) == null || url == null || !url.startsWith("https://") || size <= 0 || size > ApkInstaller.MAX_BYTES) {
+                    throw new JSONException("not an offer");
+                }
+                state.apkVersion = version;
+                state.apkUrl = url;
+                state.apkSize = size;
+                return "APK " + version + " offered (" + ApkInstaller.megabytes(size) + ")";
+            } catch (JSONException | RuntimeException error) {
+                return "APK offer unreadable";
+            }
+        }
+        return "APK offer not read (" + (response.status > 0 ? "HTTP " + response.status : response.failure) + ")";
+    }
+
+    /** Whether this app's one signing certificate is the APK's (apkUpdateSigner); null when unreadable or none set. */
+    static Boolean sameSigner(Context context) {
+        String expected = BuildConfig.MAPS_CAR_APK_SIGNER;
+        return expected == null || expected.isEmpty() ? null : sameSigner(context, expected);
+    }
+
+    static boolean asksServer(Boolean sameSigner) {
+        return asksServer(Build.VERSION.SDK_INT, ReportPatch.URL, BuildConfig.MAPS_CAR_APK_SIGNER, sameSigner);
+    }
+
+    /** Whether this app's one signing certificate has the SHA-256 [expected] (hex); null when it cannot be read. */
+    private static Boolean sameSigner(Context context, String expected) {
+        try {
+            PackageInfo info = context.getPackageManager().getPackageInfo(context.getPackageName(),
+                    PackageManager.GET_SIGNING_CERTIFICATES);
+            SigningInfo signing = info.signingInfo;
+            Signature[] signers = signing == null ? null : signing.getApkContentsSigners();
+            if (signers == null || signers.length != 1) return null;
+            return expected.equalsIgnoreCase(hex(MessageDigest.getInstance("SHA-256").digest(signers[0].toByteArray())));
+        } catch (Exception error) {
+            ReportLog.w(TAG, "own signing certificate unreadable", error);
+            return null;
+        }
+    }
+
+    static String hex(byte[] bytes) {
+        StringBuilder hex = new StringBuilder(bytes.length * 2);
+        for (byte b : bytes) hex.append(Character.forDigit((b >> 4) & 0xf, 16)).append(Character.forDigit(b & 0xf, 16));
+        return hex.toString();
     }
 
     /** The project page without "https://", as the dialog shows it. */
@@ -399,18 +521,28 @@ public final class UpdateCheck {
      * group when there are no notes to keep apart.
      */
     static List<String> lines(State s, String installed, boolean thai, long nowMs, TimeZone zone) {
+        return lines(s, installed, thai, nowMs, zone, false);
+    }
+
+    /**
+     * As above; [asks]: whether this build asks the report server for an APK (asksServer). A newer release then says
+     * to tap "Download and install", or that its APK is not ready yet; otherwise to patch with Morphe Desktop, as in
+     * 0.1.7. An installable APK that the verdict does not name (a test build, or one GitHub has not released) gets
+     * its own line.
+     */
+    static List<String> lines(State s, String installed, boolean thai, long nowMs, TimeZone zone, boolean asks) {
         List<String> lines = new ArrayList<>();
         String have = installed == null ? "?" : installed;
+        Offer offer = installable(s, installed, asks);
+        boolean named = false;
         if (s.latest != null) {
             String date = releaseDate(s.publishedAt, nowMs, zone, thai);
             String released = date == null ? "" : thai ? " (ปล่อยเมื่อ " + date + ")" : " (released " + date + ")";
             Integer order = compare(s.latest, installed);
             if (order != null && order > 0) {
+                named = covers(offer, s.latest);
                 lines.add((thai ? "มีเวอร์ชันใหม่ " + s.latest + " · ติดตั้งอยู่ " + have : s.latest + " is available · installed " + have)
-                        + released + "\n" + (thai
-                        ? "อัปเดต: patch ใหม่ด้วย Morphe Desktop บนคอม แล้วติดตั้งทับ ใช้ keystore เดิม ข้อมูลในแอปจะยังอยู่"
-                        : "To update: patch again with Morphe Desktop on a computer and install it over this one."
-                        + " With the same keystore the app keeps its data."));
+                        + released + "\n" + howToUpdate(s.latest, offer, asks, thai));
                 if (s.notes != null) lines.add((thai ? "มีอะไรใหม่\n" : "What's new\n") + s.notes);
             } else if (order != null && order < 0) {
                 // Newer than the release GitHub last answered with: a test build by its name, else a release this
@@ -430,6 +562,10 @@ public final class UpdateCheck {
         } else {
             lines.add(thai ? "ยังไม่ได้ตรวจ · ติดตั้งอยู่ " + have : "Not checked yet · installed " + have);
         }
+        if (offer != null && !named) {
+            lines.set(0, lines.get(0) + "\n" + (thai ? "พร้อมติดตั้ง " + offer.version + " แตะ \"โหลดและติดตั้ง\" ด้านล่าง ข้อมูลในแอปจะยังอยู่"
+                    : offer.version + " is ready to install. Tap Download and install below; the app keeps its data."));
+        }
         StringBuilder checks = new StringBuilder();
         if (s.checkedAt > 0) {
             checks.append(thai ? "ตรวจล่าสุด: " : "Last checked: ").append(SendToCarStatus.clock(s.checkedAt, nowMs, zone, thai));
@@ -445,6 +581,24 @@ public final class UpdateCheck {
             else lines.set(0, lines.get(0) + "\n" + checks);
         }
         return lines;
+    }
+
+    /**
+     * What to do for the newer release [latest]: tap "Download and install" when [offer] is that version (or newer);
+     * when the server is asked but has no such APK yet, wait or patch; else patch with Morphe Desktop (0.1.7's text).
+     */
+    static String howToUpdate(String latest, Offer offer, boolean asks, boolean thai) {
+        if (covers(offer, latest)) {
+            return thai ? "อัปเดต: แตะ \"โหลดและติดตั้ง\" ด้านล่าง ข้อมูลในแอปจะยังอยู่"
+                    : "To update: tap Download and install below. The app keeps its data.";
+        }
+        if (asks) {
+            return thai ? "APK ของ " + latest + " ยังไม่พร้อม ลองตรวจใหม่ภายหลัง หรือ patch เองด้วย Morphe Desktop แล้วติดตั้งทับ"
+                    : "The APK for " + latest + " is not ready yet. Check again later, or patch it with Morphe Desktop and install it over this one.";
+        }
+        return thai ? "อัปเดต: patch ใหม่ด้วย Morphe Desktop บนคอม แล้วติดตั้งทับ ใช้ keystore เดิม ข้อมูลในแอปจะยังอยู่"
+                : "To update: patch again with Morphe Desktop on a computer and install it over this one."
+                + " With the same keystore the app keeps its data.";
     }
 
     static String failureText(String failure, boolean thai) {
@@ -463,8 +617,13 @@ public final class UpdateCheck {
 
     /** The dialog's text: the lines, then where the QR code leads. */
     static String message(State s, String installed, boolean thai, long nowMs, TimeZone zone, String projectUrl) {
+        return message(s, installed, thai, nowMs, zone, projectUrl, false);
+    }
+
+    /** As above, [asks] as for lines. The QR code always leads to the project page; the APK link is never shown. */
+    static String message(State s, String installed, boolean thai, long nowMs, TimeZone zone, String projectUrl, boolean asks) {
         StringBuilder text = new StringBuilder();
-        for (String line : lines(s, installed, thai, nowMs, zone)) {
+        for (String line : lines(s, installed, thai, nowMs, zone, asks)) {
             if (text.length() > 0) text.append("\n\n");
             text.append(line);
         }
@@ -610,12 +769,52 @@ public final class UpdateCheck {
         return response;
     }
 
+    /** GET [server]/v1/apk with the app key (as reports are sent); no redirect is followed. Never throws. */
+    static OfferResponse fetchOffer(String server, String key, String userAgent) {
+        OfferResponse response = new OfferResponse();
+        HttpURLConnection connection = null;
+        try {
+            connection = (HttpURLConnection) new URL(server + "/v1/apk").openConnection();
+            connection.setRequestMethod("GET");
+            connection.setInstanceFollowRedirects(false);
+            connection.setUseCaches(false);
+            connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
+            connection.setReadTimeout(READ_TIMEOUT_MS);
+            connection.setRequestProperty("Accept", "application/json");
+            connection.setRequestProperty("X-MapsCar-Key", key);
+            connection.setRequestProperty("User-Agent", userAgent);
+            int status = connection.getResponseCode();
+            if (status == 200) {
+                byte[] body;
+                try (InputStream in = connection.getInputStream()) {
+                    body = readAll(in, 16 * 1024);
+                }
+                if (body == null) {
+                    response.failure = "over 16 KB";
+                    return response;
+                }
+                response.body = new String(body, StandardCharsets.UTF_8);
+            }
+            response.status = status;
+        } catch (IOException | RuntimeException error) {
+            response.status = 0;
+            response.failure = error.getClass().getSimpleName();
+        } finally {
+            if (connection != null) connection.disconnect();
+        }
+        return response;
+    }
+
     private static String installed() {
         try {
             return Utils.getPatchesReleaseVersion();
         } catch (RuntimeException error) {
             return null;
         }
+    }
+
+    static String installedVersion() {
+        return installed();
     }
 
     /** One check now, off the main thread; the state after it (null when the file could not be written). */
@@ -630,13 +829,17 @@ public final class UpdateCheck {
             String etag = before.latest != null || before.noRelease ? before.etag : null;
             response = fetch(api, etag, "MapsCar/" + installed());
         }
+        OfferResponse offer = asksServer(sameSigner(context)) ? fetchOffer(ReportPatch.URL, ReportPatch.KEY, "MapsCar/" + installed()) : null;
         long now = System.currentTimeMillis();
-        String[] what = new String[1];
-        State after = update(context, state -> what[0] = apply(state, response, now));
+        String[] what = new String[2];
+        State after = update(context, state -> {
+            what[0] = apply(state, response, now);
+            if (offer != null) what[1] = applyOffer(state, offer);
+        });
         String installed = installed();
         Integer order = after == null || after.latest == null ? null : compare(after.latest, installed);
         ReportLog.i(TAG, "Update check: " + what[0] + "; installed " + installed + (order == null ? "" : order > 0 ? ", a newer release"
-                : order == 0 ? ", the latest" : ", newer than the release"));
+                : order == 0 ? ", the latest" : ", newer than the release") + (what[1] == null ? "" : "; " + what[1]));
         return after;
     }
 
@@ -663,6 +866,7 @@ public final class UpdateCheck {
     static void start(Context context) {
         try {
             Context app = context.getApplicationContext();
+            ApkInstaller.cleanUp(app);
             Utils.runOnMainThreadDelayed(() -> tick(app), FIRST_DELAY_MS);
         } catch (RuntimeException error) {
             ReportLog.w(TAG, "update check not scheduled", error);
@@ -731,8 +935,7 @@ public final class UpdateCheck {
             manager.createNotificationChannel(channel);
             Intent open = new Intent(context, ReportActivity.class).setAction(ACTION_SHOW).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             PendingIntent tap = PendingIntent.getActivity(context, 1, open, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
-            String text = thai ? "แตะเพื่อดูว่ามีอะไรใหม่ อัปเดตด้วย Morphe Desktop บนคอม"
-                    : "Tap for what's new. Update with Morphe Desktop on a computer.";
+            String text = thai ? "แตะเพื่อดูว่ามีอะไรใหม่และวิธีอัปเดต" : "Tap for what's new and how to update.";
             Notification notification = new Notification.Builder(context, CHANNEL)
                     .setSmallIcon(Icon.createWithResource("android", android.R.drawable.stat_sys_download_done))
                     .setContentTitle(thai ? "มีแพตช์เวอร์ชันใหม่ " + latest : "Patches " + latest + " are available")
@@ -829,7 +1032,8 @@ public final class UpdateCheck {
         try {
             Utils.runOnBackgroundThread(() -> {
                 State state = read(host);
-                Utils.runOnMainThread(() -> showDialog(host, container, state));
+                Boolean same = sameSigner(host);
+                Utils.runOnMainThread(() -> showDialog(host, container, state, same, asksServer(same)));
             });
         } catch (RuntimeException error) {
             openingSince = 0;
@@ -841,24 +1045,76 @@ public final class UpdateCheck {
         return rowStatus(state, installed(), thai, System.currentTimeMillis(), TimeZone.getDefault());
     }
 
-    private static void showDialog(Activity host, View container, State state) {
+    /** The dialog's "Download and install" line and the status line under it, and the APK they offer. */
+    private static final class InstallRow {
+        final Context context;
+        final TextView action, status;
+        AlertDialog dialog;
+        Offer offer;
+
+        InstallRow(Context context, TextView action, TextView status) {
+            this.context = context;
+            this.action = action;
+            this.status = status;
+        }
+
+        /**
+         * Shows [offer] (null: hides the line). While an install runs, the line keeps the APK it shows (a "Check now"
+         * meanwhile does not swap it) and this dialog follows the job's status, also when another dialog started it.
+         */
+        void bind(Offer offer, boolean thai) {
+            if (ApkInstaller.busy(context)) {
+                if (this.offer == null && offer != null) label(offer, thai);
+                ApkInstaller.attach(context, this::show);
+                return;
+            }
+            if (offer == null) {
+                this.offer = null;
+                action.setVisibility(View.GONE);
+            } else {
+                label(offer, thai);
+            }
+            action.setEnabled(true);
+            action.setAlpha(1f);
+        }
+
+        private void label(Offer offer, boolean thai) {
+            this.offer = offer;
+            action.setVisibility(View.VISIBLE);
+            action.setText((thai ? "โหลดและติดตั้ง " : "Download and install ") + offer.version + " (" + ApkInstaller.megabytes(offer.size) + ")");
+        }
+
+        /** The status line; while the job works the line cannot be tapped and a tap outside does not close the dialog. */
+        void show(String text, boolean busy) {
+            status.setText(text);
+            status.setVisibility(text == null || text.isEmpty() ? View.GONE : View.VISIBLE);
+            action.setEnabled(!busy);
+            action.setAlpha(busy ? 0.5f : 1f);
+            if (dialog != null) dialog.setCanceledOnTouchOutside(!busy);
+        }
+    }
+
+    private static void showDialog(Activity host, View container, State state, Boolean sameSigner, boolean asks) {
         openingSince = 0;
         try {
             if (host.isFinishing() || host.isDestroyed()) return;
             boolean thai = UiDensityPatch.isThai(host);
-            String projectUrl = BuildConfig.MAPS_CAR_PROJECT_URL, page = projectUrl + PAGE_ANCHOR;
+            String projectUrl = BuildConfig.MAPS_CAR_PROJECT_URL;
+            String page = projectUrl + PAGE_ANCHOR;
             AlertDialog.Builder builder = new AlertDialog.Builder(host).setTitle(getSettingsTitle(host));
             ReportPatch.Views views = new ReportPatch.Views(builder.getContext());
-            boolean landscape = host.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
+            int screen = Math.min(host.getResources().getDisplayMetrics().widthPixels, host.getResources().getDisplayMetrics().heightPixels);
+            // From the window's width, not the orientation: a half screen is "landscape" too (ReportPatch.QrLayout).
+            ReportPatch.QrLayout layout = ReportPatch.QrLayout.of(host, views, Math.min(views.px(240), screen / 2));
+            boolean landscape = layout.sideBySide;
             LinearLayout content = views.vertical();
             content.setPadding(views.px(24), views.px(8), views.px(24), views.px(8));
             LinearLayout top = landscape ? views.horizontal() : views.vertical();
             top.setGravity(landscape ? Gravity.TOP : Gravity.CENTER_HORIZONTAL);
             QrCode code = QrCode.encode(page);
             if (code != null) {
-                int screen = Math.min(host.getResources().getDisplayMetrics().widthPixels, host.getResources().getDisplayMetrics().heightPixels);
                 ImageView image = new ImageView(views.themed);
-                image.setImageBitmap(ReportPatch.qrBitmap(code, Math.min(views.px(240), screen / 2)));
+                image.setImageBitmap(ReportPatch.qrBitmap(code, layout.qrSide));
                 image.setContentDescription(thai ? "QR code ของหน้าโปรเจกต์" : "QR code of the project page");
                 LinearLayout.LayoutParams imageLayout = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                 imageLayout.gravity = landscape ? Gravity.TOP : Gravity.CENTER_HORIZONTAL;
@@ -866,17 +1122,36 @@ public final class UpdateCheck {
             }
             TextView message = views.text(15, views.secondary, false);
             message.setLineSpacing(0, 1.2f);
-            message.setText(message(state, installed(), thai, System.currentTimeMillis(), TimeZone.getDefault(), projectUrl));
+            message.setText(message(state, installed(), thai, System.currentTimeMillis(), TimeZone.getDefault(), projectUrl, asks));
+            // Under the text, beside the QR code when side by side.
+            LinearLayout words = views.vertical();
+            words.addView(message);
+            TextView action = views.action("");
+            action.setPadding(0, 0, 0, 0);
+            TextView status = views.text(14, views.secondary, false);
+            status.setLineSpacing(0, 1.2f);
+            status.setTextIsSelectable(true);
+            status.setVisibility(View.GONE);
+            words.addView(action);
+            words.addView(status);
+            InstallRow install = new InstallRow(host, action, status);
+            install.bind(installable(state, installed(), asks), thai);
+            action.setOnClickListener(view -> {
+                Offer offer = install.offer;
+                if (offer == null) return;
+                ApkInstaller.start(host, offer, thai, install::show);
+            });
             if (landscape) {
-                message.setPadding(code == null ? 0 : views.px(24), 0, 0, 0);
-                top.addView(message, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+                words.setPadding(code == null ? 0 : views.px(24), 0, 0, 0);
+                top.addView(words, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
             } else {
-                message.setPadding(0, views.px(12), 0, 0);
-                top.addView(message);
+                words.setPadding(0, views.px(12), 0, 0);
+                top.addView(words);
             }
             content.addView(top);
             CheckBox auto = new CheckBox(views.themed);
-            auto.setText(thai ? "ตรวจอัตโนมัติวันละครั้ง (ติดต่อ GitHub)" : "Check once a day (contacts GitHub)");
+            auto.setText(asks ? (thai ? "ตรวจอัตโนมัติวันละครั้ง (ติดต่อ GitHub และเซิร์ฟเวอร์รายงาน)" : "Check once a day (contacts GitHub and the report server)")
+                    : thai ? "ตรวจอัตโนมัติวันละครั้ง (ติดต่อ GitHub)" : "Check once a day (contacts GitHub)");
             auto.setTextColor(views.primary);
             auto.setChecked(state.auto);
             auto.setMinHeight(views.px(48));
@@ -906,9 +1181,16 @@ public final class UpdateCheck {
                 builder.setNegativeButton(thai ? "เปิดในเบราว์เซอร์" : "Open in browser", (dialog, which) -> ReportPatch.openLink(host, view, thai));
             }
             AlertDialog dialog = builder.create();
+            install.dialog = dialog;
+            // Closing the dialog stops a download (an install Android already has goes on).
+            dialog.setOnDismissListener(closed -> ApkInstaller.cancel());
             dialog.show();
+            layout.apply(dialog);
+            ReportLog.i(TAG, "Update dialog: " + (!asks ? "server not asked" : install.offer != null ? "APK " + install.offer.version + " to install"
+                    : "no APK to install") + ", signer " + (sameSigner == null ? "unreadable or not set" : sameSigner ? "same" : "different")
+                    + ", " + layout.describe(views));
             Button check = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
-            if (check != null) check.setOnClickListener(button -> checkFromDialog(host, container, dialog, message, check, shown, rowText, thai));
+            if (check != null) check.setOnClickListener(button -> checkFromDialog(host, container, dialog, message, check, shown, rowText, thai, asks, install));
             openDialog = new WeakReference<>(dialog);
             openHost = new WeakReference<>(host);
             seen(app, state);
@@ -922,7 +1204,7 @@ public final class UpdateCheck {
      * result. While a daily check runs, it waits for that one (up to 60 s) and shows what it stored.
      */
     private static void checkFromDialog(Activity host, View container, AlertDialog dialog, TextView message, Button button,
-                                        State[] shown, String[] rowText, boolean thai) {
+                                        State[] shown, String[] rowText, boolean thai, boolean asks, InstallRow install) {
         boolean own = checking.compareAndSet(false, true);
         button.setEnabled(false);
         button.setText(thai ? "กำลังตรวจ…" : "Checking…");
@@ -943,7 +1225,7 @@ public final class UpdateCheck {
                     if (own) checking.set(false);
                 }
                 State result = after != null ? after : read(app);
-                Utils.runOnMainThread(() -> showResult(host, container, dialog, message, button, shown, rowText, result, thai));
+                Utils.runOnMainThread(() -> showResult(host, container, dialog, message, button, shown, rowText, result, thai, asks, install));
             });
         } catch (RuntimeException error) {
             if (own) checking.set(false);
@@ -954,7 +1236,7 @@ public final class UpdateCheck {
     }
 
     private static void showResult(Activity host, View container, AlertDialog dialog, TextView message, Button button, State[] shown,
-                                   String[] rowText, State result, boolean thai) {
+                                   String[] rowText, State result, boolean thai, boolean asks, InstallRow install) {
         try {
             Context app = host.getApplicationContext();
             shown[0] = result;
@@ -977,7 +1259,8 @@ public final class UpdateCheck {
                 return;
             }
             message.setText(message(result, installed(), thai, System.currentTimeMillis(), TimeZone.getDefault(),
-                    BuildConfig.MAPS_CAR_PROJECT_URL));
+                    BuildConfig.MAPS_CAR_PROJECT_URL, asks));
+            install.bind(installable(result, installed(), asks), thai);
             button.setEnabled(true);
             button.setText(thai ? "ตรวจตอนนี้" : "Check now");
             seen(app, result);

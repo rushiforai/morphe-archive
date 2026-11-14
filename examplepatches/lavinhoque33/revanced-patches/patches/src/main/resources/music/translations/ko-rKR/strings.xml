@@ -118,7 +118,6 @@ SABR 프로토콜을 사용하여 재생하는 경우 (동영상 스트림 속�
     <string name="morphe_music_crossfade_screen_title">크로스페이드</string>
     <string name="morphe_music_crossfade_session_control_summary">셔플 버튼을 길게 탭하여 크로스페이드를 일시 중지하거나 다시 실행할 수 있습니다</string>
     <string name="morphe_music_crossfade_session_control_title">세션 제어</string>
-    <string name="morphe_music_crossfade_video_mode_disabled_toast">크로스페이드가 활성화된 동안에는 동영상 모드를 사용할 수 없습니다</string>
     <string name="morphe_music_deezer_arl_dialog_instruction">"Deezer에서 arl 쿠키를 붙여넣으세요
 
 단계:
@@ -1070,4 +1069,6 @@ API Key를 발급받는 방법을 보려면 여기를 탭하세요"</string>
     <string name="revanced_webview_toast_empty">\'%s\'가 비워져있습니다</string>
     <string name="revanced_webview_toast_no_network">네트워크 연결상태를 확인하세요</string>
     <string name="revanced_webview_toast_unavailable">WebView를 사용할 수 없습니다</string>
+    <string name="morphe_music_auto_song_version_title">항상 노래 버전 재생</string>
+    <string name="morphe_music_auto_song_version_summary">대기열의 공식 뮤직 비디오를 일치하는 노래로 바꿉니다. 앱의 뮤직 비디오 재생 안 함 설정을 켜야 합니다. 정확히 일치하는 노래가 없으면 변경하지 않습니다</string>
 </resources>

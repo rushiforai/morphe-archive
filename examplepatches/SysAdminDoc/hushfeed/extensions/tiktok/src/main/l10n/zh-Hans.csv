@@ -951,7 +951,7 @@ Kinds of post,帖子种类
 LIVE,LIVE
 LIVE chat auto-translate,LIVE 聊天自动翻译
 "The Translate comments button in a LIVE room also needs a Japanese SIM. Turn on Override SIM details in Hushfeed settings > Region, set SIM country preset to Japan, NTT DOCOMO (44010), then restart TikTok.","LIVE 直播间里的“翻译评论”按钮还需要日本 SIM 卡。在 Hushfeed 设置 > 地区中开启“覆盖 SIM 卡详细信息”，将“SIM 卡国家/地区预设”设为 Japan, NTT DOCOMO (44010)，然后重启 TikTok."
-"Comments only scroll on videos TikTok has turned them on for, so most videos stay the same.",只有 TikTok 开启了此功能的视频才会显示滚动评论，因此大多数视频保持不变.
+Wide videos TikTok allows it on get an Add one-liner button under the video and a one-liner bar in full screen. Other videos stay the same.,TikTok 允许的横屏视频会在视频下方显示添加单行评论的按钮，全屏时还会显示单行评论栏。其他视频保持不变.
 LIVE feed,LIVE 信息流
 LIVE followers range,LIVE 关注者范围
 LIVE recording saved to %1$s,LIVE 录音已保存到 %1$s
@@ -988,7 +988,7 @@ Let a LIVE fill the screen up to the top edge. The status bar comes back when yo
 Let the Offline videos menu use your own limit instead of TikTok's fixed one. Restart TikTok to apply this.,让离线视频菜单使用你自己的限制，而不是 TikTok 的固定限制。重新启动 TikTok 以应用此操作.
 Let the last video finish,让最后一个视频结束吧
 Let the video reach the bottom of the screen on the main feed and show the tabs over it with no bar behind them.,让视频到达主信息流的屏幕底部，并在其上方显示选项卡，且后面没有任何栏.
-"Let the video reach the top of the screen on the main feed, with the clock and status icons over it. The tabs at the top stay where they are.",让视频到达主信息流的屏幕顶部，并在其上方显示时钟和状态图标。顶部的选项卡保持在原来的位置.
+"Let the video reach the top of the screen, with the clock and status icons over it. Works on the main feed and on videos you open from search, a profile or your Liked and Favorites. The tabs at the top stay where they are.",让视频延伸到屏幕顶部，并在其上方显示时钟和状态图标。适用于主信息流，以及你从搜索、个人主页或你的“喜欢”和“收藏”中打开的视频。顶部的选项卡保持在原来的位置.
 Licenses,许可证
 Lift text length limits,解除文本长度限制
 Like,喜欢
@@ -2635,3 +2635,18 @@ Hide search result tabs,隐藏搜索结果标签
 "Pick the tabs to remove from the top of the search results, such as Shop, LIVE or Places. The list holds the tabs TikTok has shown you, and Top always stays.",选择要从搜索结果顶部移除的标签，例如商店、LIVE 或地点。列表中是 TikTok 向你显示过的标签，“综合”始终保留.
 No search tabs have been seen yet,尚未看到搜索标签
 "Search for something once, then return here to choose its tabs.",先搜索一次，然后回到这里选择标签.
+Video download codec,视频下载编码
+HEVC first,优先 HEVC
+H.264 only,仅 H.264
+"At the same quality, Automatic saves H.264, which nearly every player opens. HEVC is often sharper, but some older players and TVs can't play it.",在相同画质下，自动会保存为几乎所有播放器都能打开的 H.264。HEVC 通常更清晰，但一些较旧的播放器和电视无法播放.
+Pick which stories to save,选择要保存的快拍
+"When someone has more than one story, saving asks which ones to keep. The story you're watching is already checked.",当某人有不止一条快拍时，保存时会询问要保留哪些。你正在看的那条已勾选.
+Pick stories to save,选择要保存的快拍
+%1$s of %2$s stories are loaded. Watch further to load the rest.,已加载 %1$s / %2$s 条快拍。继续观看即可加载其余快拍.
+Story %1$s,快拍 %1$s
+On screen,屏幕上
+Pick at least one story,请至少选择一条快拍
+Shade behind the status bar,状态栏后的阴影
+"A soft dark fade behind the clock and status icons, so they stay easy to read over a bright video. Needs See-through status bar.",在时钟和状态图标后面加一层柔和的深色渐变，让它们在明亮的视频上也清晰易读。需要透视状态栏.
+Glass Stories button on Following,“正在关注”中的玻璃故事按钮
+"The Stories button at the top of the Following feed turns to glass with round ends. On Android 12 and up, the video behind it is blurred too.",“正在关注”信息流顶部的故事按钮会变成两端圆润的玻璃效果。在 Android 12 及更高版本上，它后面的视频也会被模糊处理.

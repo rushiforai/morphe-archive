@@ -28,6 +28,14 @@ import app.morphe.extension.shared.patches.CustomBrandingPatch;
  * or reference this class.
  */
 public class SharedYouTubeSettings extends BaseSettings {
+    public static final StringSetting PATCHES_UPDATE_NOTICE = new StringSetting(
+            "revanced_patches_update_notice",
+            app.morphe.extension.shared.patches.PatchesUpdateData.defaultChannel(PatchStatus.PatchVersion()));
+    public static final LongSetting PATCHES_UPDATE_LAST_CHECK = new LongSetting(
+            "revanced_patches_update_last_check", 0L, false, false);
+    public static final StringSetting PATCHES_UPDATE_SKIPPED_VERSIONS = new StringSetting(
+            "revanced_patches_update_skipped_versions", "", false, false);
+
     public static final StringSetting DISABLED_FEATURE_FLAGS = new StringSetting(
             "morphe_disabled_feature_flags", "", true, parent(DEBUG));
     public static final StringSetting FORCED_FEATURE_FLAGS = new StringSetting(

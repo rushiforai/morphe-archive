@@ -2,8 +2,8 @@ package semicoloncolonel.mobilestream.patches.dealseek.misc
 
 import app.morphe.patcher.patch.rawResourcePatch
 import app.morphe.patcher.patch.resourcePatch
-import org.w3c.dom.Element
 import semicoloncolonel.mobilestream.patches.dealseek.shared.Constants
+import semicoloncolonel.mobilestream.patches.shared.misc.disableExpoUpdatesPatch
 import semicoloncolonel.mobilestream.patches.shared.misc.HERMES_BUNDLE
 import semicoloncolonel.mobilestream.patches.shared.misc.HermesBundle
 
@@ -24,9 +24,8 @@ import semicoloncolonel.mobilestream.patches.shared.misc.HermesBundle
 //
 // The two review modals render nothing, and the other two return at once.
 //
-// Expo checks for a new JavaScript bundle on every launch and would replace
-// the patched one, so Expo updates are turned off in the manifest. The app
-// then always runs the JavaScript that shipped with 1.64.0.
+// Expo updates are turned off so that the patched bundle stays in use
+// (DisableExpoUpdatesPatch).
 // ─────────────────────────────────────────────────────────────────────────────
 
 private val hidePopupsInBundlePatch = rawResourcePatch {
@@ -46,20 +45,8 @@ val hidePopupsPatch = resourcePatch(
     name = "Hide pop-ups",
     description = "Removes the review requests, the daily spin-the-wheel pop-up, and the survey after opening a deal.",
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
-    dependsOn(hidePopupsInBundlePatch)
-
-    execute {
-        document("AndroidManifest.xml").use { document ->
-            val application = document.getElementsByTagName("application").item(0) as Element
-            val metaData = application.getElementsByTagName("meta-data")
-            for (i in 0 until metaData.length) {
-                val element = metaData.item(i) as? Element ?: continue
-                if (element.getAttribute("android:name") == "expo.modules.updates.ENABLED") {
-                    element.setAttribute("android:value", "false")
-                }
-            }
-        }
-    }
+    dependsOn(hidePopupsInBundlePatch, disableExpoUpdatesPatch)
 }

@@ -301,7 +301,7 @@ private fun BytecodePatchContext.wireMuse16JsonActions() {
         BuilderInstruction35c(Opcode.INVOKE_STATIC, 1, 1, 0, 0, 0, 0, activityGetter),
         BuilderInstruction11x(Opcode.MOVE_RESULT_OBJECT, 48),
         BuilderInstruction21c(Opcode.NEW_INSTANCE, 47, ImmutableTypeReference(actionType)),
-        BuilderInstruction3rc(Opcode.INVOKE_DIRECT_RANGE, 3, 47, constructor)
+        BuilderInstruction3rc(Opcode.INVOKE_DIRECT_RANGE, 47, 3, constructor)
     )
     injected.forEachIndexed { offset, instruction -> implementation.addInstruction(callbackLoad + 1 + offset, instruction) }
 }

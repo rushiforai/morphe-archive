@@ -117,6 +117,39 @@ public class FreeProxiesTest {
         assertTrue(FreeProxies.parse("").isEmpty());
     }
 
+    @Test public void readsTheLinksOfAMessyListAndLeavesWhatCantBeUsed() {
+        String secret = secret();
+        List<FreeProxies.Proxy> found = FreeProxies.parse(String.join("\n",
+                "1. tg://proxy?server=Dot.Example.org.&port=443&secret=" + secret + ")__",
+                "https://t.me/proxy?server=stars.example.com&port=8443&secret=" + secret + "**",
+                "[پروکسی](https://t.me/proxy?server=md.example.com&port=443&secret=" + secret
+                        + ")[next](tg://proxy?server=10.9.8.7&port=88&secret=" + secret + ")✅",
+                "tg://proxy?server=tag.example.net&port=443&secret=" + secret + "&@SomeChannel",
+                "tg://proxy?server=std.example.com&port=443&secret=AB+CDEFGHIJKLMNOP/QRSTUVw==`",
+                "tg://proxy?server=big.example.com&port=443000&secret=" + secret,
+                "tg://proxy?server=cut.example.com&port=443&secret=EERighJJvXrFGRMCIMjdC",
+                "https://xt.me/proxy?server=host.example.com&port=443&secret=" + secret));
+        assertEquals(Arrays.asList("dot.example.org", "stars.example.com", "md.example.com", "10.9.8.7",
+                "tag.example.net", "std.example.com"), servers(found));
+        assertEquals("tg://proxy?server=dot.example.org&port=443&secret=" + secret, found.get(0).link());
+        assertEquals(secret, found.get(2).secret);
+        assertEquals(88, found.get(3).port);
+        assertEquals("base64's + and / as base64url", "AB-CDEFGHIJKLMNOP_QRSTUVw==", found.get(5).secret);
+    }
+
+    @Test public void readsAListSentAsOneBlockOfBase64() {
+        String plain = "tg://proxy?server=a.example.com&port=443&secret=" + secret()
+                + "\nhttps://t.me/proxy?server=b.example.com&port=8443&secret=" + secret() + "\n";
+        byte[] bytes = plain.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        String mime = java.util.Base64.getMimeEncoder().encodeToString(bytes);
+        assertTrue("wrapped over lines", mime.contains("\n"));
+        assertEquals(Arrays.asList("a.example.com", "b.example.com"), servers(FreeProxies.parse(mime)));
+        String url = java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+        assertEquals(Arrays.asList("a.example.com", "b.example.com"), servers(FreeProxies.parse(url)));
+        assertNull(FreeProxies.base64("not a list, it has spaces and commas"));
+        assertNull(FreeProxies.base64("short"));
+    }
+
     @Test public void oneProxyPerServerAndPort() {
         String secret = secret();
         List<FreeProxies.Proxy> found = FreeProxies.parse(
@@ -353,10 +386,10 @@ public class FreeProxiesTest {
         assertEquals(FreeProxies.KEEP, list.saved.size());
         assertEquals("p11.example.com", FreeProxies.parseLink(list.saved.get(0)).server);
         assertNull("off, Telegram isn't told to use one", list.current);
-        assertEquals("ADDED 10", FreeProxies.Stored.RESULT.get());
+        assertEquals("ADDED 10 12", FreeProxies.Stored.RESULT.get());
         assertEquals(FreeProxies.KEEP, FreeProxies.added().size());
         assertTrue(FreeProxies.Stored.TRIED_AT.get() > 0);
-        assertEquals("Proxies added last time: 10. They're in Telegram's proxy list.", FreeProxies.summary());
+        assertEquals("Proxies added last time: 10 of 12 read. They're in Telegram's proxy list.", FreeProxies.summary());
 
         Settings.FREE_PROXIES.save(true);
         assertTrue(FreeProxies.findNow());
@@ -460,6 +493,8 @@ public class FreeProxiesTest {
         assertEquals("Telegram didn't take the proxies last time.", FreeProxies.summary());
         FreeProxies.Stored.RESULT.save("ADDED 7");
         assertEquals("Proxies added last time: 7. They're in Telegram's proxy list.", FreeProxies.summary());
+        FreeProxies.Stored.RESULT.save("ADDED 7 358");
+        assertEquals("Proxies added last time: 7 of 358 read. They're in Telegram's proxy list.", FreeProxies.summary());
         FreeProxies.Stored.RESULT.save("SOMETHING_NEWER 3");
         assertTrue("a result it doesn't know reads as no try", FreeProxies.summary().startsWith("Downloads"));
         FreeProxies.Stored.TRIED_AT.resetToDefault();

@@ -9,6 +9,7 @@ import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.LinearGradient;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.PixelFormat;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
@@ -45,6 +46,8 @@ public final class GlassCapsule extends Drawable {
     private final float density;
     private final RectF rect = new RectF();
     private final RectF pillRect = new RectF();
+    /** The capsule's outline, which the shadow is kept out of. */
+    private final Path shape = new Path();
     private final Paint fill = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint sheen = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint edge = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -70,6 +73,22 @@ public final class GlassCapsule extends Drawable {
     private final SlidingPill slider = new SlidingPill(this::invalidateSelf);
     /** How opaque the fill is: lower lets more of the screen behind the bar show through. */
     private final float fillAlpha;
+    /** The corner radius from {@link #setCorner}, or 0 for fully round ends. */
+    private float corner;
+    /** How many rings the shadow of a light capsule has, from {@link #setShadowRings}. */
+    private int shadowRings = 4;
+    /** Whether the capsule is drawn as bevelled glass, from {@link #setBevel}. */
+    private boolean bevel;
+    private final Paint bevelPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint bandPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Path band = new Path();
+    private final Path bandInner = new Path();
+    private final RectF bandRect = new RectF();
+    /** How many layers the light band inside a bevelled edge is drawn in, each reaching less far in. */
+    private static final int BAND_STEPS = 4;
+    /** How far the band reaches in along the long sides and along the short ones, in dp. */
+    private static final float BAND_LONG_DP = 3.5f;
+    private static final float BAND_SHORT_DP = 1;
 
     /**
      * @param color   the color the bar had before, which becomes the translucent fill
@@ -115,6 +134,39 @@ public final class GlassCapsule extends Drawable {
     private int wash(int color) {
         // Strong enough to stand out from a near-white capsule, and from under the Liquid Glass sheen.
         return Color.argb(light ? 0x47 : 0x59, Color.red(color), Color.green(color), Color.blue(color));
+    }
+
+    /**
+     * Rounds the corners by {@code radius} pixels instead of making the ends fully round, for a glass card.
+     *
+     * @param radius the corner radius in pixels; 0 brings back the capsule
+     */
+    public void setCorner(float radius) {
+        corner = radius;
+        invalidateSelf();
+    }
+
+    /**
+     * How many rings the soft shadow of a light capsule has, each 2 dp wider than the last: 4 by default, fewer for a
+     * thinner shadow, 0 for none. Fewer rings also leave out the drop shadow under the fill, which shows through a
+     * translucent fill as a gray cast.
+     */
+    public void setShadowRings(int rings) {
+        shadowRings = rings;
+        if (rings < 4) fill.clearShadowLayer();
+        invalidateSelf();
+    }
+
+    /**
+     * Draws the capsule as Apple's Liquid Glass buttons look over a plain background, in place of the edge, with no
+     * recorded backdrop. Light: a hairline edge, the sheen shading the bottom and a soft shadow below, subtle on
+     * purpose; the fill should be as light as the page or lighter. Dark: a light edge that catches the light at the top
+     * and bottom and a light band inside it in place of the sheen; the fill should be a shade lighter than the page.
+     */
+    public void setBevel(boolean on) {
+        bevel = on;
+        bevelPaint.setStyle(Paint.Style.STROKE);
+        invalidateSelf();
     }
 
     /** The position of the pill along the bar, which slides when the app selects another tab. */
@@ -165,15 +217,23 @@ public final class GlassCapsule extends Drawable {
                 : new LinearGradient(0, rect.top, 0, rect.bottom, 0x0AFFFFFF, Color.TRANSPARENT, Shader.TileMode.CLAMP));
         edge.setShader(new LinearGradient(0, rect.top, 0, rect.bottom, light ? 0x1A000000 : 0x2EFFFFFF,
                 light ? 0x08000000 : 0x06FFFFFF, Shader.TileMode.CLAMP));
-        float radius = Math.min(rect.width(), rect.height()) / 2;
-        if (light) {
+        float radius = corner > 0 ? Math.min(corner, Math.min(rect.width(), rect.height()) / 2)
+                : Math.min(rect.width(), rect.height()) / 2;
+        if (light && shadowRings > 0) {
             // Hardware canvases ignore a shadow layer on shapes, so the shadow is a few widening translucent rings.
-            for (int i = 4; i >= 1; i--) {
-                float grow = i * 2 * density;
-                shadow.setColor(Color.argb(10, 0, 0, 0));
-                canvas.drawRoundRect(rect.left - grow, rect.top - grow / 2, rect.right + grow,
+            // They stay outside the capsule, as the translucent fill would show them as a gray cast.
+            int saved = canvas.save();
+            shape.rewind();
+            shape.addRoundRect(rect, radius, radius, Path.Direction.CW);
+            canvas.clipOutPath(shape);
+            for (int i = shadowRings; i >= 1; i--) {
+                // A bevelled capsule gets a fainter shadow of 1.5 dp rings that lifts it off the page.
+                float grow = i * (bevel ? 1.5f : 2) * density;
+                shadow.setColor(Color.argb(bevel ? 6 : 10, 0, 0, 0));
+                canvas.drawRoundRect(rect.left - grow, rect.top - (bevel ? grow / 3 : grow / 2), rect.right + grow,
                         rect.bottom + grow * 1.5f, radius + grow, radius + grow, shadow);
             }
+            canvas.restoreToCount(saved);
         }
         View bar = getCallback() instanceof View ? (View) getCallback() : null;
         boolean solid = bar != null && solid(bar.getContext());
@@ -203,7 +263,9 @@ public final class GlassCapsule extends Drawable {
         } else {
             canvas.drawRoundRect(rect, radius, radius, fill);
         }
-        canvas.drawRoundRect(rect, radius, radius, sheen);
+        // On a light page the sheen shades the bottom, which gives a bevelled capsule its depth.
+        if (!bevel || light) canvas.drawRoundRect(rect, radius, radius, sheen);
+        if (bevel) band(canvas, radius);
         boolean pillShown = layout.pill(pillRect);
         if (pillShown) {
             float swell = (slider.swell() - 1) / 2;
@@ -215,9 +277,66 @@ public final class GlassCapsule extends Drawable {
             float corner = Math.min(pillRect.width(), pillRect.height()) / 2;
             if (blurred) glass.lens(canvas, pillRect, corner, getBounds().width(), getBounds().height());
             canvas.drawRoundRect(pillRect, corner, corner, pill);
-            if (glass != null) bubble(canvas, corner);
+            // The raised pill needs no backdrop, so bevelled glass has it without Liquid Glass too.
+            if (glass != null || bevel) bubble(canvas, corner);
         }
-        canvas.drawRoundRect(rect, radius, radius, edge);
+        if (bevel && light) hairline(canvas, radius);
+        else if (bevel) specular(canvas, radius);
+        else canvas.drawRoundRect(rect, radius, radius, edge);
+    }
+
+    /**
+     * The thickness of bevelled glass: a light band inside the edge, wide along the long sides and narrow along the
+     * short ones, as the light catches a pane of glass along its length. Layers that reach less far in add up, so the
+     * band is brightest at the edge and fades out inward. A shape about as tall as wide gets the same band all around.
+     */
+    private void band(Canvas canvas, float radius) {
+        float ratio = rect.width() / Math.max(1, rect.height());
+        float wide = (ratio > 1.15f || ratio < 1 / 1.15f ? BAND_LONG_DP : (BAND_LONG_DP + BAND_SHORT_DP) / 2) * density;
+        float narrow = (ratio > 1.15f || ratio < 1 / 1.15f ? BAND_SHORT_DP : (BAND_LONG_DP + BAND_SHORT_DP) / 2) * density;
+        // On a dark page Apple's glass has no band along the short sides at all.
+        float across = ratio >= 1 ? (light ? narrow : 0) : wide;
+        float along = ratio >= 1 ? wide : (light ? narrow : 0);
+        // On a dark page Apple's band is barely lighter than the fill, about +0x13 at the edge.
+        bandPaint.setColor(Color.argb(light ? 0x55 : 0x07, 255, 255, 255));
+        for (int i = 1; i <= BAND_STEPS; i++) {
+            float x = across * i / BAND_STEPS;
+            float y = along * i / BAND_STEPS;
+            band.rewind();
+            band.addRoundRect(rect, radius, radius, Path.Direction.CW);
+            bandRect.set(rect.left + x, rect.top + y, rect.right - x, rect.bottom - y);
+            float inner = Math.max(0, radius - Math.max(x, y));
+            bandInner.rewind();
+            bandInner.addRoundRect(bandRect, inner, inner, Path.Direction.CW);
+            band.op(bandInner, Path.Op.DIFFERENCE);
+            canvas.drawPath(band, bandPaint);
+        }
+    }
+
+    /**
+     * The light caught by the edge of bevelled glass on a dark page: a light hairline, bright at the top, faint at the
+     * bottom and gone at the sides.
+     */
+    private void specular(Canvas canvas, float radius) {
+        float stroke = density / 2;
+        float half = stroke / 2;
+        bevelPaint.setStrokeWidth(stroke);
+        bevelPaint.setColor(Color.WHITE);
+        bevelPaint.setShader(new LinearGradient(0, rect.top, 0, rect.bottom,
+                new int[] {0x66FFFFFF, Color.TRANSPARENT, 0x26FFFFFF},
+                new float[] {0, 0.5f, 1}, Shader.TileMode.CLAMP));
+        canvas.drawRoundRect(rect.left + half, rect.top + half, rect.right - half, rect.bottom - half,
+                Math.max(0, radius - half), Math.max(0, radius - half), bevelPaint);
+    }
+
+    /** The edge of bevelled glass on a light page: a gray hairline, fainter at the top where the light falls. */
+    private void hairline(Canvas canvas, float radius) {
+        float half = density / 2;
+        bevelPaint.setStrokeWidth(density);
+        bevelPaint.setColor(Color.BLACK);
+        bevelPaint.setShader(new LinearGradient(0, rect.top, 0, rect.bottom, 0x0D000000, 0x1F000000, Shader.TileMode.CLAMP));
+        canvas.drawRoundRect(rect.left + half, rect.top + half, rect.right - half, rect.bottom - half,
+                Math.max(0, radius - half), Math.max(0, radius - half), bevelPaint);
     }
 
     /**

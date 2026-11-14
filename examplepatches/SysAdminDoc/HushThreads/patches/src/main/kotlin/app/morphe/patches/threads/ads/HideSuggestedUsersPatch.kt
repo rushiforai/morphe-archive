@@ -521,8 +521,9 @@ internal fun BytecodePatchContext.suggestedTargets(): SuggestedTargets {
  * Raw type checks refuse the vendor's generic SUGGESTED_USERS fallback. The same
  * switch keeps the Suggested for you accounts off profiles, see [profileSuggestionTargets], a
  * second switch of its own takes Search's Follow suggestions carousel away, see
- * [searchSuggestionTargets], and a third keeps the suggested threads off an opened post, see
- * [relatedThreadsRead].
+ * [searchSuggestionTargets], and a third keeps the suggested threads off an opened post, both the
+ * ones its page of replies carries, see [relatedThreadsRead], and the ones Threads fetches on their
+ * own, see [relatedThreadsFetch].
  */
 @Suppress("unused")
 val hideSuggestedUsersPatch = bytecodePatch(
@@ -545,6 +546,7 @@ val hideSuggestedUsersPatch = bytecodePatch(
         val profile = profileSuggestionTargets()
         val search = searchSuggestionTargets()
         val related = relatedThreadsRead()
+        val fetched = relatedThreadsFetch()
         val owner = targets.media.definingClass
         val media = targets.media
         val kind = targets.kind
@@ -612,6 +614,7 @@ val hideSuggestedUsersPatch = bytecodePatch(
         hookProfileSuggestions(profile)
         hookSearchSuggestions(search)
         hookRelatedThreads(related)
+        hookRelatedThreadsFetch(fetched)
         enableStatus("hideSuggestedUsers")
     }
 }

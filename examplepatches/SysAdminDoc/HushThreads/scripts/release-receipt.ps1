@@ -638,6 +638,35 @@ function ConvertTo-ManifestDeltaEntries {
     return @($entries | Sort-Object -Unique -CaseSensitive)
 }
 
+function Get-PackageRenameEntries {
+    <#
+    .SYNOPSIS
+        The delta lines a package rename makes on its own: each of the app's own permissions, named
+        after the package, dropped under the stock name and asked for under the new one.
+    .DESCRIPTION
+        Change package name (opt-in, never in a release selection) moves Threads to its own package,
+        and Android names the app's own permissions after it, so
+        com.instagram.barcelona.permission.X becomes <new package>.permission.X. Only a removed and
+        added pair with the same tail counts; a lone add or drop is still an ordinary change.
+    #>
+    param([Parameter(Mandatory = $true)]$Stock, [Parameter(Mandatory = $true)]$Patched, [string[]]$Entries)
+
+    if ([string]::IsNullOrEmpty($Stock.package) -or [string]::IsNullOrEmpty($Patched.package) -or
+        $Stock.package -ceq $Patched.package) { return @() }
+    $stockPrefix = "permission-removed $($Stock.package)."
+    $patchedPrefix = "permission-added $($Patched.package)."
+    $renamed = New-Object System.Collections.Generic.List[string]
+    foreach ($entry in @($Entries)) {
+        if (-not $entry.StartsWith($stockPrefix, [System.StringComparison]::Ordinal)) { continue }
+        $twin = $patchedPrefix + $entry.Substring($stockPrefix.Length)
+        if (@($Entries) -ccontains $twin) {
+            $renamed.Add($entry)
+            $renamed.Add($twin)
+        }
+    }
+    return @($renamed | Sort-Object -Unique -CaseSensitive)
+}
+
 function Read-ManifestDeltaAllowlist {
     <#
     .SYNOPSIS
@@ -1436,8 +1465,14 @@ function Test-ReleaseReceipt {
                 return Fail "The receipt reports $label patch $name as not applied."
             }
         }
-        foreach ($entry in ConvertTo-ManifestDeltaEntries -Delta $target.manifestDelta) {
-            $produced.Add($entry)
+        # Change package name renames the app's own permissions with the package, and the receipt
+        # applies every catalog patch, so those pairs are the rename and not a change to review.
+        $entries = @(ConvertTo-ManifestDeltaEntries -Delta $target.manifestDelta)
+        $renamed = @(Get-PackageRenameEntries -Stock $target.source `
+            -Patched ([pscustomobject]@{ package = [string]$target.patchedPackage }) -Entries $entries |
+            Where-Object { $_ })
+        foreach ($entry in $entries) {
+            if ($renamed -cnotcontains $entry) { $produced.Add($entry) }
         }
     }
     # Every declared version, not just one of them. With two declared, a receipt that ran only

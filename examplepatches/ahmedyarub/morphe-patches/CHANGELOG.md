@@ -1,3 +1,15 @@
+## [1.24.2](https://github.com/ahmedyarub/morphe-patches/compare/v1.24.1...v1.24.2) (2026-11-13)
+
+### 🐛 Bug Fixes
+
+* **X:** Support 12.43.0 ([d6505bd](https://github.com/ahmedyarub/morphe-patches/commit/d6505bd0e5b814840a09b9e9d8a661b001e65d7e))
+
+## [1.24.2-dev.1](https://github.com/ahmedyarub/morphe-patches/compare/v1.24.1...v1.24.2-dev.1) (2026-11-13)
+
+### 🐛 Bug Fixes
+
+* **X:** Support 12.43.0 ([d6505bd](https://github.com/ahmedyarub/morphe-patches/commit/d6505bd0e5b814840a09b9e9d8a661b001e65d7e))
+
 ## [1.24.1](https://github.com/ahmedyarub/morphe-patches/compare/v1.24.0...v1.24.1) (2026-11-11)
 
 ### 🐛 Bug Fixes

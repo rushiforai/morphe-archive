@@ -1,12 +1,23 @@
 package app.morphe.patches.chmate
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patcher.patch.BytecodePatchContext
 import com.android.tools.smali.dexlib2.Opcode
 
 internal fun BytecodePatchContext.patchReadingPosition(version: String) {
     val owner = mutableClassDefBy(if (version == "0.8.10.191 dev") "Lo/pa;"
         else "Ljp/syoboi/a2chMate/ui/reslist/ResListFragment;")
+    val longClick=owner.methods.single { it.name=="onLongClick" && it.parameterTypes==listOf("Landroid/view/View;") }
+    check(longClick.implementation!!.registerCount-2>=1) { "Stock posting long press needs a local register" }
+    val nativeEntry=longClick.implementation!!.instructions.first()
+    longClick.addInstructionsWithLabels(0,"""
+        invoke-static/range {p0 .. p1}, Lapp/morphe/extension/chmate/StockChmatePosting;->longClick(Ljava/lang/Object;Landroid/view/View;)Z
+        move-result v0
+        if-eqz v0, :native_stock_write_long_click
+        return v0
+    """.trimIndent(),ExternalLabel("native_stock_write_long_click",nativeEntry))
     val bind = owner.methods.single { it.name == "onViewCreated" && it.parameterTypes.size == 2 }
     bind.implementation!!.instructions.withIndex().filter { it.value.opcode == Opcode.RETURN_VOID }
         .asReversed().forEach { (index, _) -> bind.addInstructions(index,

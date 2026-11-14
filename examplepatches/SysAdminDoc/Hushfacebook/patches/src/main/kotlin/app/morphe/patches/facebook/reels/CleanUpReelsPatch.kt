@@ -12,6 +12,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.patches.facebook.feed.aidetected.EXTENSION_CLASSES
 import app.morphe.patches.facebook.feed.methodsHolding
 import app.morphe.patches.facebook.feed.resolveStatic
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
@@ -26,6 +27,7 @@ import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.classDefForEachReferencing
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
@@ -38,6 +40,7 @@ internal const val HIDE_FOLLOW_BUTTON = "$DECLUTTER->hideFollowButton()Z"
 internal const val HIDE_FOLLOWING_BUTTON = "$DECLUTTER->hideFollowingButton()Z"
 internal const val SKIP_HOT_COMMENT = "$DECLUTTER->skipHotComment()Z"
 internal const val SKIP_SOCIAL_BUBBLES = "$DECLUTTER->skipSocialBubbles()Z"
+internal const val SKIP_CAPTION_COMMENT = "$DECLUTTER->skipCaptionComment()Z"
 
 private const val PATCH = "Clean up Reels"
 
@@ -84,7 +87,8 @@ private const val PATCH = "Clean up Reels"
  * see SavedVideos.kt). A twenty-sixth, also off, keeps reels going without the "Are you still
  * watching?" stop (#427, see StillWatching.kt). A twenty-seventh, also off, plays the reels in Saved
  * one after another, going back to Saved for the next card when one ends or is swiped past (#404,
- * see SavedChain.kt). With Debug
+ * see SavedChain.kt). A twenty-eighth, also off, fills a tall screen with a reel instead of fitting
+ * it between black bars (#453, see ReelFill.kt). With Debug
  * logging on, it also reports whether a reel that ends
  * is on the player the Reels auto-advance controller holds (see ReelBinding.kt), with no switch.
  *
@@ -101,7 +105,7 @@ val cleanUpReelsPatch = bytecodePatch(
     name = "Clean up Reels",
     description = "Hides clutter on reels, such as the Follow button, comment previews, Remix and Use template " +
         "buttons and Threads cards between reels, so more of the video shows, and can play each reel once " +
-        "instead of over and over, keep its original audio instead of a Meta AI dub, drop the search suggestions under the caption, over the comments and at the top of a profile's reels, or hide the like, comment and share counts, the Like, Comment, Repost, Share, Save or speaker button, or the line naming the reel's sound. It can also keep the Reels tab to accounts you follow, open a video you tap in the feed on its own, with no reels after it, do the same for a reel you open from a link or a chat, play a feed video again right there when you tap Watch again instead of opening Reels, play a video you tap in Saved in the video player instead of Reels, go on to the next reel in Saved instead of a suggested one, keep reels playing without stopping to ask \"Are you still watching?\", take the UP NEXT bar off the bottom of a video you open from the feed, hide the Fullscreen button under a wide video, stop the \"This is taking a while\" message when a video is slow to load, and play whole reels in the feed's Reels row instead of the same second over and over, or keep the Comment button on reels with comments turned off so you can read them, and hide the one-tap Subscribe button some authors get instead of Follow, or Search and the button beside it at the top of a video you open and of the Reels tab, and show when a reel or video was posted. Its Burn-in guard can fade a reel's buttons, caption and bars when you leave them alone, so they don't burn into the screen. With Turn off HDR brightness patched too, it can show Reels in gray, video and all. Starts off. Turn on the parts you want in Hushfacebook settings > Reels and Watch.",
+        "instead of over and over, keep its original audio instead of a Meta AI dub, drop the search suggestions under the caption, over the comments and at the top of a profile's reels, or hide the like, comment and share counts, the Like, Comment, Repost, Share, Save or speaker button, or the line naming the reel's sound. It can also keep the Reels tab to accounts you follow, open a video you tap in the feed on its own, with no reels after it, do the same for a reel you open from a link or a chat, play a feed video again right there when you tap Watch again instead of opening Reels, play a video you tap in Saved in the video player instead of Reels, go on to the next reel in Saved instead of a suggested one, keep reels playing without stopping to ask \"Are you still watching?\", fill a tall screen with a reel or a full-screen video instead of leaving black bars around it, with a pinch to see one reel whole, take the UP NEXT bar off the bottom of a video you open from the feed, hide the Fullscreen button under a wide video, stop the \"This is taking a while\" message when a video is slow to load, and play whole reels in the feed's Reels row instead of the same second over and over, or keep the Comment button on reels with comments turned off so you can read them, and hide the one-tap Subscribe button some authors get instead of Follow, or Search and the button beside it at the top of a video you open and of the Reels tab, and show when a reel or video was posted. Its Burn-in guard can fade a reel's buttons, caption and bars when you leave them alone, so they don't burn into the screen. With Turn off HDR brightness patched too, it can show Reels in gray, video and all. Starts off. Turn on the parts you want in Hushfacebook settings > Reels and Watch.",
 ) {
     category("Reels")
     dependsOn(settingsPatch)
@@ -190,6 +194,18 @@ val cleanUpReelsPatch = bytecodePatch(
             observeSavedTouches()
         } catch (exception: PatchException) {
             patchLog.warning("$PATCH: ${exception.message}, so Play saved videos in a row leaves Facebook's suggestions after a saved reel.")
+        }
+        // #453: the helper that works out a player view's size, asked to fill instead of fit.
+        try {
+            fillReels()
+        } catch (exception: PatchException) {
+            patchLog.warning("${exception.message}, so Fill the screen with reels leaves reels sized as Facebook fits them.")
+        }
+        // #466: a pinch on a reel shows it whole or fills it, from the touch hook every screen shares.
+        try {
+            pinchReels()
+        } catch (exception: PatchException) {
+            patchLog.warning("${exception.message}, so a pinch on a reel leaves it as Fill the screen with reels has it.")
         }
         enableStatus("reelDeclutter")
     }
@@ -382,22 +398,37 @@ private fun MutableMethod.answerWhen(hook: String, answer: Boolean) {
 }
 
 /**
- * The footer runnables return before they query when the switch is on. 586 builds one of two hot
- * comment runnables as a MobileConfig flag says, the plain query's or the MFC one's, so the MFC one
- * is skipped too wherever a build has it.
+ * The footer runnables return before they query when the switch is on. The footer builds one of two
+ * hot comment runnables as a MobileConfig flag says. 586's each hold their query, plain or MFC, but
+ * 587's `$2` (arm64 `LX/0CT7;`) only hands a lambda the plain or XAR query beside the MFC `$1`
+ * (`LX/0WKq;`), so they're found by name, every one a build has, and at least one has to be there
+ * (#464). The bubbles runnable is found by the one literal it loads. The author and caption row's
+ * own comment runnable, which swaps a comment in for the caption a few seconds in, goes under the
+ * same switch (#464).
  */
 private fun BytecodePatchContext.skipFooterQueries() {
-    listOf(
-        Triple(HOT_COMMENT_RUNNABLE, INLINE_COMMENTS_QUERY, SKIP_HOT_COMMENT),
-        Triple(SOCIAL_BUBBLES_RUNNABLE, VIDEO_ID, SKIP_SOCIAL_BUBBLES),
-        Triple(HOT_COMMENT_RUNNABLE, MFC_INLINE_COMMENTS_QUERY, SKIP_HOT_COMMENT),
-    ).forEach { (redexName, holding, hook) ->
-        val runs = classDefByStrings(holding, StringComparisonType.EQUALS)
-            .mapNotNull { owner -> footerRunnable(owner, redexName, holding)?.let { owner to it } }
-        if (runs.isEmpty() && holding == MFC_INLINE_COMMENTS_QUERY) return@forEach
-        val (owner, run) = runs.singleOrNull() ?: throw PatchException(
-            "$PATCH: expected one Runnable named $redexName whose run() holds \"$holding\", found ${runs.size}",
-        )
+    val bubbles = classDefByStrings(VIDEO_ID, StringComparisonType.EQUALS)
+        .mapNotNull { owner -> footerRunnable(owner, SOCIAL_BUBBLES_RUNNABLE, VIDEO_ID)?.let { owner to it } }
+    val (bubblesOwner, bubblesRun) = bubbles.singleOrNull() ?: throw PatchException(
+        "$PATCH: expected one Runnable named $SOCIAL_BUBBLES_RUNNABLE whose run() holds \"$VIDEO_ID\", found ${bubbles.size}",
+    )
+    // Found by their kept names, which reads no code, and changed once the walk is done.
+    val hotComments = mutableListOf<Pair<ClassDef, Method>>()
+    val captionComments = mutableListOf<Pair<ClassDef, Method>>()
+    classDefForEach { classDef ->
+        if (classDef.type.startsWith(EXTENSION_CLASSES)) return@classDefForEach
+        namedRunnable(classDef, HOT_COMMENT_RUNNABLE)?.let { hotComments += classDef to it }
+        captionCommentRunnable(classDef)?.let { captionComments += classDef to it }
+    }
+    if (hotComments.isEmpty()) throw PatchException("$PATCH: expected a Runnable named $HOT_COMMENT_RUNNABLE and a number, found none")
+    val caption = captionComments.singleOrNull() ?: throw PatchException(
+        "$PATCH: expected one Runnable named $CAPTION_ROW_RUNNABLE and a number whose run() holds " +
+            CAPTION_COMMENT_QUERIES.joinToString(" or ") { "\"$it\"" } + ", found ${captionComments.size}",
+    )
+    val skips = hotComments.map { it to SKIP_HOT_COMMENT } + ((bubblesOwner to bubblesRun) to SKIP_SOCIAL_BUBBLES) +
+        (caption to SKIP_CAPTION_COMMENT)
+    for ((found, hook) in skips) {
+        val (owner, run) = found
         mutableClassDefBy(owner).methods.first { it.sameSignatureAs(run) }.returnVoidWhen(hook)
     }
 }

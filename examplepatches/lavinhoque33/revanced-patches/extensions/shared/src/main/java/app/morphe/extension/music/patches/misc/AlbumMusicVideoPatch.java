@@ -78,16 +78,13 @@ public class AlbumMusicVideoPatch {
         if (!playlistId.startsWith(YOUTUBE_MUSIC_ALBUM_PREFIX)) {
             return;
         }
-        if (playlistIndex < 0) {
-            return;
-        }
         if (playerResponseVideoId.equals(videoId)) {
             return;
         }
         playerResponseVideoId = videoId;
 
-        // Fetch.
-        PlaylistRequest.fetchRequestIfNeeded(videoId, playlistId, playlistIndex);
+        // Album queues can report the same index for several videos. Resolve by the video's identity.
+        PlaylistRequest.fetchRequestIfNeeded(videoId, playlistId);
     }
 
     /**
@@ -126,7 +123,8 @@ public class AlbumMusicVideoPatch {
             LyricsManager.onAlbumSongResolved(videoId);
             if (firstSeen) {
                 Logger.printDebug(() -> "Official song found, videoId: " + videoId + ", songId: " + songId);
-                if (REDIRECT) {
+                // Queue replacement must not race a delayed album watch-page redirect.
+                if (REDIRECT && !AutoSongVersionPatch.shouldPlaySongVersions()) {
                     openMusic(songId);
                 }
             }

@@ -10,9 +10,13 @@ updates workflow, which runs only when the repository variable AUTO_BUMP is
     Play has not released to everyone counts, because dev is for testing;
     the commit message says it is a rollout.
   - Every one of the app's patches applies to it.
-  - The patched app opened on the emulator (or could not be tested there
-    because it has no x86 code). A crash, a quick exit, or a failed install
-    blocks the bump.
+  - The launch check ran on the emulator. Its result does not block the bump:
+    dev is for testing, so a crash, a quick exit, or a failed install still
+    ships to dev, where it can be debugged. The result is recorded on the
+    issue and in the dev commit, and a build that did not open cleanly keeps
+    its "experimental" or "needs review" label. The certificate must still
+    match and every patch must still apply, so an untrusted or unbuildable
+    download is never shipped.
   - The app has one version pin in one Compatibility. Apps whose phone and
     Android TV builds share a package (HBO Max, NewsNation, JustWatch, Apple
     TV) keep their "ready to bump" issue for a person to handle.
@@ -137,7 +141,9 @@ def bump_readme(repo, name, old, new):
 
 
 def qualifies(record, launches):
-    """Why the app is not bumped, or None when it is."""
+    """Why the app is not bumped, or None when it is. Dev is for testing, so the
+    launch result does not block the bump; only an untrusted download, a patch
+    that did not apply, or an ambiguous pin does."""
     if record.get("status") != "update":
         return "no update"
     if record.get("cert") != "matches":
@@ -147,8 +153,6 @@ def qualifies(record, launches):
     launch = launches.get(record["package"])
     if not launch or launch.get("version") != record.get("latest"):
         return "no launch check"
-    if not launch.get("ok"):
-        return f"launch check: {launch.get('result')}"
     if len(record.get("targets") or []) != 1:
         return "more than one version pin"
     return None

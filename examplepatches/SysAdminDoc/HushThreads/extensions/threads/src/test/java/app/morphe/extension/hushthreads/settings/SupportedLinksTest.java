@@ -457,6 +457,8 @@ public class SupportedLinksTest {
         assertFalse(line.isSelectable());
         String summary = String.valueOf(line.getSummary());
         assertTrue(summary, summary.contains("only opens Threads posts and profiles in a Threads signed by Meta"));
+        // The way that works (seen on a phone 2026-11-13): Instagram patched with HushGram on the same key.
+        assertTrue(summary, summary.contains("Patch Instagram with HushGram, signed with the same key as HushThreads"));
     }
 
     private static boolean hasTitle(PreferenceGroup group, String title) {

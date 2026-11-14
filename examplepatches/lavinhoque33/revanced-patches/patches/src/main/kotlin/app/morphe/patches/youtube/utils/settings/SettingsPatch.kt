@@ -634,6 +634,7 @@ val settingsPatch = resourcePatch(
 
     finalize {
         ResourceUtils.writeUnsupportedSettings()
+        ResourceUtils.writePatchInformation()
 
         /**
          * change RVX settings menu name

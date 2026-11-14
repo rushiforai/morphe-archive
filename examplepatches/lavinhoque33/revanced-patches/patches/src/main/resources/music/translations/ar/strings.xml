@@ -113,7 +113,6 @@
     <string name="morphe_music_crossfade_screen_title">تلاشي</string>
     <string name="morphe_music_crossfade_session_control_summary">اضغط مطولاً على زر التشغيل العشوائي للإيقاف المؤقت أو استئناف التلاشي التدريجي</string>
     <string name="morphe_music_crossfade_session_control_title">التحكم في الجلسة</string>
-    <string name="morphe_music_crossfade_video_mode_disabled_toast">وضع الفيديو غير متاح أثناء تمكين التلاشي التدريجي</string>
     <string name="morphe_music_deezer_arl_dialog_instruction">"إلصق ملف تعريف إرتباط \"arl\" من ديزر
 
 الخطوات:
@@ -1014,4 +1013,6 @@
     <string name="revanced_webview_toast_empty">%s فارغ</string>
     <string name="revanced_webview_toast_no_network">يرجى التحقق من اتصالك بالشبكة</string>
     <string name="revanced_webview_toast_unavailable">WebView غير متاح</string>
+    <string name="morphe_music_auto_song_version_title">تشغيل نسخة الأغنية دائمًا</string>
+    <string name="morphe_music_auto_song_version_summary">يستبدل الفيديوهات الموسيقية الرسمية في قائمة الانتظار بالأغنية المطابقة. يتطلب تفعيل إعداد التطبيق «عدم تشغيل الفيديوهات الموسيقية». تبقى المقاطع التي لا يوجد لها تطابق تام دون تغيير</string>
 </resources>

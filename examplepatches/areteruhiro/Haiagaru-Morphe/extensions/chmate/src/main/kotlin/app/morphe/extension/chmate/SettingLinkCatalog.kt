@@ -6,7 +6,7 @@ import android.widget.*
 object SettingLinkCatalog {
  @JvmStatic fun category(activity: Activity, category: String): List<SettingLinkEntry> {
   val root = Haiagaru.settingsCategory(activity, category)
-  return settingsRows(root, includeHidden = true).mapNotNull { row ->
+  return flattenedSettingsRows(root, includeHidden = true).mapNotNull { row ->
    val control = row.control
    if (control !is CompoundButton && control !is Button && control !is EditText && control !is Spinner && !control.hasOnClickListeners()) return@mapNotNull null
    var label = row.label.lineSequence().firstOrNull().orEmpty().trim()

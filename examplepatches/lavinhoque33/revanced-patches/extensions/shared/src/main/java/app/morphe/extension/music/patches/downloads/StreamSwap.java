@@ -1,8 +1,8 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-12
  * Written by lavinhoque33, 2026-11-07.
- * Modified by lavinhoque33, 2026-11-10
  */
 package app.morphe.extension.music.patches.downloads;
 
@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 
+import app.morphe.extension.music.patches.CrossfadeTrace;
 import app.morphe.extension.shared.innertube.PlayerResponseOuterClass.Format;
 import app.morphe.extension.shared.innertube.PlayerResponseOuterClass.PlayerResponse;
 import app.morphe.extension.shared.utils.Logger;
@@ -62,6 +63,10 @@ public final class StreamSwap {
         return lastOnline;
     }
 
+    static boolean playsLocal(String videoId) {
+        return supported() && StreamSwapSources.playsLocal(videoId);
+    }
+
     /** Enabled by the patch only after every required hook resolves. */
     public static boolean supported() {
         return false;
@@ -85,17 +90,23 @@ public final class StreamSwap {
         Replacement cached = replacements.get(original);
         if (cached != null) {
             // A response cache may outlive the setting or downloaded file. This path never accesses storage.
-            if (!cached.available()) return cached.online();
-            if (onMainThread()) return original;
+            if (!cached.available()) {
+                StreamSwapSources.selectOnline(cached.sources().get(0).videoId);
+                return cached.online();
+            }
+            if (onMainThread()) {
+                StreamSwapSources.select(cached.sources());
+                return original;
+            }
             original = cached.online();
         }
-        String gate = StreamSwapLogic.gate(onMainThread());
-        if (gate != null) return unchanged(original, "?", gate, stored);
         if (!(original instanceof Response adapter)) return original;
 
         String videoId = "?";
         try {
             videoId = adapter.rvxVideoId();
+            String gate = StreamSwapLogic.gate(onMainThread());
+            if (gate != null) return unchanged(original, videoId, gate, stored);
             VideoCopyFiles.Entry video = VideoCopyStore.find(videoId);
             if (video != null) return swapVideo(original, adapter, video, stored);
 
@@ -125,10 +136,16 @@ public final class StreamSwap {
             if (result == null || result == original) {
                 return unchanged(original, videoId, "stock adapter declined", stored);
             }
-            replacements.put(result, new Replacement(original, source));
+            Replacement accepted = new Replacement(original, source);
+            replacements.put(result, accepted);
+            StreamSwapSources.select(accepted.sources());
             lastOnline = null;
             String id = videoId;
             Logger.printDebug(() -> "StreamSwap: decision=SWAP v=" + id + " itag=" + raw.itag());
+            if (CrossfadeTrace.isTransitionObserved()) {
+                CrossfadeTrace.event("SOURCE", null, () -> "videoId=" + id + " source=FILE itag=" + raw.itag()
+                        + " kind=audio sabr=false");
+            }
             return result;
         } catch (Exception ex) {
             return unchanged(original, videoId, "raw copy or response unavailable", stored);
@@ -170,7 +187,14 @@ public final class StreamSwap {
         Object result = adapter.rvxWithBytes(replacement.toByteArray(), true);
         if (result == null || result == original) return unchanged(original, videoId, "stock adapter declined", stored);
 
-        replacements.put(result, new Replacement(original, video, audio));
+        Replacement accepted = new Replacement(original, video, audio);
+        replacements.put(result, accepted);
+        StreamSwapSources.select(accepted.sources());
+        if (CrossfadeTrace.isTransitionObserved()) {
+            CrossfadeTrace.event("SOURCE", null, () -> "videoId=" + videoId + " source=FILE"
+                    + " kind=video itag=" + copy.video().itag() + " audioItag=" + copy.audio().itag()
+                    + " mode=" + mode + " sabr=false");
+        }
         Logger.printDebug(() -> "StreamSwap: source=FILE v=" + videoId + " kind=video itag=" + copy.video().itag()
                 + " length=" + copy.video().length() + " audioItag=" + copy.audio().itag()
                 + " audioLength=" + copy.audio().length());
@@ -211,8 +235,13 @@ public final class StreamSwap {
     }
 
     private static Object unchanged(Object original, String videoId, String reason, boolean stored) {
+        if (!"?".equals(videoId)) StreamSwapSources.selectOnline(videoId);
         // "?" is the answer of a thread that cannot know the id; a stored response is no online decision.
         if (!stored && !"?".equals(videoId)) lastOnline = new OnlineDecision(videoId, SystemClock.elapsedRealtime());
+        if (CrossfadeTrace.isTransitionObserved()) {
+            CrossfadeTrace.event("SOURCE", null, () -> "videoId=" + videoId + " source=ONLINE"
+                    + " reason=" + reason + " stored=" + stored);
+        }
 
         Logger.printDebug(() -> "StreamSwap: decision=ONLINE v=" + videoId + " reason=" + reason);
         return original;

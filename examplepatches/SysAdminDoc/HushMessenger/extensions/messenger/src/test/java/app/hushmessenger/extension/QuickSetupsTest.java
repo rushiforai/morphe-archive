@@ -151,16 +151,24 @@ public class QuickSetupsTest {
         }
     }
 
-    /** iPhone look turns on the header and the kept search bar and titles an empty header Chats. Undo takes all three back. */
+    /** Window blur needs Android 12, so iPhone look only turns Blur behind menus on where the phone can run it. */
+    private static final int BLUR = android.os.Build.VERSION.SDK_INT >= 31 ? 1 : 0;
+
+    /**
+     * iPhone look turns on the header, the kept search bar and the blur behind menus, and titles an empty header Chats.
+     * Undo takes all of it back.
+     */
     @Test public void iPhoneLookTitlesAnEmptyHeaderChatsKeepsTheSearchBarAndUndoTakesItBack() {
         try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
             View root = screen.get().getWindow().getDecorView();
             android.widget.EditText field = root.findViewWithTag("home_header_text");
             root.findViewWithTag("tab_app").performClick();
             root.findViewWithTag("quick_iphone").performClick();
-            assertEquals("Changed 3 controls", ShadowToast.getTextOfLatestToast());
+            assertEquals("Changed " + (3 + BLUR) + " controls", ShadowToast.getTextOfLatestToast());
             assertTrue(Settings.preferences.getBoolean(HomeHeader.KEY, false));
             assertTrue(Settings.preferences.getBoolean("inbox_search_bar", false));
+            assertEquals(BLUR == 1, Settings.preferences.getBoolean(MenuBlur.KEY, false));
+            assertEquals(BLUR == 1, ((Switch) root.findViewWithTag(MenuBlur.KEY)).isChecked());
             assertEquals("Chats", Settings.preferences.getString(HomeHeader.TEXT, ""));
             assertEquals("Chats", field.getText().toString());
             assertTrue(((Switch) root.findViewWithTag(HomeHeader.KEY)).isChecked());
@@ -169,14 +177,15 @@ public class QuickSetupsTest {
             root.findViewWithTag("quick_iphone").performClick();
             assertEquals("Nothing to change. Those controls were already set.", ShadowToast.getTextOfLatestToast());
 
-            Settings.preferences.edit().remove(HomeHeader.KEY).remove("inbox_search_bar").remove(HomeHeader.TEXT).commit();
+            Settings.preferences.edit().remove(HomeHeader.KEY).remove("inbox_search_bar").remove(MenuBlur.KEY).remove(HomeHeader.TEXT).commit();
             field.setText("");
             org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(HomeHeaderRow.SAVE_DELAY_MILLIS));
             root.findViewWithTag("quick_iphone").performClick();
             root.findViewWithTag("undo").performClick();
-            assertEquals("Put back 3 controls", ShadowToast.getTextOfLatestToast());
+            assertEquals("Put back " + (3 + BLUR) + " controls", ShadowToast.getTextOfLatestToast());
             assertFalse(Settings.preferences.contains(HomeHeader.KEY));
             assertFalse(Settings.preferences.contains("inbox_search_bar"));
+            assertFalse(Settings.preferences.contains(MenuBlur.KEY));
             assertFalse(Settings.preferences.contains(HomeHeader.TEXT));
             assertEquals("", field.getText().toString());
         }
@@ -190,7 +199,7 @@ public class QuickSetupsTest {
             field.setText("Inbox");
             root.findViewWithTag("tab_app").performClick();
             root.findViewWithTag("quick_iphone").performClick();
-            assertEquals("Changed 2 controls", ShadowToast.getTextOfLatestToast());
+            assertEquals("Changed " + (2 + BLUR) + " controls", ShadowToast.getTextOfLatestToast());
             assertEquals("Inbox", Settings.preferences.getString(HomeHeader.TEXT, ""));
             assertEquals("Inbox", field.getText().toString());
 

@@ -11,8 +11,9 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
 internal const val ATTRIBUTION_UPLOADS = "attribution_uploads"
 
 /**
- * Messenger's ad attribution job. In 586 LatStatusJob's static step only gathers the user id, a retry count and the
- * context, then hands them to one worker on an obfuscated class and returns. That worker does the whole job: it reads
+ * Messenger's ad attribution job. In 586 LatStatusJob's static step only gathered the user id, a retry count and the
+ * context, then handed them to one worker on an obfuscated class and returned. 587 inlines that worker into the static
+ * step itself (`LatStatusJob.A00`) in every family, so the step is the method found. The worker does the whole job: it reads
  * the saved attribution state, gets the Advertising ID through Google's library or, failing that, a direct Binder call
  * to Play services' IAdvertisingIdService, reads the Facebook app's attribution, then sends all of it as an
  * AttributionIdUpdate request and saves the answer. Nothing waits on it, so an early return leaves no retry or

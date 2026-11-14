@@ -1,8 +1,8 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-12.
  * Written by lavinhoque33, 2026-11-07.
- * Modified by lavinhoque33, 2026-11-10
  */
 package app.morphe.extension.music.patches.downloads;
 
@@ -175,6 +175,8 @@ public final class QueueItems {
      * @return True if the click was taken, so the app's must not run.
      */
     public static boolean onPillClick(@Nullable Object view) {
+        CrossfadeManager.ModeSwitch modeSwitch = null;
+        String finishReason = "audio-first-pill-failed";
         try {
             // A dim pill of a video with a copy is lit first, so the app's check that follows lets the press through.
             boolean lit = PillAvailability.lightForClick(view);
@@ -204,20 +206,19 @@ public final class QueueItems {
                 return false;
             }
 
-            if (owner instanceof CrossfadeManager.VideoToggleAccess
-                    && CrossfadeManager.shouldBlockVideoToggle(owner)) {
-                logClick(entry, via, current, was, "blocked-by-crossfade");
-                return true;
-            }
-
             synchronized (tracked) {
                 pillPressedAt = SystemClock.elapsedRealtime();
                 pending = null;
                 pillStart = null;
             }
             AudioFirst.leaveTapsAlone();
+            String sourceId = AudioFirstLogic.isAudioMode(was) ? entry.songId : entry.videoId;
+            String targetId = AudioFirstLogic.isAudioMode(was) ? entry.videoId : entry.songId;
+            modeSwitch = CrossfadeManager.beginModeSwitch(sourceId, targetId);
+
             String now = AudioFirst.togglePillMode();
             if (now == null) {
+                finishReason = "audio-first-pill-no-mode";
                 logClick(entry, via, current, was, "stock:no-mode-holder");
                 return false;
             }
@@ -225,10 +226,13 @@ public final class QueueItems {
             logClick(entry, via, current, was, "takeover mode=" + was + "->" + now);
             expectStart(entry.songId, entry.videoId);
             navigateKeepingPosition((PillOwner) owner, item, entry);
+            finishReason = "audio-first-pill-dispatch-finished";
             return true;
         } catch (Exception ex) {
             Logger.printException(() -> "AudioFirst: pill click failure", ex);
             return false;
+        } finally {
+            CrossfadeManager.endModeSwitch(modeSwitch, finishReason);
         }
     }
 
@@ -397,6 +401,8 @@ public final class QueueItems {
 
     /** Sets the audio mode and navigates to the item's own watch endpoint, once the owner exists. */
     private static void navigateCorrectively(Pending corrective) {
+        CrossfadeManager.ModeSwitch modeSwitch = null;
+        String finishReason = "audio-first-corrective-failed";
         try {
             PillOwner owner;
             synchronized (tracked) {
@@ -418,14 +424,18 @@ public final class QueueItems {
             if (item == null) return;
 
             AudioFirst.leaveTapsAlone();
+            modeSwitch = CrossfadeManager.beginModeSwitch(corrective.videoId(), corrective.songId());
             String mode = AudioFirst.startAudioMode();
             expectStart(corrective.songId(), corrective.videoId());
             Logger.printDebug(() -> "AudioFirst: queue started on video " + corrective.videoId() + " -> song "
                     + corrective.songId() + " (corrective, " + (SystemClock.elapsedRealtime() - corrective.onlineAt())
                     + " ms after ONLINE, " + mode + ")");
             owner.rvxNavigate(item);
+            finishReason = "audio-first-corrective-dispatch-finished";
         } catch (Exception ex) {
             Logger.printException(() -> "AudioFirst: corrective start failure", ex);
+        } finally {
+            CrossfadeManager.endModeSwitch(modeSwitch, finishReason);
         }
     }
 

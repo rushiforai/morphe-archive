@@ -419,7 +419,7 @@ public class PinActionsTest {
         Shadows.shadowOf(Looper.getMainLooper()).idle();
         assertEquals("Pinterest hasn't supplied an image to download.", ShadowToast.getTextOfLatestToast());
         assertFalse(PinDownloads.start(Map.of("id", "123", "videos", Map.of("video_list", Map.of(
-                "hls", Map.of("url", "https://v.pinimg.com/master.m3u8")))), activity));
+                "dash", Map.of("url", "https://v.pinimg.com/master.mpd")))), activity));
         Shadows.shadowOf(Looper.getMainLooper()).idle();
         assertEquals("Pinterest only streams this video. There's no file to download.", ShadowToast.getTextOfLatestToast());
         ShadowToast.reset();

@@ -10,6 +10,7 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import app.morphe.patches.tumblr.lookup.fieldRef
 import app.morphe.patches.tumblr.lookup.instructionList
 import app.morphe.patches.tumblr.lookup.isStatic
 import app.morphe.patches.tumblr.lookup.methodRef
@@ -40,6 +41,17 @@ internal const val HUSH_PAID_POST = "$EXTENSION_PACKAGE/timeline/HushPaidPost;"
 internal const val HUSH_FILTERED_POST = "$EXTENSION_PACKAGE/timeline/HushFilteredPost;"
 internal const val HUSH_FILTERED = "$EXTENSION_PACKAGE/timeline/HushFiltered;"
 internal const val HUSH_LIKED_POST = "$EXTENSION_PACKAGE/timeline/HushLikedPost;"
+internal const val HUSH_REBLOG_SOURCE = "$EXTENSION_PACKAGE/timeline/HushReblogSource;"
+internal const val HUSH_ACCOUNT_BLOG = "$EXTENSION_PACKAGE/timeline/HushAccountBlog;"
+internal const val HUSH_ACCOUNT_BLOGS = "$EXTENSION_PACKAGE/timeline/HushAccountBlogs;"
+
+/** A blog as a post or an account names it, and the signed-in account Tumblr builds from user/info. */
+internal const val SHORT_BLOG_INFO = "Lcom/tumblr/rumblr/model/blog/ShortBlogInfo;"
+internal const val ACCOUNT_USER_INFO_MODEL = "Lcom/tumblr/UserInfo;"
+private const val USER_INFO_RESPONSE = "Lcom/tumblr/rumblr/response/UserInfoResponse;"
+private const val USER_INFO_BLOGS = "Lcom/tumblr/rumblr/model/UserInfo;->getBlogs()Ljava/util/List;"
+/** UserInfo's private final list of the account's blogs, filled from a fresh user/info response. */
+private const val ACCOUNT_BLOGS_FIELD = "k"
 
 private const val LIST = "Ljava/util/List;"
 private const val STRING = "Ljava/lang/String;"
@@ -97,6 +109,18 @@ internal val FILTERED_POST_BRIDGES = listOf(
 
 /** Post's liked state as Tumblr sent it, the like button's first state. */
 internal val LIKED_POST_BRIDGE = ModelBridge(POST, HUSH_LIKED_POST, listOf(BridgeGetter("hushLiked", "liked", "Z")))
+
+/** The blogs a post was reblogged from and first made on, and a blog's name, as Tumblr sent them. */
+internal val REBLOG_SOURCE_BRIDGES = listOf(
+    ModelBridge(
+        POST, HUSH_REBLOG_SOURCE,
+        listOf(
+            BridgeGetter("hushRebloggedFromName", "reblogged_from_name", STRING),
+            BridgeGetter("hushRebloggedRootName", "reblogged_root_name", STRING),
+        ),
+    ),
+    ModelBridge(SHORT_BLOG_INFO, HUSH_ACCOUNT_BLOG, listOf(BridgeGetter("hushAccountBlogName", "name", STRING))),
+)
 
 /** A bridge found in this build: each interface method with the getter it calls, `Lclass;->name()type`. */
 internal class ResolvedBridge(val bridge: ModelBridge, val calls: Map<BridgeGetter, String>)
@@ -194,6 +218,77 @@ internal val likedPostBridgePatch = bytecodePatch {
     execute {
         resolveBridges(listOf(LIKED_POST_BRIDGE)).forEach { addBridge(it) }
     }
+}
+
+/**
+ * Makes Tumblr's `Post` implement the extension's `HushReblogSource`, `ShortBlogInfo`
+ * `HushAccountBlog` and `UserInfo` `HushAccountBlogs`, so Hide reblogs of your posts can tell a
+ * reblog of one of the signed-in account's posts. The account's blogs are UserInfo's private final
+ * list, which its constructor from a fresh user/info response fills from `getBlogs()` and nothing
+ * else writes, read as stored. Found by reading Tumblr 47.0.0.108 (2026-11-13): Post's
+ * reblogged_from_name is `H0()` and reblogged_root_name `L0()`, ShortBlogInfo's name `k()`, and
+ * UserInfo's blogs `k`.
+ */
+internal val reblogSourceBridgePatch = bytecodePatch {
+    dependsOn(tumblrExtensionPatch)
+
+    execute {
+        // Every piece is found before the first class changes, so a refusal leaves the APK as it was.
+        val resolved = resolveBridges(REBLOG_SOURCE_BRIDGES)
+        requireAccountBlogs()
+        resolved.forEach { addBridge(it) }
+        mutableClassDefBy(ACCOUNT_USER_INFO_MODEL).apply {
+            interfaces.add(HUSH_ACCOUNT_BLOGS)
+            methods.add(
+                ImmutableMethod(
+                    ACCOUNT_USER_INFO_MODEL, "hushAccountBlogs", emptyList(), LIST, AccessFlags.PUBLIC.value,
+                    null, null, MutableMethodImplementation(2),
+                ).toMutable().apply {
+                    addInstructions(
+                        0,
+                        """
+                            iget-object v0, p0, $ACCOUNT_USER_INFO_MODEL->$ACCOUNT_BLOGS_FIELD:$LIST
+                            return-object v0
+                        """,
+                    )
+                },
+            )
+        }
+    }
+}
+
+/**
+ * Throws unless the extension declares `HushAccountBlogs` and UserInfo's blog list is still the
+ * private final field its user/info constructor fills straight from `getBlogs()`.
+ */
+private fun BytecodePatchContext.requireAccountBlogs() {
+    val face = classDefByOrNull(HUSH_ACCOUNT_BLOGS)
+    val declares = face != null && AccessFlags.INTERFACE.isSet(face.accessFlags) && face.methods.count() == 1 &&
+        face.methods.single().let {
+            it.name == "hushAccountBlogs" && it.parameterTypes.isEmpty() && it.returnType == LIST && AccessFlags.ABSTRACT.isSet(it.accessFlags)
+        }
+    if (!declares) throw PatchException("$PATCH: the extension has no $HUSH_ACCOUNT_BLOGS declaring hushAccountBlogs")
+    val user = classDefByOrNull(ACCOUNT_USER_INFO_MODEL) ?: throw PatchException("$PATCH: Tumblr's $ACCOUNT_USER_INFO_MODEL wasn't found")
+    if (HUSH_ACCOUNT_BLOGS in user.interfaces || user.methods.any { it.name == "hushAccountBlogs" }) {
+        throw PatchException("$PATCH: $ACCOUNT_USER_INFO_MODEL already has hushAccountBlogs")
+    }
+    val held = user.fields.singleOrNull { it.name == ACCOUNT_BLOGS_FIELD && it.type == LIST }
+    if (held == null || !AccessFlags.PRIVATE.isSet(held.accessFlags) || !AccessFlags.FINAL.isSet(held.accessFlags) ||
+        AccessFlags.STATIC.isSet(held.accessFlags)
+    ) {
+        throw PatchException("$PATCH: $ACCOUNT_USER_INFO_MODEL->$ACCOUNT_BLOGS_FIELD isn't a private final list")
+    }
+    val field = "$ACCOUNT_USER_INFO_MODEL->$ACCOUNT_BLOGS_FIELD:$LIST"
+    val writers = user.methods.filter { method -> method.instructionList().any { it.opcode == Opcode.IPUT_OBJECT && it.fieldRef()?.toString() == field } }
+    val fresh = writers.singleOrNull()
+    val body = fresh?.instructionList().orEmpty()
+    val read = body.indexOfFirst { it.methodRef()?.toString() == USER_INFO_BLOGS }
+    val filled = fresh != null && fresh.name == "<init>" && fresh.parameterTypes.map { it.toString() } == listOf(USER_INFO_RESPONSE) &&
+        read >= 0 && body.count { it.methodRef()?.toString() == USER_INFO_BLOGS } == 1 &&
+        body.getOrNull(read + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT &&
+        body.getOrNull(read + 2)?.let { it.opcode == Opcode.IPUT_OBJECT && it.fieldRef()?.toString() == field } == true &&
+        body.count { it.opcode == Opcode.IPUT_OBJECT && it.fieldRef()?.toString() == field } == 1
+    if (!filled) throw PatchException("$PATCH: $field no longer comes from a fresh user/info response alone")
 }
 
 /** Each of [POST_BRIDGES] resolved, throwing for the first model, adapter or getter this build lacks. */

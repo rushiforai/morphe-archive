@@ -11,6 +11,12 @@ object Constants {
         description = "The SiriusXM app.",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x0000EB,
-        targets = listOf(AppTarget("2610.4.0")),
+        // Multiple public Play versions are supported so users who cannot
+        // update still get patches. 2611.2.1 is pinned by version code to the
+        // phone build, since the Android TV build shares its version name.
+        targets = listOf(
+            AppTarget("2611.2.1", 1726111300),
+            AppTarget("2610.4.0"),
+        ),
     )
 }

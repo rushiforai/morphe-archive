@@ -237,6 +237,18 @@ final class UpdateHistory {
     private static void addFeatureSetting(LinearLayout content, Activity activity, ReleaseFeatureOptions.Option option) {
         SharedPreferences main = SettingsProfiles.prefs(activity);
         switch (option) {
+            case WACCHOI_COPY_UPPER:
+            case WACCHOI_COPY_LOWER:
+                boolean upper=option==ReleaseFeatureOptions.Option.WACCHOI_COPY_UPPER;
+                toggle(content,activity,activity.getSharedPreferences("haiagaru_response_actions",0),upper?"ワッチョイ長押しに「上4桁をコピー」を表示":"ワッチョイ長押しに「下4桁をコピー」を表示",
+                        upper?"wacchoiLongPressCopyPrefix":"wacchoiLongPressCopySuffix",true,null); break;
+            case LOCAL_IMAGES:
+                toggle(content, activity, LocalImageArchive.prefs(activity), "保存済み画像から表示",
+                        "enabled", true, LocalImageArchive::reset);
+                Button localImages = new Button(activity);
+                localImages.setText("検索フォルダ・元URLとの関連付けを設定");
+                localImages.setOnClickListener(view -> activity.startActivity(new Intent(activity, LocalImageArchiveActivity.class)));
+                content.addView(localImages); break;
             case SETTINGS_LINKS:
                 toggle(content, activity, FeatureSwitches.prefs(activity), "設定文字列をタップして設定を開く",
                         "settingsOptionLinksEnabled", true, null); break;

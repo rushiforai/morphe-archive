@@ -91,7 +91,11 @@ public final class ReadsButton {
 
     /** A tap on the checks: sends the held reads and says how it went. */
     static void tap() {
-        int sent = GhostMode.sendHeld();
+        say(GhostMode.sendHeld());
+    }
+
+    /** Says how a send of held reads went: [sent] is how many went, or -1 when they couldn't. */
+    static void say(int sent) {
         Utils.showToastShort(sent < 0 ? L10n.t("Couldn't send read receipts")
                 : sent == 0 ? L10n.t("No read receipts waiting") : L10n.t("Read receipts sent"));
     }

@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.SharedPreferences;
+import android.content.res.AssetManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Point;
@@ -27,6 +28,11 @@ import app.morphe.extension.shared.Utils;
  * attach their base context, so a new choice applies after the app restarts. Without a choice, 200
  * dpi applies only on the screen it was chosen on (1920x1080 at 240 dpi, the Dolphin's); other
  * screens keep the system density until the user picks one (from 0.1.1).
+ * <p>
+ * On another display, such as a launcher's virtual display (from 0.1.8): a density the display's owner set (any
+ * other than the system's) is kept, so a launcher's density setting works; a display left at the system density gets
+ * the chosen density, as the main display does. The language applies on every display. A move between displays of
+ * different densities recreates the activity, so the rule follows the new display.
  */
 @SuppressWarnings("unused")
 public final class UiDensityPatch {
@@ -41,6 +47,8 @@ public final class UiDensityPatch {
     /** 0 keeps the system density. */
     private static final int[] CHOICES = {0, 200, 180, 160};
     private static boolean logged;
+    /** The display of the last activity wrapped, for a log line when it changes; -1 before the first. */
+    private static int lastDisplayId = -1;
 
     private UiDensityPatch() {
     }
@@ -97,7 +105,7 @@ public final class UiDensityPatch {
     }
 
     /**
-     * Injection point: attachBaseContext of the Application and of AppCompatActivity.
+     * Injection point: attachBaseContext of the Application; {@link #wrapActivity} for the activities.
      * <p>
      * The override sets densityDpi and, with a language chosen ({@link AppLanguage}), the locale. The
      * framework keeps such a delta when it updates the configuration (MapsActivity handles screen-size
@@ -105,20 +113,25 @@ public final class UiDensityPatch {
      * system, so they stay current.
      */
     public static Context wrap(Context base) {
+        return wrap(base, true);
+    }
+
+    // [density] false: the language only (an activity on another display).
+    private static Context wrap(Context base, boolean density) {
         if (base == null) return null;
-        int target = SafeMode.on(base, SafeMode.UI_DENSITY) ? getTargetDensityDpi(base) : 0;
+        int target = density && SafeMode.on(base, SafeMode.UI_DENSITY) ? getTargetDensityDpi(base) : 0;
         // The chosen language rides in the same override; null keeps the system's.
         Locale locale = AppLanguage.locale(base);
         if (target <= 0 && locale == null) return base;
         try {
             int system = base.getResources().getConfiguration().densityDpi;
-            boolean density = target > 0 && system != target;
-            if (!density && locale == null) return base;
+            boolean change = target > 0 && system != target;
+            if (!change && locale == null) return base;
             Configuration override = new Configuration();
-            if (density) override.densityDpi = target;
+            if (change) override.densityDpi = target;
             if (locale != null) override.setLocale(locale);
             Context wrapped = base.createConfigurationContext(override);
-            if (density && !logged) {
+            if (change && !logged) {
                 logged = true;
                 ReportLog.i(TAG, "UI density " + target + " dpi (system " + system + " dpi)");
             }
@@ -126,6 +139,98 @@ public final class UiDensityPatch {
         } catch (RuntimeException exception) {
             ReportLog.w(TAG, "Could not apply UI density " + target + (locale == null ? "" : " and language " + locale), exception);
             return base;
+        }
+    }
+
+    /**
+     * Injection point: attachBaseContext of AppCompatActivity, the first in MapsActivity's hierarchy.
+     * <p>
+     * As {@link #wrap}, but the activity keeps its own context as its base and takes only the resources, assets
+     * and theme of the configuration context. A display change reaches the activity's context through that base
+     * (Activity.dispatchMovedToDisplay, ContextWrapper.updateDisplay), and the activity's window manager uses that
+     * context's display. With the configuration context as the base, it kept the old display: a tooltip added after
+     * Maps moved from a hosted display to the default one, and the hosted display went away, failed with
+     * InvalidDisplayException (seen in a problem report).
+     */
+    public static Context wrapActivity(Context base) {
+        Context configured = wrap(base, base == null || densityApplies(base));
+        if (configured == base || configured == null) return configured;
+        return new ConfiguredContext(base, configured);
+    }
+
+    /**
+     * Whether the chosen density applies on a display: always on the main display; on another only while it is at the
+     * system density, since another density was set by the display's owner (a launcher's setting).
+     */
+    static boolean appliesOn(int displayId, int displayDpi, int systemDpi) {
+        return displayId == Display.DEFAULT_DISPLAY || displayDpi == systemDpi;
+    }
+
+    /**
+     * {@link #appliesOn} for an activity's base context, before its window exists; true when unknown. Logs when the
+     * display differs from the last activity's.
+     */
+    private static boolean densityApplies(Context base) {
+        try {
+            Display display = ApiCompat.getDisplay(base);
+            int id = display != null ? display.getDisplayId() : Display.DEFAULT_DISPLAY;
+            int dpi = base.getResources().getConfiguration().densityDpi;
+            int system = Resources.getSystem().getConfiguration().densityDpi;
+            boolean applies = appliesOn(id, dpi, system);
+            if (id != lastDisplayId) {
+                boolean first = lastDisplayId < 0;
+                lastDisplayId = id;
+                if (id != Display.DEFAULT_DISPLAY) {
+                    ReportLog.i(TAG, "Display " + id + " at " + dpi + " dpi: " + (applies
+                            ? "the system density, UI density applies"
+                            : "set by its owner (system " + system + " dpi), kept"));
+                } else if (!first) {
+                    ReportLog.i(TAG, "Main display again: UI density applies");
+                }
+            }
+            return applies;
+        } catch (RuntimeException error) {
+            ReportLog.w(TAG, "Could not read the activity's display, UI density applies", error);
+            return true;
+        }
+    }
+
+    /** The density of [context]'s display when UI density does not apply there (another display, set by its owner), else 0. */
+    private static int ownerDensity(Context context) {
+        try {
+            Display display = ApiCompat.getDisplay(context);
+            if (display == null) return 0;
+            android.util.DisplayMetrics metrics = new android.util.DisplayMetrics();
+            display.getMetrics(metrics);
+            int system = Resources.getSystem().getConfiguration().densityDpi;
+            return appliesOn(display.getDisplayId(), metrics.densityDpi, system) ? 0 : metrics.densityDpi;
+        } catch (RuntimeException error) {
+            return 0;
+        }
+    }
+
+    /** The activity's own context with the resources of a configuration context. */
+    private static final class ConfiguredContext extends ContextWrapper {
+        private final Context configured;
+
+        ConfiguredContext(Context base, Context configured) {
+            super(base);
+            this.configured = configured;
+        }
+
+        @Override
+        public Resources getResources() {
+            return configured.getResources();
+        }
+
+        @Override
+        public AssetManager getAssets() {
+            return configured.getAssets();
+        }
+
+        @Override
+        public Resources.Theme getTheme() {
+            return configured.getTheme();
         }
     }
 
@@ -143,7 +248,11 @@ public final class UiDensityPatch {
             return (thai ? "ใช้ขนาดของระบบชั่วคราว · สวิตช์ใน " : "System density for now · switch in ")
                     + ReportPatch.reportPlace(context, thai);
         }
-        return describedLabel(context, getTargetDensityDpi(context));
+        String label = describedLabel(context, getTargetDensityDpi(context));
+        // Settings shown on a display whose owner set its density (a launcher's): the choice does not apply there.
+        int other = ownerDensity(context);
+        if (other <= 0) return label;
+        return label + (isThai(context) ? " · จอนี้ใช้ " + other + " dpi ของจอเอง" : " · this screen uses its own " + other + " dpi");
     }
 
     /**

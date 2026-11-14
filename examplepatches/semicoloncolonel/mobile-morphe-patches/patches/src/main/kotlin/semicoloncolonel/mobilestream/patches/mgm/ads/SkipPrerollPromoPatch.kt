@@ -35,6 +35,7 @@ val skipPrerollPromoPatch = bytecodePatch(
     name = "Skip pre-roll promo",
     description = "Skips the MGM+ promo that plays before a title.",
 ) {
+    category("Ads")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")

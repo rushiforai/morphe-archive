@@ -510,6 +510,7 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             case "hushtumblr_hide_featured_posts": return L10n.t("Hide Featured posts");
             case "hushtumblr_hide_hashtags": return L10n.t("Hide hashtags");
             case "hushtumblr_hide_follow_button": return L10n.t("Hide the Follow button");
+            case "hushtumblr_tag_blog_search": return L10n.t("Tags open the blog's tag search");
             case "hushtumblr_hide_tumblrmart": return L10n.t("Hide the diamond and TumblrMart");
             case "hushtumblr_hide_note_counts": return L10n.t("Hide note counts");
             case "hushtumblr_hide_like_button": return L10n.t("Hide the like button");
@@ -525,6 +526,7 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             case "hushtumblr_keep_blaze_posts": return L10n.t("Keep Blaze posts");
             case "hushtumblr_keep_reblogs_with_content": return L10n.t("Keep reblogs with added content");
             case "hushtumblr_hide_own_reblogs": return L10n.t("Hide your own reblogs");
+            case "hushtumblr_hide_reblogs_of_yours": return L10n.t("Hide reblogs of your posts");
             case "hushtumblr_hide_liked_posts": return L10n.t("Hide liked posts");
             case "hushtumblr_hide_notification_likes": return L10n.t("Hide likes");
             case "hushtumblr_hide_notification_reblogs": return L10n.t("Hide reblog notifications");

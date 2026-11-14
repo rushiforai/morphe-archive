@@ -462,13 +462,27 @@ public final class SelectorDexFixture {
         String footer = FIXTURE + "PostFooter;", group = FIXTURE + "ContentGroup;", paint = FIXTURE + "Background;";
         String modifier = FIXTURE + "Modifier;", shape = FIXTURE + "Shape;";
         put(classes, group, List.of(method(group, "panel", "J", false, 3, body(wide(0, 0xFF1A1A1AL), returnedWide(0)))));
-        put(classes, paint, List.of(method(paint, "background", modifier, true, 4, body(returned(0, true)), modifier, "J", shape)));
         List<Instruction> draw = body(literal(0, "com.tumblr.ui.widget.splitnotescount.composable.PostFooterSplitNotesCountContent (PostFooterSplitNotesCountContent.kt:33)"),
                 invoke(Opcode.INVOKE_VIRTUAL, ref(group, "panel", "J"), 4), movedWide(1),
                 staticCall(paint, "background", modifier, new String[]{modifier, "J", shape}, 5, 1, 2, 6), moved(0, true), end());
         if (patched && !fault.equals("theme-footer-missing")) draw.addAll(3, body(range(Opcode.INVOKE_STATIC_RANGE, ref(hooks, "designFooter", "J", "J"), 1, 2),
                 movedWide(fault.equals("theme-footer-wrong-register") ? 3 : 1)));
         put(classes, footer, List.of(method(footer, "draw", "V", true, 7, draw, group, modifier, shape)));
+
+        // The row under your own posts reads the same panel color, sets the defaults variant's leftover
+        // arguments with constants, then hands it over: modifier v1, color v2-v3, shape v4, mask v5, v6.
+        String actions = FIXTURE + "AuthorActions;";
+        String[] defaults = {modifier, "J", shape, "I", "Ljava/lang/Object;"};
+        put(classes, paint, List.of(method(paint, "background", modifier, true, 4, body(returned(0, true)), modifier, "J", shape),
+                method(paint, "backgroundDefault", modifier, true, 6, body(returned(0, true)), defaults)));
+        List<Instruction> row = body(literal(0, "com.tumblr.ui.widget.authoractions.composable.AuthorActionsBarContent (AuthorActionsBarContent.kt:37)"),
+                new ImmutableInstruction12x(Opcode.MOVE_OBJECT, 1, 8),
+                invoke(Opcode.INVOKE_VIRTUAL, ref(group, "panel", "J"), 7), movedWide(2),
+                constant(5, 2), constant(6, 0), constant(4, 0),
+                range(Opcode.INVOKE_STATIC_RANGE, ref(paint, "backgroundDefault", modifier, defaults), 1, 6), moved(0, true), end());
+        if (patched && !fault.equals("theme-actions-missing")) row.addAll(4, body(range(Opcode.INVOKE_STATIC_RANGE, ref(hooks, "designFooter", "J", "J"), 2, 2),
+                movedWide(fault.equals("theme-actions-wrong-register") ? 4 : 2)));
+        put(classes, actions, List.of(method(actions, "draw", "V", true, 9, row, group, modifier)));
     }
 
     private static void storeButtons(Map<String, ClassDef> classes, boolean patched, String fault) {
@@ -575,6 +589,8 @@ public final class SelectorDexFixture {
         fixture(root, "theme-design-other-palette", "misrouted call Lapp/hushtumblr/extension/tumblr/ui/DarkBackground;->designPage(J)J", "darkBackground");
         fixture(root, "theme-footer-wrong-register", "designFooter(J)J doesn't take the post footer's color and put its answer back where it was", "darkBackground");
         fixture(root, "theme-footer-missing", "designFooter(J)J has 0 calls", "darkBackground");
+        fixture(root, "theme-actions-wrong-register", "designFooter(J)J doesn't take the author actions row's color and put its answer back where it was", "darkBackground");
+        fixture(root, "theme-actions-missing", "designFooter(J)J has 0 calls in " + FIXTURE + "AuthorActions;", "darkBackground");
         fixture(root, "theme-page-wrong-register", "pageColor(I)I doesn't take the blog's color and put its answer back where it was", "darkBackground");
         fixture(root, "theme-page-missing", "pageColor(I)I has 0 calls", "darkBackground");
         fixture(root, "theme-title-wrong-register", "pageTextColor(I)I doesn't take the blog's color and put its answer back where it was", "darkBackground");

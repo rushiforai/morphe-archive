@@ -141,7 +141,7 @@ private var switchApi: PreferenceApi? = null
  * Smali that adds the row for the setting [key] to the category in v3: a switch that persists to GitHub's settings
  * file, where the extension reads it, or with no [default] a plain row. Both report a click to the extension.
  */
-private fun row(api: PreferenceApi, key: String, title: String, default: Boolean?): String {
+private fun row(api: PreferenceApi, key: String, title: String, default: Boolean?, summary: String? = null): String {
     val type = if (default == null) PREFERENCE else SWITCH_PREFERENCE
     return """
     new-instance v1, $type
@@ -153,6 +153,12 @@ private fun row(api: PreferenceApi, key: String, title: String, default: Boolean
     invoke-static { v2 }, Lapp/fakh/extension/shared/I18n;->tr(Ljava/lang/String;)Ljava/lang/String;
     move-result-object v2
     invoke-virtual { v1, v2 }, ${api.setTitle.smali}
+    ${if (summary == null) "" else """
+    const-string v2, "$summary"
+    invoke-static { v2 }, Lapp/fakh/extension/shared/I18n;->tr(Ljava/lang/String;)Ljava/lang/String;
+    move-result-object v2
+    invoke-virtual { v1, v2 }, ${api.setSummary.smali}
+    """}
     ${if (default != null) "" else """
     const-string v2, "$key"
     invoke-static { v2 }, $EXTENSION->summary(Ljava/lang/String;)Ljava/lang/String;
@@ -538,8 +544,8 @@ private fun BytecodePatchContext.addChoiceSheets(api: PreferenceApi, build: Muta
  * Adds a row to the Fakh Patches section; run after [githubSettingsPatch] has built it. A null [default] makes a
  * plain row that only reports its click, such as one that opens a sheet.
  */
-internal fun BytecodePatchContext.addSwitch(key: String, title: String, default: Boolean?) {
+internal fun BytecodePatchContext.addSwitch(key: String, title: String, default: Boolean?, summary: String? = null) {
     val api = switchApi ?: throw PatchException("The Fakh Patches section is not built yet")
     val section = mutableClassDefBy(SETTINGS_FRAGMENT).methods.first { it.name == "fakhAddPatchesSection" }
-    section.addInstructions(section.implementation!!.instructions.count() - 1, row(api, key, title, default))
+    section.addInstructions(section.implementation!!.instructions.count() - 1, row(api, key, title, default, summary))
 }

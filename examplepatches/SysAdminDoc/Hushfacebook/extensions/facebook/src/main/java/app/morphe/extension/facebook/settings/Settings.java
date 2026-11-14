@@ -24,6 +24,7 @@ import app.morphe.extension.facebook.reels.BurnInMode;
 import app.morphe.extension.facebook.reels.BurnInWait;
 import app.morphe.extension.facebook.reels.FeedVideoControls;
 import app.morphe.extension.facebook.reels.GrayOver;
+import app.morphe.extension.facebook.reels.HoldReaction;
 import app.morphe.extension.facebook.reels.ReelDateStyle;
 import app.morphe.extension.facebook.reels.ReelsOrder;
 import app.morphe.extension.facebook.misc.AppLock;
@@ -411,6 +412,13 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting SHOW_ONLY_WATCHED_STORIES =
             new BooleanSetting("hushfacebook_show_only_watched_stories", FALSE);
+
+    /**
+     * The Stories tray's buckets whose tile came into view on an earlier visit to Facebook, watched or
+     * not (#463). A new story brings the person back. Off until you turn it on.
+     */
+    public static final BooleanSetting HIDE_PASSED_STORIES =
+            new BooleanSetting("hushfacebook_hide_passed_stories", FALSE);
 
     /**
      * The cards beside Create story in the Stories tray that suggest a story to make, such as
@@ -1051,6 +1059,16 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_skip_still_watching", FALSE);
 
     /**
+     * A reel or full-screen video that Facebook would fit between black bars fills the screen
+     * instead, with a little cut off its edges ({@link app.morphe.extension.facebook.reels.ReelFill},
+     * #453, #466), and a pinch on a reel shows it whole or fills it again
+     * ({@link app.morphe.extension.facebook.reels.ReelFitPinch}). Off by default. Asked each time a
+     * player view is sized, so a change shows on the next reel.
+     */
+    public static final BooleanSetting FILL_REELS =
+            new BooleanSetting("hushfacebook_fill_reels", FALSE);
+
+    /**
      * The batches of watched reels the Reels viewer sends as FbShortsSeenStateMutation: only their
      * ids, the record Facebook ranks the Reels feed with, which nobody else sees. Held back, reels
      * already watched may come back in the feed.
@@ -1256,6 +1274,22 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting SELECT_POST_TEXT =
             new BooleanSetting("hushfacebook_select_post_text", FALSE);
+
+    /**
+     * A hold on a feed post's photo or video does what a hold on its Like button does: opens the
+     * reaction tray, or gives {@link #HOLD_REACTION} straight away
+     * ({@link app.morphe.extension.facebook.reels.ReactionHold}, #454). Wins over
+     * {@link #LONG_PRESS_OPENS_COMMENTS} on a feed post. Starts off.
+     */
+    public static final BooleanSetting HOLD_POST_TO_REACT =
+            new BooleanSetting("hushfacebook_hold_post_to_react", FALSE);
+
+    /**
+     * What {@link #HOLD_POST_TO_REACT} gives: the reaction tray to pick from, by default, or one
+     * reaction (#454).
+     */
+    public static final EnumSetting<HoldReaction> HOLD_REACTION =
+            new EnumSetting<>("hushfacebook_hold_reaction", HoldReaction.PICK);
 
     /**
      * A speed picked in a reel's menu stays for the next reels where it was picked, ads and live
@@ -1750,6 +1784,19 @@ public class Settings extends BaseSettings {
             };
 
     /**
+     * With {@link #FEED_VIDEO_FULL_PLAYER_BUTTON} on, the button sits in the video's bottom corner
+     * where Facebook's speaker was, and the speaker moves over to make room (#431). A live video, or
+     * one without the speaker, keeps it in the row at the top. Starts off.
+     */
+    public static final BooleanSetting FEED_VIDEO_FULL_PLAYER_CORNER =
+            new BooleanSetting("hushfacebook_feed_video_full_player_corner", FALSE) {
+                @Override
+                protected void onValueChanged() {
+                    FeedVideoControls.settingsChanged();
+                }
+            };
+
+    /**
      * Two buttons on a feed video, beside the play/pause one, that jump back or ahead 10 seconds,
      * as in Facebook's own player (#239). Live videos don't get them. Starts off.
      */
@@ -1928,6 +1975,24 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting PICTURE_IN_PICTURE_BUTTON =
             new BooleanSetting("hushfacebook_pip_button", FALSE);
+
+    /**
+     * A video you started keeps its sound after you leave Facebook, in Facebook's own background
+     * player with its notification ({@link app.morphe.extension.facebook.media.BackgroundPlay}). Off
+     * by default: it keeps a player going once Facebook is out of sight, which not everyone wants.
+     */
+    public static final BooleanSetting KEEP_PLAYING_IN_BACKGROUND =
+            new BooleanSetting("hushfacebook_keep_playing_in_background", FALSE);
+
+    /**
+     * The picture-in-picture window gets a headphones button that closes the window and keeps the
+     * sound going in Facebook's background player, with its notification (#455,
+     * {@link app.morphe.extension.facebook.media.BackgroundPlay}). Works with {@link
+     * #KEEP_PLAYING_IN_BACKGROUND} on or off. Starts off. Off or paused, the window has Facebook's
+     * buttons alone.
+     */
+    public static final BooleanSetting BACKGROUND_PLAY_BUTTON =
+            new BooleanSetting("hushfacebook_background_play_button", FALSE);
 
     /**
      * HDR videos and photos stay in the screen's usual range instead of turning it up to full

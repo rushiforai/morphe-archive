@@ -1,5 +1,6 @@
 package app.template.patches.shared
 
+import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 
@@ -19,7 +20,7 @@ object Constants {
         packageName = "com.softissimo.reverso.context",
         targets = listOf(
             AppTarget(
-                version = "16.5.0",
+                version = "17.2.0",
             )
         )
     )
@@ -37,9 +38,10 @@ object Constants {
     val COMPATIBILITY_RILLPHONE = Compatibility(
         name = "RillPhone",
         packageName = "dev.goodwy.rphone",
+        apkFileType = ApkFileType.XAPK,
         targets = listOf(
             AppTarget(
-                version = "0.5.6"
+                version = "0.7.3"
             )
         )
     )
@@ -57,9 +59,10 @@ object Constants {
     val COMPATIBILITY_ZERCH = Compatibility(
         name = "Zerch",
         packageName = "com.zerch.widget",
+        apkFileType = ApkFileType.XAPK,
         targets = listOf(
             AppTarget(
-                version = "2.3",
+                version = "2.3.3",
             )
         )
     )
@@ -67,9 +70,10 @@ object Constants {
     val COMPATIBILITY_USENETPANDA = Compatibility(
         name = "Usenet Panda",
         packageName = "at.mann.usenetpanda",
+        apkFileType = ApkFileType.XAPK,
         targets = listOf(
             AppTarget(
-                version = "2.1.1",
+                version = "3.0.1",
             )
         )
     )
@@ -77,9 +81,32 @@ object Constants {
     val COMPATIBILITY_FILETREESIZE = Compatibility(
         name = "File Tree Size",
         packageName = "com.devone.filetreesize",
+        apkFileType = ApkFileType.XAPK,
         targets = listOf(
             AppTarget(
-                version = "4.4.1-NRS.V4",
+                version = "4.5.1-NRS.V5",
+            )
+        )
+    )
+
+    val COMPATIBILITY_MONITEE = Compatibility(
+        name = "Monitee",
+        packageName = "com.krillsson.monitee",
+        apkFileType = ApkFileType.XAPK,
+        targets = listOf(
+            AppTarget(
+                version = "0.42.0",
+            )
+        )
+    )
+
+    val STICKER_MAKER_COMPATIBILITY = Compatibility(
+        name = "Sticker Maker",
+        packageName = "com.marsvard.stickermakerforwhatsapp",
+        apkFileType = ApkFileType.XAPK,
+        targets = listOf(
+            AppTarget(
+                version = "1.0.12-7",
             )
         )
     )

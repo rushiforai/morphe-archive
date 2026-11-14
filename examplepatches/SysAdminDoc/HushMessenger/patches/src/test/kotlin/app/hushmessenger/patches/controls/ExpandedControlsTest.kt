@@ -491,6 +491,16 @@ class ExpandedControlsTest {
                 "Lapp/hushmessenger/extension/OriginalPhoto;->decodeFile(Ljava/lang/String;)Landroid/graphics/Bitmap;"
         })
 
+        // 587's helper always filters, so it drops createScaledBitmap's flag.
+        val noFlag = fixtureMethod(DECODE_BITMAP, DECODE_BITMAP_BODY.replace(
+            "invoke-static {v1, v2, v4, v5}, Landroid/graphics/Bitmap;->createScaledBitmap(Landroid/graphics/Bitmap;IIZ)Landroid/graphics/Bitmap;",
+            "invoke-static {v1, v2, v4}, LX/Yut;->A0G(Landroid/graphics/Bitmap;II)Landroid/graphics/Bitmap;"), 22)
+        noFlag.injectOriginalPhoto()
+        assertTrue(noFlag.implementation!!.instructions.any {
+            (it as? ReferenceInstruction)?.reference?.toString() ==
+                "Lapp/hushmessenger/extension/OriginalPhoto;->decodeFile(Ljava/lang/String;)Landroid/graphics/Bitmap;"
+        })
+
         val refused = listOf(
             TRANSCODE_CONFIG to TRANSCODE_CONFIG_BODY.replace("ENABLE_UIT_TRANSCODING", "ENABLE_UIT_V2"),
             TRANSCODE_CONFIG to TRANSCODE_CONFIG_BODY.replace("return-object v2", "if-eqz v1, :again\nreturn-object v2\n:again\nreturn-object v2"),

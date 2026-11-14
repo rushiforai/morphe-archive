@@ -1549,6 +1549,10 @@ Rule saved	Regel gespeichert
 Open restricted channels	Eingeschränkte Kanäle öffnen
 Channels, groups and messages Telegram says are unavailable for copyright or local law open anyway, as long as Telegram still sends them.	Kanäle, Gruppen und Nachrichten, die Telegram wegen Urheberrecht oder lokaler Gesetze als nicht verfügbar meldet, öffnen sich trotzdem, solange Telegram sie noch sendet.
 channels restricted for copyright or local law	Kanäle, die wegen Urheberrecht oder lokaler Gesetze eingeschränkt sind
+banned channels on the web	Kanäle, die dich gesperrt haben, im Web
+A channel that banned you offers Open on the web, which shows its public posts in your browser.	Ein Kanal, der dich gesperrt hat, bietet „Im Web öffnen“ an. Das zeigt seine öffentlichen Beiträge in deinem Browser.
+Open on the web	Im Web öffnen
+No browser could open %1$s.	Kein Browser konnte %1$s öffnen.
 Send photos and videos in the best quality	Fotos und Videos in bester Qualität senden
 Photos go out in HD and videos at their own size and quality, without touching the quality button first. You can still lower one before sending. Only sending as a file keeps a photo exactly as it is.	Fotos gehen in HD raus und Videos in ihrer eigenen Größe und Qualität, ohne dass du vorher die Qualitätstaste antippst. Du kannst eines vor dem Senden trotzdem herunterstufen. Nur das Senden als Datei lässt ein Foto genau so, wie es ist.
 photos and videos in their best quality	Fotos und Videos in bester Qualität
@@ -1566,7 +1570,7 @@ When you send a message in a chat, the read receipt Ghost mode held back there g
 # context: a switch under Ghost mode (#69). With it on, a double check button sits at the top of the chat list, next to the ghost.
 Read receipts button	Lesebestätigungs-Taste
 # context: that switch's summary. A double check is the two tick marks Telegram shows on a read message.
-A double check at the top of the chat list sends the read receipts Ghost mode is holding for the account you're on, from chats read since Telegram last started. Shows with Ghost mode and No read receipts on.	Ein Doppelhaken oben in der Chatliste sendet die Lesebestätigungen, die der Geistermodus für das aktuelle Konto zurückhält, aus Chats, die seit dem letzten Start von Telegram gelesen wurden. Erscheint, wenn der Geistermodus und Keine Lesebestätigungen an sind.
+A double check at the top of the chat list sends the read receipts Ghost mode is holding for the account you're on, from chats read since Telegram last started. Send read receipts in a chat's menu sends just that chat's. Shows with Ghost mode and No read receipts on.	Ein Doppelhaken oben in der Chatliste sendet die Lesebestätigungen, die der Geistermodus für das aktuelle Konto zurückhält, aus Chats, die seit dem letzten Start von Telegram gelesen wurden. „Lesebestätigungen senden“ im Menü eines Chats sendet nur die dieses Chats. Erscheint, wenn der Geistermodus und Keine Lesebestätigungen an sind.
 # context: what a screen reader says for the chat list's double check button.
 Send read receipts	Lesebestätigungen senden
 # context: short message after a tap on the chat list's double check button sent the held read receipts.
@@ -1587,6 +1591,7 @@ The phone number screen always has the proxy button, so you can add a proxy befo
 Looking for free proxies now.	Suche gerade nach kostenlosen Proxys.
 Downloads a public list of proxies now, times them and adds the fastest to Telegram's proxy list, even with the switch above off.	Lädt jetzt eine öffentliche Proxy-Liste herunter, misst die Proxys und fügt die schnellsten zur Proxy-Liste von Telegram hinzu, auch wenn der Schalter oben aus ist.
 Proxies added last time: %1$s. They're in Telegram's proxy list.	Beim letzten Mal hinzugefügte Proxys: %1$s. Sie sind in der Proxy-Liste von Telegram.
+Proxies added last time: %1$s of %2$s read. They're in Telegram's proxy list.	Beim letzten Mal hinzugefügte Proxys: %1$s von %2$s gelesenen. Sie sind in der Proxy-Liste von Telegram.
 Couldn't download a proxy list last time. Check your connection and try again.	Beim letzten Mal ließ sich keine Proxy-Liste herunterladen. Prüfe deine Verbindung und versuche es noch einmal.
 None of the listed proxies answered last time. Try again later.	Beim letzten Mal hat keiner der aufgeführten Proxys geantwortet. Versuche es später noch einmal.
 Telegram didn't take the proxies last time.	Telegram hat die Proxys beim letzten Mal nicht übernommen.
@@ -1906,3 +1911,9 @@ Adds a Select all button to the bar that shows while you pick messages, in chats
 selecting every loaded message in a chat	das Auswählen aller geladenen Nachrichten in einem Chat
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the Select all button in a chat's shared media.
 selecting everything in shared media	das Auswählen von allem in den geteilten Medien
+# context: Switch on the Playback page under Voice messages in the music player (#77). It gives voice messages the next and previous buttons Telegram gives songs.
+Skip between voice messages	Zwischen Sprachnachrichten springen
+# context: Summary of the switch Skip between voice messages. Next and previous are the media buttons Telegram shows for songs. With the switch on they move between the voice messages of the chat that's playing.
+Next and previous on headphones, in a car, in the notification, on the lock screen and in the full player move between a chat's voice messages, as they do for songs.	Weiter und Zurück am Kopfhörer, im Auto, in der Benachrichtigung, auf dem Sperrbildschirm und im vollen Musikplayer springen zwischen den Sprachnachrichten eines Chats, wie sie es bei Songs tun.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the Skip between voice messages switch.
+skipping between voice messages	das Springen zwischen Sprachnachrichten

@@ -164,6 +164,16 @@ public final class TrackerBlocker {
             "logx.optimizely.com",
             "analytics-ingress-global.bitmovin.com", // Bitmovin player analytics
             "mixpanel.com",
+            "sdk.foursquare.com", // Foursquare Movement SDK (Checkout 51)
+            // Yahoo News (100.1.1): Yahoo analytics, AXID sync, server-side GA
+            // forwarding, video beacons, and ad measurement. geo.yahoo.com is left
+            // alone, because the B-cookie and consent records use it.
+            "ups.analytics.yahoo.com", "analytics.query.yahoo.com", "collector.yahoo.net",
+            "signal-service.pbs.yahoo.com", "bats.video.yahoo.com", "log.adaptv.advertising.com",
+            "metrics.brightcove.com", "tracking.taboola.com", "beacon.taboola.com",
+            "adsafeprotected.com", "wvsignal.com",
+            // Yahoo Finance (26.22.2): Embrace, the sGTM collector, and ad verification.
+            "data.emb-api.com", "config.emb-api.com", "doubleverify.com",
             // NPR (7.10.0), AP News (6.31.2), and NewsBreak (26.44.1)
             "quantserve.com", "quantcount.com", // Quantcast measurement
             "tahoe-analytics.publishers.advertising.a2z.com", // Amazon publisher ad analytics
@@ -171,6 +181,11 @@ public final class TrackerBlocker {
             // SiriusXM (2610.4.0)
             "evergage.com", // Salesforce Personalization (Evergage)
             "zc.adswizz.com", // AdsWizz SDK setup, which turns on its listening measurement
+            // Slickdeals (6.36.0)
+            "getblueshift.com", // Blueshift marketing
+            "cwogzftn.usw.stape.io", // Slickdeals' server-side Tag Manager
+            "l7ox5un97g.execute-api.us-west-2.amazonaws.com", // Slickdeals' impression collector
+            "prod.cm.publishers.advertising.a2z.com", // Amazon ad metrics
             // Kanopy (6.32.0)
             "sentry-tmp.kanopy.com", // Kanopy's Sentry server, which receives screenshots
     };

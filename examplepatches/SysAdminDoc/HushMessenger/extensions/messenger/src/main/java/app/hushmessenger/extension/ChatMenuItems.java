@@ -159,7 +159,7 @@ public final class ChatMenuItems {
             if (parts.length != 4) throw new IllegalStateException("The chat menu route has the wrong shape");
             Method factory = ChatHiding.Route.method(parts[0], loader);
             Method title = ChatHiding.Route.method(parts[1], loader);
-            Field description = ChatHiding.Route.field(parts[2], loader);
+            ChatHiding.Route.Setter description = ChatHiding.Route.Setter.of(parts[2], loader);
             Method build = ChatHiding.Route.method(parts[3], loader);
             Object builder = call(factory, null);
             call(title, builder, PROBE_TITLE);

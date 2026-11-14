@@ -19,6 +19,19 @@ jobs:
         with:
           fetch-depth: 0
 
+      # The collection is numbered from 0.1.0, which is published once by baseline-release.yml. Until
+      # that tag exists this must not run: with no tags at all semantic-release starts at 1.0.0, which
+      # is exactly the numbering this reset removes.
+      - name: Check the baseline exists
+        id: baseline
+        run: |
+          if git tag -l 'v0.1.*' | grep -q .; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No v0.1.x tag yet. Run Actions -> Baseline release once; this workflow then publishes 0.1.1 and later."
+          fi
+
       - name: Setup Java
         uses: actions/setup-java@v6
         with:
@@ -37,6 +50,7 @@ jobs:
       # Semantic release runs its own Gradle build command.
       # Only dev and main branch will generate a release as specified by .releaserc
       - name: Release
+        if: steps.baseline.outputs.published == 'true'
         uses: cycjimmy/semantic-release-action@v8
         id: release
         env:

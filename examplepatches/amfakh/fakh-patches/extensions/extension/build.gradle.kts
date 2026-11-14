@@ -4,6 +4,8 @@ extension {
 
 android {
     namespace = "app.fakh.extension"
+    // MethodHandle.invoke, for the special call in Jira's page of the patches, needs Android 8; Jira needs more.
+    defaultConfig.minSdk = 26
 }
 
 // The extension is plain Java. Without this the plugin bundles the whole Kotlin
@@ -98,3 +100,8 @@ val generateTranslations by tasks.registering {
 
 android.sourceSets.getByName("main").java.srcDir(generatedTranslationsDir.get().asFile)
 tasks.named("preBuild") { dependsOn(generateTranslations) }
+
+dependencies {
+    // Jira's page of the patches is a ComponentActivity, which the app already has.
+    compileOnly("androidx.activity:activity:1.9.3")
+}

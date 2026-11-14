@@ -10,17 +10,15 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.rawResourcePatch
-import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
-import org.w3c.dom.Element
 
 /** `SmartApplication.attachBaseContext(Context)`: the app's entry point, run before anything reads its signature. */
 private object AttachBaseContextFingerprint : Fingerprint(
@@ -129,10 +127,12 @@ val hideRewardsHubPatch = bytecodePatch(
 ) {
     compatibleWith(COMPATIBILITY_SMARTLIFE, COMPATIBILITY_TUYA_SMART)
     category("Layout")
+    extendWith("extensions/extension.mpe")
+    dependsOn(switchRow("fakh_hide_rewards"), settingsSwitchesPatch)
 
     execute {
-        welfareEntryFingerprint.method.addInstructions(0, HIDE_CELL)
-        welfareBannerFingerprint.method.addInstructions(0, HIDE_CELL)
+        welfareEntryFingerprint.method.whenSwitchOn("fakh_hide_rewards", HIDE_CELL)
+        welfareBannerFingerprint.method.whenSwitchOn("fakh_hide_rewards", HIDE_CELL)
     }
 }
 
@@ -144,8 +144,11 @@ private object DefaultCellVisibilityFingerprint : Fingerprint(
     parameters = listOf("Lkotlin/coroutines/Continuation;"),
 )
 
-/** Mini-app ids of the server-defined Me-tab rows the enabled patches hide; they do not change with the app language. */
-private val hiddenRowIds = linkedSetOf<String>()
+/**
+ * Mini-app ids of the server-defined Me-tab rows the enabled patches hide, each with the switch in Settings that has
+ * to be on; the ids do not change with the app language.
+ */
+private val hiddenRowIds = linkedMapOf<String, String>()
 
 /** The class with type [type]. */
 private fun BytecodePatchContext.classDef(type: String): ClassDef {
@@ -189,12 +192,16 @@ private val customRowFilterPatch = bytecodePatch {
     finalize {
         if (hiddenRowIds.isEmpty()) return@finalize
         val (cellField, idField) = customRowIdPath()
-        val matches = hiddenRowIds.joinToString("\n") {
+        val matches = hiddenRowIds.entries.withIndex().joinToString("\n") { (index, row) ->
+            // A row stays while its switch is off.
             """
-                const-string p1, "$it"
+                const-string p1, "${row.key}"
                 invoke-virtual { p0, p1 }, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
                 move-result p1
+                if-eqz p1, :next$index
+                ${switchOn(row.value, "p1")}
                 if-nez p1, :hide
+                :next$index
             """
         }
         DefaultCellVisibilityFingerprint.method.addInstructionsWithLabels(
@@ -224,9 +231,10 @@ val hideMyOrdersPatch = bytecodePatch(
 ) {
     compatibleWith(COMPATIBILITY_SMARTLIFE, COMPATIBILITY_TUYA_SMART)
     category("Layout")
-    dependsOn(customRowFilterPatch)
+    extendWith("extensions/extension.mpe")
+    dependsOn(customRowFilterPatch, switchRow("fakh_hide_orders"), settingsSwitchesPatch)
 
-    execute { hiddenRowIds += "tyko2ipbcpehi0hwtv" }
+    execute { hiddenRowIds["tyko2ipbcpehi0hwtv"] = "fakh_hide_orders" }
 }
 
 @Suppress("unused")
@@ -237,27 +245,39 @@ val hideTuyaAiWebPatch = bytecodePatch(
 ) {
     compatibleWith(COMPATIBILITY_SMARTLIFE, COMPATIBILITY_TUYA_SMART)
     category("Layout")
-    dependsOn(customRowFilterPatch)
+    extendWith("extensions/extension.mpe")
+    dependsOn(customRowFilterPatch, switchRow("fakh_hide_ai_web"), settingsSwitchesPatch)
 
-    execute { hiddenRowIds += "tyezgn3ay0hma8xah6" }
+    execute { hiddenRowIds["tyezgn3ay0hma8xah6"] = "fakh_hide_ai_web" }
 }
 
+/** `AIPlusMenuView(Context, AttributeSet, int)`: the "Plus" pill of the home header, which inflates its layout. */
+private object PlusMenuViewFingerprint : Fingerprint(
+    definingClass = "Lcom/thingclips/smart/ai/aiassistant/ui/view/AIPlusMenuView;",
+    name = "<init>",
+    returnType = "V",
+    parameters = listOf("Landroid/content/Context;", "Landroid/util/AttributeSet;", "I"),
+)
+
 @Suppress("unused")
-val hidePlusButtonPatch = resourcePatch(
+val hidePlusButtonPatch = bytecodePatch(
     name = "Hide Plus button",
     description = "Removes the \"Plus\" pill from the home header.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_SMARTLIFE, COMPATIBILITY_TUYA_SMART)
     category("Layout")
+    extendWith("extensions/extension.mpe")
+    dependsOn(switchRow("fakh_hide_plus"), settingsSwitchesPatch)
 
     execute {
-        document("res/layout/ai_plus_menu_view.xml").use { layout ->
-            val plus = layout.documentElement as Element
-            if (plus.getAttribute("android:id") != "@id/iv_plus") {
-                throw PatchException("Smart Life: ai_plus_menu_view.xml root is no longer iv_plus.")
+        PlusMenuViewFingerprint.method.apply {
+            val returns = implementation!!.instructions.withIndex().filter { it.value.opcode == Opcode.RETURN_VOID }
+            if (returns.isEmpty()) throw PatchException("Smart Life: AIPlusMenuView's constructor has no return")
+            // From the last return up, so the earlier indexes stay valid. p0 is only read.
+            returns.reversed().forEach {
+                addInstructions(it.index, "invoke-static { p0 }, Lapp/fakh/extension/smartlife/Switches;->plus(Landroid/view/View;)V")
             }
-            plus.setAttribute("android:visibility", "gone")
         }
     }
 }
@@ -270,14 +290,19 @@ val hideRecommendedForYouPatch = bytecodePatch(
 ) {
     compatibleWith(COMPATIBILITY_SMARTLIFE, COMPATIBILITY_TUYA_SMART)
     category("Layout")
+    extendWith("extensions/extension.mpe")
+    dependsOn(switchRow("fakh_hide_recommended"), settingsSwitchesPatch)
 
     execute {
         AddUiCardFingerprint.method.apply {
-            // Never register the recommendation card, so the home list has nothing to build it from.
+            // While the switch is on the recommendation card is never registered, so the home list has nothing to
+            // build it from.
             addInstructionsWithLabels(
                 0,
                 """
                     instance-of v0, p1, Lcom/thingclips/smart/home/adv/card/HomeRecoSlotsCard;
+                    if-eqz v0, :register
+                    ${switchOn("fakh_hide_recommended", "v0")}
                     if-eqz v0, :register
                     return-void
                 """,
@@ -295,40 +320,51 @@ val hideAiAskBarPatch = bytecodePatch(
 ) {
     compatibleWith(COMPATIBILITY_SMARTLIFE, COMPATIBILITY_TUYA_SMART)
     category("Layout")
+    extendWith("extensions/extension.mpe")
+    dependsOn(switchRow("fakh_hide_ai_bar"), settingsSwitchesPatch)
 
     execute {
         listOf(AiBarFactoryFingerprint, PanelAiBarFactoryFingerprint).forEach {
-            it.method.addInstructions(
-                0,
-                """
-                    const/4 v0, 0x0
-                    return-object v0
-                """,
-            )
+            it.method.whenSwitchOn("fakh_hide_ai_bar", "const/4 v0, 0x0\nreturn-object v0")
         }
     }
 }
 
-private const val EXPLORE_TAB =
-    """{"tabGetter":"com.thingclips.smart.intelligence_bridge.SmartTabGetter","index":2,"url":"","name":"thing_smart_tab","ngName":"smart"},"""
+/** The app shell's loader of `tab_config.json`, the tabs of the navigation bar; R8 renames its class. */
+private object TabConfigLoaderFingerprint : Fingerprint(
+    returnType = "Lcom/thingclips/smart/appshell/model/TabModule;",
+    strings = listOf("getTabList error: "),
+)
+
+/**
+ * Hands every tab list the loader returns to the extension, which drops the tabs whose hide switch is on. Shared by
+ * the patches that hide a tab, so the call goes in once.
+ */
+internal val tabFilterPatch = bytecodePatch {
+    extendWith("extensions/extension.mpe")
+
+    execute {
+        TabConfigLoaderFingerprint.method.apply {
+            val returns = implementation!!.instructions.withIndex().filter { it.value.opcode == Opcode.RETURN_OBJECT }
+            if (returns.isEmpty()) throw PatchException("Smart Life: the tab config loader has no return")
+            // From the last return up, so the earlier indexes stay valid. The returned register is only read.
+            returns.reversed().forEach {
+                val register = (it.value as OneRegisterInstruction).registerA
+                addInstructions(it.index, "invoke-static { v$register }, Lapp/fakh/extension/smartlife/Switches;->tabs(Ljava/lang/Object;)V")
+            }
+        }
+    }
+}
 
 @Suppress("unused")
-val hideExploreTabPatch = rawResourcePatch(
+val hideExploreTabPatch = bytecodePatch(
     name = "Hide Explore tab",
     description = "Removes the Explore tab from the navigation bar.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_SMARTLIFE, COMPATIBILITY_TUYA_SMART)
     category("Layout")
-
-    execute {
-        val config = get("assets/tab_config.json")
-        val json = config.readText()
-        if (EXPLORE_TAB !in json) {
-            throw PatchException("Smart Life: the Explore tab entry was not found in tab_config.json.")
-        }
-        config.writeText(json.replace(EXPLORE_TAB, ""))
-    }
+    dependsOn(tabFilterPatch, switchRow("fakh_hide_explore"), settingsSwitchesPatch)
 }
 
 /** AdMobServiceImpl: the method that builds an ad slot view for a position, found by its Context and String parameters. */
@@ -357,17 +393,13 @@ val hideAdsPatch = bytecodePatch(
 ) {
     compatibleWith(COMPATIBILITY_SMARTLIFE, COMPATIBILITY_TUYA_SMART)
     category("Privacy")
+    extendWith("extensions/extension.mpe")
+    dependsOn(switchRow("fakh_hide_ads"), settingsSwitchesPatch)
 
     execute {
         // Both return null, which their callers already handle (a pad device gets no ad slot at all).
         listOf(AdSlotViewFingerprint, AdEntryFingerprint).forEach {
-            it.method.addInstructions(
-                0,
-                """
-                    const/4 v0, 0x0
-                    return-object v0
-                """,
-            )
+            it.method.whenSwitchOn("fakh_hide_ads", "const/4 v0, 0x0\nreturn-object v0")
         }
     }
 }

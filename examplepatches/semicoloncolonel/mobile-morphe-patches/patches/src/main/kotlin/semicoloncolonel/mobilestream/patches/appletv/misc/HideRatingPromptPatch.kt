@@ -29,6 +29,7 @@ val hideRatingPromptPatch = bytecodePatch(
     name = "Hide rating prompt",
     description = "Stops the \"Enjoying Apple TV?\" review prompt.",
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     // Also stops Google Play's review sheet, where the app calls it by name.

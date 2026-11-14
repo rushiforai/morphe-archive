@@ -17,6 +17,7 @@ val hideNewsletterPopupsPatch = bytecodePatch(
     name = "Hide newsletter pop-ups",
     description = "Hides the newsletter sign-up bars that ask for your email address in articles.",
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")

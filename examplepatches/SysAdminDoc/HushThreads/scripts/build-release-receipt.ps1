@@ -480,6 +480,7 @@ Invoke-HeavyJob -Label 'receipt' -ScriptBlock {
                     sha256      = Get-Sha256Hex -Path $apk
                     forced      = $forced
                 }
+                patchedPackage = $patched.package
                 patches       = $verdicts
                 nativeAlignment = $nativeAlignment
                 manifestDelta = [ordered]@{

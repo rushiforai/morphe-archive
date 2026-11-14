@@ -131,7 +131,7 @@ class GhostModeFixtureTest {
             val metricsClass = FixtureDex.classesWhere(build, { true }) { method ->
                 method.instructions().any { it.opcode == Opcode.NEW_INSTANCE && (it as ReferenceInstruction).reference.origString() == REPORT_READ_METRICS }
             }
-            val context = PatchContexts.of(ExtensionDex.classes() + metricsClass + ghostModeHosts(build))
+            val context = PatchContexts.of(ExtensionDex.classes() + metricsClass + ghostModeHosts(build) + readsMenuHosts(build))
             val warnings = PatchLogCapture.warnings { disableAnalyticsPatch.execute(context) }
             // This slice leaves the Premium reports out, so those say so; Ghost mode doesn't.
             assertTrue(warnings.toString(), warnings.none { "Ghost mode" in it })
@@ -145,6 +145,11 @@ class GhostModeFixtureTest {
                 .mapNotNull { ((it as? ReferenceInstruction)?.reference as? MethodReference)?.origString() }
             assertEquals(build.name, listOf("$CONNECTIONS_MANAGER->getInstance(I)$CONNECTIONS_MANAGER",
                 "$CONNECTIONS_MANAGER->sendRequest(Lorg/telegram/tgnet/TLObject;Lorg/telegram/tgnet/RequestDelegate;I)I"), held)
+            // And one chat's held read goes from that chat's menu at the top: one call where the menu is built, one where it's chosen.
+            val calls = readsMenuHosts(build).flatMap { context.tgMutableClassDefBy(it.type).methods }.flatMap { it.instructions() }
+                .mapNotNull { ((it as? ReferenceInstruction)?.reference as? MethodReference)?.origString() }
+            assertEquals(build.name, listOf(1, 1), listOf("headerMenu(Ljava/lang/Object;)V", "headerClick(Ljava/lang/Object;I)Z")
+                .map { hook -> calls.count { it == "$READS_MENU->$hook" } })
         }
     }
 

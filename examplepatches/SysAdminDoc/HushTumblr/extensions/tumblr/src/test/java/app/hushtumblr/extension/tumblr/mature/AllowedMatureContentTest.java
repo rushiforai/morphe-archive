@@ -22,6 +22,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import app.hushtumblr.extension.shared.SettingsContextRule;
+import app.hushtumblr.extension.shared.diagnostics.HookStatus;
 import app.hushtumblr.extension.shared.settings.HushTumblrPause;
 import app.hushtumblr.extension.shared.settings.PauseForTests;
 import app.hushtumblr.extension.tumblr.rootmute.HushAccountIdentity;
@@ -48,6 +49,7 @@ public class AllowedMatureContentTest {
         PauseForTests.resume();
         clock = 1_000;
         AllowedMatureContent.clockForTests = () -> clock;
+        AllowedMatureContent.wallClockForTests = () -> clock;
         AllowedMatureContent.workerForTests = Runnable::run;
         AllowedMatureContent.service((HushMatureService) tickets::add);
     }
@@ -76,6 +78,94 @@ public class AllowedMatureContentTest {
         for (int i = 0; i < 100; i++) assertFalse(AllowedMatureContent.cover(true));
         assertEquals(1, tickets.size());
         assertFalse(AllowedMatureContent.cover(false));
+    }
+
+    @Test public void diagnosticReportSaysWhereARevealStopped() {
+        HookStatus.clear();
+        enabledAdult();
+        assertTrue(AllowedMatureContent.cover(true));
+        HushMaturePermission value = permission(true, true);
+        AllowedMatureContent.permissionParsed(value, 0);
+        AllowedMatureContent.received(last(), response(200, value));
+        assertFalse(AllowedMatureContent.cover(true));
+        assertFalse(AllowedMatureContent.cover(true));
+        String line = report();
+        assertTrue(line, line.contains("settings checks sent 1") && line.contains("answers allowing mature posts 1")
+                && line.contains("covers lifted 2"));
+
+        HookStatus.clear();
+        adult("account-b");
+        assertTrue(AllowedMatureContent.cover(true));
+        HushMaturePermission absent = permission(true, true);
+        AllowedMatureContent.permissionParsed(absent, 0x10);
+        AllowedMatureContent.received(last(), response(200, absent));
+        AllowedMatureContent.received(last(), response(200, absent));
+        line = report();
+        assertTrue(line, line.contains("answers that were not readable 1") && line.contains("answers too late to use 1")
+                && !line.contains("covers lifted") && !line.contains("saved answers used"));
+
+        HookStatus.clear();
+        adult("account-b");
+        clock += AllowedMatureContent.RETRY_MS;
+        assertTrue(AllowedMatureContent.cover(true));
+        clock += AllowedMatureContent.REQUEST_MS;
+        assertTrue(AllowedMatureContent.cover(true));
+        assertTrue(report().contains("settings checks timed out 1"));
+    }
+
+    private static String report() { return String.join(" | ", HookStatus.report()); }
+
+    @Test public void capturingTheServiceAsksAheadSoTheFirstLabeledCardCanBindRevealed() {
+        AllowedMatureContent.resetForTests();
+        AllowedMatureContent.clockForTests = () -> clock;
+        AllowedMatureContent.workerForTests = Runnable::run;
+        enabledAdult();
+        AllowedMatureContent.service((HushMatureService) tickets::add);
+        assertEquals(1, tickets.size());
+        AllowedMatureContent.received(last(), response(200, permission(true, true)));
+        assertFalse(AllowedMatureContent.cover(true));
+        assertEquals(1, tickets.size());
+
+        AllowedMatureContent.resetForTests();
+        AllowedMatureContent.clockForTests = () -> clock;
+        AllowedMatureContent.workerForTests = Runnable::run;
+        Settings.REVEAL_ALLOWED_MATURE_CONTENT.save(false);
+        adult("account-a");
+        AllowedMatureContent.service((HushMatureService) tickets::add);
+        assertEquals(1, tickets.size());
+    }
+
+    @Test public void anAllowingAnswerRefreshesBeforeItExpiresWithoutCoveringAgain() {
+        enabledAdult();
+        assertTrue(AllowedMatureContent.cover(true));
+        AllowedMatureContent.received(last(), response(200, permission(true, true)));
+        clock += AllowedMatureContent.CACHE_MS - AllowedMatureContent.REFRESH_MS - 1;
+        assertFalse(AllowedMatureContent.cover(true));
+        assertEquals(1, tickets.size());
+        clock += 2;
+        assertFalse(AllowedMatureContent.cover(true));
+        assertEquals(2, tickets.size());
+        assertFalse(AllowedMatureContent.cover(true));
+        assertEquals(2, tickets.size());
+        AllowedMatureContent.received(last(), response(200, permission(true, true)));
+        clock += AllowedMatureContent.REFRESH_MS;
+        assertFalse(AllowedMatureContent.cover(true));
+        assertEquals(2, tickets.size());
+
+        clock += AllowedMatureContent.CACHE_MS - 2 * AllowedMatureContent.REFRESH_MS;
+        assertFalse(AllowedMatureContent.cover(true));
+        assertEquals(3, tickets.size());
+        AllowedMatureContent.received(last(), response(200, permission(true, false)));
+        assertTrue(AllowedMatureContent.cover(true));
+    }
+
+    @Test public void aKeepingAnswerWaitsOutItsRetryInsteadOfRefreshingAhead() {
+        enabledAdult();
+        assertTrue(AllowedMatureContent.cover(true));
+        AllowedMatureContent.received(last(), response(200, permission(true, false)));
+        clock += AllowedMatureContent.CACHE_MS - 1;
+        assertTrue(AllowedMatureContent.cover(true));
+        assertEquals(1, tickets.size());
     }
 
     @Test public void nullableOrDeniedServerFieldsNeverUseHostMapperDefaults() {
@@ -207,16 +297,61 @@ public class AllowedMatureContentTest {
         assertFalse(AllowedMatureContent.cover(true));
     }
 
-    @Test public void stalePermissionExpiresBeforeTheBoundedRefreshCompletes() {
+    @Test public void anExpiredAnswerLeansOnTheSavedOneOnlyUntilTheFreshCheckSaysKeep() {
         enabledAdult();
         assertTrue(AllowedMatureContent.cover(true));
         AllowedMatureContent.received(last(), response(200, permission(true, true)));
         assertFalse(AllowedMatureContent.cover(true));
         clock += AllowedMatureContent.CACHE_MS;
-        assertTrue(AllowedMatureContent.cover(true));
+        assertFalse(AllowedMatureContent.cover(true));
         assertEquals(2, tickets.size());
         AllowedMatureContent.received(last(), response(200, permission(false, true)));
         assertTrue(AllowedMatureContent.cover(true));
+        clock += AllowedMatureContent.CACHE_MS;
+        assertTrue(AllowedMatureContent.cover(true));
+        assertEquals(3, tickets.size());
+    }
+
+    @Test public void theSavedAllowingAnswerOpensTheRowsBuiltRightAfterARestart() {
+        HookStatus.clear();
+        enabledAdult();
+        assertTrue(AllowedMatureContent.cover(true));
+        AllowedMatureContent.received(last(), response(200, permission(true, true)));
+        AllowedMatureContent.restartForTests();
+        assertFalse(AllowedMatureContent.cover(true));
+        AllowedMatureContent.service((HushMatureService) tickets::add);
+        assertEquals(2, tickets.size());
+        assertFalse(AllowedMatureContent.cover(true));
+        assertTrue(report(), report().contains("saved answers used 2"));
+
+        AllowedMatureContent.received(last(), null);
+        assertTrue(AllowedMatureContent.cover(true));
+        AllowedMatureContent.restartForTests();
+        assertFalse(AllowedMatureContent.cover(true));
+
+        AllowedMatureContent.restartForTests();
+        adult("account-b");
+        assertTrue(AllowedMatureContent.cover(true));
+        AllowedMatureContent.restartForTests();
+        adult("account-a");
+        clock += AllowedMatureContent.REMEMBER_MS;
+        assertTrue(AllowedMatureContent.cover(true));
+    }
+
+    @Test public void aKeepingOrUnreadableAnswerErasesTheSavedOne() {
+        for (Object answer : new Object[] {response(200, permission(true, false)), response(403, permission(true, true))}) {
+            enabledAdult();
+            AllowedMatureContent.restartForTests();
+            AllowedMatureContent.service((HushMatureService) tickets::add);
+            AllowedMatureContent.received(last(), response(200, permission(true, true)));
+            AllowedMatureContent.restartForTests();
+            AllowedMatureContent.service((HushMatureService) tickets::add);
+            assertFalse(AllowedMatureContent.cover(true));
+            AllowedMatureContent.received(last(), answer);
+            assertTrue(AllowedMatureContent.cover(true));
+            AllowedMatureContent.restartForTests();
+            assertTrue(AllowedMatureContent.cover(true));
+        }
     }
 
     @Test public void failedUnexpectedAndTimedOutRequestsBackOffWithoutAReadPerCard() {

@@ -2065,7 +2065,6 @@ Mistral Nemo هو الخيار الأرخص، بينما توفر Gemma 4 أعل
     <string name="revanced_preference_screen_misc_title">خيارات متنوعة</string>
     <string name="revanced_preference_screen_navigation_bar_summary">إخفاء أو عرض مكونات شريط التنقل</string>
     <string name="revanced_preference_screen_navigation_bar_title">شريط التنقل</string>
-    <string name="revanced_preference_screen_patch_information_summary">معلومات عن التعديلات المطبقة</string>
     <string name="revanced_preference_screen_player_buttons_summary">إخفاء أو عرض الأزرار في مشغل الفيديو</string>
     <string name="revanced_preference_screen_player_buttons_title">أزرار المشغل</string>
     <string name="revanced_preference_screen_player_flyout_menu_summary">إخفاء أو تغيير مكونات قائمة مشغل الفيديو المنبثقة</string>

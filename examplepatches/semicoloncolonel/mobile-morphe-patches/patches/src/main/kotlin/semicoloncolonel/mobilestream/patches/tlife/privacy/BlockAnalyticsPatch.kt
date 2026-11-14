@@ -3,6 +3,8 @@ package semicoloncolonel.mobilestream.patches.tlife.privacy
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.Method
 import semicoloncolonel.mobilestream.patches.shared.misc.forEachMatchingMethod
 import semicoloncolonel.mobilestream.patches.shared.misc.returnEarly
 import semicoloncolonel.mobilestream.patches.shared.privacy.analyticsKillSwitchesPatch
@@ -21,10 +23,21 @@ import semicoloncolonel.mobilestream.patches.tlife.shared.Constants
 //
 // Not touched: ThreatMetrix fraud checks (sign-in and payments rely on them),
 // Apkudo device diagnostics, sign-in, billing, and Tuesdays.
+//
+// From 12.4.0 Adobe MobileCore, Amplitude, and the Luciq builder are renamed,
+// and most move to one flat package. Their method names are kept, so each is
+// found by its 12.3.1 name or by the methods it declares.
 
 private const val SPLUNK_COMPANION = "Lcom/splunk/rum/integration/agent/api/SplunkRum\$Companion;"
 private const val SPLUNK_RUM = "Lcom/splunk/rum/integration/agent/api/SplunkRum;"
 private const val AMPLITUDE = "Lcom/amplitude/core/Amplitude;"
+
+private val ADOBE_CORE_METHODS = setOf("registerExtensions", "configureWithAppID", "trackAction", "trackState", "lifecycleStart")
+private val LUCIQ_BUILDER_METHODS = setOf("build", "buildInBG", "setAppVariant")
+
+private fun ClassDef.declares(names: Set<String>, static: Boolean? = null) =
+    methods.filter { static == null || AccessFlags.STATIC.isSet(it.accessFlags) == static }
+        .map { it.name }.toSet().containsAll(names)
 
 @Suppress("unused")
 val blockAnalyticsPatch = bytecodePatch(
@@ -39,35 +52,35 @@ val blockAnalyticsPatch = bytecodePatch(
     extendWith("extensions/extension.mpe")
 
     execute {
-        fun stop(sdk: String, minimum: Int, classFilter: (String) -> Boolean, methodFilter: (com.android.tools.smali.dexlib2.iface.Method) -> Boolean, smali: String) {
-            val count = forEachMatchingMethod({ classFilter(it.type) }, methodFilter) { it.returnEarly(smali) }
+        fun stop(sdk: String, minimum: Int, classFilter: (ClassDef) -> Boolean, methodFilter: (Method) -> Boolean, smali: String) {
+            val count = forEachMatchingMethod(classFilter, methodFilter) { it.returnEarly(smali) }
             if (count < minimum) throw PatchException("$sdk entry points not found ($count)")
         }
 
         stop(
             "Adobe", 2,
-            { it == "Lcom/adobe/marketing/mobile/MobileCore;" },
+            { it.type == "Lcom/adobe/marketing/mobile/MobileCore;" || it.declares(ADOBE_CORE_METHODS, static = true) },
             { it.returnType == "V" && it.name in setOf("registerExtensions", "configureWithAppID", "initialize") },
             "return-void",
         )
         stop(
             "MoEngage", 1,
-            { it.startsWith("Lcom/moengage/core/MoEngage") },
+            { it.type.startsWith("Lcom/moengage/core/MoEngage") },
             { it.returnType == "V" && it.name.startsWith("initialise") },
             "return-void",
         )
         stop(
             "Amplitude", 2,
-            { it == AMPLITUDE },
+            { it.type == AMPLITUDE || it.methods.any { m -> m.name == "groupIdentify" && m.returnType == it.type } },
             { method ->
-                method.returnType == AMPLITUDE && !AccessFlags.STATIC.isSet(method.accessFlags) &&
+                method.returnType == method.definingClass && !AccessFlags.STATIC.isSet(method.accessFlags) &&
                     method.name in setOf("track", "identify", "groupIdentify", "revenue")
             },
             "return-object p0",
         )
         stop(
             "Splunk RUM", 1,
-            { it == SPLUNK_COMPANION },
+            { it.type == SPLUNK_COMPANION },
             { it.name == "install" && it.returnType == SPLUNK_RUM && (it.implementation?.registerCount ?: 0) > 4 },
             """
                 invoke-virtual { p0 }, $SPLUNK_COMPANION->getInstance()$SPLUNK_RUM
@@ -77,7 +90,7 @@ val blockAnalyticsPatch = bytecodePatch(
         )
         stop(
             "Luciq", 1,
-            { it == "Lai/luciq/library/Luciq\$Builder;" },
+            { it.type == "Lai/luciq/library/Luciq\$Builder;" || it.declares(LUCIQ_BUILDER_METHODS) },
             { it.name == "build" && it.returnType == "V" },
             "return-void",
         )

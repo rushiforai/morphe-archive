@@ -627,11 +627,6 @@ final class EddiArchiveSearchUi {
             card.addView(title);
             card.addView(resultText(thread.date, 12, muted));
             card.setOnLongClickListener(view -> { showResultCopy(thread); return true; });
-            if (!thread.kyodemoUrl.isEmpty()) {
-                TextView kyodemoLink = resultText(thread.kyodemoUrl, 12, muted);
-                kyodemoLink.setTextIsSelectable(true);
-                card.addView(kyodemoLink);
-            }
             card.setOnClickListener(view -> {
                 try {
                     saveState(null);
@@ -880,12 +875,26 @@ final class EddiArchiveSearchUi {
         hide.setText("検索欄を隠して結果を広く表示");
         hide.setChecked(hideSearchForm);
         content.addView(hide);
+        CheckBox lock=new CheckBox(activity);
+        lock.setText("検索欄と結果一覧の高さを固定（つまみを隠す）");
+        lock.setChecked(ArchiveSearchLayout.locked(activity));content.addView(lock);
+        CheckBox originalSite=new CheckBox(activity);
+        originalSite.setText("元サイトで開く（次回から）");
+        originalSite.setChecked(ArchiveSearchLayout.originalSite(activity));content.addView(originalSite);
         new HaiagaruDialog.Builder(activity).setTitle("過去ログ検索の表示設定")
                 .setView(content).setNegativeButton("キャンセル", null)
-                .setNeutralButton("標準に戻す", (dialog, which) -> saveAppearance(100, 100, 16, 100, false))
-                .setPositiveButton("適用", (dialog, which) -> saveAppearance(
+                .setNeutralButton("標準に戻す", (dialog, which) -> {
+                    ArchiveSearchLayout.prefs(activity).edit().remove(ArchiveSearchLayout.HEIGHT).remove(ArchiveSearchLayout.LOCKED).apply();
+                    SettingsProfiles.prefs(activity).edit().remove(ArchiveSearchLayout.ORIGINAL_SITE).apply();
+                    saveAppearance(100, 100, 16, 100, false);
+                })
+                .setPositiveButton("適用", (dialog, which) -> {
+                    ArchiveSearchLayout.prefs(activity).edit().putBoolean(ArchiveSearchLayout.LOCKED,lock.isChecked()).apply();
+                    SettingsProfiles.prefs(activity).edit().putBoolean(ArchiveSearchLayout.ORIGINAL_SITE,originalSite.isChecked()).apply();
+                    saveAppearance(
                         controls.getProgress() + 70, titles.getProgress() + 70,
-                        spacing.getProgress(), density.getProgress() + 50, hide.isChecked()))
+                        spacing.getProgress(), density.getProgress() + 50, hide.isChecked());
+                })
                 .show();
     }
 

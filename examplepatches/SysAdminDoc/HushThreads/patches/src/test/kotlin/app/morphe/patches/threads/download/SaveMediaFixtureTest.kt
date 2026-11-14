@@ -152,15 +152,16 @@ class SaveMediaFixtureTest {
     }
 
     /**
-     * A post with no media of its own saves the post it shows, and these read it. Read off 512408636
-     * by hand: the serializer's fields and the getters answering them. On every build the three
-     * shared posts are three different getters of one interface, answering a post.
+     * A post with no media of its own saves the post it shows, and these read it. Read off 512508348
+     * by hand: the serializer's fields and the getters answering them (`LX/8pu;->A02` for the post's
+     * info, `LX/9nj;->A02` for its share info). On every build the three shared posts are three
+     * different getters of one interface, answering a post.
      */
     @Test
     fun `each declared build reads a post's linked and shared posts through their own getters`() {
         val readByHand = mapOf(
-            "linkedInlineMedia" to "C95", "shareInfo" to "CnN",
-            "quotedAttachmentPost" to "CbE", "quotedPost" to "CbI", "repostedPost" to "CfH",
+            "linkedInlineMedia" to "CB0", "shareInfo" to "Cpr",
+            "quotedAttachmentPost" to "CdZ", "quotedPost" to "Cdd", "repostedPost" to "Chc",
         )
         for (build in Fixtures.declaredBuilds()) {
             val where = build.name
@@ -183,7 +184,7 @@ class SaveMediaFixtureTest {
                 assertEquals("$where: ${post.name} comes from the share info", share.returnType, post.definingClass)
                 assertEquals("$where: ${post.name} is a post", MEDIA, post.returnType)
             }
-            if ("512408636" in build.name) {
+            if ("512508348" in build.name) {
                 for ((name, getter) in readByHand) assertEquals("$where: $name", getter, call(name).name)
             }
         }

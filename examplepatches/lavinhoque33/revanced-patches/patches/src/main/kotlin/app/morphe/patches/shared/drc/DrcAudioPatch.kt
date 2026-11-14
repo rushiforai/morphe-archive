@@ -66,6 +66,13 @@ fun drcAudioPatch(
                         addInstructionsWithLabels(
                             0,
                             """
+                            invoke-static {}, $EXTENSION_CLASS_DESCRIPTOR->shouldTraceLoudness()Z
+                            move-result v0
+                            if-eqz v0, :policy
+                            iget-object v0, p0, $formatFieldReference
+                            iget v1, v0, $loudnessDbFieldReference
+                            invoke-static { v0, v1 }, $EXTENSION_CLASS_DESCRIPTOR->traceLoudness(Ljava/lang/Object;F)V
+                            :policy
                             invoke-static {}, $EXTENSION_CLASS_DESCRIPTOR->disableDrcAudio()Z
                             move-result v0
                             if-eqz v0, :exit

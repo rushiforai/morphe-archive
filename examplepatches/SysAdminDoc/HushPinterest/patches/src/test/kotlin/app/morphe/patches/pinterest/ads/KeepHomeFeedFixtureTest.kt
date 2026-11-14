@@ -52,7 +52,9 @@ class KeepHomeFeedFixtureTest {
     private class Build(val name: String, val fragment: ClassDef, val presenter: ClassDef, val masks: Map<Int, Int>) {
         val classes get() = listOf(fragment, presenter)
         val resume get() = fragment.methods.single { it.isReturnCheck() }
+        /** The presenter's check of the time away, or from 14.44.0 the return check it's inlined into. */
         val check: Method get() {
+            if (isHomeAwayCheck(resume)) return resume
             val away = homeAwayCalls(resume).single()
             return presenter.methods.single { it.name == away.name && it.parameterTypes == away.parameterTypes }
         }
@@ -133,13 +135,16 @@ class KeepHomeFeedFixtureTest {
         // Each case and the refusal it has to give, so none passes on another check's account.
         val cases = linkedMapOf(
             "no return check" to (extension + noReturnCheck + presenter to "Home return check: expected one exact target, found 0"),
-            "no presenter check" to (extension + fragment + noAwayCheck to "presenter check of the time away: expected one exact target, found 0"),
             "mask bit moved" to (extension + fragment + movedBit to "no longer drops its map on mask bit 0x2"),
             "missing status stub" to (build.classes + extension.map { owner -> if (owner.type != SETTINGS_STATUS) owner else
                 ImmutableClassDef(owner.type, owner.accessFlags, owner.superclass, owner.interfaces, owner.sourceFile,
                     owner.annotations, owner.fields, owner.methods.filterNot { it.name == "homeFeed" }) }
                 to "no boolean method homeFeed()"),
         )
+        // A build that inlines the presenter's check into the return check has no presenter check to lose.
+        if (build.check != build.resume) {
+            cases["no presenter check"] = extension + fragment + noAwayCheck to "presenter check of the time away: expected one exact target, found 0"
+        }
         for ((reason, case) in cases) {
             val (input, message) = case
             val context = PatchContexts.of(input)
@@ -199,12 +204,18 @@ class KeepHomeFeedFixtureTest {
             ?: error("${build.name}: no $HOME_FEED_FRAGMENT")
         val resume = fragment.methods.filter { it.isReturnCheck() }.singleOrNull()
             ?: error("${build.name}: no single Home return check")
-        val away = homeAwayCalls(resume).singleOrNull() ?: error("${build.name}: the return check calls no single presenter check")
-        val presenter = FixtureDex.classes(build, setOf(away.definingClass))[away.definingClass]
-            ?: error("${build.name}: no ${away.definingClass}")
-        val check = presenter.methods.singleOrNull { it.name == away.name && it.parameterTypes == away.parameterTypes }
-            ?: error("${build.name}: no $away")
+        // 14.44.0 inlines the presenter's check into the return check, which then calls the refresh itself.
+        val check = if (isHomeAwayCheck(resume)) resume else {
+            val away = homeAwayCalls(resume).singleOrNull() ?: error("${build.name}: the return check calls no single presenter check")
+            val owner = FixtureDex.classes(build, setOf(away.definingClass))[away.definingClass]
+                ?: error("${build.name}: no ${away.definingClass}")
+            owner.methods.singleOrNull { it.name == away.name && it.parameterTypes == away.parameterTypes }
+                ?: error("${build.name}: no $away")
+        }
         val call = homeRefreshCalls(check).singleOrNull() ?: error("${build.name}: the presenter check calls no single refresh")
+        val presenter = FixtureDex.classes(build, setOf(call.definingClass))[call.definingClass]
+            ?: error("${build.name}: no ${call.definingClass}")
+        if (build.name.startsWith("pinterest-14.44.0-")) assertEquals(build.name, check, resume)
         val target = call.toString()
         val masks = mutableMapOf<Int, Int>()
         FixtureDex.forEach(build) { dex ->
@@ -243,8 +254,8 @@ class KeepHomeFeedFixtureTest {
     }
 }
 
-/** The Home fragment's `(J)V` that reads the scroll offset and hands the time away to the presenter. */
+/** The Home fragment's `(J)V` that reads the scroll offset and hands the time away to the presenter, or checks it itself. */
 private fun Method.isReturnCheck() = !AccessFlags.STATIC.isSet(accessFlags) && returnType == "V" &&
     parameterTypes.map(CharSequence::toString) == listOf("J") &&
     instructions().any { ((it as? ReferenceInstruction)?.reference as? MethodReference)?.name == "computeVerticalScrollOffset" } &&
-    homeAwayCalls(this).isNotEmpty()
+    (homeAwayCalls(this).isNotEmpty() || isHomeAwayCheck(this))

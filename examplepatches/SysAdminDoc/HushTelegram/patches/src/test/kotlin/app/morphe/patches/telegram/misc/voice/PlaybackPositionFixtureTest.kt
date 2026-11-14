@@ -86,14 +86,22 @@ class PlaybackPositionFixtureTest {
     private fun context(build: File) = PatchContexts.of(ExtensionDex.classes() + voiceHosts(build))
 }
 
-/** MediaController, the video viewer and the message class, which hold Telegram's lengths, from [build]. */
-internal fun playbackPositionHosts(build: File): List<ClassDef> =
-    FixtureDex.classes(build, setOf("Lorg/telegram/messenger/MediaController;", "Lorg/telegram/ui/PhotoViewer;", "Lorg/telegram/messenger/MessageObject;"))
-        .values.map(ImmutableClassDef::of)
+/**
+ * MediaController, the video viewer and the message class, which hold Telegram's lengths and its
+ * voice queue, and the music service with the media session's state builder, which set the
+ * session's buttons, from [build].
+ */
+internal fun voicePlayerHosts(build: File): List<ClassDef> {
+    val named = FixtureDex.classes(build, setOf("Lorg/telegram/messenger/MediaController;", "Lorg/telegram/ui/PhotoViewer;",
+        "Lorg/telegram/messenger/MessageObject;", MUSIC_SERVICE)).values
+    val builders = FixtureDex.classesWhere(build, { true }) { m ->
+        m.returnType == "Landroid/support/v4/media/session/PlaybackStateCompat;" && m.parameterTypes.isEmpty() }
+    return (named + builders).distinctBy { it.type }.map(ImmutableClassDef::of)
+}
 
 /** The hosts of the music player patch itself, and the lengths' classes. */
-private fun voiceHosts(build: File): List<ClassDef> {
+internal fun voiceHosts(build: File): List<ClassDef> {
     val isMusic = "Lorg/telegram/messenger/MessageObject;->isMusic()Z"
     val player = FixtureDex.classesWhere(build, { true }) { m -> m.controlBody().any { it.controlRef() == isMusic } }.map(ImmutableClassDef::of)
-    return player + playbackPositionHosts(build).filter { h -> player.none { it.origType == h.origType } }
+    return player + voicePlayerHosts(build).filter { h -> player.none { it.type == h.type } }
 }

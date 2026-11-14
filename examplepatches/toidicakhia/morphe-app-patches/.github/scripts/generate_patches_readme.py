@@ -46,6 +46,7 @@ FORM_FACTORS = {
 
 # Relative paths to app icons shown in the generated patches list.
 APP_ICONS = {
+    "com.devolutions.remotedesktopmanager": ".github/assets/apps/com.devolutions.remotedesktopmanager.png",
     "com.ezviz": ".github/assets/apps/com.ezviz.png",
     "com.cloudflare.onedotonedotonedotone": ".github/assets/apps/com.cloudflare.onedotonedotonedotone.png",
     "com.dubox.drive": ".github/assets/apps/com.dubox.drive.png",

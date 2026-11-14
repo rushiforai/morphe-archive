@@ -8,7 +8,10 @@ import semicoloncolonel.mobilestream.patches.shared.misc.returnEarly
 import semicoloncolonel.mobilestream.patches.tlife.shared.Constants
 
 // T-Life 12.3.1 shows its AI assistant wherever a screen's state reports
-// the chatbot as enabled. Every such getter now reports it as off.
+// the chatbot as enabled. Every such getter now reports it as off. From
+// 12.4.0 the app's classes are moved to the flat dat package.
+
+private val APP_PACKAGES = listOf("Lcom/telekom/", "Lcom/tmobile/", "Ldat/")
 
 @Suppress("unused")
 val disableAiPatch = bytecodePatch(
@@ -20,7 +23,7 @@ val disableAiPatch = bytecodePatch(
 
     execute {
         val count = forEachMatchingMethod(
-            { it.type.startsWith("Lcom/telekom/") || it.type.startsWith("Lcom/tmobile/") },
+            { classDef -> APP_PACKAGES.any { classDef.type.startsWith(it) } },
             { method ->
                 method.name in setOf("getEnableChatBot", "isChatBotEnabled") &&
                     method.parameterTypes.isEmpty() &&

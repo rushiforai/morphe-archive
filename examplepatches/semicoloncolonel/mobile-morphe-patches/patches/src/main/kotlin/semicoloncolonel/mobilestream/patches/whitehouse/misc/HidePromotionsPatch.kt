@@ -39,6 +39,7 @@ val hidePromotionsPatch = bytecodePatch(
     description = "Hides the promotional buttons you choose in the patch options.",
     default = false,
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")

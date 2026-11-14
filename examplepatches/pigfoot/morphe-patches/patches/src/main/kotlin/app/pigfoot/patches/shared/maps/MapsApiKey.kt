@@ -1,6 +1,8 @@
 package app.pigfoot.patches.shared.maps
 
 import java.nio.charset.Charset
+import org.w3c.dom.Document
+import org.w3c.dom.Element
 import java.security.MessageDigest
 
 internal fun isMapsKey(value: String?) = value.isNullOrBlank() || Regex("AIza[A-Za-z0-9_-]{35}").matches(value.trim())
@@ -32,4 +34,19 @@ internal fun replaceMapsKeyBytes(bytes: ByteArray, manifestPins: Set<String>, or
     val site=sites.single();val replacement=candidate.trim().toByteArray(site.encoding)
     require(replacement.size==site.length) { "Unsupported Maps literal size" }
     return bytes.copyOf().also { replacement.copyInto(it,site.offset) }
+}
+
+/** Decoded-manifest edit for current patchers: exactly one Maps API key element whose
+ * literal value matches the app-owned original-value pin is rewritten; anything else rejects
+ * before mutation. Blank candidates keep the original key. */
+internal fun replaceMapsKeyInManifest(document: Document, originalKeySha256: String, candidate: String?) {
+    require(isMapsKey(candidate)) { "Invalid Google Maps API key format" }
+    if(candidate.isNullOrBlank()) return
+    require(originalKeySha256.matches(Regex("[0-9a-f]{64}"))) { "Invalid original Maps value pin" }
+    val sites=(0 until document.getElementsByTagName("meta-data").length).map { document.getElementsByTagName("meta-data").item(it) as Element }
+        .filter { it.getAttribute("android:name")=="com.google.android.geo.API_KEY" }
+    require(sites.size==1) { "Missing or ambiguous Maps API key element" }
+    val site=sites.single()
+    require(mapsSha256(site.getAttribute("android:value").toByteArray())==originalKeySha256) { "Unsupported original Google Maps metadata" }
+    site.setAttribute("android:value",candidate.trim())
 }

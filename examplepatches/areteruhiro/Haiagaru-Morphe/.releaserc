@@ -44,22 +44,22 @@
           "types": [
             {
               "type": "fix",
-              "section": "🐛 Bug Fixes",
+              "section": "修正",
               "hidden": false
             },
             {
               "type": "feat",
-              "section": "✨ New Features",
+              "section": "追加機能",
               "hidden": false
             },
             {
               "type": "bump",
-              "section": "🚀 Updated App Support",
+              "section": "対応アプリ",
               "hidden": false
             },
             {
               "type": "perf",
-              "section": "🔧 Improvements",
+              "section": "改善",
               "hidden": false
             },
             {
@@ -69,8 +69,8 @@
           ]
         },
         "writerOpts": {
-          "headerPartial": "# Haiagaru {{version}} ({{date}})\n\n- 最適化\n",
-          "mainTemplate": "{{> header}}\n"
+          "headerPartial": "# Haiagaru {{version}} ({{date}})\n",
+          "commitPartial": "{{#if body}}{{{body}}}{{else}}- {{subject}}{{/if}}\n\n"
         }
       }
     ],
@@ -124,10 +124,6 @@
           {
             "path": "optional-assets/haiagaru-image-ng.zip",
             "label": "任意導入: 191画像判定の修正ライブラリ（展開不要）"
-          },
-          {
-            "path": "build/optional-assets/haiagaru-image-vpn.zip",
-            "label": "任意導入: 画像取得VPNライブラリ（Image NGとは別・展開不要）"
           },
           {
             "path": "build/optional-assets/haiagaru-image-vpn-v2.zip",

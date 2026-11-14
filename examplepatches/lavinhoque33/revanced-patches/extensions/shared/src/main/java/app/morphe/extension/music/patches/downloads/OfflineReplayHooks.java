@@ -1,8 +1,8 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-12.
  * Written by lavinhoque33, 2026-11-08.
- * Modified by lavinhoque33, 2026-11-10.
  */
 package app.morphe.extension.music.patches.downloads;
 
@@ -86,7 +86,7 @@ public final class OfflineReplayHooks {
         }
     }
 
-    /** Injection point: the seek snap of the player for a drag on the progress bar, in milliseconds. */
+    /** Injection point: the player's shared progress-bar and MediaSession seek snap, in milliseconds. */
     public static long seekSnap(long snappedMillis) {
         if (!usable()) return snappedMillis;
 

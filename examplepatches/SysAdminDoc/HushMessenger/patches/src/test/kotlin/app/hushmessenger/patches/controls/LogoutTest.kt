@@ -108,7 +108,13 @@ class LogoutTest {
             val launcher = classes.flatMap { it.methods }.single { it.hookId() == route }
             val built = launcher.implementation!!.instructions.mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }
                 .single { it.definingClass == ACCOUNT_LOGIN_ACTIVITY }
-            assertEquals("A1F", built.name, code)
+            // Redex names the login screen's intent builder differently from build to build, so its shape is what's pinned.
+            val shape = listOf("Landroid/content/Context;", "Ljava/lang/String;", "Ljava/lang/String;")
+            assertEquals(shape, built.parameterTypes.map { it.toString() }, code)
+            assertEquals("Landroid/content/Intent;", built.returnType, code)
+            val defined = classes.single { it.type == ACCOUNT_LOGIN_ACTIVITY }.methods
+                .single { it.name == built.name && it.parameterTypes.map { p -> p.toString() } == shape }
+            assertEquals(true, AccessFlags.STATIC.isSet(defined.accessFlags), code)
             val stub = logoutRouteMethod()
             stub.writeLogoutRoute(route!!)
             assertEquals(route, string(stub), code)

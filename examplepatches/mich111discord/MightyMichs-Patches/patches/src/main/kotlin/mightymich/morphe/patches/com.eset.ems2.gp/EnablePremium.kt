@@ -26,7 +26,6 @@ val enablePremiumPatch = bytecodePatch(
         """
         var patched = 0
 
-        // Prefer classes that embed isPremium markers in string constants
         val markers = listOf(
             ", isPremium=",
             "isPremiumLicense=",
@@ -49,7 +48,6 @@ val enablePremiumPatch = bytecodePatch(
                     if (AccessFlags.STATIC.isSet(method.accessFlags)) continue
                     if (method.returnType != "Z") continue
                     if (method.parameterTypes.isNotEmpty()) continue
-                    // skip equals
                     if (method.name == "equals") continue
                     try {
                         method.addInstructions(0, returnTrue)
@@ -60,7 +58,6 @@ val enablePremiumPatch = bytecodePatch(
             }
         }
 
-        // Also force any ()Z that literally loads const-string "isPremium" in a short method
         val isPremiumDefs = try {
             classDefByStrings("isPremium")
         } catch (_: Exception) {
@@ -80,7 +77,6 @@ val enablePremiumPatch = bytecodePatch(
                     ?.joinToString("\n") { it.toString() }
                     ?: continue
                 if (!text.contains("isPremium") && !text.contains("iget-boolean")) continue
-                // keep short getters only
                 if ((method.implementation?.instructions?.count() ?: 99) > 16) continue
                 try {
                     method.addInstructions(0, returnTrue)

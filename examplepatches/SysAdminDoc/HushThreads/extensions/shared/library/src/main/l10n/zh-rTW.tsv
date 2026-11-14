@@ -333,7 +333,7 @@ Report a problem	回報問題
 Opens a GitHub report with your versions and settings filled in. Add what happened.	開啟已填入你的版本與設定的 GitHub 問題回報；請補充發生的情況。
 # The Links page's line beside a Meta-signed Instagram (#8): Instagram's own launcher won't hand a post or profile to a patched Threads, and the error is Instagram's.
 Instagram won't open posts here	Instagram 無法在此開啟貼文
-Your Instagram is signed by Meta, and it only opens Threads posts and profiles in a Threads signed by Meta. Tapping one in Instagram shows an error saying it couldn't load the website. Posts you open in Threads itself work as usual.	你的 Instagram 由 Meta 簽署，它只會在同樣由 Meta 簽署的 Threads 中開啟 Threads 貼文與個人檔案。在 Instagram 輕觸時會顯示無法載入網站的錯誤。直接在 Threads 中開啟貼文仍可正常使用。
+Your Instagram is signed by Meta, and it only opens Threads posts and profiles in a Threads signed by Meta. Tapping one in Instagram shows an error saying it couldn't load the website. Posts you open in Threads itself work as usual. Patch Instagram with HushGram, signed with the same key as HushThreads, and it opens them here.	你的 Instagram 由 Meta 簽署，它只會在同樣由 Meta 簽署的 Threads 中開啟 Threads 貼文與個人檔案。在 Instagram 輕觸時會顯示無法載入網站的錯誤。直接在 Threads 中開啟貼文仍可正常使用。用 HushGram 修補 Instagram，並以與 HushThreads 相同的金鑰簽署，它就會在這裡開啟。
 Turn on a set of switches in one tap, or put every switch back the way it started. Press and hold to hide this row.	輕觸即可開啟一組開關，或將所有開關還原為初始狀態。長按可隱藏此列。
 Quick setups on the home page	首頁上的快速設定
 Hidden. Tap to show it again.	已隱藏。輕觸可再次顯示。

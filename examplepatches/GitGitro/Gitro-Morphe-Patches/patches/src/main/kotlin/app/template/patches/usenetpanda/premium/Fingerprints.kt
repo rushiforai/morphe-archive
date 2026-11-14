@@ -4,14 +4,14 @@ import app.morphe.patcher.Fingerprint
 
 object IsPremiumFingerprint : Fingerprint(
     definingClass = "Lat/mann/usenetpanda/preference/a;",
-    name = "k",
-    returnType = "Ljava/lang/String;",
+    name = "q",
+    returnType = "Z",
     parameters = listOf()
 )
 
 object RevokePremiumFingerprint : Fingerprint(
-    definingClass = "Lk3/i;",
-    name = "u",
+    definingClass = "Lxm1;",
+    name = "P",
     returnType = "V",
     parameters = listOf("Lat/mann/usenetpanda/MainActivity;")
 )

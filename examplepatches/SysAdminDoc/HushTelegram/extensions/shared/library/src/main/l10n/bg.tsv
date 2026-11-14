@@ -1545,6 +1545,10 @@ Rule saved	Правилото е запазено
 Open restricted channels	Отваряне на ограничени канали
 Channels, groups and messages Telegram says are unavailable for copyright or local law open anyway, as long as Telegram still sends them.	Канали, групи и съобщения, за които Telegram казва, че са недостъпни заради авторски права или местен закон, се отварят въпреки това, стига Telegram все още да ги изпраща.
 channels restricted for copyright or local law	канали, ограничени заради авторски права или местен закон
+banned channels on the web	канали, които са ви блокирали, в уеб
+A channel that banned you offers Open on the web, which shows its public posts in your browser.	Канал, който ви е блокирал, предлага „Отвори в уеб“, което показва публичните му публикации в браузъра ви.
+Open on the web	Отвори в уеб
+No browser could open %1$s.	Никой браузър не можа да отвори %1$s.
 Send photos and videos in the best quality	Изпращай снимки и видеа в най-добро качество
 Photos go out in HD and videos at their own size and quality, without touching the quality button first. You can still lower one before sending. Only sending as a file keeps a photo exactly as it is.	Снимките се изпращат в HD, а видеата в собствения си размер и качество, без първо да пипаш бутона за качество. Пак можеш да намалиш качеството на някое преди изпращане. Само изпращането като файл запазва снимката точно такава, каквато е.
 photos and videos in their best quality	снимки и видеа в най-добро качество
@@ -1562,7 +1566,7 @@ When you send a message in a chat, the read receipt Ghost mode held back there g
 # context: a switch under Ghost mode (#69). With it on, a double check button sits at the top of the chat list, next to the ghost.
 Read receipts button	Бутон за потвърждения за прочитане
 # context: that switch's summary. A double check is the two tick marks Telegram shows on a read message.
-A double check at the top of the chat list sends the read receipts Ghost mode is holding for the account you're on, from chats read since Telegram last started. Shows with Ghost mode and No read receipts on.	Двойна отметка горе в списъка с чатове изпраща потвържденията за прочитане, които режим „Призрак“ задържа за текущия акаунт, от чатовете, прочетени след последното стартиране на Telegram. Показва се, когато режим „Призрак“ и „Без потвърждения за прочитане“ са включени.
+A double check at the top of the chat list sends the read receipts Ghost mode is holding for the account you're on, from chats read since Telegram last started. Send read receipts in a chat's menu sends just that chat's. Shows with Ghost mode and No read receipts on.	Двойна отметка горе в списъка с чатове изпраща потвържденията за прочитане, които режим „Призрак“ задържа за текущия акаунт, от чатовете, прочетени след последното стартиране на Telegram. „Изпращане на потвърждения за прочитане“ в менюто на чат изпраща само тези на този чат. Показва се, когато режим „Призрак“ и „Без потвърждения за прочитане“ са включени.
 # context: what a screen reader says for the chat list's double check button.
 Send read receipts	Изпращане на потвърждения за прочитане
 # context: short message after a tap on the chat list's double check button sent the held read receipts.
@@ -1583,6 +1587,7 @@ The phone number screen always has the proxy button, so you can add a proxy befo
 Looking for free proxies now.	Търсят се безплатни проксита.
 Downloads a public list of proxies now, times them and adds the fastest to Telegram's proxy list, even with the switch above off.	Изтегля публичен списък с проксита сега, измерва ги и добавя най-бързите в списъка с проксита на Telegram, дори ако превключвателят по-горе е изключен.
 Proxies added last time: %1$s. They're in Telegram's proxy list.	Добавени проксита последния път: %1$s. Те са в списъка с проксита на Telegram.
+Proxies added last time: %1$s of %2$s read. They're in Telegram's proxy list.	Добавени проксита последния път: %1$s от %2$s прочетени. Те са в списъка с проксита на Telegram.
 Couldn't download a proxy list last time. Check your connection and try again.	Последния път не успя да се изтегли списък с проксита. Проверете връзката си и опитайте отново.
 None of the listed proxies answered last time. Try again later.	Последния път никое от изброените проксита не отговори. Опитайте отново по-късно.
 Telegram didn't take the proxies last time.	Последния път Telegram не прие проксита.
@@ -1902,3 +1907,9 @@ Adds a Select all button to the bar that shows while you pick messages, in chats
 selecting every loaded message in a chat	избирането на всички заредени съобщения в чат
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the Select all button in a chat's shared media.
 selecting everything in shared media	избирането на всичко в споделените медии
+# context: Switch on the Playback page under Voice messages in the music player (#77). It gives voice messages the next and previous buttons Telegram gives songs.
+Skip between voice messages	Превключване между гласови съобщения
+# context: Summary of the switch Skip between voice messages. Next and previous are the media buttons Telegram shows for songs. With the switch on they move between the voice messages of the chat that's playing.
+Next and previous on headphones, in a car, in the notification, on the lock screen and in the full player move between a chat's voice messages, as they do for songs.	Напред и назад от слушалките, в колата, в известието, на заключения екран и в пълния музикален плейър превключват между гласовите съобщения в чата, както при песните.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the Skip between voice messages switch.
+skipping between voice messages	превключването между гласови съобщения

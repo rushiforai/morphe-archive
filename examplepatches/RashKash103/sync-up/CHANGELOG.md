@@ -1,3 +1,21 @@
+## [1.12.0](https://github.com/RashKash103/sync-up/compare/v1.11.0...v1.12.0) (2026-11-13)
+
+### ✨ New Features
+
+* Choose what the bottom navigation bar shows ([a01e428](https://github.com/RashKash103/sync-up/commit/a01e42891e0622a71406c0b52ea3b8686217fe9e)), closes [#47](https://github.com/RashKash103/sync-up/issues/47)
+
+## [1.12.0-dev.4](https://github.com/RashKash103/sync-up/compare/v1.12.0-dev.3...v1.12.0-dev.4) (2026-11-13)
+
+## [1.12.0-dev.3](https://github.com/RashKash103/sync-up/compare/v1.12.0-dev.2...v1.12.0-dev.3) (2026-11-13)
+
+## [1.12.0-dev.2](https://github.com/RashKash103/sync-up/compare/v1.12.0-dev.1...v1.12.0-dev.2) (2026-11-13)
+
+## [1.12.0-dev.1](https://github.com/RashKash103/sync-up/compare/v1.11.0...v1.12.0-dev.1) (2026-11-13)
+
+### ✨ New Features
+
+* Choose what the bottom navigation bar shows ([a01e428](https://github.com/RashKash103/sync-up/commit/a01e42891e0622a71406c0b52ea3b8686217fe9e)), closes [#47](https://github.com/RashKash103/sync-up/issues/47)
+
 ## [1.11.0](https://github.com/RashKash103/sync-up/compare/v1.10.0...v1.11.0) (2026-11-12)
 
 ### 🐛 Bug Fixes

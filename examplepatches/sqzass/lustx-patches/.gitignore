@@ -1,0 +1,59 @@
+# Private key that signs the patches file
+morphe-signing.key
+
+# Gradle files
+.gradle/
+build/
+
+# Local configuration file (sdk path, etc.)
+local.properties
+
+# Log/OS Files
+.DS_Store
+*.log
+
+# Android Studio generated files and folders
+captures/
+.externalNativeBuild/
+.cxx/
+*.aab
+*.apk
+*.apks
+*.xapk
+*.apkm
+output-metadata.json
+
+# Cline
+.clinerules
+handoff.md
+
+# IntelliJ
+*.iml
+.idea/
+misc.xml
+deploymentTargetDropDown.xml
+render.experimental.xml
+
+# Keystore files
+*.jks
+*.keystore
+
+# Google Services (e.g. APIs or Firebase)
+google-services.json
+
+# Android Profiling
+*.hprof
+
+# NPM modules
+node_modules/
+
+# Decompiled APK outputs
+decompiled/
+apks/
+
+# Local reverse engineering tool binaries
+tools/apktool/*.jar
+tools/jadx/
+
+# morphe folders, git cloned repos.
+.references

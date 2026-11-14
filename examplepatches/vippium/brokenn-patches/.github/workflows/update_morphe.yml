@@ -1,0 +1,134 @@
+name: Update Morphe dependencies
+
+on:
+  schedule:
+    - cron: "0 4 * * *" # every day at 04:00 UTC
+  workflow_dispatch: # lets you run it manually
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    name: Update ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false # one failing check must not stop the other
+      matrix:
+        include:
+          - name: morphe-patcher
+            repo: MorpheApp/morphe-patcher
+            file: gradle/libs.versions.toml
+            pattern: '^(morphe-patcher = ")[^"]+(")'
+          - name: morphe-gradle-plugin
+            repo: MorpheApp/morphe-patches-gradle-plugin
+            file: settings.gradle.kts
+            pattern: '(id\("app\.morphe\.patches"\) version ")[^"]+(")'
+    steps:
+      - name: Checkout dev
+        uses: actions/checkout@v7
+        with:
+          ref: dev
+
+      - name: Find current and latest stable version
+        id: version
+        env:
+          REPO: ${{ matrix.repo }}
+          FILE: ${{ matrix.file }}
+          PATTERN: ${{ matrix.pattern }}
+        run: |
+          CURRENT=$(grep -E "$PATTERN" "$FILE" | head -1 | sed -E 's/.*"([^"]+)".*/\1/')
+          LATEST=$(git ls-remote --tags --refs "https://github.com/$REPO.git" \
+            | sed 's#.*refs/tags/v##' \
+            | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' \
+            | sort -V | tail -1)
+
+          echo "Current: $CURRENT | Latest stable: $LATEST"
+
+          if [ -z "$CURRENT" ] || [ -z "$LATEST" ]; then
+            echo "::error::Could not read the current or latest version"
+            exit 1
+          fi
+
+          NEWEST=$(printf '%s\n%s\n' "$CURRENT" "$LATEST" | sort -V | tail -1)
+          if [ "$LATEST" != "$CURRENT" ] && [ "$NEWEST" = "$LATEST" ]; then
+            echo "update=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "update=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "current=$CURRENT" >> "$GITHUB_OUTPUT"
+          echo "latest=$LATEST" >> "$GITHUB_OUTPUT"
+
+      - name: Skip if a branch for this version already exists
+        id: exists
+        if: steps.version.outputs.update == 'true'
+        run: |
+          if git ls-remote --exit-code --heads origin "bot/${{ matrix.name }}-${{ steps.version.outputs.latest }}" >/dev/null 2>&1; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "found=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Update version in ${{ matrix.file }}
+        if: steps.version.outputs.update == 'true' && steps.exists.outputs.found == 'false'
+        env:
+          FILE: ${{ matrix.file }}
+          PATTERN: ${{ matrix.pattern }}
+          LATEST: ${{ steps.version.outputs.latest }}
+        run: |
+          sed -i -E "s/${PATTERN}/\1${LATEST}\2/" "$FILE"
+          git diff
+
+      - name: Setup Java
+        if: steps.version.outputs.update == 'true' && steps.exists.outputs.found == 'false'
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      # Checks that your patches still compile with the new version
+      - name: Verify project compiles
+        id: build
+        if: steps.version.outputs.update == 'true' && steps.exists.outputs.found == 'false'
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :patches:buildAndroid clean --no-daemon
+
+      - name: Commit, push and open PR
+        if: steps.version.outputs.update == 'true' && steps.exists.outputs.found == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NAME: ${{ matrix.name }}
+          REPO: ${{ matrix.repo }}
+          FILE: ${{ matrix.file }}
+          CURRENT: ${{ steps.version.outputs.current }}
+          LATEST: ${{ steps.version.outputs.latest }}
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
+        run: |
+          BRANCH="bot/$NAME-$LATEST"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add "$FILE"
+          git commit -m "chore: update $NAME to $LATEST"
+          git push origin "$BRANCH"
+
+          if [ "$BUILD_OUTCOME" = "success" ]; then
+            STATUS="Build check passed."
+            DRAFT=""
+          else
+            STATUS="Build check FAILED. Your patches need changes for this version. Opened as a draft."
+            DRAFT="--draft"
+          fi
+
+          gh pr create $DRAFT \
+            --base dev \
+            --head "$BRANCH" \
+            --title "chore: update $NAME to $LATEST" \
+            --body "Bumps $NAME from $CURRENT to $LATEST.
+
+          $STATUS
+
+          Release notes: https://github.com/$REPO/releases/tag/v$LATEST"

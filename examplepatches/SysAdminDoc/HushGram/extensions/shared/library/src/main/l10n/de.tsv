@@ -300,6 +300,9 @@ Still scroll reels from Search and Explore	Reels aus Suche und Entdecken weiter 
 With Stop Reels scrolling on, reels you open from Search, Explore, a hashtag or a place still move on when you swipe.	Wenn Scrollen in Reels stoppen an ist, wechseln Reels, die du über Suche, Entdecken, einen Hashtag oder einen Ort öffnest, beim Wischen trotzdem weiter.
 Still scroll reels from a song page	Reels von einer Songseite weiter scrollen
 With Stop Reels scrolling on, reels you open from a song or audio page still move on when you swipe.	Wenn Scrollen in Reels stoppen an ist, wechseln Reels, die du von einer Song- oder Audioseite öffnest, beim Wischen trotzdem weiter.
+# context: Reels page, a switch of its own after the three above (#656). It names the Messages page switch Swipe through a chat's reels by its label.
+Play only the reel you opened	Nur das geöffnete Reel abspielen
+A reel you open from a post on Home, a suggested reels row or a message plays on its own. Swiping, pulling down and auto scroll won't move on to another reel, so it plays again when it ends. The Reels tab scrolls as usual. With Swipe through a chat's reels on, a chat's reels still swipe.	Ein Reel, das du über einen Beitrag auf der Startseite, eine Reihe vorgeschlagener Reels oder eine Nachricht öffnest, läuft für sich allein. Wischen, Herunterziehen und automatisches Scrollen wechseln nicht zu einem anderen Reel, also spielt es am Ende noch einmal. Der Reels-Tab scrollt wie gewohnt. Wenn Durch die Reels eines Chats wischen an ist, lassen sich die Reels eines Chats weiter wischen.
 A swipe in Reels no longer moves on to the next reel, and pulling down doesn't load new ones. The reel you opened still plays. Restart Instagram to see the change.	Ein Wischen in Reels wechselt nicht mehr zum nächsten Reel, und Herunterziehen lädt keine neuen. Das geöffnete Reel spielt weiter. Starte Instagram neu, um die Änderung zu sehen.
 Lock a reel at 2x (hold its edge, then slide down) and the next reels play at 2x too. Slide the lock off, or hold the edge and let go, to go back to normal speed.	Sperre ein Reel auf 2x (Rand gedrückt halten, dann nach unten wischen), dann laufen auch die nächsten Reels mit 2x. Wische die Sperre weg oder halte den Rand und lass los, um zur normalen Geschwindigkeit zurückzukehren.
 Open links in external browser	Links im externen Browser öffnen
@@ -338,6 +341,9 @@ Hide the Explore grid	Entdecken-Raster ausblenden
 Hides the grid of posts and reels under the Search tab's bar. Search, recent searches and results stay.	Blendet das Raster mit Beiträgen und Reels unter der Leiste des Suchtabs aus. Suche, letzte Suchen und Ergebnisse bleiben.
 Hide suggested accounts in search	Vorgeschlagene Konten in der Suche ausblenden
 Leaves the Suggested for you accounts out of what shows when you tap the search bar. Recent searches stay.	Lässt die Konten unter „Vorschläge für dich“ aus dem weg, was beim Tippen auf die Suchleiste erscheint. Letzte Suchen bleiben.
+# context: You may also like is the header Instagram's server puts on the recommended posts after search results; it isn't a fixed string in the app, so the rows describe it.
+Hide You may also like in search	Empfehlungen in Suchergebnissen ausblenden
+Leaves out the You may also like posts Instagram adds below your search results. The results you searched for stay.	Lässt die Beiträge weg, die Instagram als Empfehlungen unter deine Suchergebnisse setzt. Die Ergebnisse deiner Suche bleiben.
 Messages	Nachrichten
 Hide the notes row	Notizen-Reihe ausblenden
 Takes the row of notes off the top of your messages, the Map bubble in it too. Your chats, search and requests stay.	Entfernt die Reihe mit Notizen oben in deinen Nachrichten, auch die Karte darin. Deine Chats, die Suche und Anfragen bleiben.
@@ -514,6 +520,9 @@ Reply with a comment's GIF	Mit dem GIF eines Kommentars antworten
 When a comment has a GIF, its menu gets a GIF reply that sends that same GIF back as your reply, animated.	Hat ein Kommentar ein GIF, bekommt sein Menü eine GIF-Antwort, die genau dieses GIF animiert als deine Antwort zurückschickt.
 Show a comment GIF's name	Namen des GIFs eines Kommentars anzeigen
 When a comment has a GIF or sticker, its menu shows its name. Tap the name to copy it.	Hat ein Kommentar ein GIF oder einen Sticker, zeigt sein Menü dessen Namen. Tippe auf den Namen, um ihn zu kopieren.
+Send saved GIFs as GIFs	Gespeicherte GIFs als GIFs senden
+A comment GIF you saved with Save comment photo, picked from your gallery in the comment box, goes up right away as the same GIF, animated. Other pictures go up as before.	Wählst du im Kommentarfeld aus deiner Galerie ein Kommentar-GIF, das du mit „Kommentarfoto speichern“ gespeichert hast, wird es sofort als dasselbe GIF animiert gepostet. Andere Bilder werden wie bisher hochgeladen.
+Couldn't send this GIF	Dieses GIF konnte nicht gesendet werden
 GIF name	GIF-Name
 GIF name copied	GIF-Name kopiert
 Couldn't copy the GIF name	GIF-Name konnte nicht kopiert werden
@@ -767,7 +776,7 @@ Ask before a refresh	Vor dem Aktualisieren fragen
 Continue	Weiter
 Like or unlike this post?	Diesen Beitrag liken oder nicht mehr liken?
 Like or unlike this comment?	Diesen Kommentar liken oder nicht mehr liken?
-Asks before pulling down refreshes Home, Reels or another list. Cancel keeps what's on screen.	Fragt nach, bevor das Herunterziehen die Startseite, Reels oder eine andere Liste aktualisiert. Mit „Abbrechen“ bleibt, was auf dem Bildschirm ist.
+Asks before a pull down or another tap on its tab refreshes Home, Reels or another list. Cancel keeps what's on screen.	Fragt nach, bevor das Herunterziehen oder ein erneutes Tippen auf den Tab die Startseite, Reels oder eine andere Liste aktualisiert. Mit „Abbrechen“ bleibt, was auf dem Bildschirm ist.
 Skip the collections tray	Sammlungsfenster überspringen
 Saving a post or reel shows Instagram's Saved message instead of the tray that asks you to start a collection.	Beim Speichern eines Beitrags oder Reels zeigt Instagram nur die Meldung, dass er gespeichert ist, statt des Fensters, das dich bittet, eine Sammlung anzulegen.
 Refresh	Aktualisieren
@@ -981,7 +990,12 @@ Chat %1$s	Chat %1$s
 Hidden chats	Versteckte Chats
 Hide single chats. A hidden chat leaves your inbox and its notifications don't post until you show it here again.	Einzelne Chats verstecken. Ein versteckter Chat verschwindet aus deinem Posteingang und seine Benachrichtigungen erscheinen nicht, bis du ihn hier wieder anzeigst.
 Double-tap Messages for hidden chats	Doppeltippen auf Nachrichten für versteckte Chats
-Two quick taps on the Messages button, on the tab bar or at the top of Home, open your hidden chats. While a lock is on, it asks for it first. One tap opens Messages as usual.	Zwei schnelle Tipps auf die Nachrichten-Schaltfläche, in der Tab-Leiste oder oben auf der Startseite, öffnen deine versteckten Chats. Ist eine Sperre an, wird zuerst danach gefragt. Ein Tipp öffnet Nachrichten wie gewohnt.
+Two quick taps on the Messages button, on the tab bar or at the top of Home, show your hidden chats in your inbox after your screen lock or PIN. Two more taps hide them again. Long press a chat to hide or unhide it. One tap opens Messages as usual.	Zwei schnelle Tipps auf die Nachrichten-Schaltfläche, in der Tab-Leiste oder oben auf der Startseite, zeigen deine versteckten Chats im Posteingang, nach deiner Displaysperre oder PIN. Zwei weitere Tipps verstecken sie wieder. Halte einen Chat gedrückt, um ihn zu verstecken oder wieder anzuzeigen. Ein Tipp öffnet Nachrichten wie gewohnt.
+# context: Hide chat and Unhide chat in a chat's long press menu in the inbox (#661), and the toasts when two quick taps on Messages show the hidden chats in the inbox or hide them again
+Hide chat	Chat verstecken
+Unhide chat	Chat wieder anzeigen
+Showing your hidden chats	Versteckte Chats werden angezeigt
+Hidden chats locked again	Versteckte Chats wieder gesperrt
 Open a chat in Instagram, then come back here to hide it.	Öffne einen Chat in Instagram und komm dann hierher zurück, um ihn zu verstecken.
 Pinned chats	Angepinnte Chats
 Keeps the chats you pick at the top of your inbox. The pins stay on this phone, and Instagram's own order holds for every other chat.	Hält die gewählten Chats oben in deinem Posteingang. Die Pins bleiben auf diesem Handy, alle anderen Chats behalten die Reihenfolge von Instagram.
@@ -1181,6 +1195,10 @@ Pick friends	Freunde auswählen
 Open the Friends tab first.	Öffne zuerst den Freunde-Tab.
 No friends to pick yet.	Noch keine Freunde zur Auswahl.
 Applies to the next reels loaded.	Gilt für die nächsten geladenen Reels.
+Hide the Like button on reels	Gefällt-mir-Button bei Reels ausblenden
+Takes the heart out of the column of buttons beside a reel, and the like count under it. Double tap still likes a reel.	Nimmt das Herz aus der Button-Spalte neben einem Reel, dazu die Zahl der Likes darunter. Ein Doppeltipp gibt einem Reel weiterhin ein Like.
+Hide the Comment button on reels	Kommentar-Button bei Reels ausblenden
+Takes the Comment button out of the column of buttons beside a reel, and the count under it. The comment bar under a reel has its own switch.	Nimmt den Kommentar-Button aus der Button-Spalte neben einem Reel, dazu die Zahl darunter. Die Kommentarleiste unter einem Reel hat einen eigenen Schalter.
 Hide the Save button on reels	Speichern-Button bei Reels ausblenden
 Burn-in guard	Einbrennschutz
 Dim when idle	Abdunkeln bei Inaktivität
@@ -1722,6 +1740,8 @@ Couldn't read that picture.	Das Bild ließ sich nicht lesen.
 This launcher can't add it.	Dieser Launcher kann es nicht hinzufügen.
 Glass in chats	Glas in Chats
 Gives a chat's top bar and message bar frosted glass and puts the back, call and video buttons on round glass circles. It shows the next time you open a chat. Needs Android 12 or newer for the blur.	Gibt der oberen Leiste und der Nachrichtenleiste eines Chats Milchglas und setzt die Buttons für Zurück, Anruf und Video auf runde Glaskreise. Sichtbar beim nächsten Öffnen eines Chats. Der Weichzeichner braucht Android 12 oder neuer.
+Glass top bar in chats	Glas in der oberen Leiste von Chats
+Turn it off to leave a chat's top bar as Instagram draws it, with no frosted band behind it. The round glass buttons and the glass message bar stay.	Schalte es aus, damit die obere Leiste eines Chats so bleibt, wie Instagram sie zeichnet, ohne Milchglasband dahinter. Die runden Glasbuttons und die Glas-Nachrichtenleiste bleiben.
 # context: Reels switch Hide reels with few views, its summary, the Minimum views row, its dialog message and the row's summary, then the Minimum likes row, its dialog message, its summary and its summary at 0; %1$s is a number with thousands separators (#444)
 Hide reels with few views	Reels mit wenigen Aufrufen ausblenden
 Leaves out reels in the Reels tab with fewer views or likes than the numbers below. Reels from accounts you follow, reels sent to you and reels with no count still play.	Lässt im Reels-Tab Reels weg, die weniger Aufrufe oder Likes haben als die Zahlen unten. Reels von Konten, denen du folgst, Reels, die man dir schickt, und Reels ohne Zahl laufen weiter.
@@ -1978,6 +1998,8 @@ Save in the post menu	Speichern im Beitragsmenü
 Adds Save to the menu behind a post's three dots, or Remove from saved when you saved it already.	Fügt „Speichern“ zum Menü hinter den drei Punkten eines Beitrags hinzu, oder „Aus Gespeichertem entfernen“, wenn du ihn schon gespeichert hast.
 Hide the Save button	Speichern-Button ausblenden
 Takes the Save button off the bottom of posts in your feed, so a stray tap can't save one.	Entfernt den Speichern-Button unten an Beiträgen in deinem Feed, damit ein versehentliches Tippen nichts speichert.
+Hide the Like button	Gefällt-mir-Button ausblenden
+Takes the heart and the like count off the bottom of posts in your feed. Double tap still likes a post.	Nimmt das Herz und die Zahl der Likes unten von Beiträgen in deinem Feed. Ein Doppeltipp gibt einem Beitrag weiterhin ein Like.
 # context: the row in a feed post's three-dot menu for a post you already saved, and the row that takes an account off Saved profiles, on its profile's menu and on the Saved profiles page (#629)
 Remove from saved	Aus Gespeichertem entfernen
 # context: a switch on the Reels page
@@ -2124,6 +2146,10 @@ Takes the invite to someone's broadcast channel from under their bio. Yours keep
 Hide the other profile banners	Andere Profilbanner ausblenden
 # context: Profiles > summary of Hide the other profile banners (#627)
 Takes the rest of the banners under the bio off other people's profiles, like events, fundraisers, schools and business hours. Yours keeps them.	Entfernt die übrigen Banner unter dem Steckbrief auf den Profilen anderer, etwa Events, Spendenaktionen, Schulen und Öffnungszeiten. Deins behält sie.
+# context: Profiles > title of the switch that hides the row of links (a website, a business's links) under the bio on other people's profiles (#627)
+Hide links	Links ausblenden
+# context: Profiles > summary of Hide links (#627)
+Takes the row of links, like a website or a business's links, from under the bio on other people's profiles. Yours keeps it.	Entfernt die Reihe mit Links, etwa eine Website oder die Links eines Unternehmens, unter dem Steckbrief auf den Profilen anderer. Deins behält sie.
 # context: the row HushGram adds to the menu on someone's profile; it puts the account on the Saved profiles list (#629)
 Save profile	Profil speichern
 # context: toast after Save profile; %s is the account's username (#629)
@@ -2205,3 +2231,10 @@ Haptic strength	Haptik-Stärke
 Tap sound on the tab bar	Tippton auf der Tab-Leiste
 A click each time the highlight moves to another tab, even with the phone's touch sounds off. Silent and vibrate mode keep it quiet.	Ein Klick, sobald das Highlight zu einem anderen Tab wechselt, auch wenn die Berührungstöne des Handys aus sind. Im Lautlos- und Vibrationsmodus bleibt er stumm.
 Tap sound volume	Lautstärke des Tipptons
+Auto scroll in Home	Automatisches Scrollen auf der Startseite
+Moves Home on to the next post by itself. A video moves on when it ends, a photo or carousel after Time on each post. Touch the screen to hold it.	Die Startseite geht von selbst zum nächsten Beitrag weiter. Ein Video, wenn es endet, ein Foto oder Karussell nach „Zeit pro Beitrag“. Berühre den Bildschirm, um es anzuhalten.
+Time on each post	Zeit pro Beitrag
+# context: Reels settings: switch that lets a tap on the reel shown above an open comments sheet pause or play it, and a hold play it at 2x, without closing the comments (#665)
+Control the reel above comments	Reel über den Kommentaren steuern
+# context: Summary of Control the reel above comments (#665)
+With a reel's comments open, tap the reel above them to pause or play it, or hold it to play at 2x. The comments stay open.	Sind die Kommentare eines Reels offen, tippe auf das Reel darüber, um es anzuhalten oder abzuspielen, oder halte es gedrückt, um es mit 2x abzuspielen. Die Kommentare bleiben offen.

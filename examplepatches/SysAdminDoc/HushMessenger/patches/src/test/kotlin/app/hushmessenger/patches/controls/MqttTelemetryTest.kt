@@ -105,9 +105,9 @@ class MqttTelemetryTest {
     @Test fun eachProfileHooksOneClientsPublishAndKeepalive() {
         assertEquals(setOf(SYNTHETIC_MQTT_PUBLISH, SYNTHETIC_MQTT_KEEPALIVE), SYNTHETIC_PROFILE.hooks.getValue(MQTT_TELEMETRY))
         validateControls(mirroredControls(mqttClientFixture()), setOf(MQTT_TELEMETRY))
-        // 586 renames the client and its argument types.
-        assertEquals(setOf("LX/14G;->A0R(LX/13S;LX/0fK;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;[BIJ)LX/0zO;",
-            "LX/14G;->A0N(Ljava/lang/String;)V"), BASE_PROFILE.hooks.getValue(MQTT_TELEMETRY))
+        // Each release renames the client and its argument types.
+        assertEquals(setOf("LX/119;->A0Q(LX/13Q;LX/137;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;[BIJ)LX/0uj;",
+            "LX/119;->A0M(Ljava/lang/String;)V"), BASE_PROFILE.hooks.getValue(MQTT_TELEMETRY))
     }
 
     // Dropping the report while the keepalive still sends it would leave the connection with no keepalive, so a

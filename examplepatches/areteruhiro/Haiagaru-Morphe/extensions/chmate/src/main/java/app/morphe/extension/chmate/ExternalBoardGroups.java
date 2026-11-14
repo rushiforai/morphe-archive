@@ -26,8 +26,12 @@ public final class ExternalBoardGroups {
   return type.getConstructor(int.class,String.class,String.class,String.class,String[].class,byte.class,String.class,long.class)
    .newInstance(field(row,"order"),server,bid.toString(),title,clean.toArray(new String[0]),field(row,"rating"),field(row,"mExtraJson"),field(row,"updated"));
  }
- private static List<Object> repaired(List<?> rows,boolean modern)throws Exception{
-  ArrayList<Object> result=new ArrayList<>(rows.size());for(Object row:rows)result.add(repair(row,modern));return result;
+ private static List<Object> repaired(List<?> rows,boolean modern,SiteBoardGateway gateway)throws Exception{
+  ArrayList<Object> result=new ArrayList<>(rows.size());for(Object row:rows){
+   Object bid=field(row,modern?"c":"bid");
+   if(gateway!=null&&!SiteBoardVisibility.visible(gateway,host(row,modern),bid==null?null:bid.toString()))continue;
+   result.add(repair(row,modern));
+  }return result;
  }
  private static Object make(Object template,boolean modern,String id,String title,List<?> rows)throws Exception{
   Class<?> type=template.getClass();
@@ -42,10 +46,12 @@ public final class ExternalBoardGroups {
    if(!old&&!middle&&!modern)return source;
    String idField=old?"a":"c",titleField=old?"c":"d",rowsField=old?"d":middle?"a":"e";
    android.content.Context context=Haiagaru.applicationContextForExtension();
+   SiteBoardGateway gateway=context==null?null:SiteBoardGateway.get(context);
    boolean splitSites=context!=null&&context.getSharedPreferences(WacchoiSearchOptions.PREFS,0).getBoolean(KEY,false);
    ArrayList<Object> result=new ArrayList<>();
    for(Object group:source){
-    String id=(String)field(group,idField);List<?> original=(List<?>)field(group,rowsField);List<Object> rows=repaired(original,modern);
+    String id=(String)field(group,idField);List<?> original=(List<?>)field(group,rowsField);List<Object> rows=repaired(original,modern,gateway);
+    if(rows.isEmpty()&&!original.isEmpty())continue;
     if(!splitSites||!"<otherGroup>".equals(id)){
      if(modern){Object kind=field(group,"a");result.add(group.getClass().getConstructor(String.class,String.class,NativeFields.find(group.getClass(),"a").getType(),List.class).newInstance(id,field(group,titleField),kind,rows));}
      else {List<Object> nativeRows=(List<Object>)field(group,rowsField);nativeRows.clear();nativeRows.addAll(rows);result.add(group);}

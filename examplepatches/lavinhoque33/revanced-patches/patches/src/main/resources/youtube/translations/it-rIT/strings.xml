@@ -2176,7 +2176,6 @@ Per mostrare il pulsante Scarica Playlist nativo, attiva il camuffamento della v
     <string name="revanced_preference_screen_misc_title">Varie</string>
     <string name="revanced_preference_screen_navigation_bar_summary">Personalizza i componenti della barra di navigazione</string>
     <string name="revanced_preference_screen_navigation_bar_title">Barra di navigazione</string>
-    <string name="revanced_preference_screen_patch_information_summary">Informazioni sulle patch applicate</string>
     <string name="revanced_preference_screen_player_buttons_summary">Personalizza i pulsanti del riproduttore</string>
     <string name="revanced_preference_screen_player_buttons_title">Pulsanti</string>
     <string name="revanced_preference_screen_player_flyout_menu_summary">Personalizza i componenti dei menù a comparsa nel riproduttore</string>

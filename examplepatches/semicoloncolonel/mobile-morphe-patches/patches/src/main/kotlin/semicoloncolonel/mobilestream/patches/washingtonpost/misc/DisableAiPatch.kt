@@ -4,11 +4,13 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import semicoloncolonel.mobilestream.patches.washingtonpost.shared.Constants
 
-// WaPo phone 7.18.1. The AI features are switched by server config and by
+// WaPo phone 7.18.1 to 7.19.0. The AI features are switched by server config and by
 // fields on each article:
 //
 //   Ask The Post AI — Search2Config (renamed sbi) carries postAnswersEnabled,
@@ -45,16 +47,34 @@ internal object RawRealtimeSummaryInitFingerprint : Fingerprint(
     parameters = listOf("Ljava/lang/Boolean;", "Ljava/lang/String;"),
 )
 
-// Article2's showSummary getter is the one that reads field R; the Summary and
+// Article2's showSummary getter is the one that reads the showSummary field.
+// That field is R in 7.18.x and S in 7.19.0, so it is looked up rather than
+// named: the constructor stores summary and then showSummary, so it is the
+// first Boolean field written after the Summary field. The Summary and
 // ATPQuestions getters are the only ones returning those types.
+private fun showSummaryField(classDef: ClassDef): String? {
+    classDef.methods.filter { it.name == "<init>" }.forEach { init ->
+        val stores = init.implementation?.instructions
+            ?.filter { it.opcode == Opcode.IPUT_OBJECT }
+            ?.mapNotNull { (it as? ReferenceInstruction)?.reference as? FieldReference }
+            ?.filter { it.definingClass == classDef.type }
+            ?: return@forEach
+        val summary = stores.indexOfFirst { it.type == "${ARTICLE}Summary;" }
+        if (summary < 0) return@forEach
+        stores.drop(summary + 1).firstOrNull { it.type == "Ljava/lang/Boolean;" }?.let { return it.name }
+    }
+    return null
+}
+
 internal object ArticleShowSummaryFingerprint : Fingerprint(
     definingClass = "${ARTICLE}Article2;",
     returnType = "Ljava/lang/Boolean;",
     parameters = listOf(),
-    custom = { method, _ ->
-        method.implementation?.instructions?.any {
+    custom = { method, classDef ->
+        val name = showSummaryField(classDef)
+        name != null && method.implementation?.instructions?.any {
             val field = (it as? ReferenceInstruction)?.reference as? FieldReference
-            field?.definingClass == "${ARTICLE}Article2;" && field.name == "R"
+            field?.definingClass == "${ARTICLE}Article2;" && field.name == name
         } == true
     },
 )

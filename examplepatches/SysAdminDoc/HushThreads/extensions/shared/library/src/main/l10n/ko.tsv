@@ -332,7 +332,7 @@ Report a problem	문제 신고하기
 Opens a GitHub report with your versions and settings filled in. Add what happened.	버전과 설정이 미리 채워진 GitHub 신고를 엽니다. 무슨 일이 있었는지 적어 주세요.
 # The Links page's line beside a Meta-signed Instagram (#8): Instagram's own launcher won't hand a post or profile to a patched Threads, and the error is Instagram's.
 Instagram won't open posts here	Instagram에서 게시물이 여기서 열리지 않음
-Your Instagram is signed by Meta, and it only opens Threads posts and profiles in a Threads signed by Meta. Tapping one in Instagram shows an error saying it couldn't load the website. Posts you open in Threads itself work as usual.	사용 중인 Instagram은 Meta가 서명했으며 Threads 게시물과 프로필을 Meta가 서명한 Threads에서만 엽니다. Instagram에서 탭하면 웹사이트를 불러올 수 없다는 오류가 표시됩니다. Threads에서 직접 연 게시물은 평소처럼 작동합니다.
+Your Instagram is signed by Meta, and it only opens Threads posts and profiles in a Threads signed by Meta. Tapping one in Instagram shows an error saying it couldn't load the website. Posts you open in Threads itself work as usual. Patch Instagram with HushGram, signed with the same key as HushThreads, and it opens them here.	사용 중인 Instagram은 Meta가 서명했으며 Threads 게시물과 프로필을 Meta가 서명한 Threads에서만 엽니다. Instagram에서 탭하면 웹사이트를 불러올 수 없다는 오류가 표시됩니다. Threads에서 직접 연 게시물은 평소처럼 작동합니다. Instagram을 HushGram으로 패치하고 HushThreads와 같은 키로 서명하면 여기서 열립니다.
 Turn on a set of switches in one tap, or put every switch back the way it started. Press and hold to hide this row.	탭 한 번으로 스위치 묶음을 켜거나 모든 스위치를 처음 상태로 되돌립니다. 이 줄을 숨기려면 길게 누르세요.
 Quick setups on the home page	홈 페이지의 빠른 설정
 Hidden. Tap to show it again.	숨겨짐. 다시 표시하려면 탭하세요.

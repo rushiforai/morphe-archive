@@ -11,6 +11,7 @@
  * https://github.com/ReVanced/revanced-patches
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-12
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -177,7 +178,7 @@ public class CustomDialogListPreference extends ListPreference {
             return entries;
         }
 
-        CharSequence[] marked = entries.clone();
+        CharSequence[] marked = Arrays.copyOf(entries, entries.length, CharSequence[].class);
         for (int i = 0, length = Math.min(entries.length, entryValues.length); i < length; i++) {
             if (newEntryValues.contains(entryValues[i].toString())) {
                 marked[i] = NewIndicatorSpan.addTo(entries[i], newEntryColor);

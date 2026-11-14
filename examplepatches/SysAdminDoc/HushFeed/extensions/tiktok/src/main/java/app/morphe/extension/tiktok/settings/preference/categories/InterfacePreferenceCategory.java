@@ -550,6 +550,12 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                         Settings.HIDE_FOLLOWING_LIVE_ROW
                 ));
             }
+            addPreference(new TogglePreference(
+                    context,
+                    "Glass Stories button on Following",
+                    "The Stories button at the top of the Following feed turns to glass with round ends. On Android 12 and up, the video behind it is blurred too.",
+                    Settings.GLASS_STORIES_PILL
+            ));
             if (SettingsStatus.storyRowButtonsEnabled) {
                 addPreference(new TogglePreference(
                         context,
@@ -891,8 +897,14 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
             addPreference(new TogglePreference(
                     context,
                     "See-through status bar",
-                    "Let the video reach the top of the screen on the main feed, with the clock and status icons over it. The tabs at the top stay where they are.",
+                    "Let the video reach the top of the screen, with the clock and status icons over it. Works on the main feed and on videos you open from search, a profile or your Liked and Favorites. The tabs at the top stay where they are.",
                     Settings.SEE_THROUGH_STATUS_BAR
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Shade behind the status bar",
+                    "A soft dark fade behind the clock and status icons, so they stay easy to read over a bright video. Needs See-through status bar.",
+                    Settings.STATUS_BAR_SHADE
             ));
             addPreference(new ChoicePreference(context, "Burn-in guard", Settings.BURN_IN_GUARD,
                     new String[]{"Off", "Dim when idle", "Dim when idle and shift"},

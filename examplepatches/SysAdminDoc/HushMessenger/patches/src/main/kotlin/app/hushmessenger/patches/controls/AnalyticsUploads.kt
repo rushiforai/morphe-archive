@@ -119,19 +119,34 @@ internal fun Method.isInlinedUploadTask() =
         taskServiceField() != null && taskReporter() != null
 
 /**
+ * A bound task in builds that kept GooglePlayUploadService's override of the base's abstract (task)I method, which the
+ * Runnable calls and reports the answer of: 582's builds, and 587's second Redex family (347415280, 281, 284 and 285).
+ */
+internal fun Method.isDelegatedUploadTask() =
+    definingClass == GOOGLE_PLAY_UPLOAD_SERVICE && returnType == "I" && parameterTypes.size == 1 &&
+        !AccessFlags.STATIC.isSet(accessFlags) && !AccessFlags.ABSTRACT.isSet(accessFlags) && implementation != null &&
+        holdsBoundUploadMark()
+
+/**
  * Google Play can also bind GooglePlayUploadService and hand it a task through the binder its obfuscated GcmTaskService
  * base returns from onBind, so the task never passes onStartCommand. The base runs each task on a Runnable that reports
- * the result and frees the tag. 584 inlines the upload into that Runnable's run(), which is the hook.
- * Unrelated GcmTaskServiceCompat tasks share the Runnable and stay stock.
+ * the result and frees the tag. The hook is that Runnable's run() where the upload is inlined into it (583 to 587's main
+ * builds), or else the uploader's own task override, which run() calls. Unrelated GcmTaskServiceCompat tasks share the
+ * Runnable and stay stock.
  */
 internal fun findBoundUploadTasks(classes: Iterable<ClassDef>): List<Method> {
     val play = classes.singleOrNull { it.type == GOOGLE_PLAY_UPLOAD_SERVICE } ?: return emptyList()
     val base = play.superclass ?: return emptyList()
     val baseClass = classes.singleOrNull { it.type == base } ?: return emptyList()
     if (baseClass.superclass != SERVICE) return emptyList()
-    return classes.filter { cls ->
+    val abstractTasks = baseClass.methods
+        .filter { AccessFlags.ABSTRACT.isSet(it.accessFlags) && it.returnType == "I" && it.parameterTypes.size == 1 }
+        .map { it.entryPoint() }.toSet()
+    val delegated = play.methods.filter { it.entryPoint() in abstractTasks && it.isDelegatedUploadTask() }
+    val inlined = classes.filter { cls ->
         "Ljava/lang/Runnable;" in cls.interfaces && cls.fields.any { it.type == base && !AccessFlags.STATIC.isSet(it.accessFlags) }
     }.flatMap { it.methods }.filter { it.isInlinedUploadTask() && it.taskServiceField()?.type == base }
+    return delegated + inlined
 }
 
 internal const val XANALYTICS_FLUSH = "Lcom/facebook/xanalytics/XAnalyticsHolder;->flush()V"
@@ -167,12 +182,17 @@ internal const val UPLOAD_NOW_ACTION = "com.facebook.analytics2.logger.UPLOAD_NO
 internal const val USER_LOGOUT_ACTION = "com.facebook.analytics2.logger.USER_LOGOUT"
 internal const val UNKNOWN_UPLOAD_ACTION = "Unknown action="
 
-/** The uploader's action dispatcher, (params, callback, action)V: it starts the upload job for either action. */
-private fun Method.isUploadActionDispatcher() =
-    returnType == "V" && !AccessFlags.STATIC.isSet(accessFlags) && parameterTypes.size == 3 &&
-        parameterTypes[2].toString() == "Ljava/lang/String;" &&
-        references().mapNotNull { (it as? StringReference)?.string }
-            .containsAll(listOf(UPLOAD_NOW_ACTION, USER_LOGOUT_ACTION, UNKNOWN_UPLOAD_ACTION))
+/**
+ * The uploader's action dispatcher, (params, callback, action)V: it starts the upload job for either action. 587 looks
+ * USER_LOGOUT up in a string table, so a table lookup names an action as well as a literal does.
+ */
+private fun Method.isUploadActionDispatcher(tables: Map<String, Map<Int, String>>): Boolean {
+    if (returnType != "V" || AccessFlags.STATIC.isSet(accessFlags) || parameterTypes.size != 3 ||
+        parameterTypes[2].toString() != "Ljava/lang/String;") return false
+    val literals = references().mapNotNull { (it as? StringReference)?.string }
+    if (UNKNOWN_UPLOAD_ACTION !in literals) return false
+    return (literals + tableStrings(tables)).containsAll(listOf(UPLOAD_NOW_ACTION, USER_LOGOUT_ACTION, UNKNOWN_UPLOAD_ACTION))
+}
 
 /**
  * What an in-process upload start hands its action to: a method of its own class taking (params, callback, action),
@@ -203,8 +223,8 @@ internal fun Method.isInProcessUploadStart() = inProcessUploadTarget() != null
  * as 584's manifest has it, an UPLOAD_NOW or USER_LOGOUT goes straight to this method instead of starting the service,
  * so none of the service entry points runs. It's taken only beside the one dispatcher, and only when it's the one.
  */
-internal fun findInProcessUploadStarts(classes: Iterable<ClassDef>): List<Method> {
-    val dispatcher = classes.flatMap { cls -> cls.methods.filter { it.isUploadActionDispatcher() } }.singleOrNull()
+internal fun findInProcessUploadStarts(classes: Iterable<ClassDef>, tables: Map<String, Map<Int, String>> = activeStringTables): List<Method> {
+    val dispatcher = classes.flatMap { cls -> cls.methods.filter { it.isUploadActionDispatcher(tables) } }.singleOrNull()
         ?: return emptyList()
     val starts = classes.filter { it.type == dispatcher.definingClass }.flatMap { it.methods }.filter { method ->
         method.inProcessUploadTarget()
@@ -217,7 +237,7 @@ internal fun findInProcessUploadStarts(classes: Iterable<ClassDef>): List<Method
 internal fun MutableMethod.validateAnalyticsUpload() {
     val entry = entryPoint()
     val inlined = isInlinedUploadTask()
-    if (!inlined && !isXAnalyticsUploadTimer() && !isInProcessUploadStart() &&
+    if (!inlined && !isDelegatedUploadTask() && !isXAnalyticsUploadTimer() && !isInProcessUploadStart() &&
         (AccessFlags.STATIC.isSet(accessFlags) || entry !in setOf(START_COMMAND, START_JOB, RECEIVE))) {
         throw PatchException("Messenger controls: ${hookId()} isn't an analytics upload entry point")
     }
@@ -258,6 +278,8 @@ internal fun MutableMethod.injectAnalyticsUpload() {
         return
     }
     val stop = when {
+        // The Runnable reports this answer: 0, success, so Google Play doesn't retry the task.
+        isDelegatedUploadTask() -> "const/4 v0, 0x0\nreturn v0"
         entryPoint() == START_COMMAND -> "invoke-static {p1}, $SETTINGS->releaseUploadStarter(Landroid/content/Intent;)V\n" +
             "invoke-virtual {p0, p3}, Landroid/app/Service;->stopSelf(I)V\nconst/4 v0, 0x2\nreturn v0"
         entryPoint() == START_JOB -> "const/4 v0, 0x0\nreturn v0"

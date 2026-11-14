@@ -48,6 +48,7 @@ val removeSocialSignInPatch = bytecodePatch(
     name = "Remove social sign-in",
     description = "Removes the Google and Apple sign-in buttons and the Google sign-in sheet at startup.",
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

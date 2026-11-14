@@ -34,7 +34,7 @@ private val FINAL = AccessFlags.PUBLIC.value or AccessFlags.FINAL.value
 private val SEEN_BODY = "const-string v0, \"$CHAT_SEEN_JOB\"\nconst-string v1, \"$CHAT_SEEN_TRACE\"\nreturn-void"
 private const val DISPATCH = "LX/Dispatch;->send(${FB_USER_SESSION}LX/Enum;LX/Message;Ljava/lang/String;Ljava/lang/String;)V"
 
-/** Keep the native instruction positions while omitting unrelated composer logic. The default is 586's arm64 body. */
+/** Keep the native instruction positions while omitting unrelated composer logic. The default is 587's body. */
 private fun sendBody(changes: Map<Int, String> = emptyMap(), shape: ReplyReadShape = REPLY_READ_SHAPE, size: Int = shape.sizes.max()): String {
     val c = MutableList(size) { "nop" }
     val n = shape.nullThread
@@ -161,29 +161,17 @@ class ReadReceiptsTest {
     }
 
     /**
-     * 586's family B builds read the thread's id String in one call where 348 reads a long and converts it, so the body
-     * is two shorter and the seam sits two sooner. Each size takes only its own seam.
+     * 586's dispatcher held its inbox tag as a plain const-string where 587 reads it from the string pool, so its seam sat
+     * two sooner, and its family B read the thread's id String in one call, two sooner again. Neither body is patched,
+     * and 587's seam in a 586-sized body is refused too.
      */
-    @Test fun familyBsShorterDispatcherIsPatchedAtItsOwnSeam() {
-        val shape = REPLY_READ_SHAPE_FAMILY_B
-        val d = shape.dispatch
-        val s = d - shape.stage
-        val method = send(shape = shape)
-        mirroredControls(readReceiptsFixture(sendMethod = method))
-        val before = method.code()
-        assertEquals(395, before.size)
-        assertEquals(d, method.validateReplyRead())
-        method.injectReplyRead()
-        val c = method.code()
-        assertEquals(Opcode.MOVE_OBJECT_16, c[s].opcode)
-        assertEquals(DISPATCH, (c[d + 1] as ReferenceInstruction).reference.toString())
-        assertEquals("$SETTINGS->noteMessageSent(Ljava/lang/Object;Ljava/lang/Object;)V", (c[d + 4] as ReferenceInstruction).reference.toString())
-        assertStockCode(before, c, setOf(s, d + 2, d + 3, d + 4), "family B send dispatcher")
-
-        val moved = ReplyReadShape(sizes = setOf(395), composer = 10, session = 20, nullThread = 26, absent = 71, dispatch = 236, composerReg = 20, stage = 4)
+    @Test fun a586DispatcherIsRefused() {
+        val shape586 = ReplyReadShape(sizes = setOf(397), composer = 10, session = 20, nullThread = 26, absent = 71, dispatch = 236, composerReg = 20, stage = 4)
+        val shape586B = ReplyReadShape(sizes = setOf(395), composer = 10, session = 20, nullThread = 26, absent = 71, dispatch = 234, composerReg = 20, stage = 4)
         for ((label, bad) in listOf(
-            "348's seam in a family B body" to fixtureMethod(SYNTHETIC_SEND_EVENT, sendBody(shape = moved), shape.registers, STATIC),
-            "family B's seam in a 348 body" to fixtureMethod(SYNTHETIC_SEND_EVENT, sendBody(shape = shape, size = 397), shape.registers, STATIC),
+            "586 send dispatcher" to send(shape = shape586),
+            "586 family B send dispatcher" to send(shape = shape586B),
+            "587's seam in a 586 body" to fixtureMethod(SYNTHETIC_SEND_EVENT, sendBody(size = 397), REPLY_READ_SHAPE.registers, STATIC),
         )) {
             val stock = bad.code()
             assertFailsWith<PatchException>(label) { bad.injectReplyRead() }

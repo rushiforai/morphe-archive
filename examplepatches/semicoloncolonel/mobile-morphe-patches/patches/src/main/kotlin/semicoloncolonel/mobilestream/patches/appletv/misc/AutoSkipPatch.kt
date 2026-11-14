@@ -52,6 +52,7 @@ val autoSkipPatch = bytecodePatch(
     name = "Auto-skip",
     description = "Skips the parts you choose: Apple's promos for other titles, recaps, and intros.",
 ) {
+    category("Playback")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")

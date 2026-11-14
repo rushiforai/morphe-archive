@@ -222,9 +222,66 @@ public final class SaveChooser {
         return null;
     }
 
+    /** The card menu Morphe's card layout last read for its save button (the method's argument, same thread). */
+    private static Object lastMenu;
+
+    /** Injection point, at the start of Morphe's findWatchLaterCommand: the card's menu. */
+    public static void rememberMenu(Object menu) {
+        lastMenu = menu;
+    }
+
+    private static final int ICON_ADD_TO_PLAYLIST = 46;
+    private static final int ICON_PLAYLIST_ADD = 211;
+    private static final String[] MENU_SAVE_TEXT = {"save to playlist", "guardar en playlist", "guardar en una playlist",
+            "guardar en lista", "añadir a playlist", "añadir a lista", "agregar a playlist", "agregar a lista"};
+
+    private static String text(app.morphe.extension.youtube.innertube.queue.PlaylistQueueRenderer.Text t) {
+        if (t == null) return "";
+        StringBuilder b = new StringBuilder(t.getSimpleText());
+        for (var r : t.getRunsList()) b.append(r.getText());
+        return b.toString().toLowerCase(Locale.ROOT).trim();
+    }
+
+    private static boolean isSaveToPlaylist(app.morphe.extension.youtube.innertube.IconOuterClass.Icon icon,
+                                            app.morphe.extension.youtube.innertube.queue.PlaylistQueueRenderer.Text t) {
+        int type = icon == null ? -1 : icon.getYtIconTypeValue();
+        if (type == ICON_ADD_TO_PLAYLIST || type == ICON_PLAYLIST_ADD) return true;
+        String s = text(t);
+        for (String m : MENU_SAVE_TEXT) if (s.startsWith(m)) return true;
+        return false;
+    }
+
+    /** The item's command where the item is Save to playlist (and has a command), else null. */
+    private static app.morphe.extension.youtube.innertube.queue.PlaylistQueueRenderer.NavigationEndpoint pick(
+            app.morphe.extension.youtube.innertube.IconOuterClass.Icon icon,
+            app.morphe.extension.youtube.innertube.queue.PlaylistQueueRenderer.Text text,
+            app.morphe.extension.youtube.innertube.queue.PlaylistQueueRenderer.NavigationEndpoint endpoint) {
+        return isSaveToPlaylist(icon, text) && endpoint.getSerializedSize() > 0 ? endpoint : null;
+    }
+
+    /** The card menu's own Save to playlist command, which opens the sheet with thumbnails, or null. */
+    private static app.morphe.extension.youtube.innertube.queue.PlaylistQueueRenderer.NavigationEndpoint menuSaveCommand() {
+        if (!(lastMenu instanceof app.morphe.extension.youtube.innertube.queue.PlaylistQueueRenderer.MenuRenderer menu)) return null;
+        for (var item : menu.getItemsList()) {
+            var found = item.hasMenuServiceItemRenderer() ? pick(item.getMenuServiceItemRenderer().getIcon(),
+                    item.getMenuServiceItemRenderer().getText(), item.getMenuServiceItemRenderer().getServiceEndpoint())
+                    : item.hasMenuNavigationItemRenderer() ? pick(item.getMenuNavigationItemRenderer().getIcon(),
+                    item.getMenuNavigationItemRenderer().getText(), item.getMenuNavigationItemRenderer().getNavigationEndpoint())
+                    : item.hasMenuConditionalServiceItemRenderer() ? pick(item.getMenuConditionalServiceItemRenderer().getIcon(),
+                    item.getMenuConditionalServiceItemRenderer().getText(), item.getMenuConditionalServiceItemRenderer().getServiceEndpoint())
+                    : item.hasMenuConditionalNavigationItemRenderer() ? pick(item.getMenuConditionalNavigationItemRenderer().getIcon(),
+                    item.getMenuConditionalNavigationItemRenderer().getText(), item.getMenuConditionalNavigationItemRenderer().getNavigationEndpoint())
+                    : null;
+            if (found != null) return found;
+        }
+        return null;
+    }
+
     /**
      * Injection point, on the command Morphe's feed card save button runs (the menu's Save to Watch later): with the
-     * option on, the button opens Save to... for the card's video instead.
+     * option on, the button opens Save to... for the card's video instead. The sheet with thumbnails (the one the watch
+     * page's Save opens) comes from the card menu's own Save to playlist command; the text list (the older dialog) from
+     * an add-to-playlist command built here, which is also the fallback where the menu has no such item.
      */
     public static Object cardSaveCommand(Object command) {
         try {
@@ -235,7 +292,14 @@ public final class SaveChooser {
             var edit = e.getPlaylistEditEndpoint();
             String id = edit.getActionsCount() > 0 ? edit.getActions(0).getAddedVideoId() : null;
             if (id == null || id.isEmpty()) return command;
-            if (XSettings.DEBUG.get()) Logger.printDebug(() -> "YouTube Extras: card save button opens Save to... for " + id);
+            if (!"list".equals(XSettings.SAVE_STYLE.get())) {
+                var sheet = menuSaveCommand();
+                if (sheet != null) {
+                    if (XSettings.DEBUG.get()) Logger.printDebug(() -> "YouTube Extras: card save button opens the Save to sheet for " + id);
+                    return sheet;
+                }
+            }
+            if (XSettings.DEBUG.get()) Logger.printDebug(() -> "YouTube Extras: card save button opens the Save to list for " + id);
             return app.morphe.extension.youtube.innertube.queue.PlaylistQueueRenderer.NavigationEndpoint.newBuilder()
                     .setAddToPlaylistEndpoint(app.morphe.extension.youtube.innertube.queue.PlaylistQueueRenderer
                             .AddToPlaylistEndpoint.newBuilder().setVideoId(id))

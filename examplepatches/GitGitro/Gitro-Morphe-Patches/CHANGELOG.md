@@ -1,3 +1,39 @@
+## [1.2.0](https://github.com/GitGitro/Gitro-Morphe-Patches/compare/v1.1.0...v1.2.0) (2026-11-14)
+
+### 🐛 Bug Fixes
+
+* constrain to xapk file ([a1cc949](https://github.com/GitGitro/Gitro-Morphe-Patches/commit/a1cc949a7774e1a6d15fc636a427694c50bcc701))
+
+### ✨ New Features
+
+* add unlock premium patch for stickermaker ([364b0ac](https://github.com/GitGitro/Gitro-Morphe-Patches/commit/364b0ac92e61af75e56ad02511669426332dbc74))
+* add unlock pro patch for monitee ([8622a1a](https://github.com/GitGitro/Gitro-Morphe-Patches/commit/8622a1aa4a20d886e98a39205f257787dd471832))
+* update filetreesize compatibility to 4.5.1 ([a023ea1](https://github.com/GitGitro/Gitro-Morphe-Patches/commit/a023ea144cd246965f8155c12c022ec324bee4c0))
+* update patcher to 2.0.0 ([9b878b7](https://github.com/GitGitro/Gitro-Morphe-Patches/commit/9b878b7f33c4a2173587f4d961c9fdb5bd011a76))
+* update patcher to 2.1.0 ([8fbef92](https://github.com/GitGitro/Gitro-Morphe-Patches/commit/8fbef92862276a2dcee6a05e4ebc0cce4617913e))
+* update reverso compatibility to 17.2.0 ([9e5e5ba](https://github.com/GitGitro/Gitro-Morphe-Patches/commit/9e5e5baf35a38d9fd181fedd3deb0b8c952b26d4))
+* update rillphone compatibility to 0.7.3 ([ddbd3dc](https://github.com/GitGitro/Gitro-Morphe-Patches/commit/ddbd3dc67c0f1528ed92794798d7745ee5754e53))
+* update usenetpanda compatibility to 3.0.1 ([30afe58](https://github.com/GitGitro/Gitro-Morphe-Patches/commit/30afe58fed8d0e3ee04f269387977d919f56126d))
+* update zerch compatibility to 2.3.3 ([abeccec](https://github.com/GitGitro/Gitro-Morphe-Patches/commit/abeccec2a4cc93506d1bbb8fe0cf17fc632c61df))
+
+## [1.2.0-dev.1](https://github.com/GitGitro/Gitro-Morphe-Patches/compare/v1.1.0...v1.2.0-dev.1) (2026-11-14)
+
+### 🐛 Bug Fixes
+
+* constrain to xapk file ([a1cc949](https://github.com/GitGitro/Gitro-Morphe-Patches/commit/a1cc949a7774e1a6d15fc636a427694c50bcc701))
+
+### ✨ New Features
+
+* add unlock premium patch for stickermaker ([364b0ac](https://github.com/GitGitro/Gitro-Morphe-Patches/commit/364b0ac92e61af75e56ad02511669426332dbc74))
+* add unlock pro patch for monitee ([8622a1a](https://github.com/GitGitro/Gitro-Morphe-Patches/commit/8622a1aa4a20d886e98a39205f257787dd471832))
+* update filetreesize compatibility to 4.5.1 ([a023ea1](https://github.com/GitGitro/Gitro-Morphe-Patches/commit/a023ea144cd246965f8155c12c022ec324bee4c0))
+* update patcher to 2.0.0 ([9b878b7](https://github.com/GitGitro/Gitro-Morphe-Patches/commit/9b878b7f33c4a2173587f4d961c9fdb5bd011a76))
+* update patcher to 2.1.0 ([8fbef92](https://github.com/GitGitro/Gitro-Morphe-Patches/commit/8fbef92862276a2dcee6a05e4ebc0cce4617913e))
+* update reverso compatibility to 17.2.0 ([9e5e5ba](https://github.com/GitGitro/Gitro-Morphe-Patches/commit/9e5e5baf35a38d9fd181fedd3deb0b8c952b26d4))
+* update rillphone compatibility to 0.7.3 ([ddbd3dc](https://github.com/GitGitro/Gitro-Morphe-Patches/commit/ddbd3dc67c0f1528ed92794798d7745ee5754e53))
+* update usenetpanda compatibility to 3.0.1 ([30afe58](https://github.com/GitGitro/Gitro-Morphe-Patches/commit/30afe58fed8d0e3ee04f269387977d919f56126d))
+* update zerch compatibility to 2.3.3 ([abeccec](https://github.com/GitGitro/Gitro-Morphe-Patches/commit/abeccec2a4cc93506d1bbb8fe0cf17fc632c61df))
+
 ## [1.1.0](https://github.com/GitGitro/Gitro-Morphe-Patches/compare/v1.0.0...v1.1.0) (2026-10-11)
 
 ### 🐛 Bug Fixes

@@ -664,6 +664,37 @@ public class GhostModeTest {
                 HookStatus.report());
     }
 
+    @Test public void aChatsMenuSendsOnlyThatChatsRead() {
+        Settings.GHOST_MODE.save(true);
+        Settings.GHOST_READS_BUTTON.save(true);
+        TLRPC.TL_messages_readHistory here = read(user(5), 1);
+        TLRPC.TL_messages_readHistory elsewhere = read(user(6), 1);
+        assertTrue(GhostMode.drop(here, null));
+        assertTrue(GhostMode.drop(elsewhere, null));
+        sent.account = 1;
+        TLRPC.TL_messages_readHistory otherAccount = read(user(5), 2);
+        assertTrue(GhostMode.drop(otherAccount, null));
+
+        assertEquals(1, GhostMode.sendHeld(0, 5));
+        assertEquals(Arrays.asList((Object) here), sent.requests);
+        assertEquals("the chat's own account sends it, whatever account is on screen", Arrays.asList(0), sent.accounts);
+        assertEquals("nothing is left in that chat", 0, GhostMode.sendHeld(0, 5));
+        assertEquals("a chat with nothing held", 0, GhostMode.sendHeld(0, 7));
+        sent.account = 0;
+        assertEquals("the other chat and the other account keep theirs", 1, GhostMode.sendHeld());
+        assertEquals(Arrays.asList((Object) here, elsewhere), sent.requests);
+        assertEquals(1, GhostMode.sendHeld(1, 5));
+        assertEquals(Arrays.asList((Object) here, elsewhere, otherAccount), sent.requests);
+
+        TLRPC.TL_messages_readHistory stuck = read(group(9), 3);
+        assertTrue(GhostMode.drop(stuck, null));
+        sent.works = false;
+        assertEquals(-1, GhostMode.sendHeld(0, -9));
+        sent.works = true;
+        assertEquals("a read that couldn't go waits for the next tap", 1, GhostMode.sendHeld(0, -9));
+        assertEquals(stuck, sent.requests.get(3));
+    }
+
     @Test public void aBuildThatCantSendKeepsTheReadsHeldForTheNextTry() {
         Settings.GHOST_MODE.save(true);
         Settings.GHOST_READS_BUTTON.save(true);

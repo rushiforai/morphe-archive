@@ -143,15 +143,18 @@ public final class DeArrowToggle {
     private static final class PencilClick extends ClickableSpan {
         final String videoId;
         final String shown;
+        /** Whether the shown title is DeArrow's own, which a vote counts for. */
+        final boolean deArrow;
 
-        PencilClick(String videoId, String shown) {
+        PencilClick(String videoId, String shown, boolean deArrow) {
             this.videoId = videoId;
             this.shown = shown;
+            this.deArrow = deArrow;
         }
 
         @Override
         public void onClick(View widget) {
-            suggest(widget, videoId, shown);
+            suggest(widget, videoId, shown, deArrow);
         }
 
         @Override
@@ -326,7 +329,7 @@ public final class DeArrowToggle {
         b.setSpan(new State(stateKey, original, pencilVideoId != null), 0, b.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         if (icon && key != null) b.setSpan(new IconClick(key), 0, 2, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         if (pencilVideoId != null) {
-            b.setSpan(new PencilClick(pencilVideoId, title), pencilStart, titleStart, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            b.setSpan(new PencilClick(pencilVideoId, title, icon), pencilStart, titleStart, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
         return b;
     }
@@ -353,7 +356,7 @@ public final class DeArrowToggle {
         if (pencilVideoId != null) {
             // The suggestion starts from the comments' title when they give one.
             CommentTitle.Found f = CommentTitle.known(own);
-            b.setSpan(new PencilClick(pencilVideoId, f != null ? f.title : title), pencilStart, titleStart, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            b.setSpan(new PencilClick(pencilVideoId, f != null ? f.title : title, false), pencilStart, titleStart, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
         return b;
     }
@@ -484,7 +487,7 @@ public final class DeArrowToggle {
     }
 
     /** A tap on the pencil: a dialog with the title to send to DeArrow for the open video. */
-    private static void suggest(View widget, String videoId, String shown) {
+    private static void suggest(View widget, String videoId, String shown, boolean deArrow) {
         try {
             Activity activity = activity(widget);
             if (XSettings.DEBUG.get()) Logger.printDebug(() -> "YouTube Extras: DeArrow pencil tapped: " + videoId + " " + activity);
@@ -497,17 +500,22 @@ public final class DeArrowToggle {
             android.widget.FrameLayout frame = new android.widget.FrameLayout(activity);
             frame.setPadding(pad, pad / 2, pad, 0);
             frame.addView(edit);
-            new AlertDialog.Builder(activity)
-                    .setTitle(Strings.get("dearrow_suggest_title"))
-                    .setMessage(Strings.get("dearrow_suggest_message"))
+            AlertDialog.Builder dialog = new AlertDialog.Builder(activity)
+                    .setTitle(Strings.get(deArrow ? "dearrow_vote_title" : "dearrow_suggest_title"))
+                    .setMessage(Strings.get(deArrow ? "dearrow_vote_message" : "dearrow_suggest_message"))
                     .setView(frame)
                     .setNegativeButton(android.R.string.cancel, null)
-                    .setPositiveButton(Strings.get("dearrow_send"), (dialog, which) -> {
+                    .setPositiveButton(Strings.get(deArrow ? "dearrow_upvote" : "dearrow_send"), (d, which) -> {
                         String title = edit.getText().toString().replaceAll("\\s+", " ").trim();
                         if (title.isEmpty()) return;
-                        new Thread(() -> toast(submit(videoId, title)), "yx-dearrow-submit").start();
-                    })
-                    .show();
+                        new Thread(() -> toast(submit(videoId, title, false)), "yx-dearrow-submit").start();
+                    });
+            // A vote on DeArrow's title (the server counts a title sent again as an upvote, and downvote=true as a downvote).
+            if (deArrow) {
+                dialog.setNeutralButton(Strings.get("dearrow_downvote"), (d, which) ->
+                        new Thread(() -> toast(submit(videoId, shown, true)), "yx-dearrow-vote").start());
+            }
+            dialog.show();
         } catch (Throwable t) {
             Logger.printException(() -> "YouTube Extras: DeArrow suggestion dialog failure", t);
         }
@@ -529,7 +537,7 @@ public final class DeArrowToggle {
     }
 
     /** Sends the title to DeArrow; returns the line to show the user. */
-    private static String submit(String videoId, String title) {
+    private static String submit(String videoId, String title, boolean downvote) {
         try {
             JSONObject body = new JSONObject()
                     .put("videoID", videoId)
@@ -537,7 +545,7 @@ public final class DeArrowToggle {
                     .put("service", "YouTube")
                     .put("userAgent", "YouTubeExtras/1.0")
                     .put("title", new JSONObject().put("title", title))
-                    .put("downvote", false)
+                    .put("downvote", downvote)
                     .put("autoLock", false);
             HttpURLConnection c = (HttpURLConnection) new URL(API + "/api/branding").openConnection();
             c.setConnectTimeout(6000);
@@ -549,7 +557,7 @@ public final class DeArrowToggle {
                 o.write(body.toString().getBytes(StandardCharsets.UTF_8));
             }
             int code = c.getResponseCode();
-            if (code == 200) return Strings.get("dearrow_sent");
+            if (code == 200) return Strings.get(downvote ? "dearrow_downvoted" : "dearrow_sent");
             String answer = read(code < 400 ? c.getInputStream() : c.getErrorStream()).trim();
             Logger.printDebug(() -> "YouTube Extras: DeArrow answered " + code);
             return Strings.get("dearrow_refused") + " (" + code + ")"

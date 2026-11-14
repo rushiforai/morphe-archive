@@ -245,7 +245,7 @@ Hide the Communities tab	Communities-Tab ausblenden
 Takes the Communities tab out of the bottom bar and stops Communities tips in the post editor.	Entfernt den Communities-Tab aus der unteren Leiste und beendet die Communities-Tipps im Beitragseditor.
 # context: the Hide Blaze prompts switch on the Interface page. Blaze is Tumblr's paid post promotion.
 Hide Blaze prompts	Blaze-Hinweise ausblenden
-Hides the Blaze buttons, banners and the nudge to promote a post after you share it. The Blaze item in a post's menu stays.	Blendet die Blaze-Schaltflächen, -Banner und den Hinweis aus, einen Beitrag nach dem Teilen zu bewerben. Der Blaze-Eintrag im Menü eines Beitrags bleibt.
+Hides the Blaze buttons and banners, the nudge to promote a post after you share it, and Blaze in post menus and the share sheet.	Blendet die Blaze-Schaltflächen und -Banner, den Hinweis, einen Beitrag nach dem Teilen zu bewerben, und Blaze in Beitragsmenüs und im Teilen-Menü aus.
 # context: the Skip review prompts switch on the Interface page. It stops Tumblr's rate-this-app pop-up.
 # context: the Skip review prompts switch on the Interface page. It stops Tumblr's "What do you think of the Tumblr app?" pop-up.
 Skip review prompts	Bewertungsaufforderungen überspringen
@@ -273,6 +273,8 @@ That isn't a font file. Nothing changed.	Das ist keine Schriftdatei. Nichts wurd
 That file is too big to be a font.	Diese Datei ist zu groß für eine Schriftart.
 Blog notification reminder	Erinnerung an Blog-Benachrichtigungen
 Gift purchase popup	Geschenkkauf-Popup
+# context: a part of Hide Blaze prompts, named on the status card when a build has or lacks it. The flame under your own posts, Blaze in post menus and the share sheet, and Promote in community posts.
+Blaze buttons on posts	Blaze-Schaltflächen an Beiträgen
 Stops the pop-up that asks what you think of the Tumblr app and then asks for a rating or feedback.	Verhindert das Pop-up, das fragt, was du von der Tumblr-App hältst, und dann um eine Bewertung oder Feedback bittet.
 # context: the Turn off screenshot sharing switch on the Interface page. Tumblr watches for screenshots and offers to save the post as an image.
 Turn off screenshot sharing	Screenshot-Teilen ausschalten
@@ -298,6 +300,9 @@ Hide hashtags	Hashtags ausblenden
 Hide the Follow button	Folgen-Button ausblenden
 Takes the Follow button out of the header of posts from blogs you don't follow yet.	Entfernt den Folgen-Button aus dem Kopf von Beiträgen aus Blogs, denen du noch nicht folgst.
 Takes the tags off the bottom of posts in your dashboard and other feeds, and keeps the source link.	Entfernt die Tags unten an Beiträgen in deinem Dashboard und anderen Feeds und lässt den Quellenlink stehen.
+# context: a switch on the Posts page. A tag is a hashtag under a post, and tapping it opens a search. The blog's tag search is the screen blog.tumblr.com/tagged/<tag> shows, only that blog's posts.
+Tags open the blog's tag search	Tags öffnen die Tag-Suche des Blogs
+Tapping a tag under a post searches that blog's posts for the tag, in the dashboard, other feeds and a post opened by itself.	Ein Tipp auf einen Tag unter einem Beitrag durchsucht die Beiträge dieses Blogs nach dem Tag, im Dashboard, in anderen Feeds und in einem einzeln geöffneten Beitrag.
 # context: the switch for Tumblr's Premium diamond and TumblrMart button on the Interface page. TumblrMart and Premium are Tumblr's names; keep them. The last two are parts named in "This build handles %1$s."
 Hide the diamond and TumblrMart	Diamant und TumblrMart ausblenden
 Hides the Premium diamond on your dashboard, Explore and notifications when you return to them. Open screens keep their TumblrMart button until Tumblr restarts.	Blendet den Premium-Diamanten auf Dashboard, Entdecken und Benachrichtigungen aus, wenn du dorthin zurückkehrst. Offene Bildschirme behalten ihren TumblrMart-Button bis zum Neustart von Tumblr.
@@ -394,6 +399,9 @@ Keep reblogs with added content	Reblogs mit eigenem Inhalt behalten
 When reblogs are hidden, keep ones where the reblogger added something of their own. Other post filters still apply.	Behält Reblogs, bei denen jemand etwas Eigenes hinzugefügt hat, wenn Reblogs ausgeblendet sind. Andere Beitragsfilter gelten weiter.
 Hide your own reblogs	Eigene Reblogs ausblenden
 Takes the reblogs you made out of your dashboard. Your blog and the rest of Tumblr still show them.	Entfernt die Reblogs, die du gemacht hast, aus deinem Dashboard. Dein Blog und der Rest von Tumblr zeigen sie weiterhin.
+# context: a switch on the Feed page, next to Hide your own reblogs. It hides posts where someone else reblogged a post you made, or reblogged it from you.
+Hide reblogs of your posts	Reblogs deiner Beiträge ausblenden
+Takes other people's reblogs of your posts out of your dashboard. Your blog and the rest of Tumblr still show them.	Entfernt die Reblogs anderer Leute von deinen Beiträgen aus deinem Dashboard. Dein Blog und der Rest von Tumblr zeigen sie weiterhin.
 Hide liked posts	Gelikte Beiträge ausblenden
 Takes the posts you've already liked out of your dashboard. Your likes and the rest of Tumblr still show them.	Entfernt Beiträge, die du schon geliked hast, aus deinem Dashboard. Deine Likes und der Rest von Tumblr zeigen sie weiterhin.
 Match current post text	Aktuellen Beitragstext prüfen

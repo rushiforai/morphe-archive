@@ -338,7 +338,7 @@ public class GridDownloadsTest {
     @Test public void filtersShowImagesOrVideosAndAChoiceStaysWithItsPin() throws Exception {
         View origin = cell(pin("1"), 0);
         cell(video("2", "2.mp4"), 100);
-        cell(video("3", "hls/3.m3u8"), 200);
+        cell(video("3", "dash/3.mpd"), 200);
         cell(Map.of("id", "4", "images", Map.of()), 300);
         AlertDialog picker = choose(origin);
         ListView list = picker.getListView();
@@ -389,7 +389,7 @@ public class GridDownloadsTest {
      * showing, while Save list takes any chosen pin. A tap that reaches Queue anyway queues nothing.
      */
     @Test public void queueWaitsForAChosenPinWithMediaThatCanBeSaved() throws Exception {
-        View origin = cell(video("1", "hls/1.m3u8"), 0);
+        View origin = cell(video("1", "dash/1.mpd"), 0);
         cell(Map.of("id", "2", "images", Map.of()), 100);
         cell(pin("3"), 200);
         AlertDialog picker = choose(origin);

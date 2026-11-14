@@ -153,6 +153,24 @@ private class DrawerModels(val resolve: (String) -> ClassDef?) {
         if (target?.opcode != Opcode.RETURN_VOID) drawerChanged("model null check has side effects on nonnull values")
     }
 
+    /**
+     * 587 outlines each check into a one-argument wrapper: `const/4 v0, N`, the (Object, I) null check on its parameter
+     * and v0, then return-void. Anything more in the wrapper could act on the argument.
+     */
+    private fun nullCheckWrapper(call: MethodReference) {
+        val wrapper = type(call.definingClass).methods.singleOrNull { it.hookId() == call.toString() }
+            ?: drawerChanged("model null check is missing")
+        val body = wrapper.drawerCode()
+        val inner = body.getOrNull(1)?.drawerRef() as? MethodReference
+        if (!AccessFlags.PUBLIC.isSet(wrapper.accessFlags) || !AccessFlags.STATIC.isSet(wrapper.accessFlags) ||
+            wrapper.implementation!!.tryBlocks.isNotEmpty() || wrapper.implementation!!.registerCount != 2 || body.size != 3 ||
+            body[0].opcode != Opcode.CONST_4 || (body[0] as OneRegisterInstruction).registerA != 0 ||
+            body[1].opcode != Opcode.INVOKE_STATIC || body[1].drawerArgs() != listOf(1, 0) || inner == null ||
+            inner.returnType != "V" || inner.drawerParams() != listOf(OBJECT, "I") || body[2].opcode != Opcode.RETURN_VOID)
+            drawerChanged("model null check changed")
+        nullCheck(inner)
+    }
+
     fun field(reference: FieldReference, static: Boolean) {
         val field = type(reference.definingClass).fields.singleOrNull {
             it.name == reference.name && it.type == reference.type
@@ -224,9 +242,11 @@ private class DrawerModels(val resolve: (String) -> ClassDef?) {
             Opcode.INVOKE_STATIC -> {
                 val call = instruction.drawerRef() as? MethodReference ?: drawerChanged("model check changed")
                 val arguments = instruction.drawerArgs()
-                if (call.returnType != "V" || call.drawerParams() != listOf(OBJECT, "I") || arguments.size != 2 ||
-                    arguments[0] - receiver - 1 !in checked) drawerChanged("model constructor $owner checks unsupported parameters")
-                nullCheck(call)
+                val wrapped = call.drawerParams() == listOf(OBJECT)
+                if (call.returnType != "V" || (!wrapped && call.drawerParams() != listOf(OBJECT, "I")) ||
+                    arguments.size != (if (wrapped) 1 else 2) || arguments[0] - receiver - 1 !in checked)
+                    drawerChanged("model constructor $owner checks unsupported parameters")
+                if (wrapped) nullCheckWrapper(call) else nullCheck(call)
             }
             Opcode.CONST_4 -> if ((instruction as OneRegisterInstruction).registerA >= receiver)
                 drawerChanged("model constructor $owner overwrites a parameter")

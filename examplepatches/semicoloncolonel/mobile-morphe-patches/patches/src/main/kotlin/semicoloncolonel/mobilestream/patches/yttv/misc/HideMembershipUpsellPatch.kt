@@ -51,6 +51,7 @@ val hideMembershipUpsellPatch = bytecodePatch(
     description = "Hides the \"Add to membership\" shelf on the home screen and in search results.",
     default = false,
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")

@@ -1,3 +1,9 @@
+## [1.71.0](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.70.0...v1.71.0) (2026-11-13)
+
+### ✨ New Features
+
+* add YouTube Music (Wear OS) background playback patch for 9.45.41-WEAR_RELEASE ([1bf64a5](https://github.com/mwbra130/Retro-Bowl-College/commit/1bf64a5e6218d9ff9ef3071e643eef4c9ae1d1f5))
+
 ## [1.70.0](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.69.2...v1.70.0) (2026-11-12)
 
 ### ✨ New Features

@@ -111,7 +111,6 @@ SABR 播放（模拟视频流已关闭）"</string>
     <string name="morphe_music_crossfade_screen_title">淡入淡出</string>
     <string name="morphe_music_crossfade_session_control_summary">长按播放列表按钮可暂停或恢复淡入淡出效果</string>
     <string name="morphe_music_crossfade_session_control_title">会话控制</string>
-    <string name="morphe_music_crossfade_video_mode_disabled_toast">启用交叉淡入时，视频模式不可用</string>
     <string name="morphe_music_deezer_arl_dialog_instruction">"粘贴来自 Deezer 的 arl cookie。
 
 步骤：
@@ -931,4 +930,6 @@ SABR 播放（模拟视频流已关闭）"</string>
     <string name="revanced_webview_toast_empty">%s 为空。</string>
     <string name="revanced_webview_toast_no_network">请检查你的网络连接。</string>
     <string name="revanced_webview_toast_unavailable">WebView 不可用。</string>
+    <string name="morphe_music_auto_song_version_title">始终播放歌曲版本</string>
+    <string name="morphe_music_auto_song_version_summary">将队列中的官方音乐视频替换为匹配的歌曲。需要开启应用的“不播放音乐视频”设置。没有精确匹配的曲目将保持不变</string>
 </resources>

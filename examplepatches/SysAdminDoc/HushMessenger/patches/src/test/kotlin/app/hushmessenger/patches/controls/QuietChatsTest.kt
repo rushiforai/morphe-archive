@@ -37,6 +37,26 @@ private const val DROP_QUIET_CALL = "$SETTINGS->dropQuiet(Ljava/lang/Object;Ljav
 private const val UNSENT_RECALL_CALL = "$SETTINGS->unsentRecall(Ljava/lang/String;)Z"
 private const val MUTE_ANSWER = "move-result v0\nif-nez v0, :inbox"
 private const val THREAD_KEY_READ = "iget-object v1, p0, $THREAD_LEVEL_RESULT->A01:$THREAD_KEY_TYPE"
+private const val MERGED_KEY_READ = "iget-object v1, p0, $MERGED_THREAD_CHECK->A09:Ljava/lang/Object;\ncheck-cast v1, $THREAD_KEY_TYPE"
+
+/**
+ * 587's mute check: the answer flipped into whether the chat is muted, then a snooze check that may hand over its own
+ * muted answer, and the branch on it where both ways meet.
+ */
+private val FLIPPED_MUTE = """
+    move-result v0
+    xor-int/lit8 v4, v0, 0x1
+    const/4 v3, 0x0
+    if-eq v3, v4, :decided
+    if-eqz p1, :decided
+    move v4, v3
+    :decided
+    if-eqz v4, :inbox
+""".trimIndent()
+
+/** The thread check as 587 has it, merged into a shared coroutine class that keeps its ThreadKey in an Object field. */
+private val MERGED_CHECK_BODY = edited(THREAD_CHECK_BODY, MUTE_ANSWER to FLIPPED_MUTE, THREAD_KEY_READ to MERGED_KEY_READ)
+    .replace(THREAD_LEVEL_RESULT, MERGED_THREAD_CHECK)
 
 /**
  * Messenger writing a message as JSON: its sender goes in under "senderInfo". The recipient beside it is another
@@ -176,6 +196,59 @@ class QuietChatsTest {
         assertEquals(before.map { it.opcode }, code.filterIndexed { i, _ -> i !in added }.map { it.opcode })
         injectControl("message_log", mapOf(QUIET_LOG_CHECK to listOf(method)))
         assertEquals(code, method.code())
+    }
+
+    /**
+     * 587 decides on whether the chat is muted only after its snooze check, so the guard goes on that deciding branch:
+     * both ways into it land on the guard, and the extension's answer goes back flipped into the muted sense.
+     */
+    @Test fun a587MutedChatIsAskedWhereTheMuteIsDecided() {
+        val method = threadCheck(MERGED_CHECK_BODY, MERGED_THREAD_CHECK)
+        assertEquals(listOf(method.hookId()), mirroredControls(restrictedNotifyFixture(method)).getValue(QUIET_LOG_CHECK).map { it.hookId() })
+        val site = assertNotNull(method.muteCheck())
+        assertEquals(Triple(4, true, "$MERGED_THREAD_CHECK->A09:Ljava/lang/Object;"), Triple(site.register, site.muted, site.threadKey))
+        val before = method.code()
+        val jumps = before.indices.filter { before.branchTarget(it) == site.branch }
+        assertEquals(2, jumps.size)
+        val stockTarget = before.branchTarget(site.branch)
+        injectControl("message_log", mapOf(QUIET_LOG_CHECK to listOf(method)))
+        val code = method.code()
+        val guard = site.branch + 3
+        for (jump in jumps) assertEquals(guard, code.branchTarget(jump + 3))
+        assertEquals(Opcode.IF_EQZ, code[guard].opcode)
+        assertEquals(4, (code[guard] as OneRegisterInstruction).registerA)
+        assertEquals(guard + 7, code.branchTarget(guard))
+        for (path in listOf(guard + 1, guard + 7)) {
+            assertEquals(4 to 6, (code[path] as TwoRegisterInstruction).let { it.registerA to it.registerB })
+            assertEquals(site.threadKey, code[path + 1].ref())
+        }
+        assertEquals(QUIET_CHAT_CALL, code[guard + 3].ref())
+        assertEquals(Opcode.XOR_INT_LIT8, code[guard + 5].opcode)
+        assertEquals(guard + 11, code.branchTarget(guard + 6))
+        assertEquals(LOUD_CHAT_CALL, code[guard + 9].ref())
+        assertEquals(0, (code[guard + 10] as NarrowLiteralInstruction).narrowLiteral)
+        assertEquals(before[site.branch].opcode, code[guard + 11].opcode)
+        assertEquals(stockTarget + 14, code.branchTarget(guard + 11))
+        val folder = code.indexOfFirst { it.ref() == FOLDER_CALL }
+        val added = (folder until folder + 3) + (guard until guard + 11)
+        assertEquals(before.map { it.opcode }, code.filterIndexed { i, _ -> i !in added }.map { it.opcode })
+    }
+
+    // A flipped answer that something other than the snooze check's own answer can overwrite, or that no branch decides
+    // on, isn't the muted answer any more, so the switch gets no check.
+    @Test fun a587MuteCheckOfAnotherShapeIsNotTaken() {
+        fun changed(vararg edits: Pair<String, String>) = restrictedNotifyFixture(threadCheck(edited(MERGED_CHECK_BODY, *edits), MERGED_THREAD_CHECK))
+        val cases = mapOf(
+            "the answer is flipped by another literal" to changed("v0, 0x1" to "v0, 0x2"),
+            "a constant overwrites the muted answer" to changed("move v4, v3" to "const/4 v4, 0x1"),
+            "no branch decides on the muted answer" to changed("if-eqz v4, :inbox" to "if-eqz v3, :inbox"),
+            "the Object field is cast to something else" to changed("check-cast v1, $THREAD_KEY_TYPE" to "check-cast v1, $THREAD_SUMMARY"),
+        )
+        for ((case, classes) in cases) {
+            val found = mirroredControls(classes)
+            assertEquals(1, found.getValue(RESTRICTED_NOTIFY).size, case)
+            assertTrue(found.getValue(QUIET_LOG_CHECK).isEmpty(), case)
+        }
     }
 
     // Notify for restricted chats and this switch share the folder guard, whichever goes in first.

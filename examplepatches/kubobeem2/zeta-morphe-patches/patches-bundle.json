@@ -1,0 +1,7 @@
+{
+  "created_at": "2026-11-14T01:44:07",
+  "description": "## [1.4.1](https://github.com/kubobeem2/zeta-morphe-patches/compare/v1.4.0...v1.4.1) (2026-11-14)\n\n### 🐛 Bug Fixes\n\n* **integrity:** merge native autoprotect patch into the paywall patch ([00b729d](https://github.com/kubobeem2/zeta-morphe-patches/commit/00b729dea35cec794419ffb234ffb62f41459e42))",
+  "download_url": "https://github.com/kubobeem2/zeta-morphe-patches/releases/download/v1.4.1/patches-1.4.1.mpp",
+  "signature_download_url": "",
+  "version": "1.4.1"
+}

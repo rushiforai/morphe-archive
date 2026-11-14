@@ -172,6 +172,75 @@ internal class HermesBundle(private val bytes: ByteArray) {
         patch(matches.single(), name, value)
     }
 
+    /**
+     * The value the one function named [name] was made to return by
+     * [returnAtStart], or null when it is unchanged. Lets two patches that
+     * would set the same function to different values notice each other.
+     */
+    fun returnedAtStart(name: String): Value? {
+        val function = functions.singleOrNull { it.name == name }
+            ?: throw PatchException("Hermes function $name: expected 1")
+        if (u8(function.offset + 2) != (if (version == 96) 92 else 118) || u8(function.offset + 3) != 0) return null
+        if (u8(function.offset + 1) != 0) return null
+        val op = u8(function.offset)
+        return Value.entries.firstOrNull { (if (version == 96) it.v96 else it.v98) == op }
+    }
+
+    /**
+     * Hides the Expo Router tab [tab] in [function], the component that lists
+     * the tabs with Tabs.Screen (bytecode version 98 only). A shown tab gets
+     * the options object {title: <label>}, built as
+     *
+     *   NewObjectWithBufferLong  r, <title shape>, <values>
+     *   LoadFromEnvironment      x, ...
+     *   GetById / GetByIdShort   x, x, <cache>, "<tab>"
+     *   PutOwnBySlotIdx          r, x, 0
+     *
+     * and a hidden one gets {href: null}, which Expo Router leaves out of the
+     * tab bar. The object's shape becomes the {href: null} shape that the same
+     * function already uses, and the label is no longer written into it: the
+     * PutOwnBySlotIdx becomes two LoadConstUndefined of the label register.
+     */
+    fun hideTab(function: String, tab: String) {
+        if (version != 98) throw PatchException("Expected Hermes bytecode version 98, found $version")
+        val target = functions.singleOrNull { it.name == function }
+            ?: throw PatchException("Hermes function $function: expected 1")
+        val id = (0 until stringCountField).firstOrNull { stringAt(it) == tab }
+            ?: throw PatchException("Hermes string \"$tab\" not found")
+        val end = target.offset + target.size
+        val objects = (target.offset until end - 10).filter { u8(it) == 0x02 }
+        val sites = objects.mapNotNull { at ->
+            if (u8(at + 10) != 0x3B) return@mapNotNull null
+            val get = at + 14
+            val (strId, put) = when (u8(get)) {
+                0x45 -> (u8(get + 4) or (u8(get + 5) shl 8)) to get + 6
+                0x44 -> u8(get + 4) to get + 5
+                else -> return@mapNotNull null
+            }
+            val label = u8(get + 1)
+            if (strId != id || put + 4 > end) return@mapNotNull null
+            if (u8(put) != 0x52 || u8(put + 1) != u8(at + 1) || u8(put + 2) != label || u8(put + 3) != 0) {
+                return@mapNotNull null
+            }
+            Triple(at, put, label)
+        }
+        val (at, put, label) = sites.singleOrNull()
+            ?: throw PatchException("Hermes tab \"$tab\" in $function: expected 1 title object, found ${sites.size}")
+        val titleShape = u32(at + 2)
+        val values = u32(at + 6)
+        // A {href: null} object is used as it is: the next instruction jumps
+        // (Jmp, 0xAE) or builds the next object (0x02). Objects that are filled
+        // in afterwards, such as {backgroundColor: ...}, are left out.
+        val hrefShapes = objects
+            .filter { u32(it + 6) == values && u32(it + 2) != titleShape && u8(it + 10) in setOf(0xAE, 0x02) }
+            .map { u32(it + 2) }
+            .toSet()
+        val hrefShape = hrefShapes.singleOrNull()
+            ?: throw PatchException("Hermes tab \"$tab\" in $function: expected 1 hidden-tab shape, found ${hrefShapes.size}")
+        for (i in 0 until 4) bytes[at + 2 + i] = ((hrefShape ushr (8 * i)) and 0xFF).toByte()
+        byteArrayOf(0x93.toByte(), label.toByte(), 0x93.toByte(), label.toByte()).copyInto(bytes, put)
+    }
+
     private fun patch(function: Function, name: String, value: Value) {
         if (function.size < 4 || function.frameSize < 1) {
             throw PatchException("Hermes function $name is too small to patch")

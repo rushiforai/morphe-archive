@@ -49,6 +49,7 @@ val hideDonateButtonPatch = bytecodePatch(
     name = "Hide donate button",
     description = "Removes the Donate link from Top Stories and the Donate card from the account screen.",
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

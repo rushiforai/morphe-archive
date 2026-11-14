@@ -23,6 +23,10 @@ final class SettingsTranslations {
         add("zh-Hant", SettingsTextZhTw.TEXT);
         // Vietnamese is written the same everywhere, so one table covers vi-VN and any other region.
         add("vi", SettingsTextViVN.TEXT);
+        // Thai is written the same everywhere, so one table covers th-TH and any other region.
+        add("th", SettingsTextTh.TEXT);
+        // Turkish is written the same everywhere, so one table covers tr-TR, tr-CY and any other region.
+        add("tr", SettingsTextTr.TEXT);
     }
 
     /** Refuses a table that gives one id twice, since the later line would quietly replace the earlier one. */

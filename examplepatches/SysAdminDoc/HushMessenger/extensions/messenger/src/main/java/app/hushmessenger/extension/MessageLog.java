@@ -61,7 +61,7 @@ public final class MessageLog {
     static final String DAMAGED = FILE + ".damaged";
     static final String KEY_ALIAS = "hushmessenger_message_log";
     /** Keep the newest of these, within the time picked under the switch. */
-    static final int MAX_ENTRIES = 5_000;
+    static final int MAX_ENTRIES = 20_000;
     static final long DAY_MS = 24L * 60 * 60 * 1000;
     /** How long messages stay unless another time is picked. */
     static final long MAX_AGE_MS = 30 * DAY_MS;

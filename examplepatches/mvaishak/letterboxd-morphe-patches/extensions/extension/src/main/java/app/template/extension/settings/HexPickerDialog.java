@@ -19,6 +19,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
@@ -35,6 +36,11 @@ final class HexPickerDialog extends Dialog {
     private final float density;
     private final float[] hsv = new float[3];
     private final OnPicked callback;
+    private final String title;
+    private final boolean badge;
+    private final int accent;
+    private final int surface;
+    private TextView saveButton;
 
     private View currentBar;
     private TextView currentHex;
@@ -44,7 +50,21 @@ final class HexPickerDialog extends Dialog {
     private boolean syncing;
 
     HexPickerDialog(Context context, int initialArgb, OnPicked callback) {
+        this(context, initialArgb, "Accent colour", callback, false);
+    }
+
+    HexPickerDialog(Context context, int initialArgb, String title, OnPicked callback) {
+        this(context, initialArgb, title, callback, true);
+    }
+
+    private HexPickerDialog(Context context, int initialArgb, String title, OnPicked callback, boolean badge) {
         super(context);
+        this.title = title;
+        this.badge = badge;
+        surface = badge ? SurfaceColors.elevated(context) : 0xFF1C1C1C;
+        accent = 0xFF000000 | AccentPresets.previewColor(context,
+                Prefs.getString(Prefs.KEY_THEME_ACCENT, AccentPresets.defaultAccent(context)),
+                Prefs.getString(Prefs.KEY_THEME_ACCENT_HEX, ""));
         this.density = context.getResources().getDisplayMetrics().density;
         this.callback = callback;
         Color.colorToHSV(0xFF000000 | initialArgb, hsv);
@@ -53,14 +73,14 @@ final class HexPickerDialog extends Dialog {
 
     private void build() {
         Window window = getWindow();
-        if (window != null) window.setBackgroundDrawable(round(0xFF1C1C1C, dp(20)));
+        if (window != null) window.setBackgroundDrawable(round(surface, dp(badge ? 24 : 20)));
 
         LinearLayout root = new LinearLayout(getContext());
         root.setOrientation(LinearLayout.VERTICAL);
         int pad = dp(20);
         root.setPadding(pad, dp(22), pad, dp(18));
 
-        root.addView(title("Accent colour"));
+        root.addView(title(title));
 
         currentBar = new View(getContext());
         currentHex = new TextView(getContext());
@@ -97,8 +117,18 @@ final class HexPickerDialog extends Dialog {
             @Override public void run() { hsv[0] = hue.hue; pushFromHsv(true); }
         };
 
-        setContentView(root);
+        if (badge) {
+            android.widget.ScrollView scroll = new android.widget.ScrollView(getContext());
+            scroll.addView(root);
+            root.setFocusableInTouchMode(true);
+            root.requestFocus();
+            setContentView(scroll);
+        } else {
+            setContentView(root);
+        }
         if (window != null) {
+            if (badge) window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
+                    | WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
             window.setLayout(
                     Math.min(getContext().getResources().getDisplayMetrics().widthPixels - dp(44), dp(430)),
                     ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -127,6 +157,7 @@ final class HexPickerDialog extends Dialog {
             hexField.setText(hex);
             hexField.setSelection(hexField.getText().length());
             syncing = false;
+            if (badge) setSaveEnabled(true);
         }
     }
 
@@ -135,10 +166,16 @@ final class HexPickerDialog extends Dialog {
     private TextView title(String text) {
         TextView tv = new TextView(getContext());
         tv.setText(text);
-        tv.setTextColor(0xFFFFFFFF);
-        tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 22f);
+        if (badge) {
+            Context context = getContext();
+            int appearance = context.getResources().getIdentifier(
+                    "TextAppearance.Letterboxd.TitleMedium", "style", context.getPackageName());
+            if (appearance != 0) tv.setTextAppearance(appearance);
+        }
+        tv.setTextColor(badge ? AccentPresets.readableText(Color.WHITE, surface) : Color.WHITE);
+        tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, badge ? 20f : 22f);
         tv.setTypeface(tv.getTypeface(), android.graphics.Typeface.BOLD);
-        tv.setGravity(Gravity.CENTER);
+        tv.setGravity(badge ? Gravity.START : Gravity.CENTER);
         tv.setPadding(0, 0, 0, dp(4));
         return tv;
     }
@@ -172,19 +209,27 @@ final class HexPickerDialog extends Dialog {
         box.setOrientation(LinearLayout.VERTICAL);
         GradientDrawable stroke = new GradientDrawable();
         stroke.setCornerRadius(dp(10));
-        stroke.setStroke(dp(1), 0xFF3A3A3A);
+        if (badge) stroke.setColor(SurfaceColors.background(getContext()));
+        stroke.setStroke(dp(1), badge ? 0x996F8191 : 0xFF3A3A3A);
         box.setBackground(stroke);
         box.setPadding(dp(14), dp(8), dp(14), dp(8));
 
         TextView label = new TextView(getContext());
         label.setText("Hex color");
-        label.setTextColor(0xFF9AA0A6);
+        label.setTextColor(badge ? AccentPresets.readableText(0xFF99AABB,
+                SurfaceColors.background(getContext())) : 0xFF9AA0A6);
         label.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f);
 
         hexField = new EditText(getContext());
         hexField.setBackground(null);
         hexField.setPadding(0, dp(2), 0, 0);
-        hexField.setTextColor(0xFFEDEDED);
+        hexField.setTextColor(badge ? AccentPresets.readableText(Color.WHITE,
+                SurfaceColors.background(getContext())) : 0xFFEDEDED);
+        if (badge) {
+            hexField.setId(View.generateViewId());
+            label.setLabelFor(hexField.getId());
+            hexField.setMinHeight(dp(48));
+        }
         hexField.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f);
         hexField.setSingleLine(true);
         hexField.setFilters(new InputFilter[] { new InputFilter.LengthFilter(9) });
@@ -198,8 +243,10 @@ final class HexPickerDialog extends Dialog {
                     syncing = true;
                     Color.colorToHSV(argb, hsv);
                     pushFromHsv(false);
+                    if (badge) setSaveEnabled(true);
                     syncing = false;
                 } catch (Throwable ignored) {
+                    if (badge) setSaveEnabled(false);
                     syncing = false;
                 }
             }
@@ -220,7 +267,10 @@ final class HexPickerDialog extends Dialog {
         cancel.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) { dismiss(); }
         });
-        TextView save = pillButton("Save", 0xFF3A4250, 0xFF3A4250, 0xFFFFFFFF);
+        int fill = badge ? accent : 0xFF3A4250;
+        TextView save = pillButton(badge ? "Use colour" : "Save", fill, fill,
+                badge ? AccentPresets.readableText(Color.WHITE, fill) : Color.WHITE);
+        saveButton = save;
         save.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) {
                 if (callback != null) callback.onPicked(Color.HSVToColor(hsv));
@@ -235,6 +285,12 @@ final class HexPickerDialog extends Dialog {
         row.addView(cancel, lp1);
         row.addView(save, lp2);
         return row;
+    }
+
+    private void setSaveEnabled(boolean enabled) {
+        if (saveButton == null) return;
+        saveButton.setEnabled(enabled);
+        saveButton.setAlpha(enabled ? 1f : 0.45f);
     }
 
     private TextView pillButton(String text, int fill, int strokeColor, int textColor) {

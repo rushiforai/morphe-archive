@@ -1,3 +1,10 @@
+## [0.0.10](https://github.com/zimza1abim/kanye-morphe-patches/compare/v0.0.9...v0.0.10) (2026-11-14)
+
+### 🚀 Updated App Support
+
+* support Brave 1.100.56
+
+
 ## [0.0.9](https://github.com/zimza1abim/kanye-morphe-patches/compare/v0.0.8...v0.0.9) (2026-11-13)
 
 ### ✨ New Features

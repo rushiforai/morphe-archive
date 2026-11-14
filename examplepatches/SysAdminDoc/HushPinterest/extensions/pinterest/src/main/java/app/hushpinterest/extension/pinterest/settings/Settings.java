@@ -73,6 +73,13 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_SAVED_PINS =
             new BooleanSetting("hushpinterest_hide_saved_pins", FALSE);
     /**
+     * Pinterest's own suggestion rows leave Home, on Filter feed's switch: the "More ideas for your
+     * board" card, the "Inspired by your interests" row, and the "See more like this?" bubble on a
+     * pin. Off to start.
+     */
+    public static final BooleanSetting HIDE_HOME_SUGGESTIONS =
+            new BooleanSetting("hushpinterest_hide_home_suggestions", FALSE);
+    /**
      * Filter feed's second capability: pins whose title, grid title or description holds one of
      * these words or phrases leave the same lists. Empty to start, and empty while paused.
      */
@@ -187,6 +194,9 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushpinterest_hide_suggested_replies", FALSE);
     public static final BooleanSetting HIDE_TOPIC_SUGGESTIONS =
             new BooleanSetting("hushpinterest_hide_topic_suggestions", FALSE);
+    /** The Inbox leaves out its Updates section, and doesn't load it. Messages stay. Off to start. */
+    public static final BooleanSetting HIDE_INBOX_UPDATES =
+            new BooleanSetting("hushpinterest_hide_inbox_updates", FALSE);
     public static final BooleanSetting QUIET_EMAIL_REMINDER =
             new BooleanSetting("hushpinterest_quiet_email_reminder", FALSE);
     public static final BooleanSetting HIDE_SURVEY_PROMPTS =

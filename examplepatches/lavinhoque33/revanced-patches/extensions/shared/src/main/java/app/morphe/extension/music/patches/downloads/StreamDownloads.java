@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-12.
  * Written by lavinhoque33, 2026-11-07.
  * Modified by lavinhoque33, 2026-11-10
  */
@@ -32,6 +33,11 @@ public final class StreamDownloads {
     public record Readiness(int ready, int total) {}
 
     private StreamDownloads() {}
+
+    /** Whether playback has a private audio/alias or playlist video copy. A worker thread only. */
+    public static boolean hasStreamCopy(String videoId) throws Exception {
+        return VideoCopyStore.find(videoId) != null || RawAudioStore.find(videoId) != null;
+    }
 
     public static Summary summary() {
         RawAudioFiles.Stats stats = RawAudioStore.stats();

@@ -228,6 +228,16 @@ final class SiteBoardGateway {
         }
         if(selected==null&&source.thread!=null&&source.threadUrl(source.thread).equals(newsSources.get(source.thread)))for(String key:keys)if(newsBoard(key)&&boardEnabled(key)){selected=key;break;}
         if(selected==null&&source.path.equals("yamibaito/"))for(String key:keys)if(newsBoard(key)&&boardEnabled(key)){selected=key;break;}
+        if(selected==null&&source.kind.equals("animanch")&&source.thread!=null&&siteEnabled("animanch")){
+            // A thread URL does not encode its category. Use a dedicated root board,
+            // never guess an unrelated category or block the native parser on network I/O.
+            String root=AnimanchProtocol.ORIGIN+"/";
+            for(String key:keys)if(boards.get(key).url.equals(root)&&boardEnabled(key)){selected=key;break;}
+            if(selected==null){
+                boolean rootRegistered=false;for(String key:keys)if(boards.get(key).url.equals(root))rootRegistered=true;
+                if(!rootRegistered)selected=register(root,"あにまん");
+            }
+        }
         if(selected==null)return null;String result=nativeUrl(selected,source.thread);
         if(source.thread!=null&&source.kind.equals("animanch")){
             String response=AnimanchProtocol.replyNumber(canonical),fragment=uri.getFragment();
@@ -392,13 +402,10 @@ final class SiteBoardGateway {
                 if(!boardEnabled(key)||sourceBoard==null||!sourceBoard.kind.equals("animanch")){send(client,403,"text/plain",new byte[0]);return;}
                 String mediaPath=stableMedia.group(2), coordinates="/"+stableMedia.group(3)+"/"+stableMedia.group(4);
                 Response r=null;
-                try { r=transport.get(AnimanchProtocol.ORIGIN+"/"+mediaPath+coordinates); }
-                catch(IOException unavailable) { if(!mediaPath.equals("arc/img"))throw unavailable; }
-                // Older /arc/img links now redirect to /storage/img, which may return
-                // Cloudflare 503. The same post image is served by /img/<thread>/<res>.
-                if(mediaPath.equals("arc/img")&&(r==null||r.status!=200||r.type==null
-                        ||!r.type.toLowerCase(Locale.ROOT).startsWith("image/")))
-                    r=transport.get(AnimanchProtocol.ORIGIN+"/img"+coordinates);
+                for(String candidate:AnimanchImageUrls.candidates(AnimanchProtocol.ORIGIN+"/"+mediaPath+coordinates)){
+                    try{r=transport.get(candidate);}catch(IOException unavailable){continue;}
+                    if(r!=null&&r.status==200&&r.type!=null&&r.type.toLowerCase(Locale.ROOT).startsWith("image/")&&r.bytes!=null&&r.bytes.length>0)break;
+                }
                 if(r==null||r.status!=200||r.type==null||!r.type.toLowerCase(Locale.ROOT).startsWith("image/")||r.bytes==null||r.bytes.length==0)
                     throw new IOException("画像を取得できません");
                 send(client,200,r.type,r.bytes);return;
@@ -421,6 +428,7 @@ final class SiteBoardGateway {
                 String listing=page(board.indexUrl());
                 if(board.path.equals("yamibaito/")||SiteBoardProtocol.webDestination(board,listing)!=null){prefs.edit().putBoolean("yamiBoard:"+key,true).apply();data=SiteNativeData.subject(newsTopics(),true);}
                 else{prefs.edit().remove("yamiBoard:"+key).apply();List<SiteBoardProtocol.Topic> topics=board.kind.equals("futaba")?FutabaCatalogue.topics(board,listing,url->{if(!boardEnabled(key))throw new IOException("使用しない板です");return page(url);},listLimit(key)):board.kind.equals("bakusai")?BakusaiCatalogue.topics(board,listing,url->{if(!boardEnabled(key))throw new IOException("使用しない板です");return page(url);},listLimit(key)):SiteBoardProtocol.topics(board,listing);rememberAnimanchTopics(board,topics);data=SiteNativeData.subject(topics);}
+                android.content.Context app=Haiagaru.applicationContextForExtension();if(app!=null)GlobalTitleSearch.rememberSubject(app,registrationUrl(key),new String(data,java.nio.charset.Charset.forName("windows-31j")));
             }
             else{
                 String id=sourceThread(route.group(3));SiteBoardProtocol.Board resolved=newsSource(key,id,board);String html=page(resolved.threadUrl(id));if(board.kind.equals("animanch"))rememberAnimanch(id,AnimanchCategories.fromThread(html,id));if(newsBoard(key)){resolved=BakusaiNews.canonical(resolved.threadUrl(id),id,html);saveNews(id,resolved.threadUrl(id));prefs.edit().putInt("yamiCount:"+id,SiteBoardProtocol.bakusaiCount(Jsoup.parse(html))+1).apply();}SiteBoardProtocol.Board sourceBoard=resolved;SiteBoardProtocol.ThreadPage page=thread(sourceBoard,id,html);

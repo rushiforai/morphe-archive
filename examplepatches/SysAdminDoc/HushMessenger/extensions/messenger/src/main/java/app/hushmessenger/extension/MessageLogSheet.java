@@ -33,7 +33,9 @@ import java.util.function.Function;
 final class MessageLogSheet {
     /** Opens the log's sheet over settings, for the shortcut beside Messenger's new-chat button. */
     static final String OPEN_EXTRA = "hush_open_message_log";
-    /** Cards built at a time. A full log is 5,000 of them, and building 500 at once froze the screen for two seconds. */
+    /** With OPEN_EXTRA, the chat the log opens on, from the Message log row in a chat's long-press menu. */
+    static final String THREAD_EXTRA = "hush_message_log_thread";
+    /** Cards built at a time. A full log is 20,000 of them, and building 500 at once froze the screen for two seconds. */
     static final int MESSAGE_LOG_PAGE = 20;
     /** The All, Direct and Groups buttons, in MessageLogSearch's order. */
     private static final String[] KINDS = {"message_log_kind_all", "message_log_kind_direct", "message_log_kind_groups"};
@@ -192,6 +194,13 @@ final class MessageLogSheet {
             said = page.text.get(shorter ? "message_log_keep_shorter" : "message_log_keep_changed", page.text.format("message_log_keep_" + days));
         }
         page.feedback(said, Toast.LENGTH_LONG);
+    }
+
+    /** The log narrowed to [thread]'s messages, or every chat's when it's null or empty. All chats widens it again. */
+    void showMessageLog(String thread) {
+        if (messageLogDialog != null) return;
+        messageLogThread = thread == null || thread.isEmpty() ? null : thread;
+        showMessageLog();
     }
 
     void showMessageLog() {

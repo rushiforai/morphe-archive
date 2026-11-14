@@ -193,15 +193,22 @@ public class GmsCoreSupportPatch {
                 Logger.printInfo(() -> "GmsCore is not whitelisted from battery optimizations");
 
                 if (SharedSettings.GMS_CORE_BATTERY_OPTIMIZATION_DIALOG.get()) {
-                    String message = text(context,
+                    boolean byd = BydBatteryPatch.isByd();
+                    String message = (byd
+                            ? text(context,
                             "MicroG-RE ยังไม่อยู่ใน whitelist แบต ตำแหน่งอาจหยุดอัปเดตและ Send to car อาจไม่ทำงาน"
                                     + " บน BYD DiLink ตั้งจากหน้าจอไม่ได้ ให้สั่งครั้งเดียวผ่าน ADB (ขั้นตอนติดตั้งข้อ 1):",
                             "MicroG-RE is not on the battery whitelist, so location can stop updating and Send to car may"
                                     + " not work. BYD DiLink has no screen for this. Run once over ADB (Install step 1):")
+                            : text(context,
+                            "MicroG-RE ยังไม่อยู่ใน whitelist แบต ตำแหน่งอาจหยุดอัปเดตและ Send to car อาจไม่ทำงาน"
+                                    + " กด เปิดหน้าตั้งค่า แล้วอนุญาต หรือสั่งครั้งเดียวผ่าน ADB (ขั้นตอนติดตั้งข้อ 1):",
+                            "MicroG-RE is not on the battery whitelist, so location can stop updating and Send to car may"
+                                    + " not work. Tap Open settings and allow it, or run once over ADB (Install step 1):"))
                             + "\n" + WHITELIST_COMMAND;
                     // On a BYD the system's dialog opens but does not whitelist MicroG-RE (DiLink 3): only the ADB
-                    // command does, so the button only closes.
-                    if (BydBatteryPatch.isByd()) {
+                    // command does, so the button only closes. Other cars get the system's dialog and the command.
+                    if (byd) {
                         showBatteryOptimizationDialog(context, message, text(context, "ตกลง", "OK"), (dialog, id) -> { });
                     } else {
                         showBatteryOptimizationDialog(context, message, text(context, "เปิดหน้าตั้งค่า", "Open settings"),

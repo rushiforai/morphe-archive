@@ -81,11 +81,17 @@ public final class MaterialYou {
     private static final String PITCH_BLACK = "fakh_pitch_black";
     private static final String HIDE_ROVO = "fakh_hide_rovo";
     /** Pref key, label and default of each Fakh Patches switch, by the number its row is made with. */
-    static final String[] KEYS = {MATERIAL_YOU, PITCH_BLACK, HIDE_ROVO, "fakh_hide_tab_labels", "fakh_liquid_glass",
+    static final String[] KEYS = {MATERIAL_YOU, PITCH_BLACK, HIDE_ROVO, "fakh_hide_tab_labels", "fakh_glass_navbar",
+            "fakh_liquid_glass",
             "fakh_tab_Spaces", "fakh_tab_All work", "fakh_tab_Dashboards", "fakh_tab_Notifications"};
-    static final String[] LABELS = {"Material You", "Pitch black", "Hide Rovo", "Hide tab labels", "Liquid Glass",
+    static final String[] LABELS = {"Material You", "Pitch black", "Hide Rovo", "Hide tab labels", "Liquid Glass navigation bar",
+            "Background blur",
             "Spaces", "All work", "Dashboards", "Notifications"};
-    static final boolean[] DEFAULTS = {true, false, true, false, true, true, true, true, true};
+    /** The line under a switch's label, for the switches whose label does not say what they cost. */
+    static final String[] SUBTITLES = {null, null, null, null, null,
+            "Blurs what's behind the glass. Uses more battery and might stutter.",
+            null, null, null, null};
+    static final boolean[] DEFAULTS = {true, false, true, false, true, true, true, true, true, true};
 
     /** The darkest page background (0xRRGGBB), the canvas behind cards, which pitch black turns black. */
     private static final int DARK_CANVAS = 0x111213;
@@ -128,6 +134,16 @@ public final class MaterialYou {
     /** The dark surface role, packed. */
     private static long surfaceDark(Context context) {
         return pack(0xFF000000 | (context.getColor(DARK_SURFACES.get(DARK_CANVAS)) & 0xFFFFFF));
+    }
+
+    /** The canvas of Jira's pages, behind their cards, as the palettes color it. */
+    static int canvas(Context context) {
+        return (int) (paletteColor(pack(app.fakh.extension.shared.MaterialYou.night(context) ? 0xFF000000 | DARK_CANVAS : 0xFFF8F8F8)) >>> 32);
+    }
+
+    /** The cards of Jira's pages, as the palettes color them. */
+    static int card(Context context) {
+        return (int) (paletteColor(pack(app.fakh.extension.shared.MaterialYou.night(context) ? 0xFF000000 | DARK_CARD : 0xFFFFFFFF)) >>> 32);
     }
 
     /** Whether the Material You patch is in; the patch makes this return true. */
@@ -181,9 +197,25 @@ public final class MaterialYou {
         return prefs(context).getBoolean(KEYS[3], false);
     }
 
-    /** Whether the bottom bar has the Liquid Glass look. */
+    /** Whether the Glass navigation bar patch is in; the patch makes this return true. */
+    static boolean isGlassNavigationBarIncluded() {
+        return false;
+    }
+
+    /**
+     * Whether the bottom bar is the glass capsule: its patch is in and its switch is on. Read when the bar is built and
+     * when the app lays out its pages, so a change applies after a restart.
+     *
+     * @return whether the bar is glass
+     */
+    public static boolean glassNavigationBar() {
+        Context context = AppRuntime.application();
+        return isGlassNavigationBarIncluded() && context != null && prefs(context).getBoolean(KEYS[4], true);
+    }
+
+    /** Whether the glass bar blurs what's behind it. */
     static boolean liquidGlass(Context context) {
-        return prefs(context).getBoolean(KEYS[4], true);
+        return prefs(context).getBoolean(KEYS[5], true);
     }
 
     /** Whether the bottom bar shows the tab with this label; tabs it has no switch for always show. */

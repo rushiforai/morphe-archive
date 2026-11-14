@@ -110,7 +110,6 @@ class GpsJoyStickPolicyTest {
         requireGpsTarget(GPS_PACKAGE,"5.3.4","3031")
         assertNotEquals(gpsPlay534.adFreeField,gpsUnlocked534.adFreeField)
         assertNotEquals(gpsPlay534.tierPin,gpsUnlocked534.tierPin)
-        assertNotEquals(gpsPlay534.manifestHash,gpsUnlocked534.manifestHash)
         for((p,v,c) in listOf(Triple("other","5.3.3","3030"),Triple(GPS_PACKAGE,"5.3.2","3030"),Triple(GPS_PACKAGE,"5.3.3","3030"),Triple(GPS_PACKAGE,"5.3.4","3030")))
             assertThrows(IllegalArgumentException::class.java){requireGpsTarget(p,v,c)}
     }

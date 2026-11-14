@@ -10,7 +10,6 @@ import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
-import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
@@ -24,31 +23,31 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-private const val BAR_OWNER = "LX/5TH;"
-private const val HELD = "LX/AM6;"
-private const val ACTION_ROW = "LX/5QT;"
-private const val SENT_TYPE = "LX/6pX;"
-private const val SENT_FIELD = "$ACTION_ROW->A00:$SENT_TYPE"
-private const val SENT_CALL = "$SENT_TYPE->DFH()Z"
-private const val MORE_OWNER = "LX/63p;"
+private const val BAR_OWNER = "LX/5Mx;"
+private const val HELD = "LX/D4u;"
+private const val ACTION_ROW = "LX/5pv;"
+private const val ROW_CALL = "$HELD->BK8()$ACTION_ROW"
+private const val SENT_CALL = "$ACTION_ROW->DLO()Z"
+private const val MORE_OWNER = "LX/6PS;"
+private const val MORE_LIST = "$MORE_OWNER->A04:$IMMUTABLE_LIST"
 private const val LIST_BUILDER = "Lcom/google/common/collect/ImmutableList\$Builder;"
 private const val COPY = "$IMMUTABLE_LIST->copyOf(Ljava/util/Collection;)$IMMUTABLE_LIST"
-private const val BUILD = "$IMMUTABLE_LIST->A01($LIST_BUILDER)$IMMUTABLE_LIST"
-private const val LIST_SIZE = "Ljava/util/List;->size()I"
-private const val SHEET_BUILDER = "LX/PAB;"
+private const val BUILD = "LX/35T;->A01(${LIST_BUILDER}Ljava/lang/Iterable;)$IMMUTABLE_LIST"
+private const val LIST_SIZE = "Ljava/util/AbstractCollection;->size()I"
+private const val SHEET_BUILDER = "LX/Gs7;"
 
 /** The synthetic labels for the two hooks, named after the build they were found in. */
-internal const val ACTIONS_BAR = "$BAR_OWNER->AYM(${HELD}Ljava/util/EnumMap;)LX/6Og;"
-internal const val ACTIONS_MORE = "$MORE_OWNER->E6x(LX/1Vl;LX/5Hx;LX/DMu;$HELD)V"
+internal const val ACTIONS_BAR = "$BAR_OWNER->AZZ(${HELD}Ljava/util/EnumMap;)LX/6BI;"
+internal const val ACTIONS_MORE = "$MORE_OWNER->EEY(LX/1Hx;LX/5Bd;LX/Gsk;$HELD)V"
 
 /**
- * The held message's action builder cut down to what 586 shares: the sent flag read off the held message, a copy that
- * isn't measured, and the full list's copy measured right where the other branch joins it. p1 is v8.
+ * The held message's action builder cut down to what 587 shares: the sent flag asked of the held message's row, a copy
+ * that isn't measured, and the full list's copy measured right where the other branch joins it. p1 is v8.
  */
 private val BAR_BODY = """
     move-object v2, v8
-    check-cast v2, $ACTION_ROW
-    iget-object v3, v2, $SENT_FIELD
+    invoke-interface {v2}, $ROW_CALL
+    move-result-object v3
     invoke-interface {v3}, $SENT_CALL
     move-result v4
     const-string v0, "$MESSAGE_ACTIONS_MARK"
@@ -61,7 +60,7 @@ private val BAR_BODY = """
     invoke-static {v5}, $COPY
     move-result-object v1
     :measure
-    invoke-interface {v1}, $LIST_SIZE
+    invoke-virtual {v1}, $LIST_SIZE
     move-result v0
     if-le v0, v2, :fits
     const/4 v6, 0x0
@@ -73,45 +72,48 @@ private val BAR_BODY = """
 """.trimIndent()
 
 /**
- * The More sheet cut down the same way: its list read off its own field and copied, Messenger's own sort when its flag
- * is on, and the sheet's builder made where both ways meet. p0 is v19.
+ * The More sheet cut down the same way: its list read off its own field, Messenger's own sort when its flag is on, and
+ * the sheet's builder made where both ways meet. The list is read off the field again once the sheet is shown. p0 is v19.
  */
 private val MORE_BODY = """
     invoke-static {}, LX/1vK;->A00()Z
     move-result v17
-    move-object/from16 v2, v19
-    iget-object v1, v2, $MORE_OWNER->A00:$IMMUTABLE_LIST
-    move-object/from16 v18, v1
+    move-object/from16 v7, v19
+    iget-object v9, v7, $MORE_LIST
     if-eqz v17, :build
-    new-instance v3, $LIST_BUILDER
-    invoke-direct {v3}, $LIST_BUILDER-><init>()V
-    invoke-static {v3}, $BUILD
+    invoke-static {}, $IMMUTABLE_LIST->builder()$LIST_BUILDER
     move-result-object v1
+    new-instance v0, Ljava/util/ArrayList;
+    invoke-direct {v0}, Ljava/util/ArrayList;-><init>()V
+    invoke-static {v1, v0}, $BUILD
+    move-result-object v9
     :build
-    new-instance v8, $SHEET_BUILDER
-    invoke-direct {v8}, $SHEET_BUILDER-><init>()V
+    new-instance v1, $SHEET_BUILDER
+    invoke-direct {v1}, $SHEET_BUILDER-><init>()V
     const-string v0, "$MORE_SHEET_TAG"
+    iget-object v0, v7, $MORE_LIST
     return-void
 """.trimIndent()
 
-/** 586's real More sheet is also save_voice_menu's: the same method makes MenuDialogParams with that builder. */
+/** 587's real More sheet is also save_voice_menu's: the same method makes MenuDialogParams with that builder. */
 private val SHARED_SHEET_BODY = """
     move-object/from16 v4, v23
     invoke-static {}, LX/1vK;->A00()Z
     move-result v17
-    move-object/from16 v2, v19
-    iget-object v1, v2, $MORE_OWNER->A00:$IMMUTABLE_LIST
-    move-object/from16 v18, v1
+    move-object/from16 v7, v19
+    iget-object v9, v7, $MORE_LIST
     if-eqz v17, :build
-    new-instance v3, $LIST_BUILDER
-    invoke-direct {v3}, $LIST_BUILDER-><init>()V
-    invoke-static {v3}, $BUILD
+    invoke-static {}, $IMMUTABLE_LIST->builder()$LIST_BUILDER
     move-result-object v1
+    new-instance v0, Ljava/util/ArrayList;
+    invoke-direct {v0}, Ljava/util/ArrayList;-><init>()V
+    invoke-static {v1, v0}, $BUILD
+    move-result-object v9
     :build
-    new-instance v8, $SHEET_BUILDER
-    invoke-direct {v8}, $SHEET_BUILDER-><init>()V
+    new-instance v1, $SHEET_BUILDER
+    invoke-direct {v1}, $SHEET_BUILDER-><init>()V
     new-instance v0, $MENU_PARAMS
-    invoke-direct {v0, v8}, $MENU_PARAMS-><init>($SHEET_BUILDER)V
+    invoke-direct {v0, v1}, $MENU_PARAMS-><init>($SHEET_BUILDER)V
     const-string v0, "$MORE_SHEET_TAG"
     return-void
 """.trimIndent()
@@ -149,24 +151,28 @@ class MessageActionsTest {
         validateControls(mirroredControls(messageActionsFixture()), setOf(MESSAGE_ACTIONS, MESSAGE_ACTIONS_MORE))
     }
 
-    @Test fun aSentFlagReadOffACopyOfTheCopyStillCounts() {
-        val body = changed(BAR_BODY, "move-object v2, v8\n", "move-object v6, v8\nmove-object v2, v6\n")
-        assertEquals(setOf(ACTIONS_BAR), found(listOf(barClass(barMethod(body)), moreClass()), MESSAGE_ACTIONS))
+    @Test fun aSentFlagAskedOfTheParameterOrACopyOfACopyStillCounts() {
+        val direct = changed(BAR_BODY, "invoke-interface {v2}, $ROW_CALL", "invoke-interface {v8}, $ROW_CALL")
+        val twice = changed(BAR_BODY, "move-object v2, v8\n", "move-object v6, v8\nmove-object v2, v6\n")
+        for (body in listOf(direct, twice)) assertEquals(setOf(ACTIONS_BAR), found(listOf(barClass(barMethod(body)), moreClass()), MESSAGE_ACTIONS))
     }
 
     @Test fun lookalikesAreNotTheActionBuilder() {
         val cases = mapOf(
             "no menuItems" to changed(BAR_BODY, "\"$MESSAGE_ACTIONS_MARK\"", "\"items\""),
-            "a list it never measures" to changed(BAR_BODY, "invoke-interface {v1}, $LIST_SIZE", "invoke-interface {v1}, Ljava/util/List;->isEmpty()Z"),
-            "two copies measured right away" to changed(BAR_BODY, "move-result-object v6\n", "move-result-object v6\ninvoke-interface {v6}, $LIST_SIZE\n"),
+            "a list it never measures" to changed(BAR_BODY, "invoke-virtual {v1}, $LIST_SIZE", "invoke-virtual {v1}, Ljava/util/AbstractCollection;->isEmpty()Z"),
+            "two copies measured right away" to changed(BAR_BODY, "move-result-object v6\n", "move-result-object v6\ninvoke-virtual {v6}, $LIST_SIZE\n"),
             "a size compared the other way" to changed(BAR_BODY, "if-le v0, v2, :fits", "if-ge v0, v2, :fits"),
             "a compare that doesn't start from the size" to changed(BAR_BODY, "if-le v0, v2, :fits", "if-le v2, v0, :fits"),
             "a size read into the list's register" to changed(BAR_BODY, "move-result v0\nif-le v0, v2", "move-result v1\nif-le v1, v2"),
             "a held message written over" to "const/4 v8, 0x0\n$BAR_BODY",
             "a flag read off something else" to changed(BAR_BODY, "move-object v2, v8\n", "move-object v2, v7\n"),
-            "a flag that isn't a boolean" to BAR_BODY.replace(SENT_CALL, "$SENT_TYPE->DFH()I"),
-            "two different flags" to changed(BAR_BODY, "move-result v4\n", "move-result v4\nmove-object v2, v8\ncheck-cast v2, LX/5QU;\n" +
-                "iget-object v3, v2, LX/5QU;->A00:$SENT_TYPE\ninvoke-interface {v3}, $SENT_CALL\nmove-result v4\n"),
+            "a flag that isn't a boolean" to changed(BAR_BODY, SENT_CALL, "$ACTION_ROW->DLO()I"),
+            "a row getter some other type declares" to changed(BAR_BODY, ROW_CALL, "LX/D4v;->BK8()$ACTION_ROW"),
+            "a flag some other type than the row declares" to changed(BAR_BODY, SENT_CALL, "LX/5pw;->DLO()Z"),
+            "a flag asked of something but the row" to changed(BAR_BODY, "invoke-interface {v3}, $SENT_CALL", "invoke-interface {v2}, $SENT_CALL"),
+            "two different flags" to changed(BAR_BODY, "move-result v4\n", "move-result v4\ninvoke-interface {v8}, $HELD->BK9()$ACTION_ROW\n" +
+                "move-result-object v3\ninvoke-interface {v3}, $ACTION_ROW->DLP()Z\nmove-result v4\n"),
             "a size measured with no compare after" to changed(BAR_BODY, "if-le v0, v2, :fits\nconst/4 v6, 0x0\n:fits\n", ""),
         )
         for ((case, body) in cases) {
@@ -183,15 +189,15 @@ class MessageActionsTest {
     @Test fun lookalikesAreNotTheMoreSheet() {
         val cases = mapOf(
             "another tag" to changed(MORE_BODY, MORE_SHEET_TAG, "OTHER_TAG"),
-            "its list read twice" to changed(MORE_BODY, "move-object/from16 v2, v19\n", "move-object/from16 v2, v19\niget-object v3, v2, $MORE_OWNER->A01:$IMMUTABLE_LIST\n"),
-            "no copy of the list" to changed(MORE_BODY, "move-object/from16 v18, v1", "move-object/from16 v18, v2"),
+            "lists read off two fields" to changed(MORE_BODY, "iget-object v0, v7, $MORE_LIST", "iget-object v0, v7, $MORE_OWNER->A05:$IMMUTABLE_LIST"),
+            "no test right after the read" to changed(MORE_BODY, "iget-object v9, v7, $MORE_LIST\n", "iget-object v9, v7, $MORE_LIST\nnop\n"),
             "a sort that isn't skipped by a test" to changed(MORE_BODY, "if-eqz v17, :build", "if-gez v17, :build"),
-            "the sorted list in another register" to changed(MORE_BODY, "invoke-static {v3}, $BUILD\nmove-result-object v1", "invoke-static {v3}, $BUILD\nmove-result-object v3"),
-            "a sorted list made some other way" to changed(MORE_BODY, "invoke-static {v3}, $BUILD", "invoke-static {v3}, $IMMUTABLE_LIST->of(Ljava/lang/Object;)$IMMUTABLE_LIST"),
-            "the copy written over before the builder" to changed(MORE_BODY, "invoke-direct {v3}, $LIST_BUILDER-><init>()V\n", "invoke-direct {v3}, $LIST_BUILDER-><init>()V\nconst/16 v18, 0x0\n"),
-            "a second way into the builder" to changed(MORE_BODY, "if-eqz v17, :build\n", "if-eqz v17, :build\nif-nez v2, :build\n"),
-            "the copy in the builder's register" to changed(MORE_BODY, "move-object/from16 v18, v1", "move-object v8, v1"),
-            "no builder where both ways meet" to changed(MORE_BODY, ":build\nnew-instance v8, $SHEET_BUILDER", ":build\nconst/4 v8, 0x0\nnew-instance v8, $SHEET_BUILDER"),
+            "the sorted list in another register" to changed(MORE_BODY, "invoke-static {v1, v0}, $BUILD\nmove-result-object v9", "invoke-static {v1, v0}, $BUILD\nmove-result-object v3"),
+            "a sorted list made some other way" to changed(MORE_BODY, "invoke-static {v1, v0}, $BUILD", "invoke-static {v1, v0}, $IMMUTABLE_LIST->of(Ljava/lang/Object;Ljava/lang/Object;)$IMMUTABLE_LIST"),
+            "the sheet written over before the builder" to changed(MORE_BODY, "invoke-direct {v0}, Ljava/util/ArrayList;-><init>()V\n", "invoke-direct {v0}, Ljava/util/ArrayList;-><init>()V\nconst/4 v7, 0x0\n"),
+            "a second way into the builder" to changed(MORE_BODY, "if-eqz v17, :build\n", "if-eqz v17, :build\nif-nez v9, :build\n"),
+            "the builder made in the list's register" to changed(MORE_BODY, "new-instance v1, $SHEET_BUILDER\ninvoke-direct {v1}", "new-instance v9, $SHEET_BUILDER\ninvoke-direct {v9}"),
+            "no builder where both ways meet" to changed(MORE_BODY, ":build\nnew-instance v1, $SHEET_BUILDER", ":build\nconst/4 v1, 0x0\nnew-instance v1, $SHEET_BUILDER"),
         )
         for ((case, body) in cases) {
             val classes = listOf(barClass(), moreClass(moreMethod(body)))
@@ -218,49 +224,43 @@ class MessageActionsTest {
         val at = before.indexOfFirst { it.reference() == LIST_SIZE }
         injectControl(MESSAGE_ACTIONS, mapOf(MESSAGE_ACTIONS to listOf(method)))
         val code = method.code()
-        assertEquals(before.size + 14, code.size)
+        assertEquals(before.size + 9, code.size)
 
         assertEquals(Opcode.MOVE_OBJECT_FROM16, code[at].opcode)
         assertEquals(0, code[at].target(), "The size's result register holds nothing yet")
         assertEquals(8, (code[at] as TwoRegisterInstruction).registerB, "The held message")
-        assertEquals(Opcode.INSTANCE_OF, code[at + 1].opcode)
-        assertEquals(ACTION_ROW, code[at + 1].reference())
-        assertEquals(Opcode.IF_NEZ, code[at + 2].opcode)
-        assertEquals(at + 5, code.branchTarget(at + 2))
-        assertEquals(Opcode.CONST_4, code[at + 3].opcode)
-        assertEquals(-1, (code[at + 3] as NarrowLiteralInstruction).narrowLiteral, "Not a message row: the extension leaves it be")
-        assertEquals(Opcode.GOTO, code[at + 4].opcode)
-        assertEquals(at + 10, code.branchTarget(at + 4))
-        assertEquals(Opcode.MOVE_OBJECT_FROM16, code[at + 5].opcode)
-        assertEquals(ACTION_ROW, code[at + 6].reference())
-        assertEquals(SENT_FIELD, code[at + 7].reference())
-        assertEquals(SENT_CALL, code[at + 8].reference())
-        assertEquals(Opcode.MOVE_RESULT, code[at + 9].opcode)
-        assertEquals(MESSAGE_ACTIONS_ARRANGE, code[at + 10].reference())
-        assertEquals(listOf(1, 0), code[at + 10].arguments(), "The list and the side")
-        assertEquals(1, code[at + 11].target())
-        assertEquals(COPY, code[at + 12].reference())
-        assertEquals(listOf(1), code[at + 12].arguments(), "Messenger reads it back as an ImmutableList")
-        assertEquals(1, code[at + 13].target())
-        assertEquals(Opcode.INVOKE_INTERFACE, code[at + 14].opcode)
-        assertEquals(LIST_SIZE, code[at + 14].reference())
-        assertEquals(listOf(1), code[at + 14].arguments())
-        assertEquals(Opcode.MOVE_RESULT, code[at + 15].opcode)
+        assertEquals(ROW_CALL, code[at + 1].reference())
+        assertEquals(listOf(0), code[at + 1].arguments())
+        assertEquals(Opcode.MOVE_RESULT_OBJECT, code[at + 2].opcode)
+        assertEquals(0, code[at + 2].target())
+        assertEquals(SENT_CALL, code[at + 3].reference())
+        assertEquals(listOf(0), code[at + 3].arguments())
+        assertEquals(Opcode.MOVE_RESULT, code[at + 4].opcode)
+        assertEquals(0, code[at + 4].target())
+        assertEquals(MESSAGE_ACTIONS_ARRANGE, code[at + 5].reference())
+        assertEquals(listOf(1, 0), code[at + 5].arguments(), "The list and the side")
+        assertEquals(1, code[at + 6].target())
+        assertEquals(COPY, code[at + 7].reference())
+        assertEquals(listOf(1), code[at + 7].arguments(), "Messenger reads it back as an ImmutableList")
+        assertEquals(1, code[at + 8].target())
+        assertEquals(Opcode.INVOKE_VIRTUAL, code[at + 9].opcode)
+        assertEquals(LIST_SIZE, code[at + 9].reference())
+        assertEquals(listOf(1), code[at + 9].arguments())
+        assertEquals(Opcode.MOVE_RESULT, code[at + 10].opcode)
         // The branch from the sent side joins at the hook, not past it.
         assertEquals(at, code.branchTarget(code.indexOfLast { it.opcode == Opcode.GOTO }))
-        assertEquals(code.indexOfFirst { it.opcode == Opcode.MOVE_OBJECT && it.target() == 1 }, code.branchTarget(code.indexOfFirst { it.opcode == Opcode.IF_NEZ }))
         // Everything else is Messenger's own code, unchanged, the size call included.
-        assertEquals(before.map { it.opcode }, code.filterIndexed { i, _ -> i !in at..at + 13 }.map { it.opcode })
+        assertEquals(before.map { it.opcode }, code.filterIndexed { i, _ -> i !in at..at + 8 }.map { it.opcode })
     }
 
-    @Test fun aSizeAskedOfTheImmutableListItselfIsAskedTheSameWay() {
-        val size = "$IMMUTABLE_LIST->size()I"
-        val method = barMethod(changed(BAR_BODY, "invoke-interface {v1}, $LIST_SIZE", "invoke-virtual {v1}, $size"))
+    @Test fun aSizeAskedThroughTheListInterfaceIsAskedTheSameWay() {
+        val size = "Ljava/util/List;->size()I"
+        val method = barMethod(changed(BAR_BODY, "invoke-virtual {v1}, $LIST_SIZE", "invoke-interface {v1}, $size"))
         val at = method.code().indexOfFirst { it.reference() == size }
         injectControl(MESSAGE_ACTIONS, mapOf(MESSAGE_ACTIONS to listOf(method)))
         val code = method.code()
-        assertEquals(Opcode.INVOKE_VIRTUAL, code[at + 14].opcode)
-        assertEquals(size, code[at + 14].reference())
+        assertEquals(Opcode.INVOKE_INTERFACE, code[at + 9].opcode)
+        assertEquals(size, code[at + 9].reference())
     }
 
     @Test fun theSheetKeepsTheOrderOnlyWhenMessengerSortsIt() {
@@ -270,14 +270,15 @@ class MessageActionsTest {
         injectControl(MESSAGE_ACTIONS_MORE, mapOf(MESSAGE_ACTIONS_MORE to listOf(method)))
         val code = method.code()
         assertEquals(before.size + 5, code.size)
-        assertEquals(Opcode.MOVE_OBJECT_FROM16, code[at].opcode)
-        assertEquals(8, code[at].target(), "The builder's register, free until it's made")
-        assertEquals(18, (code[at] as TwoRegisterInstruction).registerB, "The list the sheet was handed")
+        assertEquals(Opcode.IGET_OBJECT, code[at].opcode)
+        assertEquals(1, code[at].target(), "The builder's register, free until it's made")
+        assertEquals(7, (code[at] as TwoRegisterInstruction).registerB, "The sheet, still where its list was read through")
+        assertEquals(MORE_LIST, code[at].reference(), "The list the sheet was handed")
         assertEquals(MESSAGE_ACTIONS_REORDER, code[at + 1].reference())
-        assertEquals(listOf(1, 8), code[at + 1].arguments(), "Messenger's sorted list and the handed one")
-        assertEquals(1, code[at + 2].target())
+        assertEquals(listOf(9, 1), code[at + 1].arguments(), "Messenger's sorted list and the handed one")
+        assertEquals(9, code[at + 2].target())
         assertEquals(COPY, code[at + 3].reference())
-        assertEquals(1, code[at + 4].target())
+        assertEquals(9, code[at + 4].target())
         assertEquals(Opcode.NEW_INSTANCE, code[at + 5].opcode)
         val skip = code.indexOfFirst { it.opcode == Opcode.IF_EQZ }
         assertEquals(at + 5, code.branchTarget(skip), "Without the sort the handed list is already in order")
@@ -297,7 +298,7 @@ class MessageActionsTest {
             val row = code.indexOfFirst { it.reference() == SAVE_VOICE_MENU_SHEET_ROW }
             assertEquals(made - 4, reorder, first)
             assertEquals(made + 2, row, first)
-            assertEquals(listOf(8, 4), code[row].arguments(), "$first: the builder and the copy of the hold")
+            assertEquals(listOf(1, 4), code[row].arguments(), "$first: the builder and the copy of the hold")
             assertEquals(made, code.branchTarget(code.indexOfFirst { it.opcode == Opcode.IF_EQZ }), first)
         }
     }

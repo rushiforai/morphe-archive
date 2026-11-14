@@ -27,6 +27,7 @@ val hidePremiumPromotionsPatch = bytecodePatch(
     description = "Removes the \"Premium Content\" subscription card and its \"Latest Episodes\" heading from show pages.",
     default = false,
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")

@@ -652,6 +652,9 @@ public final class HushTumblrPreferenceFragment extends AbstractPreferenceFragme
             patchToggle(feed, context, build, PatchFamily.HIDE_OWN_REBLOGS, Settings.HIDE_OWN_REBLOGS,
                     L10n.t("Hide your own reblogs"), L10n.t("Takes the reblogs you made out of your dashboard. "
                         + "Your blog and the rest of Tumblr still show them."), SettingsIcons.BLOCK);
+            patchToggle(feed, context, build, PatchFamily.HIDE_REBLOGS_OF_YOURS, Settings.HIDE_REBLOGS_OF_YOURS,
+                    L10n.t("Hide reblogs of your posts"), L10n.t("Takes other people's reblogs of your posts out of your dashboard. "
+                        + "Your blog and the rest of Tumblr still show them."), SettingsIcons.BLOCK);
             patchToggle(feed, context, build, PatchFamily.HIDE_LIKED_POSTS, Settings.HIDE_LIKED_POSTS,
                     L10n.t("Hide liked posts"), L10n.t("Takes the posts you've already liked out of your dashboard. "
                         + "Your likes and the rest of Tumblr still show them."), SettingsIcons.BLOCK);
@@ -726,6 +729,10 @@ public final class HushTumblrPreferenceFragment extends AbstractPreferenceFragme
             patchToggle(posts, context, build, PatchFamily.HIDE_HASHTAGS, Settings.HIDE_HASHTAGS,
                     L10n.t("Hide hashtags"), L10n.t("Takes the tags off the bottom of posts in your dashboard "
                         + "and other feeds, and keeps the source link."), SettingsIcons.BLOCK);
+            patchToggle(posts, context, build, PatchFamily.TAG_BLOG_SEARCH, Settings.TAG_BLOG_SEARCH,
+                    L10n.t("Tags open the blog's tag search"), L10n.t("Tapping a tag under a post searches that "
+                        + "blog's posts for the tag, in the dashboard, other feeds and a post opened by itself."),
+                    SettingsIcons.SEARCH);
             patchToggle(posts, context, build, PatchFamily.HIDE_FOLLOW_BUTTON, Settings.HIDE_FOLLOW_BUTTON,
                     L10n.t("Hide the Follow button"), L10n.t("Takes the Follow button out of the header of "
                         + "posts from blogs you don't follow yet."), SettingsIcons.BLOCK);
@@ -784,8 +791,8 @@ public final class HushTumblrPreferenceFragment extends AbstractPreferenceFragme
                         + "Notifications tab. One already showing goes when Tumblr next updates its counts."),
                     SettingsIcons.BLOCK);
             patchToggle(ui, context, build, PatchFamily.HIDE_BLAZE_PROMPTS, Settings.HIDE_BLAZE_PROMPTS,
-                    L10n.t("Hide Blaze prompts"), L10n.t("Hides the Blaze buttons, banners and the nudge to promote "
-                        + "a post after you share it. The Blaze item in a post's menu stays."),
+                    L10n.t("Hide Blaze prompts"), L10n.t("Hides the Blaze buttons and banners, the nudge to promote "
+                        + "a post after you share it, and Blaze in post menus and the share sheet."),
                     SettingsIcons.BLOCK);
             // Not flag-backed, but the TumblrMart button is only placed when its screen is made.
             patchToggle(ui, context, build, PatchFamily.HIDE_TUMBLRMART, Settings.HIDE_TUMBLRMART,

@@ -53,6 +53,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 
+import com.tumblr.rumblr.communities.PostOverflowMenuItem;
 import com.tumblr.rumblr.model.TimelineObject;
 import com.tumblr.rumblr.model.TimelineObjectType;
 import com.tumblr.rumblr.model.Timelineable;
@@ -92,6 +93,9 @@ import app.hushtumblr.extension.tumblr.timeline.LongPosts;
 import app.hushtumblr.extension.tumblr.timeline.TimelineFilter;
 import app.hushtumblr.extension.tumblr.timeline.TimelineItems;
 import app.hushtumblr.extension.tumblr.ui.AltTextCaptions;
+import app.hushtumblr.extension.tumblr.ui.BlazeButtons;
+import app.hushtumblr.extension.tumblr.ui.BlogTags;
+import app.hushtumblr.extension.tumblr.ui.HushTagBlog;
 import app.hushtumblr.extension.tumblr.ui.BottomBarForTests;
 import app.hushtumblr.extension.tumblr.ui.BottomBarTabsForTests;
 import app.hushtumblr.extension.tumblr.ui.DarkBackgroundForTests;
@@ -202,9 +206,16 @@ public class PausedHooksTest {
         probes.put(Settings.HIDE_COMMUNITIES_TAB, Arrays.asList(
                 BottomBarTabsForTests::hidesTheCommunitiesTab,
                 () -> !FeatureSwitches.isEnabled(FeatureSwitchesTest.flag("COMMUNITIES_TOOLTIPS"), true)));
-        // The Blaze button in your blog's header answers off.
-        probes.put(Settings.HIDE_BLAZE_PROMPTS, Collections.singletonList(
-                () -> !FeatureSwitches.isEnabled(FeatureSwitchesTest.flag("BLAZE_DASHBOARD_ENTRYPOINT_IN_USER_BLOG_HEADER"), true)));
+        // The Blaze button in your blog's header answers off, and so do the Blaze buttons on posts:
+        // the flame under your own post, Blaze in a post's menu and the share sheet, and a community
+        // post menu's Promote row.
+        probes.put(Settings.HIDE_BLAZE_PROMPTS, Arrays.asList(
+                () -> !FeatureSwitches.isEnabled(FeatureSwitchesTest.flag("BLAZE_DASHBOARD_ENTRYPOINT_IN_USER_BLOG_HEADER"), true),
+                () -> !BlazeButtons.ownPostButton(1),
+                () -> !BlazeButtons.postMenuItem(1),
+                () -> !BlazeButtons.shareTarget(1),
+                () -> BlazeButtons.communityMenu(Arrays.asList(
+                        new PostOverflowMenuItem.PromotePost(), new PostOverflowMenuItem.CopyLink())).size() == 1));
         // Tumblr's rating prompt is skipped.
         probes.put(Settings.SKIP_REVIEW_PROMPTS, Collections.singletonList(ReviewPrompts::skip));
         probes.put(Settings.HIDE_BLOG_NOTIFICATION_REMINDERS,
@@ -233,6 +244,9 @@ public class PausedHooksTest {
         probes.put(Settings.HIDE_HASHTAGS, Collections.singletonList(PostParts::hideTags));
         // A post header's Follow button is hidden.
         probes.put(Settings.HIDE_FOLLOW_BUTTON, Collections.singletonList(PostParts::hideFollowButton));
+        // A tag under a post opens its blog's search.
+        probes.put(Settings.TAG_BLOG_SEARCH, Collections.singletonList(
+                () -> BlogTags.blogScreen(0, (HushTagBlog) () -> "staff")));
         // The Premium diamond is hidden.
         probes.put(Settings.HIDE_TUMBLRMART, Collections.singletonList(() -> StoreButtons.hideDiamond(null, null)));
         // The like, reblog and comment counts under a post are blank, a community reaction keeps its
@@ -265,6 +279,8 @@ public class PausedHooksTest {
         probes.put(Settings.HIDE_REBLOGS, Collections.singletonList(TimelineItems::aPageLosesItsReblog));
         // A dashboard page with a reblog of your own comes back without it.
         probes.put(Settings.HIDE_OWN_REBLOGS, Collections.singletonList(TimelineItems::aPageLosesYourReblog));
+        // A dashboard page with a mutual's reblog of your post comes back without it.
+        probes.put(Settings.HIDE_REBLOGS_OF_YOURS, Collections.singletonList(TimelineItems::aPageLosesAReblogOfYourPost));
         // A dashboard page with a post you'd already liked comes back without it.
         probes.put(Settings.HIDE_LIKED_POSTS, Collections.singletonList(TimelineItems::aPageLosesItsLikedPost));
         // A page with a video post comes back without it.

@@ -98,6 +98,7 @@ val hideWazeBarPatch = bytecodePatch(
     name = "Hide Waze bar",
     description = "Turns off the \"Drive with Waze\" bar by default. You can turn it back on in the app's settings.",
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {
@@ -126,6 +127,7 @@ val hideDonateButtonsPatch = bytecodePatch(
     name = "Hide donate buttons",
     description = "Hides the Donate buttons in the top bar, on Home, on station pages, and on live streams.",
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")

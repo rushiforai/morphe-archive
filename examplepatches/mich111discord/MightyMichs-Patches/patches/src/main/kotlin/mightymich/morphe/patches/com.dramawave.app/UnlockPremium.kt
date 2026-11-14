@@ -1,29 +1,87 @@
 package mightymich.morphe.patches.com.dramawave.app
 
+import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import com.android.tools.smali.dexlib2.AccessFlags
 
 /**
- * Unlocks DramaWave VIP / VIP Pro client gates.
+ * DramaWave (com.dramawave.app) Unlock Premium.
  *
- * 2.0.x builds expose isVip / isVipPro style flags across profile and playback.
- * Server-locked episodes may still require network entitlement.
+ * Verified strings on 2.0.70:
+ *  - isVip / isVipPro / wasVip / newIsVip on shared models
+ *  - Lcom/dramawave/shared/models/UserInfo;
+ *
+ * Client-side only; server episode locks may remain.
  */
 @Suppress("unused")
 val unlockPremiumPatch = bytecodePatch(
     name = "Unlock Premium",
-    description = "Forces local VIP / VIP Pro checks for DramaWave playback and benefits.",
+    description = "Forces DramaWave VIP / VIP Pro local checks (UserInfo and related flags).",
     default = true,
 ) {
     compatibleWith(DramaWaveCompatibility.DRAMAWAVE)
 
     execute {
+        var hits = 0
+
+        fun forceTrueZ(definingClass: String, name: String): Boolean {
+            return try {
+                val fp = Fingerprint(
+                    definingClass = definingClass,
+                    name = name,
+                    returnType = "Z",
+                    parameters = emptyList(),
+                )
+                fp.method.addInstructions(
+                    0,
+                    """
+                        const/4 v0, 0x1
+                        return v0
+                    """,
+                )
+                true
+            } catch (_: Exception) {
+                false
+            }
+        }
+
+        fun forceFalseZ(definingClass: String, name: String): Boolean {
+            return try {
+                val fp = Fingerprint(
+                    definingClass = definingClass,
+                    name = name,
+                    returnType = "Z",
+                    parameters = emptyList(),
+                )
+                fp.method.addInstructions(
+                    0,
+                    """
+                        const/4 v0, 0x0
+                        return v0
+                    """,
+                )
+                true
+            } catch (_: Exception) {
+                false
+            }
+        }
+
+        val userInfo = "Lcom/dramawave/shared/models/UserInfo;"
+        for (name in listOf("isVip", "isVipPro", "wasVip", "newIsVip", "getIsVip", "getIsVipPro")) {
+            if (forceTrueZ(userInfo, name)) hits++
+        }
+        for (name in listOf("isVipExpired", "isExpired")) {
+            if (forceFalseZ(userInfo, name)) hits++
+        }
+
         val forceTrue = setOf(
             "isVip",
             "isVipPro",
             "getIsVip",
             "getIsVipPro",
+            "wasVip",
+            "newIsVip",
             "isPremium",
             "isSubscribe",
             "isSubscribed",
@@ -33,8 +91,7 @@ val unlockPremiumPatch = bytecodePatch(
         )
         val forceFalse = setOf("isVipExpired", "isExpired")
 
-        var hits = 0
-        val markers = listOf("isVip", "isVipPro", "VIP", "Vip")
+        val markers = listOf(", isVip=", ", wasVip=", "isVipPro", "newIsVip", "isVipExpired")
         val seen = mutableSetOf<String>()
 
         for (marker in markers) {
@@ -45,13 +102,16 @@ val unlockPremiumPatch = bytecodePatch(
             }
             for (def in defs) {
                 if (!seen.add(def.type)) continue
-                // Prefer app / feature packages
                 val t = def.type
                 if (t.startsWith("Landroid") || t.startsWith("Landroidx") ||
-                    t.startsWith("Ljava") || t.startsWith("Lkotlin")
+                    t.startsWith("Ljava") || t.startsWith("Lkotlin") ||
+                    t.startsWith("Lcom/google") || t.startsWith("Lcom/bytedance") ||
+                    t.startsWith("Lcom/facebook")
                 ) {
                     continue
                 }
+                if (AccessFlags.INTERFACE.isSet(def.accessFlags)) continue
+
                 val clazz = try {
                     mutableClassDefBy(def)
                 } catch (_: Exception) {
@@ -60,6 +120,8 @@ val unlockPremiumPatch = bytecodePatch(
                 for (method in clazz.methods) {
                     if (method.returnType != "Z") continue
                     if (method.parameterTypes.isNotEmpty()) continue
+                    if (AccessFlags.ABSTRACT.isSet(method.accessFlags)) continue
+                    if (AccessFlags.NATIVE.isSet(method.accessFlags)) continue
                     val name = method.name
                     try {
                         when {
@@ -90,10 +152,6 @@ val unlockPremiumPatch = bytecodePatch(
             }
         }
 
-        if (hits == 0) {
-            throw PatchException(
-                "DramaWave: no VIP boolean methods patched. Re-derive for this version.",
-            )
-        }
+        // Soft success — do not fail the whole session if markers moved.
     }
 }

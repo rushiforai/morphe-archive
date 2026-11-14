@@ -23,8 +23,10 @@ import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -41,6 +43,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -87,9 +90,18 @@ public final class FreeProxies {
             "https://raw.githubusercontent.com/ALIILAPRO/MTProtoProxy/main/mtproto.txt"));
 
     /** The part of a proxy link before its "?": t.me's, telegram.me's or telegram.dog's /proxy, or tg://proxy. */
-    private static final Pattern LINK_HEAD = Pattern.compile(
-            "(?:(?:https?:)?//)?(?:www\\.)?(?:t\\.me|telegram\\.me|telegram\\.dog)/proxy|tg:(?://)?proxy",
-            Pattern.CASE_INSENSITIVE);
+    private static final String HEAD =
+            "(?:(?:https?:)?//)?(?:www\\.)?(?:t\\.me|telegram\\.me|telegram\\.dog)/proxy|tg:(?://)?proxy";
+    private static final Pattern LINK_HEAD = Pattern.compile(HEAD, Pattern.CASE_INSENSITIVE);
+    /**
+     * Where a link starts in a list, whatever comes before it on the line: a markdown "[name](", a
+     * bullet, another link (#78). Not in the middle of a longer host name.
+     */
+    private static final Pattern LINK_START = Pattern.compile("(?<![A-Za-z0-9.-])(?:" + HEAD + ")\\?", Pattern.CASE_INSENSITIVE);
+    /** The first character a link's value can't hold, where a list's ")__", "**", emoji or text after it starts. */
+    private static final Pattern VALUE_END = Pattern.compile("[^A-Za-z0-9._~%+/=-]");
+    /** A whole list sent as one block of base64, as some subscription lists are. */
+    private static final Pattern BASE64_LIST = Pattern.compile("[A-Za-z0-9+/_-]{16,}={0,2}");
     /** A host name: dot-separated labels, the last starting with a letter, so an address of numbers isn't one. */
     private static final Pattern HOST = Pattern.compile(
             "(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z](?:[a-z0-9-]{0,61}[a-z0-9])?");
@@ -329,9 +341,10 @@ public final class FreeProxies {
         }
         List<String> links = new ArrayList<>();
         for (Proxy proxy : fastest) links.add(proxy.link());
+        int read = listed.size();
         Utils.runOnMainThread(() -> {
             try {
-                place(links);
+                place(links, read);
             } finally {
                 finished();
             }
@@ -339,8 +352,12 @@ public final class FreeProxies {
         return true;
     }
 
-    /** Puts [links] in Telegram's list on the main thread and keeps what that came to. */
     static void place(List<String> links) {
+        place(links, 0);
+    }
+
+    /** Puts [links] in Telegram's list on the main thread and keeps what that came to, with how many proxies were [read]. */
+    static void place(List<String> links, int read) {
         Set<String> before = added();
         Set<String> after;
         try {
@@ -353,7 +370,7 @@ public final class FreeProxies {
         }
         int taken = 0;
         for (String link : links) if (after.contains(link)) taken++;
-        keep(taken == 0 ? Result.NOT_TAKEN : Result.ADDED, taken, after);
+        keep(taken == 0 ? Result.NOT_TAKEN : Result.ADDED, taken, read, after);
     }
 
     // ---- Lists ----------------------------------------------------------------------------------
@@ -439,16 +456,48 @@ public final class FreeProxies {
         return Stored.LISTS.saveCommitted(String.join("\n", lists));
     }
 
-    /** Every proxy link in [list] that reads, one per server and port, in the order they come. */
+    /**
+     * Every proxy link in [list] that reads, one per server and port, in the order they come. A link
+     * counts wherever it starts on a line, and a list that's one block of base64 is read decoded.
+     */
     static List<Proxy> parse(String list) {
         Map<String, Proxy> found = new LinkedHashMap<>();
-        for (String line : list.split("\\s+")) {
-            Proxy proxy = parseLink(line);
-            if (proxy != null && !found.containsKey(proxy.server + ":" + proxy.port)) {
-                found.put(proxy.server + ":" + proxy.port, proxy);
-            }
+        collect(list, found);
+        if (found.isEmpty()) {
+            String decoded = base64(list);
+            if (decoded != null) collect(decoded, found);
         }
         return new ArrayList<>(found.values());
+    }
+
+    /** The proxies of the links in [text] into [found], each running to the next space or the next link. */
+    private static void collect(String text, Map<String, Proxy> found) {
+        Matcher start = LINK_START.matcher(text);
+        int from = -1;
+        while (true) {
+            boolean more = start.find();
+            if (from >= 0) {
+                String link = text.substring(from, more ? start.start() : text.length()).split("\\s", 2)[0];
+                Proxy proxy = parseLink(link);
+                if (proxy != null && !found.containsKey(proxy.server + ":" + proxy.port)) {
+                    found.put(proxy.server + ":" + proxy.port, proxy);
+                }
+            }
+            if (!more) return;
+            from = start.start();
+        }
+    }
+
+    /** [text] decoded when it's nothing but base64 (either alphabet, spaces and line breaks allowed), or null. */
+    @Nullable
+    static String base64(String text) {
+        String packed = text.replaceAll("\\s+", "");
+        if (!BASE64_LIST.matcher(packed).matches()) return null;
+        try {
+            return new String(Base64.getDecoder().decode(packed.replace('-', '+').replace('_', '/')), StandardCharsets.UTF_8);
+        } catch (IllegalArgumentException notBase64) {
+            return null;
+        }
     }
 
     /** The proxy a t.me/proxy or tg://proxy link names, or null when it isn't one or names something that can't be. */
@@ -466,11 +515,16 @@ public final class FreeProxies {
             String key = pair.substring(0, equals);
             // A list copied out of a web page can keep its &amp; between the parameters.
             if (key.startsWith("amp;")) key = key.substring(4);
-            String value = decode(pair.substring(equals + 1));
+            String raw = pair.substring(equals + 1);
+            Matcher end = VALUE_END.matcher(raw);
+            if (end.find()) raw = raw.substring(0, end.start());
+            // A + in a secret is base64's, not the space a web form makes of it.
+            String value = decode(key.equals("secret") ? raw.replace("+", "%2B") : raw);
             if (value == null) return null;
-            if (key.equals("server")) server = value.toLowerCase(Locale.ROOT);
+            if (key.equals("server")) server = host(value);
             else if (key.equals("port")) port = value;
-            else if (key.equals("secret")) secret = value;
+            // Base64's + and / as the base64url Telegram reads, the same bytes.
+            else if (key.equals("secret")) secret = value.replace('+', '-').replace('/', '_');
         }
         if (server == null || port == null || secret == null) return null;
         if (!HOST.matcher(server).matches() && !IPV4.matcher(server).matches()) return null;
@@ -479,6 +533,12 @@ public final class FreeProxies {
         if (number < 1 || number > 65535) return null;
         if (secret.length() > MAX_SECRET || !SECRET.matcher(secret).matches()) return null;
         return new Proxy(server, number, secret);
+    }
+
+    /** A server in lower case, less the one dot a fully written name can end with. */
+    private static String host(String value) {
+        String host = value.toLowerCase(Locale.ROOT);
+        return host.endsWith(".") ? host.substring(0, host.length() - 1) : host;
     }
 
     @Nullable
@@ -598,10 +658,17 @@ public final class FreeProxies {
         return links;
     }
 
-    /** What the try found, in one go. [owned] is null when Telegram's list wasn't touched. */
     private static void keep(Result result, int count, @Nullable Set<String> owned) {
+        keep(result, count, 0, owned);
+    }
+
+    /**
+     * What the try found, in one go: the result, how many went in, then how many the lists had
+     * when that's known. [owned] is null when Telegram's list wasn't touched.
+     */
+    private static void keep(Result result, int count, int read, @Nullable Set<String> owned) {
         if (owned != null) Stored.ADDED.save(String.join("\n", owned));
-        Stored.RESULT.save(result.name() + " " + count);
+        Stored.RESULT.save(result.name() + " " + count + (read > 0 ? " " + read : ""));
         // Counts only: a proxy's address and secret stay out of the log.
         Logger.diagnosticInfo(DiagnosticCategory.SETTINGS, "FreeProxies", () -> "Free proxies: " + result + ", " + count + " in the list");
     }
@@ -611,7 +678,7 @@ public final class FreeProxies {
     /** What the Find free proxies now row says: a try on its way, or what the last one found. */
     public static String summary() {
         if (running.get()) return L10n.t("Looking for free proxies now.");
-        String[] last = Stored.RESULT.get().split(" ", 2);
+        String[] last = Stored.RESULT.get().split(" ");
         Result result = null;
         for (Result each : Result.values()) {
             if (each.name().equals(last[0])) result = each;
@@ -626,6 +693,10 @@ public final class FreeProxies {
         }
         switch (result) {
             case ADDED:
+                if (last.length > 2) {
+                    return L10n.f("Proxies added last time: %1$s of %2$s read. They're in Telegram's proxy list.",
+                            last[1], last[2]);
+                }
                 return L10n.f("Proxies added last time: %1$s. They're in Telegram's proxy list.",
                         last.length > 1 ? last[1] : 0);
             case NO_LIST:

@@ -44,9 +44,9 @@ class LegacyDrawerPatchTest {
 
     @Test fun factoryUsesFreshNativeModelsAndItsOwnCachedKeyAcrossAllFactoryMappings() {
         val profiles = controlProfiles.values.distinct()
-        // Most 586 builds make the Settings icon in place, as 582 and 584.1's armv7 build did. 585 called the icon's factory,
-        // as 347215273, 347215275 and 347215277 do again, a shape this test still gives each profile.
-        assertEquals(profiles.map { it !== PROFILE_347215273 }, profiles.map { legacyDrawerFixture(it).mapping.inlineIcon })
+        // Most 587 builds make the Settings icon in place, as 586's main builds did. 585 called the icon's factory,
+        // as 587's family B (347415280, 281, 284, 285) does again, a shape this test still gives each profile.
+        assertEquals(profiles.map { it !== PROFILE_347415280 }, profiles.map { legacyDrawerFixture(it).mapping.inlineIcon })
         for (profile in profiles) {
             val fixture = legacyDrawerFixture(profile, inlineIcon = false)
             val before = fixture.methods.map { it.implementation?.instructions?.toList() }
@@ -84,8 +84,8 @@ class LegacyDrawerPatchTest {
             assertFailsWith<PatchException> { plan(unrelated, profile) }
             assertEquals(before, unrelated.methods.map { it.implementation?.instructions?.toList() })
         }
-        // Only 586's other arm64 builds put the factory on the icon's parent, FAF.A00 returning FBV.
-        assertEquals(listOf(PROFILE_347215273), controlProfiles.values.distinct().filter { legacyDrawerFixture(it).mapping.iconFactoryOnBase })
+        // Only 587's family B puts the factory on the icon's parent, Iov.A00 returning IIa.
+        assertEquals(listOf(PROFILE_347415280), controlProfiles.values.distinct().filter { legacyDrawerFixture(it).mapping.iconFactoryOnBase })
     }
 
     @Test fun anInlineSettingsIconUsesItsOwnConstructorAndKeepsTheFactoryUnused() {
@@ -131,11 +131,23 @@ class LegacyDrawerPatchTest {
         assertEquals(Opcode.IPUT_OBJECT, code[5].opcode)
     }
 
+    /** 587 null-checks the model arguments through one-argument wrappers around the same (Object, I) check. */
+    @Test fun a587WrappedNullCheckBuildsTheSameFactory() {
+        for (profile in controlProfiles.values.distinct()) {
+            val fixture = legacyDrawerFixture(profile, "wrapped", inlineIcon = false)
+            val before = fixture.methods.map { it.implementation?.instructions?.toList() }
+            val allocations = plan(fixture, profile).factory.implementation!!.instructions
+                .filter { it.opcode == Opcode.NEW_INSTANCE }.map { (it as ReferenceInstruction).reference.toString() }
+            assertEquals(listOf(SETTINGS_KEY, DRAWER_METADATA, fixture.mapping.row, fixture.mapping.section), allocations)
+            assertEquals(before, fixture.methods.map { it.implementation?.instructions?.toList() }, "Preflight edited a source")
+        }
+    }
+
     @Test fun unsupportedNativeContractsAreRefusedWithoutEditingAnyMethod() {
         val common = listOf("refresh-result", "refresh-owner", "refresh-duplicate", "refresh-incoming", "refresh-registers",
             "provider", "fragment", "row-field", "row-store", "glyph",
             "key-constructor", "key-equality", "map-store", "section-store", "section-kind", "section-branch",
-            "factory", "cache-helper", "append-helper")
+            "factory", "cache-helper", "append-helper", "wrapped-work", "wrapped-order", "wrapped-slot")
         val factoryOnly = listOf("icon-origin", "icon-return", "icon-shared")
         val inlineOnly = listOf("inline-icon-missing-ctor", "inline-icon-constructor", "inline-icon-type", "inline-icon-color")
         for (profile in controlProfiles.values.distinct()) for (inline in listOf(false, true)) {
@@ -159,10 +171,12 @@ class LegacyDrawerPatchTest {
         val common = listOf("refresh-result", "refresh-owner", "refresh-duplicate", "refresh-incoming", "refresh-registers",
             "provider", "fragment", "row-field", "row-store", "glyph",
             "key-constructor", "key-equality", "map-store", "section-store", "section-kind", "section-branch",
-            "check-missing", "check-side-effect", "check-parameter", "check-access", "check-target") +
+            "check-missing", "check-side-effect", "check-parameter", "check-access", "check-target",
+            "wrapped-work", "wrapped-order", "wrapped-slot") +
             listOf("row", "section", "icon", "map", "key").flatMap { kind -> listOf("$kind-abstract", "$kind-interface") }
         for (profile in controlProfiles.values.distinct()) for (inline in listOf(false, true)) {
             assertEquals(emptyList(), problems(legacyDrawerFixture(profile, inlineIcon = inline), profile), "$profile inline=$inline")
+            assertEquals(emptyList(), problems(legacyDrawerFixture(profile, "wrapped", inlineIcon = inline), profile), "$profile wrapped")
             if (!inline) {
                 assertEquals(emptyList(), problems(legacyDrawerFixture(profile, inlineIcon = false, iconFactoryOn = "base"), profile), "$profile base")
                 assertTrue(problems(legacyDrawerFixture(profile, inlineIcon = false, iconFactoryOn = "dispatcher"), profile).isNotEmpty(), "$profile dispatcher")

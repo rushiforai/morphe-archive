@@ -38,6 +38,7 @@ val hideMyTownIntroPatch = bytecodePatch(
     name = "Hide My Town intro",
     description = "Removes the \"Meet My Town\" pop-up, the My Town tooltip, and the tab's \"new\" badge.",
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

@@ -2013,7 +2013,6 @@ Yerel oynatma listesi indirme düğmesini göstermek için \'Uygulama sürümün
     <string name="revanced_preference_screen_misc_title">Diğer Ayarlar</string>
     <string name="revanced_preference_screen_navigation_bar_summary">Gezinme çubuğu bölümü bileşenlerini gizleyin veya gösterin</string>
     <string name="revanced_preference_screen_navigation_bar_title">Gezinme çubuğu</string>
-    <string name="revanced_preference_screen_patch_information_summary">Uygulanmış Yamalar Hakkında Bilgi</string>
     <string name="revanced_preference_screen_player_buttons_summary">Videolardaki düğmeleri gizle veya göster</string>
     <string name="revanced_preference_screen_player_buttons_title">Oynatıcı butonları</string>
     <string name="revanced_preference_screen_player_flyout_menu_summary">Video oynatıcıdaki açılır menüyü gizleyin veya değiştirin</string>

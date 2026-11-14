@@ -544,6 +544,24 @@ public final class PinDownloads {
                     DownloadManager manager = (DownloadManager) app.getSystemService(Context.DOWNLOAD_SERVICE);
                     if (manager == null) throw new IllegalStateException("Download service unavailable");
                     String folder = DownloadFolder.current();
+                    if (chosen.stream) {
+                        // Android's Downloads can't fetch a stream, so HushPinterest saves it (#27).
+                        if (!InAppDownloads.online(app)) {
+                            HookStatus.counted(FamilyNames.DOWNLOAD_PINS, "stream download refused network");
+                            if (after == null) {
+                                Utils.showToastLong(L10n.t("Your download settings block this network. Try again on Wi-Fi."));
+                            }
+                            report(after, Result.FAILED);
+                            return;
+                        }
+                        if (!InAppDownloads.stream(app, id, chosen, folder, after == null)) {
+                            throw new IllegalStateException("Download history unavailable");
+                        }
+                        HookStatus.counted(FamilyNames.DOWNLOAD_PINS, "stream download started");
+                        report(after, Result.QUEUED);
+                        if (after == null) Utils.showToastLong(startedMessage(true, folder));
+                        return;
+                    }
                     long request = manager.enqueue(request(chosen, fileName(id, chosen), folder));
                     if (request < 0) throw new IllegalStateException("Download service rejected pin");
                     boolean tracked = DownloadLedger.record(app, request, id, folder);
@@ -567,7 +585,7 @@ public final class PinDownloads {
         }
     }
 
-    private static String fileName(String id, PinMedia.Source source) {
+    static String fileName(String id, PinMedia.Source source) {
         return "Pinterest_" + id + "_" + Long.toUnsignedString(System.nanoTime()) + source.suffix;
     }
 

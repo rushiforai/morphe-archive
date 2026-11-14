@@ -3,6 +3,7 @@ package app.hushmessenger.patches.controls
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
@@ -23,9 +24,8 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
  */
 internal const val RESTRICTED_NOTIFY = "restricted_notify"
 
-/** The coroutine body of MsysNotificationParser's getThreadLevelResult, which keeps its name on every build. */
-internal const val THREAD_LEVEL_RESULT =
-    "Lcom/facebook/messaging/msys/pushnotifications/protobufparsing/MsysNotificationParser\$getThreadLevelResult\$2;"
+/** What the thread check fails with when it can't load the chat or its sender, which names it on every build. */
+private val FETCH_FAILURES = setOf("thread_summary_fetch_failed", "sender_user_fetch_failed")
 
 /** The folder enum's constant names, which its initializer hands to the enum constructor. */
 internal const val RESTRICTED_FOLDER = "RESTRICTED"
@@ -66,13 +66,22 @@ private fun List<Instruction>.folderChecks(folder: Int, type: String): Map<Int, 
     }.toMap()
 
 /**
+ * The coroutine body of MsysNotificationParser's getThreadLevelResult: an instance invokeSuspend(Object)Object that fails
+ * with both [FETCH_FAILURES]. Up to 586 it was a class of its own, getThreadLevelResult$2. 587 merges it with unrelated
+ * coroutines into one class that switches on which of them it runs, so only its strings still name it.
+ */
+internal fun Method.isThreadCheck(): Boolean = name == "invokeSuspend" && !AccessFlags.STATIC.isSet(accessFlags) &&
+    returnType == "Ljava/lang/Object;" && parameterTypes.map { it.toString() } == listOf("Ljava/lang/Object;") &&
+    implementation?.instructions?.mapNotNull { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string }
+        .orEmpty().containsAll(FETCH_FAILURES)
+
+/**
  * The one `iget-object vF, vS, ThreadSummary->field` whose folder the check then compares with two or more constants of
  * the field's own type, with nothing writing vF again before the last of them. Nothing can land on the instruction
  * after the read, so every path that reads the folder goes through a guard placed there.
  */
 internal fun Method.folderRead(): FolderRead? {
-    if (definingClass != THREAD_LEVEL_RESULT || name != "invokeSuspend" || returnType != "Ljava/lang/Object;" ||
-        parameterTypes.map { it.toString() } != listOf("Ljava/lang/Object;")) return null
+    if (!isThreadCheck()) return null
     val code = implementation?.instructions?.toList() ?: return null
     val reads = code.indices.mapNotNull { at ->
         if (code[at].opcode != Opcode.IGET_OBJECT) return@mapNotNull null
@@ -123,8 +132,7 @@ internal fun ClassDef.enumConstantFields(): Map<String, String> {
  * the app's one class of that type, an enum.
  */
 internal fun findRestrictedNotify(classes: Iterable<ClassDef>): List<Method> {
-    val gate = classes.filter { it.type == THREAD_LEVEL_RESULT }.flatMap { it.methods }.filter { it.name == "invokeSuspend" }
-        .singleOrNull() ?: return emptyList()
+    val gate = classes.flatMap { it.methods }.filter { it.isThreadCheck() }.singleOrNull() ?: return emptyList()
     val read = gate.folderRead() ?: return emptyList()
     val folders = classes.filter { it.type == read.type }.singleOrNull()?.enumConstantFields() ?: return emptyList()
     val restricted = folders[RESTRICTED_FOLDER] ?: return emptyList()

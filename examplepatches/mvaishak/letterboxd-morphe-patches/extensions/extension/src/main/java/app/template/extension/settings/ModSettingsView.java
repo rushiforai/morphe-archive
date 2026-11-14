@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
+import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -55,6 +56,10 @@ final class ModSettingsView extends ScrollView {
     private TextView homeTabsValue;
 
     ModSettingsView(Context context) {
+        this(context, false);
+    }
+
+    ModSettingsView(Context context, boolean guide) {
         super(context);
         this.ctx = context;
         this.density = context.getResources().getDisplayMetrics().density;
@@ -69,12 +74,40 @@ final class ModSettingsView extends ScrollView {
         addView(column, new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT));
 
+        if (guide) {
+            FeatureGuide.populate(this);
+            return;
+        }
+
         boolean themeAvailable = ModTheme.isSupported();
 
         boolean materialYouActive = ctx.getResources().getIdentifier(
                 "morphe_my_surface", "color", ctx.getPackageName()) != 0;
 
-        header("Theme");
+        header("Appearance");
+        if (ProfileBadge.available()) {
+            LinearLayout row = (LinearLayout) actionRow("Profile badge",
+                    "Choose the badge you see on your profile",
+                    () -> new ProfileBadgeDialog(ctx, accent).show());
+            int icon = ctx.getResources().getIdentifier("chevron_right", "drawable", ctx.getPackageName());
+            if (icon != 0) {
+                android.widget.ImageView arrow = new android.widget.ImageView(ctx);
+                arrow.setImageResource(icon);
+                arrow.setColorFilter(0xFF99AABB);
+                arrow.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+                row.addView(arrow, new LinearLayout.LayoutParams(dp(22), dp(22)));
+            }
+            column.addView(row);
+        }
+        if (app.template.extension.artwork.ArtworkHooks.available() && ctx instanceof ModSettingsActivity) {
+            column.addView(actionRow("Artwork & appearance", "Posters, backdrops, and TMDB connection",
+                    () -> ArtworkUi.settings((ModSettingsActivity) ctx)));
+        }
+        if (Prefs.adultPostersAvailable()) {
+            column.addView(toggleRow("Show adult posters", "Use unblurred posters for adult films when available",
+                    Prefs.KEY_SHOW_ADULT_POSTERS, false, true));
+        }
+
         if (!themeAvailable) {
             column.addView(disabledRow("Pure black (OLED)", "Needs Android 12 or newer", null));
         } else if (materialYouActive) {
@@ -96,6 +129,9 @@ final class ModSettingsView extends ScrollView {
             column.addView(oledRow);
         }
 
+        if (themeAvailable) column.addView(accentRow());
+
+        header("Navigation");
         if (materialYouActive) {
             column.addView(disabledRow("Match bottom nav to top bar", "Disabled — tap to find out why",
                     materialYouConflictExplainer()));
@@ -106,7 +142,6 @@ final class ModSettingsView extends ScrollView {
         }
 
         if (themeAvailable) {
-            column.addView(accentRow());
             column.addView(choiceRow("Bottom nav selected style", null,
                     labelFor(NAV_LABELS, NAV_VALUES, Prefs.getString(Prefs.KEY_NAV_INDICATOR, "stock")),
                     new Runnable() {
@@ -122,7 +157,6 @@ final class ModSettingsView extends ScrollView {
                     }));
         }
 
-        header("Bottom navigation");
         column.addView(choiceRow("Shown items", "Which destinations the bottom bar shows",
                 navSummary(),
                 new Runnable() {
@@ -151,7 +185,7 @@ final class ModSettingsView extends ScrollView {
                     }
                 }));
 
-        header("Home");
+        header("Home Screen");
         column.addView(choiceRow("Home tabs", "Which section tabs the home screen shows, and their order",
                 homeTabsSummary(),
                 new Runnable() {
@@ -164,17 +198,26 @@ final class ModSettingsView extends ScrollView {
                         }).show();
                     }
                 }));
+        if (Prefs.hasSponsoredSpotlightControl()) {
+            column.addView(toggleRow("Hide sponsored Spotlight",
+                    "Hide the sponsored featured trailer on the Films tab",
+                    Prefs.KEY_HIDE_SPONSORED_SPOTLIGHT, true, true));
+        }
         column.addView(toggleRow("Hide Video Store",
                 "Remove the Video Store promo row from the Films tab",
                 Prefs.KEY_HIDE_VIDEO_STORE, false, true));
+        header("Film Pages");
         column.addView(toggleRow("Hide Where to Watch",
                 "Remove the \"Where to watch\" section from a film's page",
                 Prefs.KEY_HIDE_WHERE_TO_WATCH, false, false));
+        if (app.template.extension.trivia.ImdbTrivia.available()) {
+            column.addView(toggleRow("IMDb trivia", "Show a Trivia tab on film pages",
+                    Prefs.KEY_IMDB_TRIVIA, true, false));
+        }
         column.addView(toggleRow("Runtime as 1h 47m",
                 "Show a film's runtime in hours and minutes instead of \"107 mins\"",
                 Prefs.KEY_RUNTIME_HHMM, true, false));
 
-        header("Streaming");
         final PillToggle openInPlayer = new PillToggle(ctx);
         column.addView(toggleRow(openInPlayer, "Open in player",
                 "Opens the film in streaming apps like Stremio or Nuvio",
@@ -204,7 +247,7 @@ final class ModSettingsView extends ScrollView {
             }
         });
 
-        header("Ratings");
+        header("Ratings & Spoilers");
         final PillToggle hideRatings = new PillToggle(ctx);
         column.addView(toggleRow(hideRatings, "Hide ratings until watched",
                 "Cover a film's community rating until you mark it watched",
@@ -277,23 +320,35 @@ final class ModSettingsView extends ScrollView {
             }
         });
 
-        header("Backup");
-        column.addView(actionRow("Export settings",
-                "Save your mod config to a file to share or keep",
+        header("Backup & Reset");
+        column.addView(actionRow("Export Mods backup",
+                "Save settings and custom artwork to a file",
                 new Runnable() {
                     @Override public void run() {
                         if (ctx instanceof ModSettingsActivity) ((ModSettingsActivity) ctx).pickExport();
                     }
                 }));
-        column.addView(actionRow("Import settings",
-                "Load a config file. Merges over your current settings",
+        column.addView(actionRow("Import Mods backup",
+                "Restore settings and fill empty artwork slots",
                 new Runnable() {
                     @Override public void run() {
                         if (ctx instanceof ModSettingsActivity) ((ModSettingsActivity) ctx).pickImport();
                     }
                 }));
 
-        header("About");
+        if (ctx instanceof ModSettingsActivity) {
+            ModSettingsActivity activity = (ModSettingsActivity) ctx;
+            column.addView(actionRow("Reset settings", "Restore the default Mods preferences",
+                    () -> activity.confirmReset(false)));
+            column.addView(actionRow("Reset all Morphe data", "Delete Mods preferences, artwork, and credentials",
+                    () -> activity.confirmReset(true)));
+        }
+
+        header("Help & About");
+        if (ctx instanceof ModSettingsActivity) {
+            column.addView(actionRow("Feature Guide", "How to use the patches and answers to common questions",
+                    ((ModSettingsActivity) ctx)::openFeatureGuide));
+        }
         column.addView(linkRow("Source and releases",
                 "github.com/mvaishak/letterboxd-morphe-patches",
                 "https://github.com/mvaishak/letterboxd-morphe-patches"));
@@ -303,6 +358,14 @@ final class ModSettingsView extends ScrollView {
         column.addView(linkRow("Full changelog",
                 "Every past release, with dates and version numbers",
                 "https://github.com/mvaishak/letterboxd-morphe-patches/blob/main/CHANGELOG.md"));
+    }
+
+    void guideEntry(String title, String description) {
+        LinearLayout row = new LinearLayout(ctx);
+        row.setOrientation(LinearLayout.VERTICAL);
+        row.setPadding(0, dp(8), 0, dp(10));
+        row.addView(titleBlock(title, description));
+        column.addView(row);
     }
 
     private View actionRow(String title, String subtitle, final Runnable onClick) {
@@ -320,7 +383,7 @@ final class ModSettingsView extends ScrollView {
 
         TextView open = new TextView(ctx);
         open.setText("↗");
-        open.setTextColor(accent);
+        open.setTextColor(AccentPresets.readableText(accent, SurfaceColors.background(ctx)));
         open.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f);
         open.setGravity(Gravity.CENTER_VERTICAL);
         row.addView(open);
@@ -339,10 +402,10 @@ final class ModSettingsView extends ScrollView {
 
     // --- rows -----------------------------------------------------------
 
-    private void header(String text) {
+    void header(String text) {
         TextView tv = new TextView(ctx);
         tv.setText(text.toUpperCase());
-        tv.setTextColor(accent);
+        tv.setTextColor(AccentPresets.readableText(accent, SurfaceColors.background(ctx)));
         tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f);
         tv.setTypeface(tv.getTypeface(), Typeface.BOLD);
         tv.setLetterSpacing(0.08f);
@@ -365,6 +428,7 @@ final class ModSettingsView extends ScrollView {
         row.addView(titleBlock(title, subtitle), textLp());
 
         toggle.setAccent(accent);
+        toggle.setContentDescription(title);
         toggle.setChecked(Prefs.getBoolean(key, def), false);
         LinearLayout.LayoutParams tlp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -391,7 +455,10 @@ final class ModSettingsView extends ScrollView {
         v.setText(value);
         v.setTextColor(0xFFB0B0B0);
         v.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f);
-        v.setGravity(Gravity.CENTER_VERTICAL);
+        v.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
+        v.setMaxWidth((ctx.getResources().getDisplayMetrics().widthPixels - dp(40)) * 2 / 5);
+        v.setMaxLines(2);
+        v.setEllipsize(TextUtils.TruncateAt.END);
         row.addView(v);
         if (title.equals("Cover")) revealValue = v;
         else if (title.equals("Reveal animation")) animationValue = v;

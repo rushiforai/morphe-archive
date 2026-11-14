@@ -10,6 +10,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import semicoloncolonel.mobilestream.patches.dealseek.shared.Constants
+import semicoloncolonel.mobilestream.patches.shared.links.routeLinksThroughCleaner
 
 private const val LINK_CLEANER =
     "Lsemicoloncolonel/mobilestream/extension/dealseek/links/DealSeekLinkCleaner;"
@@ -27,7 +28,8 @@ private const val LINK_CLEANER =
 //                          eBay, Wayfair and Target.
 //   openBrowserAsync       expo-web-browser's custom tab: Best Buy.
 //
-// DealSeekLinkCleaner has the link shapes and the rewrite rules. The deal
+// DealSeekLinkCleaner has the link shapes and the rewrite rules. The shared
+// AffiliateLinkCleaner also cleans links shared or copied from the app. The deal
 // opens at the store's own URL, so DealSeek's click log (which carries the
 // PostHog user ID) and the affiliate networks are skipped.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -60,6 +62,7 @@ val stripAffiliateLinksPatch = bytecodePatch(
     name = "Strip affiliate links",
     description = "Opens each deal at the store's own page, without click tracking or affiliate tags.",
 ) {
+    category("Privacy")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")
@@ -91,5 +94,9 @@ val stripAffiliateLinksPatch = bytecodePatch(
             }
         }
         if (replaced == 0) throw PatchException("No Uri.parse call in the web browser module")
+
+        // The shared cleaner covers what the two calls above do not: links
+        // shared or copied from the app, and any other outbound intent.
+        routeLinksThroughCleaner()
     }
 }

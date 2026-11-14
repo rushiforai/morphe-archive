@@ -38,9 +38,10 @@ import app.hushpinterest.extension.shared.Logger;
 /**
  * HEAD requests for downloads and Plain pin links: whether the media host has an original behind a
  * supplied size, and where a pin.it short link leads. Neither follows a redirect or reads a body,
- * and neither carries a cookie ({@link NoCookies}). The downloads themselves go through Android's
- * DownloadManager. Media details' Check the file adds one GET for the start of a file, with the
- * same limits and a bounded read ({@link #prefix}).
+ * and neither carries a cookie ({@link NoCookies}). Downloads go through Android's DownloadManager,
+ * except the ones {@link InAppDownloads} saves itself with a whole-file GET ({@link #fetch}). Media
+ * details' Check the file adds one GET for the start of a file, with the same limits and a bounded
+ * read ({@link #prefix}).
  */
 public final class PinTransfer {
     private PinTransfer() {}
@@ -229,6 +230,28 @@ public final class PinTransfer {
      */
     static Fetched fetch(PinMedia.Source source, java.io.File into, long maxBytes, java.util.function.Predicate<String> typeOk,
                          Connection factory, LongSupplier clock, long budgetMs) throws IOException {
+        return fetch(source, new Sink() {
+            @Override public java.io.OutputStream open() throws IOException {
+                return new java.io.FileOutputStream(into);
+            }
+
+            @Override public void discard() {
+                if (!into.delete() && into.exists()) into.deleteOnExit();
+            }
+        }, maxBytes, typeOk, factory, clock, budgetMs);
+    }
+
+    /** Where a whole-file GET writes its body. */
+    interface Sink {
+        java.io.OutputStream open() throws IOException;
+
+        /** Throws away what was written: the body failed part way or was refused. */
+        void discard();
+    }
+
+    /** {@link #fetch} into a [into] the caller supplies, such as a MediaStore entry (Download pins). */
+    static Fetched fetch(PinMedia.Source source, Sink into, long maxBytes, java.util.function.Predicate<String> typeOk,
+                         Connection factory, LongSupplier clock, long budgetMs) throws IOException {
         URI uri = PinMedia.mediaUri(source.url);
         if (uri == null) throw new IOException("Not a public Pinterest media URL");
         long deadline = clock.getAsLong() + budgetMs;
@@ -241,7 +264,7 @@ public final class PinTransfer {
                 throw new IOException("The media host encoded the file");
             }
             boolean kept = false;
-            try (InputStream body = get.getInputStream(); java.io.OutputStream out = new java.io.FileOutputStream(into)) {
+            try (InputStream body = get.getInputStream(); java.io.OutputStream out = into.open()) {
                 byte[] buffer = new byte[16384];
                 long total = 0;
                 while (true) {
@@ -255,7 +278,7 @@ public final class PinTransfer {
                 kept = true;
                 return new Fetched(status, type, total);
             } finally {
-                if (!kept && !into.delete() && into.exists()) into.deleteOnExit();
+                if (!kept) into.discard();
             }
         });
     }

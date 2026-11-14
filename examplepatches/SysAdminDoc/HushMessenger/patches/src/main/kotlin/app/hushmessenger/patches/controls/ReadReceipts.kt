@@ -195,18 +195,13 @@ internal class ReplyReadShape(
 )
 
 /**
- * Messenger 586's arm64 dispatcher, 397 instructions in a 36-register frame. The composer is copied to v20, the staging
- * sits four before the dispatch and the dispatch's first String comes to v15 from v18.
+ * Messenger 587's dispatcher, 398 instructions in a 36-register frame on every build. The composer is copied to v20,
+ * the staging sits four before the dispatch and the dispatch's first String comes to v15 from v18. 586's sat two sooner
+ * (its inbox tag was a plain const-string where 587 reads it from the string pool) and its family B two sooner again.
  */
-internal val REPLY_READ_SHAPE = ReplyReadShape(sizes = setOf(397), composer = 10, session = 20, nullThread = 26, absent = 71, dispatch = 236, composerReg = 20, stage = 4)
+internal val REPLY_READ_SHAPE = ReplyReadShape(sizes = setOf(398), composer = 10, session = 20, nullThread = 26, absent = 71, dispatch = 238, composerReg = 20, stage = 4)
 
-/**
- * 586's family B builds (347215273, 275 and 277): the same dispatcher, but it reads the thread's id String in one call
- * where 347215348 takes its long and converts it, so the body is two shorter and the dispatch sits at 234.
- */
-internal val REPLY_READ_SHAPE_FAMILY_B = ReplyReadShape(sizes = setOf(395), composer = 10, session = 20, nullThread = 26, absent = 71, dispatch = 234, composerReg = 20, stage = 4)
-
-internal val REPLY_READ_SHAPES = listOf(REPLY_READ_SHAPE, REPLY_READ_SHAPE_FAMILY_B)
+internal val REPLY_READ_SHAPES = listOf(REPLY_READ_SHAPE)
 
 /** The known shape a dispatcher of this body size and frame has, or null. */
 private fun MutableMethod.replyReadShape(size: Int) =

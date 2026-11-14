@@ -25,6 +25,7 @@ val hideBettingOddsPatch = bytecodePatch(
     description = "Removes the betting-odds section from the scores sheet.",
     default = false,
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

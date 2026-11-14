@@ -27,6 +27,7 @@ val removeSocialSignInPatch = bytecodePatch(
     name = "Remove social sign-in",
     description = "Removes the Continue with Google sign-in option.",
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

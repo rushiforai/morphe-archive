@@ -300,6 +300,9 @@ Still scroll reels from Search and Explore	Arama ve Keşfet'ten açılan reel'le
 With Stop Reels scrolling on, reels you open from Search, Explore, a hashtag or a place still move on when you swipe.	Reels'te kaydırmayı durdur açıkken, Arama, Keşfet, bir hashtag veya bir yerden açtığın reel'ler kaydırınca yine ilerler.
 Still scroll reels from a song page	Şarkı sayfasından açılan reel'lerde kaydırmaya devam et
 With Stop Reels scrolling on, reels you open from a song or audio page still move on when you swipe.	Reels'te kaydırmayı durdur açıkken, bir şarkı veya ses sayfasından açtığın reel'ler kaydırınca yine ilerler.
+# context: Reels page, a switch of its own after the three above (#656). It names the Messages page switch Swipe through a chat's reels by its label.
+Play only the reel you opened	Yalnızca açtığın reel'i oynat
+A reel you open from a post on Home, a suggested reels row or a message plays on its own. Swiping, pulling down and auto scroll won't move on to another reel, so it plays again when it ends. The Reels tab scrolls as usual. With Swipe through a chat's reels on, a chat's reels still swipe.	Ana sayfadaki bir gönderiden, önerilen reels satırından veya bir mesajdan açtığın reel tek başına oynar. Kaydırmak, aşağı çekmek ve otomatik kaydırma başka bir reel'e geçmez, bu yüzden bitince yeniden oynar. Reels sekmesi her zamanki gibi kayar. Bir sohbetin reels videolarında kaydır açıkken, bir sohbetin reel'leri yine kaydırılır.
 A swipe in Reels no longer moves on to the next reel, and pulling down doesn't load new ones. The reel you opened still plays. Restart Instagram to see the change.	Reels'te kaydırmak artık sonraki reels'e geçmez, aşağı çekmek de yenilerini yüklemez. Açtığın reels oynamaya devam eder. Değişikliği görmek için Instagram'ı yeniden başlat.
 Lock a reel at 2x (hold its edge, then slide down) and the next reels play at 2x too. Slide the lock off, or hold the edge and let go, to go back to normal speed.	Bir reel'i 2x'te kilitle (kenarını basılı tut, sonra aşağı kaydır), sonraki reels'ler de 2x oynar. Normal hıza dönmek için kilidi kaydırıp kaldır ya da kenarı basılı tutup bırak.
 Open links in external browser	Bağlantıları harici tarayıcıda aç
@@ -338,6 +341,9 @@ Hide the Explore grid	Keşfet ızgarasını gizle
 Hides the grid of posts and reels under the Search tab's bar. Search, recent searches and results stay.	Arama sekmesindeki çubuğun altındaki gönderi ve reels ızgarasını gizler. Arama, son aramalar ve sonuçlar kalır.
 Hide suggested accounts in search	Aramada önerilen hesapları gizle
 Leaves the Suggested for you accounts out of what shows when you tap the search bar. Recent searches stay.	Arama çubuğuna dokunduğunda çıkan Senin için önerilen hesapları kaldırır. Son aramalar kalır.
+# context: You may also like is the header Instagram's server puts on the recommended posts after search results; it isn't a fixed string in the app, so the rows describe it.
+Hide You may also like in search	Arama sonuçlarındaki önerileri gizle
+Leaves out the You may also like posts Instagram adds below your search results. The results you searched for stay.	Instagram'ın arama sonuçlarının altına eklediği önerilen gönderileri kaldırır. Aradığın sonuçlar kalır.
 Messages	Mesajlar
 Hide the notes row	Notlar satırını gizle
 Takes the row of notes off the top of your messages, the Map bubble in it too. Your chats, search and requests stay.	Mesajlarının üst kısmındaki notlar satırını, içindeki Harita balonuyla birlikte kaldırır. Sohbetlerin, arama ve istekler kalır.
@@ -514,6 +520,9 @@ Reply with a comment's GIF	Yorumun GIF'iyle yanıtla
 When a comment has a GIF, its menu gets a GIF reply that sends that same GIF back as your reply, animated.	Bir yorumda GIF varsa menüsüne, aynı GIF'i animasyonlu olarak yanıtın olarak gönderen bir GIF yanıtı eklenir.
 Show a comment GIF's name	Yorumdaki GIF'in adını göster
 When a comment has a GIF or sticker, its menu shows its name. Tap the name to copy it.	Bir yorumda GIF veya çıkartma varsa menüsünde adı görünür. Kopyalamak için ada dokun.
+Send saved GIFs as GIFs	Kaydedilen GIF'leri GIF olarak gönder
+A comment GIF you saved with Save comment photo, picked from your gallery in the comment box, goes up right away as the same GIF, animated. Other pictures go up as before.	Yorum fotoğrafını kaydet ile kaydettiğin bir yorum GIF'ini yorum kutusunda galeriden seçersen, aynı GIF hareketli olarak hemen paylaşılır. Diğer resimler eskisi gibi yüklenir.
+Couldn't send this GIF	Bu GIF gönderilemedi
 GIF name	GIF adı
 GIF name copied	GIF adı kopyalandı
 Couldn't copy the GIF name	GIF adı kopyalanamadı
@@ -767,7 +776,7 @@ Ask before a refresh	Yenilemeden önce sor
 Continue	Devam et
 Like or unlike this post?	Bu gönderiyi beğen veya beğenmekten vazgeç?
 Like or unlike this comment?	Bu yorumu beğen veya beğenmekten vazgeç?
-Asks before pulling down refreshes Home, Reels or another list. Cancel keeps what's on screen.	Aşağı çekmenin Ana Sayfa'yı, Reels'i veya başka bir listeyi yenilemesinden önce sorar. İptal, ekrandakini korur.
+Asks before a pull down or another tap on its tab refreshes Home, Reels or another list. Cancel keeps what's on screen.	Aşağı çekmenin veya sekmesine yeniden dokunmanın Ana Sayfa'yı, Reels'i veya başka bir listeyi yenilemesinden önce sorar. İptal, ekrandakini korur.
 Skip the collections tray	Koleksiyonlar panelini atla
 Saving a post or reel shows Instagram's Saved message instead of the tray that asks you to start a collection.	Bir gönderiyi veya Reels videosunu kaydettiğinde, koleksiyon oluşturmanı isteyen panel yerine Instagram yalnızca kaydedildiğini söyleyen mesajı gösterir.
 Refresh	Yenile
@@ -981,7 +990,12 @@ Chat %1$s	Sohbet %1$s
 Hidden chats	Gizli sohbetler
 Hide single chats. A hidden chat leaves your inbox and its notifications don't post until you show it here again.	Sohbetleri tek tek gizleyin. Gizlenen sohbet gelen kutunuzdan kalkar ve burada yeniden gösterene kadar bildirimleri gelmez.
 Double-tap Messages for hidden chats	Gizli sohbetler için Mesajlar'a çift dokun
-Two quick taps on the Messages button, on the tab bar or at the top of Home, open your hidden chats. While a lock is on, it asks for it first. One tap opens Messages as usual.	Sekme çubuğundaki veya Ana Sayfa'nın üstündeki Mesajlar düğmesine hızlıca iki kez dokunmak gizli sohbetlerini açar. Bir kilit açıksa önce onu sorar. Tek dokunuş Mesajlar'ı her zamanki gibi açar.
+Two quick taps on the Messages button, on the tab bar or at the top of Home, show your hidden chats in your inbox after your screen lock or PIN. Two more taps hide them again. Long press a chat to hide or unhide it. One tap opens Messages as usual.	Sekme çubuğundaki veya Ana Sayfa'nın üstündeki Mesajlar düğmesine hızlıca iki kez dokunmak, ekran kilidi veya PIN'den sonra gizli sohbetlerini gelen kutunda gösterir. İki dokunuş daha onları yeniden gizler. Bir sohbeti gizlemek veya yeniden göstermek için ona uzun bas. Tek dokunuş Mesajlar'ı her zamanki gibi açar.
+# context: Hide chat and Unhide chat in a chat's long press menu in the inbox (#661), and the toasts when two quick taps on Messages show the hidden chats in the inbox or hide them again
+Hide chat	Sohbeti gizle
+Unhide chat	Sohbeti göster
+Showing your hidden chats	Gizli sohbetler gösteriliyor
+Hidden chats locked again	Gizli sohbetler yeniden kilitlendi
 Open a chat in Instagram, then come back here to hide it.	Instagram'da bir sohbet açın, sonra gizlemek için buraya dönün.
 Pinned chats	Sabitlenen sohbetler
 Keeps the chats you pick at the top of your inbox. The pins stay on this phone, and Instagram's own order holds for every other chat.	Seçtiğin sohbetleri gelen kutusunun en üstünde tutar. Sabitlemeler yalnızca bu telefonda kalır, diğer sohbetler Instagram'ın sırasını korur.
@@ -1181,6 +1195,10 @@ Pick friends	Arkadaş seç
 Open the Friends tab first.	Önce Arkadaşlar sekmesini aç.
 No friends to pick yet.	Henüz seçilecek arkadaş yok.
 Applies to the next reels loaded.	Sonraki yüklenen reellere uygulanır.
+Hide the Like button on reels	Reels'te Beğen düğmesini gizle
+Takes the heart out of the column of buttons beside a reel, and the like count under it. Double tap still likes a reel.	Kalbi reel'in yanındaki düğme sütunundan ve altındaki beğeni sayısını kaldırır. Çift dokunarak reel'i yine beğenebilirsin.
+Hide the Comment button on reels	Reels'te Yorum düğmesini gizle
+Takes the Comment button out of the column of buttons beside a reel, and the count under it. The comment bar under a reel has its own switch.	Yorum düğmesini reel'in yanındaki düğme sütunundan ve altındaki sayıyı kaldırır. Reel'in altındaki yorum çubuğunun kendi anahtarı var.
 Hide the Save button on reels	Reels'te Kaydet düğmesini gizle
 Burn-in guard	Ekran yanığı koruması
 Dim when idle	Boştayken karart
@@ -1722,6 +1740,8 @@ Couldn't read that picture.	Bu resim okunamadı.
 This launcher can't add it.	Bu başlatıcı ekleyemiyor.
 Glass in chats	Sohbetlerde cam
 Gives a chat's top bar and message bar frosted glass and puts the back, call and video buttons on round glass circles. It shows the next time you open a chat. Needs Android 12 or newer for the blur.	Bir sohbetin üst çubuğuna ve mesaj çubuğuna buzlu cam efekti verir ve geri, arama ve video düğmelerini yuvarlak cam dairelere koyar. Sohbeti bir sonraki açışında görünür. Bulanıklık için Android 12 veya daha yenisi gerekir.
+Glass top bar in chats	Sohbetlerde üst çubukta cam
+Turn it off to leave a chat's top bar as Instagram draws it, with no frosted band behind it. The round glass buttons and the glass message bar stay.	Kapatınca sohbetin üst çubuğu Instagram'ın çizdiği gibi kalır, arkasında buzlu cam şerit olmaz. Yuvarlak cam düğmeler ve cam mesaj çubuğu kalır.
 # context: Reels switch Hide reels with few views, its summary, the Minimum views row, its dialog message and the row's summary, then the Minimum likes row, its dialog message, its summary and its summary at 0; %1$s is a number with thousands separators (#444)
 Hide reels with few views	Az izlenen reelleri gizle
 Leaves out reels in the Reels tab with fewer views or likes than the numbers below. Reels from accounts you follow, reels sent to you and reels with no count still play.	Reels sekmesinde izlenmesi veya beğenisi aşağıdaki sayılardan az olan reelleri çıkarır. Takip ettiğin hesapların reelleri, sana gönderilen reeller ve sayısı olmayan reeller oynamaya devam eder.
@@ -1978,6 +1998,8 @@ Save in the post menu	Gönderi menüsünde Kaydet
 Adds Save to the menu behind a post's three dots, or Remove from saved when you saved it already.	Bir gönderinin üç noktasının açtığı menüye Kaydet ekler, zaten kaydettiysen Kaydedilenlerden kaldır ekler.
 Hide the Save button	Kaydet düğmesini gizle
 Takes the Save button off the bottom of posts in your feed, so a stray tap can't save one.	Akışındaki gönderilerin altındaki Kaydet düğmesini kaldırır, böylece yanlışlıkla bir dokunuş hiçbir şeyi kaydetmez.
+Hide the Like button	Beğen düğmesini gizle
+Takes the heart and the like count off the bottom of posts in your feed. Double tap still likes a post.	Akışındaki gönderilerin altından kalbi ve beğeni sayısını kaldırır. Çift dokunarak gönderiyi yine beğenebilirsin.
 # context: the row in a feed post's three-dot menu for a post you already saved, and the row that takes an account off Saved profiles, on its profile's menu and on the Saved profiles page (#629)
 Remove from saved	Kaydedilenlerden kaldır
 # context: a switch on the Reels page
@@ -2124,6 +2146,10 @@ Takes the invite to someone's broadcast channel from under their bio. Yours keep
 Hide the other profile banners	Diğer profil afişlerini gizle
 # context: Profiles > summary of Hide the other profile banners (#627)
 Takes the rest of the banners under the bio off other people's profiles, like events, fundraisers, schools and business hours. Yours keeps them.	Başkalarının profillerinde biyografinin altındaki diğer afişleri, örneğin etkinlikleri, bağış kampanyalarını, okulları ve çalışma saatlerini kaldırır. Seninki onları korur.
+# context: Profiles > title of the switch that hides the row of links (a website, a business's links) under the bio on other people's profiles (#627)
+Hide links	Bağlantıları gizle
+# context: Profiles > summary of Hide links (#627)
+Takes the row of links, like a website or a business's links, from under the bio on other people's profiles. Yours keeps it.	Başkalarının profillerinde biyografinin altındaki bağlantı satırını, örneğin bir web sitesini veya bir işletmenin bağlantılarını kaldırır. Seninki onu korur.
 # context: the row HushGram adds to the menu on someone's profile; it puts the account on the Saved profiles list (#629)
 Save profile	Profili kaydet
 # context: toast after Save profile; %s is the account's username (#629)
@@ -2205,3 +2231,10 @@ Haptic strength	Haptik gücü
 Tap sound on the tab bar	Sekme çubuğunda dokunma sesi
 A click each time the highlight moves to another tab, even with the phone's touch sounds off. Silent and vibrate mode keep it quiet.	Vurgu başka bir sekmeye geçtiğinde bir tık sesi çalar, telefonun dokunma sesleri kapalı olsa bile. Sessiz ve titreşim modunda çalmaz.
 Tap sound volume	Dokunma sesi seviyesi
+Auto scroll in Home	Ana Sayfa'da otomatik kaydırma
+Moves Home on to the next post by itself. A video moves on when it ends, a photo or carousel after Time on each post. Touch the screen to hold it.	Ana Sayfa kendiliğinden sonraki gönderiye geçer. Video bitince, fotoğraf veya çoklu gönderi Gönderi başına süre dolunca geçer. Durdurmak için ekrana dokun.
+Time on each post	Gönderi başına süre
+# context: Reels settings: switch that lets a tap on the reel shown above an open comments sheet pause or play it, and a hold play it at 2x, without closing the comments (#665)
+Control the reel above comments	Yorumların üstündeki reel'i kontrol et
+# context: Summary of Control the reel above comments (#665)
+With a reel's comments open, tap the reel above them to pause or play it, or hold it to play at 2x. The comments stay open.	Bir reel'in yorumları açıkken üstteki reel'e dokunarak duraklat veya oynat, 2x hızda oynatmak için de basılı tut. Yorumlar açık kalır.

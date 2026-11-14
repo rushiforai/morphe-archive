@@ -116,6 +116,14 @@ public final class AccentPresets {
         }
     }
 
+    static int readableText(int preferred, int background) {
+        if (androidx.core.graphics.ColorUtils.calculateContrast(preferred, background) >= 4.5) {
+            return preferred;
+        }
+        return androidx.core.graphics.ColorUtils.calculateLuminance(background) >= 0.179
+                ? android.graphics.Color.BLACK : android.graphics.Color.WHITE;
+    }
+
     public static boolean isLight(int argb) {
         int r = (argb >> 16) & 0xFF, g = (argb >> 8) & 0xFF, b = argb & 0xFF;
         return (r * 299 + g * 587 + b * 114) / 1000 > 150;

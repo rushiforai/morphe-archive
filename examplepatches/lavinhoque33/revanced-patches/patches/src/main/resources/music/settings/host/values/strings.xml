@@ -1,5 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="revanced_patches_update_notice_title">Patches update notice</string>
+    <string name="revanced_patches_update_check_title">Check now</string>
+    <string name="revanced_patches_update_check_summary">Check for newer patches now, including skipped versions. When notices are off, use the installed patches channel.</string>
+    <string name="revanced_patches_update_off">Off</string>
+    <string name="revanced_patches_update_stable">Stable</string>
+    <string name="revanced_patches_update_development">Development</string>
+    <string name="revanced_patches_update_title">Patches update available</string>
+    <string name="revanced_patches_update_message">"Installed patches: %1$s\nNew patches: %2$s\n\nRe-patch with Manager to update. This notice does not download or install APKs."</string>
+    <string name="revanced_patches_update_manager">Open Manager</string>
+    <string name="revanced_patches_update_later">Later</string>
+    <string name="revanced_patches_update_skip">Skip this version</string>
+    <string name="revanced_patches_update_checking">Checking for patches updates…</string>
+    <string name="revanced_patches_update_current">Your patches are up to date for this channel.</string>
+    <string name="revanced_patches_update_error">Could not check for patches updates. Try again later.</string>
     <string name="gms_core_dialog_continue_text">Continue</string>
     <string name="gms_core_dialog_dismiss_text">Don\'t show again</string>
     <string name="gms_core_dialog_not_whitelisted_not_allowed_in_background_message">"GmsCore does not have permission to run in the background
@@ -84,7 +98,8 @@ Tap the continue button and allow optimization changes"</string>
     <string name="morphe_music_crossfade_about_banner_title" translatable="false" />
     <string name="morphe_music_crossfade_about_best_summary">Normal song-to-song playback and auto-advance, repeat-one (the song crossfades into itself), and local audio - phone speaker, wired headphones, Bluetooth, or USB</string>
     <string name="morphe_music_crossfade_about_best_title">Works best with</string>
-    <string name="morphe_music_crossfade_about_credit_summary">Crossfade feature by VazerOG</string>
+    <string name="morphe_music_crossfade_about_credit_summary">PCM processing and transition engine by lavinhoque33.
+        Retained native-player integration and settings originated with VazerOG and Morphe.</string>
     <string name="morphe_music_crossfade_about_credit_title">Credit</string>
     <string name="morphe_music_crossfade_about_how_summary">"Crossfade overlaps the end of one song with the start of the next, fading one down as the other comes up over your chosen duration and curve
 
@@ -92,15 +107,14 @@ It runs on auto-advance (when a song ends on its own) and on manual skips - each
 
 Requires YouTube Music 9.x or newer"</string>
     <string name="morphe_music_crossfade_about_how_title">How it works</string>
-    <string name="morphe_music_crossfade_about_known_summary">"A music video set as the first song - or one started from outside the current queue - may briefly show as video before audio-only mode kicks in
-
-Pausing crossfade to watch a music video can leave some videos black (the ones whose audio comes from the video itself). Pausing crossfade before you pick the song avoids it"</string>
+    <string name="morphe_music_crossfade_about_known_summary">The PCM engine requires a supported decoded audio output.
+        Casting and unsupported outputs keep ordinary playback rather than using native-volume fades.</string>
     <string name="morphe_music_crossfade_about_known_title">Known issues</string>
-    <string name="morphe_music_crossfade_about_quirks_summary">"Music videos play as audio-only while crossfade is on (long-press shuffle to pause if you want the video)
+    <string name="morphe_music_crossfade_about_quirks_summary">"Song/video switches stay on the native player and do not crossfade
 
 Songs shorter than your fade duration may skip the fade
 
-The lock screen or notification can briefly show a stale state mid-transition"</string>
+Long-press shuffle to pause crossfade for the current session"</string>
     <string name="morphe_music_crossfade_about_quirks_title">Doesn\'t work quite right</string>
     <string name="morphe_music_crossfade_about_summary">How crossfade works - and when it does not</string>
     <string name="morphe_music_crossfade_about_title">About</string>
@@ -129,7 +143,6 @@ YouTube Music older than 9.00"</string>
     <string name="morphe_music_crossfade_screen_title">Crossfade</string>
     <string name="morphe_music_crossfade_session_control_summary">Long-press the shuffle button to pause or resume crossfade</string>
     <string name="morphe_music_crossfade_session_control_title">Session control</string>
-    <string name="morphe_music_crossfade_video_mode_disabled_toast">Video mode is not available while crossfade is enabled</string>
     <string name="morphe_music_deezer_arl_dialog_hint" translatable="false">arl</string>
     <string name="morphe_music_deezer_arl_dialog_instruction">"Paste the arl cookie from Deezer.\n\nSteps:\n1. Sign in at deezer.com\n2. Open DevTools → Application → Cookies → deezer.com\n3. Copy the value of \"arl\""</string>
     <string name="morphe_music_deezer_arl_title">Deezer ARL</string>
@@ -149,9 +162,10 @@ YouTube Music older than 9.00"</string>
     <string name="morphe_music_downloads_starting">Starting download…</string>
     <string name="morphe_music_downloads_storage_permission">Allow storage access, then tap Download again</string>
     <string name="morphe_music_downloads_unknown_track">Could not identify the track to download</string>
-    <!-- modified by lavinhoque33, 2026-10-17: "Enable audio/video switch" ported from Morphe. -->
     <string name="morphe_music_enable_audio_video_switch_summary">Try to switch Audio Track Version and Official Music Video</string>
     <string name="morphe_music_enable_audio_video_switch_title">Enable audio/video switch</string>
+    <string name="morphe_music_auto_song_version_title">Always play the song version</string>
+    <string name="morphe_music_auto_song_version_summary">Replaces official music videos in the queue with the matching song. Requires the app setting \'Don\'t play music videos\' to be on. Tracks without an exact match are left unchanged</string>
     <string name="morphe_music_fade_in_duration_summary">Seconds of the track over which the volume rises. Counted in track time, so a faster playback speed shortens it. Shortened in proportion when the track is shorter than both fades</string>
     <string name="morphe_music_fade_in_duration_title">Fade-in duration</string>
     <string name="morphe_music_fade_in_enabled_summary">Raises the volume from silence over the first seconds of every track, including a repeat-one loop and a seek back to the start. Not used while Crossfade is on</string>
@@ -819,6 +833,15 @@ Use dark colors if possible, as the app does not support light themes"</string>
 Use dark colors if possible, as the app does not support light themes"</string>
     <string name="revanced_custom_player_background_color_secondary_title">Player background secondary color</string>
     <string name="revanced_custom_player_background_invalid_toast">Invalid player background color</string>
+    <string name="morphe_music_disable_audio_ducking_title">Disable audio ducking</string>
+    <string name="morphe_music_disable_audio_ducking_summary">Volume is not lowered when another app plays a short sound,
+        such as a notification</string>
+    <string name="revanced_debug_export_logs_to_file_summary">Export RVX debug logs to a file</string>
+    <string name="revanced_debug_export_logs_to_file_title">Export debug logs</string>
+    <string name="revanced_debug_logs_disabled">Debug logging is disabled</string>
+    <string name="revanced_debug_logs_export_success">Logs were successfully exported</string>
+    <string name="revanced_debug_logs_failed_to_export">Failed to export logs: %s</string>
+    <string name="revanced_debug_logs_none_found">No logs found</string>
     <string name="revanced_debug_protobuffer_summary">Includes proto buffer in the debug log</string>
     <string name="revanced_debug_protobuffer_title">Log protocol buffer</string>
     <string name="revanced_debug_spannable_summary">Includes spannable in the debug log</string>

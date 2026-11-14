@@ -171,7 +171,7 @@ Each listed version passed patching and verification. Other versions may fail to
 | Titanium Browser | `io.github.jqssun.helium` | `155.0.8059.79` `156.0.8078.47` `156.0.8078.73` `156.0.8078.79` `157.0.8103.38` `157.0.8103.50` `157.0.8103.78` |
 | Bare Browser | `org.barebrowser` | `1.0.0` `1.0.1` `2.0.2` `2.0.3` |
 | Bitwarden | `com.x8bit.bitwarden` | `2026.10.1` |
-| Brave Browser | `com.brave.browser` | `1.97.57` `1.98.58` `1.98.59` `1.98.60` `1.98.62` `1.98.63` `1.99.55` |
+| Brave Browser | `com.brave.browser` | `1.97.57` `1.98.58` `1.98.59` `1.98.60` `1.98.62` `1.98.63` `1.99.55` `1.100.56` |
 | Joplin | `net.cozic.joplin` | `3.7.8` `3.7.10` `3.7.11` |
 | Notesnook | `com.streetwriters.notesnook` | `3.4.14` `3.4.15` |
 <!-- VERSIONS_END -->
@@ -182,7 +182,7 @@ Each listed version passed patching and verification. Other versions may fail to
 ## 🩹 Patches
 
 <!-- PATCHES_START -->
-> **[v0.0.9](../../releases/tag/v0.0.9)**&nbsp;&nbsp;•&nbsp;&nbsp;17 patches total
+> **[v0.0.10](../../releases/tag/v0.0.10)**&nbsp;&nbsp;•&nbsp;&nbsp;17 patches total
 <details>
 <summary>📦 Anytype&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -257,8 +257,8 @@ Each listed version passed patching and verification. Other versions may fail to
 
 **🎯 Supported versions:**
 
-| 1.97.57 | 1.98.58 | 1.98.59 | 1.98.60 | 1.98.62 | 1.98.63 | 1.99.55 |
-| :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| 1.97.57 | 1.98.58 | 1.98.59 | 1.98.60 | 1.98.62 | 1.98.63 | 1.99.55 | 1.100.56 |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|

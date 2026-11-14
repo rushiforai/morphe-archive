@@ -88,7 +88,8 @@ patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt
 patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Lcyl;
 patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Lr4g;
 
-# Dashboard page, shared by Mute posts locally, Hide liked posts and Hide your own reblogs.
+# Dashboard page, shared by Mute posts locally, Hide liked posts, Hide your own reblogs and Hide
+# reblogs of your posts.
 # TimelineFragment.p4(Luxl;List;TimelinePaginationLink;Map;Z)V is found by its kept owner and
 # exact parameter list, Luxl being the page type enum whose <clinit> names PAGINATION. A page's
 # post cards are Lr4g, which extends La2k, whose l() returns the Timelineable the card wraps;

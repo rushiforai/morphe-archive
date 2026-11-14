@@ -99,6 +99,7 @@ public final class HissiMenuController extends ToolScreenController {
                 : getIntent().getStringExtra("haiagaru.wacchoi.query");
         eddiArchiveMode = isEddiArchiveUri(incoming);
         if (eddiArchiveMode && Haiagaru.dedicatedViewerEnabled()
+                && !ArchiveSearchLayout.originalSite(host)
                 && !getIntent().getBooleanExtra("haiagaru.eddi.web", false)) {
             try {
                 archiveSearchUi = EddiArchiveSearchUi.embed(host, incoming, this::openThreadInChMate, state, this::finish);

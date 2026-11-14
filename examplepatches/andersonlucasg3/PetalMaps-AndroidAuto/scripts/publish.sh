@@ -19,7 +19,7 @@ export JAVA_HOME="${JAVA_HOME:-C:\Program Files\Android\Android Studio\jbr}"
 export GITHUB_ACTOR="${GITHUB_ACTOR:-dummy}"
 export GITHUB_TOKEN="${GITHUB_TOKEN:-dummy}"
 
-REPO="andersonlucasg3/PetalMaps-AndroidAuto"
+REPO="andersonlucasg3/PetalMaps-NonHuawei"
 MORPHE_CLI="$PROJECT_DIR/tools/morphe-cli/morphe-desktop-1.12.0-all.jar"
 BUMP="${1:-patch}"
 NOTES="${2:-}"

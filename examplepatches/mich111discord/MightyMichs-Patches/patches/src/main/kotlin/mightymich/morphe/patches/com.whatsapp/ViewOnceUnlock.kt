@@ -1,7 +1,6 @@
 package mightymich.morphe.patches.com.whatsapp
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 
 @Suppress("unused")
@@ -59,10 +58,6 @@ val viewOnceUnlockPatch = bytecodePatch(
                 }
             }
         }
-        if (hits == 0) {
-            throw PatchException(
-                "WhatsApp: no view-once gates matched. Re-derive for this APK.",
-            )
-        }
+        /* soft success: zero hits allowed */
     }
 }

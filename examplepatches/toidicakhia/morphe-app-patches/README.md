@@ -26,7 +26,7 @@ updated fingerprints before a patch can be applied.
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.6.0](https://github.com/toidicakhia/morphe-app-patches/releases/tag/v1.6.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;16 patches total
+> **[v1.7.0](https://github.com/toidicakhia/morphe-app-patches/releases/tag/v1.7.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;19 patches total
 <details open>
 <summary><img src=".github/assets/apps/vn.vtv.vtvgo.png" alt="" height="20"> VTVGo&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
 <br>
@@ -78,6 +78,23 @@ updated fingerprints before a patch can be applied.
 | [Disable Analytics / Telemetry](#disable-analytics-telemetry) | Disables all Cloudflare telemetry by no-oping the analytics bundle builder and the Firebase event dispatchers. |  |
 | [Disable SSL Pinning](#disable-ssl-pinning) | Bypasses OkHttp certificate pinning on Cloudflare API calls to allow TLS traffic inspection. |  |
 | [Spoof WARP+ Unlimited UI](#spoof-warp-unlimited-ui) | Forces WarpPlusState to UNLIMITED on every AccountData instance by intercepting the primary constructor before the account type field is written. |  |
+
+</details>
+
+<details open>
+<summary><img src=".github/assets/apps/com.devolutions.remotedesktopmanager.png" alt="" height="20"> Remote Desktop Manager&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 2026.3.1.5 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Disable Analytics / Telemetry](#disable-analytics-telemetry) | Disables Firebase Analytics, Crashlytics and Performance, including advertising-ID and app-set-ID collection. The Devolutions product telemetry is sent by the .NET code inside the AOT assemblies, use the app's "Disable sending analytics" option to turn it off. |  |
+| [Disable SSL Pinning](#disable-ssl-pinning) | Bypasses the certificate validation of the .NET/Mono TLS stack so a debugging proxy can read the app's HTTPS traffic. Certificate pinning implemented in managed code lives in the ahead-of-time compiled .NET assemblies and is not affected. Not selected by default. |  |
+| [Remove Ad ID Permissions](#remove-ad-id-permissions) | Removes the advertising ID, Privacy Sandbox ad-services and Play install-referrer permissions. |  |
 
 </details>
 

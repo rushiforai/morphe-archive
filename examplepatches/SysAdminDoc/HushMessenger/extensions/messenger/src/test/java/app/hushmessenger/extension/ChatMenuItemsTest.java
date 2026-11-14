@@ -36,6 +36,11 @@ public class ChatMenuItemsTest {
             label = title;
         }
 
+        /** 587's builder fills the description through a setter. */
+        public void describe(String text) {
+            description = text;
+        }
+
         public static Row build(Builder builder, String name) {
             return new Row(builder, name);
         }
@@ -161,6 +166,16 @@ public class ChatMenuItemsTest {
             }
             assertTrue(state + " keeps the choice", ChatMenuItems.hidden().contains("mute"));
         }
+    }
+
+    @Test public void a587RouteWithTheDescriptionSetterLearnsAndHidesTheSame() {
+        String route = ROUTE.replace("->description:Ljava/lang/String;", "->describe(Ljava/lang/String;)V");
+        ChatMenuItems.setHidden("mark_read", true);
+        ArrayList<Object> list = new ArrayList<>(Arrays.asList(mute, markRead, archive));
+        ChatMenuItems.rows(list, route);
+        assertEquals(Arrays.asList(mute, archive), list);
+        assertEquals("Mark as read", ChatMenuItems.label("mark_read"));
+        assertTrue(Settings.hookErrors.isEmpty());
     }
 
     @Test public void aRouteThatNoLongerFitsLeavesTheMenuWholeAndRecordsTheFailure() {

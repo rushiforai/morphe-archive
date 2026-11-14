@@ -84,6 +84,46 @@ public final class FilterPosition {
     }
 
     /** Explicit user-requested navigation only; never used when simply closing a popup. */
+    static boolean responseVisible(ListView list,int number) throws Exception {
+        ListAdapter adapter=list.getAdapter();if(adapter==null)return false;
+        int start=Math.max(0,list.getFirstVisiblePosition()),end=Math.min(adapter.getCount()-1,list.getLastVisiblePosition());
+        for(int i=start;i<=end;i++){
+            View child=list.getChildAt(i-start);
+            if(child==null||child.getBottom()<=list.getPaddingTop()||child.getTop()>=list.getHeight()-list.getPaddingBottom())continue;
+            if(responseNumber(adapter.getItem(i))==number)return true;
+        }
+        return false;
+    }
+
+    static boolean responseVisible(View list,int number) throws Exception {
+        if(list instanceof ListView)return responseVisible((ListView)list,number);
+        if(!(list instanceof ViewGroup))return false;
+        Object adapter=call(list,"getAdapter",new Class<?>[0]);
+        if(adapter==null)return false;
+        Method item=findItem(adapter);item.setAccessible(true);
+        int count=((Number)call(adapter,"getItemCount",new Class<?>[0])).intValue();
+        ViewGroup children=(ViewGroup)list;
+        for(int i=0;i<children.getChildCount();i++){
+            View child=children.getChildAt(i);
+            if(child.getBottom()<=list.getPaddingTop()||child.getTop()>=list.getHeight()-list.getPaddingBottom())continue;
+            int index=((Number)call(list,"getChildAdapterPosition",new Class<?>[]{View.class},child)).intValue();
+            if(index>=0&&index<count&&responseNumber(item.invoke(adapter,index))==number)return true;
+        }
+        return false;
+    }
+
+    private static int responseNumber(Object row) throws Exception {
+        if(row==null)return -1;
+        for(Class<?> type=row.getClass();type!=null;type=type.getSuperclass())for(Field field:type.getDeclaredFields()){
+            String name=field.getType().getName();
+            if(!name.equals("o.processAdDisplayErrorPostbackForUserError")&&!name.equals("o.BouncyCastleSocketAdapterCompanion")
+                    &&!name.equals("o.KeJ11"))continue;
+            field.setAccessible(true);Object response=field.get(row);if(response==null)continue;
+            return ((Number)ResponseArchiveEntry.field(response,name.equals("o.BouncyCastleSocketAdapterCompanion")?"l":"o")).intValue();
+        }
+        return -1;
+    }
+
     static boolean jumpToResponse(Object fragment,int number) throws Exception {
         return jumpToResponse(fragment, number, 0);
     }
@@ -100,12 +140,7 @@ public final class FilterPosition {
         for(int i=0;i<count;i++) {
             Object row=item.invoke(adapter,i);
             if(row==null)continue;
-            for(Class<?> type=row.getClass();type!=null;type=type.getSuperclass())for(Field field:type.getDeclaredFields()) {
-                String name=field.getType().getName();
-                if(!name.equals("o.processAdDisplayErrorPostbackForUserError")&&!name.equals("o.BouncyCastleSocketAdapterCompanion")&&!name.equals("o.KeJ11"))continue;
-                field.setAccessible(true);Object response=field.get(row);if(response==null)continue;
-                String key=name.equals("o.BouncyCastleSocketAdapterCompanion")?"l":"o";
-                if(((Number)ResponseArchiveEntry.field(response,key)).intValue()!=number)continue;
+            if(responseNumber(row)==number) {
                 if(list instanceof ListView)((ListView)list).setSelectionFromTop(i,offset);
                 else {
                     Object manager=call(list,"getLayoutManager",new Class<?>[0]);

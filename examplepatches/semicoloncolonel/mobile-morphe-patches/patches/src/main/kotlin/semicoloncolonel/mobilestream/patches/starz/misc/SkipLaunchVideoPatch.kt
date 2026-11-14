@@ -29,6 +29,9 @@ val skipLaunchVideoPatch = bytecodePatch(
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {
-        ShowSplashVideoFingerprint.method.addInstructions(0, "const/4 v0, 0x0\nreturn-object v0")
+        // The Android TV build opens straight to its landing screen with no
+        // SplashPlayer intro, so the fingerprint does not match there and the
+        // patch does nothing.
+        ShowSplashVideoFingerprint.methodOrNull?.addInstructions(0, "const/4 v0, 0x0\nreturn-object v0")
     }
 }

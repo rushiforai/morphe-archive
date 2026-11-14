@@ -15,6 +15,7 @@ val disableForcedUpdatesPatch = bytecodePatch(
     name = "Disable forced updates",
     description = "Keeps the app from requiring a newer version before it opens.",
 ) {
+    category("Setup")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

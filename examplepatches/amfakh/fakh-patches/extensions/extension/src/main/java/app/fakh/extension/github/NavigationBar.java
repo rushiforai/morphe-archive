@@ -91,6 +91,17 @@ public final class NavigationBar {
     }
 
     /**
+     * Injected before the divider above the bar is drawn: under glass its colors are the 0 the app passes, which is
+     * transparent, instead of its defaults, so no line crosses the top of the capsule.
+     *
+     * @param defaults the bits of the parameters the divider takes its default for
+     * @return {@code defaults}, without the bits of its background and line colors under glass
+     */
+    public static int dividerDefaults(int defaults) {
+        return glass() ? defaults & ~6 : defaults;
+    }
+
+    /**
      * Injected at the start of the NavigationBar composable: the container color, which is transparent while the
      * glass look is on so the capsule behind the ComposeView shows through.
      *
@@ -342,7 +353,8 @@ public final class NavigationBar {
             }
         }, FILL_ALPHA);
         bar.setBackground(capsule);
-        capsule.setLiquid(MaterialYou.prefs(activity).getBoolean(LIQUID, true));
+        capsule.setLiquid(MaterialYou.prefs(activity).getBoolean(LIQUID, false));
+        capsule.setBevel(true);
         startPill(bar, false);
         matchPage(activity);
         // The bar floats over the screen like a glass bar should: the screen above it reaches down behind it.
@@ -486,7 +498,8 @@ public final class NavigationBar {
             }
         }, FILL_ALPHA);
         bar.setBackground(capsule);
-        capsule.setLiquid(MaterialYou.prefs(activity).getBoolean(LIQUID, true));
+        capsule.setLiquid(MaterialYou.prefs(activity).getBoolean(LIQUID, false));
+        capsule.setBevel(true);
         startPill(bar, true);
         bar.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> syncPill());
         matchPage(activity);

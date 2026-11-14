@@ -27,7 +27,7 @@ public final class ModWelcome {
     private ModWelcome() {}
 
     /** Bump every time {@link #BODY} changes so returning users see it once more. */
-    private static final int BUILD = 7;
+    private static final int BUILD = 14;
     private static final String KEY = "welcome_build";
 
     private static final String TITLE = "What's new";
@@ -35,18 +35,26 @@ public final class ModWelcome {
     private static final String RELEASES_URL =
             "https://github.com/mvaishak/letterboxd-morphe-patches/releases";
 
-    // THIS RELEASE ONLY. Short bullets, section name on its own line with bullets under it, blank
-    // line between sections. Group aggressively — aim for six bullets or fewer. Skip internal
-    // churn (refactors, anything added then reverted in the same batch). The full feature list
-    // lives in the Mods screen and the README, not here.
+    // Short bullets, section name on its own line, and a blank line between sections.
     private static final String BODY =
-            "Support\n"
-          + "•  Report an issue — file a bug or feature request on GitHub, right from the Mods screen";
+            "Film pages\n"
+          + "•  With IMDb trivia installed, swipe past Releases to find Trivia. "
+          + "The first entries can load while you browse, and loading uses Letterboxd’s spinner.\n"
+          + "•  With Custom artwork installed, open a film’s More menu to change its poster or backdrop. "
+          + "Use Change backdrop on your own profile.\n\n"
+          + "Lists and app icons\n"
+          + "•  Open a list’s More menu and tap Clone to save your own copy.\n"
+          + "•  Open App icon in Settings to change your launcher icon.\n\n"
+          + "Letterboxd Mods\n"
+          + "•  Choose Mods settings, custom artwork, or both when you export or restore a backup.\n"
+          + "•  Open Help & About → Feature Guide for instructions and common questions.\n"
+          + "•  With Profile badge installed, open Mods → Appearance → Profile badge to choose Pro, Patron, or a custom badge.\n"
+          + "•  With Adult posters installed, turn on Show adult posters in Mods → Appearance to see unblurred posters when available.";
 
     /** Permanent closer — every release. New-to-this-version users still need this. */
     private static final String FOOTER =
-            "Open the Mods screen by long-pressing the Letterboxd app icon, or the settings "
-          + "gear on your profile tab.";
+            "To open Mods, long-press the settings gear on your profile. "
+          + "You can also long-press the app icon and tap Letterboxd Mods.";
 
     private static volatile boolean shown = false;
     private static volatile boolean scheduled = false;

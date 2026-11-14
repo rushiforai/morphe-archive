@@ -279,7 +279,8 @@ public final class SiteBoardGatewayInstrumentation extends Instrumentation {
   Constructor<?> ctor=gatewayType.getDeclaredConstructor(SharedPreferences.class,transportType);ctor.setAccessible(true);gateway=ctor.newInstance(prefs,transport);
   singleton=gatewayType.getDeclaredField("instance");singleton.setAccessible(true);previousGateway=singleton.get(null);singleton.set(null,gateway);
   applicationContext=loader.loadClass("app.morphe.extension.chmate.Haiagaru").getDeclaredField("applicationContext");applicationContext.setAccessible(true);previousContext=applicationContext.get(null);applicationContext.set(null,app.getApplicationContext());
-  ok(!(Boolean)call(gateway,"enabled",new Class<?>[]{}),"default OFF");
+  ok((Boolean)call(gateway,"enabled",new Class<?>[]{}),"new per-site initial-on defaults initialize transport");
+  enabled(false);ok(!(Boolean)call(gateway,"enabled",new Class<?>[]{}),"explicit OFF before offline guard checks");
   String[] addresses={"https://bakusai.com/thr_res/acode=1/ctgid=137/bid=5071/tid=13601530/","https://dat.2chan.net/t/res/380363.htm","https://bbs.animanch.com/board/7589284/"};String[] ids={"13601530","380363","7589284"};int[] counts={17,4,79};String[] keys=new String[3];
   for(int i=0;i<3;i++)keys[i]=(String)call(gateway,"register",new Class<?>[]{String.class,String.class},addresses[i],"試験板"+i);
   try{nativeUrl(keys[0],null);throw new AssertionError("OFF must reject open");}catch(InvocationTargetException expected){ok(expected.getCause() instanceof IOException,"OFF open rejected");}ok(gets==0&&posts==0,"no upstream while OFF");

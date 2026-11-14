@@ -26,6 +26,7 @@ val changeAppNamePatch = resourcePatch(
     name = "Change app name",
     description = "Renames the app on the home screen, so it is easy to tell apart.",
 ) {
+    category("Setup")
     compatibleWith(Constants.COMPATIBILITY)
 
     val appName by stringOption(

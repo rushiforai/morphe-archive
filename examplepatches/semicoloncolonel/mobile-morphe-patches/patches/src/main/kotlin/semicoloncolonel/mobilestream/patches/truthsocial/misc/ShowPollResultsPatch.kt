@@ -20,6 +20,7 @@ val showPollResultsPatch = bytecodePatch(
     description = "Shows each option's share of the votes before you vote. You can still vote.",
     default = false,
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")

@@ -1,8 +1,9 @@
 package semicoloncolonel.mobilestream.patches.dealseek.shared
 
 import app.morphe.patcher.patch.ApkFileType
-import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
+import app.morphe.patcher.patch.AppTarget
+import semicoloncolonel.mobilestream.patches.shared.misc.devTarget
 
 object Constants {
     val COMPATIBILITY = Compatibility(
@@ -12,6 +13,9 @@ object Constants {
             "run once re-signed.",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0xFF6329,
-        targets = listOf(AppTarget("1.64.0"))
+        targets = listOf(
+            devTarget("1.65.0", versionCode = 518),
+            AppTarget("1.64.0"),
+        )
     )
 }

@@ -89,6 +89,33 @@ class LinkedInRegressionTests(unittest.TestCase):
         self.check_java('copy')
         self.assertIn('post.text = PostCommentary.text(payload);', (SOURCE / 'PostMenu.java').read_text())
 
+    def test_premium_hook_is_accessible_from_linkedin_navigation(self):
+        with tempfile.TemporaryDirectory(prefix='linkedin-premium-access-') as directory:
+            work = Path(directory)
+            boundaries = work / 'Boundaries.java'
+            boundaries.write_text('''package app.badfella.extension.linkedin;
+class Settings {
+ static boolean hidePremium() { return true; }
+ static void debugLog(String message) {}
+}
+class Diagnostics { static void error(String message, Throwable failure) {} }
+class SduiMediaDownload { static String resumedScreen() { return ""; } }
+''', encoding='utf-8')
+            caller = work / 'NavigationCaller.java'
+            caller.write_text('''package com.linkedin.android.infra.navigation;
+public class NavigationCaller {
+ public boolean blocks(android.os.Bundle arguments) {
+  return app.badfella.extension.linkedin.PremiumTakeover.blocksNavigation(arguments);
+ }
+}
+''', encoding='utf-8')
+            javac = self.java.with_name('javac.exe' if os.name == 'nt' else 'javac')
+            result = subprocess.run(
+                [str(javac), '-cp', str(self.android), '-d', str(work),
+                 str(SOURCE / 'PremiumTakeover.java'), str(boundaries), str(caller)],
+                capture_output=True, text=True, timeout=30)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
     def test_first_failed_slice_is_removed(self):
         self.check_java('1')
 

@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-11-13T05:02:20",
-  "description": "# Haiagaru 1.27.5 (2026-11-13)\n\n- 最適化",
-  "download_url": "https://github.com/areteruhiro/Haiagaru-Morphe/releases/download/1.27.5/patches-1.27.5.mpp",
+  "created_at": "2026-11-14T05:09:18",
+  "description": "# Haiagaru 1.32.0 (2026-11-14)\n\n### 追加機能\n\n- 「書き込み画面の『︙』に『通常版ChMateで書き込む』を追加」を独立した設定にしました。初期オンで、オフにしてもツールバー・長押しからの起動は利用できます。\n- 「名前欄をスレごとに保存する」を追加しました（初期オフ）。オンにすると同じスレだけで名前を復元し、未保存のスレは空欄で開きます。空欄への変更も保存します。新規スレ立てとオフの場合は従来の板ごとの動作です。\n- スレ別の名前は端末内に保存し、通常版ChMateへ渡す名前欄は変更しません。",
+  "download_url": "https://github.com/areteruhiro/Haiagaru-Morphe/releases/download/1.32.0/patches-1.32.0.mpp",
   "signature_download_url": "",
-  "version": "1.27.5"
+  "version": "1.32.0"
 }

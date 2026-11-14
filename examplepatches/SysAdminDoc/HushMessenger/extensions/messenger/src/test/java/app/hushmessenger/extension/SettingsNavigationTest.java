@@ -117,21 +117,37 @@ public class SettingsNavigationTest {
             android.widget.LinearLayout group = root.findViewWithTag("photos_videos");
             android.widget.LinearLayout heading = (android.widget.LinearLayout) group.getChildAt(0);
             assertEquals("PHOTOS AND VIDEOS", ((TextView) heading.getChildAt(0)).getText().toString());
-            for (String key : new String[] {"original_photo", "original_video", "xhe_audio", "recent_media", "save_voice", "save_voice_menu", "share_story", "system_camera", "external_gallery", "gallery_to_chat"})
+            for (String key : new String[] {"original_photo", "original_video", "xhe_audio", "recent_media", "save_voice", "save_voice_menu", "share_story", "system_camera", "external_gallery", "gallery_to_chat", "instant_gallery"})
                 assertTrue(key + " should sit in Photos and videos", inside(root.findViewWithTag(key), group));
             assertFalse(inside(root.findViewWithTag("typing"), group));
             assertEquals(View.VISIBLE, group.getVisibility());
-            assertEquals("10",((TextView) heading.getChildAt(1)).getText().toString());
+            assertEquals("11",((TextView) heading.getChildAt(1)).getText().toString());
         }
     }
 
-    /** The headings are English on every phone, so a Turkish phone's own capitals (a dotted İ) never reach them. */
-    @Test @org.robolectric.annotation.Config(qualifiers = "tr-rTR") public void headingsUseEnglishCapitalsOnATurkishPhone() {
+    /** English headings keep English capitals on a phone whose own would dot the I, here Azerbaijani, which has no table. */
+    @Test @org.robolectric.annotation.Config(qualifiers = "az-rAZ") public void headingsUseEnglishCapitalsOnATurkishPhone() {
         try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
-            android.widget.LinearLayout group = screen.get().getWindow().getDecorView().findViewWithTag("links_bubbles");
-            android.widget.LinearLayout heading = (android.widget.LinearLayout) group.getChildAt(0);
-            assertEquals("LINKS AND BUBBLES", ((TextView) heading.getChildAt(0)).getText().toString());
+            assertEquals("LINKS AND BUBBLES", heading(screen.get(), "links_bubbles"));
+            assertEquals("PRIVACY", heading(screen.get(), "privacy"));
         }
+    }
+
+    /** Turkish headings take Turkish capitals: the i in Gizlilik keeps its dot. */
+    @Test @org.robolectric.annotation.Config(qualifiers = "tr-rTR") public void turkishHeadingsUseTurkishCapitals() {
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            assertEquals("BAĞLANTILAR VE BALONLAR", heading(screen.get(), "links_bubbles"));
+            assertEquals("G" + DOTTED_I + "ZL" + DOTTED_I + "L" + DOTTED_I + "K", heading(screen.get(), "privacy"));
+        }
+    }
+
+    /** Turkish capital dotted I, written by number so the source stays plain. */
+    private static final char DOTTED_I = (char) 0x0130;
+
+    private static String heading(SettingsActivity activity, String section) {
+        android.widget.LinearLayout group = activity.getWindow().getDecorView().findViewWithTag(section);
+        android.widget.LinearLayout heading = (android.widget.LinearLayout) group.getChildAt(0);
+        return ((TextView) heading.getChildAt(0)).getText().toString();
     }
 
     private static boolean inside(View view, View group) {

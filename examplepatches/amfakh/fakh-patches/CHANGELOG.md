@@ -1,3 +1,29 @@
+## [1.21.0](https://github.com/amfakh/fakh-patches/compare/v1.20.0...v1.21.0) (2026-11-14)
+
+### New Features
+
+* **Smart Life:** add Liquid Glass to the whole app: the navigation bar, the AI ask bar and the cards on the Home tab, with a Liquid Glass switch in Settings ([1db7a73](https://github.com/amfakh/fakh-patches/commit/1db7a73d03cf4e968d07f03cbb284544618c466f))
+* **Tuya Smart:** add Liquid Glass to the whole app: the navigation bar, the AI ask bar and the cards on the Home tab, with a Liquid Glass switch in Settings ([1db7a73](https://github.com/amfakh/fakh-patches/commit/1db7a73d03cf4e968d07f03cbb284544618c466f))
+* **BARDI Smart Home:** add Liquid Glass to the whole app: the navigation bar, the AI ask bar and the cards on the Home tab, with a Liquid Glass switch in Settings ([1db7a73](https://github.com/amfakh/fakh-patches/commit/1db7a73d03cf4e968d07f03cbb284544618c466f))
+* **Smart Life:** add Dark device panels, which darkens device control panels that have no dark mode of their own, and a Fakh Patches row in Settings with a switch for each patch ([1db7a73](https://github.com/amfakh/fakh-patches/commit/1db7a73d03cf4e968d07f03cbb284544618c466f))
+* **Tuya Smart:** add Dark device panels, which darkens device control panels that have no dark mode of their own, and a Fakh Patches row in Settings with a switch for each patch ([1db7a73](https://github.com/amfakh/fakh-patches/commit/1db7a73d03cf4e968d07f03cbb284544618c466f))
+* **BARDI Smart Home:** add a Fakh Patches row in Settings with a switch for each patch ([1db7a73](https://github.com/amfakh/fakh-patches/commit/1db7a73d03cf4e968d07f03cbb284544618c466f))
+* **Jira:** add a Fakh Patches card to the account screen that opens a page with a switch for each patch and a picker for the navigation bar tabs; the switches animate on when it opens and the Restart action follows Material You ([4edd7c2](https://github.com/amfakh/fakh-patches/commit/4edd7c2c69fa7787088feb3d623324305c51d6b9))
+* **Jira:** add a Liquid Glass navigation bar switch ([d1bac9e](https://github.com/amfakh/fakh-patches/commit/d1bac9e2581583e24e639ebd16a4f5e5a21ba1a7))
+* **Jira:** the glass navigation bar gets a bevelled rim ([1c0217d](https://github.com/amfakh/fakh-patches/commit/1c0217d7863f6ab47912b21bb4fbbbb251e405c9))
+* **LinkedIn:** the glass navigation bar gets a bevelled rim ([1c0217d](https://github.com/amfakh/fakh-patches/commit/1c0217d7863f6ab47912b21bb4fbbbb251e405c9))
+* **GitHub:** the glass navigation bar gets a bevelled rim, and Background blur is off by default ([521144b](https://github.com/amfakh/fakh-patches/commit/521144b02eb0a18e87513ae15edb7d99827a73e5))
+* **LinkedIn:** rename the switches to Liquid Glass navigation bar and Background blur ([b4b79f6](https://github.com/amfakh/fakh-patches/commit/b4b79f6f43355eed424e4e330ec7f708dc4afab4))
+* **GitHub:** rename the switches to Liquid Glass navigation bar and Background blur ([b4b79f6](https://github.com/amfakh/fakh-patches/commit/b4b79f6f43355eed424e4e330ec7f708dc4afab4))
+* **Jira:** rename the switches to Liquid Glass navigation bar and Background blur ([b4b79f6](https://github.com/amfakh/fakh-patches/commit/b4b79f6f43355eed424e4e330ec7f708dc4afab4))
+* **GitHub:** the glass bar's pill sits higher without Background blur ([1407d14](https://github.com/amfakh/fakh-patches/commit/1407d14d6eaeb3fdc5efd13c177df06f107c108c))
+* **LinkedIn:** the glass bar's pill sits higher without Background blur ([1407d14](https://github.com/amfakh/fakh-patches/commit/1407d14d6eaeb3fdc5efd13c177df06f107c108c))
+* **Jira:** the glass bar's pill sits higher without Background blur ([1407d14](https://github.com/amfakh/fakh-patches/commit/1407d14d6eaeb3fdc5efd13c177df06f107c108c))
+
+### Bug Fixes
+
+* **GitHub:** hide the divider above the glass navigation bar ([5e67dce](https://github.com/amfakh/fakh-patches/commit/5e67dceb713bc15fad315ec77d4a3d7eec9ec75a))
+
 ## [1.20.0](https://github.com/amfakh/fakh-patches/compare/v1.19.1...v1.20.0) (2026-11-12)
 
 ### New Features

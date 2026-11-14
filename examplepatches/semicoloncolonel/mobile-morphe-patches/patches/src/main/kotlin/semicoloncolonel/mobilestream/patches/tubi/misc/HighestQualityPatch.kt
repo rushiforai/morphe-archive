@@ -47,6 +47,7 @@ val highestQualityPatch = bytecodePatch(
     description = "Plays the highest-resolution version of each title and live channel, at its highest bitrate. " +
         "Turn it off if videos buffer.",
 ) {
+    category("Playback")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")

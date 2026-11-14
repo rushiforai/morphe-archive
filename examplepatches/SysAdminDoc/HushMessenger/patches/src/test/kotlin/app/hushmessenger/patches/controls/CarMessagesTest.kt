@@ -72,13 +72,29 @@ private const val CAR_GATE_OWNER = "LX/A7a;"
 internal const val SYNTHETIC_CAR_GATE = "$CAR_GATE_OWNER->A00(Landroid/graphics/Bitmap;)V"
 private const val CONFIG = "Lcom/facebook/mobileconfig/factory/MobileConfigUnsafeContext;"
 
+private const val FLAG_HELPER = "LX/18A;->A1Z(Ljava/lang/Object;J)Z"
+
 /**
- * The notification's bitmap callback as 586 ships it, cut to the flag check: the server flag's answer skips the whole
+ * The notification's bitmap callback as 587 ships it, cut to the flag check: the server flag's answer skips the whole
  * car extender block when it's off. Six registers, p0 is v4.
  */
 private val GATE_BODY = """
     iget-object v1, p0, $CAR_GATE_OWNER->A00:Ljava/lang/Object;
-    const-wide v2, 0x0081027700011858L
+    const-wide v2, 0x0081027600011849L
+    invoke-static {v1, v2, v3}, $FLAG_HELPER
+    move-result v1
+    if-eqz v1, :no_car
+    const-string v2, "$CAR_EXTENSION_STEP"
+    new-instance v1, $CAR_EXTENDER
+    invoke-direct {v1}, $CAR_EXTENDER-><init>()V
+    :no_car
+    return-void
+""".trimIndent()
+
+/** 586 cast the config and asked it directly instead of going through the static helper. */
+private val CAST_GATE_BODY = """
+    iget-object v1, p0, $CAR_GATE_OWNER->A00:Ljava/lang/Object;
+    const-wide v2, 0x0081027600011849L
     check-cast v1, $CONFIG
     invoke-interface {v1, v2, v3}, $CONFIG->B1R(J)Z
     move-result v1
@@ -108,7 +124,7 @@ class CarMessagesTest {
         assertEquals(listOf(SYNTHETIC_CAR_EXTEND), found(carMessagesFixture()))
         validateControls(mirroredControls(carMessagesFixture()), setOf(CAR_MESSAGES))
         assertEquals(setOf(SYNTHETIC_CAR_EXTEND), SYNTHETIC_PROFILE.hooks.getValue(CAR_MESSAGES))
-        assertEquals(setOf("LX/0Qt;->AiU(LX/0MB;)V"), BASE_PROFILE.hooks.getValue(CAR_MESSAGES))
+        assertEquals(setOf("LX/0Qy;->Ajw(LX/0ME;)V"), BASE_PROFILE.hooks.getValue(CAR_MESSAGES))
     }
 
     @Test fun lookalikesAreNotTheExtender() {
@@ -162,9 +178,11 @@ class CarMessagesTest {
 
     @Test fun theGateIsTheOneFlagCheckInFrontOfTheCarExtender() {
         assertEquals(listOf(SYNTHETIC_CAR_GATE), foundGate(carMessagesFixture()))
+        assertEquals(listOf(SYNTHETIC_CAR_GATE), foundGate(carMessagesFixture(gateMethod = gate(CAST_GATE_BODY))), "586's cast read")
         validateControls(mirroredControls(carMessagesFixture()), setOf(CAR_MESSAGES, CAR_EXTENSION_GATE))
         assertEquals(setOf(SYNTHETIC_CAR_GATE), SYNTHETIC_PROFILE.hooks.getValue(CAR_EXTENSION_GATE))
-        assertEquals(setOf("LX/A7i;->A00(Landroid/graphics/Bitmap;)V"), BASE_PROFILE.hooks.getValue(CAR_EXTENSION_GATE))
+        assertEquals(setOf("LX/9yQ;->A06(Landroid/graphics/Bitmap;LX/0ME;${FB_USER_SESSION}LX/D6N;Ljava/lang/String;I)V"),
+            BASE_PROFILE.hooks.getValue(CAR_EXTENSION_GATE))
     }
 
     /** The gate scan on classes read back from a dex file, the way the patcher reads Messenger's. */
@@ -192,10 +210,14 @@ class CarMessagesTest {
 
     @Test fun lookalikeFlagChecksAreNotTheGate() {
         val cases = mapOf(
-            "another flag" to GATE_BODY.replace("0x0081027700011858L", "0x0081027700011859L"),
-            "the id in other registers" to GATE_BODY.replace("invoke-interface {v1, v2, v3}", "invoke-interface {v1, v3, v4}"),
-            "another config" to GATE_BODY.replace("invoke-interface {v1, v2, v3}, $CONFIG", "invoke-interface {v1, v2, v3}, LX/Other;"),
-            "no cast" to GATE_BODY.replace("check-cast v1, $CONFIG", "nop"),
+            "another flag" to GATE_BODY.replace("0x0081027600011849L", "0x0081027700011859L"),
+            "the id in other registers" to GATE_BODY.replace("invoke-static {v1, v2, v3}", "invoke-static {v1, v3, v4}"),
+            "a helper of another signature" to GATE_BODY.replace(FLAG_HELPER, "LX/18A;->A1Z(LX/Other;J)Z"),
+            "an instance helper" to GATE_BODY.replace("invoke-static {v1, v2, v3}", "invoke-virtual {v1, v2, v3}"),
+            "work between the id and the helper" to GATE_BODY.replace("invoke-static", "nop\ninvoke-static"),
+            "a cast read with the id in other registers" to CAST_GATE_BODY.replace("invoke-interface {v1, v2, v3}", "invoke-interface {v1, v3, v4}"),
+            "another config" to CAST_GATE_BODY.replace("invoke-interface {v1, v2, v3}, $CONFIG", "invoke-interface {v1, v2, v3}, LX/Other;"),
+            "no cast" to CAST_GATE_BODY.replace("check-cast v1, $CONFIG", "nop"),
             "the branch on another register" to GATE_BODY.replace("if-eqz v1, :no_car", "if-eqz v0, :no_car"),
             "an if-nez" to GATE_BODY.replace("if-eqz v1", "if-nez v1"),
             "a jump straight to the branch" to GATE_BODY.replace("iget-object v1, p0", "if-nez p1, :check\niget-object v1, p0")
@@ -232,7 +254,7 @@ class CarMessagesTest {
 
     @Test fun anUnusableGateRefusesTheSwitchBeforeAnyEdit() {
         val cases = mapOf(
-            "another flag" to gate(GATE_BODY.replace("0x0081027700011858L", "0x0081027700011859L")),
+            "another flag" to gate(GATE_BODY.replace("0x0081027600011849L", "0x0081027700011859L")),
             "the extender" to extend(),
         )
         for ((case, bad) in cases) {

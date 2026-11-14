@@ -88,50 +88,51 @@ internal val expectedGuardOwners = mapOf(
     ),
 )
 
-/** The six permission loads in 586.0.0.55.92's arm64 build. Generated from 347215348's record. */
-internal val expectedDexSites347215348 = mapOf(
-    "LX/0if;->A04(Landroid/app/Application;)V@18" to APP_COMMUNICATION_FORMAT,
-    "LX/105;->A03()V@25" to APP_COMMUNICATION,
-    "LX/1YX;->A09(Lcom/facebook/auth/usersession/FbUserSession;LX/1YX;Ljava/lang/String;Ljava/lang/String;)V@35" to APP_COMMUNICATION,
-    "LX/2FU;->A01(Landroid/content/Intent;LX/2FU;)V@24" to APP_COMMUNICATION_FORMAT,
-    "LX/33U;->A02(ILX/5fq;Ljava/lang/Object;)Ljava/lang/Object;@881" to APP_COMMUNICATION_FORMAT,
-    "Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;->A0g(Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;I)V@580" to APP_COMMUNICATION_FORMAT,
+/** The three permission loads in 587.0.0.54.96's main arm64 build and the builds renamed from it. Generated from 347415354's record. */
+internal val expectedDexSites347415354 = mapOf(
+    "LX/0k8;->A00()Ljava/lang/String;@7" to APP_COMMUNICATION_FORMAT,
+    "LX/0yY;->A03()V@25" to APP_COMMUNICATION,
+    "LX/1h7;->A09(Lcom/facebook/auth/usersession/FbUserSession;LX/1h7;Ljava/lang/String;Ljava/lang/String;)V@34" to APP_COMMUNICATION,
 )
 
-/** The six permission loads in 586.0.0.55.92's armv7 build. Generated from 347215341's record. */
-internal val expectedDexSites347215341 = mapOf(
-    "LX/0ia;->A04(Landroid/app/Application;)V@18" to APP_COMMUNICATION_FORMAT,
-    "LX/132;->A03()V@25" to APP_COMMUNICATION,
-    "LX/1Yw;->A09(Lcom/facebook/auth/usersession/FbUserSession;LX/1Yw;Ljava/lang/String;Ljava/lang/String;)V@35" to APP_COMMUNICATION,
-    "LX/2Ft;->A01(Landroid/content/Intent;LX/2Ft;)V@24" to APP_COMMUNICATION_FORMAT,
-    "LX/33t;->A02(ILX/5g9;Ljava/lang/Object;)Ljava/lang/Object;@881" to APP_COMMUNICATION_FORMAT,
-    "Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;->A0f(Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;I)V@610" to APP_COMMUNICATION_FORMAT,
+/** The three permission loads in 587.0.0.54.96's other arm64 builds. Generated from 347415280's record. */
+internal val expectedDexSites347415280 = mapOf(
+    "LX/0k5;->A00()Ljava/lang/String;@7" to APP_COMMUNICATION_FORMAT,
+    "LX/0yd;->A03()V@25" to APP_COMMUNICATION,
+    "LX/1h7;->A0A(Lcom/facebook/auth/usersession/FbUserSession;LX/1h7;Ljava/lang/String;Ljava/lang/String;)V@34" to APP_COMMUNICATION,
 )
 
-/** The six permission loads in 586.0.0.55.92's other arm64 builds. Generated from 347215273's record. */
-internal val expectedDexSites347215273 = mapOf(
-    "LX/0if;->A04(Landroid/app/Application;)V@18" to APP_COMMUNICATION_FORMAT,
-    "LX/0zz;->A03()V@25" to APP_COMMUNICATION,
-    "LX/1YY;->A06(Lcom/facebook/auth/usersession/FbUserSession;LX/1YY;Ljava/lang/String;Ljava/lang/String;)V@35" to APP_COMMUNICATION,
-    "LX/2FV;->A01(Landroid/content/Intent;LX/2FV;)V@24" to APP_COMMUNICATION_FORMAT,
-    "LX/33Q;->A03(ILX/5eU;Ljava/lang/Object;)Ljava/lang/Object;@851" to APP_COMMUNICATION_FORMAT,
-    "Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;->A0g(Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;I)V@543" to APP_COMMUNICATION_FORMAT,
+/** The three permission loads in 587.0.0.54.96's armv7 builds. Generated from 347415262's record. */
+internal val expectedDexSites347415262 = mapOf(
+    "LX/0kT;->A00()Ljava/lang/String;@7" to APP_COMMUNICATION_FORMAT,
+    "LX/0zs;->A03()V@25" to APP_COMMUNICATION,
+    "LX/1hX;->A09(Lcom/facebook/auth/usersession/FbUserSession;LX/1hX;Ljava/lang/String;Ljava/lang/String;)V@34" to APP_COMMUNICATION,
 )
 
 /** The loads an unknown build is checked against. */
-internal val expectedDexSites = expectedDexSites347215348
+internal val expectedDexSites = expectedDexSites347415354
 
 /** Each supported build's permission loads, by version code, as scripts/profiles records them. */
 internal val expectedDexSitesByBuild: Map<Int, Map<String, String>> = mapOf(
-    347215257 to expectedDexSites347215348,
-    347215273 to expectedDexSites347215273,
-    347215275 to expectedDexSites347215273,
-    347215277 to expectedDexSites347215273,
-    347215330 to expectedDexSites347215348,
-    347215341 to expectedDexSites347215341,
-    347215343 to expectedDexSites347215348,
-    347215344 to expectedDexSites347215348,
-    347215348 to expectedDexSites347215348,
+    347415262 to expectedDexSites347415262,
+    347415267 to expectedDexSites347415354,
+    347415268 to expectedDexSites347415354,
+    347415280 to expectedDexSites347415280,
+    347415281 to expectedDexSites347415280,
+    347415284 to expectedDexSites347415280,
+    347415285 to expectedDexSites347415280,
+    347415295 to expectedDexSites347415262,
+    347415299 to expectedDexSites347415354,
+    347415301 to expectedDexSites347415354,
+    347415302 to expectedDexSites347415354,
+    347415333 to expectedDexSites347415354,
+    347415337 to expectedDexSites347415354,
+    347415348 to expectedDexSites347415262,
+    347415350 to expectedDexSites347415354,
+    347415351 to expectedDexSites347415354,
+    347415352 to expectedDexSites347415354,
+    347415354 to expectedDexSites347415354,
+    347415355 to expectedDexSites347415354,
 )
 
 internal fun expectedDexSitesFor(

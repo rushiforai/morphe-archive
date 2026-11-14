@@ -47,6 +47,25 @@ public final class AiFeatureFilter {
         return (k.contains("sparky") || k.contains("genai") || k.contains("aiwizard")) && logOff(key);
     }
 
+    private static final Set<String> LOWES_AI_SWITCHES = new HashSet<>(Arrays.asList(
+            "ENABLE_STREAMING_CHAT", // Mylow itself
+            "ENABLE_MY_LOW_TOP_APP_BAR",
+            "ENABLE_MYLOWES_CHAT_STORE_MODE",
+            "ENABLE_MY_LOW_INSTORE",
+            "ENABLE_MY_LOW_INSTORE_FOR_PRO",
+            "ENABLE_DICTATION_FOR_MYLOW",
+            "ENABLE_AI_OVERVIEW_ON_PLP",
+            "ENABLE_RNR_AI_SUMMARY"));
+
+    /** Lowe's: Mylow and its entry points, the AI overview in search, and AI review summaries. */
+    public static boolean isLowesAiSwitch(Object featureSwitch) {
+        if (!(featureSwitch instanceof Enum)) {
+            return false;
+        }
+        String name = ((Enum<?>) featureSwitch).name();
+        return LOWES_AI_SWITCHES.contains(name) && logOff(name);
+    }
+
     /** The Home Depot: the Magic Apron assistant (EnableMagicApronChat and related flags). */
     public static boolean isHomeDepotAiKey(String key) {
         return key != null && key.toLowerCase(Locale.US).contains("magicapron") && logOff(key);

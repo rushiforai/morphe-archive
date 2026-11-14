@@ -72,6 +72,7 @@ if version=='15.0.0.9.156':
 if version=='16.0.0.2.159':
     settings_callback=method(patched,'Lcom/facebook/aura/settings/HatchSettingsScreenKt$InternalSettingsSection$1$1$1$1;','invoke','(LX/0pL;LX/4KG;I)V')
     check('Internal Settings card wraps its existing callback in the chooser','AuraMCDebugJsonBridge$SettingsAction;-><init>' in text(settings_callback) and '->$onInternalSettingsClick' in text(settings_callback))
+    check('Chooser action constructor uses exactly the receiver and two arguments','v47 ... v49, Lcom/facebook/aura/settings/internal/mcdebug/AuraMCDebugJsonBridge$SettingsAction;-><init>(Landroid/content/Context; Lkotlin/jvm/functions/Function0;)V' in text(settings_callback))
     action=method(patched,'Lcom/facebook/aura/settings/internal/mcdebug/AuraMCDebugJsonBridge$SettingsAction;','invoke','()Lkotlin/Unit;')
     check('Settings chooser delegates to the JSON bridge','AuraMCDebugJsonBridge;->showActions' in text(action))
     chooser=method(patched,'Lcom/facebook/aura/settings/internal/mcdebug/AuraMCDebugJsonBridge;','showActions')

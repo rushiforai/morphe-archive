@@ -71,6 +71,7 @@ val disableNewsBreakAiPatch = bytecodePatch(
     name = "Disable NewsBreak AI",
     description = "Turns off the Nia AI chat and the Scout reading assistant.",
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {
@@ -86,6 +87,7 @@ val hideAiSummariesPatch = bytecodePatch(
     description = "Hides the AI-written summary card on crime and local-alert pages.",
     default = false,
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

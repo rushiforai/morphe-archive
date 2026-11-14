@@ -19,9 +19,9 @@ PERMISSION = "app.hushfacebook.receiver.permission.ACCESS"
 OWNERS = f"+ permission:android.permission.INTERNET\n  package:android\n+ permission:{PERMISSION}\n  package:com.facebook.katana\n"
 
 
-def apk(package="com.facebook.orca", signers=(A,), code=347215348):
+def apk(package="com.facebook.orca", signers=(A,), code=347415354):
     return checker.Apk(
-        package, code, "586.0.0.55.92", frozenset({PERMISSION}), frozenset(signers)
+        package, code, "587.0.0.54.96", frozenset({PERMISSION}), frozenset(signers)
     )
 
 
@@ -119,7 +119,7 @@ class CertificateChecks(unittest.TestCase):
 
     def test_the_three_refusals_are_named_apart(self):
         installed = {
-            "com.facebook.orca": apk(code=347215399, signers=(B,)),
+            "com.facebook.orca": apk(code=347415399, signers=(B,)),
             "com.facebook.katana": apk("com.facebook.katana", (B,)),
         }
         problems = checker.conflicts(
@@ -168,15 +168,15 @@ class CertificateChecks(unittest.TestCase):
     def test_downgrade_and_unreadable_owner_fail(self):
         self.assertIn(
             "downgrade",
-            checker.conflicts(apk(), {"com.facebook.orca": apk(code=347215399)}, {})[0],
+            checker.conflicts(apk(), {"com.facebook.orca": apk(code=347415399)}, {})[0],
         )
         with self.assertRaises(ValueError):
             checker.conflicts(apk(), {}, {PERMISSION: "com.facebook.katana"})
 
     def test_normal_downgrade_keeps_the_plain_message(self):
         self.assertEqual(
-            checker.conflicts(apk(), {"com.facebook.orca": apk(code=347215399)}, {}),
-            ["Version downgrade: installed 347215399, candidate 347215348."],
+            checker.conflicts(apk(), {"com.facebook.orca": apk(code=347415399)}, {}),
+            ["Version downgrade: installed 347415399, candidate 347415354."],
         )
 
     def test_spoofed_version_code_is_named_with_the_readme_fix(self):
@@ -202,7 +202,7 @@ class CertificateChecks(unittest.TestCase):
     def test_leftover_data_only_conflicts_when_newer(self):
         self.assertIn(
             "Android refuses anything lower",
-            checker.conflicts(apk(), {}, {}, leftover=347215399)[0],
+            checker.conflicts(apk(), {}, {}, leftover=347415399)[0],
         )
         self.assertEqual(checker.conflicts(apk(), {}, {}, leftover=346000000), [])
         self.assertEqual(checker.conflicts(apk(), {}, {}, leftover=None), [])
@@ -454,7 +454,7 @@ class CertificateChecks(unittest.TestCase):
 class ParserAndCliChecks(unittest.TestCase):
     def setUp(self):
         self.args = argparse.Namespace(build_tools=Path("tools"), java=Path("java"))
-        self.badging = "package: name='com.facebook.orca' versionCode='347215348' versionName='586.0.0.55.92'\n"
+        self.badging = "package: name='com.facebook.orca' versionCode='347415354' versionName='587.0.0.54.96'\n"
         self.permissions = f"package: com.facebook.orca\npermission: {PERMISSION}\n"
         self.certificates = (
             f"Number of signers: 1\nSigner #1 certificate SHA-256 digest: {A}\n"

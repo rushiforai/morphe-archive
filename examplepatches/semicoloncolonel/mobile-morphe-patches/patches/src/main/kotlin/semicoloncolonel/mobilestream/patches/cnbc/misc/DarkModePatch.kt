@@ -19,6 +19,7 @@ val darkModePatch = resourcePatch(
         "Android picks the colors, so some screens may look different from a designed dark theme.",
     default = false,
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

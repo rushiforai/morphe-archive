@@ -63,6 +63,7 @@ val streamingTitlesOnlyPatch = bytecodePatch(
         "Titles you can only rent or buy are hidden. Picking a Types filter in the app overrides this.",
     default = false,
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")
@@ -79,6 +80,7 @@ val hideUnavailableTitlesPatch = bytecodePatch(
         "With All picked, hides titles that no service offers, except unreleased titles.",
     default = false,
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")
@@ -94,6 +96,7 @@ val hideWatchedTitlesPatch = bytecodePatch(
     description = "Hides movies you marked as seen and shows you are caught up on from the Watchlist.",
     default = false,
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")

@@ -7,3 +7,6 @@
 # These are Windows script files and should use crlf
 *.bat           text eol=crlf
 
+
+# Generated bundle checksums are compared byte-for-byte, so never convert their line endings.
+*.sha256 -text

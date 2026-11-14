@@ -14,11 +14,12 @@ import java.util.List;
 
 /**
  * Ask before a call (#130): a tap on a chat's audio or video call button asks first, so a stray tap doesn't ring
- * anyone. Both top bars hand their buttons over through {@link MarkReadButton}. Each call button keeps its tap
- * listener in a field typed as an interface with one onClick(View) method, and that listener is wrapped in place, so
- * the button looks and sits as it did. Call runs Messenger's own tap, Cancel drops it.
+ * anyone. Both top bars hand their buttons over through {@link MarkReadButton}, and the two call button builders hand
+ * over each button they build (#172), which also covers the bars neither top bar seam walks. Each call button keeps its
+ * tap listener in a field typed as an interface with one onClick(View) method, and that listener is wrapped in place,
+ * so the button looks and sits as it did. Call runs Messenger's own tap, Cancel drops it.
  */
-final class CallConfirm {
+public final class CallConfirm {
     static final String KEY = "call_confirm";
     static final String VIDEO_TAG = "video_call_button";
 
@@ -37,6 +38,20 @@ final class CallConfirm {
             if (buttons == null || !Settings.enabled(KEY)) return;
             for (Object held : buttons) {
                 if (held != null && MarkReadButton.isCall(held)) guard(held, MarkReadButton.hasTag(held, VIDEO_TAG));
+            }
+        } catch (Throwable error) {
+            Settings.hookFailed(KEY, "Can't ask before a call", error);
+        }
+    }
+
+    /**
+     * A call button as Messenger's audio or video builder hands it back, before anything puts it on screen: a chat's top
+     * bar, a business chat's catalog bar or the New message screen. Wrapped while the switch is on. Never throws.
+     */
+    public static void built(Object button) {
+        try {
+            if (button != null && Settings.enabled(KEY) && MarkReadButton.isCall(button)) {
+                guard(button, MarkReadButton.hasTag(button, VIDEO_TAG));
             }
         } catch (Throwable error) {
             Settings.hookFailed(KEY, "Can't ask before a call", error);

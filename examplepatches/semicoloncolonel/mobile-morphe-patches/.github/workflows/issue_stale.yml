@@ -19,7 +19,7 @@ jobs:
     name: Close untargeted and incomplete reports
     permissions:
       issues: write
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Close reports untouched for 7 days
         uses: actions/stale@v11
@@ -38,7 +38,7 @@ jobs:
     permissions:
       contents: read
       issues: write
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
       - name: Checkout

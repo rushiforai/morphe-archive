@@ -18,6 +18,7 @@ internal val BRAVE_VERSIONS = listOf(
     "1.98.62",
     "1.98.63",
     "1.99.55",
+    "1.100.56",
 )
 
 internal fun braveCompatibility() = Compatibility(

@@ -99,6 +99,7 @@ val saveVideosPatch = bytecodePatch(
     name = "Save videos",
     description = "Lets the Save button save videos too, and names it \"Save video\" for a video.",
 ) {
+    category("Playback")
     compatibleWith(Constants.COMPATIBILITY)
 
     dependsOn(saveImageResourcePatch)

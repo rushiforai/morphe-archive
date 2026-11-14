@@ -397,8 +397,8 @@ public class HushTelegramPreferenceFragmentTest {
                     String.valueOf(page.findPreference(Settings.GHOST_READ_AFTER_SEND.key).getSummary()));
             assertEquals("Read receipts button", String.valueOf(page.findPreference(Settings.GHOST_READS_BUTTON.key).getTitle()));
             assertEquals("A double check at the top of the chat list sends the read receipts Ghost mode is holding for "
-                    + "the account you're on, from chats read since Telegram last started. Shows with Ghost mode and No "
-                    + "read receipts on.", String.valueOf(page.findPreference(Settings.GHOST_READS_BUTTON.key).getSummary()));
+                    + "the account you're on, from chats read since Telegram last started. Send read receipts in a chat's "
+                    + "menu sends just that chat's. Shows with Ghost mode and No read receipts on.", String.valueOf(page.findPreference(Settings.GHOST_READS_BUTTON.key).getSummary()));
             assertEquals("Ghost mode exceptions", String.valueOf(page.findPreference(Settings.GHOST_CHATS.key).getTitle()));
             assertEquals("The chats you pick work the other way around. While Ghost mode is on they act as usual, and "
                     + "while it's off the Ghost mode switches above apply there. Long press chats in the chat list and "
@@ -798,6 +798,12 @@ public class HushTelegramPreferenceFragmentTest {
             assertEquals("Videos, voice messages and music pick up where you left off, even short ones. Telegram only does that for long ones.",
                     String.valueOf(page.findPreference(Settings.PLAYBACK_POSITION.key).getSummary()));
             assertFalse(Settings.PLAYBACK_POSITION.key, ((SwitchPreference) page.findPreference(Settings.PLAYBACK_POSITION.key)).isChecked());
+            assertEquals("Skip between voice messages", String.valueOf(page.findPreference(Settings.VOICE_SKIP.key).getTitle()));
+            assertEquals("Next and previous on headphones, in a car, in the notification, on the lock screen and in the full player"
+                    + " move between a chat's voice messages, as they do for songs.",
+                    String.valueOf(page.findPreference(Settings.VOICE_SKIP.key).getSummary()));
+            // Voice messages keep play and pause alone until the switch is turned on.
+            assertFalse(Settings.VOICE_SKIP.key, ((SwitchPreference) page.findPreference(Settings.VOICE_SKIP.key)).isChecked());
             assertEquals("Faster downloads", String.valueOf(page.findPreference(Settings.FASTER_DOWNLOADS.key).getTitle()));
             assertEquals("Files download in 512 KB pieces, 8 at a time, instead of 128 KB pieces 4 at a time. If a big "
                     + "piece fails, Telegram goes back to small ones. The next download picks this up.",
@@ -1697,6 +1703,37 @@ public class HushTelegramPreferenceFragmentTest {
                     + "and notifications, search still finds them, and nothing changes on your other devices. Each account "
                     + "keeps its own list. Folder tab counts and the app badge still count their unread messages.",
                     String.valueOf(pageOf(controller).findPreference(Settings.HIDDEN_CHATS.key).getSummary()));
+        } finally {
+            PatchFamily.capabilitiesForTests = null;
+        }
+    }
+
+    /** Open restricted channels says what this build backs: restricted chats, a banned channel's web page, or both (#71). */
+    @Test
+    public void openRestrictedChannelsSaysWhatThisBuildBacks() {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.BYPASS_CHANNEL_RESTRICTIONS);
+        String restricted = "Channels, groups and messages Telegram says are unavailable for copyright or local law open "
+                + "anyway, as long as Telegram still sends them.";
+        String banned = "A channel that banned you offers Open on the web, which shows its public posts in your browser.";
+        try {
+            PatchFamily.capabilitiesForTests = EnumSet.noneOf(PatchFamily.Capability.class);
+            try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+                assertNull("no row without either", pageOf(controller).findPreference(Settings.OPEN_RESTRICTED_CHATS.key));
+            }
+            PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.OPEN_RESTRICTED_CHATS);
+            try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+                assertEquals(restricted, String.valueOf(pageOf(controller).findPreference(Settings.OPEN_RESTRICTED_CHATS.key).getSummary()));
+            }
+            PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.BANNED_CHANNEL_WEB);
+            try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+                assertEquals(banned, String.valueOf(pageOf(controller).findPreference(Settings.OPEN_RESTRICTED_CHATS.key).getSummary()));
+            }
+            PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.OPEN_RESTRICTED_CHATS, PatchFamily.Capability.BANNED_CHANNEL_WEB);
+            try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+                Preference row = pageOf(controller).findPreference(Settings.OPEN_RESTRICTED_CHATS.key);
+                assertEquals("Open restricted channels", String.valueOf(row.getTitle()));
+                assertEquals(restricted + " " + banned, String.valueOf(row.getSummary()));
+            }
         } finally {
             PatchFamily.capabilitiesForTests = null;
         }

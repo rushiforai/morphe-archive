@@ -46,6 +46,7 @@ val hideUpsellPatch = bytecodePatch(
     name = "Hide Premium upsell",
     description = "Stops the Premium screen that opens on its own at launch and after sign-in.",
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")

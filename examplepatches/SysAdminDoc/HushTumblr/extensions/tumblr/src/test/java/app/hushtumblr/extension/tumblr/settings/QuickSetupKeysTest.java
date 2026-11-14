@@ -87,12 +87,12 @@ public class QuickSetupKeysTest {
         Set<BooleanSetting> chosen = new HashSet<>(QuickSetupKeys.QUIET);
         chosen.addAll(QuickSetupKeys.PRIVACY);
         List<BooleanSetting> missed = Arrays.asList(
-                Settings.HIDE_REBLOGS, Settings.HIDE_OWN_REBLOGS, Settings.HIDE_LIKED_POSTS, Settings.HIDE_VIDEO_POSTS, Settings.HIDE_PHOTO_POSTS, Settings.HIDE_TEXT_POSTS,
+                Settings.HIDE_REBLOGS, Settings.HIDE_OWN_REBLOGS, Settings.HIDE_REBLOGS_OF_YOURS, Settings.HIDE_LIKED_POSTS, Settings.HIDE_VIDEO_POSTS, Settings.HIDE_PHOTO_POSTS, Settings.HIDE_TEXT_POSTS,
                 Settings.HIDE_POSTS_WITH_WORDS, Settings.HIDE_FILTERED_POSTS, Settings.HIDE_TUMBLR_TV, Settings.HIDE_COMMUNITIES_TAB,
                 Settings.HIDE_EXPLORE_TAB, Settings.HIDE_NOTIFICATIONS_TAB, Settings.HIDE_LIKE_BUTTON,
                 Settings.HIDE_REBLOG_BUTTON, Settings.HIDE_COMMENT_BUTTON, Settings.HIDE_SHARE_BUTTON,
                 Settings.HIDE_SAVE_BUTTON, Settings.HIDE_NOTE_COUNTS, Settings.HIDE_HASHTAGS,
-                Settings.HIDE_FOLLOW_BUTTON, Settings.HIDE_NOTIFICATIONS_COUNT, Settings.HIDE_NOTIFICATION_REPLIES,
+                Settings.HIDE_FOLLOW_BUTTON, Settings.TAG_BLOG_SEARCH, Settings.HIDE_NOTIFICATIONS_COUNT, Settings.HIDE_NOTIFICATION_REPLIES,
                 Settings.HIDE_NOTIFICATION_MENTIONS, Settings.HIDE_NOTIFICATION_ASKS);
         for (BooleanSetting setting : missed) assertFalse(setting.key + " is in a quick setup", chosen.contains(setting));
     }

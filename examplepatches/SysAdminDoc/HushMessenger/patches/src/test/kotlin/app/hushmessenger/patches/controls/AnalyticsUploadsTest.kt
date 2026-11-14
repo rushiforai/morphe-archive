@@ -86,8 +86,8 @@ private fun taskBase(type: String = TASK_BASE, superclass: String = SERVICE, var
 private fun inlinedTaskFixture() = listOf(taskBase(), taskRunner())
 
 /**
- * GooglePlayUploadService's own task override, as 580's 346013423 shipped it (twelve registers). Two 582 builds kept
- * one too. No 583 build has one.
+ * GooglePlayUploadService's own task override, as 580's 346013423 shipped it (twelve registers). Two 582 builds and
+ * 587's second family (347415280) keep one too.
  */
 private fun delegatedTask(task: String = "LX/UTH;", mark: String = BOUND_UPLOAD_MARK) = fixtureMethod("$PLAY->A04($task)I", """
     const/4 v3, 0x2
@@ -146,6 +146,31 @@ private const val IN_PROCESS_START = "$UPLOAD_LOGIC->A05(${UPLOAD_PARAMS}Ljava/l
 private fun uploadDispatcher(id: String = UPLOAD_DISPATCH,
                              actions: List<String> = listOf(UPLOAD_NOW_ACTION, USER_LOGOUT_ACTION, UNKNOWN_UPLOAD_ACTION)) =
     fixtureMethod(id, actions.joinToString("") { "const-string v0, \"$it\"\n" } + "return-void", 10)
+
+/** 587's string pool, cut down to the one action it holds under 0x45a. */
+private const val ACTION_POOL = "LX/6i7;->A00(I)Ljava/lang/String;"
+private fun actionPoolClass(action: String = USER_LOGOUT_ACTION) = fixtureClass("LX/6i7;", listOf(fixtureMethod(ACTION_POOL, """
+    packed-switch p0, :keys
+    const-string v0, ""
+    return-object v0
+    :action
+    const-string v0, "$action"
+    return-object v0
+    :keys
+    .packed-switch 0x45a
+        :action
+    .end packed-switch
+""".trimIndent(), 1, AccessFlags.PUBLIC.value or AccessFlags.STATIC.value)))
+
+/** The dispatcher as 587 ships it, looking USER_LOGOUT up in that pool between its two literals. */
+private fun pooledDispatcher() = fixtureMethod(UPLOAD_DISPATCH, """
+    const-string v0, "$UPLOAD_NOW_ACTION"
+    const/16 v0, 0x45a
+    invoke-static {v0}, $ACTION_POOL
+    move-result-object v0
+    const-string v0, "$UNKNOWN_UPLOAD_ACTION"
+    return-void
+""".trimIndent(), 10)
 
 private const val IN_PROCESS_START_BODY = "const/4 v0, 0x0\ninvoke-direct {p0, p1, v0, p2}, $UPLOAD_DISPATCH\nreturn-void"
 
@@ -237,9 +262,15 @@ class AnalyticsUploadsTest {
         val inlined = "$TASK_RUNNER->run()V"
         val delegated = "$PLAY->A04(LX/UTH;)I"
         val delegatingPlay = fixtureClass(PLAY, listOf(entry(PLAY, START_COMMAND), delegatedTask()), superclass = "LX/QBX;")
+        // 582's route, and 587's second family: the uploader's own task override, which a delegating run() calls.
+        val overriding = found(analyticsUploadFixture(play = delegatingPlay, tasks = delegatedTaskFixture()))
+        assertEquals(activeProfile.hooks.getValue(ANALYTICS_UPLOADS) - inlined + delegated, overriding)
+        assertEquals(12, overriding.size)
         val cases = mapOf(
-            // 582's route: the uploader's own task override, which a delegating run() calls.
-            "582's task override" to analyticsUploadFixture(play = delegatingPlay, tasks = delegatedTaskFixture()),
+            "an override without the uploader's message" to analyticsUploadFixture(play = fixtureClass(PLAY,
+                listOf(entry(PLAY, START_COMMAND), delegatedTask(mark = "Job with no ID")), superclass = "LX/QBX;"), tasks = delegatedTaskFixture()),
+            "an override the base doesn't declare" to analyticsUploadFixture(play = delegatingPlay,
+                tasks = delegatedTaskFixture().map { if (it.type == "LX/QBX;") taskBase("LX/QBX;", SERVICE) else it }),
             "a Runnable without the uploader's message" to analyticsUploadFixture(tasks = listOf(taskBase(),
                 taskRunner(run = inlinedTask(mark = "Job with old build ID")))),
             "a Runnable that never checks for compat tasks" to analyticsUploadFixture(tasks = listOf(taskBase(),
@@ -303,6 +334,17 @@ class AnalyticsUploadsTest {
         }
     }
 
+    @Test fun a587DispatcherNamesUserLogoutThroughItsStringPool() {
+        val withoutLogic = found(analyticsUploadFixture(logic = emptyList()))
+        val logic = uploadLogic(methods = listOf(pooledDispatcher(), inProcessStart()))
+        assertEquals(setOf(IN_PROCESS_START), found(analyticsUploadFixture(logic = listOf(logic, actionPoolClass()))) - withoutLogic)
+        val cases = mapOf(
+            "a pool holding another action" to listOf(logic, actionPoolClass("com.facebook.analytics2.logger.OTHER")),
+            "no pool" to listOf(logic),
+        )
+        for ((case, classes) in cases) assertEquals(withoutLogic, found(analyticsUploadFixture(logic = classes)), case)
+    }
+
     @Test fun anInProcessUploadStartReturnsBeforeTheUploadJobExists() {
         val method = inProcessStart()
         val before = method.code()
@@ -342,11 +384,19 @@ class AnalyticsUploadsTest {
         assertEquals(before, code.drop(9))
     }
 
-    @Test fun a582TaskOverrideIsRefusedBeforeAnyEdit() {
+    @Test fun aTaskOverrideReportsSuccessWithoutUploading() {
         val method = delegatedTask()
         val before = method.code()
-        assertFailsWith<PatchException> { injectControl(ANALYTICS_UPLOADS, mapOf(ANALYTICS_UPLOADS to listOf(method))) }
-        assertEquals(before, method.code())
+        injectControl(ANALYTICS_UPLOADS, mapOf(ANALYTICS_UPLOADS to listOf(method)))
+        val code = method.code()
+        assertEquals("$SETTINGS->stopAnalyticsUploads()Z", reference(0, code))
+        assertEquals(Opcode.MOVE_RESULT, code[1].opcode)
+        assertEquals(Opcode.IF_EQZ, code[2].opcode)
+        // The Runnable hands this 0 to its reporter, which tells Google Play the task succeeded and frees its tag.
+        assertEquals(0, (code[3] as NarrowLiteralInstruction).narrowLiteral)
+        assertEquals(Opcode.RETURN, code[4].opcode)
+        assertEquals(5, code.branchTarget(2))
+        assertEquals(before, code.drop(5))
     }
 
     @Test fun theInheritedBaseCountsOnlyWhileNothingElseCanReachIt() {
@@ -423,7 +473,7 @@ class AnalyticsUploadsTest {
             "another method" to fixtureMethod("$ALARM->onBind(Landroid/content/Intent;)Landroid/os/IBinder;", "const/4 v0, 0x0\nreturn-object v0"),
             "a Runnable that isn't the uploader's task" to inlinedTask(mark = "Job with old build ID"),
             "a task with two reporters" to inlinedTask(secondReporter = true),
-            "582's task override" to delegatedTask(),
+            "a task override without the uploader's message" to delegatedTask(mark = "Job with no ID"),
             "a Runnable that uploads before it flushes" to timerRun(body = timerBody(first = XANALYTICS_UPLOAD, second = XANALYTICS_FLUSH)),
         )
         for ((case, bad) in cases) {

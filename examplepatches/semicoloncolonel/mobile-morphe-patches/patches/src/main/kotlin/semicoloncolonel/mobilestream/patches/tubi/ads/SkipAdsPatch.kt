@@ -24,6 +24,7 @@ val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
     description = "Removes the ads in videos, including ad breaks and image pause ads.",
 ) {
+    category("Ads")
     compatibleWith(Constants.COMPATIBILITY)
 
     // A Play Store update would replace the patched app and bring the ads

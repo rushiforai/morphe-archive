@@ -204,6 +204,8 @@ internal val youtubeExtrasBasePatch = bytecodePatch {
         mutableClassDefByOrNull(MORPHE_FEED_CARD_LAYOUT)?.methods?.firstOrNull {
             it.name == "findWatchLaterCommand" && it.implementation != null
         }?.apply {
+            // The card's menu (the method's argument), whose own Save to playlist item opens the sheet with thumbnails.
+            addInstruction(0, "invoke-static { p0 }, $EXTENSION/SaveChooser;->rememberMenu(Ljava/lang/Object;)V")
             hookReturns(
                 Opcode.RETURN_OBJECT,
                 """

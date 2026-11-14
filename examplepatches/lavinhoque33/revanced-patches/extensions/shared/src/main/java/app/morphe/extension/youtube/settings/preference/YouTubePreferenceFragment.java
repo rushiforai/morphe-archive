@@ -7,8 +7,6 @@
 
 package app.morphe.extension.youtube.settings.preference;
 
-import static app.morphe.extension.shared.patches.PatchStatus.PatchVersion;
-import static app.morphe.extension.shared.patches.PatchStatus.PatchedTime;
 import static app.morphe.extension.shared.utils.StringRef.str;
 import static app.morphe.extension.youtube.settings.Settings.HIDE_PREVIEW_COMMENT;
 import static app.morphe.extension.youtube.settings.Settings.HIDE_PREVIEW_COMMENT_TYPE;
@@ -22,8 +20,6 @@ import android.preference.SwitchPreference;
 import android.widget.Toolbar;
 
 import androidx.annotation.NonNull;
-
-import java.util.Date;
 
 import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.shared.settings.preference.LogBufferManager;
@@ -292,7 +288,6 @@ public class YouTubePreferenceFragment extends ToolbarPreferenceFragment {
 
     private void setPreferenceAvailability() {
         setTabletLayoutPreference();
-        setPatchInformationPreference();
         setRYDPreference();
         setShortsPreference();
         setSpoofStreamingDataPreference();
@@ -325,30 +320,6 @@ public class YouTubePreferenceFragment extends ToolbarPreferenceFragment {
                 Settings.HIDE_MIX_PLAYLISTS,
                 Settings.SHOW_VIDEO_TITLE_SECTION
         );
-    }
-
-    /**
-     * Set patch information preference summary
-     */
-    private void setPatchInformationPreference() {
-        Preference appNamePreference = findPreference("revanced_app_name");
-        if (appNamePreference != null) {
-            appNamePreference.setSummary(ExtendedUtils.getAppLabel());
-        }
-        Preference appVersionPreference = findPreference("revanced_app_version");
-        if (appVersionPreference != null) {
-            appVersionPreference.setSummary(ExtendedUtils.getAppVersionName());
-        }
-        Preference patchesVersion = findPreference("revanced_patches_version");
-        if (patchesVersion != null) {
-            patchesVersion.setSummary(PatchVersion());
-        }
-        Preference patchedDatePreference = findPreference("revanced_patched_date");
-        if (patchedDatePreference != null) {
-            long patchedTime = PatchedTime();
-            Date date = new Date(patchedTime);
-            patchedDatePreference.setSummary(date.toLocaleString());
-        }
     }
 
     /**

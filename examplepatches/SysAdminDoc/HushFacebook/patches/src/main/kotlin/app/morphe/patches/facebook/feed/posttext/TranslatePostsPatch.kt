@@ -46,7 +46,7 @@ internal const val TRANSLATION_TOUCH = "$POST_TRANSLATION->touch($MOTION_EVENT)V
  * line under a cut text's See more.
  *
  * A post opened to its whole text skips that method. Facebook builds the whole text and runs it
- * through the static step the method uses before its cut, so each call of that step outside the
+ * through the step the method uses before its cut ([wholeTextStep]), so each call of that step outside the
  * method takes the text through the extension on the way in and the answer on the way out too.
  *
  * Litho's text takes a press near the line and calls the line when the finger lifts, held or not,
@@ -110,28 +110,57 @@ val translatePostsPatch = bytecodePatch(
 
 private val STATIC_CALLS = setOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE)
 
+private val VIRTUAL_CALLS = setOf(Opcode.INVOKE_VIRTUAL, Opcode.INVOKE_VIRTUAL_RANGE)
+
 private fun callsStep(instruction: Instruction, step: MethodReference) =
-    instruction.opcode in STATIC_CALLS && (instruction as ReferenceInstruction).reference.toString() == step.toString()
+    (instruction.opcode in STATIC_CALLS || instruction.opcode in VIRTUAL_CALLS) &&
+        (instruction as ReferenceInstruction).reference.toString() == step.toString()
+
+/** The register [call] hands the step its text in: its first argument, after `this` on a virtual call. */
+private fun stepText(call: Instruction): Int? {
+    val skip = if (call.opcode in VIRTUAL_CALLS) 1 else 0
+    return when (call) {
+        is RegisterRangeInstruction -> call.startRegister + skip
+        is FiveRegisterInstruction -> listOf(call.registerC, call.registerD).take(call.registerCount).getOrNull(skip)
+        else -> null
+    }
+}
 
 /**
- * The static step the builder runs a post's text through before its cut (585 `LX/03Bn;->A00(Spannable,
- * FbUserSession, 02YE, 03Bn)Spannable`, which adds what a shared link's title brings): the text first,
- * the builder's own class last, a Spannable back.
+ * The step the builder runs a post's text through before its cut (585 `LX/03Bn;->A00(Spannable,
+ * FbUserSession, 02YE, 03Bn)Spannable`, which adds what a shared link's title brings): a Spannable
+ * back with the text first, either a static of the builder's class taking that class last, or, since
+ * 587 (`LX/03GO;->A07(Spannable, FbUserSession, 02cx)Spannable`), a virtual method of the builder's class.
  */
 internal fun wholeTextStep(builder: Method): MethodReference? = builder.implementation!!.instructions
-    .filter { it.opcode in STATIC_CALLS }
-    .mapNotNull { (it as ReferenceInstruction).reference as? MethodReference }
-    .filter { step ->
-        step.definingClass == builder.definingClass && step.returnType == SPANNABLE && step.parameterTypes.size >= 2 &&
-            step.parameterTypes.first().toString() == SPANNABLE && step.parameterTypes.last().toString() == builder.definingClass
+    .filter { it.opcode in STATIC_CALLS || it.opcode in VIRTUAL_CALLS }
+    .mapNotNull { call ->
+        val step = (call as ReferenceInstruction).reference as? MethodReference ?: return@mapNotNull null
+        val parameters = step.parameterTypes.map { it.toString() }
+        step.takeIf {
+            step.definingClass == builder.definingClass && step.returnType == SPANNABLE && parameters.size >= 2 &&
+                parameters.first() == SPANNABLE &&
+                (call.opcode in VIRTUAL_CALLS || parameters.last() == builder.definingClass)
+        }
     }
     .distinctBy { it.toString() }
     .singleOrNull()
 
+/** What a method answers when it only measures a post's text for the cut: a yes/no or a number, never the text. */
+private val MEASURES = setOf("Z", "B", "S", "C", "I", "J", "F", "D") +
+    listOf("Boolean", "Byte", "Short", "Character", "Integer", "Long", "Float", "Double").map { "Ljava/lang/$it;" }
+
 /**
- * Every method besides [builder] that calls [step]: where a post shows its whole text without the
- * builder. A tap that opens a cut post takes 585's `LX/03Bf;->A00` past the builder, and the feed's
- * `LX/0cQv;->render` builds the whole text through `LX/03Bn;->A07` next to the cut one (#332).
+ * Every method besides [builder] that calls [step] and shows what comes back: where a post shows its
+ * whole text without the builder. A tap that opens a cut post takes 585's `LX/03Bf;->A00` past the
+ * builder, and the feed's `LX/0cQv;->render` builds the whole text through `LX/03Bn;->A07` next to
+ * the cut one (#332).
+ *
+ * 587 also runs the text through the step to measure it: `LX/0HxX;->A00(FbUserSession, 02cx)Z` asks
+ * whether it runs past its lines and `LX/02z2;->A09(...)Integer` picks how the post opens. Those
+ * stay as they are. Nothing they build is shown, and the builder itself reaches the first one
+ * (through `LX/02xx;->A01`), so its hooks would take what the builder's own noted at its top and the
+ * post would come out with no Translate line.
  */
 internal fun BytecodePatchContext.wholeTextCallers(builder: Method, step: MethodReference): List<Method> {
     val found = mutableListOf<Method>()
@@ -140,7 +169,7 @@ internal fun BytecodePatchContext.wholeTextCallers(builder: Method, step: Method
         classDef.methods.filterTo(found) { method ->
             // Signatures, not the parameter lists: a mutable class's parameters aren't Strings, so `==` misses.
             val isBuilder = method.definingClass == builder.definingClass && MethodUtil.methodSignaturesMatch(method, builder)
-            !isBuilder && method.implementation?.instructions?.any { callsStep(it, step) } == true
+            !isBuilder && method.returnType !in MEASURES && method.implementation?.instructions?.any { callsStep(it, step) } == true
         }
     }
     return found
@@ -158,11 +187,7 @@ private fun hookWholeText(method: MutableMethod, step: MethodReference): Int {
         val answer = code.getOrNull(index + 1)
         if (answer?.opcode != Opcode.MOVE_RESULT_OBJECT) continue
         val result = (answer as OneRegisterInstruction).registerA
-        val text = when (call) {
-            is RegisterRangeInstruction -> call.startRegister
-            is FiveRegisterInstruction -> call.registerC
-            else -> continue
-        }
+        val text = stepText(call) ?: continue
         method.addInstructions(
             index + 2,
             """

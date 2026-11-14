@@ -14,11 +14,14 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import semicoloncolonel.mobilestream.patches.dealnews.shared.Constants as DealNews
 import semicoloncolonel.mobilestream.patches.dealseek.shared.Constants as DealSeek
 import semicoloncolonel.mobilestream.patches.foxone.shared.Constants as FoxOne
 import semicoloncolonel.mobilestream.patches.moviebase.shared.Constants as Moviebase
 import semicoloncolonel.mobilestream.patches.whitehouse.shared.Constants as WhiteHouse
 import semicoloncolonel.mobilestream.patches.nfg.shared.Constants as Nfg
+import semicoloncolonel.mobilestream.patches.retailmenot.shared.Constants as RetailMeNot
+import semicoloncolonel.mobilestream.patches.settingshome.shared.Constants as SettingsHome
 
 // Google's Pairip licensing (com.pairip.licensecheck) asks the Play Store
 // whether this install came from Play, and blocks the app when it did not.
@@ -49,6 +52,9 @@ val disablePairipLicenseCheckPatch = bytecodePatch(
     compatibleWith(
         FoxOne.COMPATIBILITY,
         DealSeek.COMPATIBILITY,
+        DealNews.COMPATIBILITY,
+        RetailMeNot.COMPATIBILITY,
+        SettingsHome.COMPATIBILITY,
         WhiteHouse.COMPATIBILITY,
         Nfg.COMPATIBILITY,
         Moviebase.COMPATIBILITY,

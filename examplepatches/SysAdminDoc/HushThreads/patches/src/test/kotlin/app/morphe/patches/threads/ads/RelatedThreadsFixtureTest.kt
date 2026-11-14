@@ -35,8 +35,12 @@ import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
+import com.android.tools.smali.dexlib2.immutable.ImmutableField
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
@@ -47,7 +51,8 @@ import java.io.File
 /**
  * The suggested threads switch of Hide suggested users on each declared build: the opened post's
  * parse hands the page's related threads to the extension right after reading them, into the
- * register it walks, and Filter comments' hook on the replies beside them lands too, in either
+ * register it walks, the collector of the ones Threads fetches on their own does the same, and
+ * Filter comments' hook on the replies beside them lands too, in either
  * order. A second related list, or a branch onto where the hook goes, is refused before anything
  * changes.
  */
@@ -158,6 +163,90 @@ class RelatedThreadsFixtureTest {
         }
     }
 
+    @Test
+    fun `each declared build hands the suggested threads Threads fetches on their own to the extension`() {
+        for (build in Fixtures.declaredBuilds()) {
+            RepliesParseFingerprint.clearMatch()
+            val where = build.name
+            // Read apart from the patch: the static call right after the parse casts a related thread
+            // makes its row, and one emit among the classes holding the repository builds that row.
+            val parseBody = stockParse(build).body()
+            val row = parseBody.indices.filter {
+                parseBody[it].opcode == Opcode.CHECK_CAST && parseBody[it].getReference<TypeReference>()?.type == RELATED_THREAD
+            }.map { parseBody[it + 1].getReference<MethodReference>()!!.returnType }.single()
+            val stock = RelatedThreadsFetchFixture.classes(build).flatMap { it.methods }.single { method ->
+                method.name == "emit" && method.body().any { it.opcode == Opcode.NEW_INSTANCE && it.getReference<TypeReference>()?.type == row }
+            }
+            val stockBody = stock.body()
+            val read = stockBody.indices.single {
+                stockBody[it].opcode == Opcode.IGET_OBJECT && stockBody[it].getReference<FieldReference>()?.type == LIST
+            }
+            val list = (stockBody[read] as OneRegisterInstruction).registerA
+
+            val context = context(build)
+            val found = context.relatedThreadsFetch()
+            assertEquals(where, stock.toString(), found.method.toString())
+            assertEquals(where, read, found.read)
+            assertEquals(where, list, found.list)
+            hookRelatedThreadsFetch(found)
+
+            val patched = context.mutable(stock).body()
+            assertEquals(where, stockBody.size + 2, patched.size)
+            val hook = patched[read + 1] as RegisterRangeInstruction
+            assertEquals(where, Opcode.INVOKE_STATIC_RANGE, hook.opcode)
+            assertEquals(where, RELATED_THREADS_CALL, hook.getReference<MethodReference>().toString())
+            assertEquals(where, 1, hook.registerCount)
+            assertEquals(where, list, hook.startRegister)
+            assertEquals(where, Opcode.MOVE_RESULT_OBJECT, patched[read + 2].opcode)
+            assertEquals(where, list, (patched[read + 2] as OneRegisterInstruction).registerA)
+            assertEquals(where, stockBody.take(read + 1).map { it.kind() }, patched.take(read + 1).map { it.kind() })
+            assertEquals(where, stockBody.drop(read + 1).map { it.kind() }, patched.drop(read + 3).map { it.kind() })
+            // What the collector walks into rows is now the list the extension handed back.
+            val walk = (read + 3 until patched.size).first { patched[it].calls("$LIST->iterator()Ljava/util/Iterator;") }
+            assertEquals(where, list, patched[walk].receiver())
+        }
+    }
+
+    @Test
+    fun `a second collector building suggested thread rows is refused`() {
+        for (build in Fixtures.declaredBuilds()) {
+            RepliesParseFingerprint.clearMatch()
+            val type = context(build).relatedThreadsFetch().method.definingClass
+            val stock = RelatedThreadsFetchFixture.classes(build).single { it.type == type }
+            val copy = "Lapp/morphe/hushthreads/test/SecondCollector;"
+            val second = ImmutableClassDef(
+                copy, stock.accessFlags, stock.superclass, stock.interfaces, stock.sourceFile, stock.annotations,
+                stock.fields.map { ImmutableField(copy, it.name, it.type, it.accessFlags, null, null, null) },
+                stock.methods.map {
+                    ImmutableMethod(copy, it.name, it.parameters, it.returnType, it.accessFlags, it.annotations,
+                        it.hiddenApiRestrictions, it.implementation)
+                },
+            )
+            RepliesParseFingerprint.clearMatch()
+            val doubled = PatchContexts.of(
+                (ExtensionDex.classes() + classes(build).values + RelatedThreadsFetchFixture.classes(build) + second).distinctBy { it.type },
+            )
+            val error = assertThrows(build.name, PatchException::class.java) { doubled.relatedThreadsFetch() }
+            assertTrue(error.message.orEmpty(), error.message.orEmpty().contains("fetched suggested threads") &&
+                error.message.orEmpty().contains("expected exactly one match, found 2"))
+        }
+    }
+
+    @Test
+    fun `a branch landing where the fetch hook goes is refused`() {
+        for (build in Fixtures.declaredBuilds()) {
+            RepliesParseFingerprint.clearMatch()
+            val context = context(build)
+            val found = context.relatedThreadsFetch()
+            val collector = found.method
+            collector.addInstructionsWithLabels(0, "goto/32 :after", ExternalLabel("after", collector.getInstruction(found.read + 1)))
+            RepliesParseFingerprint.clearMatch()
+            val error = assertThrows(build.name, PatchException::class.java) { context.relatedThreadsFetch() }
+            assertTrue(error.message.orEmpty(), error.message.orEmpty().contains("lands right after the fetched suggested threads"))
+            assertFalse(build.name, collector.body().any { it.calls(RELATED_THREADS_CALL) })
+        }
+    }
+
     /** The answer's no-argument calls answering a List. */
     private fun List<Instruction>.answerLists() = indices.filter { this[it].isAnswerList() }
 
@@ -212,7 +301,9 @@ class RelatedThreadsFixtureTest {
 
     private fun BytecodePatchContext.mutable(method: Method) = mutableClassDefBy(method.definingClass).findMutableMethodOf(method)
 
-    private fun context(build: File) = PatchContexts.of(ExtensionDex.classes() + classes(build).values)
+    private fun context(build: File) = PatchContexts.of(
+        (ExtensionDex.classes() + classes(build).values + RelatedThreadsFetchFixture.classes(build)).distinctBy { it.type },
+    )
 
     private fun classes(build: File): Map<String, ClassDef> = fixtures.getOrPut(build) { FixtureDex.classes(build, TYPES) }
 
@@ -225,5 +316,26 @@ class RelatedThreadsFixtureTest {
 
         /** One read of each build serves every test; each test patches its own copy. */
         val fixtures = PerBuild<Map<String, ClassDef>>()
+    }
+}
+
+/**
+ * Every class of a build holding the permalink repository in an instance field: where the patch
+ * looks for the collector of the suggested threads Threads fetches on their own, so a test context
+ * carries all the candidates the patch weighs and not just the one it should pick.
+ */
+internal object RelatedThreadsFetchFixture {
+    private val loaded = PerBuild<List<ClassDef>>()
+
+    fun classes(build: File): List<ClassDef> = loaded.getOrPut(build) {
+        val found = mutableListOf<ClassDef>()
+        FixtureDex.forEach(build) { dex ->
+            for (classDef in dex.classes) {
+                if (classDef.fields.any { !AccessFlags.STATIC.isSet(it.accessFlags) && it.type == PERMALINK_REPOSITORY }) {
+                    found += ImmutableClassDef.of(classDef)
+                }
+            }
+        }
+        found.distinctBy { it.type }
     }
 }

@@ -72,7 +72,7 @@ class StoryHoldTest {
 
     @Test fun eachMappingHooksItsOwnCompletion() {
         assertEquals(setOf(SYNTHETIC_STORY_COMPLETION), SYNTHETIC_PROFILE.hooks.getValue(STORY_HOLD))
-        assertEquals(setOf("LX/NRP;->DpM()V"), BASE_PROFILE.hooks.getValue(STORY_HOLD))
+        assertEquals(setOf("LX/TAY;->DwC()V"), BASE_PROFILE.hooks.getValue(STORY_HOLD))
     }
 
     // The switch says a story waits for a tap. A build that finishes stories some other way would make that untrue, or

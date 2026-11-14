@@ -31,12 +31,14 @@ import kotlin.test.assertTrue
 
 private const val BAR = "LX/MlBar;"
 private const val BUTTON = "LX/MlButton;"
+private const val BUILDER = "LX/MlBuilder;"
 private const val FACTORY = "LX/MlFactory;"
 private const val ICON = "LX/MlIcon;"
 private const val GLYPH = "LX/MlGlyph;"
 private const val CONTEXT = "Landroid/content/Context;"
 private const val STRING = "Ljava/lang/String;"
-private const val BUTTON_INIT = "$BUTTON-><init>(LX/MlA;LX/MlB;${GLYPH}LX/MlC;LX/MlD;$STRING$STRING${STRING}Z)V"
+private const val BUTTON_INIT = "$BUTTON-><init>($BUILDER)V"
+private const val BUILDER_INIT = "$BUILDER-><init>()V"
 private const val FACTORY_CALL = "$FACTORY->A00($CONTEXT$FB_USER_SESSION$ICON)$GLYPH"
 private const val ADD = "Ljava/util/AbstractCollection;->add(Ljava/lang/Object;)Z"
 internal const val SYNTHETIC_LOG_BAR = "$BAR->Cdh()Ljava/util/List;"
@@ -46,9 +48,9 @@ private val FINAL = AccessFlags.PUBLIC.value or AccessFlags.FINAL.value
 private const val NULL_BODY = "const/4 v0, 0x0\nreturn-object v0"
 
 /**
- * 585's Chats tab bar, cut down: the new message button's block (the context and account fields, the icon factory, the
- * label, the button's nine arguments in one range), then the null padding up to the bar's size and a call before the
- * one return. 585 also keeps the receiver in v20 and reads it through a low local, as here.
+ * 587's Chats tab bar, cut down: the new message button's block (the context and account fields, a builder filled with
+ * the label, the icon from the factory and the id, then the button made from it), then the null padding up to the bar's
+ * size and a call before the one return. The receiver sits in v20 and is read through a low local, as 585's was.
  */
 private val BAR_BODY = """
     new-instance v1, Ljava/util/ArrayList;
@@ -59,22 +61,21 @@ private val BAR_BODY = """
     move-object/from16 v3, p0
     iget-object v2, v3, $BAR->A0M:$CONTEXT
     iget-object v3, v3, $BAR->A0P:$FB_USER_SESSION
-    sget-object v4, $ICON->A0R:$ICON
-    invoke-static {v2, v3, v4}, $FACTORY_CALL
-    move-result-object v9
+    new-instance v6, $BUILDER
+    invoke-direct {v6}, $BUILDER_INIT
     const v5, 0x7f0b0001
     invoke-virtual {v2, v5}, $CONTEXT->getString(I)$STRING
-    move-result-object v13
-    new-instance v6, $BUTTON
-    const/4 v7, 0x0
-    move-object v8, v7
-    const/4 v10, 0x0
-    const/4 v11, 0x0
-    const/4 v12, 0x0
-    const-string v14, "$COMPOSER_BUTTON_ID"
-    const/4 v15, 0x0
-    invoke-direct/range {v6 .. v15}, $BUTTON_INIT
-    invoke-virtual {v1, v6}, $ADD
+    move-result-object v5
+    iput-object v5, v6, $BUILDER->A06:$STRING
+    sget-object v4, $ICON->A0R:$ICON
+    invoke-static {v2, v3, v4}, $FACTORY_CALL
+    move-result-object v4
+    iput-object v4, v6, $BUILDER->A02:$GLYPH
+    const-string v4, "$COMPOSER_BUTTON_ID"
+    iput-object v4, v6, $BUILDER->A07:$STRING
+    new-instance v7, $BUTTON
+    invoke-direct {v7, v6}, $BUTTON_INIT
+    invoke-virtual {v1, v7}, $ADD
     const/4 v0, 0x0
     :pad
     invoke-virtual {v1}, Ljava/util/AbstractCollection;->size()I
@@ -91,7 +92,7 @@ private val BAR_BODY = """
 /** The bar's return, where the button goes in. */
 private val BAR_SITE = BAR_BODY.lines().filter { !it.startsWith(":") }.indexOfFirst { "return-object" in it }
 
-private val SLOTS = listOf(LogSlot.NONE, LogSlot.NONE, LogSlot.ICON, LogSlot.NONE, LogSlot.NONE, LogSlot.NONE, LogSlot.LABEL, LogSlot.ID, LogSlot.OFF)
+private val FIELDS = mapOf(LogSlot.ICON to "$BUILDER->A02:$GLYPH", LogSlot.LABEL to "$BUILDER->A06:$STRING", LogSlot.ID to "$BUILDER->A07:$STRING")
 
 private fun logBar(body: String = BAR_BODY, id: String = SYNTHETIC_LOG_BAR) = fixtureMethod(id, body, 20)
 
@@ -124,23 +125,33 @@ internal fun logButtonStub(flags: Int = STATIC, body: String = NULL_BODY) = fixt
 /** The extension's buttonId(button) stub as it ships. */
 internal fun logButtonIdStub(flags: Int = STATIC, body: String = NULL_BODY) = fixtureMethod(MESSAGE_LOG_BUTTON_ID_OF, body, 2, flags)
 
-/** The bar, the button with its id field, the icon factory, the icon enum with the clock in it, and the account class. */
+/**
+ * The bar, the button with its id field, the builder it copies, the icon factory, the icon enum with the clock in it,
+ * and the account class.
+ */
 internal fun messageLogButtonFixture(
     barMethod: MutableMethod = logBar(),
     clickMethod: MutableMethod = logClick(),
     idFlags: Int = FINAL,
     buttonFlags: Int = AccessFlags.PUBLIC.value,
+    builderFlags: Int = AccessFlags.PUBLIC.value,
     icons: List<String> = listOf("COMPOSE:A0R", "CLOCK:A1y"),
 ): List<MutableClass> = listOf(
     fixtureClass(BAR, listOf(barMethod, clickMethod), extraFields = listOf(field(BAR, "A0M", CONTEXT), field(BAR, "A0P", FB_USER_SESSION))),
     fixtureClass(BUTTON, listOf(fixtureMethod(BUTTON_INIT, """
         invoke-direct {p0}, Ljava/lang/Object;-><init>()V
-        iput-object p3, p0, $BUTTON->A02:$GLYPH
-        iput-object p7, p0, $BUTTON->A06:$STRING
-        iput-object p8, p0, $BUTTON->A07:$STRING
+        iget-object v0, p1, $BUILDER->A02:$GLYPH
+        iput-object v0, p0, $BUTTON->A02:$GLYPH
+        iget-object v0, p1, $BUILDER->A06:$STRING
+        iput-object v0, p0, $BUTTON->A06:$STRING
+        iget-object v0, p1, $BUILDER->A07:$STRING
+        iput-object v0, p0, $BUTTON->A07:$STRING
         return-void
-    """.trimIndent(), 10, AccessFlags.PUBLIC.value or AccessFlags.CONSTRUCTOR.value)),
+    """.trimIndent(), 3, AccessFlags.PUBLIC.value or AccessFlags.CONSTRUCTOR.value)),
         extraFields = listOf(field(BUTTON, "A02", GLYPH), field(BUTTON, "A06", STRING), field(BUTTON, "A07", STRING, idFlags)), flags = buttonFlags),
+    fixtureClass(BUILDER, listOf(fixtureMethod(BUILDER_INIT, "invoke-direct {p0}, Ljava/lang/Object;-><init>()V\nreturn-void", 1,
+        AccessFlags.PUBLIC.value or AccessFlags.CONSTRUCTOR.value)), extraFields = listOf("A02" to GLYPH, "A05" to STRING, "A06" to STRING,
+        "A07" to STRING, "A08" to "Z").map { (name, type) -> field(BUILDER, name, type, AccessFlags.PUBLIC.value) }, flags = builderFlags),
     fixtureClass(FACTORY, listOf(fixtureMethod(FACTORY_CALL, NULL_BODY, 4, STATIC))),
     fixtureClass(ICON, listOf(fixtureMethod("$ICON-><clinit>()V", icons.joinToString("\n") { entry ->
         val (name, slot) = entry.split(":")
@@ -179,7 +190,8 @@ class MessageLogButtonTest {
         assertEquals("$ICON->A1y:$ICON", recipe.icon)
         assertEquals(BUTTON, recipe.button)
         assertEquals(BUTTON_INIT, recipe.init)
-        assertEquals(SLOTS, recipe.slots)
+        assertEquals(BUILDER, recipe.builder)
+        assertEquals(FIELDS, recipe.fields)
         assertEquals("$BUTTON->A07:$STRING", recipe.idField)
         assertEquals(LogBarSite(BAR_SITE, 1, listOf(0, 2)), recipe.site)
     }
@@ -196,7 +208,16 @@ class MessageLogButtonTest {
                 "new-instance v1, Ljava/util/ArrayList;\ninvoke-direct {v1}, Ljava/util/ArrayList;-><init>()V",
                 "invoke-static {}, LX/MlLists;->A00()Ljava/util/ArrayList;\nmove-result-object v1"))),
             "second return" to messageLogButtonFixture(logBar(BAR_BODY.replace("goto :pad", "return-object v1"))),
-            "argument nothing explains" to messageLogButtonFixture(logBar(BAR_BODY.replace("const/4 v10, 0x0", "const/4 v10, 0x1"))),
+            // Ours fills only the icon, the label and the id, so a builder the block does more with is left alone.
+            "builder flag set" to messageLogButtonFixture(logBar(BAR_BODY.replace("new-instance v7, $BUTTON",
+                "const/4 v8, 0x1\niput-boolean v8, v6, $BUILDER->A08:Z\nnew-instance v7, $BUTTON"))),
+            "label stored twice" to messageLogButtonFixture(logBar(BAR_BODY.replace("iput-object v5, v6, $BUILDER->A06:$STRING",
+                "iput-object v5, v6, $BUILDER->A06:$STRING\niput-object v5, v6, $BUILDER->A05:$STRING"))),
+            "builder handed on" to messageLogButtonFixture(logBar(BAR_BODY.replace("invoke-direct {v6}, $BUILDER_INIT",
+                "invoke-direct {v6}, $BUILDER_INIT\ninvoke-static {v6}, LX/MlStyle;->A00(Ljava/lang/Object;)V"))),
+            "builder it didn't make" to messageLogButtonFixture(logBar(BAR_BODY.replace("new-instance v6, $BUILDER\ninvoke-direct {v6}, $BUILDER_INIT",
+                "invoke-static {}, LX/MlBuilders;->A00()$BUILDER\nmove-result-object v6"))),
+            "package-private builder" to messageLogButtonFixture(builderFlags = AccessFlags.FINAL.value),
             "two new message buttons" to messageLogButtonFixture(logBar(BAR_BODY.replace("const-string v0, \"$TOOLBAR_MODEL\"",
                 "const-string v0, \"$TOOLBAR_MODEL\"\nconst-string v0, \"$COMPOSE_BUTTON_NAME\""))),
             "no clock icon" to messageLogButtonFixture(icons = listOf("COMPOSE:A0R", "ALARM:A1y")),
@@ -245,20 +266,19 @@ class MessageLogButtonTest {
         val recipe = messageLogButtonRecipe!!
         val built = messageLogButtonBuilder(logButtonStub(), recipe)
         val code = built.code()
-        assertEquals(15, built.implementation!!.registerCount)
+        assertEquals(6, built.implementation!!.registerCount)
         assertEquals(listOf("$ICON->A1y:$ICON", FACTORY_CALL), listOf(code[4].ref(), code[5].ref()))
         // The factory gets the stub's context and the checked account.
-        assertEquals(listOf(12, 11, 10), code[5].args())
-        val init = code.single { it.opcode == Opcode.INVOKE_DIRECT_RANGE }
-        assertEquals(BUTTON_INIT, init.ref())
-        assertEquals((0..9).toList(), init.args())
-        val slots = code.subList(code.indexOfFirst { it.opcode == Opcode.NEW_INSTANCE } + 1, code.indexOf(init))
-        assertEquals(listOf(Opcode.CONST_4, Opcode.CONST_4, Opcode.MOVE_OBJECT, Opcode.CONST_4, Opcode.CONST_4, Opcode.CONST_4,
-            Opcode.MOVE_OBJECT, Opcode.CONST_STRING, Opcode.CONST_4), slots.map { it.opcode })
-        assertEquals(10, (slots[2] as TwoRegisterInstruction).registerB)
-        // The label is the stub's third parameter, the id the extension's own.
-        assertEquals(14, (slots[6] as TwoRegisterInstruction).registerB)
-        assertEquals(MESSAGE_LOG_BUTTON_ID, ((slots[7] as ReferenceInstruction).reference as StringReference).string)
+        assertEquals(listOf(3, 2, 1), code[5].args())
+        // The builder gets the clock, the stub's third parameter as the label and the extension's id, and nothing else.
+        val stores = code.filter { it.opcode == Opcode.IPUT_OBJECT }
+        assertEquals(listOf(FIELDS[LogSlot.ICON], FIELDS[LogSlot.LABEL], FIELDS[LogSlot.ID]), stores.map { it.ref() })
+        assertEquals(listOf(1, 5, 1), stores.map { (it as TwoRegisterInstruction).registerA })
+        assertTrue(stores.all { (it as TwoRegisterInstruction).registerB == 2 })
+        assertEquals(MESSAGE_LOG_BUTTON_ID, ((code.single { it.opcode == Opcode.CONST_STRING } as ReferenceInstruction).reference as StringReference).string)
+        assertEquals(BUILDER_INIT, code[code.indexOf(stores.first()) - 1].ref())
+        val init = code.single { it.ref() == BUTTON_INIT }
+        assertEquals(listOf(0, 2), init.args())
 
         val reader = messageLogButtonIdReader(logButtonIdStub(), recipe).code()
         assertEquals("$BUTTON->A07:$STRING", reader.single { it.opcode == Opcode.IGET_OBJECT }.ref())
@@ -283,7 +303,7 @@ class MessageLogButtonTest {
             assertEquals(activeProfile.hooks.getValue(MESSAGE_LOG_BUTTON), bars.map { it.hookId() }.toSet(), code)
             assertEquals(activeProfile.hooks.getValue(MESSAGE_LOG_CLICK), clicks.map { it.hookId() }.toSet(), code)
             val recipe = messageLogButtonRecipe!!
-            assertEquals(SLOTS, recipe.slots, code)
+            assertEquals(LogSlot.entries.toSet(), recipe.fields.keys, code)
             val bar = MutableMethod(bars.single())
             val click = MutableMethod(clicks.single())
             val before = bar.code()

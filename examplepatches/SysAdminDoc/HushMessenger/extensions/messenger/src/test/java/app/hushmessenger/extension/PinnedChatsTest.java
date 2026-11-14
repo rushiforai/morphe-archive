@@ -54,7 +54,7 @@ public class PinnedChatsTest {
         assertTrue(Settings.installed.contains("pinned_chats"));
         String[] row = Arrays.stream(SettingsActivity.CONTROLS).filter(c -> c[0].equals("pinned_chats")).findFirst().orElseThrow();
         assertEquals("Pin more chats", row[1]);
-        assertEquals("inbox", row[3]);
+        assertEquals("chat_menu", row[3]);
         assertFalse(Settings.preferences.contains("pinned_chats"));
         assertFalse(Settings.wouldUse("pinned_chats"));
     }

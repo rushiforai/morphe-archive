@@ -1,5 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="revanced_patches_update_notice_title">Patches update notice</string>
+    <string name="revanced_patches_update_check_title">Check now</string>
+    <string name="revanced_patches_update_check_summary">Check for newer patches now, including skipped versions. When notices are off, use the installed patches channel.</string>
+    <string name="revanced_patches_update_off">Off</string>
+    <string name="revanced_patches_update_stable">Stable</string>
+    <string name="revanced_patches_update_development">Development</string>
+    <string name="revanced_patches_update_title">Patches update available</string>
+    <string name="revanced_patches_update_message">"Installed patches: %1$s\nNew patches: %2$s\n\nRe-patch with Manager to update. This notice does not download or install APKs."</string>
+    <string name="revanced_patches_update_manager">Open Manager</string>
+    <string name="revanced_patches_update_later">Later</string>
+    <string name="revanced_patches_update_skip">Skip this version</string>
+    <string name="revanced_patches_update_checking">Checking for patches updates…</string>
+    <string name="revanced_patches_update_current">Your patches are up to date for this channel.</string>
+    <string name="revanced_patches_update_error">Could not check for patches updates. Try again later.</string>
     <string name="revanced_preference_screen_about_title">About</string>
     <string name="morphe_debug_feature_flags_manager_action_force_off">Block</string>
     <string name="morphe_debug_feature_flags_manager_action_force_on">Force on</string>
@@ -58,6 +72,12 @@ Restart the app, check if the behavior is present, then answer below"</string>
     <string name="morphe_settings_import_file">Import from file</string>
     <string name="morphe_settings_save">Save</string>
     <string name="revanced_about_app_info">App info</string>
+    <string name="revanced_about_patch_inclusion">Recorded patch inclusion</string>
+    <string name="revanced_about_patch_inclusion_summary"
+        >Inclusion records are not execution results. <!--
+        -->Final applied/failed/skipped/excluded outcomes are unavailable; <!--
+        -->unrecorded patches are not necessarily excluded.</string>
+    <string name="revanced_about_patch_not_recorded">Not recorded</string>
     <string name="revanced_about_actions">Actions</string>
     <string name="revanced_about_more">More</string>
     <string name="revanced_about_patches">RVX Patches</string>
@@ -75,6 +95,8 @@ Restart the app, check if the behavior is present, then answer below"</string>
         href=\"https://github.com/lavinhoque33/revanced-patches\"&gt;lavinhoque33/revanced-patches&lt;/a&gt;&lt;/p&gt;
         &lt;p&gt;RVX: &lt;a
         href=\"https://github.com/anddea/revanced-patches\"&gt;anddea/revanced-patches&lt;/a&gt;&lt;/p&gt;
+        &lt;p&gt;Complete RVX credits: &lt;a
+        href=\"https://github.com/anddea/revanced-patches/wiki/Credits\"&gt;anddea credits&lt;/a&gt;&lt;/p&gt;
         &lt;p&gt;&lt;a href=\"https://github.com/MorpheApp/morphe-patches\"&gt;Morphe&lt;/a&gt;&lt;/p&gt;
         &lt;p&gt;&lt;a href=\"https://github.com/ReVanced/revanced-patches\"&gt;ReVanced&lt;/a&gt;&lt;/p&gt;
         &lt;p&gt;Project licence: &lt;a
@@ -93,7 +115,7 @@ Restart the app, check if the behavior is present, then answer below"</string>
         2.0.&lt;/p&gt;
         &lt;p&gt;=============&lt;/p&gt;
         &lt;p&gt;Reseam NOTICE&lt;/p&gt;
-        &lt;p&gt;Portions of this software incorporate or are derived from code provided by the Morphe software
+        &lt;p&gt;Portions of this software incorporate or are derived from code provided by the Reseam software
         project:&lt;br&gt;https://reseam.app.&lt;/p&gt;
         &lt;p&gt;=============&lt;/p&gt;
         &lt;p&gt;Morphe NOTICE&lt;/p&gt;
@@ -2645,7 +2667,7 @@ Audio is saved to %2$s"</string>
     <string name="revanced_preference_screen_misc_title">Miscellaneous</string>
     <string name="revanced_preference_screen_navigation_bar_summary">Hide or show navigation bar components</string>
     <string name="revanced_preference_screen_navigation_bar_title">Navigation bar</string>
-    <string name="revanced_preference_screen_patch_information_summary">Information about applied patches</string>
+    <string name="revanced_preference_screen_patch_information_summary">App details and recorded patch inclusion</string>
     <string name="revanced_preference_screen_player_buttons_summary">Hide or show buttons in video player</string>
     <string name="revanced_preference_screen_player_buttons_title">Player buttons</string>
     <string name="revanced_preference_screen_player_flyout_menu_summary">Hide or change video player flyout menu components</string>

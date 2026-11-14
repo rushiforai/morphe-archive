@@ -751,8 +751,8 @@ public final class L10nTranslations {
                 "Du hast die neueste Version von HushThreads.");
         table.put("You paused HushThreads.",
                 "Du hast HushThreads pausiert.");
-        table.put("Your Instagram is signed by Meta, and it only opens Threads posts and profiles in a Threads signed by Meta. Tapping one in Instagram shows an error saying it couldn't load the website. Posts you open in Threads itself work as usual.",
-                "Dein Instagram ist von Meta signiert und \u00f6ffnet Threads-Beitr\u00e4ge und -Profile nur in einem von Meta signierten Threads. Tippst du in Instagram auf einen, zeigt es einen Fehler, dass die Website nicht geladen werden konnte. Beitr\u00e4ge, die du in Threads selbst \u00f6ffnest, funktionieren wie gewohnt.");
+        table.put("Your Instagram is signed by Meta, and it only opens Threads posts and profiles in a Threads signed by Meta. Tapping one in Instagram shows an error saying it couldn't load the website. Posts you open in Threads itself work as usual. Patch Instagram with HushGram, signed with the same key as HushThreads, and it opens them here.",
+                "Dein Instagram ist von Meta signiert und \u00f6ffnet Threads-Beitr\u00e4ge und -Profile nur in einem von Meta signierten Threads. Tippst du in Instagram auf einen, zeigt es einen Fehler, dass die Website nicht geladen werden konnte. Beitr\u00e4ge, die du in Threads selbst \u00f6ffnest, funktionieren wie gewohnt. Patchst du Instagram mit HushGram und signierst es mit demselben Schl\u00fcssel wie HushThreads, \u00f6ffnet es sie hier.");
         table.put("Your choices are saved. Tap Resume, then restart Threads.",
                 "Deine Auswahl bleibt gespeichert. Tippe auf Fortsetzen und starte Threads dann neu.");
         table.put("Your switches already match that file, so nothing will change.",
@@ -1474,8 +1474,8 @@ public final class L10nTranslations {
                 "Tienes la versi\u00f3n m\u00e1s reciente de HushThreads.");
         table.put("You paused HushThreads.",
                 "Pausaste HushThreads.");
-        table.put("Your Instagram is signed by Meta, and it only opens Threads posts and profiles in a Threads signed by Meta. Tapping one in Instagram shows an error saying it couldn't load the website. Posts you open in Threads itself work as usual.",
-                "Tu Instagram est\u00e1 firmado por Meta y solo abre publicaciones y perfiles de Threads en un Threads firmado por Meta. Si tocas uno en Instagram, muestra un error que dice que no pudo cargar el sitio web. Las publicaciones que abres en el propio Threads funcionan como siempre.");
+        table.put("Your Instagram is signed by Meta, and it only opens Threads posts and profiles in a Threads signed by Meta. Tapping one in Instagram shows an error saying it couldn't load the website. Posts you open in Threads itself work as usual. Patch Instagram with HushGram, signed with the same key as HushThreads, and it opens them here.",
+                "Tu Instagram est\u00e1 firmado por Meta y solo abre publicaciones y perfiles de Threads en un Threads firmado por Meta. Si tocas uno en Instagram, muestra un error que dice que no pudo cargar el sitio web. Las publicaciones que abres en el propio Threads funcionan como siempre. Si parcheas Instagram con HushGram y lo firmas con la misma clave que HushThreads, los abre aqu\u00ed.");
         table.put("Your choices are saved. Tap Resume, then restart Threads.",
                 "Tus preferencias est\u00e1n guardadas. Toca Reanudar y luego reinicia Threads.");
         table.put("Your switches already match that file, so nothing will change.",
@@ -2197,8 +2197,8 @@ public final class L10nTranslations {
                 "Anda sudah memakai rilis HushThreads terbaru.");
         table.put("You paused HushThreads.",
                 "Anda menjeda HushThreads.");
-        table.put("Your Instagram is signed by Meta, and it only opens Threads posts and profiles in a Threads signed by Meta. Tapping one in Instagram shows an error saying it couldn't load the website. Posts you open in Threads itself work as usual.",
-                "Instagram Anda ditandatangani oleh Meta, dan hanya membuka postingan dan profil Threads di Threads yang ditandatangani oleh Meta. Mengetuknya di Instagram menampilkan galat bahwa situs web tidak dapat dimuat. Postingan yang Anda buka di Threads sendiri berfungsi seperti biasa.");
+        table.put("Your Instagram is signed by Meta, and it only opens Threads posts and profiles in a Threads signed by Meta. Tapping one in Instagram shows an error saying it couldn't load the website. Posts you open in Threads itself work as usual. Patch Instagram with HushGram, signed with the same key as HushThreads, and it opens them here.",
+                "Instagram Anda ditandatangani oleh Meta, dan hanya membuka postingan dan profil Threads di Threads yang ditandatangani oleh Meta. Mengetuknya di Instagram menampilkan galat bahwa situs web tidak dapat dimuat. Postingan yang Anda buka di Threads sendiri berfungsi seperti biasa. Tambal Instagram dengan HushGram dan tanda tangani dengan kunci yang sama seperti HushThreads, maka Instagram membukanya di sini.");
         table.put("Your choices are saved. Tap Resume, then restart Threads.",
                 "Pilihan Anda tersimpan. Ketuk Lanjutkan, lalu mulai ulang Threads.");
         table.put("Your switches already match that file, so nothing will change.",
@@ -2920,8 +2920,8 @@ public final class L10nTranslations {
                 "Hai la versione pi\u00f9 recente di HushThreads.");
         table.put("You paused HushThreads.",
                 "Hai messo in pausa HushThreads.");
-        table.put("Your Instagram is signed by Meta, and it only opens Threads posts and profiles in a Threads signed by Meta. Tapping one in Instagram shows an error saying it couldn't load the website. Posts you open in Threads itself work as usual.",
-                "Il tuo Instagram \u00e8 firmato da Meta e apre post e profili di Threads solo in un Threads firmato da Meta. Toccandone uno in Instagram compare un errore che dice che non \u00e8 stato possibile caricare il sito web. I post che apri direttamente in Threads funzionano come al solito.");
+        table.put("Your Instagram is signed by Meta, and it only opens Threads posts and profiles in a Threads signed by Meta. Tapping one in Instagram shows an error saying it couldn't load the website. Posts you open in Threads itself work as usual. Patch Instagram with HushGram, signed with the same key as HushThreads, and it opens them here.",
+                "Il tuo Instagram \u00e8 firmato da Meta e apre post e profili di Threads solo in un Threads firmato da Meta. Toccandone uno in Instagram compare un errore che dice che non \u00e8 stato possibile caricare il sito web. I post che apri direttamente in Threads funzionano come al solito. Se applichi HushGram a Instagram e lo firmi con la stessa chiave di HushThreads, li apre qui.");
         table.put("Your choices are saved. Tap Resume, then restart Threads.",
                 "Le tue scelte sono salvate. Tocca Riprendi, poi riavvia Threads.");
         table.put("Your switches already match that file, so nothing will change.",
@@ -3643,8 +3643,8 @@ public final class L10nTranslations {
                 "\ucd5c\uc2e0 HushThreads \ub9b4\ub9ac\uc2a4\ub97c \uc0ac\uc6a9 \uc911\uc785\ub2c8\ub2e4.");
         table.put("You paused HushThreads.",
                 "HushThreads\ub97c \uc77c\uc2dc \uc815\uc9c0\ud588\uc2b5\ub2c8\ub2e4.");
-        table.put("Your Instagram is signed by Meta, and it only opens Threads posts and profiles in a Threads signed by Meta. Tapping one in Instagram shows an error saying it couldn't load the website. Posts you open in Threads itself work as usual.",
-                "\uc0ac\uc6a9 \uc911\uc778 Instagram\uc740 Meta\uac00 \uc11c\uba85\ud588\uc73c\uba70 Threads \uac8c\uc2dc\ubb3c\uacfc \ud504\ub85c\ud544\uc744 Meta\uac00 \uc11c\uba85\ud55c Threads\uc5d0\uc11c\ub9cc \uc5fd\ub2c8\ub2e4. Instagram\uc5d0\uc11c \ud0ed\ud558\uba74 \uc6f9\uc0ac\uc774\ud2b8\ub97c \ubd88\ub7ec\uc62c \uc218 \uc5c6\ub2e4\ub294 \uc624\ub958\uac00 \ud45c\uc2dc\ub429\ub2c8\ub2e4. Threads\uc5d0\uc11c \uc9c1\uc811 \uc5f0 \uac8c\uc2dc\ubb3c\uc740 \ud3c9\uc18c\ucc98\ub7fc \uc791\ub3d9\ud569\ub2c8\ub2e4.");
+        table.put("Your Instagram is signed by Meta, and it only opens Threads posts and profiles in a Threads signed by Meta. Tapping one in Instagram shows an error saying it couldn't load the website. Posts you open in Threads itself work as usual. Patch Instagram with HushGram, signed with the same key as HushThreads, and it opens them here.",
+                "\uc0ac\uc6a9 \uc911\uc778 Instagram\uc740 Meta\uac00 \uc11c\uba85\ud588\uc73c\uba70 Threads \uac8c\uc2dc\ubb3c\uacfc \ud504\ub85c\ud544\uc744 Meta\uac00 \uc11c\uba85\ud55c Threads\uc5d0\uc11c\ub9cc \uc5fd\ub2c8\ub2e4. Instagram\uc5d0\uc11c \ud0ed\ud558\uba74 \uc6f9\uc0ac\uc774\ud2b8\ub97c \ubd88\ub7ec\uc62c \uc218 \uc5c6\ub2e4\ub294 \uc624\ub958\uac00 \ud45c\uc2dc\ub429\ub2c8\ub2e4. Threads\uc5d0\uc11c \uc9c1\uc811 \uc5f0 \uac8c\uc2dc\ubb3c\uc740 \ud3c9\uc18c\ucc98\ub7fc \uc791\ub3d9\ud569\ub2c8\ub2e4. Instagram\uc744 HushGram\uc73c\ub85c \ud328\uce58\ud558\uace0 HushThreads\uc640 \uac19\uc740 \ud0a4\ub85c \uc11c\uba85\ud558\uba74 \uc5ec\uae30\uc11c \uc5f4\ub9bd\ub2c8\ub2e4.");
         table.put("Your choices are saved. Tap Resume, then restart Threads.",
                 "\uc120\ud0dd \uc0ac\ud56d\uc774 \uc800\uc7a5\ub418\uc5c8\uc2b5\ub2c8\ub2e4. \uc7ac\uac1c\ub97c \ud0ed\ud55c \ub2e4\uc74c Threads\ub97c \ub2e4\uc2dc \uc2dc\uc791\ud558\uc138\uc694.");
         table.put("Your switches already match that file, so nothing will change.",
@@ -4366,8 +4366,8 @@ public final class L10nTranslations {
                 "Voc\u00ea j\u00e1 est\u00e1 usando a vers\u00e3o mais nova do HushThreads.");
         table.put("You paused HushThreads.",
                 "Voc\u00ea pausou o HushThreads.");
-        table.put("Your Instagram is signed by Meta, and it only opens Threads posts and profiles in a Threads signed by Meta. Tapping one in Instagram shows an error saying it couldn't load the website. Posts you open in Threads itself work as usual.",
-                "Seu Instagram \u00e9 assinado pela Meta e s\u00f3 abre publica\u00e7\u00f5es e perfis do Threads em um Threads assinado pela Meta. Tocar em um deles no Instagram mostra um erro dizendo que n\u00e3o foi poss\u00edvel carregar o site. As publica\u00e7\u00f5es que voc\u00ea abre no pr\u00f3prio Threads funcionam normalmente.");
+        table.put("Your Instagram is signed by Meta, and it only opens Threads posts and profiles in a Threads signed by Meta. Tapping one in Instagram shows an error saying it couldn't load the website. Posts you open in Threads itself work as usual. Patch Instagram with HushGram, signed with the same key as HushThreads, and it opens them here.",
+                "Seu Instagram \u00e9 assinado pela Meta e s\u00f3 abre publica\u00e7\u00f5es e perfis do Threads em um Threads assinado pela Meta. Tocar em um deles no Instagram mostra um erro dizendo que n\u00e3o foi poss\u00edvel carregar o site. As publica\u00e7\u00f5es que voc\u00ea abre no pr\u00f3prio Threads funcionam normalmente. Se voc\u00ea aplicar o HushGram no Instagram e assin\u00e1-lo com a mesma chave do HushThreads, ele os abre aqui.");
         table.put("Your choices are saved. Tap Resume, then restart Threads.",
                 "Suas escolhas est\u00e3o salvas. Toque em Retomar e depois reinicie o Threads.");
         table.put("Your switches already match that file, so nothing will change.",
@@ -5089,8 +5089,8 @@ public final class L10nTranslations {
                 "En yeni HushThreads s\u00fcr\u00fcm\u00fcn\u00fc kullan\u0131yorsun.");
         table.put("You paused HushThreads.",
                 "HushThreads'u duraklatt\u0131n.");
-        table.put("Your Instagram is signed by Meta, and it only opens Threads posts and profiles in a Threads signed by Meta. Tapping one in Instagram shows an error saying it couldn't load the website. Posts you open in Threads itself work as usual.",
-                "Instagram'\u0131n Meta taraf\u0131ndan imzal\u0131 ve Threads g\u00f6nderilerini ve profillerini yaln\u0131zca Meta taraf\u0131ndan imzalanm\u0131\u015f bir Threads'te a\u00e7ar. Instagram'da birine dokunmak, web sitesinin y\u00fcklenemedi\u011fini s\u00f6yleyen bir hata g\u00f6sterir. Threads'in kendisinde a\u00e7t\u0131\u011f\u0131n g\u00f6nderiler her zamanki gibi \u00e7al\u0131\u015f\u0131r.");
+        table.put("Your Instagram is signed by Meta, and it only opens Threads posts and profiles in a Threads signed by Meta. Tapping one in Instagram shows an error saying it couldn't load the website. Posts you open in Threads itself work as usual. Patch Instagram with HushGram, signed with the same key as HushThreads, and it opens them here.",
+                "Instagram'\u0131n Meta taraf\u0131ndan imzal\u0131 ve Threads g\u00f6nderilerini ve profillerini yaln\u0131zca Meta taraf\u0131ndan imzalanm\u0131\u015f bir Threads'te a\u00e7ar. Instagram'da birine dokunmak, web sitesinin y\u00fcklenemedi\u011fini s\u00f6yleyen bir hata g\u00f6sterir. Threads'in kendisinde a\u00e7t\u0131\u011f\u0131n g\u00f6nderiler her zamanki gibi \u00e7al\u0131\u015f\u0131r. Instagram'\u0131 HushGram ile yamalay\u0131p HushThreads ile ayn\u0131 anahtarla imzalarsan onlar\u0131 burada a\u00e7ar.");
         table.put("Your choices are saved. Tap Resume, then restart Threads.",
                 "Tercihleriniz kay\u0131tl\u0131. Devam et'e dokunun, sonra Threads'i yeniden ba\u015flat\u0131n.");
         table.put("Your switches already match that file, so nothing will change.",
@@ -5812,8 +5812,8 @@ public final class L10nTranslations {
                 "\u4f60\u6b63\u5728\u4f7f\u7528\u6700\u65b0\u7684 HushThreads \u7248\u672c\u3002");
         table.put("You paused HushThreads.",
                 "\u4f60\u5df2\u66ab\u505c HushThreads\u3002");
-        table.put("Your Instagram is signed by Meta, and it only opens Threads posts and profiles in a Threads signed by Meta. Tapping one in Instagram shows an error saying it couldn't load the website. Posts you open in Threads itself work as usual.",
-                "\u4f60\u7684 Instagram \u7531 Meta \u7c3d\u7f72\uff0c\u5b83\u53ea\u6703\u5728\u540c\u6a23\u7531 Meta \u7c3d\u7f72\u7684 Threads \u4e2d\u958b\u555f Threads \u8cbc\u6587\u8207\u500b\u4eba\u6a94\u6848\u3002\u5728 Instagram \u8f15\u89f8\u6642\u6703\u986f\u793a\u7121\u6cd5\u8f09\u5165\u7db2\u7ad9\u7684\u932f\u8aa4\u3002\u76f4\u63a5\u5728 Threads \u4e2d\u958b\u555f\u8cbc\u6587\u4ecd\u53ef\u6b63\u5e38\u4f7f\u7528\u3002");
+        table.put("Your Instagram is signed by Meta, and it only opens Threads posts and profiles in a Threads signed by Meta. Tapping one in Instagram shows an error saying it couldn't load the website. Posts you open in Threads itself work as usual. Patch Instagram with HushGram, signed with the same key as HushThreads, and it opens them here.",
+                "\u4f60\u7684 Instagram \u7531 Meta \u7c3d\u7f72\uff0c\u5b83\u53ea\u6703\u5728\u540c\u6a23\u7531 Meta \u7c3d\u7f72\u7684 Threads \u4e2d\u958b\u555f Threads \u8cbc\u6587\u8207\u500b\u4eba\u6a94\u6848\u3002\u5728 Instagram \u8f15\u89f8\u6642\u6703\u986f\u793a\u7121\u6cd5\u8f09\u5165\u7db2\u7ad9\u7684\u932f\u8aa4\u3002\u76f4\u63a5\u5728 Threads \u4e2d\u958b\u555f\u8cbc\u6587\u4ecd\u53ef\u6b63\u5e38\u4f7f\u7528\u3002\u7528 HushGram \u4fee\u88dc Instagram\uff0c\u4e26\u4ee5\u8207 HushThreads \u76f8\u540c\u7684\u91d1\u9470\u7c3d\u7f72\uff0c\u5b83\u5c31\u6703\u5728\u9019\u88e1\u958b\u555f\u3002");
         table.put("Your choices are saved. Tap Resume, then restart Threads.",
                 "\u4f60\u7684\u9078\u64c7\u5df2\u5132\u5b58\u3002\u8f15\u89f8\u300c\u7e7c\u7e8c\u300d\uff0c\u7136\u5f8c\u91cd\u65b0\u555f\u52d5 Threads\u3002");
         table.put("Your switches already match that file, so nothing will change.",

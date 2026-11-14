@@ -118,7 +118,6 @@ Reprodução SABR (spoof de streams de vídeo desativado)"</string>
     <string name="morphe_music_crossfade_screen_title">Crossfade</string>
     <string name="morphe_music_crossfade_session_control_summary">Pressione e segure o botão de aleatorizar para pausar ou retomar o crossfade</string>
     <string name="morphe_music_crossfade_session_control_title">Controles de sessão</string>
-    <string name="morphe_music_crossfade_video_mode_disabled_toast">O modo de vídeo não está disponível enquanto o crossfade estiver habilitado</string>
     <string name="morphe_music_deezer_arl_dialog_instruction">"Cole o cookie arl do Deezer
 
 Etapas:
@@ -1041,4 +1040,6 @@ O ID do vídeo que você assiste é enviado para a API do Return YouTube Dislike
     <string name="revanced_webview_toast_empty">%s está vazio</string>
     <string name="revanced_webview_toast_no_network">Por favor, verifique sua conexão com a internet</string>
     <string name="revanced_webview_toast_unavailable">O WebView não está disponível</string>
+    <string name="morphe_music_auto_song_version_title">Sempre reproduzir a versão da música</string>
+    <string name="morphe_music_auto_song_version_summary">Substitui os videoclipes oficiais na fila pela música correspondente. Requer ativar a opção Não reproduzir videoclipes nas configurações do app. Faixas sem correspondência exata permanecem inalteradas</string>
 </resources>

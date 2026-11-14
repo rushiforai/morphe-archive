@@ -37,7 +37,9 @@ import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
  *   static (LX/VtZ;->A00), the one call in it taking a FlyoutComposerAction and a SearchPromptParam
  *   (kept names), from the environment's surface (VrH.BSX) and the holder's story merged with the reel
  *   and wrapped (LX/8SK;->A00, LX/2Zf;->A05), then shows it with a static taking a Context and the
- *   sheet (VtZ.A01) unless split screen takes it. The patch adds a helper to the extension making the
+ *   sheet (VtZ.A01) unless split screen takes it. 587 moved the builder's feedback argument from 8 to
+ *   4, ahead of the surface and the props; given null there, the builder takes the feedback from the
+ *   props (read on both ABIs). The patch adds a helper to the extension making the
  *   same calls with the values the click passes, which the extension uses for a reel with no button,
  *   keeping each handler per reel from the end of its constructor. Clean mode has no overlay, and the
  *   controls' handler (LX/7w1;->A1C makes it) always keeps a null story holder, so the helper then
@@ -59,6 +61,12 @@ import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
  *   then it has reused the object's register (v3) for a long, and reading the flag from there failed
  *   verification on the S22, so every comment sheet crashed. The store's value register (v0) is
  *   written again by the next instruction in both builds.
+ * - Hold a post to react (#454) long-clicks the post's Like itself, which opens the reaction tray
+ *   (RopeStyleUFIDockView, a kept name, read from 587 on both ABIs) and tracks the rest of the
+ *   gesture through Like. To give one chosen reaction, the extension clicks the tray through its
+ *   accessibility helper, so it needs the tray: every constructor of the class hands the new tray
+ *   to the extension just before it returns, reading this (one constructor in 587, taking a Context
+ *   and the session, 13 registers). The range form borrows no register.
  *
  * What isn't covered: a feed post's double tap (every part of a post already reacts to a single tap,
  * so a second tap can't be waited for without delaying it), a reel with neither a Comment button
@@ -111,3 +119,6 @@ internal const val FEEDBACK_PARAMS = "Lcom/facebook/ufiservices/flyout/params/Fe
 internal const val KEYBOARD_LABEL = ", showKeyboardOnFirstLoad="
 internal const val PARCEL = "Landroid/os/Parcel;"
 internal const val KEYBOARD = "$EXTENSION_PACKAGE/reels/PostLongPress;->keyboardOnFirstLoad(Z)Z"
+
+/** Where each reaction tray made goes, for Hold a post to react to click a chosen reaction in. */
+internal const val DOCK_MADE = "$EXTENSION_PACKAGE/reels/ReactionHold;->dockMade(Ljava/lang/Object;)V"

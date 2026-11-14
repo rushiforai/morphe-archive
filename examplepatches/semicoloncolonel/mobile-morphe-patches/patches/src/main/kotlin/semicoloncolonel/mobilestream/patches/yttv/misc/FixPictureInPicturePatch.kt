@@ -48,6 +48,7 @@ val fixPictureInPicturePatch = bytecodePatch(
     name = "Fix picture-in-picture",
     description = "Keeps the picture-in-picture window at the video's shape, so it does not flicker between sizes.",
 ) {
+    category("Playback")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")

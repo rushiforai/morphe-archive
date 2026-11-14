@@ -1,13 +1,17 @@
 package app.browzomje.patches.pinterest.morphe_settings
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.smali.InlineSmaliCompiler
 import app.browzomje.patches.shared.Constants.COMPATIBILITY_PINTEREST
 import app.browzomje.patches.shared.PatchLog
+import app.browzomje.patches.shared.inputRegisterCount
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val EXTENSION_CLASS = "Lapp/browzomje/extension/pinterest/PinterestUtils;"
@@ -106,6 +110,37 @@ val morpheSettingsEntryPatch = bytecodePatch(
         // Da descrittore JVM (Lcom/pinterest/...;) a nome per Class.forName (com.pinterest....).
         val rowClassName = rowClassType.removePrefix("L").removeSuffix(";").replace('/', '.')
         PatchLog.info(PATCH_NAME, "row class resolved from dex: $rowClassName")
+
+        if (packageMetadata.versionName == "14.44.0") {
+            val rowBinder = mutableClassDefBy(
+                "Lyn1/o;",
+            ).methods.single {
+                it.returnType == "V" && it.parameterTypes.map { type -> type.toString() } ==
+                    listOf("${SETTINGS_ROW_PACKAGE}n1;")
+            }
+            check(rowBinder.inputRegisterCount() == 2)
+            rowBinder.addInstructions(0, "invoke-static/range {p0 .. p0}, " +
+                "Lapp/browzomje/extension/pinterest/AccountMenuIcons;->schedule(Landroid/view/View;)V")
+
+            val switchRow = instructions.indexOfFirst { instruction ->
+                val field = (instruction as? ReferenceInstruction)?.reference as? FieldReference
+                instruction.opcode == Opcode.SGET_OBJECT &&
+                    field?.definingClass == "${SETTINGS_ROW_PACKAGE}k1;" &&
+                    field.type == field.definingClass
+            }
+            check(switchRow > addIndex && switchRow + 1 < instructions.size)
+            val branch = instructions[switchRow - 1]
+            val append = instructions[switchRow + 1]
+            check(branch.opcode == Opcode.IF_EQZ &&
+                (branch as OffsetInstruction).codeOffset ==
+                    branch.codeUnits + instructions[switchRow].codeUnits + append.codeUnits &&
+                (append as? FiveRegisterInstruction)?.registerC == listRegister &&
+                (append as? ReferenceInstruction)?.reference.toString() ==
+                    "Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z"
+            ) { "Unexpected native account switch row guard" }
+            method.replaceInstruction(switchRow - 1, "nop")
+            PatchLog.hooked(PATCH_NAME, method, "show native account switcher in account settings")
+        }
 
         // 4) L'iniezione della voce: una sola invoke, un solo registro (la lista), quindi
         //    nessun registro d'appoggio da trovare in mezzo a un metodo enorme.

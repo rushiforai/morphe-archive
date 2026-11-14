@@ -14,14 +14,19 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 /**
- * Hands the phone's camera app one file in Messenger's cache to write the photo to, and Messenger the same file to read
- * back. Never exported: only Messenger itself and the camera app it grants the one URI to can open it.
+ * Hands the phone's camera app one file in Messenger's cache to write the photo or video to, and Messenger the same file
+ * to read back. Never exported: only Messenger itself and the camera app it grants the one URI to can open it.
  */
 public final class CameraProvider extends ContentProvider {
     /** The provider's authority is the package name plus this, on a clone install too. */
     static final String AUTHORITY_SUFFIX = ".hush.camera";
     static final String DIRECTORY = "hush-camera";
-    private static final Pattern NAME = Pattern.compile("IMG_\\d{1,19}\\.jpg");
+    static final String VIDEO = "VID_";
+    private static final Pattern NAME = Pattern.compile("IMG_\\d{1,19}\\.jpg|VID_\\d{1,19}\\.mp4");
+
+    static String typeOf(String name) {
+        return name.startsWith(VIDEO) ? "video/mp4" : "image/jpeg";
+    }
 
     static File directory(Context context) {
         return new File(context.getCacheDir(), DIRECTORY);
@@ -51,7 +56,8 @@ public final class CameraProvider extends ContentProvider {
     }
 
     @Override public String getType(Uri uri) {
-        return fileFor(getContext(), uri) != null ? "image/jpeg" : null;
+        File capture = fileFor(getContext(), uri);
+        return capture != null ? typeOf(capture.getName()) : null;
     }
 
     @Override public Cursor query(Uri uri, String[] projection, String selection, String[] args, String order) {

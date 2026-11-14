@@ -104,7 +104,7 @@ public class BadDexFixture {
     private static final String SETTINGS_ENTRY = "Lapp/morphe/extension/hushthreads/settings/SettingsEntry;";
     private static final String LOGO_HEADER = "Lfixture/LogoHeader;";
     private static final String LOGO = "Lapp/morphe/extension/hushthreads/settings/ThreadsLogo;";
-    private static final String LOGO_NOTE = "com.instagram.barcelona.feed.ui.MainFeedScreen.<anonymous>.<anonymous>.<anonymous>.<anonymous>.<anonymous>.<anonymous> (MainFeedScreen.kt:2845)";
+    private static final String LOGO_NOTE = "com.instagram.barcelona.feed.ui.MainFeedScreen.<anonymous>.<anonymous>.<anonymous>.<anonymous>.<anonymous>.<anonymous> (MainFeedScreen.kt:3006)";
     private static final ImmutableMethodReference LOGO_CLICKABLE = method("LX/2hQ;", "A01", "LX/9hm;",
             "LX/01C;", "LX/0tZ;", "LX/9hm;", "LX/1gN;", "Ljava/lang/String;", "Lkotlin/jvm/functions/Function0;", "Z");
     private static final ImmutableMethodReference LOGO_STAND_IN = method(LOGO, "clickable", OBJECT,
@@ -786,7 +786,7 @@ public class BadDexFixture {
     private static final String KICKSTART_WIRE = "text_app_suggested_users_kickstart_unit";
     private static final String RECORDED_RAW = "hushthreadsSuggestedUsersRaw";
     private static final String FEATURE_CACHE = "Lcom/instagram/barcelona/feed/data/cache/BarcelonaFeedCache;";
-    private static final String FEATURE_LAMBDA = FEATURE_CACHE.substring(0, FEATURE_CACHE.length() - 1) + "$addAndSaveItemsFromFeedFetchSuccess$2$1;";
+    private static final String FEATURE_LAMBDA = FEATURE_CACHE.substring(0, FEATURE_CACHE.length() - 1) + "$addAndSaveItemsFromFeedFetchSuccess$2$2;";
     private static final String FEATURE_PERMALINK = "Lcom/instagram/barcelona/sponsored/permalink/ThreadsPermalinkAdFetcher;";
     private static final String FEATURE_PERMALINK_RESULT = "Lfixture/PermalinkAds;";
     private static final String FEATURE_RESPONSE = "Lfixture/Permalink;";
@@ -3298,8 +3298,8 @@ public class BadDexFixture {
         merge.add(direct(method(FEATURE_LAMBDA, "<init>", "V"), 0));
         merge.add(op(Opcode.RETURN_OBJECT, 0));
         classes.add(featureClass(FEATURE_CACHE, OBJECT, List.of(), define(FEATURE_CACHE, "merge", OBJECT, false,
-                body(11, merge.toArray(new Instruction[0])), SHORTCUT_LIST, "Ljava/lang/Integer;", "Ljava/lang/String;", "Ljava/lang/String;",
-                SHORTCUT_LIST, OBJECT, "Lkotlin/jvm/functions/Function0;", "Lkotlin/jvm/functions/Function3;", "Z")));
+                body(12, merge.toArray(new Instruction[0])), SHORTCUT_LIST, "Ljava/lang/Integer;", "Ljava/lang/String;", "Ljava/lang/String;",
+                SHORTCUT_LIST, "Ljava/util/Set;", OBJECT, "Lkotlin/jvm/functions/Function0;", "Lkotlin/jvm/functions/Function3;", "Z")));
         classes.add(featureClass(FEATURE_LAMBDA, OBJECT, List.of(), define(FEATURE_LAMBDA, "<init>", "V", false,
                 body(1, direct(method(OBJECT, "<init>", "V"), 0), op(Opcode.RETURN_VOID)))));
         // An opened post's ads: the fetcher builds its one result from the list the hook hands back.

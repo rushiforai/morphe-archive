@@ -44,11 +44,17 @@
   "com.costco.app.android": [
     "cec08537be5151905759a0e0301669582eff8e6b98b6676bbd0a654a535245fc"
   ],
+  "com.c51": [
+    "c4d04b81325b1d3e95bb4509870f8d7911f33c0c3692257f2fd742b4e4e95152"
+  ],
   "com.cvs.launchers.cvs": [
     "37bff7c0ee776177f0fdcb98bca438901149533e4cb82fbcfc948222cbc11050"
   ],
   "com.dailywire.thedailywire": [
     "98e73dc48e0b1fa4ec3da4d6064680814f1d3a513a689c881c77ae7082e5116e"
+  ],
+  "com.dealnews.android.ui": [
+    "b966df4a62572a436e2cf87fcb40e4c38f3680d90e1c0e197a06bf5fe5cee449"
   ],
   "com.dealseekorg.dealseek": [
     "900a9f5a31d565493a6e3114287a224c111d2c1f7a21c0d79d6152f380ea087d"
@@ -96,6 +102,9 @@
   ],
   "com.kanopy": [
     "2b2ebed6ffe9c30ee60c6e79560214885965b5f8d5387f684fe88a3d925d2946"
+  ],
+  "com.lowes.android": [
+    "19ff963156e7914501c6f87b9281ac85d7ede06b6953abbf45fdc396103adc08"
   ],
   "com.moviebase": [
     "5c6a17a64d884f8bd810a6464ae4a19428d4b76b86455967e6d14777ee05a607"
@@ -170,6 +179,15 @@
   "com.walmart.android": [
     "f3cfe9b27cf77a414051734b6a07422ed8b8ed71de02e0d1e8a36994c15a17a2"
   ],
+  "com.whaleshark.retailmenot": [
+    "3d2aeb0dc1ad392fa508d3f6f09168e26101c978edcbd8daa8837b4b1077dcbb"
+  ],
+  "com.yahoo.mobile.client.android.finance": [
+    "d3f1fb1b2c81e096e3f5809a503afda0cfaf56b9d39dedc656ee2660acef614c"
+  ],
+  "com.yahoo.mobile.client.android.yahoo": [
+    "d3f1fb1b2c81e096e3f5809a503afda0cfaf56b9d39dedc656ee2660acef614c"
+  ],
   "com.washingtonpost.android": [
     "f2283600a2e11ecf30efb5c756ac8abb7445f274787b67e91be5535312b45e5d"
   ],
@@ -178,6 +196,9 @@
   ],
   "com.wbd.stream": [
     "619cbb027b715560b843d15a5599f900485af1cd4294097811a77609bc8273a8"
+  ],
+  "com.wishabi.flipp": [
+    "fe614ad9446f2cf9b073eb433c03761530ffea04f9dea81324404cfe0f96fb9f"
   ],
   "com.xfinity.digitalhome": [
     "953f5a4c22e7fd16adc3f12eb038682aad377fef9a18b9d12c1abea78911c749"
@@ -205,6 +226,9 @@
   ],
   "mnn.Android": [
     "a6df84568e029df799db7fd691d648eca9893a5ff40aa582bbd87843b35dae17"
+  ],
+  "net.slickdeals.android": [
+    "89c896de12e7d1695df14376e4e6d1f7fba4fd37959e29970f84d232eec7b4fd"
   ],
   "org.cspan.app": [
     "13de4bc662cbc3ee954941c038aec0b0b8bdf6ca46bffcc35eb78d0721d643bb"

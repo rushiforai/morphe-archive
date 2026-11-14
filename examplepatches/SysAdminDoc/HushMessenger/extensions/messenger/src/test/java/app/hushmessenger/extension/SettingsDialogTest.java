@@ -1,6 +1,7 @@
 package app.hushmessenger.extension;
 
 import android.app.Dialog;
+import android.content.Intent;
 import android.graphics.Insets;
 import android.os.Build;
 import android.os.Bundle;
@@ -456,6 +457,27 @@ public class SettingsDialogTest {
             button.performClick();
             assertTrue(Settings.preferences.getBoolean(MessageLogButton.KEY, false));
             assertEquals(MessageLog.KEY, Settings.SUB_SWITCHES.get(MessageLogButton.KEY));
+        }
+    }
+
+    /** #172: the chat menu's Message log row opens the log on just that chat, with All chats to widen it. */
+    @Test public void openingTheLogOnAChatShowsOnlyThatChat() throws Exception {
+        long now = System.currentTimeMillis();
+        MessageLog.write(Settings.appContext, List.of(
+            new MessageLog.Entry(now - 1000, "t_ana", "lunch at noon"),
+            new MessageLog.Entry(now, "t_ben", "running late")));
+        Intent intent = HostScreens.intentFor(Settings.appContext, HostScreens.SETTINGS)
+            .putExtra(MessageLogSheet.OPEN_EXTRA, true).putExtra(MessageLogSheet.THREAD_EXTRA, "t_ana");
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class, intent).setup()) {
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            Dialog log = ShadowDialog.getLatestDialog();
+            assertNotNull("the log opens by itself", log);
+            View root = log.getWindow().getDecorView();
+            awaitText(root, "lunch at noon");
+            assertNotNull(root.findViewWithTag("message_log_all_chats"));
+            assertNull("the other chat stays out", findText(root, "running late"));
+            root.findViewWithTag("message_log_all_chats").performClick();
+            awaitText(root, "running late");
         }
     }
 

@@ -1,0 +1,309 @@
+{
+  "device": "OPPO CPH2293 (Android 13)",
+  "testedOn": "2026-11-11",
+  "build": "Letterboxd 3.6.7 (515)",
+  "runs": [
+    {
+      "film": "primer",
+      "preload": false,
+      "cold": {
+        "elapsedMs": 4488,
+        "frameWaitMs": 20
+      },
+      "retrieval": {
+        "responseStartMs": 596.2000000029802,
+        "responseEndMs": 1178.5999999940395,
+        "groups": {
+          "uncategorized": 15,
+          "uncategorized--spoilers": 2
+        },
+        "entries": 17,
+        "empty": false,
+        "stalled": false,
+        "readyToFinish": true,
+        "pagesRequested": 2,
+        "waiting": false,
+        "hasMore": false,
+        "imdbId": "tt0390384",
+        "status": "observed",
+        "method": "public_page_webview",
+        "items": 17,
+        "webViewInstances": 1,
+        "webViewResourceDispatches": 110,
+        "webViewMainFrameDispatches": 2,
+        "webViewMs": 145,
+        "documentCommitMs": 4378,
+        "previewMs": 4385,
+        "jsCalls": 20,
+        "jsRoundTripMs": 1052,
+        "finalParseMs": 1,
+        "elapsedMs": 7663
+      },
+      "filmViewReadyMs": 546,
+      "preloadPreview": null,
+      "webViewStarts": [
+        "webview_started id=tt0390384 preload=false"
+      ],
+      "appPssKbBefore": 339188,
+      "appPssKbAtFirstEntry": 339278
+    },
+    {
+      "film": "the-dark-knight",
+      "preload": false,
+      "cold": {
+        "elapsedMs": 3221,
+        "frameWaitMs": 10
+      },
+      "retrieval": {
+        "responseStartMs": 735.5,
+        "responseEndMs": 1255.7999999970198,
+        "groups": {
+          "uncategorized": 397,
+          "uncategorized--spoilers": 101,
+          "cameo": 1,
+          "cameo--spoilers": 2
+        },
+        "entries": 501,
+        "empty": false,
+        "stalled": false,
+        "readyToFinish": true,
+        "pagesRequested": 12,
+        "waiting": false,
+        "hasMore": false,
+        "imdbId": "tt0468569",
+        "status": "observed",
+        "method": "public_page_webview",
+        "items": 501,
+        "webViewInstances": 1,
+        "webViewResourceDispatches": 199,
+        "webViewMainFrameDispatches": 2,
+        "webViewMs": 126,
+        "documentCommitMs": 3084,
+        "previewMs": 3152,
+        "jsCalls": 44,
+        "jsRoundTripMs": 2263,
+        "finalParseMs": 26,
+        "elapsedMs": 16165
+      },
+      "filmViewReadyMs": 988,
+      "preloadPreview": null,
+      "webViewStarts": [
+        "webview_started id=tt0468569 preload=false"
+      ],
+      "appPssKbBefore": 290310,
+      "appPssKbAtFirstEntry": 316713
+    },
+    {
+      "film": "primer",
+      "preload": true,
+      "cold": {
+        "elapsedMs": 81,
+        "frameWaitMs": 39
+      },
+      "retrieval": {
+        "responseStartMs": 517.7999999970198,
+        "responseEndMs": 730.9000000059605,
+        "groups": {
+          "uncategorized": 15,
+          "uncategorized--spoilers": 2
+        },
+        "entries": 17,
+        "empty": false,
+        "stalled": false,
+        "readyToFinish": true,
+        "pagesRequested": 2,
+        "waiting": false,
+        "hasMore": false,
+        "imdbId": "tt0390384",
+        "status": "observed",
+        "method": "public_page_webview",
+        "items": 17,
+        "webViewInstances": 1,
+        "webViewResourceDispatches": 54,
+        "webViewMainFrameDispatches": 1,
+        "webViewMs": 16,
+        "documentCommitMs": 743,
+        "previewMs": 1198,
+        "jsCalls": 8,
+        "jsRoundTripMs": 292,
+        "finalParseMs": 1,
+        "elapsedMs": 2866
+      },
+      "filmViewReadyMs": 642,
+      "preloadPreview": {
+        "entries": 3,
+        "elapsedMs": 3115
+      },
+      "webViewStarts": [
+        "webview_started id=tt0390384 preload=true",
+        "webview_started id=tt0390384 preload=false"
+      ],
+      "appPssKbBefore": 351712,
+      "appPssKbAtFirstEntry": 324340
+    },
+    {
+      "film": "the-dark-knight",
+      "preload": true,
+      "cold": {
+        "elapsedMs": 90,
+        "frameWaitMs": 46
+      },
+      "retrieval": {
+        "responseStartMs": 581.2000000029802,
+        "responseEndMs": 755.7000000029802,
+        "groups": {
+          "uncategorized": 397,
+          "uncategorized--spoilers": 101,
+          "cameo": 1,
+          "cameo--spoilers": 2
+        },
+        "entries": 501,
+        "empty": false,
+        "stalled": false,
+        "readyToFinish": true,
+        "pagesRequested": 12,
+        "waiting": false,
+        "hasMore": false,
+        "imdbId": "tt0468569",
+        "status": "observed",
+        "method": "public_page_webview",
+        "items": 501,
+        "webViewInstances": 1,
+        "webViewResourceDispatches": 140,
+        "webViewMainFrameDispatches": 1,
+        "webViewMs": 20,
+        "documentCommitMs": 854,
+        "previewMs": 899,
+        "jsCalls": 20,
+        "jsRoundTripMs": 2157,
+        "finalParseMs": 45,
+        "elapsedMs": 8474
+      },
+      "filmViewReadyMs": 717,
+      "preloadPreview": {
+        "entries": 3,
+        "elapsedMs": 2618
+      },
+      "webViewStarts": [
+        "webview_started id=tt0468569 preload=true",
+        "webview_started id=tt0468569 preload=false"
+      ],
+      "appPssKbBefore": 332700,
+      "appPssKbAtFirstEntry": 314659
+    }
+  ],
+  "finalApkSmoke": {
+    "primer": {
+      "firstFrameMs": 42,
+      "webViews": 1,
+      "entries": 17
+    },
+    "backCancelledActivePreload": true,
+    "preloadOff": [
+      {
+        "film": "primer",
+        "preload": false,
+        "cold": {
+          "elapsedMs": 1616,
+          "frameWaitMs": 9
+        },
+        "retrieval": {
+          "responseStartMs": 768.5,
+          "responseEndMs": 1272.7000000029802,
+          "groups": {
+            "uncategorized": 15,
+            "uncategorized--spoilers": 2
+          },
+          "entries": 17,
+          "empty": false,
+          "stalled": false,
+          "readyToFinish": true,
+          "pagesRequested": 2,
+          "waiting": false,
+          "hasMore": false,
+          "imdbId": "tt0390384",
+          "status": "observed",
+          "method": "public_page_webview",
+          "items": 17,
+          "webViewInstances": 1,
+          "webViewResourceDispatches": 95,
+          "webViewMainFrameDispatches": 1,
+          "webViewMs": 124,
+          "documentCommitMs": 1076,
+          "previewMs": 1528,
+          "jsCalls": 10,
+          "jsRoundTripMs": 721,
+          "finalParseMs": 1,
+          "elapsedMs": 4204
+        },
+        "filmViewReadyMs": 753,
+        "preloadPreview": null,
+        "webViewStarts": [
+          "webview_started id=tt0390384 preload=false"
+        ],
+        "appPssKbBefore": 284078,
+        "appPssKbAtFirstEntry": 315424,
+        "warm": [
+          {
+            "elapsedMs": 57,
+            "frameWaitMs": 15
+          }
+        ]
+      },
+      {
+        "film": "the-dark-knight",
+        "preload": false,
+        "cold": {
+          "elapsedMs": 2392,
+          "frameWaitMs": 7
+        },
+        "retrieval": {
+          "responseStartMs": 1785.1000000089407,
+          "responseEndMs": 2305,
+          "groups": {
+            "uncategorized": 397,
+            "uncategorized--spoilers": 101,
+            "cameo": 1,
+            "cameo--spoilers": 2
+          },
+          "entries": 501,
+          "empty": false,
+          "stalled": false,
+          "readyToFinish": true,
+          "pagesRequested": 12,
+          "waiting": false,
+          "hasMore": false,
+          "imdbId": "tt0468569",
+          "status": "observed",
+          "method": "public_page_webview",
+          "items": 501,
+          "webViewInstances": 1,
+          "webViewResourceDispatches": 197,
+          "webViewMainFrameDispatches": 1,
+          "webViewMs": 117,
+          "documentCommitMs": 2255,
+          "previewMs": 2323,
+          "jsCalls": 41,
+          "jsRoundTripMs": 2221,
+          "finalParseMs": 21,
+          "elapsedMs": 15273
+        },
+        "filmViewReadyMs": 709,
+        "preloadPreview": null,
+        "webViewStarts": [
+          "webview_started id=tt0468569 preload=false"
+        ],
+        "appPssKbBefore": 284848,
+        "appPssKbAtFirstEntry": 317688,
+        "warm": [
+          {
+            "elapsedMs": 66,
+            "frameWaitMs": 16
+          }
+        ]
+      }
+    ],
+    "rapidFilmSwitchCancelledPreviousRequest": true,
+    "offlineErrorAndRetry": true
+  }
+}

@@ -33,6 +33,7 @@ internal const val GALLERY_CHAT_ITEM_CALL = "$SETTINGS->galleryChatItem(Landroid
 internal const val GALLERY_TRAY_CALL = "$SETTINGS->galleryTray(Z)Z"
 private const val ITEM_TYPE_CALL = "Landroid/content/Intent;->getType()Ljava/lang/String;"
 private const val INVOKE_SUSPEND = "invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;"
+private const val COROUTINE_STEP = "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"
 private val TRAY_NULLS = setOf(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST)
 
 /**
@@ -247,6 +248,24 @@ private fun trayGate(all: List<ClassDef>): Method? {
 }
 
 /**
+ * The coroutine's resume and the static helpers of its own class it hands this and the result to. 587's armv7 build
+ * merges coroutines into one class whose resume switches to each one's helper:
+ *
+ *     invoke-static {p0, p1}, <class>->A03(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+ */
+private fun Method.coroutineSteps(byType: Map<String, ClassDef>): List<Method> {
+    val self = parameterRegister(0)
+    val result = parameterRegister(1)
+    val handed = implementation!!.instructions.filter { call ->
+        call.opcode == Opcode.INVOKE_STATIC && (call as FiveRegisterInstruction).registerCount == 2 &&
+            call.registerC == self && call.registerD == result
+    }.mapNotNull { it.galleryMethod()?.toString() }.toSet()
+    return listOf(this) + byType.getValue(definingClass).methods.filter {
+        AccessFlags.STATIC.isSet(it.accessFlags) && it.hookId().endsWith(COROUTINE_STEP) && it.hookId() in handed
+    }
+}
+
+/**
  * The chat's handler for a photo from another app, the coroutine it starts and the composer's tray gate, or none. The
  * handler opens one item in Messenger's editor, so the hook at its start hands it the pick one item at a time, and the
  * hook in the coroutine puts each copied item in the chat's tray instead of opening the editor. The gate's hook makes sure
@@ -268,12 +287,13 @@ internal fun findGalleryToChat(classes: Iterable<ClassDef>): List<Method> {
     val started = items.implementation!!.instructions.filter { it.opcode == Opcode.NEW_INSTANCE }.mapNotNull { it.galleryType() }
         .distinct().mapNotNull { byType[it] }
         .mapNotNull { cls -> cls.methods.singleOrNull { it.hookId().substringAfter("->") == INVOKE_SUSPEND } }
-    val editor = started.singleOrNull() ?: return emptyList()
+    val resume = started.singleOrNull() ?: return emptyList()
     val insert = byType[INSERT_PREVIEW] ?: return emptyList()
     if (!AccessFlags.PUBLIC.isSet(insert.accessFlags) ||
         insert.methods.none { it.hookId() == INSERT_PREVIEW_INIT && AccessFlags.PUBLIC.isSet(it.accessFlags) }) return emptyList()
     val dispatchers = chatDispatchers(methods, byType).filterValues { it.size == 1 }
-    val site = editor.galleryChatSite(dispatchers.keys) ?: return emptyList()
+    val editor = resume.coroutineSteps(byType).singleOrNull { it.galleryChatSite(dispatchers.keys) != null } ?: return emptyList()
+    val site = editor.galleryChatSite(dispatchers.keys)!!
     val tray = trayGate(all) ?: return emptyList()
     galleryChatRoute = GalleryChatRoute(items.hookId(), itemsIntent.toString(), editor.hookId(),
         dispatchers.getValue(site.chatType).single(), site.chatType, tray.hookId())

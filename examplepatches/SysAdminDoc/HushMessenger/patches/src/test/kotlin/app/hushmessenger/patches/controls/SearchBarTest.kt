@@ -72,6 +72,45 @@ private fun searchList(check: String = CHECK) = fixtureMethod(SEARCH_ICON_LIST, 
     return-object v0
 """.trimIndent())
 
+/** 587's static helper every flag read calls: the config cast to its interface, the check asked, the answer returned. */
+private const val CONFIG_HELPER = "LX/18A;->A1Z(Ljava/lang/Object;J)Z"
+private const val SEARCH_ICON_BUTTON_587 = "LX/2Ku;->A0M()Z"
+private const val SEARCH_ICON_LIST_587 = "LX/2cu;->render(LX/27r;)LX/1F6;"
+
+private fun configHelper(body: String = "check-cast v0, $CONFIG\ninvoke-interface {v0, v1, v2}, $CHECK\nmove-result v0\nreturn v0") =
+    fixtureClass("LX/18A;", listOf(fixtureMethod(CONFIG_HELPER, body, 3, STATIC)))
+
+/** 587's builder: it names the search icon and reads the flag itself, through the helper. */
+private fun inlineSearchButton() = fixtureMethod(SEARCH_ICON_BUTTON_587, """
+    const-string v1, "$SEARCH_ICON_ANCHOR"
+    invoke-static {v6}, LX/18A;->A0W(Ljava/lang/Object;)LX/5XY;
+    move-result-object v2
+    const-wide v0, ${SEARCH_ICON_FLAG}L
+    invoke-static {v2, v0, v1}, $CONFIG_HELPER
+    move-result v0
+    if-eqz v0, :off
+    const/4 v0, 0x1
+    :off
+    return v0
+""".trimIndent())
+
+/** 587's chat list render, which asks the flag twice through the helper. */
+private fun helperSearchList() = fixtureMethod(SEARCH_ICON_LIST_587, """
+    invoke-static {v5}, LX/18A;->A0W(Ljava/lang/Object;)LX/5XY;
+    move-result-object v2
+    const-wide v0, ${SEARCH_ICON_FLAG}L
+    invoke-static {v2, v0, v1}, $CONFIG_HELPER
+    move-result v0
+    if-eqz v0, :padding
+    const/4 v3, 0x1
+    :padding
+    const-wide v0, ${SEARCH_ICON_FLAG}L
+    invoke-static {v2, v0, v1}, $CONFIG_HELPER
+    move-result v0
+    const/4 v0, 0x0
+    return-object v0
+""".trimIndent())
+
 /** The top bar's search icon builder and the shared getter it asks. */
 internal fun searchIconFixture(getter: MutableMethod = searchGetter()): List<MutableClass> = listOf(
     fixtureClass("LX/Sb1;", listOf(searchButton())),
@@ -167,19 +206,38 @@ class SearchBarTest {
         }
     }
 
+    @Test fun the587BuilderThatReadsTheFlagThroughTheHelperIsFoundAndSwapped() {
+        val classes = listOf(fixtureClass("LX/2Ku;", listOf(inlineSearchButton())), fixtureClass("LX/2cu;", listOf(helperSearchList())))
+        assertEquals(setOf(SEARCH_ICON_BUTTON_587, SEARCH_ICON_LIST_587), found(classes))
+        activeProfile = syntheticProfileWith(INBOX_SEARCH_BAR to setOf(SEARCH_ICON_BUTTON_587, SEARCH_ICON_LIST_587))
+        validateControls(mirroredControls(classes), setOf(INBOX_SEARCH_BAR))
+        assertEquals(1, assertSearchBarInjected(inlineSearchButton(), "builder"))
+        assertEquals(2, assertSearchBarInjected(helperSearchList(), "list"))
+        // The stub asks the interface check the helper asks, not the helper.
+        val readers = classes.flatMap { it.methods }
+        assertEquals(CHECK, searchIconCheck(readers, lookup(searchConfig(), configHelper())).toString())
+        // A builder that asks the flag through a helper and only names the icon elsewhere links nothing.
+        assertTrue(found(listOf(fixtureClass("LX/2cu;", listOf(helperSearchList())))).isEmpty())
+    }
+
+    @Test fun aHelperThatDoesMoreThanAskTheConfigStopsThePatch() {
+        val readers = listOf(inlineSearchButton())
+        val cases = mapOf(
+            "it answers yes" to "check-cast v0, $CONFIG\ninvoke-interface {v0, v1, v2}, $CHECK\nconst/4 v0, 0x1\nreturn v0",
+            "it casts to another type" to "check-cast v0, LX/5dt;\ninvoke-interface {v0, v1, v2}, $CHECK\nmove-result v0\nreturn v0",
+            "it asks with the halves swapped" to "check-cast v0, $CONFIG\ninvoke-interface {v0, v2, v1}, $CHECK\nmove-result v0\nreturn v0",
+            "it returns another register" to "check-cast v0, $CONFIG\ninvoke-interface {v0, v1, v2}, $CHECK\nmove-result v1\nreturn v0",
+        )
+        for ((case, body) in cases) {
+            val failure = assertFailsWith<PatchException>(case) { searchIconCheck(readers, lookup(searchConfig(), configHelper(body))) }
+            assertContains(failure.message.orEmpty(), "helper does more than ask the config", message = case)
+        }
+        val missing = assertFailsWith<PatchException> { searchIconCheck(readers, lookup(searchConfig())) }
+        assertContains(missing.message.orEmpty(), "is missing")
+    }
+
     @Test fun theFlagCountsOnlyWhenTheOneSearchIconBuilderAsksTheGetter() {
         val getter = listOf(fixtureClass("LX/Sg1;", listOf(searchGetter())))
-        // A builder that reads the flag itself, with no getter between, isn't the shape the switch was tested on.
-        val inline = fixtureMethod(SEARCH_ICON_BUTTON, """
-            invoke-static {}, LX/1Aa;->A08()LX/5dt;
-            move-result-object v4
-            const-wide v2, ${SEARCH_ICON_FLAG}L
-            check-cast v4, $CONFIG
-            invoke-interface {v4, v2, v3}, $CHECK
-            move-result v2
-            const-string v1, "$SEARCH_ICON_ANCHOR"
-            return-void
-        """.trimIndent())
         val cases = mapOf(
             "no search icon" to getter,
             "two search icons" to getter + fixtureClass("LX/Sb1;", listOf(searchButton())) +
@@ -187,7 +245,14 @@ class SearchBarTest {
             "a search icon that doesn't ask the getter" to getter +
                 fixtureClass("LX/Sb1;", listOf(searchButton(getter = "LX/Sg2;->A00(Lcom/facebook/auth/usersession/FbUserSession;)Z"))),
             "a getter of another flag" to searchIconFixture(searchGetter(flag = 0x1L)),
-            "a builder that reads the flag itself" to listOf(fixtureClass("LX/Sb1;", listOf(inline))),
+            "a getter that asks through the helper" to searchIconFixture(fixtureMethod(SEARCH_ICON_GETTER, """
+                invoke-static {}, LX/1Aa;->A08()LX/5dt;
+                move-result-object v2
+                const-wide v0, ${SEARCH_ICON_FLAG}L
+                invoke-static {v2, v0, v1}, $CONFIG_HELPER
+                move-result v0
+                return v0
+            """.trimIndent(), 3, STATIC)),
         )
         for ((case, classes) in cases) {
             assertTrue(found(classes).isEmpty(), case)
@@ -221,7 +286,10 @@ class SearchBarTest {
             "no cast" to "$flag\ninvoke-interface {v4, v0, v1}, $CHECK\nmove-result v0\nreturn v0",
             "a cast to another type" to "$flag\ncheck-cast v4, LX/5dt;\ninvoke-interface {v4, v0, v1}, $CHECK\nmove-result v0\nreturn v0",
             "the check asked on another register" to "$flag\n$cast\ninvoke-interface {v5, v0, v1}, $CHECK\nmove-result v0\nreturn v0",
-            "a static check" to "$flag\ninvoke-static {v4, v0, v1}, LX/17P;->A1Y(Ljava/lang/Object;J)Z\nmove-result v0\nreturn v0",
+            "a static check of a typed config" to "$flag\ninvoke-static {v4, v0, v1}, LX/17P;->A1Y(LX/5dt;J)Z\nmove-result v0\nreturn v0",
+            "a helper asked on the flag's register" to "$flag\ninvoke-static {v0, v0, v1}, $CONFIG_HELPER\nmove-result v0\nreturn v0",
+            "a helper call with no answer taken" to "$flag\ninvoke-static {v4, v0, v1}, $CONFIG_HELPER\nconst/4 v0, 0x0\nreturn v0",
+            "a virtual helper call" to "$flag\ninvoke-virtual {v4, v0, v1}, $CONFIG_HELPER\nmove-result v0\nreturn v0",
             "no flag at all" to "const-wide v0, 0x1L\n$cast\ninvoke-interface {v4, v0, v1}, $CHECK\nmove-result v0\nreturn v0",
         )
         for ((case, body) in shapes) {
@@ -308,13 +376,28 @@ class SearchBarTest {
             val check = searchIconCheck(readers) { type -> classes.firstOrNull { it.type == type } }
             searchIconReader(searchIconStub(), check)
             val sites = readers.associate { it.hookId() to assertSearchBarInjected(it, "$code ${it.hookId()}") }
-            // The chat list's builder is also where Hide joined community chats edits, by instruction index. It asks the
-            // shared getter, so it carries no flag read of its own and the two edits never meet.
+            // The chat list's builder is also where Hide joined community chats edits, by instruction index.
             val contract = assertNotNull(findCommunityInbox(classes), code)
-            assertTrue(contract.render.hookId() !in sites, code)
-            // 348 and 341 read the list at 60. Family B inlines the section builder's helpers, which puts the read at 76.
-            assertEquals(if (contract.render.implementation!!.registerCount == 22) 76 else 60,
-                MutableMethod(contract.render).communityReadSite(contract.capturedScope), code)
+            val render = contract.render
+            val read = MutableMethod(render).communityReadSite(contract.capturedScope)
+            // 587 reads the list at 63 in its 21-register builder, and at 76 where the section builder's helpers are inlined.
+            assertEquals(if (render.implementation!!.registerCount == 22) 76 else 63, read, code)
+            fun community(method: MutableMethod) =
+                injectCommunityInbox(contract, method, communityStub(JOINED_COMMUNITY_ROW), communityStub(MAIN_INBOX_SCOPE))
+            if (render.hookId() in sites) {
+                // Where the builder reads the icon flag itself, the swap keeps every index and the community edit goes in
+                // after the list read, so the two land the same in either order.
+                val searchFirst = MutableMethod(render).apply { injectSearchBar() }
+                assertEquals(read, searchFirst.communityReadSite(contract.capturedScope), code)
+                community(searchFirst)
+                val communityFirst = MutableMethod(render)
+                community(communityFirst)
+                assertEquals(sites.getValue(render.hookId()), communityFirst.searchIconSites().size, code)
+                communityFirst.injectSearchBar()
+                fun Instruction.kind() = if (opcode == Opcode.GOTO_16 || opcode == Opcode.GOTO_32) Opcode.GOTO else opcode
+                fun Instruction.named() = kind() to (this as? ReferenceInstruction)?.reference?.toString()
+                assertEquals(searchFirst.code().map { it.named() }, communityFirst.code().map { it.named() }, code)
+            }
         }
     }
 }

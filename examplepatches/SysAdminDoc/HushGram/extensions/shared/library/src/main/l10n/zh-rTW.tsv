@@ -305,6 +305,9 @@ Still scroll reels from Search and Explore	從搜尋和探索開啟的 Reels 仍
 With Stop Reels scrolling on, reels you open from Search, Explore, a hashtag or a place still move on when you swipe.	開啟「停用 Reels 捲動」時，從搜尋、探索、主題標籤或地點開啟的 Reels 滑動時仍會切換。
 Still scroll reels from a song page	從歌曲頁面開啟的 Reels 仍可捲動
 With Stop Reels scrolling on, reels you open from a song or audio page still move on when you swipe.	開啟「停用 Reels 捲動」時，從歌曲或音訊頁面開啟的 Reels 滑動時仍會切換。
+# context: Reels page, a switch of its own after the three above (#656). It names the Messages page switch Swipe through a chat's reels by its label.
+Play only the reel you opened	只播放你開啟的 Reel
+A reel you open from a post on Home, a suggested reels row or a message plays on its own. Swiping, pulling down and auto scroll won't move on to another reel, so it plays again when it ends. The Reels tab scrolls as usual. With Swipe through a chat's reels on, a chat's reels still swipe.	從首頁貼文、推薦 Reels 列或訊息開啟的 Reel 只會播放這一則。滑動、下拉和自動捲動都不會切換到其他 Reel，所以播完會重新播放。Reels 分頁照常捲動。開啟「在聊天室的 Reels 之間滑動」時，聊天室的 Reels 仍可滑動.
 A swipe in Reels no longer moves on to the next reel, and pulling down doesn't load new ones. The reel you opened still plays. Restart Instagram to see the change.	在 Reels 滑動不再切換至下一則，下拉也不會載入新影片。已開啟的 Reel 仍會播放。請重新啟動 Instagram 以套用變更。
 Lock a reel at 2x (hold its edge, then slide down) and the next reels play at 2x too. Slide the lock off, or hold the edge and let go, to go back to normal speed.	將 Reel 鎖定為 2 倍速（按住邊緣後向下滑動），之後的 Reels 也會以 2 倍速播放。滑動解除鎖定，或按住邊緣後放開，即可恢復正常速度。
 Open links in external browser	在外部瀏覽器中開啟連結
@@ -343,6 +346,9 @@ Hide the Explore grid	隱藏探索網格
 Hides the grid of posts and reels under the Search tab's bar. Search, recent searches and results stay.	隱藏搜尋分頁搜尋列下方的貼文與 Reels 網格。搜尋、最近搜尋與搜尋結果仍會保留。
 Hide suggested accounts in search	隱藏搜尋中的建議帳號
 Leaves the Suggested for you accounts out of what shows when you tap the search bar. Recent searches stay.	點擊搜尋列時，不再顯示「為你推薦」的帳號。最近搜尋仍會保留。
+# context: You may also like is the header Instagram's server puts on the recommended posts after search results; it isn't a fixed string in the app, so the rows describe it.
+Hide You may also like in search	隱藏搜尋結果中的推薦貼文
+Leaves out the You may also like posts Instagram adds below your search results. The results you searched for stay.	不再顯示 Instagram 加在搜尋結果下方的推薦貼文。你搜尋的結果仍會保留。
 Messages	私訊
 Hide the notes row	隱藏筆記橫列
 Takes the row of notes off the top of your messages, the Map bubble in it too. Your chats, search and requests stay.	移除私訊頂端的筆記橫列，包括其中的地圖泡泡。聊天、搜尋與陌生訊息仍會保留。
@@ -519,6 +525,9 @@ Reply with a comment's GIF	用留言的 GIF 回覆
 When a comment has a GIF, its menu gets a GIF reply that sends that same GIF back as your reply, animated.	留言含有 GIF 時，其選單會多出 GIF 回覆，將同一個 GIF 以動畫形式作為你的回覆傳回。
 Show a comment GIF's name	顯示留言 GIF 的名稱
 When a comment has a GIF or sticker, its menu shows its name. Tap the name to copy it.	留言含有 GIF 或貼圖時，其選單會顯示名稱。點一下名稱即可複製。
+Send saved GIFs as GIFs	將儲存的 GIF 以 GIF 傳送
+A comment GIF you saved with Save comment photo, picked from your gallery in the comment box, goes up right away as the same GIF, animated. Other pictures go up as before.	用「儲存留言照片」儲存的留言 GIF，在留言輸入框從相簿選取時，會立即以同一個 GIF 動態發佈。其他圖片照常上傳。
+Couldn't send this GIF	無法傳送這個 GIF
 GIF name	GIF 名稱
 GIF name copied	已複製 GIF 名稱
 Couldn't copy the GIF name	無法複製 GIF 名稱
@@ -771,7 +780,7 @@ Ask before a refresh	重新整理前詢問
 Continue	繼續
 Like or unlike this post?	要對這則貼文按讚或收回讚嗎？
 Like or unlike this comment?	要對這則留言按讚或收回讚嗎？
-Asks before pulling down refreshes Home, Reels or another list. Cancel keeps what's on screen.	下拉重新整理首頁、Reels 或其他清單前先詢問。取消會保留畫面上的內容。
+Asks before a pull down or another tap on its tab refreshes Home, Reels or another list. Cancel keeps what's on screen.	下拉或再次點按分頁重新整理首頁、Reels 或其他清單前先詢問。取消會保留畫面上的內容。
 Skip the collections tray	略過珍藏分類面板
 Saving a post or reel shows Instagram's Saved message instead of the tray that asks you to start a collection.	儲存貼文或 Reels 時，Instagram 只會顯示已儲存的訊息，而不是要你建立珍藏分類的面板。
 Refresh	重新整理
@@ -973,7 +982,12 @@ Chat %1$s	聊天 %1$s
 Hidden chats	已隱藏的聊天
 Hide single chats. A hidden chat leaves your inbox and its notifications don't post until you show it here again.	隱藏個別聊天。隱藏的聊天會從收件匣移除，也不會發出通知，直到你在此重新顯示。
 Double-tap Messages for hidden chats	點兩下訊息開啟隱藏的聊天
-Two quick taps on the Messages button, on the tab bar or at the top of Home, open your hidden chats. While a lock is on, it asks for it first. One tap opens Messages as usual.	在分頁列或首頁頂端的訊息按鈕上快速點兩下，就會開啟你隱藏的聊天。開啟鎖定時會先要求解鎖。點一下則照常開啟訊息。
+Two quick taps on the Messages button, on the tab bar or at the top of Home, show your hidden chats in your inbox after your screen lock or PIN. Two more taps hide them again. Long press a chat to hide or unhide it. One tap opens Messages as usual.	在分頁列或首頁頂端的訊息按鈕上快速點兩下，通過螢幕鎖定或 PIN 後，收件匣會顯示你隱藏的聊天。再點兩下即可重新隱藏。長按聊天可以隱藏或取消隱藏。點一下則照常開啟訊息。
+# context: Hide chat and Unhide chat in a chat's long press menu in the inbox (#661), and the toasts when two quick taps on Messages show the hidden chats in the inbox or hide them again
+Hide chat	隱藏聊天
+Unhide chat	取消隱藏聊天
+Showing your hidden chats	正在顯示隱藏的聊天
+Hidden chats locked again	已重新鎖定隱藏的聊天
 Open a chat in Instagram, then come back here to hide it.	先在 Instagram 開啟聊天，再回到此處隱藏。
 Pinned chats	已釘選的聊天
 Keeps the chats you pick at the top of your inbox. The pins stay on this phone, and Instagram's own order holds for every other chat.	把你挑選的聊天固定在收件匣最上方。釘選只存在這支手機上，其他聊天仍依 Instagram 的順序排列。
@@ -1169,6 +1183,10 @@ Pick friends	選擇好友
 Open the Friends tab first.	請先開啟好友分頁。
 No friends to pick yet.	還沒有可選的好友。
 Applies to the next reels loaded.	從接下來載入的 Reels 開始套用。
+Hide the Like button on reels	隱藏 Reels 上的讚按鈕
+Takes the heart out of the column of buttons beside a reel, and the like count under it. Double tap still likes a reel.	移除 Reel 旁按鈕列中的愛心與下方的讚數。仍可點兩下對 Reel 按讚。
+Hide the Comment button on reels	隱藏 Reels 上的留言按鈕
+Takes the Comment button out of the column of buttons beside a reel, and the count under it. The comment bar under a reel has its own switch.	移除 Reel 旁按鈕列中的留言按鈕與下方數量。Reel 下方的留言列有自己的開關。
 Hide the Save button on reels	隱藏 Reels 上的儲存按鈕
 Burn-in guard	防烙印保護
 Dim when idle	閒置時淡化
@@ -1725,6 +1743,8 @@ Couldn't read that picture.	無法讀取這張圖片。
 This launcher can't add it.	這個啟動器無法加入。
 Glass in chats	聊天室玻璃效果
 Gives a chat's top bar and message bar frosted glass and puts the back, call and video buttons on round glass circles. It shows the next time you open a chat. Needs Android 12 or newer for the blur.	讓聊天室頂端列和訊息列呈現毛玻璃效果，並把返回、通話和視訊按鈕放在圓形玻璃圈上。下次開啟聊天室時生效。模糊效果需要 Android 12 或更新版本。
+Glass top bar in chats	聊天室頂端列玻璃效果
+Turn it off to leave a chat's top bar as Instagram draws it, with no frosted band behind it. The round glass buttons and the glass message bar stay.	關閉後聊天室頂端列保持 Instagram 原本的樣子，後方沒有毛玻璃色帶。圓形玻璃按鈕和玻璃訊息列會保留。
 # context: Reels switch Hide reels with few views, its summary, the Minimum views row, its dialog message and the row's summary, then the Minimum likes row, its dialog message, its summary and its summary at 0; %1$s is a number with thousands separators (#444)
 Hide reels with few views	隱藏觀看次數少的 Reels
 Leaves out reels in the Reels tab with fewer views or likes than the numbers below. Reels from accounts you follow, reels sent to you and reels with no count still play.	在 Reels 分頁中略過觀看次數或按讚數低於下方數字的 Reels。你追蹤的帳號、別人傳給你的 Reels，以及沒有數字的 Reels 仍會播放。
@@ -1981,6 +2001,8 @@ Save in the post menu	貼文選單中的儲存
 Adds Save to the menu behind a post's three dots, or Remove from saved when you saved it already.	在貼文三個點開啟的選單中加入「儲存」，已儲存的貼文則顯示「從已儲存移除」。
 Hide the Save button	隱藏儲存按鈕
 Takes the Save button off the bottom of posts in your feed, so a stray tap can't save one.	移除動態中貼文底部的儲存按鈕，避免誤觸而儲存貼文。
+Hide the Like button	隱藏讚按鈕
+Takes the heart and the like count off the bottom of posts in your feed. Double tap still likes a post.	移除動態消息貼文底部的愛心與讚數。仍可點兩下對貼文按讚。
 # context: the row in a feed post's three-dot menu for a post you already saved, and the row that takes an account off Saved profiles, on its profile's menu and on the Saved profiles page (#629)
 Remove from saved	從已儲存移除
 # context: a switch on the Reels page
@@ -2127,6 +2149,10 @@ Takes the invite to someone's broadcast channel from under their bio. Yours keep
 Hide the other profile banners	隱藏其他個人檔案橫幅
 # context: Profiles > summary of Hide the other profile banners (#627)
 Takes the rest of the banners under the bio off other people's profiles, like events, fundraisers, schools and business hours. Yours keeps them.	移除他人個人檔案中個人簡介下方的其餘橫幅，例如活動、募款、學校與營業時間。你自己的個人檔案仍會保留。
+# context: Profiles > title of the switch that hides the row of links (a website, a business's links) under the bio on other people's profiles (#627)
+Hide links	隱藏連結
+# context: Profiles > summary of Hide links (#627)
+Takes the row of links, like a website or a business's links, from under the bio on other people's profiles. Yours keeps it.	移除他人個人檔案中個人簡介下方的連結列，例如網站或商家的連結。你自己的個人檔案仍會保留。
 # context: the row HushGram adds to the menu on someone's profile; it puts the account on the Saved profiles list (#629)
 Save profile	儲存個人檔案
 # context: toast after Save profile; %s is the account's username (#629)
@@ -2208,3 +2234,10 @@ Haptic strength	觸覺回饋強度
 Tap sound on the tab bar	分頁列觸控音效
 A click each time the highlight moves to another tab, even with the phone's touch sounds off. Silent and vibrate mode keep it quiet.	每當標示移到另一個分頁時發出點擊聲，即使手機的觸控音效已關閉也會播放。靜音和震動模式下不會發出聲音。
 Tap sound volume	觸控音效音量
+Auto scroll in Home	首頁自動捲動
+Moves Home on to the next post by itself. A video moves on when it ends, a photo or carousel after Time on each post. Touch the screen to hold it.	首頁會自動移到下一則貼文。影片播完就移動，相片或輪播貼文則在「每則貼文的時間」後移動。觸碰螢幕即可暫停。
+Time on each post	每則貼文的時間
+# context: Reels settings: switch that lets a tap on the reel shown above an open comments sheet pause or play it, and a hold play it at 2x, without closing the comments (#665)
+Control the reel above comments	控制留言上方的 Reel
+# context: Summary of Control the reel above comments (#665)
+With a reel's comments open, tap the reel above them to pause or play it, or hold it to play at 2x. The comments stay open.	Reel 的留言開啟時，點一下上方的 Reel 即可暫停或播放，長按則以 2 倍速播放。留言會保持開啟.

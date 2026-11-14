@@ -7,7 +7,7 @@ import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.pigfoot.patches.shared.certificate.requireOriginalCertificate
 import app.pigfoot.patches.shared.maps.isMapsKey
-import app.pigfoot.patches.shared.maps.replaceMapsKeyBytes
+import app.pigfoot.patches.shared.maps.replaceMapsKeyInManifest
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.writer.io.MemoryDataStore
@@ -16,21 +16,19 @@ import java.security.MessageDigest
 
 internal const val GPS_PACKAGE = "com.theappninjas.fakegpsjoystick"
 internal const val GPS_SIGNER = "cf5516416b8af05634166a44a3349aa65b346a92"
-internal data class GpsPolicy(val tierOwner: String, val tierMethod: String, val tierPin: String, val manifestHash: String,
+internal data class GpsPolicy(val tierOwner: String, val tierMethod: String, val tierPin: String,
     val prefs: String, val keys: String, val preferenceMethod: String, val adFreeField: String, val prefsPin: String, val keysPin: String,
     val splash: String, val splashPin: String) {
     val pins get() = mapOf(tierOwner to tierPin, prefs to prefsPin, keys to keysPin, splash to splashPin)
 }
 internal val gpsPlay534 = GpsPolicy("Lii/b;","u",
     "ea042f04ec458e4e34fdd028ad7268fdab693845787a21e3f0e4c8ca4d9d9e45",
-    "96adf035153a0e83238c0a5d88c896806c1b0a53cc0bd83151a6a3f82e2bf952",
     "Ln6/k;","Lpd/f0;","m","D0",
     "dcc63932b06d4d74147fee8c3647c1ed9df798eab4b55d437b0ceee2277e7db1",
     "4247b20e2b65de516db7be5177923f5ee712f04a976481225b2b53e6af82c530",
     "Lse/a;","e46660b2d9b480135191946ea0bff64b28d0bfebaf78aedb813323915be2c106")
 internal val gpsUnlocked534 = GpsPolicy("Lii/b;","u",
     "5340565dd17253945565aca2206cfcdc0a40bef4aaad30847edd076887ac4a95",
-    "4e36d8f89506d2d65489a29e7d230b66d08f14dd33deda7ca3c6d3895437fe8a",
     "Ln6/k;","Lpd/f0;","m","H0",
     "bfe7ca090f93cde3b8dd60bb4d2bf8df3532cea3233827c5c9714ed6e9efc443",
     "e56ce9d9a7f90bf439f099b5f00f3eafde1b5bd2d5fc48f2194e2ecaabfeba34",
@@ -112,21 +110,16 @@ val gpsJoyStickPremiumPatch = bytecodePatch(
         description="Optional Maps key override; this does not guarantee map access. Leave blank to keep the original key.",
         required=false, validator={value -> isMapsKey(value)}
     )
-    dependsOn(rawResourcePatch {
+    dependsOn(resourcePatch {
         dependsOn(originalInput)
         execute {
-            val policy = requireNotNull(detectedPolicy) { "Missing GPS JoyStick input qualification" }
+            requireNotNull(detectedPolicy) { "Missing GPS JoyStick input qualification" }
+            // Only a non-blank key touches the manifest; blank leaves the original untouched.
             if(!mapsKey.isNullOrBlank()) {
-                // Raw mode stages binary AXML beside (not at) the decoded XML path.
-                // Stage the replacement as a raw root entry: the .bin export alone
-                // goes to the decoded workspace, not the returned raw payload.
-                val manifest=get("AndroidManifest.xml").resolveSibling("AndroidManifest.xml.bin")
-                require(manifest.isFile) { "Missing raw GPS JoyStick manifest" }
                 requireGpsTarget(packageMetadata.packageName,packageMetadata.versionName,packageMetadata.versionCode)
-                val replacement=replaceMapsKeyBytes(manifest.readBytes(),
-                    setOf(policy.manifestHash),
-                    "18e4effd43e80b25d94c45bd641313d180d826d876656f1a93383c9ffc9f8628",mapsKey)
-                get("./AndroidManifest.xml").writeBytes(replacement)
+                document("AndroidManifest.xml").use {
+                    replaceMapsKeyInManifest(it,"18e4effd43e80b25d94c45bd641313d180d826d876656f1a93383c9ffc9f8628",mapsKey)
+                }
             }
         }
     })

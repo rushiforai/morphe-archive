@@ -44,7 +44,10 @@ abstract class ToolScreenController extends ContextThemeWrapper {
         String hostName=data==null?null:data.getHost();
         hissiViewer|=hostName!=null&&("hissi.org".equalsIgnoreCase(hostName)
                 ||hostName.toLowerCase(java.util.Locale.ROOT).endsWith(".hissi.org"));
-        render.accept(ToolScreenUi.model(host,hissiViewer?"":title,model,this::finish,!embedded&&!hissiViewer,embedded));
+        boolean archiveWeb=hostName!=null&&("eddiarchive3rd.boy.jp".equalsIgnoreCase(hostName)
+                ||hostName.toLowerCase(java.util.Locale.ROOT).endsWith(".eddiarchive3rd.boy.jp"))
+                &&model instanceof android.view.ViewGroup;
+        render.accept(ToolScreenUi.model(host,hissiViewer||archiveWeb?"":title,model,this::finish,!embedded&&!hissiViewer&&!archiveWeb,embedded));
     }
     final void showSearch(HissiWacchoiSearchController controller){render.accept(SearchComposeUi.embed(host,controller,!embedded,embedded));}
     final void showArchive(android.widget.LinearLayout model){render.accept(ToolScreenUi.archive(host,model,this::finish,!embedded,embedded));}

@@ -77,10 +77,11 @@ public final class FeatureDexFixture {
     private static final String CRASHLYTICS = "Lcom/google/firebase/crashlytics/FirebaseCrashlytics;";
     private static final String CRASH_SETUP = "Lfixture/CrashSetup;";
     private static final String APPLICATION = "Landroid/app/Application;";
+    private static final String PROMOTE_POST = "Lcom/tumblr/rumblr/communities/PostOverflowMenuItem$PromotePost;";
     private static final Map<String, String> SUPERCLASSES = Map.of(APP, CORE_APP, ACTIVITY, COMPONENT_ACTIVITY,
             CORE_APP, "Landroid/app/Application;", COMPONENT_ACTIVITY, "Landroid/app/Activity;", POSTS_RESPONSE, TIMELINE_RESPONSE,
             "Lfixture/PostSpacing;", "Landroidx/recyclerview/widget/RecyclerView$o;", MOBILE_ADS, PROVIDER,
-            VUNGLE, PROVIDER, LIVERAMP, PROVIDER);
+            VUNGLE, PROVIDER, LIVERAMP, PROVIDER, PROMOTE_POST, "Lcom/tumblr/rumblr/communities/PostOverflowMenuItem;");
     private static final String VOID = "V";
     private static final String OBJECT = "Ljava/lang/Object;";
     private static final String LIST = "Ljava/util/List;";
@@ -147,6 +148,14 @@ public final class FeatureDexFixture {
      */
     private static final Set<String> ABSENT = Set.of("exploreHeaderAd", "longTrailRows", "longPostExpand");
     private static final List<String> SMALL_CASES = new ArrayList<>();
+    private static final String WRAPPED_TAGS = "Lcom/tumblr/ui/widget/PostCardWrappedTags;";
+    private static final String TAG_LISTENER = "Lcom/tumblr/ui/widget/t$b;";
+    private static final String TAG_NAVIGATION = "Lcom/tumblr/analytics/NavigationState;";
+    private static final String TAG_BLOG = "Lcom/tumblr/bloginfo/BlogInfo;";
+    private static final String TAG_SCREEN = "Lcom/tumblr/analytics/ScreenType;";
+    private static final String TAG_SEARCH = "Lcom/tumblr/ui/activity/GraywaterBlogSearchActivity;";
+    private static final String HUSH_TAG_BLOG = BASE + "ui/HushTagBlog;";
+    private static final String BLOG_TAGS = BASE + "ui/BlogTags;";
 
     private static ImmutableMethodReference ref(String type, String name, String result, String... parameters) {
         return new ImmutableMethodReference(type, name, Arrays.asList(parameters), result);
@@ -178,7 +187,11 @@ public final class FeatureDexFixture {
         if (owner.equals(PHOTO_CONTAINER) && methods.stream().anyMatch(m -> m.getName().equals("hushImageFrame"))) interfaces.add(IMAGE_CONTAINER);
         if (owner.equals(GALLERY_ROW) && methods.stream().anyMatch(m -> m.getName().equals("hushImageItems"))) interfaces.add(IMAGE_ROW);
         if (owner.equals(PHOTO_HOLDER) || owner.equals(PHOTO_ROW_ITEM)) interfaces.add(PHOTO_CONTAINER);
+        if (owner.equals(TAG_LISTENER)) interfaces.add("Landroid/view/View$OnClickListener;");
+        if (owner.equals(TAG_LISTENER) && methods.stream().anyMatch(m -> m.getName().equals("hushTagBlogName"))) interfaces.add(HUSH_TAG_BLOG);
         List<ImmutableField> fields = new ArrayList<>();
+        if (owner.equals(TAG_LISTENER)) for (String[] kept : List.of(new String[]{"a", TAG_NAVIGATION}, new String[]{"b", TAG_BLOG}))
+            fields.add(new ImmutableField(owner, kept[0], kept[1], AccessFlags.PRIVATE.getValue() | AccessFlags.FINAL.getValue(), null, Set.of(), Set.of()));
         if (owner.equals(POST) && methods.stream().anyMatch(m -> m.getName().equals("hushSetJsonPresence")))
             for (String name : List.of("hushRootTrailPresent", "hushPaidContextKnown")) fields.add(new ImmutableField(owner, name, "Z",
                     AccessFlags.PRIVATE.getValue(), null, Set.of(), Set.of()));
@@ -607,6 +620,57 @@ public final class FeatureDexFixture {
                         new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 1)), OBJECT)));
     }
 
+    /**
+     * A post's tags and the click listener each tag is built with. The listener asks whether its
+     * screen belongs to a blog, then opens that blog's tag search unless its blog is empty. Unless
+     * clean, Tags open the blog's tag search answers after the question and the listener hands
+     * back its blog's name, null when Tumblr's own emptiness test is true.
+     */
+    private static void tagBlogLinks(Map<String, List<Method>> classes, String variant) {
+        boolean hooked = !variant.equals("clean");
+        ImmutableMethodReference empty = ref(TAG_BLOG, "F0", "Z", TAG_BLOG), named = ref(TAG_BLOG, "d0", STRING);
+        classes.put(TAG_BLOG, List.of(
+                method(TAG_BLOG, "F0", "Z", true, 2, List.of(invoke(Opcode.INVOKE_VIRTUAL, named, 1),
+                        new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0),
+                        invoke(Opcode.INVOKE_STATIC, ref("Landroid/text/TextUtils;", "isEmpty", "Z", "Ljava/lang/CharSequence;"), 0),
+                        new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0), new ImmutableInstruction11x(Opcode.RETURN, 0)), TAG_BLOG),
+                method(TAG_BLOG, "d0", STRING, false, 2, List.of(literal("fixture", 0), new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0)))));
+        classes.put(WRAPPED_TAGS, List.of(method(WRAPPED_TAGS, "i", VOID, false, 4, List.of(
+                new ImmutableInstruction21c(Opcode.NEW_INSTANCE, 0, new ImmutableTypeReference(TAG_LISTENER)),
+                invoke(Opcode.INVOKE_DIRECT, ref(TAG_LISTENER, "<init>", VOID, TAG_NAVIGATION, TAG_BLOG), 0, 2, 3), end()),
+                TAG_NAVIGATION, TAG_BLOG)));
+        Method made = method(TAG_LISTENER, "<init>", VOID, false, 3, List.of(invoke(Opcode.INVOKE_DIRECT, ref(OBJECT, "<init>", VOID), 0),
+                member(Opcode.IPUT_OBJECT, 1, 0, TAG_LISTENER, "a", TAG_NAVIGATION), member(Opcode.IPUT_OBJECT, 2, 0, TAG_LISTENER, "b", TAG_BLOG),
+                end()), TAG_NAVIGATION, TAG_BLOG);
+        // v0-v3 locals, this in v4, the view in v5. Both branches jump to the last return.
+        List<Instruction> click = new ArrayList<>(List.of(
+                new ImmutableInstruction21c(Opcode.SGET_OBJECT, 0, new ImmutableFieldReference(TAG_SCREEN, "BLOG", TAG_SCREEN)),
+                invoke(Opcode.INVOKE_STATIC, ref("Lpv2;", "j", "Z", TAG_SCREEN), 0), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0)));
+        if (hooked && !variant.equals("missing")) click.addAll(List.of(
+                invoke(Opcode.INVOKE_STATIC, ref(BLOG_TAGS, "blogScreen", "Z", "I", OBJECT), variant.equals("wrong-answer") ? 1 : 0, 4),
+                new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0)));
+        click.addAll(List.of(new ImmutableInstruction21t(Opcode.IF_EQZ, 0, 21), member(Opcode.IGET_OBJECT, 0, 4, TAG_LISTENER, "b", TAG_BLOG),
+                invoke(Opcode.INVOKE_STATIC, empty, 0), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 1),
+                new ImmutableInstruction21t(Opcode.IF_NEZ, 1, 13),
+                invoke(Opcode.INVOKE_VIRTUAL, ref("Landroid/view/View;", "getContext", CONTEXT), 5), new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 1),
+                literal("fixture-tag", 2), new ImmutableInstruction11n(Opcode.CONST_4, 3, 0),
+                invoke(Opcode.INVOKE_STATIC, ref(TAG_SEARCH, "o4", VOID, CONTEXT, STRING, TAG_BLOG, "Z"), 1, 2, 0, 3), end(), end()));
+        List<Method> listener = new ArrayList<>(List.of(new ImmutableMethod(TAG_LISTENER, "<init>", made.getParameters(), VOID,
+                        AccessFlags.PUBLIC.getValue() | AccessFlags.CONSTRUCTOR.getValue(), Set.of(), Set.of(), made.getImplementation()),
+                method(TAG_LISTENER, "onClick", VOID, false, 6, click, "Landroid/view/View;")));
+        if (hooked && !variant.equals("missing-bridge")) listener.add(method(TAG_LISTENER, "hushTagBlogName", STRING, false, 3, List.of(
+                member(Opcode.IGET_OBJECT, 0, 2, TAG_LISTENER, "b", TAG_BLOG), invoke(Opcode.INVOKE_STATIC, empty, 0),
+                new ImmutableInstruction11x(Opcode.MOVE_RESULT, 1), new ImmutableInstruction21t(Opcode.IF_NEZ, 1, variant.equals("wrong-null-target") ? 8 : 7),
+                invoke(Opcode.INVOKE_VIRTUAL, named, 0), new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0),
+                new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0), new ImmutableInstruction11n(Opcode.CONST_4, 0, 0),
+                new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0))));
+        classes.put(TAG_LISTENER, listener);
+        if (!hooked) return;
+        classes.put(HUSH_TAG_BLOG, List.of(abstractMethod(HUSH_TAG_BLOG, "hushTagBlogName", STRING)));
+        classes.put(BLOG_TAGS, List.of(method(BLOG_TAGS, "blogScreen", "Z", true, 3,
+                List.of(readiness(), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0), new ImmutableInstruction11x(Opcode.RETURN, 0)), "I", OBJECT)));
+    }
+
     private static void footerButtons(Map<String, List<Method>> classes, String family, String variant) {
         String[] controls = {"Like", "Reblog", "Comment", "Share", "Save"};
         List<Method> hooks = new ArrayList<>();
@@ -653,6 +717,67 @@ public final class FeatureDexFixture {
                 new ImmutableInstruction11x(Opcode.RETURN, 0))), method(BAR, "pop", VOID, false, 4, body, textView, animation)));
         if (!variant.equals("clean")) classes.put(hookOwner, List.of(method(hookOwner, "unreadBadge", textView, true, 2,
                 List.of(readiness(), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0), new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 1)), textView)));
+    }
+
+    /**
+     * The four places the Blaze buttons on posts are answered, Hide Blaze prompts' blazeButtons: the
+     * show-Blaze getter of the row under your own posts (found through its printout), the can-Blaze
+     * getter a post menu asks before it reads the Blaze label, the share sheet's can_blaze test and
+     * a community post menu's list of items.
+     */
+    private static void blazeButtons(Map<String, List<Method>> classes, String variant) {
+        String state = "Lfixture/AuthorActionsState;", post = "Lfixture/BlazePost;", menu = "Lfixture/PostMenu;", share = "Lfixture/ShareSheet;",
+                community = "Lfixture/CommunityMenu;", builder = "Ljava/lang/StringBuilder;", hookOwner = BASE + "ui/BlazeButtons;",
+                info = "Lcom/tumblr/rumblr/communities/CommunityPostInfo;";
+        boolean hooked = !variant.equals("clean") && !variant.equals("false-capability");
+        ImmutableFieldReference showBlaze = new ImmutableFieldReference(state, "showBlaze", "Z"), canBlaze = new ImmutableFieldReference(post, "canBlaze", "Z");
+        classes.put(state, List.of(method(state, "toString", STRING, false, 4, List.of(
+                        new ImmutableInstruction21c(Opcode.NEW_INSTANCE, 0, new ImmutableTypeReference(builder)), literal("AuthorActionsState(showDelete=", 2),
+                        invoke(Opcode.INVOKE_DIRECT, ref(builder, "<init>", VOID, STRING), 0, 2),
+                        new ImmutableInstruction22c(Opcode.IGET_BOOLEAN, 1, 3, showBlaze), literal(", showBlaze=", 2),
+                        invoke(Opcode.INVOKE_VIRTUAL, ref(builder, "append", builder, STRING), 0, 2),
+                        invoke(Opcode.INVOKE_VIRTUAL, ref(builder, "append", builder, "Z"), 0, 1),
+                        invoke(Opcode.INVOKE_VIRTUAL, ref(builder, "toString", STRING), 0), new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0),
+                        new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0))),
+                blazeGetter(state, "y", showBlaze, hooked ? ref(hookOwner, "ownPostButton", "Z", "I") : null)));
+        classes.put(post, List.of(blazeGetter(post, "J", canBlaze, hooked ? ref(hookOwner, "postMenuItem", "Z", "I") : null)));
+        classes.put(menu, List.of(method(menu, "build", VOID, true, 3, List.of(invoke(Opcode.INVOKE_VIRTUAL, ref(post, "J", "Z"), 2),
+                new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0), new ImmutableInstruction21t(Opcode.IF_EQZ, 0, 4),
+                new ImmutableInstruction21c(Opcode.SGET, 1, new ImmutableFieldReference("Lcom/tumblr/core/ui/R$string;", "blaze_post_overflow_menu_action_item", "I")),
+                end()), post)));
+        List<Instruction> targets = new ArrayList<>(List.of(literal("can_blaze", 0), new ImmutableInstruction11n(Opcode.CONST_4, 1, 0),
+                invoke(Opcode.INVOKE_VIRTUAL, ref("Landroid/os/Bundle;", "getBoolean", "Z", STRING, "Z"), 2, 0, 1),
+                new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0)));
+        if (hooked && !variant.equals("missing")) targets.addAll(List.of(invoke(Opcode.INVOKE_STATIC, ref(hookOwner, "shareTarget", "Z", "I"), 0),
+                new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0)));
+        targets.addAll(List.of(new ImmutableInstruction21t(Opcode.IF_EQZ, 0, 3), new ImmutableInstruction11n(Opcode.CONST_4, 1, 1), end()));
+        classes.put(share, List.of(method(share, "targets", VOID, true, 3, targets, "Landroid/os/Bundle;")));
+        List<Instruction> rows = new ArrayList<>(List.of(invoke(Opcode.INVOKE_INTERFACE, ref("Lfixture/CommunityMenuModel;", "a", LIST, info), 2, 3),
+                new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0)));
+        if (hooked) rows.addAll(List.of(invoke(Opcode.INVOKE_STATIC, ref(hookOwner, "communityMenu", LIST, LIST), variant.equals("wrong-register") ? 3 : 0),
+                new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0)));
+        rows.addAll(List.of(new ImmutableInstruction11n(Opcode.CONST_4, 1, 0), invoke(Opcode.INVOKE_INTERFACE, ref(LIST, "get", OBJECT, "I"), 0, 1),
+                new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 1),
+                new ImmutableInstruction21c(Opcode.CHECK_CAST, 1, new ImmutableTypeReference("Lcom/tumblr/rumblr/communities/PostOverflowMenuItem;")), end()));
+        classes.put(community, List.of(method(community, "rows", VOID, true, 4, rows, "Lfixture/CommunityMenuModel;", info)));
+        classes.put(PROMOTE_POST, List.of());
+        if (variant.equals("clean")) return;
+        List<Method> hooks = new ArrayList<>();
+        for (String name : List.of("ownPostButton", "postMenuItem", "shareTarget")) hooks.add(method(hookOwner, name, "Z", true, 2,
+                List.of(readiness(), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0), new ImmutableInstruction11x(Opcode.RETURN, 1)), "I"));
+        List<Instruction> list = new ArrayList<>();
+        if (!variant.equals("uncontrolled")) list.addAll(List.of(readiness(), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0)));
+        list.add(new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 1));
+        hooks.add(method(hookOwner, "communityMenu", LIST, true, 2, list, LIST));
+        classes.put(hookOwner, hooks);
+    }
+
+    /** `iget-boolean v0, p0, [flag]; return v0`, with [hook] asked in front of the return when there is one. */
+    private static Method blazeGetter(String owner, String name, ImmutableFieldReference flag, ImmutableMethodReference hook) {
+        List<Instruction> body = new ArrayList<>(List.of(new ImmutableInstruction22c(Opcode.IGET_BOOLEAN, 0, 1, flag)));
+        if (hook != null) body.addAll(List.of(invoke(Opcode.INVOKE_STATIC, hook, 0), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0)));
+        body.add(new ImmutableInstruction11x(Opcode.RETURN, 0));
+        return method(owner, name, "Z", false, 2, body);
     }
 
     private static void timestamps(Map<String, List<Method>> classes, String variant) {
@@ -879,6 +1004,14 @@ public final class FeatureDexFixture {
             smallCase(root, "feature-small-follow-" + variant, classes, "hideFollowButton", variant.equals("good") ? ""
                     : variant.equals("missing") ? "has 0 calls" : "isn't asked first thing");
         }
+        for (String variant : List.of("good", "missing", "wrong-answer", "missing-bridge", "wrong-null-target")) {
+            reset(); enable("tagBlogSearch");
+            Map<String, List<Method>> classes = new LinkedHashMap<>(settings);
+            tagBlogLinks(classes, variant);
+            smallCase(root, "feature-small-tag-blog-" + variant, classes, "tagBlogSearch", variant.equals("good") ? ""
+                    : variant.equals("missing") ? "has 0 calls" : variant.equals("wrong-answer") ? "doesn't take what its rule hands it"
+                    : "doesn't answer the tag listener's blog name with a null fallback");
+        }
         for (String family : List.of("hideLikeButton", "hideReblogButton", "hideCommentButton", "hideShareButton", "hideSaveButton")) {
             boolean community = !family.equals("hideReblogButton") && !family.equals("hideSaveButton");
             for (String variant : community ? List.of("good", "missing", "missing-community", "wrong-community") : List.of("good", "missing")) {
@@ -895,6 +1028,19 @@ public final class FeatureDexFixture {
             unreadDots(classes, variant);
             smallCase(root, "feature-small-unread-" + variant, classes, "hideUnreadDots", variant.equals("good") ? ""
                     : variant.equals("missing") ? "has 0 calls" : "doesn't take what its rule hands it");
+        }
+        // The clean target has all four Blaze answers, so a build that skips them, the capability off, is refused too.
+        for (String variant : List.of("good", "missing", "wrong-register", "uncontrolled", "false-capability")) {
+            reset(); enable("hideBlazePrompts");
+            if (variant.equals("false-capability")) FLAGS.put("blazeButtons", false);
+            Map<String, List<Method>> classes = new LinkedHashMap<>(settings);
+            featureSwitch(classes, true); blazeButtons(classes, variant);
+            smallCase(root, "feature-small-blaze-" + variant, classes, "hideBlazePrompts", switch (variant) {
+                case "good" -> "";
+                case "missing", "false-capability" -> "has 0 calls";
+                case "wrong-register" -> "doesn't take what its rule hands it";
+                default -> "no compiled family control";
+            });
         }
         if (FAMILIES.containsKey("showPostTimestamps")) for (String variant : List.of("good", "missing", "wrong-answer", "changed-setter")) {
             reset(); enable("showPostTimestamps");
@@ -1338,26 +1484,57 @@ public final class FeatureDexFixture {
     private static void postLine(Map<String, List<Method>> classes, String variant) {
         String helper = BASE + "ui/PostLines;", owner = "Lfixture/PostSpacing;", canvas = "Landroid/graphics/Canvas;",
                 paint = "Landroid/graphics/Paint;", list = "Landroidx/recyclerview/widget/RecyclerView;";
+        String view = "Landroid/view/View;", card = "Lfixture/Card;", timelineable = "Lcom/tumblr/rumblr/model/Timelineable;";
         boolean hooked = !variant.equals("clean") && !variant.equals("missing");
         List<Instruction> draw = new ArrayList<>(List.of(invoke(Opcode.INVOKE_DIRECT, ref(owner, "debug", "Z"), 9),
                 new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0)));
         if (hooked) draw.addAll(List.of(new ImmutableInstruction3rc(Opcode.INVOKE_STATIC_RANGE, variant.equals("wrong-register") ? 1 : 0, 1,
                         ref(helper, "paintsGaps", "I", "I")),
                 new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0)));
-        draw.add(new ImmutableInstruction21t(Opcode.IF_EQZ, 0, 5));
+        draw.add(new ImmutableInstruction21t(Opcode.IF_EQZ, 0, hooked ? 17 : 14));
+        draw.addAll(List.of(new ImmutableInstruction11n(Opcode.CONST_4, 2, 0),
+                invoke(Opcode.INVOKE_VIRTUAL, ref("Landroid/view/ViewGroup;", "getChildAt", view, "I"), 11, 2),
+                new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 1)));
+        if (hooked) draw.add(new ImmutableInstruction3rc(Opcode.INVOKE_STATIC_RANGE, variant.equals("wrong-drawn-row") ? 2 : 1, 1,
+                ref(helper, "drawingRow", VOID, view)));
+        draw.addAll(List.of(invoke(Opcode.INVOKE_VIRTUAL, ref(view, "getTop", "I"), 1), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 4)));
         draw.add(hooked && !variant.equals("wrong-paint")
                 ? new ImmutableInstruction3rc(Opcode.INVOKE_STATIC_RANGE, 3, 6, ref(helper, "paintGap", VOID, canvas, "F", "F", "F", "F", paint))
                 : new ImmutableInstruction3rc(Opcode.INVOKE_VIRTUAL_RANGE, 3, 6, ref(canvas, "drawRect", VOID, "F", "F", "F", "F", paint)));
         draw.add(end());
+        // getItemOffsets: the item above the row into v8, the row's own into v10, both to the gap size picker.
+        ImmutableMethodReference item = ref("Lfixture/Adapter;", "G0", card, "I"), payload = ref(card, "l", timelineable);
+        List<Instruction> offsets = new ArrayList<>();
+        if (hooked) offsets.add(new ImmutableInstruction3rc(Opcode.INVOKE_STATIC_RANGE, variant.equals("wrong-measured-row") ? 7 : 8, 1,
+                ref(helper, "offsetsOf", VOID, view)));
+        offsets.addAll(List.of(new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), invoke(Opcode.INVOKE_VIRTUAL, item, 9, 0),
+                new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 8), new ImmutableInstruction11n(Opcode.CONST_4, 0, 1),
+                invoke(Opcode.INVOKE_VIRTUAL, item, 9, 0), new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 10)));
+        if (hooked) offsets.addAll(List.of(new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), new ImmutableInstruction21t(Opcode.IF_EQZ, 8, 6),
+                invoke(Opcode.INVOKE_VIRTUAL, payload, 8), new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0),
+                new ImmutableInstruction11n(Opcode.CONST_4, 2, 0), new ImmutableInstruction21t(Opcode.IF_EQZ, 10, 6),
+                invoke(Opcode.INVOKE_VIRTUAL, payload, 10), new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 2),
+                variant.equals("swapped-neighbors") ? invoke(Opcode.INVOKE_STATIC, ref(helper, "between", VOID, OBJECT, OBJECT), 2, 0)
+                        : invoke(Opcode.INVOKE_STATIC, ref(helper, "between", VOID, OBJECT, OBJECT), 0, 2)));
+        offsets.addAll(List.of(new ImmutableInstruction11n(Opcode.CONST_4, 0, 0),
+                invoke(Opcode.INVOKE_VIRTUAL, ref("Lfixture/Gap;", "b", "I", card, card), 0, 8, 10),
+                new ImmutableInstruction11x(Opcode.MOVE_RESULT, 1), end()));
         classes.put(owner, List.of(
                 method(owner, "debug", "Z", false, 2, List.of(literal("debug_timeline_object_spacing", 0), new ImmutableInstruction11n(Opcode.CONST_4, 0, 0),
                         new ImmutableInstruction11x(Opcode.RETURN, 0))),
-                method(owner, "draw", VOID, false, 13, draw, canvas, list, "Landroidx/recyclerview/widget/RecyclerView$a0;")));
+                method(owner, "draw", VOID, false, 13, draw, canvas, list, "Landroidx/recyclerview/widget/RecyclerView$a0;"),
+                method(owner, "offsets", VOID, false, 11, offsets, "Landroid/graphics/Rect;", view, list,
+                        "Landroidx/recyclerview/widget/RecyclerView$a0;")));
+        classes.put(card, List.of(method(card, "l", timelineable, false, 2, List.of(new ImmutableInstruction11n(Opcode.CONST_4, 0, 0),
+                new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0)))));
         if (!variant.equals("clean")) classes.put(helper, List.of(
                 method(helper, "paintsGaps", "I", true, 2, List.of(readiness(), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0),
                         new ImmutableInstruction11x(Opcode.RETURN, 0)), "I"),
                 method(helper, "paintGap", VOID, true, 7, List.of(readiness(), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0), end()),
-                        canvas, "F", "F", "F", "F", paint)));
+                        canvas, "F", "F", "F", "F", paint),
+                method(helper, "offsetsOf", VOID, true, 2, List.of(readiness(), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0), end()), view),
+                method(helper, "between", VOID, true, 3, List.of(readiness(), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0), end()), OBJECT, OBJECT),
+                method(helper, "drawingRow", VOID, true, 2, List.of(readiness(), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0), end()), view)));
     }
 
     private static void fontChoice(Map<String, List<Method>> classes, String variant) {
@@ -1455,8 +1632,10 @@ public final class FeatureDexFixture {
         activityNotifications(clean, "clean");
         carousel(clean, "clean");
         followButton(clean, "clean");
+        tagBlogLinks(clean, "clean");
         footerButtons(clean, "", "clean");
         unreadDots(clean, "clean");
+        blazeButtons(clean, "clean");
         timestamps(clean, "clean");
         imageDescriptions(clean, "clean");
         write(root, "feature-clean", clean, false);
@@ -1573,7 +1752,7 @@ public final class FeatureDexFixture {
             optionalNudges(classes, "gift", variant);
             write(root, "feature-gift-popup-" + variant, classes, true, "hideGiftMessagePopups");
         }
-        for (String variant : List.of("good", "missing", "wrong-register", "wrong-paint")) {
+        for (String variant : List.of("good", "missing", "wrong-register", "wrong-paint", "wrong-drawn-row", "wrong-measured-row", "swapped-neighbors")) {
             reset(); enable("lineBetweenPosts");
             Map<String, List<Method>> classes = new LinkedHashMap<>(settings);
             postLine(classes, variant);

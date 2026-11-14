@@ -6,12 +6,12 @@ body:
   - type: markdown
     attributes:
       value: |
-        # Morphe Patches feature request
+        # CRDY Patches feature request
 
         Before creating a new feature request, please keep the following in mind:
 
-        - We are currently only accept feature requests for YouTube, YT Music, and Reddit.
-        - **Do not submit a duplicate feature request**: Search for existing feature requests, including closed issues, [here](https://github.com/MorpheApp/morphe-patches/issues?q=is%3Aissue).
+        - We are currently only accepting feature requests for YouTube, YT Music, and Reddit.
+        - **Do not submit a duplicate feature request**: Search for existing feature requests, including closed issues, [here](https://github.com/ritikthakur22/crdy-yt/issues?q=is%3Aissue).
   - type: textarea
     attributes:
       label: Feature description

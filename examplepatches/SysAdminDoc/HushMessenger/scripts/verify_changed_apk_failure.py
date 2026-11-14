@@ -62,7 +62,7 @@ def altered_dex(data: bytes) -> bytes:
 
 def names_every_build(line: str) -> bool:
     """The DEX-site rejection, naming every recorded build as a supported version code."""
-    match = re.search(r"\bexpected 6 permission loads, found 4\b(.*)", line)
+    match = re.search(r"\bexpected 3 permission loads, found 1\b(.*)", line)
     if match is None:
         return False
     named = {

@@ -1,8 +1,8 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-12.
  * Written by lavinhoque33, 2026-11-08.
- * Modified by lavinhoque33, 2026-11-10.
  */
 package app.morphe.extension.music.patches.downloads;
 
@@ -35,10 +35,9 @@ import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.shared.utils.Utils;
 
 /**
- * Plays a downloaded song with no network. The Downloads patch hooks the app's own offline playback path: the gate
- * that drops a watch command while offline, the player request that fails for a song the app did not download, and
- * the watch-next request of the queue. Each hook answers only for an offline request of a copy that has stored data,
- * and only while the setting is on; every other request, and every request while online, is left to the stock code.
+ * Plays a downloaded song with no network through the app's own offline command, player and watch-next paths,
+ * only while the setting is on and a stored response is available. Online requests stay stock except for the
+ * seek snap of a current StreamSwap local source, which needs the same target preservation as offline replay.
  */
 @SuppressWarnings("unused")
 public final class OfflineReplay {
@@ -821,17 +820,19 @@ public final class OfflineReplay {
     private static final long KEEP_TARGET = Long.MAX_VALUE;
 
     /**
-     * Injection point: the seek snap the player computed for a drag on the progress bar, in milliseconds. A song
-     * played from a copy has no span in the stream cache, so with no network the snap is 0 (the seek restarts the
-     * song) or, for a video stream, -1 (the seek is cancelled); there an answer above any target makes the player
-     * seek to the dragged position.
+     * Injection point shared by progress-bar drags and MediaSession seeks. A current StreamSwap local source has
+     * no stream-cache span even while online: audio answers 0 (restart), video -1 (cancel). An answer above any
+     * target preserves the requested position in either pill without disabling online features.
      */
     static long seekSnap(long snappedMillis) {
         try {
             noteAlive(HOOK_SEEK);
-            boolean drop = OfflineReplayLogic.dropsSeekSnap(enabled(), Utils.isInternetReachable(), snappedMillis);
-            logDecision(HOOK_SEEK, "snap=" + snappedMillis + " online=" + Utils.isInternetReachable()
-                    + (drop ? " dropped, seeking to the dragged position" : " kept"));
+            boolean online = Utils.isInternetReachable();
+            String videoId = VideoInformation.getVideoId();
+            boolean localPlayback = StreamSwap.playsLocal(videoId);
+            boolean drop = OfflineReplayLogic.dropsSeekSnap(enabled(), online, localPlayback, snappedMillis);
+            logDecision(HOOK_SEEK, "snap=" + snappedMillis + " online=" + online + " v=" + videoId
+                    + " local=" + localPlayback + (drop ? " dropped, seeking to the requested position" : " kept"));
             return drop ? KEEP_TARGET : snappedMillis;
         } catch (Exception ex) {
             Logger.printException(() -> "OfflineReplay: seek snap", ex);

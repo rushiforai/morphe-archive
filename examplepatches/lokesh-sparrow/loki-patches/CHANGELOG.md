@@ -1,3 +1,10 @@
+## 2.1.2 (2026-11-13)
+
+### Fixes
+- GmsCore support: LinkedIn push notifications work again. Google refused the patched app's push registration, so no notification ever arrived; it now registers with MicroG-RE like the original app.
+
+**23 patches in total.** Full list in the [README](https://github.com/lokesh-sparrow/loki-patches#patches).
+
 ## 2.1.1 (2026-11-10)
 
 ### Fixes

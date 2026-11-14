@@ -50,6 +50,20 @@ APKMirror can be days behind Google Play, and it sometimes has only the Android 
 
 Morphe Manager treats an installed app as unpatched unless Morphe Manager installed it. If the installed copy was patched some other way, Morphe Manager patches it a second time, and some patches fail. Uninstall the app, install it again from Google Play, and patch the new copy.
 
+## How is this different from an app that streams content from other sources?
+
+These patches work on the official apps you already install, and you still need your own subscription. They remove ads, skip promos, and improve the experience on content you already pay for. They do not unlock paid content, and they are not a source for movies or shows.
+
+An app like that streams the content itself. It pulls movies and shows from third-party sources rather than from the official app and your account, which is a separate choice with its own trade-offs and is outside what this project does. Patching the app you already use is also simpler for many people. You keep the app you know and trust, and you do not have to learn a new tool or rely on third-party sources. This project is for people who keep their subscriptions and want the official apps to behave better.
+
+## Why does adding this source load patches for apps I did not choose?
+
+A source and a bundle are the same thing. This source is one bundle that holds every patch in the project, so adding it from an app's page still adds the whole bundle. You do not have to be in a bundle section to add one. The app page is a doorway into that single bundle, filtered to the app you opened, which is why the same source appears under every app it covers.
+
+Your app's patches are in the list. They sit alongside the patches for every other app the project supports, and the others do nothing on an app they were not written for. When you patch an app, Morphe Manager applies only the patches that match it and leaves the rest inactive. A patch is tied to its own app. "Auto-skip" is written for Apple TV, so it runs only on Apple TV, and patching a different app never triggers it.
+
+To see which patches apply to a given app, open that app's row in [Supported apps](apps.md).
+
 ## What do the labels on an issue mean?
 
 Labels show what an issue is about and how far it has come.

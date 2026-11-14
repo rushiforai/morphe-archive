@@ -480,34 +480,36 @@ public final class ExtraQuickFilters {
         Method get=m.getClass().getMethod("e",m.getClass());
         return get.invoke(null,m);
     }
-    private static void collect(Object a,List<?> source) throws Exception {
+    private static Map<Integer,Integer> collect(Object a,List<?> source) throws Exception {
         State s=state(a);
         // A reset changes selection only, not the full response list or its counts.
         // No extra predicate is active now; retain the counts until the next normal
         // update/dialog opening instead of reparsing every post during native callbacks.
-        if(resetting()&&s.extra==0)return;
+        if(resetting()&&s.extra==0)return null;
+        boolean showCounts=QuickFilterOptions.counts();
+        boolean needAa=showCounts||(s.extra&1)!=0;
+        boolean needReplies=showCounts||(s.extra&4)!=0;
+        boolean needMine=needReplies||(s.extra&2)!=0;
         int[] counts=new int[7];Set<Integer> aa=new HashSet<>(),mine=new HashSet<>(),replies=new HashSet<>();
-        if(source.isEmpty()){s.counts=counts;s.mediaCountsReady=true;s.aa=aa;s.mine=mine;s.replies=replies;s.failure=null;s.popularSnapshot=null;return;}
-        Object idx=index(a);
+        if(source.isEmpty()){s.counts=counts;s.mediaCountsReady=true;s.aa=aa;s.mine=mine;s.replies=replies;s.failure=null;s.popularSnapshot=null;return Collections.emptyMap();}
+        Object idx=needMine?index(a):null;
         String indexMethod=legacy(a)?"d":middle(a)?"a":"b";
-        for(Object r:source)if(response(r)) {
+        if(needAa||needMine)for(Object r:source)if(response(r)) {
             int no=number(r);
             // ChMate marks an own post with bit 0; bit 3 is not the own-post flag.
-            if(( ((Number)call(idx,indexMethod,new Class<?>[]{int.class},no)).intValue()&1)!=0)mine.add(no);
-            if(Boolean.TRUE.equals(call(r,legacy(a)?"e":middle(a)?"i":"g",new Class<?>[0])))aa.add(no);
+            if(needMine&&( ((Number)call(idx,indexMethod,new Class<?>[]{int.class},no)).intValue()&1)!=0)mine.add(no);
+            if(needAa&&Boolean.TRUE.equals(call(r,legacy(a)?"e":middle(a)?"i":"g",new Class<?>[0])))aa.add(no);
         }
-        for(Object r:source)if(response(r)) {
+        if(needReplies)for(Object r:source)if(response(r)) {
             int no=number(r);
             for(int anchor:anchors(r))if(anchor<no&&mine.contains(anchor)){replies.add(no);break;}
         }
         Context c=context(a);
-        boolean showCounts=QuickFilterOptions.counts(),directPopularity=PopularReplies.directFor(c);
+        boolean directPopularity=PopularReplies.directFor(c);
         int threshold=showCounts?popularThreshold(a,c,source):0;
-        Map<Integer,Integer> direct=Collections.emptyMap();
+        Map<Integer,Integer> direct=null;
         if(showCounts&&directPopularity) {
-            Map<Integer,String> posts=new LinkedHashMap<>();
-            for(Object r:source)if(response(r))posts.put(number(r),android.text.Html.fromHtml((String)field(r,legacy(a)?"c":middle(a)?"d":"h")).toString());
-            direct=PopularReplyRules.count(posts);
+            direct=directReplyCounts(a,source);
         }
         // Counts are per response, even when a response contains several links or anchors.
         // Extra AA/own/reply filters need the sets above, not media totals.
@@ -542,6 +544,12 @@ public final class ExtraQuickFilters {
         s.aa=aa;s.mine=mine;s.replies=replies;s.counts=counts;s.failure=null;
         s.mediaCountsReady=showCounts;
         s.popularSnapshot=PopularNativeRows.find(source);
+        return direct;
+    }
+    private static Map<Integer,Integer> directReplyCounts(Object a,List<?> source)throws Exception {
+        Map<Integer,String> posts=new LinkedHashMap<>();
+        for(Object r:source)if(response(r))posts.put(number(r),android.text.Html.fromHtml((String)field(r,legacy(a)?"c":middle(a)?"d":"h")).toString());
+        return PopularReplyRules.count(posts);
     }
     /** Native 191 URL extraction can omit direct videos when automatic fetch is off. */
     public static String[] videoFilterUrls(Object response,String[] original) {
@@ -579,20 +587,24 @@ public final class ExtraQuickFilters {
             State s=state(a);
             if(snapshot==s.appliedSnapshot)snapshot=s.rawSnapshot;
             s.rawSnapshot=snapshot;
-            if(!QuickFilterOptions.counts()&&!QuickFilterOptions.extras()
+            if(!QuickFilterOptions.counts()&&s.extra==0
                     &&(PopularReplies.enabledFor(context(a))||!PopularReplies.directFor(context(a))||!selected(a)[0])) {
                 s.appliedSnapshot=snapshot;
                 return snapshot;
             }
-            collect(a,PopularReplies.fullList(field(snapshot,"j")));
+            List<?> full=PopularReplies.fullList(field(snapshot,"j"));
+            Map<Integer,Integer> direct=collect(a,full);
             List<?> rows=(List<?>)field(snapshot,"b");
-            List<?> filtered=filterCollected(a,rows);
+            List<?> filtered=filterCollected(a,rows,full,direct);
             if(filtered==rows){s.appliedSnapshot=snapshot;return snapshot;}
             Method copy=snapshot.getClass().getMethod("d",snapshot.getClass(),List.class);
             Object result=copy.invoke(null,snapshot,filtered);s.appliedSnapshot=result;return result;
         }catch(Exception e){state(a).failure=e;Log.e("Haiagaru","Modern extra filters",e);return snapshot;}
     }
     private static List<?> filterCollected(Object a,List<?> rows) throws Exception {
+        return filterCollected(a,rows,null,null);
+    }
+    private static List<?> filterCollected(Object a,List<?> rows,List<?> countedSource,Map<Integer,Integer> direct) throws Exception {
             // Standard mode must retain the native renderer's current result. Replacing
             // it with cached templates can resurrect an earlier empty/partial layout.
             if(!PopularReplies.enabledFor(context(a))&&PopularReplies.directFor(context(a))&&selected(a)[0]) {
@@ -600,13 +612,11 @@ public final class ExtraQuickFilters {
                 PopularNativeRows.Snapshot raw=PopularNativeRows.find(source);
                 if(raw==null)throw new IllegalStateException("Direct popularity layout unavailable");
                 int threshold=popularThreshold(a,context(a),source);
-                Set<Integer> matches;
-                if(PopularReplies.directFor(context(a))){
-                    Map<Integer,String> posts=new LinkedHashMap<>();
-                    for(Object r:source)if(response(r))posts.put(number(r),android.text.Html.fromHtml((String)field(r,legacy(a)?"c":middle(a)?"d":"h")).toString());
-                    Map<Integer,Integer> counts=PopularReplyRules.count(posts);matches=new HashSet<>();
-                    for(Map.Entry<Integer,Integer> entry:counts.entrySet())if(entry.getValue()>=threshold)matches.add(entry.getKey());
-                }else matches=raw.selected(threshold);
+                // Reuse only the count made during this same rebuild. Keeping it
+                // in adapter state could miss appended or edited response bodies.
+                Map<Integer,Integer> counts=direct!=null&&countedSource==source?direct:directReplyCounts(a,source);
+                Set<Integer> matches=new HashSet<>();
+                for(Map.Entry<Integer,Integer> entry:counts.entrySet())if(entry.getValue()>=threshold)matches.add(entry.getKey());
                 ArrayList<Object> directRows=new ArrayList<>();
                 Set<Integer> allowed=new HashSet<>();boolean[] selection=selected(a);
                 // Other native filters remain an intersection with the native output.
@@ -640,14 +650,17 @@ public final class ExtraQuickFilters {
         return result;
     }
     public static ArrayList<?> filterRows(Object a,List<?> rows) {
-        if(!QuickFilterOptions.counts()&&!QuickFilterOptions.extras())try{
+        // Showing extra buttons does not mean their predicates are selected.
+        // Leave native popularity/media output alone until counts or an extra
+        // predicate actually needs the full-thread scan.
+        if(!QuickFilterOptions.counts()&&state(a).extra==0)try{
             if(PopularReplies.enabledFor(context(a))||!PopularReplies.directFor(context(a))||!selected(a)[0])
                 return rows instanceof ArrayList?(ArrayList<?>)rows:new ArrayList<>(rows);
         }catch(Exception e){Log.w("Haiagaru","Popular filter selection unavailable",e);}
         try {
             Object source=field(a,legacy(a)?"K":middle(a)?"J":"o");
-            List<?> full=PopularReplies.fullList(source);collect(a,full);
-            List<?> kept=filterCollected(a,rows);return kept instanceof ArrayList?(ArrayList<?>)kept:new ArrayList<>(kept);
+            List<?> full=PopularReplies.fullList(source);Map<Integer,Integer> direct=collect(a,full);
+            List<?> kept=filterCollected(a,rows,full,direct);return kept instanceof ArrayList?(ArrayList<?>)kept:new ArrayList<>(kept);
         }catch(Exception e){state(a).failure=e;Log.e("Haiagaru","Extra quick filters unavailable",e);return rows instanceof ArrayList?(ArrayList<?>)rows:new ArrayList<>(rows);}
     }
     public static void legacyRows(Object a) {
@@ -750,6 +763,29 @@ public final class ExtraQuickFilters {
             });
             return true;
         }catch(Exception e){Log.w("Haiagaru","Extended filter dialog",e);return false;}
+    }
+    /** Dispatch the ChMate body gesture to the one visible thread fragment in this pane. */
+    static boolean openFromGesture(View source) {
+        Activity activity = activity(source == null ? null : source.getContext());
+        if (activity == null) return true;
+        try {
+            Object fragment = visibleFragment(activity);
+            if (fragment == null || !open(fragment)) {
+                Toast.makeText(activity, "スレ画面でフィルターを開けませんでした", Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception error) {
+            Log.w("Haiagaru", "Gesture filter dispatch failed", error);
+            Toast.makeText(activity, "スレ画面でフィルターを開けませんでした", Toast.LENGTH_SHORT).show();
+        }
+        return true;
+    }
+    private static Activity activity(Context context) {
+        while (context instanceof android.content.ContextWrapper && !(context instanceof Activity)) {
+            Context next = ((android.content.ContextWrapper) context).getBaseContext();
+            if (next == context) break;
+            context = next;
+        }
+        return context instanceof Activity ? (Activity) context : null;
     }
     private static boolean imageList(Object a) {return QuickFilterToolbar.openImageList(a);}
     /** Read the visible thread only, at media launch time; no scrolling-time scans or URL cache. */

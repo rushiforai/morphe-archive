@@ -44,6 +44,8 @@ public final class AboutPreference extends Preference {
     }
 
     private void updateAppInfo() {
+        if (getKey() == null) return;
+
         switch (getKey()) {
             case "revanced_about_patches" -> {
                 String customName = SettingsNamePatch.getCustomSettingsName();

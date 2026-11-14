@@ -22,7 +22,8 @@ public final class ReleaseFeatureOptionsTest {
                 seen.add(option);
             }
         }
-        check(seen.size() == ReleaseFeatureOptions.Option.values().length, "no existing control lost");
+        long expected=Arrays.stream(ReleaseFeatureOptions.Option.values()).filter(o->releases.stream().anyMatch(r->ReleaseFeatureOptions.stableVersion(r.version).equals(o.version))).count();
+        check(seen.size() == expected, "no control for the displayed releases lost; future controls excluded");
     }
     public static void main(String[] args) throws Exception {
         var latest = release("1.27.2"); var org = release("1.26.0"); var older = release("1.25.0");
@@ -45,7 +46,11 @@ public final class ReleaseFeatureOptionsTest {
         var optimization=release("1.27.4");
         check(ReleaseFeatureOptions.forRelease(optimization,List.of(optimization)).equals(List.of(ReleaseFeatureOptions.Option.THREAD_THUMBNAILS)),"optimization release retains its thumbnail toggle");
         var correction=release("1.27.5");
-        check(ReleaseFeatureOptions.forRelease(correction,List.of(correction)).size()==ReleaseFeatureOptions.Option.values().length,"corrected screen exposes all affected controls");
+        var corrected=ReleaseFeatureOptions.forRelease(correction,List.of(correction));
+        check(corrected.size()==ReleaseFeatureOptions.Option.values().length-3,"corrected screen retains its original controls");
+        check(!corrected.contains(ReleaseFeatureOptions.Option.LOCAL_IMAGES),"new feature is not attributed to the older 1.27.5 release");
+        var upcoming=release("1.28.0");
+        check(ReleaseFeatureOptions.forRelease(upcoming,List.of(upcoming)).equals(List.of(ReleaseFeatureOptions.Option.LOCAL_IMAGES,ReleaseFeatureOptions.Option.WACCHOI_COPY_UPPER,ReleaseFeatureOptions.Option.WACCHOI_COPY_LOWER)),"new features belong to their own release");
         var brief=new ReleaseHistoryText.Release("1.27.4","2026-11-13","- 最適化");
         check(ReleaseHistoryText.displayNotes(brief).contains("1レス目"),"in-app explanation remains detailed");
         check(brief.notes.equals("- 最適化"),"public notes remain brief");

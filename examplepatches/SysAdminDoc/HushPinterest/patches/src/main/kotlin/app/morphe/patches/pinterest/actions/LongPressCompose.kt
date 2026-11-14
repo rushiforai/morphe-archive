@@ -11,6 +11,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLa
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.patches.pinterest.misc.extension.parameterRegisterNumber
 import app.morphe.patches.pinterest.misc.extension.requireFreeAt
 import app.morphe.patches.pinterest.misc.extension.requireParameterIntact
 import app.morphe.patches.pinterest.misc.extension.writeStub
@@ -39,7 +40,7 @@ private const val COMPOSE_VIEW = "Landroidx/compose/ui/platform/ComposeView;"
 
 internal class LongPressCompose(
     val face: ClassDef, val kinds: ClassDef, val dispatcher: Method,
-    val listAt: Int, val items: Int, val event: Int,
+    val listAt: Int, val items: Int, val event: Int, val pair: Int?,
     val effect: Method, val clickAt: Int, val option: Int, val holder: Int, val pinRead: FieldReference, val scratch: Int, val done: Int,
 )
 
@@ -94,9 +95,12 @@ internal fun BytecodePatchContext.longPressCompose(menu: LongPressMenu): LongPre
     if (icons.none { it.definingClass == menu.icon } || icons.none { it.definingClass == menu.strings && it.name == MENU_LABEL }) {
         throw PatchException("Long-press download: newer menu icons and strings disagree with the native menu")
     }
+    // The pin long-press event's dispatcher: up to 14.43.0 the event bus handler itself, from 14.44.0 a
+    // helper it hands the activity, the event and the fragment to.
+    fun Method.eventParameter() = parameterTypes.indexOfFirst { classDefByOrNull(it.toString())?.superclass == menu.event }
     val dispatcher = methodsWithString(LONG_PRESS_V2_FLAG).filter { method ->
-        !AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "V" && method.parameterTypes.size == 1 &&
-            classDefByOrNull(method.parameterTypes.single().toString())?.superclass == menu.event &&
+        !AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "V" &&
+            method.parameterTypes.count { classDefByOrNull(it.toString())?.superclass == menu.event } == 1 &&
             // The event's pin is read through its getter, or (14.43.0 on) straight from the field.
             method.body().any { instruction -> when (val ref = instruction.ref()) {
                 is MethodReference -> ref.definingClass == menu.event && ref.returnType == menu.model.type && ref.parameterTypes.isEmpty()
@@ -109,11 +113,14 @@ internal fun BytecodePatchContext.longPressCompose(menu: LongPressMenu): LongPre
             method.body().any { it.ref().toString().startsWith(COMPOSE_VIEW) }
     }.one("the newer pin menu dispatcher")
     val body = dispatcher.body()
-    val alias = body.first() as? TwoRegisterInstruction
-    if (body.first().opcode != Opcode.MOVE_OBJECT_FROM16 || alias?.registerB != dispatcher.implementation!!.registerCount - 1) {
-        throw PatchException("Long-press download: the newer dispatcher no longer keeps its event at entry")
-    }
-    dispatcher.requireParameterIntact("Long-press download", 0, listOf(0))
+    val eventIndex = dispatcher.eventParameter()
+    val eventRegister = dispatcher.parameterRegisterNumber(eventIndex)
+    // The dispatcher copies its parameters into low registers before anything else runs.
+    val aliasAt = body.indices.takeWhile { body[it].opcode == Opcode.MOVE_OBJECT_FROM16 }
+        .filter { (body[it] as TwoRegisterInstruction).registerB == eventRegister }
+        .singleOrNull() ?: throw PatchException("Long-press download: the newer dispatcher no longer keeps its event at entry")
+    val alias = body[aliasAt] as TwoRegisterInstruction
+    dispatcher.requireParameterIntact("Long-press download", eventIndex, listOf(aliasAt))
     val builders = body.mapNotNull { it.ref() as? MethodReference }.distinctBy { it.toString() }.filter { call ->
         call.returnType == ARRAY_LIST && call.parameterTypes.size == 1 && classDefByOrNull(call.definingClass)?.methods?.any { method ->
             method.name == call.name && method.parameterTypes == call.parameterTypes && method.returnType == call.returnType &&
@@ -129,10 +136,13 @@ internal fun BytecodePatchContext.longPressCompose(menu: LongPressMenu): LongPre
         throw PatchException("Long-press download: the newer menu's option list isn't kept")
     }
     val items = (body[listAt - 1] as OneRegisterInstruction).registerA
-    if (items !in 0..15 || alias.registerA !in 0..15 || items == alias.registerA) {
-        throw PatchException("Long-press download: newer menu inputs do not fit a direct call")
+    if (items == alias.registerA) throw PatchException("Long-press download: the newer menu's list overwrites its event")
+    dispatcher.requireHeld(aliasAt, listAt)
+    // 14.44.0 keeps the list past v15, out of a direct call's reach, so the call takes a range: the
+    // list and a copy of the event in the free register right after it.
+    val pair = if (items in 0..15 && alias.registerA in 0..15) null else (items + 1).also { next ->
+        dispatcher.requireFreeAt("Long-press download", listAt, listOf(next))
     }
-    dispatcher.requireHeld(0, listAt)
     if ((mutable(dispatcher).implementation!!.instructions[listAt] as BuilderInstruction).location.labels.isNotEmpty()) {
         throw PatchException("Long-press download: newer menu insertion is also a branch target")
     }
@@ -169,7 +179,7 @@ internal fun BytecodePatchContext.longPressCompose(menu: LongPressMenu): LongPre
     if ((mutable(effect).implementation!!.instructions[clickAt] as BuilderInstruction).location.labels.isNotEmpty()) {
         throw PatchException("Long-press download: pin action insertion is also a branch target")
     }
-    return LongPressCompose(face, kinds, dispatcher, listAt, items, alias.registerA, effect, clickAt, option, holder, pinRead, scratch, done)
+    return LongPressCompose(face, kinds, dispatcher, listAt, items, alias.registerA, pair, effect, clickAt, option, holder, pinRead, scratch, done)
 }
 
 internal fun BytecodePatchContext.applyLongPressCompose(menu: LongPressMenu, found: LongPressCompose) {
@@ -208,8 +218,12 @@ internal fun BytecodePatchContext.applyLongPressCompose(menu: LongPressMenu, fou
         const/4 v0, 0x3
         return v0
     """)
-    mutable(found.dispatcher).addInstructions(found.listAt, """
+    mutable(found.dispatcher).addInstructions(found.listAt, if (found.pair == null) """
         invoke-static { v${found.items}, v${found.event} }, $COMPOSE_ITEMS_HOOK
+        move-result-object v${found.items}
+    """ else """
+        move-object/from16 v${found.pair}, v${found.event}
+        invoke-static/range { v${found.items} .. v${found.pair} }, $COMPOSE_ITEMS_HOOK
         move-result-object v${found.items}
     """)
     val effect = mutable(found.effect)

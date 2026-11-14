@@ -1,6 +1,7 @@
 package semicoloncolonel.mobilestream.patches.justwatch.ads
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import semicoloncolonel.mobilestream.patches.justwatch.shared.Constants
 import semicoloncolonel.mobilestream.patches.shared.misc.returnEarly
@@ -71,11 +72,24 @@ internal object AdScheduleFingerprint : Fingerprint(
     returnType = "Ljava/util/List;",
 )
 
+// Bitmovin's own Player.scheduleAd(AdItem), its IMA ad scheduler. The 26.45.1
+// phone build schedules the free-streaming pre-rolls through here at runtime,
+// and its React Native wrapper moved to Expo modules, so RnScheduleAdFingerprint
+// no longer matches. This hook is on the SDK method itself, found by the log it
+// prints when the IMA SDK is absent, so it does not depend on the wrapper.
+internal object BitmovinScheduleAdFingerprint : Fingerprint(
+    name = "scheduleAd",
+    parameters = listOf("Lcom/bitmovin/player/api/advertising/AdItem;"),
+    returnType = "V",
+    strings = listOf("Scheduling an ad is not supported as the interactive media ads SDK dependency is not available."),
+)
+
 @Suppress("unused")
 val blockAdsPatch = bytecodePatch(
     name = "Block ads",
     description = "Removes the banner, native, full-screen, and video ads.",
 ) {
+    category("Ads")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {
@@ -114,13 +128,24 @@ val blockAdsPatch = bytecodePatch(
             """.trimIndent(),
         )
 
-        // Runtime pre-roll scheduling (Android TV build).
-        RnScheduleAdFingerprint.methodOrNull?.returnEarly(
-            """
-                const/4 v0, 0x0
-                invoke-interface { p3, v0 }, $PROMISE->resolve(Ljava/lang/Object;)V
-                return-void
-            """.trimIndent(),
-        )
+        // Runtime pre-roll scheduling. The React Native wrapper (Android TV
+        // build and the older phone build) resolves its promise so autoplay
+        // starts; the Expo phone build (26.45.1) is caught at the SDK method.
+        // At least one must match, so a renamed path fails instead of leaving ads.
+        val rnScheduled = RnScheduleAdFingerprint.methodOrNull?.also {
+            it.returnEarly(
+                """
+                    const/4 v0, 0x0
+                    invoke-interface { p3, v0 }, $PROMISE->resolve(Ljava/lang/Object;)V
+                    return-void
+                """.trimIndent(),
+            )
+        }
+        val sdkScheduled = BitmovinScheduleAdFingerprint.methodOrNull?.also {
+            it.returnEarly("return-void")
+        }
+        if (rnScheduled == null && sdkScheduled == null) {
+            throw PatchException("JustWatch runtime ad scheduler not found (PlayerModule.scheduleAd or Player.scheduleAd)")
+        }
     }
 }

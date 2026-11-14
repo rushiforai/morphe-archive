@@ -2194,7 +2194,6 @@ Gemini API Key를 발급받으려면 여기를 탭하세요"</string>
     <string name="revanced_preference_screen_misc_title">기타</string>
     <string name="revanced_preference_screen_navigation_bar_summary">하단바에서 구성요소를 숨기거나 표시할 수 있습니다</string>
     <string name="revanced_preference_screen_navigation_bar_title">하단바</string>
-    <string name="revanced_preference_screen_patch_information_summary">적용된 패치에 대한 정보입니다</string>
     <string name="revanced_preference_screen_player_buttons_summary">플레이어에서 버튼을 숨기거나 표시할 수 있습니다</string>
     <string name="revanced_preference_screen_player_buttons_title">플레이어 버튼</string>
     <string name="revanced_preference_screen_player_flyout_menu_summary">플레이어에서 메뉴 구성요소를 숨기거나 변경할 수 있습니다</string>

@@ -22,6 +22,7 @@ import com.tumblr.rumblr.model.post.DisplayType;
 import com.tumblr.rumblr.model.post.blocks.ImageBlock;
 import com.tumblr.rumblr.model.post.blocks.TextBlock;
 import com.tumblr.rumblr.model.post.blocks.VideoBlock;
+import com.tumblr.rumblr.response.CommunityHubResponseJsonAdapter;
 import com.tumblr.rumblr.response.SearchResultsResponseJsonAdapter;
 import com.tumblr.rumblr.response.WrappedTimelineResponseJsonAdapter;
 import com.tumblr.rumblr.response.timeline.LikesResponseJsonAdapter;
@@ -32,7 +33,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import app.hushtumblr.extension.tumblr.rootmute.HushAccountIdentity;
 import app.hushtumblr.extension.tumblr.rootmute.HushDashboardTimeline;
+import app.hushtumblr.extension.tumblr.rootmute.MatureAccountsForTests;
 import app.hushtumblr.extension.tumblr.rootmute.RootPostMutes;
 
 /** Timeline objects built from the stand-ins in {@code com.tumblr.rumblr.model}. */
@@ -137,6 +140,11 @@ public final class TimelineItems {
         return WrappedTimelineResponseJsonAdapter.fromJson(() -> TimelineFilter.filter(page));
     }
 
+    /** What the filter makes of [page] while Tumblr parses a page of a tag's posts. */
+    public static List<?> onATagPage(List<?> page) {
+        return CommunityHubResponseJsonAdapter.fromJson(() -> TimelineFilter.filter(page));
+    }
+
     /** What the filter makes of [page] while Tumblr parses a page of a blog's posts. */
     public static List<?> onABlog(List<?> page) {
         return PostsResponseJsonAdapter.fromJson(() -> TimelineFilter.filter(page));
@@ -203,6 +211,51 @@ public final class TimelineItems {
         return new TimelineObject(new Post(Arrays.asList(blocks), null, null, null, null) {
             @Override public boolean hushLiked() { return true; }
         }, false);
+    }
+
+    /**
+     * A reblog as {@link #reblogOf} makes, reblogged straight from the blog [from] of a post first
+     * made by the blog [root], either left out when null. [editable] makes it a reblog of yours.
+     */
+    public static TimelineObject reblogFromBlogs(String from, String root, boolean editable) {
+        List<HushTrail> trail = Collections.singletonList(() -> Collections.singletonList(new TextBlock("first")));
+        return new TimelineObject(new Post(Collections.singletonList(new TextBlock("added")), trail, null, null, "100") {
+            @Override public String hushRebloggedFromName() { return from; }
+            @Override public String hushRebloggedRootName() { return root; }
+            @Override public boolean hushCanEdit() { return editable; }
+        }, false);
+    }
+
+    /**
+     * A signed-in account as Tumblr's UserInfo is once the reblog source bridges are in: an
+     * identity and the blogs it owns, named [blogs].
+     */
+    public static Object accountWithBlogs(String... blogs) {
+        List<HushAccountBlog> owned = new ArrayList<>();
+        for (String blog : blogs) owned.add(() -> blog);
+        return new AccountWithBlogs(owned);
+    }
+
+    private static final class AccountWithBlogs implements HushAccountIdentity, HushAccountBlogs {
+        private final List<?> blogs;
+
+        AccountWithBlogs(List<?> blogs) {
+            this.blogs = blogs;
+        }
+
+        @Override public String hushAccountId() { return "reblog-source-account"; }
+        @Override public List<?> hushAccountBlogs() { return blogs; }
+    }
+
+    /** PausedHooksTest's probe for Hide reblogs of your posts, signed in as a blog called "me". */
+    public static boolean aPageLosesAReblogOfYourPost() {
+        MatureAccountsForTests.reset();
+        try {
+            MatureAccountsForTests.commit(accountWithBlogs("me"));
+            return aDashboardScreenLoses(reblogFromBlogs("me", "me", false));
+        } finally {
+            MatureAccountsForTests.restore();
+        }
     }
 
     /** A post made of [blocks], whose id is [id]. */
@@ -349,7 +402,7 @@ public final class TimelineItems {
     }
 
     /** A post Tumblr's model would carry, as the post bridge patches make it. */
-    static class Post extends Item implements HushPost, HushPaidPost, HushFilteredPost, HushLikedPost {
+    static class Post extends Item implements HushPost, HushPaidPost, HushFilteredPost, HushLikedPost, HushReblogSource {
         private final List<?> content;
         private final List<?> trail;
         private final List<?> tags;
@@ -376,6 +429,8 @@ public final class TimelineItems {
         @Override public boolean hushPaidContextKnown() { return true; }
         @Override public Object hushFiltered() { return null; }
         @Override public boolean hushLiked() { return false; }
+        @Override public String hushRebloggedFromName() { return null; }
+        @Override public String hushRebloggedRootName() { return null; }
     }
 
     private static final class Carousel extends Item {

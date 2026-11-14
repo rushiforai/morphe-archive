@@ -41,13 +41,13 @@ internal object AppCompatibilities {
     const val PINTEREST_SIGNER_SHA256 = "341d6881b1ecf38361fbf8c8fbae0aa516b45375c39ef5e78b161869acc1bcfa"
 
     /** The newest Pinterest build every patch here was applied to and read against. */
-    const val PINTEREST_TARGET_VERSION = "14.43.0"
+    const val PINTEREST_TARGET_VERSION = "14.44.0"
 
     /**
      * The version code of the [PINTEREST_TARGET_VERSION] build the fixtures were read from:
      * APKMirror's universal APK for Android 10 and newer (arm64-v8a, armeabi-v7a, x86 and x86_64).
      */
-    const val PINTEREST_TARGET_VERSION_CODE = 14438020
+    const val PINTEREST_TARGET_VERSION_CODE = 14448030
 
     /**
      * That APK's own floor, Android 10. Manager offers the patches only where the build itself

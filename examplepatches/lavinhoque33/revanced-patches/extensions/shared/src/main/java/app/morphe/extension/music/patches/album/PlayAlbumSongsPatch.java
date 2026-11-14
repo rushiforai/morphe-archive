@@ -3,6 +3,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/2556
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ * Modified by lavinhoque33, 2026-11-12.
  *
  * Modified by lavinhoque33, 2026-10-24: ported to the RVX fork (shared extension module,
  * fork Logger/Utils packages, fork stream request class).
@@ -18,6 +19,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import app.morphe.extension.music.patches.misc.AutoSongVersionPatch;
 import app.morphe.extension.music.settings.Settings;
 import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.shared.utils.Utils;
@@ -48,12 +50,12 @@ public class PlayAlbumSongsPatch {
     }
 
     // YouTube Music album playlist ids share a stable "OLAK" prefix.
-    private static final String YOUTUBE_MUSIC_ALBUM_PREFIX = "OLAK";
+    public static final String YOUTUBE_MUSIC_ALBUM_PREFIX = "OLAK";
 
     /**
      * Key of the built-in 'Don't play music videos' setting.
      */
-    private static final String DONT_PLAY_VIDEO_SETTING_KEY = "pref_key_dont_play_video";
+    public static final String DONT_PLAY_VIDEO_SETTING_KEY = "pref_key_dont_play_video";
 
     private static final int NUMBER_OF_LAST_VIDEO_IDS_TO_TRACK = 10;
 
@@ -61,7 +63,7 @@ public class PlayAlbumSongsPatch {
      * The streams cannot be fetched until the album is known, so playback of the first track of an
      * album waits for it. Giving up leaves the music video playing.
      */
-    private static final long MAX_MILLISECONDS_TO_WAIT_FOR_ALBUM = 5000;
+    public static final long MAX_MILLISECONDS_TO_WAIT_FOR_ALBUM = 5000;
 
     /**
      * Album track the song streams of each music video came from.
@@ -93,7 +95,8 @@ public class PlayAlbumSongsPatch {
     }
 
     private static boolean isEnabled() {
-        return Settings.PLAY_ALBUMS_SONGS.get();
+        // Real song queue entries take priority over serving song streams under a music video's id.
+        return Settings.PLAY_ALBUMS_SONGS.get() && !AutoSongVersionPatch.isEnabled();
     }
 
     /**

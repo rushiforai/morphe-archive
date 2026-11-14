@@ -20921,3 +20921,5 @@ f Lorg/telegram/messenger/MessagePreviewParams; webpageTop Z Lorg/telegram/messe
 # added by hand: Play pieces the web names don't carry, matched by shape (getPushProvider) and by who posts and observes the event (hashtagSearchUpdated)
 m Lorg/telegram/messenger/ApplicationLoader; getPushProvider ()Lorg/telegram/messenger/PushListenerController$IPushListenerServiceProvider; Lorg/telegram/messenger/u0; i ()Lorg/telegram/messenger/PushListenerController$IPushListenerServiceProvider;
 f Lorg/telegram/messenger/NotificationCenter; hashtagSearchUpdated I Lorg/telegram/messenger/zs; K3 I
+# added by hand: skip between voice messages, where 13.2 makes seekToProgress void
+m Lorg/telegram/messenger/MediaController; seekToProgress (Lorg/telegram/messenger/MessageObject;F)Z Lorg/telegram/messenger/MediaController; i0 (Lorg/telegram/messenger/mj;F)V

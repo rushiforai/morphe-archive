@@ -11,7 +11,7 @@
  *
  * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to Morphe contributions.
  *
- * Modified by lavinhoque33, 2026-11-10
+ * Modified by lavinhoque33, 2026-11-12
  */
 
 package app.morphe.extension.shared.spoof.requests;
@@ -23,6 +23,7 @@ import static app.morphe.extension.shared.utils.StringRef.str;
 import static app.morphe.extension.shared.utils.Utils.submitOnBackgroundThread;
 
 import app.morphe.extension.shared.spoof.js.JavaScriptManager;
+import app.morphe.extension.music.patches.CrossfadeTrace;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -213,12 +214,40 @@ public class StreamOrDetailsDataRequest {
         return videoId;
     }
 
+    public interface FetchGate {
+        /** Runs off the main thread before playback streams are fetched; may delay their start. */
+        void beforeFetch(String videoId);
+    }
+
+    @Nullable
+    private static volatile FetchGate fetchGate;
+
+    public static void setFetchGate(@Nullable FetchGate gate) {
+        fetchGate = gate;
+    }
+
+    private static void passFetchGate(String videoId) {
+        FetchGate gate = fetchGate;
+        if (gate == null) return;
+
+        try {
+            gate.beforeFetch(videoId);
+        } catch (Exception ex) {
+            Logger.printException(() -> "passFetchGate failure", ex);
+        }
+    }
+
     /**
      * @param client Client of the streams given to the player for the video,
      *               or null if the player uses the streams of the app.
      */
     public static void setPlayerClient(String videoId, @Nullable ClientType client) {
         lastSpoofedClientType = client;
+        if (CrossfadeTrace.isTransitionObserved()) {
+            CrossfadeTrace.event("SOURCE", null, () -> "videoId=" + videoId
+                    + " client=" + (client == null ? "STOCK" : client.name())
+                    + " sabr=" + (client == null ? "unknown" : client.requireSABR));
+        }
         if (client == null) {
             playerClients.remove(videoId);
         } else {
@@ -284,10 +313,14 @@ public class StreamOrDetailsDataRequest {
         // Only playback streams are substituted. Details and downloads keep the video they were asked for.
         final boolean isPlaybackStream = endpoint == null && !forDownload;
 
-        this.future = submitOnBackgroundThread(() -> fetch(
-                endpoint,
-                isPlaybackStream ? resolveVideoIdToFetch(videoId) : videoId,
-                isInline, playerHeaders, clientStreamOrderOverride, forDownload));
+        this.future = submitOnBackgroundThread(() -> {
+            if (isPlaybackStream && !isInline) passFetchGate(videoId);
+
+            return fetch(
+                    endpoint,
+                    isPlaybackStream ? resolveVideoIdToFetch(videoId) : videoId,
+                    isInline, playerHeaders, clientStreamOrderOverride, forDownload);
+        });
     }
 
     /**
@@ -582,6 +615,19 @@ public class StreamOrDetailsDataRequest {
                 }
 
                 StreamingData streamingData = playerResponse.getStreamingData();
+                if (!forDownload && CrossfadeTrace.isTransitionObserved()) {
+                    for (Format format : streamingData.getAdaptiveFormatsList()) {
+                        if (format.getAudioChannels() > 0 || format.getMimeType().startsWith("audio/")) {
+                            CrossfadeTrace.event("FORMAT", null, () -> "videoId=" + videoId
+                                    + " client=" + clientType.name() + " sabr=" + clientType.requireSABR
+                                    + " selection=candidate itag=" + format.getItag()
+                                    + " mime=" + format.getMimeType() + " rate=" + format.getAudioSampleRate()
+                                    + " channels=" + format.getAudioChannels()
+                                    + " disableDrc=" + BaseSettings.DISABLE_DRC_AUDIO.get()
+                                    + " drcVariant=unbridged loudnessDb=unbridged");
+                        }
+                    }
+                }
                 if (streamingData.getAdaptiveFormatsCount() == 0) {
                     noteDownloadOutcome(forDownload, clientType, videoId, "no adaptive formats");
                     return null;

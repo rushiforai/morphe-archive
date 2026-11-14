@@ -27,7 +27,7 @@ internal val syntheticHooks: Map<String, Set<String>> = mapOf(
     FACEBOOK_PROFILE_HEADER to setOf(SYNTHETIC_PROFILE_HEADER),
     "ai_menu" to setOf("LX/HFe;->A00()Z", "LX/HFe;->A01()Z", "LX/Jiu;->A00()Z", "LX/Jiu;->A01()Z"),
     "ai_fab" to setOf("LX/6k8;->render(LX/2MZ;)LX/1GG;"),
-    "ai_sticker_cell" to setOf("LX/REu;->render(LX/2Ca;)LX/1Gk;"),
+    "ai_sticker_cell" to setOf("LX/GEu;->render(LX/27r;)LX/1F6;"),
     "ai_sticker_grid" to setOf("LX/CZ2;->render(LX/2ED;)LX/1IG;"),
     "subtabs" to setOf("LX/2UL;->run()V"),
     "typing" to setOf("LX/Ahp;->run()V"),
@@ -106,7 +106,7 @@ internal val syntheticHooks: Map<String, Set<String>> = mapOf(
     SHARE_STORY_TARGET to setOf(SYNTHETIC_STORY_TARGET),
     FLOATING_TAB_BAR to setOf(SYNTHETIC_TAB_BAR_BUILDER),
     TAB_BAR_OVERLAY to setOf(SYNTHETIC_TAB_BAR_BUILDER),
-    TAB_BAR_SCROLL_AWAY to setOf(SYNTHETIC_CHATS_SCROLL_AWAY),
+    TAB_BAR_SCROLL_AWAY to setOf(SYNTHETIC_CHATS_SCROLL_AWAY, SYNTHETIC_CHATS_SLIDE, SYNTHETIC_SLIDE_START, SYNTHETIC_SLIDE_GATE),
     AVATAR_SHAPE to setOf(SYNTHETIC_VITO_ROUNDING, SYNTHETIC_LEGACY_ROUNDING, SYNTHETIC_TILE_SHAPE, SYNTHETIC_TILE_SETUP, SYNTHETIC_TILE_PLACEHOLDER),
     STORY_RING to setOf(SYNTHETIC_RING_MOUNT, SYNTHETIC_RING_DRAW),
     QUIET_CALL_RING to setOf(SYNTHETIC_RING_DECISION),
@@ -155,6 +155,9 @@ internal val syntheticHooks: Map<String, Set<String>> = mapOf(
     SYSTEM_CAMERA to setOf("LX/7Jp;->DXV($MONTAGE_PARAMS$NAVIGATION_TRIGGER)V", CHAT_CAMERA_FACTORY, CHAT_CAMERA_START, CHAT_CAPTURE, THIRD_PARTY_URI_CHECK,
         INTERNAL_FILE_OPEN),
     EXTERNAL_GALLERY to setOf(GALLERY_HANDLER, GALLERY_PLUGIN, CHAT_CAMERA_START, "LX/7Rm;->onActivityResult(IILandroid/content/Intent;)V", GALLERY_ITEMS),
+    INSTANT_GALLERY to setOf(SYNTHETIC_INSTANT_CAPTURE),
+    SPECIAL_CONTACTS to setOf(SPECIAL_PRESENCE_INIT, SPECIAL_DEFAULT_TYPING, SPECIAL_V2_TYPING),
+    MENU_BLUR to setOf(SYNTHETIC_MENU_BLUR),
     GALLERY_TEMP_FILE to setOf(TEMP_FOLDER_CHECK, INBOUND_COPY),
     GALLERY_TO_CHAT to setOf(GALLERY_ITEMS, GALLERY_CHAT_EDITOR, GALLERY_TRAY_GATE),
     FONT_LAYOUT to setOf(FONT_LAYOUT_SETTER),
@@ -173,6 +176,8 @@ internal val syntheticHooks: Map<String, Set<String>> = mapOf(
     "chat_animation" to setOf(FRAGMENT_ANIMATION),
     CHAT_CHANNEL_KEEP to setOf(SYNTHETIC_CHAT_RECREATE),
     CHAT_CHANNEL_RAISE to setOf(SYNTHETIC_CHAT_RAISE),
+    CHAT_HEAD_VIDEO to setOf(SYNTHETIC_CHAT_HEAD_VIDEO),
+    CALL_BUTTON_BUILT to setOf(SYNTHETIC_AUDIO_BUILDER, SYNTHETIC_VIDEO_BUILDER),
     "chat_fragment" to setOf("LX/1hl;-><init>()V"),
     CHAT_JUMP to setOf(SYNTHETIC_CHAT_JUMP),
     "chat_inbox" to setOf("LX/1fs;-><init>()V"),
@@ -211,6 +216,12 @@ class SyntheticProfileExtension : TestInstancePreConstructCallback, BeforeEachCa
         activeProfile = SYNTHETIC_PROFILE
         controlProfilesInUse = controlProfiles
     }
+}
+
+/** [SYNTHETIC_PROFILE] with [swaps] in place of its own hook lists, for a fixture laid out as another build lays it out. */
+internal fun syntheticProfileWith(vararg swaps: Pair<String, Set<String>>) = SYNTHETIC_PROFILE.run {
+    ControlProfile(hooks + swaps, pluginSentinel, preferenceGetter, peopleKey, peopleFlagCheck, subtabsSupplier, browserPreferenceKey,
+        browserPreferenceIndex, bubbleCapabilityGetter, bubbleRolloutGetter, nativeBubbleRoutes, nativeCommunityInbox)
 }
 
 /** The other values the synthetic fixtures pin, next to [syntheticHooks]. */

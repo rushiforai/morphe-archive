@@ -17,4 +17,5 @@ val gmsCoreSupportPatch = gmsCoreSupportPatch(
     // SHA-1 of the Play app signing certificate.
     signature = "e358395b20c02f1efc9400fd896c1e3c30170852",
     launcherActivity = "Lmlb/atbat/activity/SplashScreenActivity;",
+    category = "Setup",
 )

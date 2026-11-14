@@ -113,6 +113,7 @@ public class HushPinterestPreferenceFragmentTest {
         ROW_TITLES.put(PatchFamily.HIDE_PIN_MENU_ITEMS, "Hide collage menu items");
         ROW_TITLES.put(PatchFamily.HIDE_COMMENTS, "Hide comments");
         ROW_TITLES.put(PatchFamily.HIDE_TOPIC_SUGGESTIONS, "Hide topic suggestions");
+        ROW_TITLES.put(PatchFamily.HIDE_INBOX_UPDATES, "Hide Inbox updates");
         ROW_TITLES.put(PatchFamily.QUIET_EMAIL_REMINDER, "Quiet email reminders");
         ROW_TITLES.put(PatchFamily.HIDE_SURVEY_PROMPTS, "Hide survey prompts");
         ROW_TITLES.put(PatchFamily.HIDE_SAVE_TOASTS, "Hide save toasts");
@@ -228,8 +229,11 @@ public class HushPinterestPreferenceFragmentTest {
                 if (!Collections.disjoint(build, PatchFamily.ACTIONS_PAGE)) expected.add("Pin actions");
                 if (!Collections.disjoint(build, PatchFamily.INTERFACE_PAGE)) expected.add("Interface");
                 expected.addAll(EVERY_BUILD);
-                // The page holds only that patch's switch and its Android settings row, so it comes with the patch, right after Links.
-                if (build.contains(PatchFamily.FIX_PUSH_NOTIFICATIONS)) expected.add(expected.indexOf("Links") + 1, "Notifications");
+                // The page holds only the two notification patches' switches and Android's settings row, so it comes with
+                // either patch, right after Links.
+                if (build.contains(PatchFamily.FIX_PUSH_NOTIFICATIONS) || build.contains(PatchFamily.HIDE_INBOX_UPDATES)) {
+                    expected.add(expected.indexOf("Links") + 1, "Notifications");
+                }
                 if (!expected.equals(sections)) wrong.add(build + ": sections " + sections);
             }
         }

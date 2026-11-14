@@ -42,6 +42,7 @@ val disableAiPatch = bytecodePatch(
     description = "Turns off the MGM+ AI chat assistant, its prompts, and the AI-picks rows.",
     default = false,
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

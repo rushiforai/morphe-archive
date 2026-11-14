@@ -1,5 +1,5 @@
 {
-  "version": "v1.34.1",
+  "version": "v1.35.0",
   "patches": [
     {
       "name": "Add to queue",
@@ -716,6 +716,25 @@
       "options": []
     },
     {
+      "name": "Disable audio ducking",
+      "description": "Adds an option to keep the volume unchanged when another app plays a short sound, such as a notification.",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "ResourcePatch"
+      ],
+      "compatiblePackages": {
+        "com.google.android.apps.youtube.music": [
+          "9.40.51",
+          "9.15.51",
+          "8.30.54",
+          "8.28.54",
+          "8.12.54"
+        ]
+      },
+      "options": []
+    },
+    {
       "name": "Disable auto feed refresh",
       "description": "Adds an option to stop feeds from refreshing automatically after they become outdated.",
       "use": true,
@@ -1010,6 +1029,7 @@
         "ResourcePatch",
         "ResourcePatch",
         "ResourcePatch",
+        "BytecodePatch",
         "BytecodePatch"
       ],
       "compatiblePackages": {
@@ -2255,6 +2275,46 @@
       "use": false,
       "dependencies": [],
       "compatiblePackages": null,
+      "options": []
+    },
+    {
+      "name": "Patches update notice",
+      "description": "Notifies about newer fork patches and opens Manager to re-patch. Does not download APKs.",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "ResourcePatch",
+        "BytecodePatch",
+        "ResourcePatch"
+      ],
+      "compatiblePackages": {
+        "com.google.android.apps.youtube.music": [
+          "9.40.51",
+          "9.15.51",
+          "8.30.54",
+          "8.28.54",
+          "8.12.54"
+        ]
+      },
+      "options": []
+    },
+    {
+      "name": "Patches update notice",
+      "description": "Notifies about newer fork patches and opens Manager to re-patch. Does not download APKs.",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "ResourcePatch",
+        "BytecodePatch",
+        "ResourcePatch"
+      ],
+      "compatiblePackages": {
+        "com.google.android.youtube": [
+          "21.39.525",
+          "21.13.164",
+          "20.05.46"
+        ]
+      },
       "options": []
     },
     {

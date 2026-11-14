@@ -47,6 +47,7 @@ val startAtHighQualityPatch = bytecodePatch(
     description = "Starts recordings and on-demand videos at high quality instead of stepping up from a low one.",
     default = false,
 ) {
+    category("Playback")
     compatibleWith(Constants.COMPATIBILITY)
 
     val quality by stringOption(

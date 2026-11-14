@@ -1,3 +1,82 @@
+## [3.0.1](https://github.com/mvaishak/letterboxd-morphe-patches/compare/v3.0.0...v3.0.1) (2026-11-14)
+
+### 🐛 Bug Fixes
+
+* request IMDb trivia in English on all system languages ([086e684](https://github.com/mvaishak/letterboxd-morphe-patches/commit/086e6847a4b039fbe0d90d8c6bef6c751076947b))
+
+## [3.0.0](https://github.com/mvaishak/letterboxd-morphe-patches/compare/v2.2.0...v3.0.0) (2026-11-13)
+
+### 🐛 Bug Fixes
+
+* keep cast and crew visible when switching tabs ([a768486](https://github.com/mvaishak/letterboxd-morphe-patches/commit/a768486ac2a0f59b8b2c48505c044b0d44fdef60)), closes [#15](https://github.com/mvaishak/letterboxd-morphe-patches/issues/15)
+* match backup selection to Mods dialog styling ([2993184](https://github.com/mvaishak/letterboxd-morphe-patches/commit/2993184d93c3efad2eba24924731263786421fd1))
+* preload trivia automatically when enabled ([161c380](https://github.com/mvaishak/letterboxd-morphe-patches/commit/161c380625af1b63d018e1e87f288d06ae93e7d3))
+* preserve the existing update popup ([b429130](https://github.com/mvaishak/letterboxd-morphe-patches/commit/b429130360a7b6987a697991c6a9ec6d0aba5dc4))
+* reuse Letterboxd loading and improve Mods controls ([bb74a1d](https://github.com/mvaishak/letterboxd-morphe-patches/commit/bb74a1df95f8621d8b236212fd7afef1b8127970))
+* support Letterboxd 3.6.7 and clarify Morphe updates ([2ad3220](https://github.com/mvaishak/letterboxd-morphe-patches/commit/2ad3220d0257e5c85cd9301795536f221c8e3c77))
+
+### ✨ New Features
+
+* add film trivia and expand Mods backup and settings ([022af2f](https://github.com/mvaishak/letterboxd-morphe-patches/commit/022af2ff7614c783dc1766593de29977a5b235aa))
+* add list copying, app icons, and selective backups ([05ec5d3](https://github.com/mvaishak/letterboxd-morphe-patches/commit/05ec5d3806d103951fc1067628c89cc97ec9ed79))
+* add local custom artwork and a Spotlight toggle ([bc39f6b](https://github.com/mvaishak/letterboxd-morphe-patches/commit/bc39f6b01c30079276c3492bebb6edde52451e3a))
+* add profile badges and adult poster settings ([3344267](https://github.com/mvaishak/letterboxd-morphe-patches/commit/33442674d34866c49f35ed0dc9287c461fb93a79))
+* hide sponsored Spotlight cards on home ([d9e3244](https://github.com/mvaishak/letterboxd-morphe-patches/commit/d9e3244a545a4451bf3c8940b140bb00d7b547ff)), closes [#12](https://github.com/mvaishak/letterboxd-morphe-patches/issues/12)
+
+## [3.0.0-dev.1](https://github.com/mvaishak/letterboxd-morphe-patches/compare/v2.3.0-dev.7...v3.0.0-dev.1) (2026-11-13)
+
+## [2.3.0-dev.7](https://github.com/mvaishak/letterboxd-morphe-patches/compare/v2.3.0-dev.6...v2.3.0-dev.7) (2026-11-13)
+
+### ✨ New Features
+
+* add profile badges and adult poster settings ([3344267](https://github.com/mvaishak/letterboxd-morphe-patches/commit/33442674d34866c49f35ed0dc9287c461fb93a79))
+
+## [2.3.0-dev.6](https://github.com/mvaishak/letterboxd-morphe-patches/compare/v2.3.0-dev.5...v2.3.0-dev.6) (2026-11-13)
+
+### 🐛 Bug Fixes
+
+* match backup selection to Mods dialog styling ([2993184](https://github.com/mvaishak/letterboxd-morphe-patches/commit/2993184d93c3efad2eba24924731263786421fd1))
+* preserve the existing update popup ([b429130](https://github.com/mvaishak/letterboxd-morphe-patches/commit/b429130360a7b6987a697991c6a9ec6d0aba5dc4))
+
+## [2.3.0-dev.5](https://github.com/mvaishak/letterboxd-morphe-patches/compare/v2.3.0-dev.4...v2.3.0-dev.5) (2026-11-13)
+
+### ✨ New Features
+
+* add list copying, app icons, and selective backups ([05ec5d3](https://github.com/mvaishak/letterboxd-morphe-patches/commit/05ec5d3806d103951fc1067628c89cc97ec9ed79))
+
+## [2.3.0-dev.4](https://github.com/mvaishak/letterboxd-morphe-patches/compare/v2.3.0-dev.3...v2.3.0-dev.4) (2026-11-11)
+
+### 🐛 Bug Fixes
+
+* preload trivia automatically when enabled ([161c380](https://github.com/mvaishak/letterboxd-morphe-patches/commit/161c380625af1b63d018e1e87f288d06ae93e7d3))
+* reuse Letterboxd loading and improve Mods controls ([bb74a1d](https://github.com/mvaishak/letterboxd-morphe-patches/commit/bb74a1df95f8621d8b236212fd7afef1b8127970))
+
+### ✨ New Features
+
+* add film trivia and expand Mods backup and settings ([022af2f](https://github.com/mvaishak/letterboxd-morphe-patches/commit/022af2ff7614c783dc1766593de29977a5b235aa))
+
+## [2.3.0-dev.3](https://github.com/mvaishak/letterboxd-morphe-patches/compare/v2.3.0-dev.2...v2.3.0-dev.3) (2026-11-11)
+
+### 🐛 Bug Fixes
+
+* support Letterboxd 3.6.7 and clarify Morphe updates ([2ad3220](https://github.com/mvaishak/letterboxd-morphe-patches/commit/2ad3220d0257e5c85cd9301795536f221c8e3c77))
+
+## [2.3.0-dev.2](https://github.com/mvaishak/letterboxd-morphe-patches/compare/v2.3.0-dev.1...v2.3.0-dev.2) (2026-11-11)
+
+### 🐛 Bug Fixes
+
+* keep cast and crew visible when switching tabs ([a768486](https://github.com/mvaishak/letterboxd-morphe-patches/commit/a768486ac2a0f59b8b2c48505c044b0d44fdef60)), closes [#15](https://github.com/mvaishak/letterboxd-morphe-patches/issues/15)
+
+### ✨ New Features
+
+* add local custom artwork and a Spotlight toggle ([bc39f6b](https://github.com/mvaishak/letterboxd-morphe-patches/commit/bc39f6b01c30079276c3492bebb6edde52451e3a))
+
+## [2.3.0-dev.1](https://github.com/mvaishak/letterboxd-morphe-patches/compare/v2.2.0...v2.3.0-dev.1) (2026-11-11)
+
+### ✨ New Features
+
+* hide sponsored Spotlight cards on home ([d9e3244](https://github.com/mvaishak/letterboxd-morphe-patches/commit/d9e3244a545a4451bf3c8940b140bb00d7b547ff)), closes [#12](https://github.com/mvaishak/letterboxd-morphe-patches/issues/12)
+
 ## [2.2.0](https://github.com/mvaishak/letterboxd-morphe-patches/compare/v2.1.1...v2.2.0) (2026-09-17)
 
 ### ✨ New Features

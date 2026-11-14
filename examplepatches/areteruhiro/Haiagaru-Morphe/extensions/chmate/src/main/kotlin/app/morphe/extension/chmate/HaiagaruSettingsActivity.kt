@@ -145,7 +145,7 @@ class HaiagaruSettingsActivity : HaiagaruComposeActivity() {
             if (query != indexedQuery) { searching = true; delay(200) }
             val found = mutableListOf<Pair<SettingsGroup, BoundSetting>>()
             for (group in groups) {
-                group.sources.forEach { source -> settingsRows(body(source)).forEach {
+                group.sources.forEach { source -> flattenedSettingsRows(body(source)).forEach {
                     val control = it.control
                     val actionable = control is android.widget.CompoundButton ||
                         control is android.widget.Button || control is android.widget.EditText ||
@@ -175,9 +175,6 @@ class HaiagaruSettingsActivity : HaiagaruComposeActivity() {
                                 SettingsHomeAction(if (english) "Haiagaru update history" else "Haiagaru更新履歴") {
                                     UpdateHistory.show(this@HaiagaruSettingsActivity)
                                 }
-                                SettingsHomeAction(if (english) "See all added features" else "追加された機能をすべて見る") {
-                                    UpdateHistory.showAllFeatures(this@HaiagaruSettingsActivity)
-                                }
                             }
                         }
                         item {
@@ -202,7 +199,8 @@ class HaiagaruSettingsActivity : HaiagaruComposeActivity() {
                             SettingsHomeCard(onClick = {
                                 selected = groups.indexOf(group)
                             }, padded = false) {
-                                ListItem(headlineContent = { Text(group.title(english), style = MaterialTheme.typography.titleMedium) },
+                                ListItem(headlineContent = { Text(group.title(english), style = MaterialTheme.typography.titleMedium,
+                                    color = HaiagaruUi.settingsCategoryColor) },
                                     supportingContent = { Text(if (english) group.enSummary else group.summary, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis) },
                                     leadingContent = { Box(Modifier.size(36.dp), contentAlignment = Alignment.Center) {
                                         SettingsCategoryIcon(group.id, group.mark)
@@ -240,7 +238,7 @@ class HaiagaruSettingsActivity : HaiagaruComposeActivity() {
                         val rows = settingsRows(body(source))
                         if (group.sources.size > 1) item("heading:$source") {
                             Text(sectionTitle(source, english), style = MaterialTheme.typography.titleSmall,
-                                color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(start = 12.dp, top = 8.dp))
+                                color = HaiagaruUi.settingsCategoryColor, modifier = Modifier.padding(start = 12.dp, top = 8.dp))
                         }
                         items(rows, key = { "${source}:${System.identityHashCode(it.control)}" }) { option ->
                             HaiagaruUi.Group { BoundSettingRow(option, update) }

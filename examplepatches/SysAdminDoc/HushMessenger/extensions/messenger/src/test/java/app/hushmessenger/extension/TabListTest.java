@@ -25,6 +25,25 @@ public class TabListTest {
     /** Messenger's tab enum, by the constant names 584 uses. */
     enum Tab { INBOX, PEOPLE, AI, JEWEL, SEARCH, MORE }
 
+    /** 587's bar with Stories, which the enum calls MONTAGE (#170). */
+    enum StoriesBar { INBOX, MONTAGE, PEOPLE, MORE }
+
+    @Test public void hideStoriesTabTakesTheMontageTab() {
+        List<StoriesBar> stock = new ArrayList<>(Arrays.asList(StoriesBar.values()));
+        assertSame("Off leaves Stories where Messenger put it", stock, Settings.visibleTabs(stock));
+
+        restart();
+        Settings.preferences.edit().putBoolean("tab_stories", true).commit();
+        assertEquals(List.of(StoriesBar.INBOX, StoriesBar.PEOPLE, StoriesBar.MORE), Settings.visibleTabs(new ArrayList<>(Arrays.asList(StoriesBar.values()))));
+        assertTrue(Settings.lastActive("tab_stories") > 0);
+        Settings.preferences.edit().putBoolean("tab_stories", false).commit();
+        assertEquals("The tab stays gone until a restart", Boolean.TRUE, Settings.heldUntilRestart("tab_stories"));
+
+        restart();
+        Settings.preferences.edit().putBoolean("tab_stories", true).putBoolean("paused", true).commit();
+        assertEquals("Pause keeps it after the restart", List.of(StoriesBar.values()), Settings.visibleTabs(new ArrayList<>(Arrays.asList(StoriesBar.values()))));
+    }
+
     @Before public void reset() {
         Settings.initialize(RuntimeEnvironment.getApplication());
         Settings.preferences.edit().clear().commit();

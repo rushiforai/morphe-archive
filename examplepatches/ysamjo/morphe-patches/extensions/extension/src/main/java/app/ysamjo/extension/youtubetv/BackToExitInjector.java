@@ -123,8 +123,8 @@ public final class BackToExitInjector {
     private static Object buildCallback(final Activity activity,
                                          final Method evaluateJavaScript,
                                          final long pointer) {
-        final Class<?>[] callbackInterfaces;
-        final String className;
+        Class<?>[] callbackInterfaces;
+        String className;
 
         // Try the unobfuscated TizenTube Cobalt callback first, then the re-namespaced one.
         try {

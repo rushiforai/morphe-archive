@@ -37,6 +37,7 @@ val disableAiPatch = bytecodePatch(
     name = "Disable AI",
     description = "Removes the Ask Perplexity AI button from Discover.",
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

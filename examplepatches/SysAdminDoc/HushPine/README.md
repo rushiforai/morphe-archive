@@ -20,9 +20,9 @@ HushPine is a set of [Morphe](https://morphe.software) patches for PineDrama, Ti
 
 Most switches start off, so a freshly patched PineDrama looks and works the way it ships until you turn something on. Changes are listed in the [changelog](CHANGELOG.md). This repo split off from [Hushfeed](https://github.com/SysAdminDoc/hushfeed), which now covers TikTok only.
 
-HushPine v0.1.1 contains 100 patches for PineDrama 47.6.3. New in this one: saved posts from Favorites play in your dub language too. It needs Morphe Manager 2.5.0 or newer.
+HushPine v0.2.0 contains 101 patches for PineDrama 47.7.3. New in this one: it's built for PineDrama 47.7.3, and `Open on Home` keeps PineDrama from starting on Discover. It needs Morphe Manager 2.5.0 or newer.
 
-The main branch contains 101 patches: the 100 from v0.1.1 and Open on Home.
+The main branch contains 101 patches, the same set as v0.2.0.
 
 **[Add HushPine to Morphe Manager](https://morphe.software/add-source?github=SysAdminDoc%2FHushPine)**
 

@@ -30,8 +30,8 @@ internal const val LANDSCAPE_MEDIA = "landscape_media"
 
 internal const val FB_FRAGMENT_ACTIVITY = "Lcom/facebook/base/activity/FbFragmentActivity;"
 
-/** Meta's server flag for the portrait lock, as 586 numbers it. */
-internal const val LANDSCAPE_FLAG = 0x8105f000002c01L
+/** Meta's server flag for the portrait lock, as 587 numbers it (586 read 0x8105f000002c01). */
+internal const val LANDSCAPE_FLAG = 0x8105e800002b9eL
 
 /** The option the photo and video viewers' orientation helper reads as it's built, the one place 586 names it. */
 internal const val MEDIA_ORIENTATION_OPTION = "allowOrientationChanges"

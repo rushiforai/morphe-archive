@@ -241,10 +241,10 @@ public final class SettingsActivity extends Activity {
             tabs.add(choice(Settings.SHOW_TAB_NOTIFICATIONS, true, "Notifications"));
             tabs.add(choice(Settings.SHOW_TAB_MORE, Settings.showMoreTab(), "More"));
             if (Settings.isGlassNavigationBarIncluded()) {
-                navigation.toggle(Settings.GLASS_NAVIGATION_BAR, true, "Glass navigation bar",
+                navigation.toggle(Settings.GLASS_NAVIGATION_BAR, true, "Liquid Glass navigation bar",
                         "A floating, translucent navigation bar.");
-                navigation.toggle(Settings.LIQUID_GLASS, true, "Liquid Glass",
-                        "Blurs what's behind the bar and bends it at the edges. Turn it off on a slower phone.");
+                navigation.toggle(Settings.LIQUID_GLASS, true, "Background blur",
+                        "Blurs what's behind the glass. Uses more battery and might stutter.");
             }
             if (Settings.isAlwaysShowNavigationBarIncluded()) {
                 navigation.toggle(Settings.ALWAYS_SHOW_NAVIGATION_BAR, false, "Always show navigation bar",

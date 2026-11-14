@@ -128,6 +128,7 @@ val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
     description = "Turns off the ads in on-demand videos and DVR recordings, and overlay and pause ads.",
 ) {
+    category("Ads")
     compatibleWith(Constants.COMPATIBILITY)
 
     dependsOn(cuePointProviderHookPatch)

@@ -90,6 +90,8 @@ public final class CallRecording {
     private static volatile Session listening;
     /** What native was first told about its audio this run. A flip waits for a restart, so the button and the audio can't disagree. */
     private static volatile Boolean playoutHeld;
+    /** Which of the two switches were on when native asked. */
+    private static volatile boolean heldForRecording, heldForCaptions;
     private static volatile boolean complained;
     // Main thread only from here on.
     private static Activity top;
@@ -103,22 +105,29 @@ public final class CallRecording {
         callActive = false;
         listening = null;
         playoutHeld = null;
+        heldForRecording = heldForCaptions = false;
         complained = false;
         top = null;
         pill = null;
         session = null;
         stopReceiver = null;
         store = new SharedAudio();
+        CallCaptions.resetForTests();
     }
 
     /**
      * Messenger hands native its call settings here as layers of numbers. With the switch on, ours goes last so its word
-     * stands. It takes its length from Messenger's own layer, so a list without one gets nothing added.
+     * stands. It takes its length from Messenger's own layer, so a list without one gets nothing added. Live captions
+     * on calls needs the same Java audio, so either switch adds it.
      */
     public static void addLayer(ArrayList<Object> layers) {
         try {
             Boolean held = playoutHeld;
-            if (held == null) playoutHeld = held = Settings.enabled(KEY) && Settings.available(KEY);
+            if (held == null) {
+                heldForRecording = Settings.enabled(KEY) && Settings.available(KEY);
+                heldForCaptions = Settings.enabled(CallCaptions.KEY) && Settings.available(CallCaptions.KEY);
+                playoutHeld = held = heldForRecording || heldForCaptions;
+            }
             if (!held || layers == null) return;
             for (Object layer : layers) {
                 if (layer instanceof OverlayConfigLayerInterface) {
@@ -126,10 +135,15 @@ public final class CallRecording {
                     return;
                 }
             }
-            Settings.hookFailedPrivately(KEY, "Couldn't choose the call's audio", new IllegalStateException("no config layer of Messenger's own"));
+            Settings.hookFailedPrivately(audioOwner(), "Couldn't choose the call's audio", new IllegalStateException("no config layer of Messenger's own"));
         } catch (Throwable error) {
-            Settings.hookFailedPrivately(KEY, "Couldn't choose the call's audio", error);
+            Settings.hookFailedPrivately(audioOwner(), "Couldn't choose the call's audio", error);
         }
+    }
+
+    /** The switch a failure to choose the call's audio belongs to. */
+    private static String audioOwner() {
+        return Settings.wouldUse(KEY) || !Settings.wouldUse(CallCaptions.KEY) ? KEY : CallCaptions.KEY;
     }
 
     /** Says no to Messenger's own native audio and yes to WebRTC's Java audio. Everything else stays unset. */
@@ -185,9 +199,22 @@ public final class CallRecording {
         public void logExposure(int id) {}
     }
 
-    /** For the restart row, once native has asked. */
-    static Boolean heldPlayout() {
-        return Settings.available(KEY) ? playoutHeld : null;
+    /**
+     * For the restart row of Record calls or Live captions, once native has asked: what this run holds when the switch
+     * now says otherwise. Turning one on works at the next call when the other already has the audio in Java, and
+     * turning one off changes nothing on a restart while the other still wants it.
+     */
+    static Boolean heldPlayout(String key) {
+        Boolean held = playoutHeld;
+        if (held == null || !Settings.available(key)) return null;
+        boolean was = KEY.equals(key) ? heldForRecording : heldForCaptions, now = Settings.wouldUse(key);
+        if (was == now) return null;
+        if (now) return held ? null : Boolean.FALSE;
+        return wantsJavaAudio(KEY) || wantsJavaAudio(CallCaptions.KEY) ? null : Boolean.TRUE;
+    }
+
+    private static boolean wantsJavaAudio(String key) {
+        return Settings.wouldUse(key) && Settings.available(key);
     }
 
     /** Native starts the Java playout thread here, so a call's sound is about to run. */
@@ -199,15 +226,20 @@ public final class CallRecording {
         active(false);
     }
 
-    /** The far side's next frame, on its way to the speaker. Nothing's touched unless a recording is running. */
+    /**
+     * The far side's next frame, on its way to the speaker. A running recording takes it as it is, then live captions
+     * get it and may turn it down while a caption is read aloud. Nothing's touched with neither running.
+     */
     public static void heard(AudioTrack track, ByteBuffer sound, int bytes) {
         Session now = listening;
-        if (now == null) return;
-        try {
-            now.mix.theirs.offer(sound, bytes, track.getChannelCount(), track.getSampleRate(), now.elapsed());
-        } catch (Throwable error) {
-            lostSound(error);
+        if (now != null) {
+            try {
+                now.mix.theirs.offer(sound, bytes, track.getChannelCount(), track.getSampleRate(), now.elapsed());
+            } catch (Throwable error) {
+                lostSound(error);
+            }
         }
+        CallCaptions.heard(track, sound, bytes);
     }
 
     /** This phone's next frame, on its way to the far side. A mute has already cleared it by here. */
@@ -237,6 +269,7 @@ public final class CallRecording {
             callActive = running;
             MAIN.post(() -> {
                 if (!callActive && session != null) session.finishUp();
+                CallCaptions.call(callActive);
                 refresh();
             });
         } catch (Throwable error) {
@@ -273,6 +306,11 @@ public final class CallRecording {
     }
 
     private static void refresh() {
+        refreshPill();
+        CallCaptions.screen(top);
+    }
+
+    private static void refreshPill() {
         try {
             View found = top == null ? null : top.findViewById(android.R.id.content);
             if (!(found instanceof FrameLayout) || !offered()) {

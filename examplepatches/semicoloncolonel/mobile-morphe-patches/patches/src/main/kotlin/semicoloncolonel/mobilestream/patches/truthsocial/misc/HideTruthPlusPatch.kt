@@ -52,6 +52,7 @@ val hideTruthPlusPatch = bytecodePatch(
     name = "Hide Truth+",
     description = "Hides the Truth+ button, the Watch tab, the Truth+ live shows row, and the Truth+ banners.",
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

@@ -190,9 +190,9 @@ class AvatarShapeTest {
             "LX/$placeholder;->draw(Landroid/graphics/Canvas;)V")
         fun ring(spec: String, drawable: String) = setOf("LX/$spec;->onCreateMountContent(Landroid/content/Context;)Ljava/lang/Object;",
             "LX/$drawable;->draw(Landroid/graphics/Canvas;)V")
-        assertEquals(setOf("LX/4Z5;-><init>([FFZZZ)V", "LX/ZWT;->A04(LX/cXn;LX/4Tl;)V") + tile("2nw", "2mX", "2ia", "2oO"),
+        assertEquals(setOf("LX/4fo;-><init>([FFZZZ)V", "LX/Pwh;->A04(LX/Sw2;LX/4ee;)V") + tile("2kL", "2it", "2kS", "2l8"),
             BASE_PROFILE.hooks.getValue(AVATAR_SHAPE))
-        assertEquals(ring("2oZ", "320"), BASE_PROFILE.hooks.getValue(STORY_RING))
+        assertEquals(ring("33G", "33x"), BASE_PROFILE.hooks.getValue(STORY_RING))
     }
 
     // Only some pictures changing would look broken, so anything we can't prove about either path gets no hook at all.

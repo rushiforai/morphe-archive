@@ -2116,7 +2116,6 @@ Nhấn và giữ để mở hộp thoại cài đặt Danh sách trắng</string
     <string name="revanced_preference_screen_misc_title">Khác</string>
     <string name="revanced_preference_screen_navigation_bar_summary">Ẩn hoặc hiển thị các thành phần trên Thanh điều hướng</string>
     <string name="revanced_preference_screen_navigation_bar_title">Thanh điều hướng</string>
-    <string name="revanced_preference_screen_patch_information_summary">Thông tin về các bản vá được áp dụng</string>
     <string name="revanced_preference_screen_player_buttons_summary">Ẩn hoặc hiển thị các nút trong trình phát</string>
     <string name="revanced_preference_screen_player_buttons_title">Nút trong trình phát</string>
     <string name="revanced_preference_screen_player_flyout_menu_summary">Ẩn hoặc thay đổi thành phần của trình đơn tuỳ chọn trong trình phát video</string>

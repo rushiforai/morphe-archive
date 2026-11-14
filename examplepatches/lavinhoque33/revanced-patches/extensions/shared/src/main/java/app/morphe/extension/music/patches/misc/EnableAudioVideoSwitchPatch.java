@@ -8,6 +8,7 @@
  * Logger/Utils/Requester packages, album redirect coexistence).
  * Modified by lavinhoque33, 2026-10-24: encodes the queue command with the ported Jam
  * QueueCommand again, like Morphe, instead of an inlined copy.
+ * Modified by lavinhoque33, 2026-11-12.
  */
 
 package app.morphe.extension.music.patches.misc;
@@ -35,6 +36,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -43,8 +45,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
+import app.morphe.extension.music.patches.CrossfadeManager;
 import app.morphe.extension.music.patches.jam.QueueCommand;
 import app.morphe.extension.music.settings.Settings;
 import app.morphe.extension.music.shared.VideoInformation;
@@ -62,6 +67,9 @@ public final class EnableAudioVideoSwitchPatch {
         Object[] patch_atvItems();
         String patch_atvVideoId(Object item);
         void patch_atvRemove(Object item);
+        void patch_atvMove(int from, int to);
+        Object patch_atvPrimaryLane();
+        void patch_atvAddListener(Object lane, Object listener);
         boolean patch_atvLocal();
     }
 
@@ -77,29 +85,46 @@ public final class EnableAudioVideoSwitchPatch {
         }
     }
 
-    private interface Condition {
+    interface Condition {
         boolean ok();
     }
 
     private static final String OEMBED_URL = "https://www.youtube.com/oembed?format=json&url="
             + "https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3D";
-    private static final String SEARCH_URL =
-            "https://music.youtube.com/youtubei/v1/search?key=AIzaSyAOghZGza2MQSZkY_zfZ370N-PUdXEo8AI";
+    static final String INNERTUBE_URL = "https://music.youtube.com/youtubei/v1/";
+    /** Public Android Music InnerTube key, shared by every user; not a credential. */
+    static final String INNERTUBE_KEY_QUERY = "?key=AIzaSyAOghZGza2MQSZkY_zfZ370N-PUdXEo8AI";
+    static final String SEARCH_URL = INNERTUBE_URL + "search" + INNERTUBE_KEY_QUERY;
     private static final String USER_AGENT =
             "com.google.android.apps.youtube.music/7.27.52 (Linux; U; Android 14)";
 
-    private static final String AUDIO_TYPE = "MUSIC_VIDEO_TYPE_ATV";
-    private static final String VIDEO_TYPE = "MUSIC_VIDEO_TYPE_OMV";
+    static final String AUDIO_TYPE = "MUSIC_VIDEO_TYPE_ATV";
+    static final String VIDEO_TYPE = "MUSIC_VIDEO_TYPE_OMV";
+
+    /** Title score of a title that contains the other title. */
+    private static final double FULL_MATCH_SCORE = 1.0d;
+    /** Lower scores are usually a different song, so no switch is made. */
+    private static final double MIN_MATCH_SCORE = FULL_MATCH_SCORE;
 
     private static volatile boolean busy;
 
     private static volatile WeakReference<QueueAccess> queue = new WeakReference<>(null);
+
+    static final int SONG_VERSIONS_TO_REMEMBER = 300;
+
+    /** Both versions of each track switched, so the toggle returns to the very same entry. */
+    private static final Map<String, String> switchedVersions = Collections.synchronizedMap(
+            Utils.createSizeRestrictedMap(SONG_VERSIONS_TO_REMEMBER));
+
+    private static final long MAX_WAIT_FOR_QUEUE_CHANGE_MILLISECONDS = 100;
+    private static final Object queueChanged = new Object();
 
     private EnableAudioVideoSwitchPatch() {
     }
 
     public static void capture(QueueAccess access) {
         queue = new WeakReference<>(access);
+        Logger.printDebug(() -> "audio/video switch: captured queue " + access.hashCode());
     }
 
     public static void installAudioVideoSwitchInterceptor(View pill) {
@@ -124,8 +149,7 @@ public final class EnableAudioVideoSwitchPatch {
                 }
                 switch (event.getActionMasked()) {
                     case MotionEvent.ACTION_DOWN:
-                        // modified by lavinhoque33, 2026-10-17: leave the tap to the fork's
-                        // "Disable music video in album" click/long-click redirect when it owns it.
+                        // Leave the tap to the fork's "Disable music video in album" redirect when it owns it.
                         claimed[0] = isLeftHalf(pill, event) && !albumRedirectOwnsTap();
                         break;
                     case MotionEvent.ACTION_CANCEL:
@@ -135,7 +159,10 @@ public final class EnableAudioVideoSwitchPatch {
                         break;
                 }
                 if (!claimed[0]) return false;
-                if (event.getActionMasked() == MotionEvent.ACTION_UP) openCounterpart(context);
+                if (event.getActionMasked() == MotionEvent.ACTION_UP) {
+                    Logger.printDebug(() -> "audio/video switch: interceptor claimed pill tap");
+                    openCounterpart(context);
+                }
                 return true;
             });
             if (view instanceof ViewGroup group) {
@@ -155,8 +182,8 @@ public final class EnableAudioVideoSwitchPatch {
     }
 
     /**
-     * modified by lavinhoque33, 2026-10-17: the fork's "Disable music video in album" patch can
-     * redirect a known album music video to its song on a click or long click of the same toggle.
+     * The fork's "Disable music video in album" patch can redirect a known album music video
+     * to its song on a click or long click of the same toggle.
      * When it already resolved the song for the current video, do not swallow that touch.
      */
     private static boolean albumRedirectOwnsTap() {
@@ -183,14 +210,24 @@ public final class EnableAudioVideoSwitchPatch {
                     Logger.printDebug(() -> "audio/video switch: no current video");
                     return;
                 }
-                String targetId = resolveCounterpart(currentId);
+                String known = switchedVersions.get(currentId);
+                String targetId = known != null ? known : resolveCounterpart(currentId);
+                Logger.printDebug(() -> "audio/video switch: interceptor " + currentId + " -> " + targetId
+                        + " lookup=" + (known == null ? "search" : "cache"));
                 if (targetId == null || !isVideoId(targetId) || targetId.equals(currentId)) {
                     Logger.printDebug(
                             () -> "audio/video switch: no counterpart for " + currentId);
                     return;
                 }
-                if (!switchInQueue(context, access, currentId, targetId)) {
-                    openWatch(context, targetId);
+                rememberSwitch(currentId, targetId);
+                AutoSongVersionPatch.keepChosenVersion(targetId, currentId);
+                boolean switched = switchInQueue(context, access, currentId, targetId);
+                Logger.printDebug(() -> "audio/video switch: interceptor queue result=" + switched
+                        + " " + currentId + " -> " + targetId);
+                if (!switched
+                        && currentId.equals(currentQueueVideoId(access))
+                        && !Thread.currentThread().isInterrupted()) {
+                    openWatch(context, access, currentId, targetId);
                 }
             } catch (Exception ex) {
                 Logger.printException(() -> "openCounterpart failure", ex);
@@ -198,6 +235,22 @@ public final class EnableAudioVideoSwitchPatch {
                 busy = false;
             }
         });
+    }
+
+    @Nullable
+    static QueueAccess capturedQueue() {
+        return queue.get();
+    }
+
+    static void notifyQueueChanged() {
+        synchronized (queueChanged) {
+            queueChanged.notifyAll();
+        }
+    }
+
+    static void rememberSwitch(String firstId, String secondId) {
+        switchedVersions.put(firstId, secondId);
+        switchedVersions.put(secondId, firstId);
     }
 
     /**
@@ -219,13 +272,15 @@ public final class EnableAudioVideoSwitchPatch {
     /**
      * Returns false before playback advanced, so the caller can fall back to a watch deep link.
      */
-    private static boolean switchInQueue(
+    static boolean switchInQueue(
             Context context,
             @Nullable QueueAccess access,
             String currentId,
             String targetId
     ) {
         if (access == null) return false;
+        CrossfadeManager.ModeSwitch modeSwitch = null;
+        String finishReason = "queue-switch-failed";
         try {
             if (!access.patch_atvLocal()) {
                 Logger.printDebug(() -> "audio/video switch: queue is not local");
@@ -256,10 +311,15 @@ public final class EnableAudioVideoSwitchPatch {
                 return false;
             }
 
-            dispatchMediaKeyEvent(context);
+            modeSwitch = dispatchModeSwitch(access, currentId, targetId, request -> {
+                if (!CrossfadeManager.playNextForModeSwitch(request)) dispatchMediaKeyEvent(context);
+            });
+            finishReason = "queue-switch-unacknowledged";
+            CrossfadeManager.ModeSwitch intent = modeSwitch;
             if (!await(
                     () -> access.patch_atvCurrentIndex() == index + 1
-                            && targetId.equals(videoAt(access, index + 1)),
+                            && targetId.equals(videoAt(access, index + 1))
+                            && CrossfadeManager.hasModeSwitchLoaded(intent),
                     3_000
             )) {
                 Logger.printDebug(
@@ -267,11 +327,14 @@ public final class EnableAudioVideoSwitchPatch {
                 return false;
             }
 
+            finishReason = "queue-switch-loaded";
             removePrevious(access, currentId);
             return true;
         } catch (Exception ex) {
             Logger.printException(() -> "switchInQueue failure", ex);
             return false;
+        } finally {
+            endModeSwitch(modeSwitch, finishReason);
         }
     }
 
@@ -308,14 +371,14 @@ public final class EnableAudioVideoSwitchPatch {
         }
     }
 
-    private static String videoAt(QueueAccess access, int index) {
+    static String videoAt(QueueAccess access, int index) {
         Object[] items = access.patch_atvItems();
         if (items == null || index < 0 || index >= items.length) return null;
         return access.patch_atvVideoId(items[index]);
     }
 
     /** Native queue mutations only ever run on YouTube Music's own queue executor. */
-    private static void runOnQueueExecutor(Executor executor, Runnable task)
+    static void runOnQueueExecutor(Executor executor, Runnable task)
             throws InterruptedException {
         CountDownLatch latch = new CountDownLatch(1);
         executor.execute(() -> {
@@ -332,8 +395,8 @@ public final class EnableAudioVideoSwitchPatch {
         }
     }
 
-    @SuppressWarnings({"BooleanMethodIsAlwaysInverted", "BusyWait"})
-    private static boolean await(Condition condition, long timeoutMs) {
+    @SuppressWarnings({"BooleanMethodIsAlwaysInverted", "WaitWhileNotSynced"})
+    static boolean await(Condition condition, long timeoutMs) {
         long deadline = SystemClock.uptimeMillis() + timeoutMs;
         while (true) {
             try {
@@ -342,9 +405,12 @@ public final class EnableAudioVideoSwitchPatch {
                 Logger.printException(() -> "audio/video switch: queue poll failed", ex);
                 return false;
             }
-            if (SystemClock.uptimeMillis() >= deadline) return false;
+            long remaining = deadline - SystemClock.uptimeMillis();
+            if (remaining <= 0) return false;
             try {
-                Thread.sleep(50);
+                synchronized (queueChanged) {
+                    queueChanged.wait(Math.min(remaining, MAX_WAIT_FOR_QUEUE_CHANGE_MILLISECONDS));
+                }
             } catch (InterruptedException ex) {
                 Thread.currentThread().interrupt();
                 return false;
@@ -371,9 +437,43 @@ public final class EnableAudioVideoSwitchPatch {
         }
     }
 
-    private static void openWatch(Context context, String videoId) {
-        Utils.runOnMainThread(() -> {
+    private static CrossfadeManager.ModeSwitch dispatchModeSwitch(
+            QueueAccess access, String currentId, String targetId,
+            Consumer<CrossfadeManager.ModeSwitch> dispatch) throws Exception {
+        CrossfadeManager.ModeSwitch[] request = {null};
+        FutureTask<CrossfadeManager.ModeSwitch> task = new FutureTask<>(() -> {
+            if (!currentId.equals(currentQueueVideoId(access))) return null;
+
+            request[0] = CrossfadeManager.beginModeSwitch(currentId, targetId);
             try {
+                dispatch.accept(request[0]);
+                return request[0];
+            } finally {
+                CrossfadeManager.modeSwitchDispatched(request[0]);
+            }
+        });
+        Utils.runOnMainThread(task);
+
+        try {
+            return task.get(5, TimeUnit.SECONDS);
+        } catch (Exception ex) {
+            // Cancel a dispatch which has not started; main-thread cleanup also covers a running task.
+            task.cancel(false);
+            Utils.runOnMainThread(() -> CrossfadeManager.endModeSwitch(request[0], "dispatch-failed"));
+            if (ex instanceof InterruptedException) Thread.currentThread().interrupt();
+            throw ex;
+        }
+    }
+
+    private static void endModeSwitch(CrossfadeManager.ModeSwitch intent, String reason) {
+        Utils.runOnMainThread(() -> CrossfadeManager.endModeSwitch(intent, reason));
+    }
+
+    private static void openWatch(Context context, QueueAccess access, String currentId, String videoId) {
+        CrossfadeManager.ModeSwitch modeSwitch = null;
+        String finishReason = "watch-switch-failed";
+        try {
+            modeSwitch = dispatchModeSwitch(access, currentId, videoId, request -> {
                 Intent intent = new Intent(
                         Intent.ACTION_VIEW,
                         Uri.parse("https://music.youtube.com/watch?v=" + videoId)
@@ -384,10 +484,17 @@ public final class EnableAudioVideoSwitchPatch {
                 }
                 context.startActivity(intent);
                 Logger.printDebug(() -> "audio/video switch: opened " + videoId);
-            } catch (Exception ex) {
-                Logger.printException(() -> "openWatch failure", ex);
-            }
-        });
+            });
+
+            CrossfadeManager.ModeSwitch intent = modeSwitch;
+            finishReason = await(() -> videoId.equals(currentQueueVideoId(queue.get()))
+                    && CrossfadeManager.hasModeSwitchLoaded(intent), 3_000)
+                    ? "watch-switch-loaded" : "watch-switch-unacknowledged";
+        } catch (Exception ex) {
+            Logger.printException(() -> "openWatch failure", ex);
+        } finally {
+            endModeSwitch(modeSwitch, finishReason);
+        }
     }
 
     @Nullable
@@ -426,7 +533,7 @@ public final class EnableAudioVideoSwitchPatch {
                 best = item;
             }
         }
-        String resolved = best == null ? null : best.videoId;
+        String resolved = best == null || bestScore < MIN_MATCH_SCORE ? null : best.videoId;
         final double resolvedScore = bestScore;
         Logger.printDebug(() -> "audio/video switch: " + currentId + " (" + resolvedType
                 + ") -> " + resolved + " score: " + resolvedScore);
@@ -460,7 +567,7 @@ public final class EnableAudioVideoSwitchPatch {
     }
 
     private static double normalizeScore(String left, String right) {
-        if (left.contains(right) || right.contains(left)) return 1.0d;
+        if (left.contains(right) || right.contains(left)) return FULL_MATCH_SCORE;
         Set<String> a = new LinkedHashSet<>(Arrays.asList(left.split(" ")));
         Set<String> b = new LinkedHashSet<>(Arrays.asList(right.split(" ")));
         if (a.isEmpty() || b.isEmpty()) return 0.0d;
@@ -471,9 +578,10 @@ public final class EnableAudioVideoSwitchPatch {
         return (double) common / Math.min(a.size(), b.size());
     }
 
-    private static String normalize(String value) {
+    static String normalize(String value) {
         String text = stripDecorations(value).toLowerCase(Locale.ROOT);
-        text = text.replaceAll("[^a-z0-9 ]+", " ");
+        // Keep letters of every script.
+        text = text.replaceAll("[^\\p{L}\\p{N} ]+", " ");
         return text.replaceAll("\\s+", " ").trim();
     }
 
@@ -513,7 +621,7 @@ public final class EnableAudioVideoSwitchPatch {
         if (existing.title.isEmpty()) existing.title = nearestTitle;
     }
 
-    private static String musicVideoType(JSONObject endpoint) {
+    static String musicVideoType(JSONObject endpoint) {
         JSONObject configs = endpoint.optJSONObject("watchEndpointMusicSupportedConfigs");
         if (configs == null) return "";
         JSONObject musicConfig = configs.optJSONObject("watchEndpointMusicConfig");
@@ -593,7 +701,7 @@ public final class EnableAudioVideoSwitchPatch {
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    private static boolean isVideoId(String value) {
+    static boolean isVideoId(String value) {
         final int length = value.length();
         if (length != 11) {
             return false;

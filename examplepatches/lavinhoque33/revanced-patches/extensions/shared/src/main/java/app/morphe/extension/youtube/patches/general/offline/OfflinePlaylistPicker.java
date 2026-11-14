@@ -11,12 +11,14 @@
 package app.morphe.extension.youtube.patches.general.offline;
 
 import static app.morphe.extension.shared.utils.StringRef.str;
+import static app.morphe.extension.shared.utils.BaseThemeUtils.isDarkModeEnabled;
 
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.RippleDrawable;
 import android.util.LruCache;
 import android.view.Gravity;
@@ -122,10 +124,27 @@ final class OfflinePlaylistPicker {
         button.setEllipsize(null);
         button.setMinHeight(Dim.dp(48));
         button.setMinimumHeight(Dim.dp(48));
+        button.setMinWidth(Dim.dp(48));
+        button.setMinimumWidth(Dim.dp(48));
         button.setPadding(Dim.dp16, Dim.dp8, Dim.dp16, Dim.dp8);
 
-        int color = button.getCurrentTextColor();
-        int ripple = (color & 0x00FFFFFF) | 0x33000000;
+        boolean dark = isDarkModeEnabled();
+        int text = dark == primary ? Color.BLACK : Color.WHITE;
+        int disabledText = dark == primary ? 0xFF606060 : 0xFFB8B8B8;
+        int[][] states = {{-android.R.attr.state_enabled}, {}};
+        button.setTextColor(new ColorStateList(states, new int[]{disabledText, text}));
+
+        if (!primary) {
+            GradientDrawable surface = new GradientDrawable();
+            surface.setCornerRadius(Dim.dp(20));
+            surface.setColor(new ColorStateList(states, dark
+                    ? new int[]{0xFF383838, 0xFF484848}
+                    : new int[]{0xFFE5E5E5, 0xFFDDDDDD}));
+            surface.setStroke(Dim.dp(1), dark ? 0xFF888888 : 0xFF777777);
+            button.setBackground(surface);
+        }
+
+        int ripple = (text & 0x00FFFFFF) | 0x22000000;
         button.setBackground(new RippleDrawable(ColorStateList.valueOf(ripple), button.getBackground(), null));
         return button;
     }
@@ -133,7 +152,6 @@ final class OfflinePlaylistPicker {
     private void changed() {
         download.setText(str("revanced_offline_batch_download_selected", selection.selectedCount()));
         download.setEnabled(selection.selectedCount() > 0);
-        download.setAlpha(download.isEnabled() ? 1f : 0.38f);
         quality.setText(str("revanced_offline_batch_global_quality", heightLabel(selection.heightLimit)));
         adapter.notifyDataSetChanged();
     }
@@ -220,10 +238,14 @@ final class OfflinePlaylistPicker {
             format.setAlpha(0.7f);
             labels.addView(format);
             addView(labels, new LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-            LayoutParams editParams = new LayoutParams(
+            LinearLayout editRow = new LinearLayout(activity);
+            LayoutParams editParams = new LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+            editRow.addView(edit, editParams);
+            editRow.addView(new View(activity), new LayoutParams(0, 1, 1f));
+            LayoutParams editRowParams = new LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            editParams.topMargin = Dim.dp8;
-            labels.addView(edit, editParams);
+            editRowParams.topMargin = Dim.dp8;
+            labels.addView(editRow, editRowParams);
         }
 
         void bind(int position) {

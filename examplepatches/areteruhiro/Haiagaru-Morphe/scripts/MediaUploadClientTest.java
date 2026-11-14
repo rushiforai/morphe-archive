@@ -107,6 +107,10 @@ public final class MediaUploadClientTest {
             Fake broken=new Fake(response);broken.broken=true;
             fails(()->new MediaUploadClient(broken).upload("imgpile",png,"image/png","fixture-key",false),"write error");
             check(broken.replies.size()==1 && broken.replies.get(0).disconnected,"failed POST not retried");
+            Fake oversized=new Fake("<html><title>413 Request Entity Too Large</title></html>");oversized.status=413;
+            try {new MediaUploadClient(oversized).upload("imgpile",png,"image/png","fixture-key",false);throw new AssertionError("413 accepted");}
+            catch(MediaUploadSizeException e){check(e.getMessage().equals("ファイルの容量が大きすぎます"),"HTML 413 becomes a capacity error before JSON parsing");}
+            check(oversized.replies.size()==1&&oversized.replies.get(0).disconnected,"oversized upload not retried");
             String home="<meta content=\"fixtureCSRF==\" name=\"csrf-token\" />";
             String token="{\"ok\":true,\"token_id\":\"1234\",\"token_secret\":\"fixture-secret\",\"gallery_id\":\"1234\",\"gallery_secret\":\"fixture-gallery-secret\"}";
             String box="{\"files\":[{\"id\":\"ABC\",\"image_url\":\"https://images2.imgbox.com/ab/cd/ABC_o.png\"}]}";

@@ -3,7 +3,7 @@ group = "app.xiondigital"
 patches {
     about {
         name = "XiONDiGiTaL Patches"
-        description = "Patches for Tandem (net.tandem)"
+        description = "Patches for Tandem (net.tandem) and Amazon A to Z (com.amazon.atozm)"
         source = "git@github.com:XiONDiGiTaL/MorphePatches.git"
         author = "XiONDiGiTaL"
         contact = "https://xiondigital.net"

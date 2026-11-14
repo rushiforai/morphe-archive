@@ -99,6 +99,9 @@ internal object Constants {
             AppTarget(
                 version = "12.42.0-prod.01"
             ),
+            AppTarget(
+                version = "12.43.0-prod.01"
+            ),
         )
     )
 }

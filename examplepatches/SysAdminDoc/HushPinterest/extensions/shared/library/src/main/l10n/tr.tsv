@@ -695,3 +695,13 @@ Takes Pinterest's AI Assistant out of search, boards and pins. Search works as u
 # context: a Feed switch from the Filter feed patch. It takes pins the person has already saved to a board out of their home feed only; boards and search still show them. The title is also the name of that part of the patch in the build report.
 Hide pins you've already saved	Kaydettiğin pinleri gizle
 Takes pins you've saved out of your home feed. Your boards and search still show them.	Kaydettiğin pinleri ana akışından kaldırır. Panoların ve arama onları göstermeye devam eder.
+# context: toast when Download pin can't save a streamed video on the current network
+Your download settings block this network. Try again on Wi-Fi.	İndirme ayarların bu ağı engelliyor. Wi-Fi'da yeniden dene.
+# context: a Feed switch from the Filter feed patch, under Hide pins you've already saved. It takes Pinterest's own suggestion rows off the Home feed ("More ideas for your board" and "Inspired by your interests") and the "See more like this?" bubble Pinterest shows on a pin. The title is also the name of that part of the patch in the build report.
+Hide Home suggestions	Ana akış önerilerini gizle
+Takes the "More ideas for your board" and "Inspired by your interests" rows off Home, and the "See more like this?" bubble off pins. The change shows the next time Home loads.	"Panon için daha fazla fikir" ve "İlgi alanlarından ilham alanlar" satırlarını ana akıştan, "Bunun gibi daha fazla Pin görmek ister misiniz?" balonunu da Pinlerden kaldırır. Değişiklik ana akış bir sonraki yüklendiğinde görünür.
+# context: the name of one part of the Filter feed patch in the build report: the hook that keeps Pinterest's "See more like this?" bubble off pins. "See more like this?" is Pinterest's own text for that bubble, so use the app's own translation of it.
+See more like this? bubble	"Bunun gibi daha fazla Pin görmek ister misiniz?" balonu
+# context: a Notifications switch from the Hide Inbox updates patch. It leaves the Updates section (Pinterest's activity and pin suggestions) out of the Inbox screen, and messages stay. "Updates" and "Inbox" are the names Pinterest gives them, so use the app's own translations.
+Hide Inbox updates	Gelen Kutusu güncellemelerini gizle
+Leaves the Updates section out of your Inbox, and Pinterest doesn't load it. Your messages stay. The change shows the next time you open the Inbox.	Gelen Kutusu'ndaki Güncellemeler bölümünü dışarıda bırakır ve Pinterest onu yüklemez. Mesajların yerinde kalır. Değişiklik Gelen Kutusu'nu bir sonraki açışında görünür.

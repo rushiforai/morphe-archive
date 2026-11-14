@@ -74,7 +74,7 @@ public class UiHooksTest {
             Settings.HIDE_CLOSEUP_MORE, Settings.HIDE_CLOSEUP_REMIX, Settings.HIDE_CLOSEUP_VISIT_SITE,
             Settings.SMALLER_SAVE_BUTTON,
             Settings.HIDE_PIN_MENU_COLLAGE, Settings.HIDE_PIN_MENU_VISUAL_SEARCH, Settings.HIDE_PIN_MENU_PIN_BOOST,
-            Settings.HIDE_COMMENTS, Settings.HIDE_SUGGESTED_REPLIES, Settings.HIDE_TOPIC_SUGGESTIONS, Settings.QUIET_EMAIL_REMINDER,
+            Settings.HIDE_COMMENTS, Settings.HIDE_SUGGESTED_REPLIES, Settings.HIDE_TOPIC_SUGGESTIONS, Settings.HIDE_INBOX_UPDATES, Settings.QUIET_EMAIL_REMINDER,
             Settings.HIDE_SURVEY_PROMPTS, Settings.HIDE_SAVE_TOASTS, Settings.ORIGINAL_IMAGES, Settings.SHOW_POSTED_DATE,
             Settings.DISABLE_UPDATE_NAG
     }; }
@@ -90,6 +90,7 @@ public class UiHooksTest {
         assertFalse(UiHooks.hideScreenshotShare());
         assertFalse(UiHooks.hideAssistant());
         assertFalse(UiHooks.quietEmailReminder());
+        assertFalse(UiHooks.hideInboxUpdates());
         assertFalse(UiHooks.hideSurveyPrompts());
         assertFalse(UiHooks.hideSponsoredPolls());
         assertFalse(UiHooks.disableUpdateNag());
@@ -125,15 +126,18 @@ public class UiHooksTest {
     @Test public void screenshotAndOptionalRemindersRestoreWhenPaused() {
         Settings.HIDE_SCREENSHOT_SHARE.save(true);
         Settings.QUIET_EMAIL_REMINDER.save(true);
+        Settings.HIDE_INBOX_UPDATES.save(true);
         Settings.DISABLE_UPDATE_NAG.save(true);
         Settings.ORIGINAL_IMAGES.save(true);
         assertTrue(UiHooks.hideScreenshotShare());
         assertTrue(UiHooks.quietEmailReminder());
+        assertTrue(UiHooks.hideInboxUpdates());
         assertTrue(UiHooks.disableUpdateNag());
         assertTrue(UiHooks.originalImages());
         PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
         assertFalse(UiHooks.hideScreenshotShare());
         assertFalse(UiHooks.quietEmailReminder());
+        assertFalse(UiHooks.hideInboxUpdates());
         assertFalse(UiHooks.disableUpdateNag());
         assertFalse(UiHooks.originalImages());
         assertTrue(Settings.HIDE_SCREENSHOT_SHARE.savedValue());

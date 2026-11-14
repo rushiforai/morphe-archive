@@ -81,6 +81,7 @@ class NativeSettingsFixtureTest {
             val context = context(build)
             val plan = context.resolveNativeSettings()!!
             val originals = methods(context).associate { it.toString() to operations(it) }
+            val observers = context.resolveSettingsObserverFix(plan.builder.definingClass)!!.method.toString()
             val stock = plan.builder.body()
             val account = plan.rowIndex
             assertEquals(label("Account"), stock[account].ref())
@@ -152,10 +153,46 @@ class NativeSettingsFixtureTest {
                     }
                 }
             }
-            val changed = setOf(plan.builder.toString(), plan.click.toString()) +
+            val changed = setOf(plan.builder.toString(), plan.click.toString(), observers) +
                 SettingsPatchHosts.all().flatMap { it.methods.toList() }.map { it.toString() }
             for (method in methods(context).filter { it.toString() in originals && it.toString() !in changed })
                 assertEquals("retains $method", originals.getValue(method.toString()), operations(method))
+        }
+    }
+
+    /**
+     * Issue #76: Settings built its profile and suggestion observers on the global notification
+     * center, where Telegram never posts them, so a suggestion card stayed after Yes. The observer
+     * set now gets the fragment's own account center and nothing else in the method moves.
+     */
+    @Test fun settingsPageObservesItsAccountCenter() {
+        for (build in Fixtures.declaredBuilds()) {
+            val context = context(build)
+            val owner = context.resolveNativeSettings()!!.builder.definingClass
+            val fix = context.resolveSettingsObserverFix(owner)
+            assertNotNull("$build: Settings' observer set on the global center", fix)
+            val center = fix!!.getter.returnType
+            val self = fix.method.implementation!!.registerCount - 1
+            val stock = fix.method.body()
+            val global = stock[fix.index]
+            assertEquals(Opcode.INVOKE_STATIC, global.opcode)
+            assertTrue("$build: the observer set takes the global center", stock.subList(fix.index + 2, fix.index + 5).any {
+                it.opcode == Opcode.INVOKE_DIRECT && it.namedRegisters() == listOf(it.namedRegisters()[0],
+                    stock[fix.index + 1].namedRegisters().single(), self) })
+            val before = operations(fix.method, excluded = fix.index..fix.index)
+            assertEquals(emptyList<String>(), PatchLogCapture.warnings { settingsPatch.execute(context) })
+            val create = context.tgMutableClassDefBy(owner).methods.single { it.toString() == fix.method.toString() }
+            val call = create.body()[fix.index]
+            assertEquals(Opcode.INVOKE_VIRTUAL_RANGE, call.opcode)
+            assertEquals(fix.getter.origString(), call.ref())
+            assertEquals("$build: the fragment asks for its own center", listOf(self), call.namedRegisters())
+            assertEquals(Opcode.MOVE_RESULT_OBJECT, create.body()[fix.index + 1].opcode)
+            assertTrue("$build: no global center left in onFragmentCreate", create.body().none {
+                it.opcode == Opcode.INVOKE_STATIC && (it as ReferenceInstruction).reference.let { ref ->
+                    ref is MethodReference && ref.returnType == center && ref.parameterTypes.isEmpty() } })
+            assertEquals(before, operations(create, excluded = fix.index..fix.index))
+            // A page that already listens on its own center is left as it is.
+            assertNull(context.resolveSettingsObserverFix(owner))
         }
     }
 

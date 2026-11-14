@@ -2085,7 +2085,7 @@ API キーを取得するには、ここをタップしてください。"</stri
     <string name="revanced_override_video_download_button_title">[オフライン] ボタンを置換</string>
     <string name="revanced_patched_date_title">パッチ適用日時</string>
     <string name="revanced_patches_excluded"><font color="#EA4335">除外されています</font></string>
-    <string name="revanced_patches_included"><font color="#4CAF50">適用されています</font></string>
+    <string name="revanced_patches_included"><font color="#4CAF50">含まれています</font></string>
     <string name="revanced_playback_audio_pitch_sync">同期</string>
     <string name="revanced_playback_audio_pitch_sync_summary_off">音声のピッチを再生速度と同期します。</string>
     <string name="revanced_playback_audio_pitch_sync_summary_on">音声のピッチを再生速度と同期します。</string>
@@ -2153,7 +2153,6 @@ API キーを取得するには、ここをタップしてください。"</stri
     <string name="revanced_preference_screen_misc_title">その他</string>
     <string name="revanced_preference_screen_navigation_bar_summary">ナビゲーションバーのコンポーネントを非表示または表示します。</string>
     <string name="revanced_preference_screen_navigation_bar_title">ナビゲーションバー</string>
-    <string name="revanced_preference_screen_patch_information_summary">適用されたパッチに関する情報です。</string>
     <string name="revanced_preference_screen_player_buttons_summary">プレーヤー内のボタンを非表示または表示します。</string>
     <string name="revanced_preference_screen_player_buttons_title">プレーヤーボタン</string>
     <string name="revanced_preference_screen_player_flyout_menu_summary">プレーヤーのフライアウトメニューを非表示または変更します。</string>

@@ -217,11 +217,13 @@ final class OfflinePickerSheet {
                 items, foreground, this::isActive, onPick);
         header.addView(createFooter(footerText));
 
-        LinearLayout content = new PlaylistContent(activity);
-        content.addView(options, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
+        LinearLayout content = new PlaylistContent(activity, options, actions, list, footer);
+        content.addView(options, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         content.addView(actions, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        content.addView(list, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 2f));
+        content.addView(list, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         content.addView(footer, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         root.addView(content, new LinearLayout.LayoutParams(
@@ -530,10 +532,19 @@ final class OfflinePickerSheet {
                 root.getPaddingBottom() + Dim.dp8, Dim.dp(120));
     }
 
-    /** Measure fixed actions first, then share the remaining height between options and video rows. */
+    /** Use the options' natural height when possible, reserving fixed actions and a visible playlist row. */
     private static final class PlaylistContent extends LinearLayout {
-        PlaylistContent(Context context) {
+        private final ScrollView options;
+        private final View actions;
+        private final ListView list;
+        private final View footer;
+
+        PlaylistContent(Context context, ScrollView options, View actions, ListView list, View footer) {
             super(context);
+            this.options = options;
+            this.actions = actions;
+            this.list = list;
+            this.footer = footer;
             setOrientation(VERTICAL);
         }
 
@@ -543,7 +554,20 @@ final class OfflinePickerSheet {
             int available = MeasureSpec.getMode(heightMeasureSpec) == MeasureSpec.UNSPECIFIED
                     ? screenHeight : MeasureSpec.getSize(heightMeasureSpec);
             int height = Math.min(available, (int) (screenHeight * 0.85f));
+
+            int fixedHeight = naturalHeight(actions, widthMeasureSpec) + naturalHeight(footer, widthMeasureSpec);
+            int optionsHeight = OfflinePickerLayout.playlistOptionsHeight(height, fixedHeight,
+                    naturalHeight(options, widthMeasureSpec), naturalHeight(list, widthMeasureSpec));
+            options.getLayoutParams().height = optionsHeight;
+            list.getLayoutParams().height = Math.max(0, height - fixedHeight - optionsHeight);
+
             super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY));
+        }
+
+        private int naturalHeight(View child, int widthMeasureSpec) {
+            int width = getChildMeasureSpec(widthMeasureSpec, 0, ViewGroup.LayoutParams.MATCH_PARENT);
+            child.measure(width, MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
+            return child.getMeasuredHeight();
         }
     }
 }

@@ -160,7 +160,8 @@ final class SettingsUi {
     }
 
     TextView heading(String value) {
-        // The text is English on every phone, so English capitals: a Turkish phone's own would dot the I.
+        // English text gets English capitals, since a Turkish phone's own would dot the I. A translated section heading
+        // arrives already in its language's capitals (SettingsText.heading), which these leave as they are.
         TextView view = text(value.toUpperCase(java.util.Locale.ROOT), 12, heading, true);
         view.setLetterSpacing(0.055f);
         view.setAccessibilityHeading(true);

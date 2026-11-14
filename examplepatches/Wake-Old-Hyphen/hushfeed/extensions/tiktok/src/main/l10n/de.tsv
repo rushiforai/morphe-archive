@@ -7,12 +7,16 @@ Couldn't add the caption. Saving without it.	Beschreibung fehlt. Video wird ohne
 Dim when idle	Bei Inaktivität abdunkeln
 Dim when idle and shift	Bei Inaktivität abdunkeln und verschieben
 For OLED screens. After 5 seconds without a touch, the buttons, caption and tabs over the video dim to a quarter, and your next touch brings them back. Shift also moves everything on the feed a few pixels every 2 minutes.	Für OLED-Bildschirme. Nach 5 Sekunden ohne Berührung werden die Schaltflächen, die Beschreibung und die Tabs über dem Video auf ein Viertel abgedunkelt, und deine nächste Berührung holt sie zurück. Verschieben bewegt außerdem alles im Feed alle 2 Minuten um ein paar Pixel.
+Hashtags	Hashtags
 Importing new history ended Undo for the earlier clear. You can clear the imported history.	Durch den Import ist das Rückgängigmachen des früheren Löschens beendet. Du kannst den importierten Verlauf löschen.
 %1$d setting in that file can't be restored here and was skipped	%1$d Einstellung in der Datei kann hier nicht wiederhergestellt werden und wurde übersprungen
 %1$d settings in that file can't be restored here and were skipped	%1$d Einstellungen in der Datei können hier nicht wiederhergestellt werden und wurden übersprungen
 Import watch history	Wiedergabeverlauf importieren
 Keep the language picked in TikTok	In TikTok gewählte Sprache behalten
 Freeze TikTok's experiments	TikToks Experimente einfrieren
+Photos	Fotos
+Places	Orte
+Sounds	Sounds
 TikTok's servers keep sending it new settings, which is how it tests new layouts and features on people. With this on, TikTok keeps the ones it has now and ignores new ones. If something in TikTok stops working, turn this off so it can get fixes.	TikToks Server schicken ständig neue Einstellungen, so testet TikTok neue Layouts und Funktionen an Leuten. Ist das an, behält TikTok die aktuellen und ignoriert neue. Wenn in TikTok etwas nicht mehr funktioniert, schalte das aus, damit es Korrekturen bekommt.
 Nothing is playing to speed up	Es läuft gerade nichts zum Beschleunigen
 One language code, like en or es. Comments and captions TikTok translates come out in this language instead of the app's. Leave it empty to keep TikTok's choice.	Ein Sprachcode, zum Beispiel en oder es. Kommentare und Beschreibungen, die TikTok übersetzt, erscheinen in dieser Sprache statt in der Sprache der App. Lass das Feld leer, um TikToks Wahl zu behalten.
@@ -36,6 +40,8 @@ Translate into	Übersetzen in
 Type one language code here, like en.	Gib hier einen Sprachcode ein, zum Beispiel en.
 Use this account's TikTok JSON export, up to %1$s MB and %2$s entries. Dates without a time zone use this phone's time zone.	Wähle den TikTok-JSON-Export dieses Kontos mit höchstens %1$s MB und %2$s Einträgen. Datumsangaben ohne Zeitzone verwenden die Zeitzone dieses Telefons.
 Sign in to TikTok before importing watch history.	Melde dich bei TikTok an, bevor du den Wiedergabeverlauf importierst.
+Users	Nutzer
+Videos	Videos
 When TikTok starts and decides the phone's language changed, it forgets the language you picked in its settings and follows the phone. With this on, your pick stays. Counts from TikTok's next start.	Wenn TikTok startet und meint, die Sprache des Handys habe sich geändert, verwirft es die Sprache, die du in seinen Einstellungen gewählt hast, und folgt dem Handy. Ist das an, bleibt deine Wahl. Gilt ab dem nächsten Start von TikTok.
 Write the username and caption on the video	Benutzernamen und Beschreibung ins Video schreiben
 Writing the caption on the video	Beschreibung wird ins Video geschrieben
@@ -153,6 +159,26 @@ Forget the seen video.	Das gesehene Video vergessen.
 Forget the video @%2$s has seen.	Das Video vergessen, das @%2$s gesehen hat.
 Got it	Verstanden
 Hide profile shortcuts	Profil-Verknüpfungen ausblenden
+# context: Title of the checklist that hides tabs from the strip above a profile's videos
+Hide profile tabs	Profil-Tabs ausblenden
+# context: Note under that title. Reposts and Liked videos are two of the checklist's rows, and the checklist never takes away every tab
+Pick the tabs to hide from the strip above a profile's videos, such as Reposts or Liked videos. One tab always stays. Restart TikTok to apply this.	Wähle die Tabs, die über den Videos eines Profils ausgeblendet werden, etwa Reposts oder Gelikte Videos. Ein Tab bleibt immer. TikTok neu starten, damit das gilt.
+# context: Checklist row for the profile tab with the account's private videos (lock icon)
+Private videos	Private Videos
+# context: Checklist row for the profile tab with the videos the account reposted
+Reposts	Reposts
+# context: Checklist row for the profile tab with the account's saved videos (bookmark icon)
+Favorites	Favoriten
+# context: Checklist row for the profile tab with the account's sounds
+Music	Musik
+# context: Checklist row for the profile tab with the account's camera effects
+Effects	Effekte
+# context: Checklist row for the profile tab with the account's paid series and short dramas
+Series	Serien
+# context: Checklist row for the profile tab with the account's stickers
+Stickers	Sticker
+# context: Checklist row for the profile tab TikTok calls AI theater, with the account's AI-made videos
+AI theater	KI-Theater
 Hide profile shortcuts by name	Profil-Verknüpfungen nach Namen ausblenden
 Hide the status bar in LIVE rooms	Statusleiste in LIVE-Räumen ausblenden
 How much of a video you watch before it's hidden next time. Zero counts it after a few seconds.	Wie viel eines Videos du ansiehst, bevor es beim nächsten Mal ausgeblendet wird. Bei null zählt es nach wenigen Sekunden.
@@ -2018,6 +2044,10 @@ Hide Check your sources warnings	Warnungen „Prüfe deine Quellen“ ausblenden
 Hide the Check your sources banner TikTok puts across the top of some videos, and the prompt it shows when you share one.	Blende das Banner „Prüfe deine Quellen“ aus, das TikTok oben über manche Videos legt, und den Hinweis, den es beim Teilen eines solchen Videos zeigt.
 Keep offline videos until you delete them	Offline-Videos behalten, bis du sie löschst
 TikTok removes videos saved for offline viewing after a set time, sometimes only two days, watched or not. With this on they stay until you delete them in TikTok's Offline videos settings. TikTok can still clear watched ones when your phone is low on space.	TikTok entfernt für die Offline-Ansicht gespeicherte Videos nach einer festen Zeit, manchmal schon nach zwei Tagen, ob angesehen oder nicht. Ist das an, bleiben sie, bis du sie in TikToks Offline-Video-Einstellungen löschst. TikTok kann angesehene Videos trotzdem entfernen, wenn dein Telefon wenig Speicher hat.
+Delete watched offline videos	Angesehene Offline-Videos löschen
+Each time TikTok starts, deletes the offline videos you've already watched, so the next download fills their places with new ones. A video counts as watched once it's been on screen.	Löscht bei jedem Start von TikTok die Offline-Videos, die du schon angesehen hast, damit der nächste Download ihre Plätze mit neuen füllt. Ein Video gilt als angesehen, sobald es auf dem Bildschirm war.
+1 unwatched offline video left	1 ungesehenes Offline-Video übrig
+%1$d unwatched offline videos left	%1$d ungesehene Offline-Videos übrig
 Hide Thoughts on profiles	Thoughts auf Profilen ausblenden
 Hide the Thoughts bubble TikTok shows above a profile picture, and the prompt to share one on your own profile. Restart TikTok to apply this.	Die Thoughts-Blase ausblenden, die TikTok über einem Profilbild zeigt, und auf deinem eigenen Profil die Aufforderung, einen zu teilen. TikTok neu starten, damit das gilt.
 Turn on Thoughts	Thoughts einschalten
@@ -2358,7 +2388,7 @@ Expanded	Ausgeklappt
 Collapsed	Eingeklappt
 This setting isn't available. Search for another setting.	Diese Einstellung ist nicht verfügbar. Suche nach einer anderen Einstellung.
 Hide the Hushfeed row	Hushfeed-Zeile ausblenden
-Take Hushfeed out of TikTok's Settings and privacy. To open these settings, press and hold For You at the top of the feed, or Home if Long-press Home for Hushfeed settings is on.	Nimmt Hushfeed aus TikToks Einstellungen und Datenschutz. Um diese Einstellungen zu öffnen, halte Für dich oben im Feed gedrückt, oder Startseite, wenn Startseite lange drücken für Hushfeed-Einstellungen an ist.
+Take Hushfeed out of TikTok's Settings and privacy. To open these settings, press and hold For You at the top of the feed, or Home if Long-press Home for Hushfeed settings is on. If neither press can open them, the row stays.	Nimmt Hushfeed aus TikToks Einstellungen und Datenschutz. Um diese Einstellungen zu öffnen, halte Für dich oben im Feed gedrückt, oder Startseite, wenn Startseite lange drücken für Hushfeed-Einstellungen an ist. Kann keins von beiden sie öffnen, bleibt die Zeile.
 Open the search page	Suchseite öffnen
 Search didn't open. Restart TikTok and try again.	Suche nicht geöffnet. Starte TikTok neu, dann nochmal.
 Fold the search into a button	Suche in einen Knopf falten
@@ -2661,6 +2691,18 @@ TikTok tests more than one set of icons for the bottom bar. Pick one here, or le
 New style 1	Neuer Stil 1
 # context: Choice value for the bottom bar's icons, TikTok's other newer icon set
 New style 2	Neuer Stil 2
+# context: Row title of the Feed tabs choice that sets how tall the bottom bar is
+Bottom bar height	Höhe der unteren Leiste
+# context: Note under that choice
+Videos and the other tabs make room for the bar at its new height. With the tab names hidden, the icons fit the shorter bars best.	Videos und die anderen Tabs machen der Leiste in ihrer neuen Höhe Platz. Mit ausgeblendeten Tab-Namen passen die Symbole am besten in die niedrigeren Leisten.
+# context: Choice value for the bottom bar's height, the lowest of the five
+Shorter	Sehr niedrig
+# context: Choice value for the bottom bar's height, a little lower than TikTok's
+Short	Niedrig
+# context: Choice value for the bottom bar's height, a little higher than TikTok's
+Tall	Hoch
+# context: Choice value for the bottom bar's height, the highest of the five
+Taller	Sehr hoch
 # context: Row title of the Feed tabs switch that adds Friends to the row of tabs along the top of the feed
 Friends in the top tabs	Freunde in den oberen Tabs
 # context: Summary under that switch; Friends and Following are TikTok's tab names
@@ -2721,3 +2763,9 @@ Continue	Weiter
 # context: The button on that screen that sends TikTok to the background instead
 Leave TikTok	TikTok verlassen
 You can continue now.	Du kannst jetzt weitermachen.
+# context: A checklist in Feed filter of the tabs along the top of TikTok's search results (Top, Shop, LIVE, Places...)
+Hide search result tabs	Suchergebnis-Tabs ausblenden
+Pick the tabs to remove from the top of the search results, such as Shop, LIVE or Places. The list holds the tabs TikTok has shown you, and Top always stays.	Wähle die Tabs aus, die oben in den Suchergebnissen verschwinden sollen, etwa Shop, LIVE oder Orte. Die Liste enthält die Tabs, die TikTok dir gezeigt hat, und Top bleibt immer.
+# context: Shown in that checklist before TikTok has served any search tabs on this phone
+No search tabs have been seen yet	Noch keine Such-Tabs gesehen
+Search for something once, then return here to choose its tabs.	Suche einmal nach etwas und komm dann hierher zurück, um die Tabs auszuwählen.

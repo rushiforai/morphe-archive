@@ -18,6 +18,7 @@ val optOutOfDataSalePatch = bytecodePatch(
     name = "Opt out of data sale & sharing",
     description = "Rejects all optional cookies on the NPR web pages inside the app and hides the cookie banner.",
 ) {
+    category("Privacy")
     compatibleWith(Constants.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")

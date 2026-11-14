@@ -125,9 +125,15 @@ public class PinMediaTest {
         pin.videos.list.clear();
         pin.images.put("orig", new Image("https://i.pinimg.com/originals/thumbnail.jpg", 2000, 2000));
         assertNull(PinMedia.source(pin));
+        // With no MP4 at all, the stream is saved and joined into one (#27).
         pin.isVideo = null;
         pin.videos.list.put("hls", new Image("https://v.pinimg.com/videos/master.m3u8", 3840, 2160));
-        assertNull(PinMedia.source(pin));
+        PinMedia.Source stream = PinMedia.source(pin);
+        assertEquals("https://v.pinimg.com/videos/master.m3u8", stream.url);
+        assertTrue(stream.stream);
+        assertEquals("video/mp4", stream.mime);
+        assertEquals(".mp4", stream.suffix);
+        assertFalse(PinMedia.sourceUrl("https://v.pinimg.com/videos/large.mp4", true).stream);
     }
 
     @Test public void mapModelsAndMissingDimensionAlternativesAreSupported() {
@@ -227,13 +233,24 @@ public class PinMediaTest {
                 "url", "https://outside.example/source.jpg")))).refusal);
         assertEquals(PinMedia.Refusal.MP4_MISSING, PinMedia.resolve(Map.of("id", "123", "is_video", true,
                 "images", Map.of("orig", Map.of("url", "https://i.pinimg.com/thumbnail.jpg")))).refusal);
-        for (String suffix : new String[]{"m3u8", "mpd"}) {
-            PinMedia.Resolution adaptive = PinMedia.resolve(Map.of("id", "123", "videos", Map.of("video_list", Map.of(
-                    "adaptive", Map.of("url", "https://v.pinimg.com/master." + suffix)))));
-            assertEquals(PinMedia.Refusal.ADAPTIVE_VIDEO, adaptive.refusal);
-            assertNull(adaptive.source);
-            assertNull(adaptive.urlType);
-        }
+        PinMedia.Resolution adaptive = PinMedia.resolve(Map.of("id", "123", "videos", Map.of("video_list", Map.of(
+                "adaptive", Map.of("url", "https://v.pinimg.com/master.mpd")))));
+        assertEquals(PinMedia.Refusal.ADAPTIVE_VIDEO, adaptive.refusal);
+        assertNull(adaptive.source);
+        assertNull(adaptive.urlType);
+        // An HLS stream is saved by joining its parts (#27). Its link is the playlist's.
+        PinMedia.Resolution streamed = PinMedia.resolve(Map.of("id", "123", "videos", Map.of("video_list", Map.of(
+                "adaptive", Map.of("url", "https://v.pinimg.com/master.mpd"),
+                "hls", Map.of("url", "https://v.pinimg.com/videos/iht/hls/0b/b2/master.m3u8", "width", 720, "height", 1280)))));
+        assertNull(streamed.refusal);
+        assertTrue(streamed.source.stream);
+        assertEquals("https://v.pinimg.com/videos/iht/hls/0b/b2/master.m3u8", streamed.source.url);
+        assertEquals(HlsPlaylist.TYPE, streamed.urlType);
+        assertEquals(Integer.valueOf(720), streamed.width);
+        assertEquals(Integer.valueOf(1280), streamed.height);
+        // Off the media host, a playlist is no source.
+        assertNull(PinMedia.resolve(Map.of("id", "123", "videos", Map.of("video_list", Map.of(
+                "hls", Map.of("url", "https://outside.example/master.m3u8"))))).source);
     }
 
     @Test public void unknownModelsDoNotGetAResolutionOrRefusal() {

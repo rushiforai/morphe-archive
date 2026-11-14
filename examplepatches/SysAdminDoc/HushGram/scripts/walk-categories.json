@@ -102,6 +102,7 @@
           "Hide Follow on feed posts",
           "Hide captions",
           "Hide the audio icon on posts",
+          "Auto scroll in Home",
           "Keep Home's top bar",
           "Hide activity bubbles",
           "Hide Made with Edits",
@@ -315,7 +316,8 @@
           "Swipe left to open the profile",
           "Keep the tab bar on a reel's profile",
           "Find the reel you came from",
-          "Open reel links on that reel"
+          "Open reel links on that reel",
+          "Control the reel above comments"
         ]
       },
       "anchors": [
@@ -525,6 +527,24 @@
         ]
       },
       "anchors": [
+        {
+          "title": "About this account button",
+          "when": {
+            "op": "any",
+            "patches": [
+              "Save profile picture"
+            ]
+          }
+        },
+        {
+          "title": "Keep profile history",
+          "when": {
+            "op": "any",
+            "patches": [
+              "Save profile picture"
+            ]
+          }
+        },
         {
           "title": "Show if a profile follows you",
           "when": {
@@ -742,7 +762,7 @@
       ]
     },
     {
-      "id": "settings-viewing-history",
+      "id": "settings-viewinghistory",
       "title": "Viewing history",
       "builder": "ViewingHistoryCategory",
       "page": true,

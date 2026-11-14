@@ -688,7 +688,7 @@ Your list of people, Pages and sites to hide will be empty.	要隱藏的人物�
 Your list of people, Pages and sites to hide will hold %1$d entry.	要隱藏的人物、粉絲專頁與網站清單將包含 %1$d 個項目。
 Your list of people, Pages and sites to hide will hold %1$d entries.	要隱藏的人物、粉絲專頁與網站清單將包含 %1$d 個項目。
 # context: summary of that switch; the keep list is the second list under it, and a settings file is the one Export settings writes
-Hides posts containing a word or phrase from your list below. Words that keep a post win over it. Your words stay on this phone unless you export them.	隱藏包含下方清單中字詞或片語的貼文。「保留貼文的字詞」優先。除非匯出，否則字詞只儲存在這支手機上。
+Hides posts containing a word or phrase from your list below. Words that keep a post win over it. Your words stay on this phone unless you export them. Posts on profiles, Pages and in groups go too, and Reels tab reels go by their captions.	隱藏包含下方清單中字詞或片語的貼文。「保留貼文的字詞」優先。除非匯出，否則字詞只儲存在這支手機上。個人檔案、粉絲專頁和社團中的貼文也會被隱藏，「Reels」分頁中的 Reels 則依說明文字篩選。
 # context: title of the row and dialog holding the list of words and phrases that hide a post
 Words to hide	要隱藏的字詞
 # context: title of the row and dialog holding the list of words and phrases that keep a post even when it has a word to hide
@@ -1406,7 +1406,7 @@ Hides posts with a photo or album, including shares.	隱藏包含相片或相簿
 # context: summary of the Hide video posts switch
 Hides posts with a video, including shares. Reels in the feed have their own switch.	隱藏包含影片的貼文，包含分享的內容。動態消息中的 Reels 有獨立的開關。
 # context: summary of the Hide link posts switch
-Hides posts that share a link to a website, with its preview card.	隱藏分享網站連結並帶有預覽卡片的貼文。
+Hides posts that share a link to a website, with its preview card. On profiles, Pages, groups and the Reels tab, a post or reel whose words name a website goes too.	隱藏分享網站連結並帶有預覽卡片的貼文。在個人檔案、粉絲專頁、社團和「Reels」分頁中，文字含有網站網址的貼文或 Reels 也會被隱藏。
 # context: summary of the Hide posts on a colored background switch
 Hides short posts shown as big text on a colored background.	隱藏以彩色背景與大字顯示的短貼文。
 # context: switch title under News feed: hides posts that share someone else's post, the ones Facebook heads "shared a post"; use Facebook's own word for a shared post in this language
@@ -1783,6 +1783,16 @@ Leaving Facebook doesn't open the window. Tap Picture-in-picture in a reel's Mor
 Picture-in-picture button	子母畫面按鈕
 # context: summary of that switch; "the window" is the small picture-in-picture window
 Shows a small button at the left edge of a reel or video that has the window ready. Tap it to open the window right away. Works with Picture-in-picture on.	在已準備好小視窗的 Reels 或影片左側邊緣顯示小按鈕，點按即可立即開啟視窗。需啟用「子母畫面」。
+# context: switch title under Playback; on, a video you started keeps its sound after you leave Facebook; also the label of a headphones button in the picture-in-picture window
+Keep playing in the background	在背景繼續播放
+# context: summary of that switch; the notification is the one Facebook shows with the video's play and pause buttons
+A video you started with a tap keeps its sound after you leave Facebook, and its notification can pause it. Swiping the notification away or taking a call stops it.	你點按開始播放的影片在離開 Facebook 後仍會繼續播放聲音，可透過其通知暫停。滑掉通知或接聽來電會停止播放。
+# context: title of that notification when the video has none of its own
+Facebook video	Facebook 影片
+# context: switch title under Playback; on, the small picture-in-picture window gets a headphones button that keeps the sound playing after the window closes
+Background play button in the window	小視窗中的背景播放按鈕
+# context: summary of that switch; "the window" is the small picture-in-picture window
+Adds a headphones button to the picture-in-picture window. Tap it to close the window and keep the sound playing, with a notification to pause it.	在子母畫面小視窗中加入耳機按鈕。點按即可關閉小視窗並繼續播放聲音，同時顯示可暫停的通知。
 # context: switch title under Stories; it makes videos you post to your own Story ask for high quality when they upload
 Upload Stories in HD	以 HD 畫質上傳限時動態
 # context: summary of that switch; standard is the normal upload quality, high the better one
@@ -2006,6 +2016,10 @@ A video you open from Saved goes on to the next one in Saved when it ends or whe
 Skip "Are you still watching?"	略過「你還在看嗎？」
 # context: summary of that switch; reels and videos go on to the next one by themselves
 Reels and videos keep going to the next one without pausing to ask if you're still watching.	Reels 和影片會繼續播放下一部，不再停下來詢問你是否還在觀看。
+# context: switch title under Reels and Watch; on, a reel that would show black bars above and below (or at the sides) is enlarged until it fills the whole screen
+Fill the screen with reels	讓 Reels 填滿螢幕
+# context: summary of that switch; the reel is zoomed in until it reaches every edge, so a little of the picture at two of its edges is cut off
+Reels and full-screen videos that would leave black bars fill the screen instead, with a little cut off the edges. Pinch in on a reel to see all of it, or pinch out to fill it again.	原本會留下黑邊的 Reels 和全螢幕影片會填滿螢幕，邊緣會被裁掉一點。在 Reels 上用兩指捏合可看到完整畫面，張開則會再次填滿。
 Hide the new comments pop-up	隱藏新留言彈出提示
 # context: the bubble Facebook shows over an open comment list when new comments arrive, like "3 new comments"
 The "new comments" bubble no longer pops up while you read comments. New comments still show in the list.	閱讀留言時不再彈出「新留言」泡泡。新留言仍會顯示在清單中。
@@ -2246,6 +2260,10 @@ Adds buttons to feed videos that jump back or ahead 10 seconds, like Facebook's 
 Adds a button to feed videos that shows their speed. Each tap moves to the next one: 1x, 1.25x, 1.5x, 2x, then 0.5x. Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	為動態影片加入一個顯示播放速度的按鈕。每點一下就切換到下一個速度：1x、1.25x、1.5x、2x，然後是 0.5x。直播影片和廣告仍使用各自的控制項。開啟「點按播放」時，也需要開啟「動態消息影片控制項」。
 Shows how far into a feed video you are at the left end of its seek bar, and how much is left at the right end. Needs Seek bar on feed videos on.	在動態影片進度列的左端顯示已播放的時間，右端顯示剩餘時間。需要開啟「動態影片上的進度列」。
 Adds a button to feed videos that opens the video in Facebook's own full player, with all its controls. Live videos get it too. With Tap to play on, it needs Inline feed video controls on too.	為動態中的影片加入一個按鈕，在 Facebook 本身的完整播放器中開啟影片，附帶所有控制項。直播影片也有。開啟「點按播放」時，也需要開啟「動態消息影片控制項」。
+# context: switch title under Playback; on, the full player button sits in a feed video's bottom corner next to Facebook's speaker (mute) button
+Full player button by the speaker	完整播放器按鈕放在喇叭旁
+# context: summary of that switch; "the other buttons" are the play/pause and skip buttons along the video's top
+Puts a feed video's full player button in its bottom corner, next to Facebook's speaker button, which moves over to make room. Live videos, and videos without Facebook's speaker, keep it up with the other buttons. Needs Full player button on feed videos on.	把動態影片的完整播放器按鈕放到底部角落，Facebook 的喇叭按鈕旁邊，喇叭按鈕會挪開讓位。直播影片和沒有 Facebook 喇叭按鈕的影片，仍把它放在上方和其他按鈕一起。需要開啟「動態影片上的完整播放器按鈕」。
 # context: a switch under Video and audio; with it on, a video opened full screen starts with its details and comments panel closed, so the video is in the middle of the screen
 Open full screen videos centered	全螢幕影片置中開啟
 # context: that switch's summary; the arrow is the small button under the video that opens and closes the details and comments panel
@@ -2310,6 +2328,21 @@ Shows when a reel or a video you open full screen was posted, under the name of 
 Keeps the Comment button on reels whose comments are turned off, so you can still read the ones already there. A change shows from the next reel.	在關閉留言的 Reels 上保留留言按鈕，讓你仍能閱讀已有的留言。從下一個 Reel 開始生效。
 Select part of a post's text	選取貼文文字的一部分
 Holding a post's text opens it in a box where you can select just the part you want and copy that, or copy all of it. The hold itself copies nothing.	長按貼文文字會在一個方塊中開啟，你可以只選取想要的部分並複製，或全部複製。長按本身不會複製任何內容。
+Hold a post to react	長按貼文來傳達心情
+Holding a post's photo or video opens its reactions, as holding Like does. On a feed post it comes before Long press opens comments.	長按貼文的相片或影片會開啟它的心情選項，就像長按「讚」一樣。在動態貼文上，它優先於「長按開啟留言」。
+Reaction	心情
+Pick one each time	每次都選擇
+Like	讚
+Love	大心
+Care	加油
+Haha	哈
+Wow	哇
+Sad	嗚
+Angry	怒
+Pick one each time. The reactions open over the post, so slide to one and let go, or let go and tap one.	每次都選擇。心情選項會在貼文上方開啟，滑到其中一個後放開，或放開後點一個。
+%1$s. Holding a post gives it straight away.	%1$s。長按貼文會立即傳達這個心情。
+Hold a post to react will open the reactions to pick from.	長按貼文來傳達心情將開啟心情選項讓你選擇。
+Hold a post to react will give %1$s.	長按貼文來傳達心情將傳達%1$s。
 Select text	選取文字
 Done	完成
 Copy all	全部複製
@@ -2688,7 +2721,7 @@ Tab bar width	分頁列寬度
 Percent of the screen's width, from %1$s to %2$s. The icons grow and shrink with it. Leave it blank for %3$s.	佔螢幕寬度的百分比，範圍 %1$s 到 %2$s。圖示會隨之放大或縮小。留空則使用 %3$s.
 The rounded tab bar is %1$s percent of the screen wide.	圓角分頁列的寬度為螢幕的百分之 %1$s.
 Tab bar height	分頁列高度
-Percent of its full height the rounded tab bar keeps, from %1$s to %2$s, trimmed above and below the icons. Leave it blank for %3$s.	圓角分頁列保留其完整高度的百分比，範圍 %1$s 到 %2$s，在圖示上方和下方裁切。留空則使用 %3$s.
+Percent of its full height the rounded tab bar keeps, from %1$s to %2$s, trimmed above and below the icons. Over 100 makes it taller, mostly toward the bottom of the screen. Leave it blank for %3$s.	圓角分頁列保留其完整高度的百分比，範圍 %1$s 到 %2$s，在圖示上方和下方裁切。超過 100 會讓它變高，主要向螢幕底部延伸。留空則使用 %3$s.
 The rounded tab bar keeps %1$s percent of its height.	圓角分頁列保留其高度的百分之 %1$s.
 # context: title of a row under About that picks how long a dot marks settings an update added
 Mark new settings	標記新設定
@@ -2726,7 +2759,7 @@ Double tap the right side of a playing feed video to jump ahead 10 seconds, or t
 Show only comments that match	只顯示相符的留言
 While the search box holds words, comments without them are hidden. Clearing the box brings them back.	搜尋框中有文字時，不含這些文字的留言會被隱藏。清空搜尋框即可恢復。
 Queue reel saves	排隊儲存 Reels
-Each reel you tap Download on joins a queue that saves one reel at a time in the background. Pause or cancel it from its notification or from Downloads here. A reel already in the queue is skipped, and one that fails gets one more try. The queue lasts until Facebook closes.	每個你點了「下載」的 Reels 都會加入一個佇列，在背景中一次儲存一個。可以從它的通知或這裡的「下載」暫停或取消。已在佇列中的 Reels 會略過，儲存失敗的會再試一次。佇列會保留到 Facebook 關閉為止。
+Each reel you tap Download on joins a queue that saves one reel at a time in the background. Pause or cancel it from its notification or from Downloads here. A reel already in the queue is skipped, and one that fails gets one more try. The queue lasts until Facebook closes. Hold Download to save that reel and the ones after it, 10 to 150 at a time.	每個你點了「下載」的 Reels 都會加入一個佇列，在背景中一次儲存一個。可以從它的通知或這裡的「下載」暫停或取消。已在佇列中的 Reels 會略過，儲存失敗的會再試一次。佇列會保留到 Facebook 關閉為止。長按「下載」可儲存該 Reels 及之後的 Reels，每次 10 到 150 個。
 Added to the reel queue	已加入 Reels 佇列
 Added to the reel queue. To pause or cancel it, open Downloads in Hushfacebook settings.	已加入 Reels 佇列。如要暫停或取消，請開啟 Hushfacebook 設定中的「下載」。
 Already in the reel queue	已在 Reels 佇列中
@@ -2738,3 +2771,25 @@ Reel queue done	Reels 佇列已完成
 %1$d saved, %2$d waiting, %3$d failed	已儲存 %1$d 個，等待 %2$d 個，失敗 %3$d 個
 Reel queue canceled	Reels 佇列已取消
 Cancel the reel queue	取消 Reels 佇列
+Save this reel and the ones after it	儲存這個 Reels 及之後的 Reels
+%1$d reels	%1$d 個 Reels
+Going through %1$d reels for the reel queue. Hold Download again or cancel the queue to stop.	正在為 Reels 佇列瀏覽 %1$d 個 Reels。再次長按「下載」或取消佇列即可停止。
+Put %1$d reels in the reel queue	已將 %1$d 個 Reels 加入 Reels 佇列
+No more reels came. %1$d went in the reel queue.	沒有更多 Reels 了。已有 %1$d 個加入 Reels 佇列。
+Stopped going through reels	已停止瀏覽 Reels
+Reel from %1$s	來自 %1$s 的 Reels
+Reel %1$d	Reels %1$d
+Saving now	正在儲存
+Waiting	等待中
+Paused	已暫停
+Pause this reel	暫停這個 Reels
+Resume this reel	繼續這個 Reels
+Cancel this reel	取消這個 Reels
+Hide stories you scrolled past	隱藏滑過的限時動態
+A story you scrolled past in the Stories tray leaves it the next time you open Facebook, even if you didn't watch it. A new story brings that person back.	你在橫幅中滑過的限時動態，下次開啟 Facebook 時會從橫幅中消失，即使你沒看過。有新的限時動態時，這個人會重新出現。
+# context: row under Home header picture that puts Hushfacebook's logo there (#467)
+Use the Hushfacebook logo	使用 Hushfacebook 標誌
+# context: summary under Use the Hushfacebook logo
+Shows Hushfacebook's logo at the top of Home in place of your words and Facebook's logo. Restart Facebook to see it.	在首頁頂端顯示 Hushfacebook 標誌，取代自訂文字和 Facebook 標誌。重新啟動 Facebook 後生效。
+# context: the name Home header picture shows once the logo is picked
+Hushfacebook logo	Hushfacebook 標誌

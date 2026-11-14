@@ -90,7 +90,8 @@ internal const val DECODE_BITMAP = "$MEDIA_TRANSCODER->decodeBitmap(Ljava/lang/S
 internal val ORIGINAL_PHOTO_HOOKS = setOf(TRANSCODE_IMAGE, TRANSCODE_IMAGE_ASYNC, TRANSCODE_CONFIG, DECODE_BITMAP)
 private const val DECODE_FILE = "Landroid/graphics/BitmapFactory;->decodeFile(Ljava/lang/String;)Landroid/graphics/Bitmap;"
 private const val BITMAP = "Landroid/graphics/Bitmap;"
-private val SCALE_BITMAP_PARAMS = listOf(BITMAP, "I", "I", "Z")
+/** Bitmap.createScaledBitmap's own shape, and 587's helper that always filters and so drops the flag. */
+private val SCALE_BITMAP_PARAMS = setOf(listOf(BITMAP, "I", "I", "Z"), listOf(BITMAP, "I", "I"))
 private const val ORIGINAL_PHOTO = "Lapp/hushmessenger/extension/OriginalPhoto;"
 private const val FLAG_SECURE = 0x2000
 
@@ -189,7 +190,7 @@ internal fun findControls(classes: Iterable<ClassDef>, community: CommunityInbox
     found.getValue(MESSAGE_ACTIONS).addAll(findMessageActions(classes))
     found.getValue(MESSAGE_ACTIONS_MORE).addAll(findMessageActionsMore(classes))
     found.getValue(ANALYTICS_UPLOADS).addAll(findAnalyticsUploads(classes) + findBoundUploadTasks(classes) +
-        findXAnalyticsUploadTimers(classes) + findInProcessUploadStarts(classes))
+        findXAnalyticsUploadTimers(classes) + findInProcessUploadStarts(classes, stringTables))
     found.getValue(ATTRIBUTION_UPLOADS).addAll(findAttributionUploads(classes))
     found.getValue(AD_EVENTS).addAll(findAdEvents(classes))
     found.getValue(MQTT_TELEMETRY).addAll(findMqttTelemetry(classes))
@@ -230,6 +231,8 @@ internal fun findControls(classes: Iterable<ClassDef>, community: CommunityInbox
     found.getValue(QUIET_LOG_DROP).addAll(findQuietLogDrop(classes))
     found.getValue(CHAT_CHANNEL_KEEP).addAll(findChatChannelKeep(classes))
     found.getValue(CHAT_CHANNEL_RAISE).addAll(findChatChannelRaise(classes))
+    found.getValue(CHAT_HEAD_VIDEO).addAll(findChatHeadVideo(classes))
+    found.getValue(CALL_BUTTON_BUILT).addAll(findCallButtonBuilt(classes, stringTables))
     autoReplyPictureRecipe = resolveAutoReplyPictureRecipe(classes)
     messageLogContract = resolveMessageLogContract(classes)
     quietChatContract = resolveQuietChatContract(classes, messageLogContract)
@@ -244,6 +247,9 @@ internal fun findControls(classes: Iterable<ClassDef>, community: CommunityInbox
     found.getValue(APP_THEME_PICK).addAll(findAppThemePick(classes))
     found.getValue(SYSTEM_CAMERA).addAll(findSystemCamera(classes))
     found.getValue(EXTERNAL_GALLERY).addAll(findExternalGallery(classes))
+    found.getValue(INSTANT_GALLERY).addAll(findInstantGallery(classes))
+    found.getValue(SPECIAL_CONTACTS).addAll(findSpecialContacts(classes))
+    found.getValue(MENU_BLUR).addAll(findMenuBlur(classes))
     found.getValue(GALLERY_TEMP_FILE).addAll(findGalleryTempFile(classes))
     found.getValue(GALLERY_TO_CHAT).addAll(findGalleryToChat(classes))
     for ((hook, methods) in findCustomFont(classes)) found.getValue(hook).addAll(methods)
@@ -751,7 +757,7 @@ private fun Method.decodeFileCall(): Int {
     val scale = code.indexOfFirst { instruction ->
         instruction.opcode in setOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE) &&
             ((instruction as? ReferenceInstruction)?.reference as? DexMethodReference)?.let { reference ->
-                reference.returnType == BITMAP && reference.parameterTypes.map(CharSequence::toString) == SCALE_BITMAP_PARAMS
+                reference.returnType == BITMAP && reference.parameterTypes.map(CharSequence::toString) in SCALE_BITMAP_PARAMS
             } == true
     }
     if (call == null || call.opcode !in setOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE) || call.registerList().size != 1 ||
@@ -932,8 +938,8 @@ internal fun ClassDef.isRowWrapper(): Boolean =
 internal fun ClassDef.hasMessageIdGetter(): Boolean = messageIdGetterName.isNotEmpty() &&
     methods.any { it.name == messageIdGetterName && it.returnType == "Ljava/lang/String;" && it.parameterTypes == listOf("I") }
 
-/** The Notifications tab's server flag ID as 586 numbers it. Meta renumbers it with each release. */
-private const val PEOPLE_SERVER_FLAG = 72344145666062935L
+/** The Notifications tab's server flag ID as 587 numbers it (586 read 72344145666062935). Meta renumbers it with each release. */
+private const val PEOPLE_SERVER_FLAG = 72344137076128710L
 
 /**
  * Where the Notifications tab loads its server flag: the method's only constant with that value, at 17, after the
@@ -1193,35 +1199,31 @@ private const val IMMUTABLE_LIST_BUILDER = "Lcom/google/common/collect/Immutable
 
 /**
  * The composer fills the keyboard's tab list inline and returns it: a local ArrayList of tab items goes into a fresh
- * ImmutableList.Builder through one addAll that is built on the very next instruction:
+ * ImmutableList.Builder through one static call that adds it all and builds, as 583 did (584 to 586 called addAll and
+ * then a static build):
  *
  *     invoke-static {}, ImmutableList;->builder()
  *     move-result-object vB
- *     invoke-virtual {vB, vList}, ImmutableList$Builder;->addAll(Iterable)
- *     invoke-static {vB}, <static (Builder) -> ImmutableList>
+ *     invoke-static {vB, vList}, <static (Builder, Iterable) -> ImmutableList>
  *
- * Returns the addAll's index and list register.
+ * Returns the copy's index and list register.
  */
 internal fun MutableMethod.validateKeyboardTabsInline(): Pair<Int, Int> {
     fun changed(): Nothing = throw PatchException("Messenger controls: the sticker keyboard tab list differs from the tested build")
     val code = implementation!!.instructions.toList()
     val copy = code.indices.filter { index ->
         val call = (code[index] as? ReferenceInstruction)?.reference as? DexMethodReference
-        code[index].opcode == Opcode.INVOKE_VIRTUAL && call != null && call.definingClass == IMMUTABLE_LIST_BUILDER &&
-            call.name == "addAll" && call.returnType == IMMUTABLE_LIST_BUILDER &&
-            call.parameterTypes.map { it.toString() } == listOf("Ljava/lang/Iterable;")
+        code[index].opcode == Opcode.INVOKE_STATIC && call != null && call.returnType == IMMUTABLE_LIST &&
+            call.parameterTypes.map { it.toString() } == listOf(IMMUTABLE_LIST_BUILDER, "Ljava/lang/Iterable;")
     }.singleOrNull()
     // Code inserted before a jump target would be skipped by whatever jumps there.
-    if (returnType != IMMUTABLE_LIST || copy == null || copy < 2 || copy + 1 >= code.size || copy in jumpTargets()) changed()
+    if (returnType != IMMUTABLE_LIST || copy == null || copy < 2 || copy in jumpTargets()) changed()
     val add = code[copy] as FiveRegisterInstruction
     val builder = (code[copy - 1] as? OneRegisterInstruction)?.takeIf { code[copy - 1].opcode == Opcode.MOVE_RESULT_OBJECT }?.registerA
     val made = (code[copy - 2] as? ReferenceInstruction)?.reference as? DexMethodReference
-    val build = (code[copy + 1] as? ReferenceInstruction)?.reference as? DexMethodReference
     if (builder == null || made?.toString() != "$IMMUTABLE_LIST->builder()$IMMUTABLE_LIST_BUILDER" ||
         code[copy - 2].opcode != Opcode.INVOKE_STATIC || add.registerCount != 2 || add.registerC != builder ||
-        add.registerD == builder || code[copy + 1].opcode != Opcode.INVOKE_STATIC || build == null ||
-        build.returnType != IMMUTABLE_LIST || build.parameterTypes.map { it.toString() } != listOf(IMMUTABLE_LIST_BUILDER) ||
-        (code[copy + 1] as FiveRegisterInstruction).let { it.registerCount != 1 || it.registerC != builder }) changed()
+        add.registerD == builder) changed()
     return copy to add.registerD
 }
 
@@ -1519,15 +1521,39 @@ internal fun MutableMethod.validateStorySeen(): Int {
     return cache
 }
 
+/**
+ * The gate hands the handler, the card and its flag to the extension, which keeps them for the Mark as seen button
+ * (#169) and says whether to skip the send. A tap replays this same handler, which the gate then lets through.
+ */
 internal fun MutableMethod.injectStorySeen() {
     val cache = validateStorySeen()
     addInstructionsWithLabels(1, """
-        invoke-static {}, $SETTINGS->viewStoriesAnonymously()Z
+        invoke-static/range {p0 .. p2}, $SETTINGS->holdStorySeen(Ljava/lang/Object;Ljava/lang/Object;I)Z
         move-result v0
         if-eqz v0, :stock_behavior
         const/4 v0, 0x0
         goto/16 :local_seen
     """.trimIndent(), ExternalLabel("stock_behavior", getInstruction(1)), ExternalLabel("local_seen", getInstruction(cache)))
+}
+
+internal const val STORY_EYE = "Lapp/hushmessenger/extension/StoryEye;"
+internal const val STORY_VIEWER_CREATED = "$MONTAGE_VIEWER->onViewCreated(Landroid/view/View;Landroid/os/Bundle;)V"
+
+/** The story viewer's own onViewCreated, where the Mark as seen button joins the viewer's window. */
+internal fun ClassDef.storyViewerCreated(): Method {
+    val created = methods.filter { it.hookId() == STORY_VIEWER_CREATED }
+    val method = created.singleOrNull()
+    if (method == null || AccessFlags.STATIC.isSet(method.accessFlags) || method.implementation == null) {
+        throw PatchException("Messenger controls: the story viewer has no onViewCreated of its own to add the Mark as seen button in")
+    }
+    return method
+}
+
+internal fun MutableMethod.injectStoryViewerCreated() {
+    if (hookId() != STORY_VIEWER_CREATED || AccessFlags.STATIC.isSet(accessFlags)) {
+        throw PatchException("Messenger controls: ${hookId()} isn't the story viewer's onViewCreated")
+    }
+    addInstructions(0, "invoke-static/range {p0 .. p1}, $STORY_EYE->viewerCreated(Ljava/lang/Object;Landroid/view/View;)V")
 }
 
 internal const val FB_USER_SESSION = "Lcom/facebook/auth/usersession/FbUserSession;"
@@ -1729,8 +1755,13 @@ internal class StorySave(
     val fragmentType: String,
     val menuType: String,
     val controller: String,
-    /** Card controllers the item is offered for. */
+    /** Card controllers the item is offered for, as 586 listed them. Empty when [canSave] asks instead. */
     val saveable: List<String>,
+    /**
+     * 587's question to the card's controller, a no-argument boolean the controller base answers false and the
+     * savable card types override. Null when [saveable] lists the types.
+     */
+    val canSave: String?,
     val id: Long,
     val label: Long,
     val labelOf: String,
@@ -1798,19 +1829,29 @@ internal fun MutableMethod.validateStorySave(): StorySave {
     }
     val card = reg(entry + 3)
     val saveable = mutableListOf<String>()
+    var canSave: String? = null
     var add = entry + 4
-    if (op(add) != Opcode.INSTANCE_OF) fail("Save item's card test no longer matches the tested build")
-    // The card types are listed: a match jumps to the item, the last miss skips it.
-    while (op(add) == Opcode.INSTANCE_OF) {
-        val test = code[add] as TwoRegisterInstruction
-        if (test.registerB != card || reg(add + 1) != test.registerA) fail("Save item's card test no longer matches the tested build")
-        saveable += ((code[add] as ReferenceInstruction).reference as TypeReference).type
-        add += 2
-        if (op(add - 1) == Opcode.IF_EQZ && branch(add - 1) == skip) break
-        if (op(add - 1) != Opcode.IF_NEZ) fail("Save item's card test no longer matches the tested build")
-    }
-    if (op(add - 1) != Opcode.IF_EQZ || (entry + 5 until add - 1 step 2).any { branch(it) != add }) {
-        fail("Save item's card test no longer matches the tested build")
+    val ask = call(add)
+    if (op(add) == Opcode.INVOKE_VIRTUAL && ask != null && ask.definingClass == controller.returnType && ask.returnType == "Z" &&
+        ask.parameterTypes.isEmpty() && args(add) == listOf(card) && op(add + 1) == Opcode.MOVE_RESULT &&
+        op(add + 2) == Opcode.IF_EQZ && reg(add + 2) == reg(add + 1) && branch(add + 2) == skip) {
+        // 587 asks the controller itself whether its card can be saved, and a no skips the item.
+        canSave = ask.toString()
+        add += 3
+    } else {
+        if (op(add) != Opcode.INSTANCE_OF) fail("Save item's card test no longer matches the tested build")
+        // 586 listed the card types: a match jumps to the item, the last miss skips it.
+        while (op(add) == Opcode.INSTANCE_OF) {
+            val test = code[add] as TwoRegisterInstruction
+            if (test.registerB != card || reg(add + 1) != test.registerA) fail("Save item's card test no longer matches the tested build")
+            saveable += ((code[add] as ReferenceInstruction).reference as TypeReference).type
+            add += 2
+            if (op(add - 1) == Opcode.IF_EQZ && branch(add - 1) == skip) break
+            if (op(add - 1) != Opcode.IF_NEZ) fail("Save item's card test no longer matches the tested build")
+        }
+        if (op(add - 1) != Opcode.IF_EQZ || (entry + 5 until add - 1 step 2).any { branch(it) != add }) {
+            fail("Save item's card test no longer matches the tested build")
+        }
     }
     val id = literal(add)
     val label = literal(add + 1)
@@ -1834,7 +1875,7 @@ internal fun MutableMethod.validateStorySave(): StorySave {
     }
     val handler = handlers.singleOrNull() ?: fail("no longer sends its clicks to one handler")
     return StorySave(
-        others, fragment, menu, fragmentType, menuType, controller.toString(), saveable, id, label,
+        others, fragment, menu, fragmentType, menuType, controller.toString(), saveable, canSave, id, label,
         labelOf.toString(), icon.toString(), addItem.toString(), ((code[handler] as ReferenceInstruction).reference as TypeReference).type,
     )
 }
@@ -1858,9 +1899,10 @@ internal fun ClassDef.validateStoryMenuHandler(save: StorySave) {
 
 /** Offers Save on someone else's story the way the menu offers it on yours, while the switch is on. */
 internal fun storySaveHelper(definingClass: String, save: StorySave): MutableMethod {
-    val test = save.saveable.mapIndexed { i, type ->
-        "instance-of v1, v0, $type\n" + if (i == save.saveable.lastIndex) "if-eqz v1, :done" else "if-nez v1, :add"
-    }.joinToString("\n")
+    val test = save.canSave?.let { "invoke-virtual {v0}, $it\nmove-result v1\nif-eqz v1, :done" }
+        ?: save.saveable.mapIndexed { i, type ->
+            "instance-of v1, v0, $type\n" + if (i == save.saveable.lastIndex) "if-eqz v1, :done" else "if-nez v1, :add"
+        }.joinToString("\n")
     val parameters = listOf(save.fragmentType, save.menuType).map { ImmutableMethodParameter(it, null, null) }
     return MutableMethod(ImmutableMethod(definingClass, STORY_SAVE_HELPER, parameters, "V",
         AccessFlags.PUBLIC.value or AccessFlags.STATIC.value, null, null, ImmutableMethodImplementation(6, emptyList(), null, null)))

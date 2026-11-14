@@ -144,6 +144,8 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting PLAY_SDR = new BooleanSetting("play_sdr", FALSE);
     public static final BooleanSetting PREFER_H264 = new BooleanSetting("prefer_h264", FALSE);
     public static final StringSetting DOWNLOAD_VIDEO_QUALITY = new StringSetting("download_video_quality", "auto");
+    /** At the same height a save takes H.264 first ("auto"), HEVC first ("hevc") or H.264 alone ("h264"). */
+    public static final StringSetting DOWNLOAD_VIDEO_CODEC = new StringSetting("download_video_codec", "auto");
     /** Download lists the video's renditions and saves the one picked, for that save alone. */
     public static final BooleanSetting DOWNLOAD_ASK_QUALITY = new BooleanSetting("download_ask_quality", FALSE);
     public static final BooleanSetting DOWNLOAD_ORIGINAL_PHOTOS = new BooleanSetting("download_original_photos", FALSE);
@@ -212,6 +214,9 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting SAVE_PROFILE_PICTURE = new BooleanSetting("save_profile_picture", FALSE);
     public static final BooleanSetting SAVE_STORY = new BooleanSetting("save_story", FALSE);
     public static final BooleanSetting SAVE_STORY_FROM_SHARE = new BooleanSetting("save_story_from_share", FALSE);
+    /** A story save asks which of the person's stories to keep, with the one on screen checked (#393). */
+    public static final BooleanSetting SAVE_STORY_PICK = new BooleanSetting("save_story_pick", FALSE, false,
+            Setting.parentsAny(SAVE_STORY, SAVE_STORY_FROM_SHARE));
     /** A circle on each profile, Liked or Favorites grid cell, to pick posts and save them in one run (#27). */
     public static final BooleanSetting PICK_GRID_VIDEOS = new BooleanSetting("pick_grid_videos", FALSE);
     /**
@@ -1091,6 +1096,11 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_FOOTNOTES = new BooleanSetting("hide_footnotes", FALSE);
     /** The LIVE and stories row across the top of the Following tab and its count pill (#262). */
     public static final BooleanSetting HIDE_FOLLOWING_LIVE_ROW = new BooleanSetting("hide_following_live_row", FALSE);
+    /**
+     * The Stories pill under the Following tab drawn as glass, with the video behind it blurred
+     * on Android 12 and newer, in place of TikTok's flat gray (#409). Read on each layout.
+     */
+    public static final BooleanSetting GLASS_STORIES_PILL = new BooleanSetting("glass_stories_pill", FALSE);
     /** The All button at the end of the Following tab's story row, which opens the following list (#308). */
     public static final BooleanSetting HIDE_FOLLOWING_ALL_BUTTON = new BooleanSetting("hide_following_all_button", FALSE, true);
     /** The Create circle at the start of the Following and Inbox story rows, while the viewer has no Story up (#309). */
@@ -1229,6 +1239,9 @@ public class Settings extends BaseSettings {
      * this goes off or Hushfeed is paused. Read on each layout.
      */
     public static final BooleanSetting SEE_THROUGH_STATUS_BAR = new BooleanSetting("see_through_status_bar", FALSE);
+    /** A dark fade behind the clock while See-through status bar shows the video under it (#407). */
+    public static final BooleanSetting STATUS_BAR_SHADE = new BooleanSetting("status_bar_shade", FALSE, false,
+            Setting.parent(SEE_THROUGH_STATUS_BAR));
     /**
      * Burn-in guard for OLED screens (BurnInGuard): "dim" draws the controls the fade covers at a
      * quarter after a few seconds without a touch, "dim_shift" also moves the window's content a

@@ -25,6 +25,12 @@
 #
 # Nothing else is approved. A patch that asks for any other permission, drops one, or changes what
 # other apps can reach still stops the release until somebody says why.
+#
+# Change package name (opt-in, in no release selection) is the one patch that renames the app's own
+# permissions, since Android names them after the package. verify-all-patches.ps1 and the release
+# receipt apply every patch, so both set each pair aside as that rename (Get-PackageRenameEntries in
+# release-receipt.ps1, read against the receipt's patchedPackage) instead of listing it here, where
+# a run without the patch would call the line stale.
 
 exported-added activity-alias:app.morphe.extension.hushthreads.settings.OpenSettings
 permission-removed com.google.android.gms.permission.AD_ID

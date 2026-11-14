@@ -111,7 +111,6 @@ SABR再生（動画ストリームのスプーフがオフ）"</string>
     <string name="morphe_music_crossfade_screen_title">クロスフェード</string>
     <string name="morphe_music_crossfade_session_control_summary">シャッフル ボタンを長押しすると、再生中のセッション (プレイリストなど) 内でのクロスフェードを一時的に停止 / 再開します</string>
     <string name="morphe_music_crossfade_session_control_title">クロスフェードのセッション制御</string>
-    <string name="morphe_music_crossfade_video_mode_disabled_toast">クロスフェードが有効になっている間は、動画モードは利用できません</string>
     <string name="morphe_music_deezer_arl_dialog_instruction">"Deezer の arl Cookie を貼り付けてください。
 
 手順:
@@ -975,4 +974,6 @@ API キーの発行方法については、ここをタップしてください�
     <string name="revanced_webview_toast_empty">「%s」は空です。</string>
     <string name="revanced_webview_toast_no_network">ネットワーク接続を確認してください。</string>
     <string name="revanced_webview_toast_unavailable">WebView は利用できません。</string>
+    <string name="morphe_music_auto_song_version_title">常に楽曲バージョンを再生</string>
+    <string name="morphe_music_auto_song_version_summary">キュー内の公式ミュージックビデオを一致する楽曲に置き換えます。アプリの「ミュージックビデオを再生しない」をオンにする必要があります。完全に一致する楽曲がない場合は変更しません</string>
 </resources>

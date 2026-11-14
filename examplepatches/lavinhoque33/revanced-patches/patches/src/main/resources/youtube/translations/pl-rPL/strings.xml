@@ -2179,7 +2179,6 @@ Aby wyświetlić ten przycisk, włącz 'Oszukuj wersję aplikacji` i ustaw docel
     <string name="revanced_preference_screen_misc_title">Pozostałe</string>
     <string name="revanced_preference_screen_navigation_bar_summary">Ukryj lub pokazuj przyciski nawigacji</string>
     <string name="revanced_preference_screen_navigation_bar_title">Pasek nawigacji</string>
-    <string name="revanced_preference_screen_patch_information_summary">Informacje na temat zastosowanych łatek</string>
     <string name="revanced_preference_screen_player_buttons_summary">Ukryj lub pokazuj przyciski w odtwarzaczu</string>
     <string name="revanced_preference_screen_player_buttons_title">Przyciski w odtwarzaczu</string>
     <string name="revanced_preference_screen_player_flyout_menu_summary">Ukryj lub zmień elementy menu ustawień filmu</string>

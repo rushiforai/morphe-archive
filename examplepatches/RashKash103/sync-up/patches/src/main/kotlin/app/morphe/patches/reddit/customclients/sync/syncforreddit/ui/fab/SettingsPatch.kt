@@ -2,6 +2,7 @@ package app.morphe.patches.reddit.customclients.sync.syncforreddit.ui.fab
 
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patches.reddit.customclients.sync.syncforreddit.ui.SYNC_ACTIONS
 import org.w3c.dom.Element
 
 private const val CATEGORY_HEADER =
@@ -29,24 +30,6 @@ private const val OURS_START_AT = 3
 /** What Sync's own button can be, which its setting has always chosen between. */
 private val ITS_OWN = listOf("Submit", "Hide read", "More actions")
 
-/**
- * The actions Sync will actually carry out, by the number it knows each one by.
- *
- * <p>Read from the jump table that answers what an action is called, not from the order the
- * names appear in the code, which is the reverse of it.
- *
- * <p>Two of the numbers are missing on purpose. What carries an action out is a run of
- * comparisons, and it compares against every number but 0 and 14 — Hide read, which the button
- * itself does, and Sort, which has a name and an icon and a place in Sync's own list but is
- * never dispatched and so does nothing at all.
- */
-private val ACTIONS = listOf(
-    1 to "Saved", 2 to "Profile", 3 to "Submit", 4 to "Change view", 5 to "Random",
-    6 to "Random NSFW", 7 to "Dark mode", 8 to "Friends", 9 to "Settings", 10 to "Data saving",
-    11 to "Filters", 12 to "Recents", 13 to "Toggle account", 15 to "Refresh", 16 to "About",
-    17 to "Sync", 18 to "Search", 19 to "Watched", 20 to "Swipe mode", 21 to "Inbox",
-    22 to "Explore", 23 to "Dark overlay", 24 to "Scroll to top",
-)
 
 /**
  * Adds the settings to the Floating Action Button category Sync already has, which is where the
@@ -92,18 +75,18 @@ internal val extraFabActionsSettingsPatch = resourcePatch(
 
             // Beside the button, the number stored is the action's own, since nothing but
             // this reads it.
-            array("sync_up_fab_entries", listOf("None") + ACTIONS.map { it.second })
-            array("sync_up_fab_values", listOf("-1") + ACTIONS.map { it.first.toString() })
+            array("sync_up_fab_entries", listOf("None") + SYNC_ACTIONS.map { it.second })
+            array("sync_up_fab_values", listOf("-1") + SYNC_ACTIONS.map { it.first.toString() })
 
             // Sync's own lists for what its button is for, added to in place rather than
             // replaced. Sync looks the chosen number up in these by position, from code that
             // names them directly, so a list of our own beside them would not be the one read.
-            widen("fab_labels", ITS_OWN + ACTIONS.map { it.second })
+            widen("fab_labels", ITS_OWN + SYNC_ACTIONS.map { it.second })
             // Read by position where Sync looks the chosen one up, so these have to run
             // straight through; what each position means is settled in the extension.
             widen(
                 "fab_actions",
-                (ITS_OWN.size + ACTIONS.size).let { total -> (0 until total).map { it.toString() } },
+                (ITS_OWN.size + SYNC_ACTIONS.size).let { total -> (0 until total).map { it.toString() } },
             )
             array("sync_up_fab_orientation_entries", listOf("Vertical", "Horizontal"))
             array("sync_up_fab_orientation_values", listOf("0", "1"))

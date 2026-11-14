@@ -26,6 +26,7 @@ val hideSurveysPatch = bytecodePatch(
     name = "Hide surveys and rating prompt",
     description = "Stops the Qualtrics surveys and the Play Store rating pop-up.",
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

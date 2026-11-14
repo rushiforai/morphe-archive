@@ -153,7 +153,19 @@ final class SettingsSections {
     }
     boolean goBack() {
         if(selected==null){if(!query.trim().isEmpty()){search.setText("");return true;}return false;}
-        selected=null;update();top();return true;
+        collapse();
+        return true;
+    }
+    /** Hide and detach every category body before returning to the category index. */
+    private void collapse() {
+        selected=null;
+        for(Section section:sections.values()){
+            if(section.body==null)continue;
+            section.body.setVisibility(View.GONE);
+            if(section.body.getParent()==layout)layout.removeView(section.body);
+        }
+        update();
+        top();
     }
     private void top(){layout.post(()->{if(layout.getParent() instanceof android.widget.ScrollView)((android.widget.ScrollView)layout.getParent()).scrollTo(0,0);});}
     private void update() {

@@ -217,8 +217,12 @@ if (-not $PatchedApk -or -not (Test-Path -LiteralPath $PatchedApk -PathType Leaf
     throw 'No patched APK. Pass -PatchedApk, or -FromDevice -Serial <serial>.'
 }
 $patched = Get-ApkManifestFacts -Apk $PatchedApk -Aapt2 $Aapt2
-if ($patched.package -ne $package -or [string]::IsNullOrWhiteSpace($patched.versionName)) {
-    throw "$PatchedApk is $($patched.package) $($patched.versionName), not a Threads build ($package)."
+# Change package name (opt-in) moves the build to a package of its own, by default the Threads package
+# plus ".hushthreads" (DEFAULT_PACKAGE in ChangePackageNamePatch.kt), so with it in -SelectedPatches the
+# patched side carries exactly that package. verify-all-patches.ps1 applies every patch, that one too.
+$patchedPackage = if ($null -ne $SelectedPatches -and $SelectedPatches -ccontains 'Change package name') { "$package.hushthreads" } else { $package }
+if ($patched.package -ne $patchedPackage -or [string]::IsNullOrWhiteSpace($patched.versionName)) {
+    throw "$PatchedApk is $($patched.package) $($patched.versionName), not a Threads build ($patchedPackage)."
 }
 
 if (-not $CleanApk) {
@@ -244,7 +248,7 @@ $clean = Get-ApkManifestFacts -Apk $cleanBase -Aapt2 $Aapt2
 # VersionCodeReads.kt) on purpose, so with it selected the patched side carries exactly that code and
 # the name still has to match. A standalone check of such a build names the patch in -SelectedPatches.
 $patchedCode = if ($null -ne $SelectedPatches -and $SelectedPatches -ccontains 'Change version code') { '2147483647' } else { $clean.versionCode }
-if ($clean.package -ne $patched.package -or $clean.versionName -ne $patched.versionName -or
+if ($clean.package -ne $package -or $patched.package -ne $patchedPackage -or $clean.versionName -ne $patched.versionName -or
         [string]$patched.versionCode -cne [string]$patchedCode) {
     throw ("The clean APK is $($clean.package) $($clean.versionName) ($($clean.versionCode)) and the " +
         "patched one $($patched.package) $($patched.versionName) ($($patched.versionCode)); they have to be the same build, " +

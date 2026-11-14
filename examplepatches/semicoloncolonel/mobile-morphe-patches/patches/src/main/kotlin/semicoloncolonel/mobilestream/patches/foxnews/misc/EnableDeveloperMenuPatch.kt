@@ -44,6 +44,7 @@ val enableDeveloperMenuPatch = bytecodePatch(
     description = "Opens the hidden developer menu with a long-press on the Fox logo in Settings.",
     default = false,
 ) {
+    category("Setup")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

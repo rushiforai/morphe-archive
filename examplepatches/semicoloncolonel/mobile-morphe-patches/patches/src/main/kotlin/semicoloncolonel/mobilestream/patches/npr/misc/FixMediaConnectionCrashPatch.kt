@@ -31,6 +31,7 @@ val fixMediaConnectionCrashPatch = bytecodePatch(
     name = "Fix media connection crash",
     description = "Stops the app from closing when Android Auto, the Google app, or another player connects to it.",
 ) {
+    category("Playback")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

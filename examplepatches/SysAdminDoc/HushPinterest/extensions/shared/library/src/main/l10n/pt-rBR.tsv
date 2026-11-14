@@ -692,3 +692,13 @@ Takes Pinterest's AI Assistant out of search, boards and pins. Search works as u
 # context: a Feed switch from the Filter feed patch. It takes pins the person has already saved to a board out of their home feed only; boards and search still show them. The title is also the name of that part of the patch in the build report.
 Hide pins you've already saved	Ocultar pins que você já salvou
 Takes pins you've saved out of your home feed. Your boards and search still show them.	Remove do seu feed inicial os pins que você salvou. Suas pastas e a busca continuam mostrando.
+# context: toast when Download pin can't save a streamed video on the current network
+Your download settings block this network. Try again on Wi-Fi.	Suas configurações de download bloqueiam esta rede. Tente de novo no Wi-Fi.
+# context: a Feed switch from the Filter feed patch, under Hide pins you've already saved. It takes Pinterest's own suggestion rows off the Home feed ("More ideas for your board" and "Inspired by your interests") and the "See more like this?" bubble Pinterest shows on a pin. The title is also the name of that part of the patch in the build report.
+Hide Home suggestions	Ocultar sugestões do feed inicial
+Takes the "More ideas for your board" and "Inspired by your interests" rows off Home, and the "See more like this?" bubble off pins. The change shows the next time Home loads.	Tira as linhas "Mais ideias para sua pasta" e "Inspirado nos seus interesses" do feed inicial, e o balão "Ver mais conteúdo como este Pin?" dos Pins. A mudança aparece na próxima vez que o feed inicial carregar.
+# context: the name of one part of the Filter feed patch in the build report: the hook that keeps Pinterest's "See more like this?" bubble off pins. "See more like this?" is Pinterest's own text for that bubble, so use the app's own translation of it.
+See more like this? bubble	Balão "Ver mais conteúdo como este Pin?"
+# context: a Notifications switch from the Hide Inbox updates patch. It leaves the Updates section (Pinterest's activity and pin suggestions) out of the Inbox screen, and messages stay. "Updates" and "Inbox" are the names Pinterest gives them, so use the app's own translations.
+Hide Inbox updates	Ocultar Atualizações da caixa de entrada
+Leaves the Updates section out of your Inbox, and Pinterest doesn't load it. Your messages stay. The change shows the next time you open the Inbox.	Deixa a seção Atualizações fora da sua caixa de entrada, e o Pinterest não a carrega. Suas mensagens continuam. A mudança aparece na próxima vez que você abrir a caixa de entrada.

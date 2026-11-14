@@ -1,5 +1,63 @@
 ## Unreleased
 
+## [1.35.0](https://github.com/lavinhoque33/revanced-patches/compare/v1.34.1...v1.35.0) (2026-11-13)
+
+### Features
+
+* **Music - Enable audio/video switch:** Port Morphe's Always play the song version setting, off by default.
+  With Don't play music videos enabled in the app, replace matching official music videos in the queue.
+  Keep tracks without an exact match and downloaded stream copies unchanged. This takes priority over
+  Play albums songs; Disable music video in album keeps its manual toggle actions.
+* **Music - Disable audio ducking:** Port Morphe's optional notification-ducking control under Player.
+  It is off by default and preserves the app's spoken-content pause behavior.
+* **Music - Track crossfade:** Add debug-only CF45 transition, volume, normalization, session and source
+  tracing for the Poco/HyperOS burst investigation.
+* **Music - Track crossfade:** Apply fade gain to decoded PCM after speed and silence processing, keeping
+  AudioTrack volume for normalization and focus. Add bounded processor/first-frame tracing on supported
+  Music versions; skip crossfade with a warning when the PCM integration cannot be discovered safely.
+* **Music - Track crossfade:** Own player transitions and drain outgoing PCM before release. Pause, seek,
+  speed and output changes preserve frame-based envelopes. Song/video switches remain instant, including
+  during an overlap; video mode is no longer blocked when crossfade is enabled.
+* **Music - Track crossfade:** Discover native player and listener boundaries from the PCM factory graph on
+  Music 9.15 and 9.40. Skip safely when a required integration is missing; retain native playback integrations.
+* **YouTube / Music - Patches update notice:** Check the public patches feed daily and show a notice with release
+  notes when newer patches are available. Choose Off, Stable or Development in Miscellaneous, check manually,
+  postpone or skip a version, and open Morphe Manager (or the patches release page) to re-patch.
+  Development checks both release channels. No APK downloads or installation are performed.
+
+### Bug Fixes
+
+* **Music - Disable music video in album:** Resolve each album song by the requested video's metadata,
+  not the queue's reused playlist index. Ambiguous recordings remain unchanged.
+* **Music - Enable audio/video switch:** Keep playlist video-stream copies as well as audio-stream copies
+  out of automatic song replacement, including counterparts cached before a download completed.
+  Log claimed interceptor taps, cached/search selection and queue outcomes when debug logging is enabled.
+* **Music - Enable audio/video switch:** Reject low-score counterparts instead of opening a Mix or another
+  song's video. Keep both versions paired so switching back returns to the same track, and preserve Jam's
+  queue capture when both patches are enabled.
+* **Music - Downloads:** Keep forward and backward seek targets when StreamSwap plays a local copy online,
+  in both Song and Video mode and through the notification controls. Online streams keep stock seeking.
+* **Music - Track crossfade:** Keep the Enable audio video switch pill's counterpart replacement out of
+  crossfade, including when a previous overlap is still active. Normal skips and automatic transitions still fade.
+* **Music - Debug logging:** Give Export debug logs a settings icon, including the bold icon variants.
+* **YouTube / Music - Settings:** Prevent a crash when a list preference supplies string-array entries and
+  newly added options receive the new-setting indicator, including the patches update notice channel chooser.
+* **Music - Debug logging:** Add Export debug logs beside the Miscellaneous debug controls to save the current
+  RVX log buffer to a file through Android's document picker. Cancelling a settings export no longer leaves
+  log export in settings-export mode, and document-provider errors show the existing failure message.
+* **Music - Track crossfade:** Keep the native player for the first song when it has not loaded a track yet,
+  instead of creating a second player and starting a crossfade without an outgoing song.
+* **Music - Track crossfade:** Read the outgoing player's playback intent when a song was started by tapping it,
+  so a stale pause event cannot mute it and bring it back abruptly. Keep genuinely paused outgoing songs silent
+  when the next track loads or the transition is cancelled.
+* **YouTube - Playlist downloads:** Give Select all, Select none and Edit clearer button surfaces in dark and
+  light themes. Make Edit half as wide while keeping its touch target and allowing longer labels to wrap.
+  Show complete option descriptions when space permits; otherwise scroll options independently while keeping
+  selection actions, Download and the playlist accessible.
+* **YouTube - Settings:** Consolidate app details and the complete recorded patch inventory under About >
+  Patch information. Distinguish recorded inclusion from patcher execution results, which the app does not store.
+* **YouTube - Credits:** Correct the project name in the Reseam licence notice.
+
 ## [1.34.1](https://github.com/lavinhoque33/revanced-patches/compare/v1.34.0...v1.34.1) (2026-11-11)
 
 ### Bug Fixes

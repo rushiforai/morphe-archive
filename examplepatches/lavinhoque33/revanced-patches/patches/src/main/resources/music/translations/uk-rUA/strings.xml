@@ -118,7 +118,6 @@
     <string name="morphe_music_crossfade_screen_title">Кросфейд</string>
     <string name="morphe_music_crossfade_session_control_summary">Натисніть і утримуйте кнопку перемішування, щоб призупинити або відновити кросфейд</string>
     <string name="morphe_music_crossfade_session_control_title">Керування сесією</string>
-    <string name="morphe_music_crossfade_video_mode_disabled_toast">Режим відео недоступний, поки кросфейд увімкнено</string>
     <string name="morphe_music_deezer_arl_dialog_instruction">"Вставте cookie arl із Deezer
 
 Кроки:
@@ -1046,4 +1045,6 @@
     <string name="revanced_webview_toast_empty">%s порожній</string>
     <string name="revanced_webview_toast_no_network">Перевірте підключення до Інтернету</string>
     <string name="revanced_webview_toast_unavailable">WebView недоступний</string>
+    <string name="morphe_music_auto_song_version_title">Завжди відтворювати версію пісні</string>
+    <string name="morphe_music_auto_song_version_summary">Замінює офіційні кліпи в черзі відповідними піснями. Потрібно ввімкнути налаштування додатка «Не відтворювати музичні відео». Треки без точного збігу залишаються без змін</string>
 </resources>

@@ -44,7 +44,8 @@ import app.hushtumblr.extension.tumblr.settings.Settings;
  * {@link #designPage} for the gray behind a screen and {@link #designPanel} for the lighter one of
  * a bar, a row or a dialog. They answer the style's color and a step up from it. Only the Dark
  * palette's set asks, which is the one the System palette uses at night too. The footer under a
- * post paints itself with that lighter gray, so {@link #designFooter} hands it the card's color.
+ * post and the row under your own posts (Blaze, delete, edit) paint themselves with that lighter
+ * gray, so {@link #designFooter} hands them the card's color.
  *
  * <p>A blog's page and a tag's page don't read a theme for their background at all: each paints the
  * color its owner chose, and the gaps between posts are that color showing through. So the two places
@@ -347,12 +348,12 @@ public final class DarkBackground {
     }
 
     /**
-     * Placed where the footer under a post has read the color it paints itself with, the design
-     * system's panel gray. The footer is the bottom of the post card, which the style gives the
-     * picked color itself, so while that gray is the step up {@link #designPanel} answered, this
-     * answers the card's color. Any other color, another palette's included, comes back as it was,
-     * and so does every color before the Dark palette's set is built or while the switch reads off.
-     * Never throws.
+     * Placed where the footer under a post, and the row under your own posts (Blaze, delete, edit),
+     * have read the color they paint themselves with, the design system's panel gray. Both are the
+     * bottom of the post card, which the style gives the picked color itself, so while that gray is
+     * the step up {@link #designPanel} answered, this answers the card's color. Any other color,
+     * another palette's included, comes back as it was, and so does every color before the Dark
+     * palette's set is built or while the switch reads off (paused included). Never throws.
      */
     public static long designFooter(long tumblrs) {
         long[] decided = designColors;

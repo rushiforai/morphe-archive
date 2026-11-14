@@ -1,0 +1,46 @@
+SoundSync - video in sync with the car's sound, for patched apps
+================================================================
+
+Two parts:
+  1. SoundSync-patches.mpp : a Morphe patch source with one universal patch,
+     "Android Auto audio sync". You build it once on your PC (below).
+  2. SoundSync app (soundsync-1.0.apk) : holds the delay and when to apply it.
+     Optional, but it lets you change the delay live with a quick-settings
+     button. Install it like any APK.
+
+EASIEST: ADD THIS REPOSITORY AS A SOURCE
+  Morphe Manager > Add patch source > Remote > paste the repository address
+  (https://github.com/Alcostrider/Soundsync). Manager then offers updates by
+  itself. The SoundSync app is in each release on GitHub.
+
+OR BUILD THE PATCH SOURCE YOURSELF (PC, about 10 minutes the first time)
+  1. Unzip this folder to a short path, e.g. C:\SoundSync
+  2. Double-click BUILD.bat. It asks for your GitHub username and token
+     (classic token, only "read:packages" ticked) and offers to remember them.
+  3. When it says Done, SoundSync-patches.mpp is in this folder.
+
+ADD IT TO MORPHE MANAGER (phone)
+  1. Copy SoundSync-patches.mpp to the phone (e.g. Download folder).
+  2. Morphe Manager > patch sources > Add patch source > Local >
+     Select patch source files > pick SoundSync-patches.mpp.
+
+PATCH AN APP (YouTube, Instagram, Facebook, Reddit, ...)
+  1. Patch the app as usual, with its normal patch source (Morphe,
+     hushfacebook, ...) and SoundSync both enabled.
+  2. Use Expert mode to choose patches. Under "Universal patches", tick
+     "Android Auto audio sync". Its options: Delay (ms), e.g. 750, and
+     "When to apply" (only with Android Auto, or always).
+  3. Install the patched app as usual.
+
+USE IT
+  - Open the SoundSync app once, set the delay and tap "Add quick-settings
+    button".
+  - In the car, play a video. If lips and sound don't match, swipe down,
+    tap SoundSync and adjust with -/+ while the video keeps playing.
+
+IF SOMETHING'S WRONG
+  - Nothing changes: check the patch was ticked, and that SoundSync's mode
+    isn't Off. "Only while connected to Android Auto" relies on the phone's
+    car mode; if it never switches on in the car, try "Always" to test.
+  - The patched app logs what it does under the tag "SoundSync":
+      adb logcat -s SoundSync

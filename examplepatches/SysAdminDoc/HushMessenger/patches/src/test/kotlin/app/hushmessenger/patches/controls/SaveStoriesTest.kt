@@ -233,6 +233,41 @@ class SaveStoriesTest {
         assertFailsWith<PatchException> { fixtureMethod("LX/JgG;->A01(Landroid/view/View;)V", body, registers = 16).validateStorySave() }
     }
 
+    @Test fun a587MenuAsksTheCardsControllerAndTheHelperAsksTheSame() {
+        val canSave = "LX/JQP;->A0B()Z"
+        val ask = "invoke-virtual {v2}, $canSave\nmove-result v1\nif-eqz v1, :own_rest"
+        val body = builderBody().replace(CARD_TYPES, ask)
+        val save = builder(body).validateStorySave()
+        assertEquals(canSave, save.canSave)
+        assertEquals(emptyList<String>(), save.saveable)
+        assertEquals(listOf(14, 6, 5), listOf(save.others, save.fragment, save.menu))
+        assertEquals(SAVE_ID, save.id)
+        assertEquals(ADD_ITEM, save.addItem)
+        assertEquals(HANDLER, save.handler)
+
+        val code = storySaveHelper("LX/JgG;", save).implementation!!.instructions.toList()
+        val done = code.lastIndex
+        assertEquals(CONTROLLER, reference(code[3]))
+        assertEquals(done, code.branchTarget(5))
+        assertEquals(canSave, reference(code[6]))
+        assertEquals(listOf(0), args(code[6]))
+        assertEquals(Opcode.MOVE_RESULT, code[7].opcode)
+        assertEquals(done, code.branchTarget(8))
+        assertTrue(code[9] is WideLiteralInstruction && (code[9] as WideLiteralInstruction).wideLiteral == SAVE_ID)
+        assertEquals(ADD_ITEM, reference(code[done - 1]))
+
+        val method = builder(body)
+        method.injectStorySave(save)
+        assertEquals("LX/JgG;->$STORY_SAVE_HELPER($FRAGMENT$MENU)V", reference(method.implementation!!.instructions.toList()[14]))
+
+        fun rejects(changed: String) = assertFailsWith<PatchException> { builder(body.replace(ask, changed)).validateStorySave() }
+        // Another class's question, another register's card, the answer read elsewhere, and a no that lands somewhere else.
+        rejects(ask.replace("LX/JQP;", "LX/JQQ;"))
+        rejects(ask.replace("{v2}", "{v6}"))
+        rejects(ask.replace("if-eqz v1", "if-eqz v3"))
+        rejects(ask.replace(":own_rest", ":handler"))
+    }
+
     @Test fun aLaterCheckOfTheSameShapeWithoutAMenuIsSkipped() {
         // A merged onClick can ask its fragment manager the same way later on, with no menu built first. That
         // question is skipped, and the same question asked right after a second menu build is refused.
@@ -277,7 +312,8 @@ class SaveStoriesTest {
                 val builder = MutableMethod(original)
                 val save = builder.validateStorySave()
                 classes.single { it.type == save.handler }.validateStoryMenuHandler(save)
-                assertTrue(save.saveable.isNotEmpty(), code)
+                // Most 587 builds ask the card's controller where 586 listed the card types; each build does one or the other.
+                assertTrue(save.saveable.isEmpty() == (save.canSave != null), code)
                 storySaveHelper(original.definingClass, save)
                 val before = builder.implementation!!.instructions.toList()
                 builder.injectStorySave(save)

@@ -14,6 +14,7 @@ val hideCryptoPatch = bytecodePatch(
     name = "Hide crypto and prediction markets",
     description = "Hides Truth Predict and Gems.",
 ) {
+    category("Interface")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

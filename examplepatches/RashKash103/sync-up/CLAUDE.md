@@ -110,6 +110,32 @@ walks straight through a `catch (Exception)`. R8 does quietly fix some of it —
 becomes `Collections.EMPTY_MAP` — so what the dex holds is worth reading before changing
 anything.
 
+### Everything must be tried in tablet mode as well
+
+**Tablet mode is a different app, not a wider one.** `pa.d.S3()` reads `tablet_mode` from the
+`PreferencesTabletFragment` file, defaulting to a bool resource, and screens branch on it —
+`PreferencesGeneralFragment.C3` hides the whole of the `drawer` category *and* the whole of the
+`bottom` category in a single pair of calls when it is true. A settings row added inside one of
+those categories is therefore simply gone on a tablet or an unfolded foldable, which is exactly
+where it is most wanted: tablet mode is when the rail is drawn. Anything of ours that is to
+survive goes in a category of its own, as a sibling rather than a child.
+
+The bar and the rail diverge the same way — two bars built at once, different item order, a fifth
+item on the rail — so a patch touching navigation has to be run both ways round, and so does its
+**settings screen**, not merely its behaviour. v1.12.0-dev.1 shipped five rows nobody with a
+foldable could see, because the rail's behaviour was driven from the settings *file* across 81
+combinations while the settings *screen* was only ever opened with `tablet_mode` false.
+
+`adb shell "run-as <pkg> ..."` to write `tablet_mode` into the per-account file, force-stop, and
+launch: the whole switch costs a few seconds, and it belongs in every run that touches a screen.
+
+**Sync's own settings search mis-lands in tablet mode, and that one is not ours.** Searching a
+row and tapping the result scrolls to the wrong place entirely — measured on Sync's own
+`Autohide FAB`, which landed in the `General` category, with a control build carrying neither
+`Choose what the bottom bar shows` nor `More actions on the floating button`. It behaves in
+portrait. Do not go looking for a patch to blame when a search result lands somewhere odd on a
+tablet; check portrait first, and check a stock row.
+
 ### A patch that touches the settings must be tested against Backup
 
 **Back up and restore on a device before shipping anything that adds, moves, hides or changes a
@@ -166,6 +192,21 @@ the setup time, since it turns a CI round trip into a few seconds.
    `dde016e1…b482`, which is what is on the test device.
 5. **A Sync APK** — the supported build, `v23.06.30-13:39`. One is at
    `~/Downloads/sync-revanced/` on this machine.
+
+   **Sign in, or half of what is worth measuring never happens.** Reddit answers the API 401
+   unauthenticated, so the feed is empty, nothing draws, and anything watching a view per frame
+   is being read on a screen that produces a frame or two a second. A build patched with the
+   `AAAAAAAAAAAAAAAAAAAAAA` placeholder from the recipe above **cannot** sign in — the authorize
+   page comes back blank, and the only thing that says why is the WebView's own console line in
+   logcat naming `client_id=AAAA…`. Patch with the real `client-id` and it loads. The account's
+   credentials are in `~/reddit-creds.txt`; **never commit either, and never write the client id
+   into a file in the repository** — pass it on the command line. The fresh account's Frontpage
+   is nearly as quiet as no account at all, so switch it to the All feed.
+
+   Two things about typing them in: `adb shell ime disable` is the wrong move here, because with
+   no enabled keyboard the system puts up its input-method chooser over the form and eats the
+   rest of what is typed. The password field disables suggestions by itself, so leave the
+   keyboard alone and move between the two fields with `KEYCODE_TAB`.
 6. **The emulator comes up locked, and a locked device has no app.** The AVD here carries a
    device lock, so after a cold boot the user is `RUNNING_LOCKED` and credential-encrypted
    storage is shut. In that state Sync's components are not registered at all: `am start`
@@ -494,6 +535,31 @@ shape, not by name — the showing child as wide as its parent, against the bott
 sliding away carries its own position with it and the room reappears as it goes, which is what
 lets the surface follow the button down when the bar really has gone.
 
+**A soft keyboard moves the button most of the way up the screen, and the window does not
+shrink.** Opening the search sheet and tapping its field puts Sync's button at `y=1097` on a
+2400 tall screen, from the `1917` it was resting at, and back again when the keyboard goes —
+measured frame by frame. A surface that follows it is a surface stranded in the middle of the
+feed, which is exactly what a reader sees, at about 45% down.
+
+Two readings matter about how to tell. The button's **parent stays 2400 tall throughout**, so
+nothing about the window's own height says a keyboard is up; the coordinator passes the inset
+to its children instead. What does say it is `getRootWindowInsets()`: `883/63`
+(`getSystemWindowInsetBottom()`/`getStableInsetBottom()`) with the keyboard up against `63/63`
+without it, so the difference between what the system is taking now and what it always takes is
+decisive and needs nothing past API 23 — `WindowInsets.Type.ime()` is API 30 and this is offered
+from 23.
+
+**The sheet is read as the bottom bar while it is up**, which moves `noLowerThan` from `1980` to
+`1160`. That is conservative rather than wrong — it only makes the surface stay put more often —
+but it is why the number moves, and it is not the keyboard shrinking anything.
+
+**The emulator cannot finish this one, and the reason is worth knowing.** The search sheet
+covers the whole screen on a phone, so the activity behind stops drawing and only two or three
+pre-draws land while the keyboard is up — short of the four a jump needs before it is followed.
+A fold leaves the feed visible beside the sheet, which supplies the frames. So the half that can
+be measured here is the beginning of the move: the settle counter reaching `settlingAt=1097
+settling=1` where the surface is allowed to follow, and staying at `settling=0` where it is not.
+
 **"Autohide FAB" turned off hides the button, and that is Sync's — but it is ours to put
 right.** Measured with the patch inert — *Show FAB* on, *Autohide FAB* off, no extra actions
 chosen so no surface is built and `over()` returns before touching anything — and the button is
@@ -553,6 +619,133 @@ Anything hooked there runs on the thread that drew the menu, so it must not touc
 asking a Rimgo instance whether it is answering from one of these is a `NetworkOnMainThread`
 away from taking the app down. Say what is already known instead. And change only a string that
 is *wholly* an address — `a` and `b` carry comment text as readily as links.
+
+**The navigation bar is a real menu, and the app settles what is on it exactly once.** There are
+two of them and both keep their names: `SyncBottomNavigationView` extends Material's
+`BottomNavigationView`, `SyncNavigationRailView` extends `NavigationRailView`, and both inherit
+`NavigationBarView`, whose `g()` is `getMenu()` and is public, so an extension can reach the
+items from outside Material's package. The bar inflates `res/menu/main_bottom_actions.xml` —
+Posts, Actions, Explore, Inbox, as `menu_posts`, `menu_actions`, `menu_explore`,
+`menu_messages` — and the rail takes `res/menu/main_rail.xml` through `app:menu` in
+`activity_main_tablet.xml`, which is the same four plus `menu_settings`. `res/menu/main_bottom.xml`
+is one of the shrinker's `<x/>` stubs and is not used by anything.
+
+`MenuItem.setVisible` appears **twice in the whole of both classes**, both in the bar's
+constructor: Actions unless `navigationBottomActions` is set, and Inbox while nobody is signed
+in. The rail hides nothing at all, so in tablet mode the inbox item is there even signed out.
+Nothing afterwards changes an item's visibility, which is what makes it safe to read the bar
+once and treat that as what the app meant to draw.
+
+The place to hook is the method that dresses the bar — the only one on either class that hands
+Material a `ColorStateList`, which is how `bottomNavigationItemsPatch` finds it rather than by
+its minified name. It runs as the bar is built, after the constructor's own hiding, and again
+through `h()` whenever the theme or the settings change, and its single return is reached by
+every path on both classes. In tablet mode **both** bars are built, so anything keyed on the
+view has to expect two.
+
+**A settings row of ours must not live inside one of Sync's categories.**
+`PreferencesGeneralFragment.C3` hides the `drawer` and `bottom` categories whole when
+`pa.d.S3()` says tablet mode, so rows added inside `bottom` vanish on a foldable — see
+[Everything must be tried in tablet mode as well](#everything-must-be-tried-in-tablet-mode-as-well).
+`bottomNavigationItemsSettingsPatch` builds a `PreferenceCategory` of its own, with a
+`CategoryHeaderPreference app:categoryTitle=...` as Sync's own categories do, and inserts it as
+the next sibling of `bottom` so it still reads as a continuation of it.
+
+**The two bars do not draw the same four items in the same order.** The bottom bar inflates
+Posts, Actions, Explore, Inbox; the rail inflates Posts, Explore, Inbox, Actions, Settings. So
+nothing keyed on position may assume either order, and because both bars are dressed in tablet
+mode, a diagnostic that does not name which bar it is reading alternates between them and looks
+like a bug — an 81 case sweep reported one failure that was only the rail's line being read for
+the bottom bar's.
+
+**Material caps the items, and hiding one does not make room.** `BottomNavigationView.f()` is
+`getMaxItemCount()` and answers **5**; the rail's answers **7**. The check is in
+`NavigationBarMenu.a()` — `menu.size() + 1 > cap`, throwing `IllegalArgumentException` — and
+`size()` counts every item in the menu whether the bar is drawing it or not. A bar that declares
+four therefore has room for exactly one more however many are hidden. What gets past the cap is
+*replacing* an item rather than adding one: an item already in the menu, given another name, icon
+and meaning, costs nothing.
+
+**One method answers a tap on either bar.** Both bars are their own `OnItemSelectedListener` and
+both hand the item straight to `Lhc/a;->b(Context, ta.d, MenuItem)Z` — `NavigationViewHelper.java`,
+which the build keeps, and the only method on that class taking three parameters. It compares the
+id against six: `menu_posts`, `menu_messages`, `menu_explore`, `menu_search`, `menu_settings` and
+`menu_actions` — note that **`menu_search` is in no menu at all** and `menu_settings` only on the
+rail, so both are finished destinations nothing shows. Anything it does not recognise falls
+through to `return false`, so an id of our own was already harmless before anything was injected.
+
+Mind which way round Material reads that answer: the listener returning **true** is what makes
+Material draw the item as the selected one, so a button that carries out an action rather than
+going somewhere must answer **false**.
+
+**The unread badge is built by id, from one method per bar.** `SyncBottomNavigationView.P()` and
+`SyncNavigationRailView.Y()` — the only `()V` on either that asks `NavigationBarView.k(I)`
+(`getOrCreateBadge`) — call it with `menu_messages`, then `L(true)`, `E(3)`,
+`I(SizeHelper.c(4))`, `B(SizeHelper.c(3))`, `F(MessageCountHelper.a())`, `z(-42495)`, `A(-1)`, or
+`o(id)` (`removeBadge`) where the count is not positive. The dressing method calls it, a message
+arriving calls it, and the bar being attached calls it, so a correction appended to one path is
+undone by the next: `bottomNavigationItemsPatch` stands in for the whole method instead and
+reproduces those calls exactly. `getOrCreateBadge` is safe on an item the bar is not drawing — the
+badge is simply attached to nothing — so it never has to be guarded.
+
+**Leave the selected pill alone.** Material keeps the selected item **twice** — by id, which
+draws the filled icon, and by position, which draws the pill — and reconciles the two only on a
+real selection event. Any menu change can leave the position stale while the id stays right, and
+a menu of ours changes whenever a row is turned over.
+
+An attempt to control the pill cost four bug reports in a row and was taken out again. It had
+been reasonable on the face of it: Sync marks a destination through `O(I)` on the bar and `X(I)`
+on the rail, each eight instructions ending in `MenuItem.setChecked(true)`, and a button carrying
+an action is not a screen. But neither of those runs at startup — Material's own `buildMenuView`
+re-checks the item at the position it last had one, measured with the hook never once reached —
+and a check cannot simply be removed, since every nav item is exclusive-checkable and
+`setChecked(false)` on one of those *checks* it. What was shipped instead was a hidden item to
+park the mark on, with `BottomNavigationView.f()` answered as 6 rather than 5 to make room for it.
+On a device that produced a pill on the newly added button while the feed was still on Posts, a
+pill that would not move when Posts was tapped, and a pill and a filled icon on different buttons
+at once; tapping another destination and back repaired it every time, which is the tell that the
+two halves had drifted apart.
+
+So nothing here writes `setChecked`, adds an item for the mark, or touches the cap. What is left
+is one static wrongness — replacing the first button leaves the pill on the replacement at
+startup — and it is worth far less than the instability of trying to fix it. Fixing it properly
+would mean writing `NavigationBarMenuView`'s remembered position directly, which is a private
+member of an internal Material class.
+
+**A setting of Sync's can be taken over, and hidden rather than removed.** `Show actions` under
+Experimental writes `navigation_bottom_actions`, and that key appears as a string in exactly one
+place — `SettingsSingleton.p`, which reads it into the cached `Settings` — while the field it
+lands in, `navigationBottomActions`, is read in exactly one more: `SyncBottomNavigationView`'s
+constructor. So the whole setting is one switch with one consumer, and
+`bottomNavigationItemsPatch` answers it from a row of its own instead.
+
+Two things make that safe to do. **Backup reads `SharedPreferences.getAll()`**, in
+`PreferencesBackupFragment.i4()`, not the preference tree — so a row taken out of the XML does not
+take its key out of a backup, and the key goes on travelling whatever happens to the row. And
+`isPreferenceVisible` is in the resource table, so `app:isPreferenceVisible="false"` on the
+element hides the row where it stands. Hiding beats removing: nothing in the app looks this one up
+by name, so removing it would not have thrown, but a row still in the tree is a row anything
+expecting it still finds — and taking rows out of a settings screen is what brought the Backup
+screen down in v1.7.0.
+
+Taking a setting over means writing it, not merely ignoring it: the bar's constructor reads it at
+the next start, so a row saying one thing while the setting says another comes back as a bug a
+restart later. It also means migrating — the row adopts whatever the setting already said the
+first time it is read, or everyone who had turned it on silently loses it.
+
+**Sync's actions are a numbered table with everything needed already in it.** `Lt7/b;` is
+`ActionsManager.java`: `h(n)` is the name (carrying a `\n` where the sheet shows two lines),
+`d(n)` the drawable id, `f(n)` whether the reader left it on under *Action visibility*, and
+`ActionsBottomSheetFragment.w4(activity, manager, subreddit, n, null)` carries one out. Both
+`h` and `d` answer a number they do not know by throwing `RuntimeException("Unknown action")`.
+The numbering is in `patches/.../ui/SyncActions.kt`, shared by the floating button and the
+navigation bar so the two cannot drift; it is read from the jump table, which runs the *reverse*
+of the order the names appear in the code.
+
+Those icons are safer than the ones a settings row wants: they are drawables Sync still draws
+itself, so the resource shrinker left them whole, and Material tints a navigation item's icon from
+the `ColorStateList` the bar is handed — so even one with a literal black fill follows the theme
+on a bar, which it would not on a row.
 
 **Menus are layouts, not lists.** The post overflow sheet is
 `res/layout/dialog_bottom_post_more.xml`, a `LinearLayout` of `MaterialRow` views dispatched by
@@ -767,7 +960,34 @@ what a software-rendered emulator has to draw, and `wm size reset` puts it back.
 `system_server` rather than to the app, and one of them landed on Sync's own Backup screen
 before any patched screen had been opened. Check `/proc/loadavg` before believing a patch
 caused it; software rendering plus a loaded host is enough on its own, and `uiautomator dump`
-forces a main-thread traversal every time it is called.
+forces a main-thread traversal every time it is called. The ANR trace names the thread that was
+stuck: one read here was the main thread inside `hwui`'s `RenderProxy`, waiting on the render
+thread, with nothing of ours anywhere on the stack. `adb shell dumpsys dropbox --print` is where
+to read it from.
+
+**The emulator leaves stale tiles, which read as views drawn in the wrong place.** A capture
+taken after the bar's items were laid out again showed a navigation item's icon, complete with
+its selected pill, floating in the content area a third of the way down the screen. There was no
+such view: `uiautomator dump` showed a clean hierarchy with the item only in the bar. It is the
+software renderer failing to clear what it drew. Forcing a full redraw — a rotation does it —
+takes it away, which is what tells a stale tile from a layout bug, and a control run with the
+patch changing nothing shows it just the same.
+
+**`printDebug` is off unless the device says otherwise, and nothing says so.** The shared
+library gates it on `morphe_debug`, which this bundle has no settings UI for, so a diagnostic
+written with `Logger.printDebug` produces nothing at all and reads exactly like code that never
+ran. Writing `<boolean name="morphe_debug" value="true" />` into
+`shared_prefs/morphe_prefs.xml` turns it on for the whole extension. `printInfo` is always
+logged, which is why the toastless `printInfo` is also what a diagnostic should use if the
+device cannot be reached.
+
+**Settings can be driven from a script without root.** `adb root` is refused on this image, but
+a build carrying `Enable Android debugging` can be reached with `run-as`, which makes the
+per-account settings file readable and writable — so a patch with settings can be put through
+every combination of them by force-stopping the app, writing the file, and launching again,
+rather than by tapping switches. `run-as` cannot read `/sdcard`, so the file goes via
+`/data/local/tmp` with `chmod 644`. Tapping a `SyncCheckBoxPreference`'s switch directly often
+does not register on this emulator; tapping the row's words does.
 
 **Dead endpoints Sync still calls.** Worth knowing before diagnosing a media bug:
 

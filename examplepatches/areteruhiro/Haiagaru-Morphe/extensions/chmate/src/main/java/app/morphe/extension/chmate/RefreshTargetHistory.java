@@ -27,6 +27,7 @@ public final class RefreshTargetHistory {
         try{
             View existing=original.findViewWithTag(Integer.valueOf(TAG));
             if(existing!=null){((Tabs)existing.getTag(TAG)).restore();return;}
+            if(!enabled(original.getContext()))return;
             if(original.isAttachedToWindow())return;
             Tabs tabs=new Tabs(popup,original);
             popup.setContentView(tabs.root);tabs.restore();
@@ -46,6 +47,9 @@ public final class RefreshTargetHistory {
         final Object flow;
         final java.lang.reflect.Method read,write;
         int selected,generation;
+        NativeHistoryTabs standardTabs;
+        final View fallbackTabs;
+        long nextNativeAttempt;
         NativeTargetHistory.Binding targetBinding;
         Tabs(PopupWindow popup,View original)throws Exception{
             this.popup=popup;nativeContent=original;
@@ -67,7 +71,7 @@ public final class RefreshTargetHistory {
             android.util.TypedValue highlight=new android.util.TypedValue();
             accent=context.getTheme().resolveAttribute(android.R.attr.colorAccent,highlight,true)?highlight.data:0xff0086b3;
             LinearLayout row=new LinearLayout(context);row.setGravity(Gravity.BOTTOM);
-            String[] labels={"スレ","対象","板","書き込み","画像"};
+        String[] labels={"スレ","更新対象","板","書き込み","画像"};
             for(int i=0;i<buttons.length;i++){
                 final int tab=i;
                 TextView button=new TextView(context);buttons[i]=button;
@@ -90,8 +94,10 @@ public final class RefreshTargetHistory {
             content.addView(status,new FrameLayout.LayoutParams(-1,-1));
             root.addView(content,new LinearLayout.LayoutParams(-1,0,1));
             root.addView(row,new LinearLayout.LayoutParams(-1,-2));
+            fallbackTabs=row;
             nativeTabs.setVisibility(View.GONE);
             root.getViewTreeObserver().addOnPreDrawListener(() -> {
+                prepareNativeTabs();
                 if (selected == 1 && targetBinding != null) {
                     try { targetBinding.ensure(); }
                     catch (Exception unavailable) {
@@ -110,6 +116,7 @@ public final class RefreshTargetHistory {
                         android.util.Log.w("Haiagaru", "History tab selection unavailable", unavailable);
                     }
                 }
+                if(standardTabs!=null)try{standardTabs.select(selected);}catch(Exception ignored){}
                 return true;
             });
             int nativeSelected=((Number)read.invoke(flow)).intValue();
@@ -117,11 +124,13 @@ public final class RefreshTargetHistory {
 
         }
         void restore(){
-            nativeTabs.setVisibility(View.GONE);
+            prepareNativeTabs();
+            nativeTabs.setVisibility(standardTabs==null?View.GONE:View.VISIBLE);
             ((View)buttons[1].getParent()).setVisibility(enabled(root.getContext())?View.VISIBLE:View.GONE);
             select(selected);
         }
         void updateSelection(){
+            if(standardTabs!=null)try{standardTabs.select(selected);}catch(Exception error){android.util.Log.w("Haiagaru","Native history selection unavailable",error);}
             for(int i=0;i<buttons.length;i++){
                 buttons[i].setSelected(i==selected);
                 buttons[i].setTypeface(null,i==selected?android.graphics.Typeface.BOLD:android.graphics.Typeface.NORMAL);
@@ -129,6 +138,23 @@ public final class RefreshTargetHistory {
                 indicators[i].setBackgroundColor(i==selected?accent:android.graphics.Color.TRANSPARENT);
                 buttons[i].setContentDescription(buttons[i].getText()+(i==1?" 更新対象のスレ（"+RefreshTargets.selected(root.getContext()).size()+"）":"")+(i==selected?" 選択中":""));
             }
+        }
+        void prepareNativeTabs(){
+            long now=android.os.SystemClock.uptimeMillis();
+            if(standardTabs==null&&now<nextNativeAttempt)return;
+            nextNativeAttempt=now+500;
+            try{
+                boolean targets=enabled(root.getContext());
+                if(standardTabs==null){
+                    NativeHistoryTabs ready=new NativeHistoryTabs(nativeTabs,this::select);
+                    ready.configure(targets);standardTabs=ready;
+                    fallbackTabs.setVisibility(View.GONE);nativeTabs.setVisibility(View.VISIBLE);
+                    FrameLayout.LayoutParams statusParams=(FrameLayout.LayoutParams)status.getLayoutParams();
+                    statusParams.bottomMargin=Math.round(56*root.getResources().getDisplayMetrics().density);
+                    status.setLayoutParams(statusParams);
+                    nativeContent.setVisibility(View.VISIBLE);
+                }else if(standardTabs.targets!=targets)standardTabs.configure(targets);
+            }catch(Exception unavailable){/* Native state can arrive asynchronously; retain the usable fallback until ready. */}
         }
         void select(int tab){
             if(tab==1&&!enabled(root.getContext()))tab=0;
@@ -139,7 +165,7 @@ public final class RefreshTargetHistory {
             }
             selected=tab;int request=++generation;
             updateSelection();
-            nativeContent.setVisibility(tab==1?View.GONE:View.VISIBLE);
+            nativeContent.setVisibility(tab==1&&standardTabs==null?View.GONE:View.VISIBLE);
             status.setVisibility(View.GONE);
             if(tab!=1){
                 try{write.invoke(flow,Integer.valueOf(tab==0?0:tab-1));}
@@ -156,7 +182,7 @@ public final class RefreshTargetHistory {
                         if(generation!=request)return;
                         try{
                             targetBinding=NativeTargetHistory.show(popup,version,root.getContext(),nativeRows);
-                            nativeContent.setVisibility(nativeRows.isEmpty()?View.GONE:View.VISIBLE);
+                            nativeContent.setVisibility(nativeRows.isEmpty()&&standardTabs==null?View.GONE:View.VISIBLE);
                             status.setText(loaded.isEmpty()
                                     ?"登録はありません。スレタイトルの「更新対象に含む」で追加できます。"
                                     :"対象スレの保存情報が見つかりません。スレを一度開いてください。");

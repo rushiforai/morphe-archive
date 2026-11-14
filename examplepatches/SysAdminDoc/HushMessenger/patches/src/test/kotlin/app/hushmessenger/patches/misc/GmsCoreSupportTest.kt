@@ -4,10 +4,19 @@ import app.hushmessenger.patches.MessengerTarget
 import app.hushmessenger.patches.controls.fixtureClass
 import app.hushmessenger.patches.controls.fixtureMethod
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.DexFileFactory
+import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
+import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction
 import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableField
 import com.android.tools.smali.dexlib2.immutable.value.ImmutableStringEncodedValue
 import org.junit.jupiter.api.Assumptions.assumeTrue
@@ -22,6 +31,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.StandardCopyOption
 import java.security.MessageDigest
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
@@ -33,6 +43,7 @@ import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -40,27 +51,31 @@ private const val AVAILABILITY = "LX/1qi;->A01(Landroid/content/Context;I)I"
 private const val PROVIDER = "LX/btj;"
 
 /** 585's availability check cut down to the three texts it's found by. */
-private fun availabilityMethod(id: String = AVAILABILITY, version: String = "MetadataValueReader") = fixtureMethod(id, """
+private fun availabilityMethod(id: String = AVAILABILITY, version: String = "MetadataValueReader",
+    flags: Int = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value, registers: Int = 4) = fixtureMethod(id, """
     const-string v0, "com.google.android.gms"
     const-string v0, "$version"
     const-string v0, "This should never happen."
     const/4 v0, 0x0
     return v0
-""".trimIndent(), 4, AccessFlags.PUBLIC.value or AccessFlags.STATIC.value)
+""".trimIndent(), registers, flags)
 
 /** androidx's framework provider: true on Android 14 and later when Android hands it a CredentialManager. */
-private fun providerClass(type: String = PROVIDER) = fixtureClass(type, listOf(fixtureMethod("$type->isAvailableOnDevice()Z", """
+private val PROVIDER_BODY = """
     sget v0, Landroid/os/Build${'$'}VERSION;->SDK_INT:I
     const/16 v1, 0x22
     if-lt v0, v1, :no
-    iget-object v0, p0, $type->A00:Landroid/credentials/CredentialManager;
+    iget-object v0, p0, $PROVIDER->A00:Landroid/credentials/CredentialManager;
     if-eqz v0, :no
     const/4 v0, 0x1
     return v0
     :no
     const/4 v0, 0x0
     return v0
-""".trimIndent(), 3)), extraFields = listOf(ImmutableField(type, "A00", "Landroid/credentials/CredentialManager;",
+""".trimIndent()
+
+private fun providerClass(type: String = PROVIDER, body: String = PROVIDER_BODY.replace(PROVIDER, type), registers: Int = 3) =
+    fixtureClass(type, listOf(fixtureMethod("$type->isAvailableOnDevice()Z", body, registers)), extraFields = listOf(ImmutableField(type, "A00", "Landroid/credentials/CredentialManager;",
     AccessFlags.PRIVATE.value or AccessFlags.FINAL.value, null, null, null)))
 
 /** The two ways 585 asks for a Cloud Messaging token, and an Instance ID static field. */
@@ -142,6 +157,71 @@ class GmsCoreSupportTest {
         assertContains(other.message!!, "availability check has 0 matches")
         val twoProviders = assertFailsWith<PatchException> { planGmsCore(supportedClasses() + providerClass("LX/btk;")) }
         assertContains(twoProviders.message!!, "framework provider has 2 matches")
+        // With this as its only register, the answer would have nowhere to put the extension's reply.
+        val noLocal = assertFailsWith<PatchException> {
+            planGmsCore(listOf(fixtureClass("LX/1qi;", listOf(availabilityMethod())),
+                providerClass(body = "const/4 v0, 0x1\nreturn v0", registers = 1), registrationClass()))
+        }
+        assertContains(noLocal.message!!, "framework provider has no local register")
+    }
+
+    @Test fun theAvailabilityCheckAnswersWhateverTheExtensionSaysAboutMicrog() {
+        // A static check of four registers holds its Context in v2 (p0).
+        val static = availabilityMethod().apply { answerFromMicroG() }
+        assertAsksTheExtension(static.instructions(), contextRegister = 2)
+        // Five registers with this, a Context and an int as parameters: this is v2 (p0) and the Context v3 (p1).
+        val instance = availabilityMethod(flags = AccessFlags.PUBLIC.value, registers = 5).apply { answerFromMicroG() }
+        assertAsksTheExtension(instance.instructions(), contextRegister = 3)
+    }
+
+    @Test fun theFrameworkProviderStepsAsideOnlyForMicrog() {
+        val provider = providerClass().methods.single().apply { stepAsideForMicroG() }.instructions()
+        assertEquals(Opcode.INVOKE_STATIC, provider[0].opcode)
+        assertEquals(GMS_CORE_SIGNS_IN_THROUGH_MICROG, provider[0].called())
+        assertEquals(Opcode.MOVE_RESULT to 0, provider[1].opcode to (provider[1] as OneRegisterInstruction).registerA)
+        assertEquals(Opcode.IF_EQZ to 0, provider[2].opcode to (provider[2] as OneRegisterInstruction).registerA)
+        assertEquals(5, (provider[2] as BuilderOffsetInstruction).target.location.index, "the branch skips to the provider's own body")
+        assertEquals(Opcode.CONST_4 to 0, provider[3].opcode to (provider[3] as OneRegisterInstruction).registerA)
+        assertEquals(0, (provider[3] as NarrowLiteralInstruction).narrowLiteral)
+        assertEquals(Opcode.RETURN to 0, provider[4].opcode to (provider[4] as OneRegisterInstruction).registerA)
+        assertEquals(Opcode.SGET, provider[5].opcode, "the provider's own body is still there")
+        assertEquals(14, provider.size)
+    }
+
+    @Test fun theExtensionCarriesTheMethodsTheChecksCall() {
+        val extension = Files.createTempFile("hush-gmscore-extension-", ".mpe")
+        try {
+            javaClass.classLoader.getResourceAsStream("extensions/messenger.mpe").use { input ->
+                assertNotNull(input, "The embedded release extension must be built before patch tests")
+                Files.copy(input, extension, StandardCopyOption.REPLACE_EXISTING)
+            }
+            val dex = DexFileFactory.loadDexContainer(extension.toFile(), Opcodes.forApi(35))
+            val methods = dex.dexEntryNames.flatMap { dex.getEntry(it)!!.dexFile.classes }.flatMap { it.methods }
+            for (reference in listOf(GMS_CORE_AVAILABILITY, GMS_CORE_SIGNS_IN_THROUGH_MICROG)) {
+                val found = methods.filter { "${it.definingClass}->${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" == reference }
+                assertEquals(1, found.size, reference)
+                assertTrue(AccessFlags.PUBLIC.isSet(found.single().accessFlags) && AccessFlags.STATIC.isSet(found.single().accessFlags),
+                    "$reference is public static, so Messenger's classes can call it")
+            }
+        } finally {
+            Files.deleteIfExists(extension)
+        }
+    }
+
+    /** The check opens by asking the extension about microG-RE with its Context and returning that answer. */
+    private fun assertAsksTheExtension(answered: List<Instruction>, contextRegister: Int) {
+        assertEquals(Opcode.INVOKE_STATIC_RANGE, answered[0].opcode)
+        val call = answered[0] as RegisterRangeInstruction
+        assertEquals(contextRegister to 1, call.startRegister to call.registerCount, "the call takes the Context register alone")
+        assertEquals(GMS_CORE_AVAILABILITY, answered[0].called())
+        assertEquals(Opcode.MOVE_RESULT to contextRegister, answered[1].opcode to (answered[1] as OneRegisterInstruction).registerA)
+        assertEquals(Opcode.RETURN to contextRegister, answered[2].opcode to (answered[2] as OneRegisterInstruction).registerA)
+    }
+
+    private fun MutableMethod.instructions(): List<Instruction> = implementation!!.instructions.toList()
+
+    private fun Instruction.called() = ((this as ReferenceInstruction).reference as MethodReference).let {
+        "${it.definingClass}->${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}"
     }
 
     @Test fun refusesWhenMessengerStopsAskingForATokenTheOldWay() {

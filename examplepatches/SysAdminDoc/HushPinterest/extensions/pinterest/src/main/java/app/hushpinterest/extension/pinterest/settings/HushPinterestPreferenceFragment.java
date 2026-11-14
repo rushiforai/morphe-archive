@@ -307,6 +307,14 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                         L10n.t("Takes pins you've saved out of your home feed. Your boards and search still show them.")),
                         SettingsIcons.BLOCK));
             }
+            // Its own hooks, on the list hook and the pin's feedback bubble: no row where neither went in.
+            if (build.contains(PatchFamily.FILTER_FEED) && (PatchFamily.Capability.FEED_HOME_SUGGESTIONS.installed()
+                    || PatchFamily.Capability.FEEDBACK_FLYOUT.installed())) {
+                feed.addPreference(mark(toggle(context, Settings.HIDE_HOME_SUGGESTIONS, L10n.t("Hide Home suggestions"),
+                        L10n.t("Takes the \"More ideas for your board\" and \"Inspired by your interests\" rows off Home, "
+                            + "and the \"See more like this?\" bubble off pins. The change shows the next time Home loads.")),
+                        SettingsIcons.BLOCK));
+            }
             // A list rather than a switch, on Filter feed's hook: no row where that capability didn't go in.
             if (build.contains(PatchFamily.FILTER_FEED) && PatchFamily.Capability.FEED_MUTED_WORDS.installed()) {
                 feed.addPreference(mark(new MutedWordsPreference(context), SettingsIcons.BLOCK));
@@ -588,14 +596,19 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                     + "stay as they are.")),
                 SettingsIcons.ABOUT));
 
-        // Only with the patch: Firebase signs a patched Pinterest up for push notifications only
-        // when it names Pinterest's own certificate (PushNotifications).
-        if (build.contains(PatchFamily.FIX_PUSH_NOTIFICATIONS)) {
+        // Only with one of its patches: Firebase signs a patched Pinterest up for push notifications
+        // only when it names Pinterest's own certificate (PushNotifications), and the Inbox's Updates
+        // section is Pinterest's own list of notices.
+        if (build.contains(PatchFamily.FIX_PUSH_NOTIFICATIONS) || build.contains(PatchFamily.HIDE_INBOX_UPDATES)) {
             PreferenceCategory notifications = category(screen, L10n.t("Notifications"));
             patchToggle(notifications, context, build, PatchFamily.FIX_PUSH_NOTIFICATIONS, Settings.FIX_PUSH_NOTIFICATIONS,
                     L10n.t("Fix push notifications"),
                     L10n.t("Lets a patched Pinterest sign up for push notifications, which it can't do on its own. A "
                         + "change applies the next time Pinterest starts."), SettingsIcons.BELL);
+            patchToggle(notifications, context, build, PatchFamily.HIDE_INBOX_UPDATES, Settings.HIDE_INBOX_UPDATES,
+                    L10n.t("Hide Inbox updates"),
+                    L10n.t("Leaves the Updates section out of your Inbox, and Pinterest doesn't load it. Your messages "
+                        + "stay. The change shows the next time you open the Inbox."), SettingsIcons.BELL);
             notifications.addPreference(mark(notificationSettingsRow(context), SettingsIcons.BELL));
         }
 

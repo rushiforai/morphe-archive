@@ -2085,7 +2085,6 @@ Para exibir o botão nativo para baixar a lista de reprodução, ative \'Falsifi
     <string name="revanced_preference_screen_misc_title">Diversos</string>
     <string name="revanced_preference_screen_navigation_bar_summary">Ocultar ou mostrar componentes da seção de navegação</string>
     <string name="revanced_preference_screen_navigation_bar_title">Barra de Navegação</string>
-    <string name="revanced_preference_screen_patch_information_summary">Informações sobre as modificações aplicadas</string>
     <string name="revanced_preference_screen_player_buttons_summary">Oculte ou mostre botões em vídeos</string>
     <string name="revanced_preference_screen_player_buttons_title">Botões do player</string>
     <string name="revanced_preference_screen_player_flyout_menu_summary">Ocultar ou alterar o menu flutuante no playerde vídeo</string>

@@ -11,13 +11,19 @@ final class GlobalTitleSearchRules {
     private static final Pattern TERMS=Pattern.compile("\"([^\"]+)\"|(\\S+)");
     static String normalize(String text){return Normalizer.normalize(text,Normalizer.Form.NFKC).toLowerCase(Locale.ROOT);}
     static boolean matches(String title,String query){
-        String text=normalize(title);Matcher terms=TERMS.matcher(normalize(query));boolean positive=false;
-        while(terms.find()){
+        return new Query(query).matches(title);
+    }
+    static final class Query {
+        final List<String> positive=new ArrayList<>(),negative=new ArrayList<>();
+        Query(String raw){Matcher terms=TERMS.matcher(normalize(raw));while(terms.find()){
             String term=terms.group(1)!=null?terms.group(1):terms.group(2);
-            if(term.startsWith("-")&&term.length()>1){if(text.contains(term.substring(1)))return false;}
-            else {positive=true;if(!text.contains(term))return false;}
+            if(term.startsWith("-")&&term.length()>1)negative.add(term.substring(1));else positive.add(term);
+        }}
+        boolean matches(String title){String text=normalize(title);if(positive.isEmpty())return false;
+            for(String term:positive)if(!text.contains(term))return false;
+            for(String term:negative)if(text.contains(term))return false;
+            return true;
         }
-        return positive;
     }
     static String threadUrl(String board,String id){
         BoardAddress b=BoardAddress.parse(board);URI u=URI.create(b.url);
@@ -35,9 +41,12 @@ final class GlobalTitleSearchRules {
     }
     interface PlainText {String decode(String title);}
     static void append(StringBuilder output,String subject,String board,String query,Set<String> urls,PlainText decoder){
+        append(output,subject,board,new Query(query),urls,decoder);
+    }
+    static void append(StringBuilder output,String subject,String board,Query query,Set<String> urls,PlainText decoder){
         for(String line:subject.split("\\r?\\n")){
             Matcher match=LINE.matcher(line);if(!match.matches())continue;
-            String title=match.group(2).trim();if(!matches(decoder.decode(title),query))continue;
+            String title=match.group(2).trim();if(!query.matches(decoder.decode(title)))continue;
             String url=threadUrl(board,match.group(1));if(!urls.add(key(url)))continue;
             output.append(title.replace('\t',' ').replace('\r',' ')).append('\t').append(match.group(3)).append('\t').append(url).append('\n');
             if(urls.size()>=5000)break;

@@ -227,6 +227,9 @@ final class MessagesCategory {
                 messages.addPreference(toggle(context, Settings.GLASS_CHAT, L10n.t("Glass in chats"),
                         L10n.t("Gives a chat's top bar and message bar frosted glass and puts the back, call and video buttons "
                                 + "on round glass circles. It shows the next time you open a chat. Needs Android 12 or newer for the blur.")));
+                messages.addPreference(toggle(context, Settings.GLASS_CHAT_TOP_BAR, L10n.t("Glass top bar in chats"),
+                        L10n.t("Turn it off to leave a chat's top bar as Instagram draws it, with no frosted band behind it. "
+                                + "The round glass buttons and the glass message bar stay.")));
             }
             if (build.contains(PatchFamily.FULL_SCREEN_BARS)) {
                 messages.addPreference(toggle(context, Settings.FULL_SCREEN_MESSAGES, L10n.t("Full screen Messages"),
@@ -253,9 +256,9 @@ final class MessagesCategory {
                 messages.addPreference(page.hiddenChatsRow(context));
                 messages.addPreference(toggle(context, Settings.DOUBLE_TAP_HIDDEN_CHATS,
                         L10n.t("Double-tap Messages for hidden chats"),
-                        L10n.t("Two quick taps on the Messages button, on the tab bar or at the top of Home, open "
-                                + "your hidden chats. While a lock is on, it asks for it first. One tap opens Messages "
-                                + "as usual.")));
+                        L10n.t("Two quick taps on the Messages button, on the tab bar or at the top of Home, show "
+                                + "your hidden chats in your inbox after your screen lock or PIN. Two more taps hide them "
+                                + "again. Long press a chat to hide or unhide it. One tap opens Messages as usual.")));
                 messages.addPreference(page.pinnedChatsRow(context));
             }
         }

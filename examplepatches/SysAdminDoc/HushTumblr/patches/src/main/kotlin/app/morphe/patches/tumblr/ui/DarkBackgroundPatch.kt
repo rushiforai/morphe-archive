@@ -73,6 +73,12 @@ internal const val HUB_HEADER = "Lcom/tumblr/rumblr/response/CommunityHubHeaderR
 /** The Compose note of the footer under a post, the function that paints its background. */
 internal const val POST_FOOTER_NOTE = "${FOOTER_CONTROLS}PostFooterSplitNotesCountContent ("
 
+/**
+ * The Compose note of the row under your own posts (Blaze, delete, edit, and queue on a draft), the
+ * function that paints its background.
+ */
+internal const val AUTHOR_ACTIONS_NOTE = "com.tumblr.ui.widget.authoractions.composable.AuthorActionsBarContent ("
+
 /** The style the patch adds. The extension's `DarkBackground.STYLE` looks it up by this name. */
 internal const val DARK_BACKGROUND_STYLE = "HushTumblrDarkBackground"
 
@@ -324,7 +330,7 @@ val darkBackgroundPatch = bytecodePatch(
         val hooks = resolveThemeHooks()
         val designColors = resolveDesignColors()
         // Only with the design colors hooked: the footer's hook only swaps the gray they hand out.
-        val footer = designColors?.let { resolvePostFooterColor() }
+        val panels = designColors?.let { listOfNotNull(resolvePostFooterColor(), resolveAuthorActionsColor()) }.orEmpty()
         val blogColors = resolveBlogColors()
         val tagPages = resolveTagPageColors()
         hooks.activity.addInstructions(
@@ -346,7 +352,7 @@ val darkBackgroundPatch = bytecodePatch(
                 )
             }
         }
-        footer?.let { (method, read) ->
+        for ((method, read) in panels) {
             mutableOf(method).addInstructions(
                 read.index,
                 "invoke-static/range { v${read.register} .. v${read.register + 1} }, ${read.hook}\n" +
@@ -554,29 +560,60 @@ internal fun BytecodePatchContext.resolveDesignColors(): DesignColorHooks? {
  * In 46.8.1.100 that's `bjf.d`, `ts5.g()` at 176 and `androidx.compose.foundation.b.c` at 178.
  * Found by reading Tumblr 46.8.1.100 (2026-10-22).
  */
-internal fun BytecodePatchContext.resolvePostFooterColor(): Pair<Method, DesignColorRead>? {
+internal fun BytecodePatchContext.resolvePostFooterColor(): Pair<Method, DesignColorRead>? =
+    resolvePanelBackground(POST_FOOTER_NOTE, "the post footer", "the footer under a post")
+
+/**
+ * Finds where the row under your own posts reads the color it paints itself with, or answers null
+ * with a warning, which leaves the row Tumblr's gray and changes nothing else.
+ *
+ * The row ([AUTHOR_ACTIONS_NOTE]) holds the Blaze, delete and edit buttons, and queue on a draft. It
+ * shows under your posts on your blog, in drafts, the queue and scheduled posts. It reads the design
+ * system's `Content.panel` the way the post footer does, so it was the same shade lighter than the
+ * card and showed as a gray strip with a rounded bottom under a post on a black background. It hands
+ * the color to the background modifier's defaults variant, `(Modifier, long, Shape, int, Object)`,
+ * after setting the leftover arguments with constants, so the hook still goes right after the
+ * `move-result-wide`. In 47.0.0.108 that's `a01.i`, `dv5.g()` at 93 and
+ * `androidx.compose.foundation.b.d` at 98. Found by reading Tumblr 47.0.0.108 (2026-11-13).
+ */
+internal fun BytecodePatchContext.resolveAuthorActionsColor(): Pair<Method, DesignColorRead>? =
+    resolvePanelBackground(AUTHOR_ACTIONS_NOTE, "the author actions row", "the row under your own posts")
+
+/**
+ * The one function carrying [note] and where it reads a design color it hands straight to a
+ * background modifier, with [DESIGN_FOOTER_HOOK] to go in right after the color is kept. Only
+ * constants that leave the color's registers alone may sit between the read and the modifier. Null
+ * with a warning naming [what] (a function) and [painted] (what keeps Tumblr's gray) otherwise.
+ */
+private fun BytecodePatchContext.resolvePanelBackground(note: String, what: String, painted: String): Pair<Method, DesignColorRead>? {
     fun without(why: String): Pair<Method, DesignColorRead>? {
-        patchLog.warning("$PATCH: $why, so the footer under a post keeps Tumblr's gray")
+        patchLog.warning("$PATCH: $why, so $painted keeps Tumblr's gray")
         return null
     }
-    val footers = classDefByStrings(POST_FOOTER_NOTE, StringComparisonType.STARTS_WITH)
+    val functions = classDefByStrings(note, StringComparisonType.STARTS_WITH)
         .filter { !it.type.startsWith(EXTENSION_ROOT) }
         .distinctBy { it.type }
-        .flatMap { owner -> owner.methods.filter { method -> method.strings().any { it.startsWith(POST_FOOTER_NOTE) } } }
-    val footer = footers.singleOrNull() ?: return without("${footers.size} functions carry the post footer's note instead of one")
-    val body = footer.instructionList()
+        .flatMap { owner -> owner.methods.filter { method -> method.strings().any { it.startsWith(note) } } }
+    val function = functions.singleOrNull() ?: return without("${functions.size} functions carry $what's note instead of one")
+    val body = function.instructionList()
     val reads = body.indices.mapNotNull { at ->
         if (body[at].colorGetter() == null) return@mapNotNull null
         val kept = body.getOrNull(at + 1)?.takeIf { it.opcode == Opcode.MOVE_RESULT_WIDE } as? OneRegisterInstruction
             ?: return@mapNotNull null
-        body.getOrNull(at + 2)?.takeIf { it.isBackgroundOf(kept.registerA) } ?: return@mapNotNull null
+        val color = setOf(kept.registerA, kept.registerA + 1)
+        val call = (at + 2 until body.size).firstOrNull { body[it].opcode !in SMALL_CONSTANTS } ?: return@mapNotNull null
+        if ((at + 2 until call).any { (body[it] as OneRegisterInstruction).registerA in color }) return@mapNotNull null
+        body[call].takeIf { it.isBackgroundOf(kept.registerA) } ?: return@mapNotNull null
         DesignColorRead(at + 2, kept.registerA, DESIGN_FOOTER_HOOK)
     }
     val read = reads.singleOrNull()
-        ?: return without("the post footer hands ${reads.size} design colors straight to a background instead of one")
+        ?: return without("$what hands ${reads.size} design colors straight to a background instead of one")
     requireExtensionHook(PATCH, DESIGN_FOOTER_HOOK)
-    return footer to read
+    return function to read
 }
+
+/** The constants Compose sets a call's leftover arguments with: a null shape, a mask of the arguments left out. */
+private val SMALL_CONSTANTS = setOf(Opcode.CONST_4, Opcode.CONST_16)
 
 /**
  * Finds where a blog's page, title and link colors are worked out, or answers an empty list with a
@@ -672,14 +709,25 @@ internal fun BytecodePatchContext.resolveTagPageColors(): List<Pair<Method, Desi
     return reads
 }
 
-/** A static `(modifier, long, shape)` call answering the modifier's type, with the long in [register] and the one after. */
+/**
+ * A static `(modifier, long, shape)` call answering the modifier's type, or its defaults variant
+ * `(modifier, long, shape, int, Object)`, with the long in [register] and the one after.
+ */
 private fun Instruction.isBackgroundOf(register: Int): Boolean {
-    if (opcode != Opcode.INVOKE_STATIC) return false
     val call = methodRef() ?: return false
     val types = call.parameterTypes.map(CharSequence::toString)
-    if (types.size != 3 || types[1] != "J" || !types[0].startsWith("L") || !types[2].startsWith("L") || call.returnType != types[0]) return false
-    val five = this as FiveRegisterInstruction
-    return five.registerCount == 4 && five.registerD == register && five.registerE == register + 1
+    if (types.size < 3 || types[1] != "J" || !types[0].startsWith("L") || !types[2].startsWith("L") || call.returnType != types[0]) return false
+    if (types.size != 3 && types.drop(3) != listOf("I", "Ljava/lang/Object;")) return false
+    val words = types.size + 1
+    return when (opcode) {
+        Opcode.INVOKE_STATIC -> (this as FiveRegisterInstruction).let {
+            it.registerCount == words && it.registerD == register && it.registerE == register + 1
+        }
+        Opcode.INVOKE_STATIC_RANGE -> (this as RegisterRangeInstruction).let {
+            it.registerCount == words && it.startRegister + 1 == register
+        }
+        else -> false
+    }
 }
 
 /**

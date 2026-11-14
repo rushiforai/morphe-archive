@@ -1,8 +1,8 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-12
  * Written by lavinhoque33, 2026-11-08.
- * Modified by lavinhoque33, 2026-11-10
  */
 package app.morphe.extension.music.patches.downloads;
 
@@ -88,14 +88,13 @@ final class OfflineReplayLogic {
     }
 
     /**
-     * Whether the seek snap of the player must be dropped. After a drag the player snaps the target to the start of
-     * the nearest span its stream cache holds; a copy played from a file has none. The lookup then answers 0 for an
-     * audio stream (the seek would restart the song) and -1 for a video stream (the seek is cancelled and the bar
-     * does not move). Both are dropped (the dragged position stands) with no network, while the offline replay is on;
-     * online the stock answer is left as it is.
+     * Whether the seek snap of the player must be dropped. Both progress-bar and MediaSession seeks use this
+     * lookup. A copy played from a file has no stream-cache span: audio answers 0 (restart), video -1 (cancel).
+     * Preserve the target for a current local source even online, and retain the existing offline behavior.
+     * Online streams without a current local-source decision keep the stock answer.
      */
-    static boolean dropsSeekSnap(boolean enabled, boolean online, long snappedMillis) {
-        return enabled && !online && snappedMillis <= 0;
+    static boolean dropsSeekSnap(boolean enabled, boolean online, boolean localPlayback, long snappedMillis) {
+        return enabled && (!online || localPlayback) && snappedMillis <= 0;
     }
 
     /**

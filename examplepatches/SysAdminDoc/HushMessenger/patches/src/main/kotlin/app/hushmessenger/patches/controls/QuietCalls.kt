@@ -71,6 +71,30 @@ private fun Instruction.namedFlag(name: Int): Int? {
 
 private val FLAG_COPIES = setOf(Opcode.MOVE, Opcode.MOVE_FROM16, Opcode.MOVE_16)
 
+private const val FLAG_TEXT = "Ljava/lang/String;->valueOf(Z)Ljava/lang/String;"
+
+/**
+ * 587's log entry: the flag turned into its String right after the name, that String's result, then a pair made from
+ * the name and the String. The flag register, or null for anything else.
+ */
+private fun List<Instruction>.textFlag(logged: Int, name: Int): Int? {
+    val text = this[logged + 1]
+    if (((text as? ReferenceInstruction)?.reference as? MethodReference)?.toString() != FLAG_TEXT) return null
+    val flag = when (text) {
+        is FiveRegisterInstruction -> text.registerC.takeIf { text.registerCount == 1 }
+        is RegisterRangeInstruction -> text.startRegister.takeIf { text.registerCount == 1 }
+        else -> null
+    } ?: return null
+    val result = getOrNull(logged + 2)?.takeIf { it.opcode == Opcode.MOVE_RESULT_OBJECT }?.let { (it as OneRegisterInstruction).registerA } ?: return null
+    val pair = getOrNull(logged + 3)?.takeIf { it.opcode == Opcode.NEW_INSTANCE }?.let { (it as OneRegisterInstruction).registerA } ?: return null
+    val made = getOrNull(logged + 4) as? FiveRegisterInstruction ?: return null
+    val init = (made as ReferenceInstruction).reference as? MethodReference ?: return null
+    if (made.opcode != Opcode.INVOKE_DIRECT || init.name != "<init>" || init.definingClass != ((this[logged + 3] as ReferenceInstruction).reference.toString()) ||
+        init.parameterTypes.map { it.toString() } != listOf("Ljava/lang/Object;", "Ljava/lang/Object;") ||
+        made.registerCount != 3 || listOf(made.registerC, made.registerD, made.registerE) != listOf(pair, name, result)) return null
+    return flag
+}
+
 /**
  * The flag logged under the name at [logged]: the entry right after the name takes it directly, or the 32-bit builds'
  * copy of it made just before the entry. Null for anything else.
@@ -78,6 +102,7 @@ private val FLAG_COPIES = setOf(Opcode.MOVE, Opcode.MOVE_FROM16, Opcode.MOVE_16)
 private fun List<Instruction>.loggedFlag(logged: Int): Int? {
     val name = (this[logged] as? OneRegisterInstruction)?.registerA ?: return null
     val next = getOrNull(logged + 1) ?: return null
+    if (next.opcode == Opcode.INVOKE_STATIC || next.opcode == Opcode.INVOKE_STATIC_RANGE) textFlag(logged, name)?.let { return it }
     if (next.opcode !in FLAG_COPIES) return next.namedFlag(name)
     val copy = next as TwoRegisterInstruction
     if (copy.registerA == name) return null

@@ -1,3 +1,9 @@
+## [1.4.10](https://github.com/snowyegret23/morphe-patches/compare/v1.4.9...v1.4.10) (2026-11-13)
+
+### ✨ New Features
+
+* add overlay controls and playback compatibility settings ([de7f0fc](https://github.com/snowyegret23/morphe-patches/commit/de7f0fc6577bc3e3caf0198301a2ae6a943804a9))
+
 ## [1.4.9](https://github.com/snowyegret23/morphe-patches/compare/v1.4.8...v1.4.9) (2026-11-13)
 
 ### ✨ New Features

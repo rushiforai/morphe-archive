@@ -11,6 +11,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import java.lang.ref.WeakReference;
 import java.text.NumberFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Locale;
@@ -23,12 +27,12 @@ public final class ViewerCountOverlay extends View implements Runnable {
     private static final WeakHashMap<ViewGroup, WeakReference<ViewerCountOverlay>> PLAYERS = new WeakHashMap<>();
     private static final ArrayList<WeakReference<ViewerCountOverlay>> VIEWS = new ArrayList<>();
     private static final long MAX_AGE_MS = 90_000L;
+    private static final DateTimeFormatter OPEN_DATE = DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm:ss", Locale.ROOT);
     private final WeakReference<ViewGroup> player;
     private final boolean preview;
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final NumberFormat numbers = NumberFormat.getIntegerInstance(Locale.KOREA);
     private String label = "";
-    private int count = -1;
     private int revision = -1;
     private int corner;
     private int color;
@@ -40,8 +44,9 @@ public final class ViewerCountOverlay extends View implements Runnable {
 
     private static final class Sample {
         final int count;
+        final long started;
         final long time = SystemClock.elapsedRealtime();
-        Sample(int count) { this.count = count; }
+        Sample(int count, long started) { this.count = count; this.started = started; }
     }
 
     private ViewerCountOverlay(Context context, ViewGroup player, boolean preview) {
@@ -85,11 +90,28 @@ public final class ViewerCountOverlay extends View implements Runnable {
     public static void update(String channel, int count) {
         if (channel == null || channel.isEmpty()) return;
         synchronized (COUNTS) {
-            COUNTS.remove(channel);
-            if (count >= 0) COUNTS.put(channel, new Sample(count));
+            Sample previous = COUNTS.remove(channel);
+            long started = previous == null ? 0 : previous.started;
+            if (count >= 0 || started > 0) COUNTS.put(channel, new Sample(count, started));
             while (COUNTS.size() > 8) COUNTS.remove(COUNTS.keySet().iterator().next());
         }
         refreshAll();
+    }
+
+    public static void updateLive(String channel, String status, String openDate) {
+        long started = 0;
+        if ("OPEN".equals(status) && openDate != null && !openDate.isEmpty()) {
+            try {
+                started = LocalDateTime.parse(openDate, OPEN_DATE).atZone(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli();
+            } catch (DateTimeParseException ignored) {
+            }
+        }
+        synchronized (COUNTS) {
+            Sample previous = COUNTS.remove(channel);
+            int count = "OPEN".equals(status) && previous != null ? previous.count : -1;
+            if (count >= 0 || started > 0) COUNTS.put(channel, new Sample(count, started));
+            while (COUNTS.size() > 8) COUNTS.remove(COUNTS.keySet().iterator().next());
+        }
     }
 
     static void refreshAll() {
@@ -136,19 +158,32 @@ public final class ViewerCountOverlay extends View implements Runnable {
             margin = ChzzkSettings.number("viewer_margin", 3);
             invalidate();
         }
-        boolean enabled = preview || ChzzkSettings.enabledByDefault("viewer_count");
+        boolean showCount = ChzzkSettings.enabledByDefault("viewer_count");
+        boolean showTime = ChzzkSettings.enabled("viewer_broadcast_time");
+        boolean enabled = showCount || showTime;
         int next = preview ? 12345 : -1;
+        long started = preview ? System.currentTimeMillis() - 24_350_000L : 0;
         ViewGroup host = player.get();
         if (!preview && enabled && host != null && host.isShown()) {
             String channel = currentChannel(host);
             synchronized (COUNTS) {
                 Sample sample = COUNTS.get(channel);
-                if (sample != null && SystemClock.elapsedRealtime() - sample.time <= MAX_AGE_MS) next = sample.count;
+                if (sample != null && SystemClock.elapsedRealtime() - sample.time <= MAX_AGE_MS) {
+                    next = sample.count;
+                    started = sample.started;
+                }
             }
         }
-        if (count != next) {
-            count = next;
-            label = next < 0 ? "" : "시청자 " + numbers.format(next) + "명";
+        String nextLabel = showCount && next >= 0
+            ? (ChzzkSettings.enabledByDefault("viewer_count_label") ? "시청자 " : "") + numbers.format(next) + "명" : "";
+        if (showTime && started > 0) {
+            long seconds = Math.max(0, System.currentTimeMillis() - started) / 1000;
+            nextLabel += (nextLabel.isEmpty() ? "" : " · ")
+                + (ChzzkSettings.enabledByDefault("viewer_broadcast_time_label") ? "방송 " : "")
+                + String.format(Locale.KOREA, "%02d:%02d:%02d", seconds / 3600, seconds / 60 % 60, seconds % 60);
+        }
+        if (!label.equals(nextLabel)) {
+            label = nextLabel;
             invalidate();
         }
         // Only checks the current player/channel locally. Counts arrive via the native status poll.

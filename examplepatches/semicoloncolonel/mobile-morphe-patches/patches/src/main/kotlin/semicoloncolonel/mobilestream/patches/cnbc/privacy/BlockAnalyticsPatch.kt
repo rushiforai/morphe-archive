@@ -20,6 +20,7 @@ val blockAnalyticsPatch = bytecodePatch(
     description = "Stops Adobe, Amplitude, AppsFlyer, CleverTap, comScore, Kochava, Nielsen, and Firebase Analytics.",
     default = false,
 ) {
+    category("Privacy")
     compatibleWith(Constants.COMPATIBILITY)
 
     dependsOn(analyticsKillSwitchesPatch)

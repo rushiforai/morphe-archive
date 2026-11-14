@@ -147,6 +147,60 @@ public class MessageLogButtonTest {
         }
     }
 
+    private static ArrayList<Object> chatMenu(ChatHidingTest.Summary chat, Object mute) {
+        ArrayList<Object> rows = new ArrayList<>(Arrays.asList(mute, null, null));
+        ChatHiding.menuRows(new ChatHidingTest.Menu(chat), rows);
+        return rows;
+    }
+
+    /** #172: a Message log row in a chat's long-press menu, which opens the log on just that chat. */
+    @Test public void aChatsLongPressMenuGetsAMessageLogRowThatOpensTheLogOnThatChat() throws Exception {
+        var application = RuntimeEnvironment.getApplication();
+        ChatHiding.resetForTests();
+        ChatHiding.route = ChatHiding.Route.of(ChatHidingTest.ROUTE, ChatHidingTest.class.getClassLoader());
+        Object mute = new Object();
+        ChatHidingTest.Summary ana = new ChatHidingTest.Summary("t_ana");
+        Settings.preferences.edit().putBoolean(MessageLogButton.CHAT_KEY, true).commit();
+        assertEquals("not without the log itself", Arrays.asList(mute, null, null), chatMenu(ana, mute));
+        Settings.preferences.edit().putBoolean(MessageLog.KEY, true).putBoolean(MessageLogButton.CHAT_KEY, false).commit();
+        assertEquals("off until its switch is on", Arrays.asList(mute, null, null), chatMenu(ana, mute));
+
+        Settings.preferences.edit().putBoolean(MessageLogButton.CHAT_KEY, true).commit();
+        ArrayList<Object> rows = chatMenu(ana, mute);
+        assertSame(mute, rows.get(0));
+        var log = (ChatHidingTest.Built) rows.get(1);
+        assertNull(rows.get(2));
+        assertEquals(MessageLogButton.CHAT_ROW_ID, log.builder.id);
+        assertEquals("hush_message_log", log.name);
+        assertEquals(new SettingsText(application).get("message_log_title"), log.builder.label.toString());
+        assertEquals(ChatHidingTest.Icons.CLOCK, log.builder.picture);
+
+        assertNull(Shadows.shadowOf(application).getNextStartedActivity());
+        assertTrue(ChatHiding.menuTapped(new ChatHidingTest.Menu(ana), MessageLogButton.CHAT_ROW_ID));
+        Intent opened = Shadows.shadowOf(application).getNextStartedActivity();
+        assertEquals(HostScreens.intentFor(application, HostScreens.SETTINGS).getComponent(), opened.getComponent());
+        assertTrue(opened.getBooleanExtra(MessageLogSheet.OPEN_EXTRA, false));
+        assertEquals("t_ana", opened.getStringExtra(MessageLogSheet.THREAD_EXTRA));
+        assertFalse("Messenger's own rows stay its own", ChatHiding.menuTapped(new ChatHidingTest.Menu(ana), 0x4b));
+
+        Settings.preferences.edit().putBoolean("paused", true).commit();
+        assertEquals("paused, it goes with the log", Arrays.asList(mute, null, null), chatMenu(ana, mute));
+        assertTrue(ChatHiding.menuTapped(new ChatHidingTest.Menu(ana), MessageLogButton.CHAT_ROW_ID));
+        assertNull("and a stale menu's tap opens nothing", Shadows.shadowOf(application).getNextStartedActivity());
+        assertTrue(Settings.hookErrors.isEmpty());
+    }
+
+    @Test public void theChatMenuRowSwitchStartsOffAndSitsUnderTheLog() {
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            Switch inChats = screen.get().getWindow().getDecorView().findViewWithTag(MessageLogButton.CHAT_KEY);
+            assertNotNull(inChats);
+            assertFalse(inChats.isChecked());
+            inChats.performClick();
+            assertTrue(Settings.preferences.getBoolean(MessageLogButton.CHAT_KEY, false));
+            assertEquals(MessageLog.KEY, Settings.SUB_SWITCHES.get(MessageLogButton.CHAT_KEY));
+        }
+    }
+
     @Test public void theMenuRowSwitchSitsUnderTheLogOnlyWhereTheMenuRowWasPatchedIn() throws Exception {
         for (boolean menuRow : new boolean[] {false, true}) {
             var app = RuntimeEnvironment.getApplication();

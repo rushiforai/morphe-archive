@@ -1,3 +1,25 @@
+## 2.0.2 (2026-11-13)
+
+### ✨ New Features
+
+* **nicoid:** Add six customizable app bar and tab bar layouts with adjustable tab bar height and a live preview
+* **nicoid:** Add three app bar position options for Niconico Live
+* **nicoid:** Add an Intense ambient mode preset
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Fix the tab bar disappearing in certain layout configurations
+* **nicoid:** Fix misaligned viewer and comment count icons in Niconico Live
+* **nicoid:** Remove an unintended drag handle from Niconico Live popup playback
+* **nicoid:** Prevent accidental playback termination during Niconico Live popup interactions
+
+### 🔧 Improvements
+
+* **nicoid:** Enhance ambient mode presets and expand effect customization ranges
+* **nicoid:** Improve app bar and tab bar layout previews and height adjustment controls
+* **nicoid:** Support four-corner resizing and improve touch handling in Niconico Live popup playback
+* **nicoid:** Refine the Niconico Live overflow menu layout and positioning
+
 ## 2.0.1 (2026-11-13)
 
 ### ✨ New Features

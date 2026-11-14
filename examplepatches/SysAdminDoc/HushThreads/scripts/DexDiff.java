@@ -2353,13 +2353,14 @@ public class DexDiff {
     }
 
     private static Method featureMerge(Map<String, List<Method>> clean) {
-        // 454 added a Function0 ahead of the Function3, so the merge takes nine parameters.
+        // 455 added a Set after the page, so the merge takes ten parameters and its lambda is $2$2.
         return featureTarget(clean, m -> m.getDefiningClass().equals(FEED)
-                && m.getReturnType().equals("Ljava/lang/Object;") && m.getParameterTypes().size() == 9
+                && m.getReturnType().equals("Ljava/lang/Object;") && m.getParameterTypes().size() == 10
                 && m.getParameterTypes().get(4).equals("Ljava/util/List;")
-                && m.getParameterTypes().get(6).equals("Lkotlin/jvm/functions/Function0;")
+                && m.getParameterTypes().get(5).equals("Ljava/util/Set;")
+                && m.getParameterTypes().get(7).equals(FUNCTION0)
                 && instructions(m).stream().anyMatch(i -> reference(i).startsWith(FEED.substring(0, FEED.length() - 1)
-                        + "$addAndSaveItemsFromFeedFetchSuccess$2$1;-><init>(")), "feed merge");
+                        + "$addAndSaveItemsFromFeedFetchSuccess$2$2;-><init>(")), "feed merge");
     }
 
     private static MethodReference featureStockMedia(Map<String, List<Method>> clean) {
@@ -3295,7 +3296,7 @@ public class DexDiff {
         featureHostCalls(patched, featureSig(stub), Map.of());
         featureSearchCarousel(clean, patched);
         featureProfileSuggestions(clean, patched);
-        featureRelatedThreads(clean, patched);
+        featureRelatedThreads(clean, patched, cleanApk);
     }
 
     /** The key Search's list builder adds its Follow suggestions carousel under, which Threads keeps from build to build. */
@@ -3398,20 +3399,65 @@ public class DexDiff {
     }
 
     private static final String RELATED_THREADS = "Lapp/morphe/extension/hushthreads/comments/SuggestedThreads;->relatedThreads(Ljava/util/List;)Ljava/util/List;";
+    /** What the reply parser builds each suggested thread's row from. Threads keeps this name. */
+    private static final String RELATED_THREAD = "Lcom/instagram/api/schemas/RelatedThreadIntf;";
 
     /**
      * Hide suggested users on an opened post: the reply parser hands relatedThreads() the list it
      * just read off the answer, once, right after that read's move-result-object, and walks what
-     * comes back in the same register. Checked where this build's extension carries the call; an
-     * older one has none.
+     * comes back in the same register. Since 455 the suggested threads also come from a query of
+     * their own, and the one collector holding the permalink repository whose emit builds the
+     * parser's row hands relatedThreads() the answer's List right after its iget-object, keeping
+     * what comes back in the same register. Checked where this build's extension carries the call;
+     * an older one has none, and a build without that collector has the parser's call alone.
      */
-    private static void featureRelatedThreads(Map<String, List<Method>> clean, Map<String, List<Method>> patched) {
+    private static void featureRelatedThreads(Map<String, List<Method>> clean, Map<String, List<Method>> patched,
+            File cleanApk) throws Exception {
         if (!patched.containsKey(RELATED_THREADS)) return;
         Method parser = featureTarget(clean, m -> m.getDefiningClass().equals(REPLIES_PARSER_HOST)
                 && m.getReturnType().startsWith("L") && m.getParameterTypes().size() == 6
                 && m.getParameterTypes().get(0).equals(REPLIES_RESPONSE)
                 && m.getParameterTypes().get(1).equals(REPLIES_PARSER_HOST), "opened post's reply parser");
-        featureHostCalls(patched, RELATED_THREADS, Map.of(featureSig(parser), 1));
+        List<String> rows = new ArrayList<>();
+        for (Instruction i : instructions(parser)) {
+            if (!isStaticInvoke(i.getOpcode()) || !(((ReferenceInstruction) i).getReference() instanceof MethodReference call)) continue;
+            if (call.getParameterTypes().size() == 1 && call.getParameterTypes().get(0).toString().equals(RELATED_THREAD)
+                    && call.getReturnType().startsWith("L")) rows.add(call.getReturnType());
+        }
+        String row = featureOne(rows, "row the opened post's parse makes of a related thread");
+        List<String> collectors = new ArrayList<>();
+        MultiDexContainer<? extends DexFile> dex = DexFileFactory.loadDexContainer(cleanApk, Opcodes.getDefault());
+        for (String entry : dex.getDexEntryNames()) for (ClassDef cd : dex.getEntry(entry).getDexFile().getClasses()) {
+            boolean holdsRepository = false;
+            for (Field f : cd.getInstanceFields()) holdsRepository |= f.getType().equals(REPLIES_PARSER_HOST);
+            if (!holdsRepository) continue;
+            for (Method m : cd.getMethods()) {
+                if (!m.getName().equals("emit") || !m.getReturnType().equals("Ljava/lang/Object;") || m.getParameterTypes().size() != 2) continue;
+                if (instructions(m).stream().anyMatch(i -> i.getOpcode() == Opcode.NEW_INSTANCE && reference(i).equals(row))) {
+                    collectors.add(featureSig(m));
+                }
+            }
+        }
+        requireFeature(collectors.size() <= 1, "fetched suggested threads have " + collectors.size() + " collectors: " + collectors);
+        Map<String, Integer> hosts = new TreeMap<>(Map.of(featureSig(parser), 1));
+        for (String collector : collectors) hosts.put(collector, 1);
+        featureHostCalls(patched, RELATED_THREADS, hosts);
+        for (String collector : collectors) {
+            String answer = instructions(featureMethod(clean, collector)).stream()
+                    .filter(i -> i.getOpcode() == Opcode.CHECK_CAST).map(DexDiff::reference).findFirst().orElse("");
+            List<Instruction> fetch = instructions(featureMethod(patched, collector));
+            int call = featureOne(java.util.stream.IntStream.range(0, fetch.size()).boxed()
+                    .filter(n -> reference(fetch.get(n)).equals(RELATED_THREADS)).toList(), "fetched suggested threads hook");
+            requireFeature(call >= 1 && isStaticInvoke(fetch.get(call).getOpcode()) && invokeRegisters(fetch.get(call)).length == 1
+                    && call + 1 < fetch.size() && fetch.get(call + 1).getOpcode() == Opcode.MOVE_RESULT_OBJECT,
+                    "fetched suggested threads hook doesn't take the list and hand one back");
+            int threads = invokeRegisters(fetch.get(call))[0];
+            Instruction read = fetch.get(call - 1);
+            requireFeature(!answer.isEmpty() && read.getOpcode() == Opcode.IGET_OBJECT && registerA(read) == threads
+                    && registerA(fetch.get(call + 1)) == threads && reference(read).startsWith(answer + "->")
+                    && reference(read).endsWith(":Ljava/util/List;"),
+                    "fetched suggested threads hook isn't on the List " + collector + " just read off its answer");
+        }
         List<Instruction> body = instructions(featureMethod(patched, featureSig(parser)));
         int at = featureOne(java.util.stream.IntStream.range(0, body.size()).boxed()
                 .filter(n -> reference(body.get(n)).equals(RELATED_THREADS)).toList(), "suggested threads hook");
@@ -4795,7 +4841,8 @@ public class DexDiff {
      * The warm-start check's store of its refresh answer. A cmp-long of the time away with the
      * threshold, then an if-ltz that sends a short time to the TOO_SHORT log, which runs straight
      * from the branch's target. The const/4 1 right after the if-ltz is the answer, and the first
-     * iput-boolean of its register after that stores it into the decision Threads hands back.
+     * store of its register after that puts it in the decision Threads hands back: an iput-boolean up
+     * to 454, and from 455 the decision's constructor, which takes it as a boolean argument.
      */
     private static ReturnSite featureWarmStore(Method warm) {
         Layout layout = new Layout(warm.getImplementation());
@@ -4813,11 +4860,21 @@ public class DexDiff {
         requireFeature(featureLiteral(body.get(branch + 1), 1), "warm-start check sets no true answer past its threshold");
         int register = ((OneRegisterInstruction) body.get(branch + 1)).getRegisterA();
         for (int k = branch + 2; k < body.size(); k++) {
-            if (body.get(k).getOpcode() == Opcode.IPUT_BOOLEAN && ((TwoRegisterInstruction) body.get(k)).getRegisterA() == register) {
-                return new ReturnSite(warm, k, register);
-            }
+            if (featureStoresWarmStart(body.get(k), register)) return new ReturnSite(warm, k, register);
         }
         throw new IllegalArgumentException("warm-start answer v" + register + " is never stored");
+    }
+
+    /** Whether [i] stores the warm-start answer in [register]: an iput-boolean of it, or a narrow constructor taking it as a boolean. */
+    private static boolean featureStoresWarmStart(Instruction i, int register) {
+        if (i.getOpcode() == Opcode.IPUT_BOOLEAN) return ((TwoRegisterInstruction) i).getRegisterA() == register;
+        if (i.getOpcode() != Opcode.INVOKE_DIRECT || !(((ReferenceInstruction) i).getReference() instanceof MethodReference)) return false;
+        MethodReference constructor = (MethodReference) ((ReferenceInstruction) i).getReference();
+        List<String> types = constructor.getParameterTypes().stream().map(CharSequence::toString).toList();
+        int[] arguments = invokeRegisters(i);
+        if (!constructor.getName().equals("<init>") || types.contains("J") || types.contains("D") || types.size() != arguments.length - 1) return false;
+        for (int n = 0; n < types.size(); n++) if (arguments[n + 1] == register && types.get(n).equals("Z")) return true;
+        return false;
     }
 
     /**
@@ -5266,18 +5323,83 @@ public class DexDiff {
     }
 
     /**
+     * The boolean parameter of [flow]'s method it hands on in [register] at [at], the same one on
+     * every path, through moves and Compose's default merges, -1 otherwise. 455's player sets each
+     * boolean to merge(mask & bit, flag), and each merge followed goes into [defaults] as its mask
+     * parameter and bit. [following] holds the copies on the current path only, since the merge and
+     * the path skipping it start from one move.
+     */
+    private static int featureHandedBoolean(Map<String, List<Method>> clean, FeatureFlow flow, int at, int register,
+            List<int[]> defaults, Set<List<Integer>> following) {
+        if (!following.add(List.of(at, register))) return -1;
+        try {
+            List<Instruction> body = flow.layout.instructions;
+            Set<Integer> sources = new HashSet<>();
+            for (int write : flow.reaching(at, register)) {
+                int source = -1;
+                Opcode opcode = write < 0 ? null : body.get(write).getOpcode();
+                if (write < 0) {
+                    source = featureParameter(flow.method, register, "Z");
+                } else if (opcode == Opcode.MOVE || opcode == Opcode.MOVE_FROM16 || opcode == Opcode.MOVE_16) {
+                    source = featureHandedBoolean(clean, flow, write, ((TwoRegisterInstruction) body.get(write)).getRegisterB(), defaults, following);
+                } else if (opcode == Opcode.MOVE_RESULT && write > 0 && featureDefaultMerge(clean, body.get(write - 1)) >= 0) {
+                    int[] arguments = invokeRegisters(body.get(write - 1));
+                    int[] tested = flow.origin(write - 1, arguments[0]);
+                    Instruction and = tested == null || tested[0] < 0 ? null : body.get(tested[0]);
+                    if (and == null || (and.getOpcode() != Opcode.AND_INT_LIT8 && and.getOpcode() != Opcode.AND_INT_LIT16)) return -1;
+                    long bit = ((WideLiteralInstruction) and).getWideLiteral();
+                    int[] masked = flow.origin(tested[0], ((TwoRegisterInstruction) and).getRegisterB());
+                    int mask = masked == null || masked[0] >= 0 ? -1 : featureParameter(flow.method, masked[1], "I");
+                    if (Long.bitCount(bit) != 1 || mask < 0) return -1;
+                    defaults.add(new int[]{mask, (int) bit});
+                    source = featureHandedBoolean(clean, flow, write - 1, arguments[1], defaults, following);
+                }
+                if (source < 0) return -1;
+                sources.add(source);
+            }
+            return sources.size() == 1 ? sources.iterator().next() : -1;
+        } finally {
+            following.remove(List.of(at, register));
+        }
+    }
+
+    /**
+     * The 0 or 1 [call] answers in place of its boolean when it's Compose's default merge, a static
+     * (IZ)Z returning the boolean while the int is 0 and its own constant otherwise, else -1.
+     */
+    private static int featureDefaultMerge(Map<String, List<Method>> clean, Instruction call) {
+        if (call.getOpcode() != Opcode.INVOKE_STATIC || !(((ReferenceInstruction) call).getReference() instanceof MethodReference)) return -1;
+        MethodReference called = (MethodReference) ((ReferenceInstruction) call).getReference();
+        if (!called.getReturnType().equals("Z")
+                || !called.getParameterTypes().stream().map(CharSequence::toString).toList().equals(List.of("I", "Z"))) return -1;
+        List<Method> found = clean.getOrDefault(featureSig(called), List.of());
+        if (found.size() != 1 || found.get(0).getImplementation() == null) return -1;
+        List<Instruction> b = instructions(found.get(0));
+        if (found.get(0).getImplementation().getRegisterCount() != 2 || b.size() != 3) return -1;
+        Instruction test = b.get(0), value = b.get(1), answer = b.get(2);
+        boolean returnsFlag = test.getOpcode() == Opcode.IF_EQZ && ((OneRegisterInstruction) test).getRegisterA() == 0
+                && ((OffsetInstruction) test).getCodeOffset() == test.getCodeUnits() + value.getCodeUnits()
+                && value.getOpcode() == Opcode.CONST_4 && ((OneRegisterInstruction) value).getRegisterA() == 1
+                && answer.getOpcode() == Opcode.RETURN && ((OneRegisterInstruction) answer).getRegisterA() == 1;
+        long literal = returnsFlag ? ((WideLiteralInstruction) value).getWideLiteral() : -1;
+        return literal == 0 || literal == 1 ? (int) literal : -1;
+    }
+
+    /**
      * 455's PostVideo builds a lambda, handing it the flag, and the lambda keeps it in a field it
      * tests before composing Instagram's video player: the player plays by a 1 only on the field's
-     * true side, and hands its boolean to the effect unchanged. So the flag is followed from that
-     * test to the field, to the constructor's boolean stored there, and to what PostVideo passes.
+     * true side, and hands its boolean to the effect unchanged, or through Compose's default merge
+     * while the lambda's mask leaves the bit clear. So the flag is followed from that test to the
+     * field, to the constructor's boolean stored there, and to what PostVideo passes.
      */
     private static PlayFlag featureLambdaPlayFlag(Map<String, List<Method>> clean, Method postVideo, Method effect) {
         Method player = featureTarget(clean, m -> holdsNote(m, VIDEO_PLAYER_NOTE), "video player");
         requireFeature(AccessFlags.STATIC.isSet(player.getAccessFlags()), "the video player isn't static");
         List<Instruction> playerBody = instructions(player);
         int effectCall = featureOne(callSites(playerBody, featureSig(effect)), "the video player's call to the playback effect");
-        int[] handed = new FeatureFlow(player).origin(effectCall, invokeRegisters(playerBody.get(effectCall))[featureEffectPlay(effect)]);
-        int playerPlay = handed == null || handed[0] >= 0 ? -1 : featureParameter(player, handed[1], "Z");
+        List<int[]> defaults = new ArrayList<>();
+        int playerPlay = featureHandedBoolean(clean, new FeatureFlow(player), effectCall,
+                invokeRegisters(playerBody.get(effectCall))[featureEffectPlay(effect)], defaults, new HashSet<>());
         requireFeature(playerPlay >= 0, "the video player doesn't hand the playback effect one of its booleans unchanged");
 
         String playerSig = featureSig(player);
@@ -5294,6 +5416,14 @@ public class DexDiff {
         FeatureFlow hostFlow = new FeatureFlow(host);
         int call = featureOne(callSites(body, playerSig), "the lambda's call to the video player");
         int argument = invokeRegisters(body.get(call))[featureVideoOffset(player, playerPlay)];
+        // A default mask with the flag's bit set would have the player drop the lambda's flag for its default.
+        for (int[] d : defaults) {
+            int[] mask = hostFlow.origin(call, invokeRegisters(body.get(call))[featureVideoOffset(player, d[0])]);
+            requireFeature(mask != null && mask[0] >= 0 && featureConstant(body.get(mask[0])),
+                    "the lambda's default mask for the video player isn't one constant");
+            requireFeature((((WideLiteralInstruction) body.get(mask[0])).getWideLiteral() & d[1]) == 0,
+                    "the lambda leaves the video player's play flag to its default");
+        }
         Set<Integer> arrived = hostFlow.reaching(call, argument);
         requireFeature(arrived.stream().allMatch(k -> k >= 0 && featureConstant(body.get(k))
                         && (((WideLiteralInstruction) body.get(k)).getWideLiteral() & ~1L) == 0)

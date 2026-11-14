@@ -43,8 +43,8 @@ private const val ARRAY_LIST = "Ljava/util/ArrayList;"
 private val BAR_STRINGS = setOf(TOOLBAR_SPEC, TOOLBAR_MODEL, COMPOSE_BUTTON_NAME, COMPOSER_BUTTON_ID)
 private val CLICK_PARAMS = listOf("Landroid/view/View;", STRING, STRING, "I")
 
-/** What the new message button's block passes in each of its button's constructor parameters, which ours copies. */
-internal enum class LogSlot { NONE, ICON, LABEL, ID, OFF }
+/** The builder fields the new message button's block fills, the only ones ours fills. */
+internal enum class LogSlot { ICON, LABEL, ID }
 
 /**
  * Where the bar hands its finished list back: [site] is its one return, of [list], an ArrayList it made, and [scratch]
@@ -65,9 +65,11 @@ internal data class MessageLogButtonRecipe(
     /** The static call that makes a button's icon from the context, the account and an icon enum value. */
     val factory: String,
     val icon: String,
+    /** The button, its one constructor, which copies a builder, and that builder's fields the block fills. */
     val button: String,
     val init: String,
-    val slots: List<LogSlot>,
+    val builder: String,
+    val fields: Map<LogSlot, String>,
     /** The button's id field, which the tap handler gets back. */
     val idField: String,
     val site: LogBarSite,
@@ -86,6 +88,11 @@ private fun Method.logStrings() = logCode().mapNotNull { (it.logRef() as? String
 private fun MethodReference.logParams() = parameterTypes.map { it.toString() }
 private fun FieldReference.logId() = "$definingClass->$name:$type"
 private fun ClassDef.logPublic() = AccessFlags.PUBLIC.isSet(accessFlags)
+private fun ClassDef.logInstanceField(f: FieldReference) =
+    fields.any { it.name == f.name && it.type == f.type && AccessFlags.PUBLIC.isSet(it.accessFlags) && !AccessFlags.STATIC.isSet(it.accessFlags) }
+private fun Instruction.logTouches(register: Int) = register in logArgs() || readWrites(register) ||
+    (this is OneRegisterInstruction && registerA == register) || (this is TwoRegisterInstruction && registerB == register) ||
+    (this is ThreeRegisterInstruction && registerC == register)
 
 /**
  * The bar's seam: its one return hands back an ArrayList the method made, nothing jumps onto the return, and no try
@@ -148,43 +155,57 @@ internal fun resolveMessageLogButtonRecipe(classes: Iterable<ClassDef>): Message
     val labelAt = block.singleOrNull { c[it].opcode == Opcode.INVOKE_VIRTUAL && c[it].logRef()?.toString() == GET_STRING } ?: return null
     if (c[labelAt + 1].opcode != Opcode.MOVE_RESULT_OBJECT) return null
 
-    // The button is the one class the block constructs from that icon, and it's what goes in the list.
+    // What goes in the list is a button made by its one-argument constructor from a builder made just for it.
+    val shown = c[add].logArgs().getOrNull(1) ?: return null
     val initAt = block.singleOrNull { i ->
         val ref = c[i].logRef() as? MethodReference
-        c[i].opcode in setOf(Opcode.INVOKE_DIRECT, Opcode.INVOKE_DIRECT_RANGE) && ref?.name == "<init>" && factory.returnType in ref.logParams()
+        c[i].opcode == Opcode.INVOKE_DIRECT && ref?.name == "<init>" && ref.logParams().size == 1 && c[i].logArgs().firstOrNull() == shown
     } ?: return null
     val init = c[initAt].logRef() as MethodReference
-    val params = init.logParams()
-    val args = c[initAt].logArgs()
-    // The stub passes them all in one range below v16.
-    if (params.size > 10 || params.any { it == "J" || it == "D" } || args.size != params.size + 1 || c[add].logArgs().getOrNull(1) != args[0]) return null
-    val slots = try {
+    val builder = init.logParams().single()
+    val held = c[initAt].logArgs()[1]
+    val fields = try {
         val flow = ReadFlow(bar)
-        params.indices.map { k ->
-            val register = args[k + 1]
-            val type = params[k]
-            val definition = flow.definitionsAt(initAt, register).singleOrNull()?.takeIf { it >= 0 }
-            when {
-                definition == factoryAt + 1 && type == factory.returnType -> LogSlot.ICON
-                definition == labelAt + 1 && type == STRING -> LogSlot.LABEL
-                definition != null && type == STRING && (c[definition].logRef() as? StringReference)?.string == COMPOSER_BUTTON_ID -> LogSlot.ID
-                type == "Z" && flow.narrowConstantAt(initAt, register) == 0 -> LogSlot.OFF
-                type.startsWith("L") && flow.narrowConstantAt(initAt, register) == 0 -> LogSlot.NONE
+        val made = flow.definitionsAt(initAt, held).singleOrNull()?.takeIf { it in block } ?: return null
+        if (c[made].opcode != Opcode.NEW_INSTANCE || (c[made].logRef() as? TypeReference)?.type != builder ||
+            c[made + 1].opcode != Opcode.INVOKE_DIRECT || c[made + 1].logRef()?.toString() != "$builder-><init>()V" ||
+            c[made + 1].logArgs() != listOf(held)) return null
+        // Between the two, the block only fills builder fields, each with the icon, the label or the new message button's id.
+        val filled = mutableMapOf<LogSlot, FieldReference>()
+        for (i in made + 2 until initAt) {
+            if (!c[i].logTouches(held)) continue
+            val field = c[i].logRef() as? FieldReference
+            val store = c[i] as? TwoRegisterInstruction
+            if (c[i].opcode != Opcode.IPUT_OBJECT || field == null || store == null || field.definingClass != builder || store.registerB != held) return null
+            val definition = flow.definitionsAt(i, store.registerA).singleOrNull()?.takeIf { it >= 0 }
+            val slot = when {
+                definition == factoryAt + 1 && field.type == factory.returnType -> LogSlot.ICON
+                definition == labelAt + 1 && field.type == STRING -> LogSlot.LABEL
+                definition != null && field.type == STRING && (c[definition].logRef() as? StringReference)?.string == COMPOSER_BUTTON_ID -> LogSlot.ID
                 else -> return null
             }
+            if (filled.put(slot, field) != null) return null
         }
+        filled
     } catch (_: PatchException) { return null }
-    if (listOf(LogSlot.ICON, LogSlot.LABEL, LogSlot.ID).any { slot -> slots.count { it == slot } != 1 }) return null
+    if (fields.size != LogSlot.entries.size || fields.values.distinct().size != fields.size) return null
 
     val buttonClass = byType[init.definingClass] ?: return null
+    val builderClass = byType[builder] ?: return null
     val ctor = buttonClass.methods.singleOrNull { it.hookId() == init.toString() } ?: return null
-    // The id parameter goes into one String field, which the extension reads back to place the button.
-    val idParam = ctor.parameterRegister(1 + slots.indexOf(LogSlot.ID))
-    val idField = ctor.logCode().filter { it.opcode == Opcode.IPUT_OBJECT && (it as TwoRegisterInstruction).registerA == idParam }
-        .mapNotNull { (it.logRef() as? FieldReference)?.takeIf { f -> f.definingClass == init.definingClass && f.type == STRING } }
-        .singleOrNull()?.takeIf { f ->
-            buttonClass.fields.any { it.name == f.name && it.type == STRING && AccessFlags.PUBLIC.isSet(it.accessFlags) && !AccessFlags.STATIC.isSet(it.accessFlags) }
-        }?.logId() ?: return null
+    val builderInit = builderClass.methods.singleOrNull { it.hookId() == "$builder-><init>()V" } ?: return null
+    if (fields.values.any { !builderClass.logInstanceField(it) }) return null
+    // The constructor copies the builder's id into one String field, which the extension reads back to place the button.
+    val cc = ctor.logCode()
+    val idRead = cc.indices.singleOrNull { i ->
+        cc[i].opcode == Opcode.IGET_OBJECT && (cc[i].logRef() as? FieldReference)?.logId() == fields.getValue(LogSlot.ID).logId()
+    } ?: return null
+    val read = cc[idRead] as TwoRegisterInstruction
+    val copy = cc.getOrNull(idRead + 1) as? TwoRegisterInstruction
+    val idField = (cc.getOrNull(idRead + 1)?.logRef() as? FieldReference)?.takeIf { f ->
+        read.registerB == ctor.parameterRegister(1) && cc[idRead + 1].opcode == Opcode.IPUT_OBJECT && copy != null && copy.registerA == read.registerA &&
+            copy.registerB == ctor.parameterRegister(0) && f.definingClass == init.definingClass && f.type == STRING && buttonClass.logInstanceField(f)
+    }?.logId() ?: return null
 
     // Messenger's clock icon, by its enum name.
     val iconClass = byType[iconType] ?: return null
@@ -200,14 +221,14 @@ internal fun resolveMessageLogButtonRecipe(classes: Iterable<ClassDef>): Message
     // Every class and member the generated button names is public, since it lives in the extension's package.
     val factoryClass = byType[factory.definingClass] ?: return null
     val factoryMethod = factoryClass.methods.singleOrNull { it.hookId() == factory.toString() } ?: return null
-    if (listOf(buttonClass, factoryClass, iconClass).any { !it.logPublic() } || byType[FB_USER_SESSION]?.logPublic() != true ||
-        !AccessFlags.PUBLIC.isSet(ctor.accessFlags) || !AccessFlags.PUBLIC.isSet(factoryMethod.accessFlags) ||
+    if (listOf(buttonClass, builderClass, factoryClass, iconClass).any { !it.logPublic() } || byType[FB_USER_SESSION]?.logPublic() != true ||
+        listOf(ctor, builderInit).any { !AccessFlags.PUBLIC.isSet(it.accessFlags) } || !AccessFlags.PUBLIC.isSet(factoryMethod.accessFlags) ||
         !AccessFlags.STATIC.isSet(factoryMethod.accessFlags)) return null
 
     val site = bar.messageLogBarSite() ?: return null
     if (site.list != c[add].logArgs().first()) return null
     return MessageLogButtonRecipe(bar, click, context, session, factory.toString(), icon.logId(), init.definingClass, init.toString(),
-        slots, idField, site)
+        builder, fields.mapValues { it.value.logId() }, idField, site)
 }
 
 internal fun findMessageLogButton(classes: Iterable<ClassDef>): Pair<List<Method>, List<Method>> {
@@ -266,40 +287,34 @@ internal fun MutableMethod.validateMessageLogButtonStub(id: String) {
 }
 
 /**
- * The button(context, session, label) stub's replacement: the new message button's constructor call with Messenger's
- * clock icon, the log's label and the extension's id. Null when the account isn't Messenger's.
+ * The button(context, session, label) stub's replacement: the new message button's builder filled with Messenger's
+ * clock icon, the log's label and the extension's id, then the button made from it. Null when the account isn't
+ * Messenger's.
  */
 internal fun messageLogButtonBuilder(stub: MutableMethod, recipe: MessageLogButtonRecipe): MutableMethod {
     stub.validateMessageLogButtonStub(MESSAGE_LOG_BUTTON_BUILD)
-    val range = recipe.slots.size + 1
-    val icon = range
-    val session = range + 1
-    val built = stub.emptyCopy(range + 2 + 3)
-    val slots = recipe.slots.mapIndexed { k, slot ->
-        val r = k + 1
-        when (slot) {
-            LogSlot.NONE, LogSlot.OFF -> "const/4 v$r, 0x0"
-            LogSlot.ICON -> "move-object v$r, v$icon"
-            LogSlot.LABEL -> "move-object v$r, p2"
-            LogSlot.ID -> "const-string v$r, \"$MESSAGE_LOG_BUTTON_ID\""
-        }
-    }
-    built.addInstructionsWithLabels(0, (listOf(
-        "instance-of v0, p1, $FB_USER_SESSION",
-        "if-eqz v0, :none",
-        "move-object v$session, p1",
-        "check-cast v$session, $FB_USER_SESSION",
-        "sget-object v$icon, ${recipe.icon}",
-        "invoke-static {p0, v$session, v$icon}, ${recipe.factory}",
-        "move-result-object v$icon",
-        "new-instance v0, ${recipe.button}",
-    ) + slots + listOf(
-        "invoke-direct/range {v0 .. v${range - 1}}, ${recipe.init}",
-        "return-object v0",
-        ":none",
-        "const/4 v0, 0x0",
-        "return-object v0",
-    )).joinToString("\n"))
+    val built = stub.emptyCopy(3 + 3)
+    built.addInstructionsWithLabels(0, """
+        instance-of v0, p1, $FB_USER_SESSION
+        if-eqz v0, :none
+        move-object v2, p1
+        check-cast v2, $FB_USER_SESSION
+        sget-object v1, ${recipe.icon}
+        invoke-static {p0, v2, v1}, ${recipe.factory}
+        move-result-object v1
+        new-instance v2, ${recipe.builder}
+        invoke-direct {v2}, ${recipe.builder}-><init>()V
+        iput-object v1, v2, ${recipe.fields.getValue(LogSlot.ICON)}
+        iput-object p2, v2, ${recipe.fields.getValue(LogSlot.LABEL)}
+        const-string v1, "$MESSAGE_LOG_BUTTON_ID"
+        iput-object v1, v2, ${recipe.fields.getValue(LogSlot.ID)}
+        new-instance v0, ${recipe.button}
+        invoke-direct {v0, v2}, ${recipe.init}
+        return-object v0
+        :none
+        const/4 v0, 0x0
+        return-object v0
+    """.trimIndent())
     return built
 }
 

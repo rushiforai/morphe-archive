@@ -30,6 +30,7 @@ val optOutOfDataSalePatch = bytecodePatch(
     name = "Opt out of data sale & sharing",
     description = "Keeps the app opted out of the sale and sharing of your data.",
 ) {
+    category("Privacy")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

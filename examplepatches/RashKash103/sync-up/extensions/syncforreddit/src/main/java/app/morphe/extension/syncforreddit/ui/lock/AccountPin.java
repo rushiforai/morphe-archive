@@ -215,8 +215,8 @@ public final class AccountPin {
      * @return Which account is being asked about, which is the one in use unless named.
      *
      * <p>Lowercased, because Sync hands the name over in whichever case it feels like: the
-     * picker passes the name as it is written on the screen, `ASlyLawnTurtle`, while the
-     * account in use comes back as `aslylawnturtle`, which is also what it names the account's
+     * picker passes the name as it is written on the screen, mixed case and all, while the
+     * account in use comes back wholly lowercased, which is also what it names the account's
      * own settings file. Keeping a PIN under one of those and asking for it under the other is
      * a lock that quietly never asks.
      */

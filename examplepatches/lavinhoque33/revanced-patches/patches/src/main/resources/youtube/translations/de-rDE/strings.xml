@@ -1940,7 +1940,6 @@ Tippen und halten Sie, um den Einstellungsdialog für die Whitelist anzuzeigen</
     <string name="revanced_preference_screen_misc_title">Sonstiges</string>
     <string name="revanced_preference_screen_navigation_bar_summary">Komponenten der Navigationsleiste ausblenden oder anzeigen</string>
     <string name="revanced_preference_screen_navigation_bar_title">Navigationsleiste</string>
-    <string name="revanced_preference_screen_patch_information_summary">Informationen über angewandte Patches</string>
     <string name="revanced_preference_screen_player_buttons_summary">Verstecke oder zeige Buttons im Video-Player</string>
     <string name="revanced_preference_screen_player_buttons_title">Player Buttons</string>
     <string name="revanced_preference_screen_player_flyout_menu_summary">Komponenten des Flyout-Menüs des Videoplayers ausblenden oder ändern</string>

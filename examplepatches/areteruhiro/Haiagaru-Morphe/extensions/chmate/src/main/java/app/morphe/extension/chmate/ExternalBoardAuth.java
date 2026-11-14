@@ -38,6 +38,7 @@ public final class ExternalBoardAuth {
     private static final Map<MenuItem,WeakReference<Activity>> menus = new WeakHashMap<>();
     private static final Map<Activity,String> prompted = new WeakHashMap<>();
     private static final Map<Activity,String> challenges = new WeakHashMap<>();
+    private static final Map<Activity,WeakReference<HaiagaruDialog>> dialogs = new WeakHashMap<>();
     private static final int MENU = 0x48690061;
     private static volatile WeakReference<Object> nativeJar = new WeakReference<>(null);
     private ExternalBoardAuth() {}
@@ -99,6 +100,7 @@ public final class ExternalBoardAuth {
     }
     public static void target(Object owner, String url) { target(owner,url,null); }
     public static void target(Object owner, String url, EditText body) {
+        MediaUploadHosts.bindEditor(activity(owner),body,url);
         if(url!=null && url.startsWith("http://")) url="https://"+url.substring(7);
         Activity a=activity(owner);
         if(a!=null && !BoardAuthRules.origin(url).isEmpty()) {
@@ -109,6 +111,7 @@ public final class ExternalBoardAuth {
         }
     }
     public static void addPostingMenu(Object owner, Menu menu) {
+        StockChmatePosting.addPostingMenu(owner,menu);
         BoardCookies.decorateMenu(owner,menu);
         Activity a=activity(owner);
         if(!Haiagaru.preparePostingMenu(a,menu,MENU,"showExternalBoardAuthMenu")) return;
@@ -118,6 +121,7 @@ public final class ExternalBoardAuth {
         item.setOnMenuItemClickListener(v->handlePostingMenu(owner,v));
     }
     public static boolean handlePostingMenu(Object owner, MenuItem item) {
+        if(StockChmatePosting.handlePostingMenu(owner,item))return true;
         if(BoardCookies.handleMenu(owner,item))return true;
         if(item==null || item.getItemId()!=MENU) return false;
         Activity a=activity(owner);
@@ -130,6 +134,7 @@ public final class ExternalBoardAuth {
         return true;
     }
     public static boolean handlePostingActivityMenu(MenuItem item) {
+        if(StockChmatePosting.handlePostingActivityMenu(item))return true;
         if(BoardCookies.handleActivityMenu(item))return true;
         WeakReference<Activity> ref=menus.get(item);
         return ref!=null && ref.get()!=null && handlePostingMenu(ref.get(),item);
@@ -196,11 +201,19 @@ public final class ExternalBoardAuth {
     }
     /** Observe native error UI only; do not parse the draft or intercept a successful post. */
     public static void observe(CharSequence message) {
+        observeFor(resumed.get(),message);
+    }
+    /** Native inline error labels do not go through AlertDialog or WebView. */
+    public static void postingError(Object owner,CharSequence message) {
+        observeFor(activity(owner),message);
+    }
+    private static void observeFor(Activity activity,CharSequence message) {
         if(message==null || !BoardAuthRules.required(message.toString())) return;
         String text=message.toString();
-        WeakReference<Activity> source=new WeakReference<>(resumed.get());
+        WeakReference<Activity> source=new WeakReference<>(activity);
         new Handler(Looper.getMainLooper()).postDelayed(()->{
             Activity a=source.get(); if(a==null || a!=resumed.get() || a.isFinishing() || a instanceof ExternalBoardAuthActivity) return;
+            if(!Haiagaru.externalBoardAuthMenuEnabled(a))return;
             WeakReference<android.view.View> editor=editors.get(a);
             if(editor==null || editor.get()==null || !editor.get().isShown()) return;
             String board=targets.get(a);if(board==null) return;
@@ -262,6 +275,8 @@ public final class ExternalBoardAuth {
         } catch(java.security.NoSuchAlgorithmException impossible) { throw new IllegalStateException(impossible); }
     }
     private static void showError(Activity a,String board,String suggested,String raw) {
+        WeakReference<HaiagaruDialog> active=dialogs.get(a);
+        if(active!=null&&active.get()!=null&&active.get().isShowing())return;
         // Render HTML as inert text, never as a WebView or clickable link.
         String error=raw;
         if(java.util.regex.Pattern.compile("(?i)<(?:html|body|br|p|div|span|b|strong)\\b").matcher(raw).find()) {
@@ -272,7 +287,6 @@ public final class ExternalBoardAuth {
         final String challenge=challenges.get(a);
         final BoardChallengeSession.Page page=challenge==null?null:BoardChallengeSession.find(challenge,board);
         final boolean hasChallenge=page!=null;
-        if(page!=null&&(page.captcha||page.calculation)){openChallenge(a,board,challenge);return;}
         final String code=BoardAuthRules.code(readable);
         LinearLayout box=new LinearLayout(a);box.setOrientation(LinearLayout.VERTICAL);
         int pad=(int)(20*a.getResources().getDisplayMetrics().density);box.setPadding(pad,pad,pad,pad);
@@ -285,15 +299,33 @@ public final class ExternalBoardAuth {
         box.addView(notice);
         TextView content=new TextView(a);content.setText(readable);content.setTextIsSelectable(true);
         content.setPadding(0,pad,0,pad);box.addView(content);
+        final EditText authInput;
+        if(!hasChallenge&&!browserRequired){
+            authInput=new EditText(a);authInput.setSingleLine(true);
+            authInput.setInputType(android.text.InputType.TYPE_CLASS_TEXT|android.text.InputType.TYPE_TEXT_VARIATION_URI);
+            authInput.setHint("認証サイトのURL（https://…）");
+            authInput.setText(BoardAuthRules.configuredPage(board,prefs(a).getString("url:"+BoardAuthRules.origin(board),""),suggested));
+            box.addView(authInput);
+        }else authInput=null;
         ScrollView scroll=new ScrollView(a);scroll.addView(box);
         HaiagaruDialog dialog=new HaiagaruDialog.Builder(a).setTitle("書き込みエラー・板の認証")
             .setView(scroll).setNegativeButton("後で",null)
             .setNeutralButton(code.isEmpty()?"エラー全文をコピー":"認証コードをコピー",null)
-            .setPositiveButton(hasChallenge?"ChMate内で投稿確認":browserRequired?"アプリ内ブラウザ":"認証ページ",(d,w)->{
-                if(hasChallenge)openChallenge(a,board,challenge);
-                else if(browserRequired)openBrowser(a,board);else configure(a,board,suggested);
-            }).create();
-        dialog.setOnShowListener(d->dialog.getButton(HaiagaruDialog.BUTTON_NEUTRAL).setOnClickListener(v->{
+            .setPositiveButton("認証サイトを開く",null).create();
+        dialog.setOnShowListener(d->{
+            dialog.getButton(HaiagaruDialog.BUTTON_POSITIVE).setOnClickListener(v->{
+                if(hasChallenge){
+                    dialog.dismissForNavigation(()->a.startActivity(new Intent(a,ExternalBoardAuthActivity.class).putExtra("board",board).putExtra("challenge",challenge)));
+                }else if(browserRequired)dialog.dismissForNavigation(()->openBrowser(a,board));
+                else {
+                    try{
+                        String url=BoardAuthRules.validateAuthPage(authInput.getText().toString());
+                        prefs(a).edit().putString("url:"+BoardAuthRules.origin(board),url).apply();
+                        dialog.dismissForNavigation(()->a.startActivity(new Intent(a,ExternalBoardAuthActivity.class).putExtra("board",board).putExtra("auth",url)));
+                    }catch(IllegalArgumentException invalid){authInput.setError(invalid.getMessage());return;}
+                }
+            });
+            dialog.getButton(HaiagaruDialog.BUTTON_NEUTRAL).setOnClickListener(v->{
             ClipboardManager clipboard=(ClipboardManager)a.getSystemService(Context.CLIPBOARD_SERVICE);
             if(clipboard==null) return;
             ClipData clip=ClipData.newPlainText("板の認証",code.isEmpty()?readable:code);
@@ -303,7 +335,9 @@ public final class ExternalBoardAuth {
             }
             clipboard.setPrimaryClip(clip);
             Toast.makeText(a,code.isEmpty()?"エラー全文をコピーしました":"認証コードをコピーしました",Toast.LENGTH_SHORT).show();
-        }));
+            });
+        });
+        dialogs.put(a,new WeakReference<>(dialog));
         dialog.show();
     }
     private static void openChallenge(Activity activity,String board,String token) {

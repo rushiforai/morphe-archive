@@ -49,7 +49,7 @@ final class ProblemReport {
     static final Pattern ORIGINAL =Pattern.compile("([0-9][0-9A-Za-z.]{0,31})\\|([1-9][0-9]{0,9})\\|([0-9A-Za-z]{1,16})");
 
     /**
-     * "586.0.0.55.92 (347215348, base mapping)": the build the patch started from, which Android's own version code
+     * "587.0.0.54.96 (347415354, base mapping)": the build the patch started from, which Android's own version code
      * stops saying once Spoof package version is in. "unknown" for a build patched before the patch wrote it down or a
      * value that doesn't parse, never a guess from the installed version.
      */

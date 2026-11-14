@@ -17,6 +17,7 @@ import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -605,8 +606,50 @@ val gmsCoreSupportPatch = bytecodePatch(
                 """
             )
 
+        // Push needs a Firebase installation first, and Google only issues one when the request names the
+        // certificate LinkedIn's API key is bound to. The patched app is signed with another key, so the request is
+        // refused (API_KEY_ANDROID_APP_BLOCKED), GmsCore's push registration then fails with FIS_AUTH_ERROR, and
+        // no notification ever arrives. The header gets LinkedIn's own certificate instead.
+        spoofFirebaseCertificate(LINKEDIN_SIGNATURE.uppercase())
+
         markIncluded("isGmsCoreSupportIncluded")
     }
+}
+
+/**
+ * Sets the value of every "X-Android-Cert" request header to [sha1]. Firebase names the header with a string
+ * constant and passes it straight to URLConnection, so the value register is found from that call, whatever the
+ * obfuscated class around it is called.
+ */
+private fun BytecodePatchContext.spoofFirebaseCertificate(sha1: String) {
+    val holders = mutableListOf<ClassDef>()
+    classDefForEach { classDef ->
+        if (classDef.methods.any { method ->
+                method.implementation?.instructions?.any { it.stringConstant() == "X-Android-Cert" } == true
+            }) holders += classDef
+    }
+    var spoofed = 0
+    holders.forEach { classDef ->
+        mutableClassDefBy(classDef).methods.forEach { method ->
+            val code = method.implementation?.instructions?.toList() ?: return@forEach
+            code.indices.reversed().forEach { index ->
+                if (code[index].stringConstant() != "X-Android-Cert") return@forEach
+                val name = (code[index] as OneRegisterInstruction).registerA
+                val call = (index + 1 until minOf(index + 6, code.size)).firstOrNull { at ->
+                    val instruction = code[at]
+                    val target = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+                    instruction is FiveRegisterInstruction && instruction.registerCount == 3 &&
+                        instruction.registerD == name &&
+                        target?.definingClass == "Ljava/net/URLConnection;" &&
+                        target.name.endsWith("RequestProperty")
+                } ?: return@forEach
+                val value = (code[call] as FiveRegisterInstruction).registerE
+                method.addInstructions(call, "const-string v$value, \"$sha1\"")
+                spoofed++
+            }
+        }
+    }
+    if (spoofed == 0) throw PatchException("Firebase certificate header not found")
 }
 
 /** The mutable class with [type]. */

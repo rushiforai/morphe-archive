@@ -1419,6 +1419,15 @@
             <app.morphe.extension.youtube.settings.preference.WatchHistoryStatusPreference android:title="@string/revanced_watch_history_about_title" />
         </PreferenceScreen>SETTINGS: WATCH_HISTORY -->
 
+        <!-- SETTINGS: PATCHES_UPDATE_NOTICE
+        <app.morphe.extension.shared.settings.preference.PatchesUpdateChannelPreference
+            android:title="@string/revanced_patches_update_notice_title"
+            android:key="revanced_patches_update_notice" />
+        <app.morphe.extension.shared.settings.preference.PatchesUpdateCheckPreference
+            android:title="@string/revanced_patches_update_check_title"
+            android:summary="@string/revanced_patches_update_check_summary"
+            android:key="revanced_patches_update_check" />SETTINGS: PATCHES_UPDATE_NOTICE -->
+
         <!-- SETTINGS: APP_REFRESH_RATE
         <app.morphe.extension.shared.settings.preference.AppRefreshRateListPreference android:title="@string/morphe_app_refresh_rate_title" android:key="morphe_app_refresh_rate" />
         <app.morphe.extension.shared.settings.preference.CustomDialogListPreference android:entries="@array/morphe_app_refresh_rate_type_entries" android:title="@string/morphe_app_refresh_rate_type_title" android:key="morphe_app_refresh_rate_type" android:entryValues="@array/morphe_app_refresh_rate_type_entry_values" />SETTINGS: APP_REFRESH_RATE -->
@@ -1470,149 +1479,39 @@
         <!-- SETTINGS: CHANGE_SHARE_SHEET
         <SwitchPreference android:title="@string/revanced_change_share_sheet_title" android:key="revanced_change_share_sheet" android:summaryOn="@string/revanced_change_share_sheet_summary_on" android:summaryOff="@string/revanced_change_share_sheet_summary_off" />SETTINGS: CHANGE_SHARE_SHEET -->
 
-        <PreferenceCategory android:title="@string/revanced_preference_category_patch_information" android:layout="@layout/revanced_settings_preferences_category"/>
-        <PreferenceScreen android:title="@string/revanced_preference_category_patch_information"  android:key="revanced_preference_screen_patch_information" android:summary="@string/revanced_preference_screen_patch_information_summary" >
-            <app.morphe.extension.youtube.settings.preference.CreditsPreference android:title="@string/revanced_credits_title" android:key="revanced_credits" />
-            <PreferenceCategory android:title="@string/revanced_preference_category_app_info" android:layout="@layout/revanced_settings_preferences_category" >
-                <Preference android:title="@string/revanced_app_name_title" android:key="revanced_app_name" android:selectable="false" />
-                <Preference android:title="@string/revanced_app_version_title" android:key="revanced_app_version" android:selectable="false" />
-                <Preference android:title="RVX Patches" android:key="revanced_patches_version" android:selectable="false" android:summary="" />
-                <Preference android:title="@string/revanced_patched_date_title" android:key="revanced_patched_date" android:selectable="false" />
-            </PreferenceCategory>
-            <PreferenceCategory android:title="@string/revanced_preference_screen_ads_title" android:layout="@layout/revanced_settings_preferences_category">
-                <Preference android:title="Hide ads" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-            </PreferenceCategory>
-
-            <PreferenceCategory android:title="@string/morphe_dearrow_screen_title" android:layout="@layout/revanced_settings_preferences_category">
-                <Preference android:title="DeArrow" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Bypass image region restrictions" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-            </PreferenceCategory>
-
-            <PreferenceCategory android:title="@string/revanced_preference_screen_feed_title" android:layout="@layout/revanced_settings_preferences_category">
-                <Preference android:title="Disable auto feed refresh" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Hide feed components" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Hide feed flyout menu" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Playback in feeds" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Skip silence" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-            </PreferenceCategory>
-
-            <PreferenceCategory android:title="@string/revanced_preference_screen_general_title" android:layout="@layout/revanced_settings_preferences_category">
-                <Preference android:title="Change form factor" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Change start page" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Channel search" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Custom DPI" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Disable forced auto captions" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Disable layout updates" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Disable sign in to TV popup" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Enable gradient loading screen" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Force animations" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Force original audio" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Hide layout components" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Hook download actions" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Override YouTube Music buttons" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Navigation bar components" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Remove viewer discretion dialog" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Set transcript cookies" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Settings menu filter" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Snack bar components" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Spoof app version" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Toolbar components" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Wide search bar" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-            </PreferenceCategory>
-
-            <PreferenceCategory android:title="@string/revanced_preference_screen_player_title" android:layout="@layout/revanced_settings_preferences_category">
-                <Preference android:title="Ambient mode control" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Change player flyout menu toggles" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Description components" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Disable haptic feedback" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Disable resuming Miniplayer on startup" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Fullscreen components" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Hide action buttons" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Hide comments components" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Hide player buttons" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Hide player flyout menu" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Miniplayer" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Overlay buttons" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Feed video actions" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Download post images" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Copy text" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Picture-in-picture button" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Player components" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Player icon style" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Reload video" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Save to Watch later" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Search comments" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Seekbar components" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-            </PreferenceCategory>
-
-            <PreferenceCategory android:title="@string/revanced_change_start_page_entry_shorts" >
-                <Preference android:title="Disable resuming Shorts on startup" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Shorts components" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Shorts icon style" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Skip live Shorts" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-            </PreferenceCategory>
-
-            <PreferenceCategory android:title="@string/revanced_preference_screen_swipe_controls_title" android:layout="@layout/revanced_settings_preferences_category">
-                <Preference android:title="Swipe controls" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-            </PreferenceCategory>
-
-            <PreferenceCategory android:title="@string/revanced_preference_screen_video_title" android:layout="@layout/revanced_settings_preferences_category">
-                <Preference android:title="Gemini" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Spoof video streams" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Video delay" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Video playback" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Voice Over Translation" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-            </PreferenceCategory>
-
-            <PreferenceCategory android:title="@string/revanced_preference_screen_misc_title" android:layout="@layout/revanced_settings_preferences_category">
-                <Preference android:title="Bypass URL redirects" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Change share sheet" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Disable QUIC protocol" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Enable debug logging" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Network proxy" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Open links externally" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Remove background playback restrictions" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Sanitize sharing links" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Spoof watch history" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-            </PreferenceCategory>
-
-            <PreferenceCategory android:title="@string/revanced_preference_category_others" android:layout="@layout/revanced_settings_preferences_category">
-                <Preference android:title="Custom branding" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Custom double tap length" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Custom Shorts action buttons" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="GmsCore support" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Hide accessibility controls dialog" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Hide Shorts dimming" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Hide shortcuts" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Return YouTube Dislike" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Return YouTube Username" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Settings" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="SponsorBlock" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Theme" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Translations" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-                <Preference android:title="Visual preferences icons" android:summary="@string/revanced_patches_excluded" android:selectable="false"/>
-            </PreferenceCategory>
-        </PreferenceScreen>
     </PreferenceScreen>
 
     <PreferenceScreen
         android:title="@string/revanced_preference_screen_about_title"
         android:key="revanced_preference_screen_about">
-        <PreferenceCategory
-            android:title="@string/revanced_about_app_info"
-            android:layout="@layout/revanced_settings_preferences_category">
-            <app.morphe.extension.youtube.settings.preference.AboutPreference
-                android:key="revanced_about_patches"
-                android:title="@string/revanced_about_patches"
-                android:selectable="false" />
-            <app.morphe.extension.youtube.settings.preference.AboutPreference
-                android:key="revanced_about_app"
-                android:selectable="false" />
-            <app.morphe.extension.youtube.settings.preference.AboutPreference
-                android:key="revanced_about_patched"
-                android:title="@string/revanced_about_patched"
-                android:selectable="false" />
-        </PreferenceCategory>
+        <PreferenceScreen
+            android:title="@string/revanced_preference_category_patch_information"
+            android:key="revanced_preference_screen_patch_information"
+            android:summary="@string/revanced_preference_screen_patch_information_summary">
+            <PreferenceCategory
+                android:title="@string/revanced_about_app_info"
+                android:layout="@layout/revanced_settings_preferences_category">
+                <app.morphe.extension.youtube.settings.preference.AboutPreference
+                    android:key="revanced_about_patches"
+                    android:title="@string/revanced_about_patches"
+                    android:selectable="false" />
+                <app.morphe.extension.youtube.settings.preference.AboutPreference
+                    android:key="revanced_about_app"
+                    android:selectable="false" />
+                <app.morphe.extension.youtube.settings.preference.AboutPreference
+                    android:key="revanced_about_patched"
+                    android:title="@string/revanced_about_patched"
+                    android:selectable="false" />
+            </PreferenceCategory>
+            <PreferenceCategory
+                android:key="revanced_about_patch_inclusion"
+                android:title="@string/revanced_about_patch_inclusion"
+                android:layout="@layout/revanced_settings_preferences_category">
+                <app.morphe.extension.youtube.settings.preference.AboutPreference
+                    android:title="@string/revanced_about_patch_inclusion_summary"
+                    android:selectable="false" />
+            </PreferenceCategory>
+        </PreferenceScreen>
         <PreferenceCategory
             android:title="@string/revanced_about_actions"
             android:layout="@layout/revanced_settings_preferences_category">

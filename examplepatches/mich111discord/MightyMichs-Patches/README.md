@@ -36,20 +36,20 @@ Or
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.15.0](https://github.com/mich111discord/MightyMichs-Patches/releases/tag/v1.15.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;76 patches total
+> **[v1.16.0](https://github.com/mich111discord/MightyMichs-Patches/releases/tag/v1.16.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;80 patches total
 <details open>
 <summary>📦 WhatsApp&nbsp;&nbsp;•&nbsp;&nbsp;9 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 2.26.43.75 | 🧪&nbsp;2.26.43.74 | 🧪&nbsp;2.26.43.72 |
-| :---: | :---: | :---: |
+| 2.26.43.76 | 2.26.43.75 | 🧪&nbsp;2.26.43.74 | 🧪&nbsp;2.26.43.72 |
+| :---: | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [App icon](#app-icon) | Choose a classic / premium launcher icon, or pick a PNG from your phone. | • Style<br>• Custom icon PNG |
-| [Keep deleted messages](#keep-deleted-messages) | Show messages that were deleted for everyone. May need a fingerprint update after WhatsApp upgrades. | • Highlight deleted messages |
+| [Keep deleted messages](#keep-deleted-messages) | Show messages that were deleted for everyone. Client-side only; already-wiped history cannot be restored. | • Highlight deleted messages |
 | [Mods settings entry](#mods-settings-entry) | Reserves a MightyMich row in Settings. Full dialog wiring needs the settings-list fingerprint for this WhatsApp build. |  |
 | [Mods settings resources](#mods-settings-resources) | Adds English strings for the MightyMich section in WhatsApp Settings. |  |
 | [Read receipts](#read-receipts) | If enabled, you won't send read receipts (blue ticks). | • Always off |
@@ -93,6 +93,22 @@ Or
 </details>
 
 <details open>
+<summary>📦 CCleaner&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 26.08.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Disable Telemetry](#disable-telemetry) | Disables analytics and telemetry event tracking. |  |
+| [Unlock Premium](#unlock-premium) | Unlocks CCleaner Premium / Pro features (Ultimate Multi + Lifetime style). |  |
+
+</details>
+
+<details open>
 <summary>📦 MiXplorer&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
 
@@ -132,7 +148,7 @@ Or
 
 **🎯 Supported versions:**
 
-| 🧪&nbsp;12.0.17.0 |
+| 12.0.17.0 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -190,18 +206,18 @@ Or
 </details>
 
 <details open>
-<summary>📦 SideMe&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<summary>📦 MT Manager&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 1.19.5 |
-| :---: |
+| 2.26.10 | 🧪&nbsp;2.26.9 | 🧪&nbsp;2.26.8 |
+| :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Unlimited Energy](#unlimited-energy) | Optional: tries to bypass lesson energy limits. Off by default (aggressive matching previously caused startup crashes). |  |
-| [Unlock Premium](#unlock-premium) | Unlocks SideMe Super / Premium by forcing UserSubscription.isActive to true. |  |
+| [Skip MT account login (Experimental)](#skip-mt-account-login-experimental) | Tries to skip the MT account login wall so local features work offline. Server-synced cloud features will still need a real account. | • Treat as logged in |
+| [Unlock Premium (Experimental)](#unlock-premium-experimental) | Best-effort local VIP unlock (activation flags + VIP protocol UI). MTProtector may still gate some features in native code. | • Aggressive boolean force |
 
 </details>
 
@@ -216,8 +232,24 @@ Or
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Unlimited coins](#unlimited-coins) | Forces Pou's coin balance getter to a very large value so shop and unlock checks always pass (local save). |  |
+| [Unlimited Coins](#unlimited-coins) | Gives unlimited coins in Pou. |  |
 | [Unlock everything](#unlock-everything) | Sets shop item prices to zero and relaxes lock UI gates so items can be obtained freely (works best with Unlimited coins). |  |
+
+</details>
+
+<details open>
+<summary>📦 SideMe&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 1.19.5 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlimited Energy](#unlimited-energy) | Optional: tries to bypass lesson energy limits. Off by default (aggressive matching previously caused startup crashes). |  |
+| [Unlock Premium](#unlock-premium) | Unlocks SideMe Super / Premium by forcing UserSubscription.isActive to true. |  |
 
 </details>
 
@@ -322,7 +354,7 @@ Or
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Unlock Premium](#unlock-premium) | Forces local VIP / VIP Pro checks for DramaWave playback and benefits. |  |
+| [Unlock Premium](#unlock-premium) | Forces DramaWave VIP / VIP Pro local checks (UserInfo and related flags). |  |
 
 </details>
 
@@ -337,7 +369,7 @@ Or
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Unlock Premium](#unlock-premium) | Forces local VIP checks so locked episodes and VIP benefits open (client-side; some titles may still need a server unlock). |  |
+| [Unlock Premium](#unlock-premium) | Forces local VIP checks (isVip / isVipVideo / benefits) so locked episodes and VIP UI open on the client. |  |
 
 </details>
 
@@ -367,7 +399,7 @@ Or
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Unlock Premium](#unlock-premium) | Forces DramaBox VIP checks (UserInfo / LoginService / isVip helpers) so premium content unlocks on the client. |  |
+| [Unlock Premium](#unlock-premium) | Forces DramaBox VIP checks (UserInfo, LoginResult, SubInfo) so premium UI and local gates unlock. Server-locked episodes may still apply. |  |
 
 </details>
 

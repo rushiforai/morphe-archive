@@ -485,7 +485,8 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
             links.addPreference(info(context, L10n.t("Instagram won't open posts here"),
                     L10n.t("Your Instagram is signed by Meta, and it only opens Threads posts and profiles in a Threads "
                         + "signed by Meta. Tapping one in Instagram shows an error saying it couldn't load the website. "
-                        + "Posts you open in Threads itself work as usual.")));
+                        + "Posts you open in Threads itself work as usual. Patch Instagram with HushGram, signed with the "
+                        + "same key as HushThreads, and it opens them here.")));
         }
 
         // In every build: the release check is the settings entry's own, not a patch's. Its switch

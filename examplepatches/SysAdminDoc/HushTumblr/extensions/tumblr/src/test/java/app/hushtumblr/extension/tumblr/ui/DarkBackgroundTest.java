@@ -31,6 +31,8 @@ import java.util.EnumSet;
 
 import app.hushtumblr.extension.shared.SettingsContextRule;
 import app.hushtumblr.extension.shared.diagnostics.HookStatus;
+import app.hushtumblr.extension.shared.settings.HushTumblrPause;
+import app.hushtumblr.extension.shared.settings.PauseForTests;
 import app.hushtumblr.extension.tumblr.settings.PatchFamily;
 import app.hushtumblr.extension.tumblr.settings.PatchFamilyForTests;
 import app.hushtumblr.extension.tumblr.settings.Settings;
@@ -237,6 +239,27 @@ public class DarkBackgroundTest {
         Settings.DARK_BACKGROUND.save(false);
 
         assertEquals(raised, DarkBackground.designFooter(raised));
+    }
+
+    /**
+     * The row under your own posts (Blaze, delete, edit) reads the same panel gray as the footer and
+     * calls the same hook. Paused, it's Tumblr's again even with a set built while it was running.
+     */
+    @Test
+    public void whilePausedThePostFooterAndYourOwnPostsRowStayTumblrs() {
+        Settings.DARK_BACKGROUND.save(true);
+        long raised = DarkBackground.packed(DarkBackground.raised(standInStyle()));
+        assertEquals(raised, DarkBackground.designPanel(PANEL_GRAY));
+        for (HushTumblrPause.Reason reason : HushTumblrPause.Reason.values()) {
+            if (reason == HushTumblrPause.Reason.NONE) continue;
+            PauseForTests.pause(reason);
+            try {
+                assertEquals(reason.name(), raised, DarkBackground.designFooter(raised));
+            } finally {
+                PauseForTests.resume();
+            }
+        }
+        assertNotEquals("running again", raised, DarkBackground.designFooter(raised));
     }
 
     @Test

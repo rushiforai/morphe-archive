@@ -7,12 +7,16 @@ Couldn't add the caption. Saving without it.	ไม่สามารถเพ�
 Dim when idle	หรี่แสงเมื่อไม่ได้ใช้งาน
 Dim when idle and shift	หรี่แสงเมื่อไม่ได้ใช้งานและเลื่อนตำแหน่ง
 For OLED screens. After 5 seconds without a touch, the buttons, caption and tabs over the video dim to a quarter, and your next touch brings them back. Shift also moves everything on the feed a few pixels every 2 minutes.	สำหรับหน้าจอ OLED หลังจากไม่มีการสัมผัสเป็นเวลา 5 วินาที ปุ่ม คำบรรยาย และแท็บต่างๆ บนวิดีโอจะหรี่ลงเหลือหนึ่งในสี่ และการสัมผัสครั้งต่อไปจะทำให้กลับคืนมา การเลื่อนตำแหน่งยังจะขยับทุกอย่างบนฟีดไปสองสามพิกเซลทุกๆ 2 นาที
+Hashtags	แฮชแท็ก
 Importing new history ended Undo for the earlier clear. You can clear the imported history.	การนำเข้าประวัติใหม่ทำให้การเลิกทำสำหรับการล้างก่อนหน้านี้สิ้นสุดลง คุณสามารถล้างประวัติที่นำเข้ามาได้
 %1$d setting in that file can't be restored here and was skipped	การตั้งค่า %1$d รายการในไฟล์นั้นไม่สามารถกู้คืนที่นี่ได้และถูกข้ามไป
 %1$d settings in that file can't be restored here and were skipped	การตั้งค่า %1$d รายการในไฟล์นั้นไม่สามารถกู้คืนที่นี่ได้และถูกข้ามไป
 Import watch history	นำเข้าประวัติการดู
 Keep the language picked in TikTok	รักษาภาษาที่เลือกไว้ใน TikTok
 Freeze TikTok's experiments	ตรึงการทดลองของ TikTok
+Photos	รูปภาพ
+Places	สถานที่
+Sounds	เสียง
 TikTok's servers keep sending it new settings, which is how it tests new layouts and features on people. With this on, TikTok keeps the ones it has now and ignores new ones. If something in TikTok stops working, turn this off so it can get fixes.	เซิร์ฟเวอร์ของ TikTok ส่งการตั้งค่าใหม่มาอย่างต่อเนื่อง ซึ่งเป็นวิธีที่ TikTok ใช้ทดสอบเลย์เอาต์และฟีเจอร์ใหม่ๆ กับผู้ใช้ เมื่อเปิดตัวเลือกนี้ไว้ TikTok จะคงค่าที่มีอยู่ในปัจจุบันและละเว้นค่าใหม่ หากมีบางอย่างใน TikTok ใช้งานไม่ได้ ให้ปิดตัวเลือกนี้เพื่อให้สามารถรับการแก้ไขได้
 Nothing is playing to speed up	ไม่มีสิ่งที่กำลังเล่นอยู่ให้เร่งความเร็ว
 One language code, like en or es. Comments and captions TikTok translates come out in this language instead of the app's. Leave it empty to keep TikTok's choice.	รหัสภาษาหนึ่งรหัส เช่น en หรือ es โดยความคิดเห็นและคำบรรยายที่ TikTok แปลจะแสดงเป็นภาษานี้แทนภาษาของแอป ปล่อยว่างไว้เพื่อใช้ค่าที่ TikTok เลือก
@@ -36,6 +40,8 @@ Translate into	แปลเป็น
 Type one language code here, like en.	พิมพ์รหัสภาษาหนึ่งรหัสที่นี่ เช่น en
 Use this account's TikTok JSON export, up to %1$s MB and %2$s entries. Dates without a time zone use this phone's time zone.	ใช้ไฟล์ส่งออก JSON ของ TikTok สำหรับบัญชีนี้ สูงสุด %1$s MB และ %2$s รายการ วันที่ที่ไม่มีเขตเวลาจะใช้เขตเวลาของโทรศัพท์นี้
 Sign in to TikTok before importing watch history.	เข้าสู่ระบบ TikTok ก่อนนำเข้าประวัติการดู
+Users	ผู้ใช้
+Videos	วิดีโอ
 When TikTok starts and decides the phone's language changed, it forgets the language you picked in its settings and follows the phone. With this on, your pick stays. Counts from TikTok's next start.	เมื่อ TikTok เริ่มทำงานและพบว่าภาษาของโทรศัพท์เปลี่ยนไป แอปจะลืมภาษาที่คุณเลือกไว้ในการตั้งค่าและเปลี่ยนตามโทรศัพท์ เมื่อเปิดตัวเลือกนี้ไว้ ภาษาที่คุณเลือกจะยังคงอยู่ มีผลตั้งแต่การเริ่มทำงานครั้งต่อไปของ TikTok
 Write the username and caption on the video	เขียนชื่อผู้ใช้และคำบรรยายลงบนวิดีโอ
 Writing the caption on the video	กำลังเขียนคำบรรยายลงบนวิดีโอ
@@ -153,6 +159,26 @@ Forget the seen video.	ลืมวิดีโอที่ดูแล้ว
 Forget the video @%2$s has seen.	ลืมวิดีโอที่ @%2$s ได้ดูแล้ว
 Got it	รับทราบ
 Hide profile shortcuts	ซ่อนทางลัดในโปรไฟล์
+# context: Title of the checklist that hides tabs from the strip above a profile's videos
+Hide profile tabs	ซ่อนแท็บในโปรไฟล์
+# context: Note under that title. Reposts and Liked videos are two of the checklist's rows, and the checklist never takes away every tab
+Pick the tabs to hide from the strip above a profile's videos, such as Reposts or Liked videos. One tab always stays. Restart TikTok to apply this.	เลือกแท็บที่จะซ่อนจากแถบเหนือวิดีโอของโปรไฟล์ เช่น รีโพสต์ หรือ วิดีโอที่ถูกใจ จะเหลือแท็บไว้อย่างน้อยหนึ่งแท็บเสมอ รีสตาร์ท TikTok เพื่อนำการเปลี่ยนแปลงนี้ไปใช้
+# context: Checklist row for the profile tab with the account's private videos (lock icon)
+Private videos	วิดีโอส่วนตัว
+# context: Checklist row for the profile tab with the videos the account reposted
+Reposts	รีโพสต์
+# context: Checklist row for the profile tab with the account's saved videos (bookmark icon)
+Favorites	รายการโปรด
+# context: Checklist row for the profile tab with the account's sounds
+Music	เพลง
+# context: Checklist row for the profile tab with the account's camera effects
+Effects	เอฟเฟกต์
+# context: Checklist row for the profile tab with the account's paid series and short dramas
+Series	ซีรีส์
+# context: Checklist row for the profile tab with the account's stickers
+Stickers	สติกเกอร์
+# context: Checklist row for the profile tab TikTok calls AI theater, with the account's AI-made videos
+AI theater	โรงละคร AI
 Hide profile shortcuts by name	ซ่อนทางลัดในโปรไฟล์ตามชื่อ
 Hide the status bar in LIVE rooms	ซ่อนแถบสถานะในห้อง LIVE
 How much of a video you watch before it's hidden next time. Zero counts it after a few seconds.	สัดส่วนของวิดีโอที่คุณรับชมก่อนที่จะถูกซ่อนในครั้งต่อไป หากตั้งเป็นศูนย์จะนับหลังจากผ่านไปไม่กี่วินาที
@@ -2018,6 +2044,10 @@ Hide Check your sources warnings	ซ่อนคำเตือนตรวจ�
 Hide the Check your sources banner TikTok puts across the top of some videos, and the prompt it shows when you share one.	ซ่อนแบนเนอร์ตรวจสอบแหล่งที่มาของคุณที่ TikTok วางไว้ด้านบนสุดของบางวิดีโอ และข้อความแจ้งเตือนที่แสดงเมื่อคุณแชร์วิดีโอดังกล่าว
 Keep offline videos until you delete them	เก็บวิดีโอออฟไลน์ไว้จนกว่าคุณจะลบออก
 TikTok removes videos saved for offline viewing after a set time, sometimes only two days, watched or not. With this on they stay until you delete them in TikTok's Offline videos settings. TikTok can still clear watched ones when your phone is low on space.	TikTok จะลบวิดีโอที่บันทึกไว้สำหรับดูแบบออฟไลน์หลังจากผ่านไประยะหนึ่ง บางครั้งอาจเพียงสองวันไม่ว่าจะดูแล้วหรือไม่ก็ตาม หากเปิดตัวเลือกนี้ไว้ วิดีโอจะยังคงอยู่จนกว่าคุณจะลบออกในการตั้งค่าวิดีโอออฟไลน์ของ TikTok แต่ TikTok ยังคงสามารถล้างวิดีโอที่ดูแล้วได้เมื่อโทรศัพท์ของคุณมีพื้นที่เหลือน้อย
+Delete watched offline videos	ลบวิดีโอออฟไลน์ที่ดูแล้ว
+Each time TikTok starts, deletes the offline videos you've already watched, so the next download fills their places with new ones. A video counts as watched once it's been on screen.	ทุกครั้งที่ TikTok เริ่มทำงาน จะลบวิดีโอออฟไลน์ที่คุณดูแล้ว เพื่อให้การดาวน์โหลดครั้งถัดไปเติมวิดีโอใหม่เข้ามาแทนที่ วิดีโอจะนับว่าดูแล้วทันทีที่ปรากฏบนหน้าจอ
+1 unwatched offline video left	เหลือวิดีโอออฟไลน์ที่ยังไม่ได้ดู 1 รายการ
+%1$d unwatched offline videos left	เหลือวิดีโอออฟไลน์ที่ยังไม่ได้ดู %1$d รายการ
 Hide Thoughts on profiles	ซ่อน Thoughts บนโปรไฟล์
 Hide the Thoughts bubble TikTok shows above a profile picture, and the prompt to share one on your own profile. Restart TikTok to apply this.	ซ่อนฟองข้อความ Thoughts ที่ TikTok แสดงเหนือรูปโปรไฟล์ และข้อความแจ้งเตือนให้แชร์บนโปรไฟล์ของคุณเอง รีสตาร์ท TikTok เพื่อเริ่มใช้งาน
 Turn on Thoughts	เปิดใช้งาน Thoughts
@@ -2358,7 +2388,7 @@ Expanded	ขยายแล้ว
 Collapsed	ยุบแล้ว
 This setting isn't available. Search for another setting.	การตั้งค่านี้ไม่พร้อมใช้งาน ค้นหาการตั้งค่าอื่น
 Hide the Hushfeed row	ซ่อนแถว Hushfeed
-Take Hushfeed out of TikTok's Settings and privacy. To open these settings, press and hold For You at the top of the feed, or Home if Long-press Home for Hushfeed settings is on.	นำ Hushfeed ออกจากการตั้งค่าและความเป็นส่วนตัวของ TikTok ในการเปิดการตั้งค่าเหล่านี้ ให้กดค้างที่ "สำหรับคุณ" ที่ด้านบนของฟีด หรือ "หน้าหลัก" หากเปิดใช้ "กดปุ่มหน้าแรกค้างไว้เพื่อเข้าสู่การตั้งค่า Hushfeed"
+Take Hushfeed out of TikTok's Settings and privacy. To open these settings, press and hold For You at the top of the feed, or Home if Long-press Home for Hushfeed settings is on. If neither press can open them, the row stays.	นำ Hushfeed ออกจากการตั้งค่าและความเป็นส่วนตัวของ TikTok ในการเปิดการตั้งค่าเหล่านี้ ให้กดค้างที่ "สำหรับคุณ" ที่ด้านบนของฟีด หรือ "หน้าหลัก" หากเปิดใช้ "กดปุ่มหน้าแรกค้างไว้เพื่อเข้าสู่การตั้งค่า Hushfeed" หากเปิดไม่ได้ทั้งสองแบบ แถวนี้จะยังอยู่
 Open the search page	เปิดหน้าค้นหา
 Search didn't open. Restart TikTok and try again.	ไม่สามารถเปิดการค้นหาได้ รีสตาร์ท TikTok แล้วลองอีกครั้ง
 Fold the search into a button	ยุบการค้นหาเป็นปุ่ม
@@ -2661,6 +2691,18 @@ TikTok tests more than one set of icons for the bottom bar. Pick one here, or le
 New style 1	รูปแบบใหม่ 1
 # context: Choice value for the bottom bar's icons, TikTok's other newer icon set
 New style 2	รูปแบบใหม่ 2
+# context: Row title of the Feed tabs choice that sets how tall the bottom bar is
+Bottom bar height	ความสูงของแถบด้านล่าง
+# context: Note under that choice
+Videos and the other tabs make room for the bar at its new height. With the tab names hidden, the icons fit the shorter bars best.	วิดีโอและแท็บอื่น ๆ จะเว้นที่ให้แถบตามความสูงใหม่ เมื่อซ่อนชื่อแท็บไว้ ไอคอนจะพอดีกับแถบที่เตี้ยกว่าได้ดีที่สุด
+# context: Choice value for the bottom bar's height, the lowest of the five
+Shorter	เตี้ยมาก
+# context: Choice value for the bottom bar's height, a little lower than TikTok's
+Short	เตี้ย
+# context: Choice value for the bottom bar's height, a little higher than TikTok's
+Tall	สูง
+# context: Choice value for the bottom bar's height, the highest of the five
+Taller	สูงมาก
 # context: Row title of the Feed tabs switch that adds Friends to the row of tabs along the top of the feed
 Friends in the top tabs	เพื่อนในแท็บด้านบน
 # context: Summary under that switch; Friends and Following are TikTok's tab names
@@ -2721,3 +2763,9 @@ Continue	ดำเนินการต่อ
 # context: The button on that screen that sends TikTok to the background instead
 Leave TikTok	ออกจาก TikTok
 You can continue now.	ตอนนี้คุณดำเนินการต่อได้แล้ว
+# context: A checklist in Feed filter of the tabs along the top of TikTok's search results (Top, Shop, LIVE, Places...)
+Hide search result tabs	ซ่อนแท็บผลการค้นหา
+Pick the tabs to remove from the top of the search results, such as Shop, LIVE or Places. The list holds the tabs TikTok has shown you, and Top always stays.	เลือกแท็บที่จะเอาออกจากด้านบนของผลการค้นหา เช่น ร้านค้า, LIVE หรือสถานที่ รายการนี้มีแท็บที่ TikTok เคยแสดงให้คุณเห็น และแท็บยอดนิยมจะอยู่เสมอ
+# context: Shown in that checklist before TikTok has served any search tabs on this phone
+No search tabs have been seen yet	ยังไม่พบแท็บการค้นหา
+Search for something once, then return here to choose its tabs.	ค้นหาอะไรสักอย่างหนึ่งครั้ง แล้วกลับมาที่นี่เพื่อเลือกแท็บ

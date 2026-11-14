@@ -202,6 +202,11 @@ internal fun prepareNativeSurfaces(root: ViewGroup) {
 @Composable internal fun ModelContent(view: View, revision: Int = 0, modifier: Modifier = Modifier,
     insideScroll: Boolean = false, changed: () -> Unit = {}) {
     if (view.visibility != View.VISIBLE) return
+    if (view.getTag(SettingsSection.CATALOG_ONLY_TAG) == true) return
+    if (view is SettingsSection) {
+        BoundSettingRow(sectionSetting(view), changed)
+        return
+    }
     if (view is LinearLayout && (view.getTag(HissiMenuController.TOOLBAR_HEIGHT_TAG) is Int || view.getTag(CheckerBarOptions.PROVIDERS_TAG) == true)) {
         CheckerToolbar(view, revision, modifier, changed)
         return
@@ -410,6 +415,20 @@ internal fun prepareNativeSurfaces(root: ViewGroup) {
     val layoutScale = EddiArchiveSearchUi.clampControlLayout(root.getTag(EddiArchiveSearchUi.CONTROL_LAYOUT_TAG) as? Int ?: 100)
     val controlsDensity = Density(density.density, density.fontScale * controlScale / 100f)
     val resultsDensity = Density(density.density, density.fontScale * resultScale / 100f)
+    val panePrefs = remember(root) { ArchiveSearchLayout.prefs(activity) }
+    var panePercent by remember(root) { mutableFloatStateOf(ArchiveSearchLayout.height(activity, embedded).toFloat()) }
+    var paneLocked by remember(root) { mutableStateOf(ArchiveSearchLayout.locked(activity)) }
+    var resizingPane by remember(root) { mutableStateOf(false) }
+    DisposableEffect(root, panePrefs) {
+        val listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == ArchiveSearchLayout.HEIGHT && !resizingPane)
+                panePercent = ArchiveSearchLayout.height(activity, embedded).toFloat()
+            if (key == ArchiveSearchLayout.LOCKED) paneLocked = ArchiveSearchLayout.locked(activity)
+        }
+        panePrefs.registerOnSharedPreferenceChangeListener(listener)
+        onDispose { panePrefs.unregisterOnSharedPreferenceChangeListener(listener) }
+    }
+    fun savePane() { ArchiveSearchLayout.saveHeight(activity, panePercent.toInt()); changed() }
     if (!embedded && LocalOnBackPressedDispatcherOwner.current != null) {
         BackHandler(enabled = LocalView.current.isShown) { back() }
     }
@@ -425,11 +444,13 @@ internal fun prepareNativeSurfaces(root: ViewGroup) {
         TextButton(onClick = { appearance.performClick(); changed() }) { Text(appearance.text.toString()) }
     }) } }) { insets ->
         BoxWithConstraints(Modifier.fillMaxSize().padding(insets).imePadding().padding(horizontal = 16.dp)) {
-            val formHeight = maxHeight * if (embedded) .30f else .40f
+            val formHeight = (maxHeight * (panePercent / 100f))
+                .coerceAtMost((maxHeight - 192.dp).coerceAtLeast(maxHeight * (ArchiveSearchLayout.MIN_PERCENT / 100f)))
+            val viewportPixels = with(density) { maxHeight.toPx() }.coerceAtLeast(1f)
             Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy((8f * layoutScale / 100f).dp)) {
                 CompositionLocalProvider(LocalDensity provides controlsDensity, LocalArchiveControlLayout provides layoutScale) {
                 if (form.visibility == View.VISIBLE) {
-                Column(Modifier.fillMaxWidth().heightIn(max = formHeight).verticalScroll(rememberScrollState())) {
+                Column(Modifier.fillMaxWidth().height(formHeight).verticalScroll(rememberScrollState())) {
                     for (index in 0 until form.childCount) {
                         // This form already owns vertical scrolling. Flatten the
                         // model's advanced-options ScrollView so focus relocation
@@ -437,6 +458,31 @@ internal fun prepareNativeSurfaces(root: ViewGroup) {
                         ModelContent(form.getChildAt(index), revision, insideScroll = true, changed = changed)
                     }
                 }
+                }
+                if (form.visibility == View.VISIBLE && !paneLocked) {
+                    Box(Modifier.fillMaxWidth().height(28.dp).semantics {
+                        contentDescription = "検索欄と結果一覧の高さ調整"
+                        stateDescription = "検索欄 ${panePercent.toInt()}%。上下にドラッグして調整"
+                        progressBarRangeInfo = ProgressBarRangeInfo(panePercent,
+                            ArchiveSearchLayout.MIN_PERCENT.toFloat()..ArchiveSearchLayout.MAX_PERCENT.toFloat(),
+                            ArchiveSearchLayout.MAX_PERCENT - ArchiveSearchLayout.MIN_PERCENT - 1)
+                        setProgress { panePercent = ArchiveSearchLayout.clamp(it.toInt()).toFloat(); savePane(); true }
+                    }.pointerInput(root, viewportPixels) {
+                        var start = panePercent
+                        var delta = 0f
+                        detectVerticalDragGestures(
+                            onDragStart = { resizingPane = true; start = panePercent; delta = 0f },
+                            onDragEnd = { resizingPane = false; savePane() },
+                            onDragCancel = { resizingPane = false; panePercent = ArchiveSearchLayout.height(activity, embedded).toFloat() },
+                            onVerticalDrag = { event, amount ->
+                                event.consume(); delta += amount
+                                panePercent = (start + delta / viewportPixels * 100f).coerceIn(
+                                    ArchiveSearchLayout.MIN_PERCENT.toFloat(), ArchiveSearchLayout.MAX_PERCENT.toFloat())
+                            })
+                    }, contentAlignment = Alignment.Center) {
+                        HorizontalDivider(Modifier.width(40.dp), thickness = 4.dp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
                 }
                 Text((root.getChildAt(2) as TextView).text.toString(),
                     style = MaterialTheme.typography.bodySmall, maxLines = 2,

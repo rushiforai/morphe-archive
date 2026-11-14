@@ -98,6 +98,8 @@ public final class FamilyNames {
     public static final String EMOJI_STYLE = "Emoji style";
     public static final String ACCENT_COLOR = "Accent color";
     public static final String LAUNCH_SCREEN = "HushGram launch screen";
+    /** Not a patch: the black under the system bars round a story, in every build (#666). */
+    public static final String STORY_BANDS = "Black strips round stories";
     public static final String HEADER_TEXT = "Home header text";
     public static final String APP_ICON = "Pick the app icon";
     public static final String SETTINGS_ROWS = "Hide rows in Instagram's settings";
@@ -132,6 +134,7 @@ public final class FamilyNames {
     public static final String ACTIVITY_BUBBLES = "Hide activity bubbles";
     public static final String HIDE_CAPTIONS = "Hide captions";
     public static final String FEED_AUDIO_ICON = "Hide the audio icon on posts";
+    public static final String FEED_AUTO_SCROLL = "Auto scroll in Home";
     public static final String HOME_TOP_BAR = "Keep Home's top bar";
     public static final String REEL_DECLUTTER = "Clean up Reels";
     public static final String KEEP_REELS_TOP_BAR = "Keep the Reels top bar";
@@ -146,6 +149,7 @@ public final class FamilyNames {
     public static final String CAPTION_WORD_REELS = "Hide reels by caption words";
     public static final String LOW_VIEW_REELS = "Hide reels with few views";
     public static final String KEEP_REEL_SPEED = "Keep the reel speed";
+    public static final String REEL_ABOVE_COMMENTS = "Control the reel above comments";
     public static final String REEL_LINKS = "Open reel links on that reel";
     public static final String REEL_POST_TIME = "Show a reel's exact time";
     public static final String REEL_SEEK_BAR = "Keep a seek bar on Reels";

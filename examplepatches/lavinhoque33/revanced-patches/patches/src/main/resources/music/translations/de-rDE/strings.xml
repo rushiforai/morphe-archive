@@ -112,7 +112,6 @@ SABR-Wiedergabe (Spoofing von Videostreams deaktiviert)"</string>
     <string name="morphe_music_crossfade_screen_title">Nahtlose Wiedergabe</string>
     <string name="morphe_music_crossfade_session_control_summary">Langes Drücken der Shuffle-Taste zum Anhalten oder Fortsetzen der nahtlosen Wiedergabe</string>
     <string name="morphe_music_crossfade_session_control_title">Sitzungssteuerung</string>
-    <string name="morphe_music_crossfade_video_mode_disabled_toast">Der Videomodus ist nicht verfügbar, während die nahtlose Wiedergabe aktiviert ist</string>
     <string name="morphe_music_deezer_arl_dialog_instruction">"Füge das arl-Cookie von Deezer ein
 
 Schritte:
@@ -590,4 +589,6 @@ Die ID des Videos, das du dir ansiehst, wird an die Return YouTube Dislike-API g
     <string name="revanced_spoof_app_version_summary">Täuscht dem Server eine ältere App-Version vor, um ältere UI-Funktionen wiederherzustellen</string>
     <string name="revanced_spoof_app_version_target_title">Angestrebte App-Version</string>
     <string name="revanced_spoof_app_version_title">App-Version spoofen</string>
+    <string name="morphe_music_auto_song_version_title">Immer die Songversion abspielen</string>
+    <string name="morphe_music_auto_song_version_summary">Ersetzt offizielle Musikvideos in der Warteschlange durch den passenden Song. Erfordert die App-Einstellung „Keine Musikvideos abspielen“. Titel ohne exakte Übereinstimmung bleiben unverändert</string>
 </resources>

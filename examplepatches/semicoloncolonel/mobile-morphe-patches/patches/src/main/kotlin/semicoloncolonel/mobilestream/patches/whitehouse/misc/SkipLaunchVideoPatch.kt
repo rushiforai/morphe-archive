@@ -28,6 +28,7 @@ val skipLaunchVideoPatch = rawResourcePatch(
     name = "Skip launch video",
     description = "Skips the intro clip that plays when the app opens.",
 ) {
+    category("Playback")
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {

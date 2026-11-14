@@ -106,15 +106,22 @@ public final class PlaybackExtras {
         Logger.printDebug(() -> "YouTube Extras: paused " + since + " ms after the screen turned off; playing again");
         MAIN.postDelayed(() -> {
             if (VideoState.getCurrent() != VideoState.PAUSED || screenOffAt == 0) return;
-            try {
-                AudioManager am = (AudioManager) Utils.getContext().getSystemService(Context.AUDIO_SERVICE);
-                long t = SystemClock.uptimeMillis();
-                am.dispatchMediaKeyEvent(new KeyEvent(t, t, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_PLAY, 0));
-                am.dispatchMediaKeyEvent(new KeyEvent(t, t, KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_PLAY, 0));
-            } catch (Throwable t) {
-                Logger.printDebug(() -> "YouTube Extras: play key failed: " + t);
-            }
+            mediaKey(KeyEvent.KEYCODE_MEDIA_PLAY);
         }, 300);
+    }
+
+    /** Sends a media key (Play, Pause) to the app's media session, as a headset button does; false where it failed. */
+    static boolean mediaKey(int keyCode) {
+        try {
+            AudioManager am = (AudioManager) Utils.getContext().getSystemService(Context.AUDIO_SERVICE);
+            long t = SystemClock.uptimeMillis();
+            am.dispatchMediaKeyEvent(new KeyEvent(t, t, KeyEvent.ACTION_DOWN, keyCode, 0));
+            am.dispatchMediaKeyEvent(new KeyEvent(t, t, KeyEvent.ACTION_UP, keyCode, 0));
+            return true;
+        } catch (Throwable t) {
+            Logger.printDebug(() -> "YouTube Extras: media key " + keyCode + " failed: " + t);
+            return false;
+        }
     }
 
     private static void lowestQuality() {

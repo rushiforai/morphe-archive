@@ -14,8 +14,8 @@ val unlockPremiumPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_FILETREESIZE)
 
     execute {
-        val method = QueryPurchasesCallbackFingerprint.method
-        val clearPremiumFlagIndex = QueryPurchasesCallbackFingerprint.instructionMatches.last().index
+        val method = PremiumUpgradeFingerprint.method
+        val clearPremiumFlagIndex = PremiumUpgradeFingerprint.instructionMatches.last().index
 
         method.replaceInstruction(
             clearPremiumFlagIndex,
@@ -25,17 +25,18 @@ val unlockPremiumPatch = bytecodePatch(
         method.addInstructions(
             0,
             """
-                iget-object v0, p0, Ly5;->b:Ljava/lang/Object;
-                check-cast v0, Ly40;
-                iget-object v0, v0, Ly40;->b:Lnl6;
+                iget-object v0, p0, Lz5;->b:Ljava/lang/Object;
+                check-cast v0, Li50;
+                iget-object v0, v0, Li50;->b:Llr6;
                 const/4 v1, 0x0
                 sget-object v2, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;
-                invoke-virtual {v0, v1, v2}, Lnl6;->k(Ljava/lang/Object;Ljava/lang/Object;)Z
-                iget-object v0, p0, Ly5;->b:Ljava/lang/Object;
-                check-cast v0, Ly40;
-                iget-object v0, v0, Ly40;->d:Lnl6;
-                sget-object v2, Lu40;->d:Lu40;
-                invoke-virtual {v0, v1, v2}, Lnl6;->k(Ljava/lang/Object;Ljava/lang/Object;)Z
+                invoke-virtual {v0, v1, v2}, Llr6;->k(Ljava/lang/Object;Ljava/lang/Object;)Z
+                iget-object v0, p0, Lz5;->b:Ljava/lang/Object;
+                check-cast v0, Li50;
+                iget-object v0, v0, Li50;->d:Llr6;
+                sget-object v2, Le50;->d:Le50;
+                invoke-virtual {v0, v1, v2}, Llr6;->k(Ljava/lang/Object;Ljava/lang/Object;)Z
+                return-void
             """
         )
     }

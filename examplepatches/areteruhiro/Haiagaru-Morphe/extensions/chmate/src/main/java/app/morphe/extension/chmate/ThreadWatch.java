@@ -141,6 +141,7 @@ public final class ThreadWatch {
     }
     /** Called only after native posting confirmation records the exact response URL. */
     public static void confirmed(String responseUrl){
+        MediaUploadHosts.posted(responseUrl);
         Context c=Haiagaru.applicationContextForExtension();if(c==null)return;
         SharedPreferences options=RefreshTargets.prefs(c);if(!options.getBoolean("watchAfterPosting",false))return;
         ThreadWatchRules.Target t=ThreadWatchRules.target(responseUrl);if(t==null)return;

@@ -4,38 +4,31 @@
  * https://github.com/MorpheApp/morphe-patches/pull/3014
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ * Modified by lavinhoque33, 2026-11-12: shares current-mutable constructor capture with Jam.
  *
- * modified by lavinhoque33, 2026-10-17: ported to the RVX fork. The queue capture is inserted
- * right after the super constructor call instead of before each return-void: the queue manager
- * constructor reuses p0 as a scratch register before returning, and the fork has no
- * cloneParameters() helper.
- * Modified by lavinhoque33, 2026-10-24: uses the bridge helpers of the ported Jam patch again,
- * like Morphe, and captures through the super constructor's receiver register.
  */
 
 package app.morphe.patches.music.misc.audiovideoswitch
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patches.music.interaction.jam.installQueueConstructorCapture
 import app.morphe.patches.music.interaction.jam.addBridge
 import app.morphe.patches.music.interaction.jam.addReferenceGetter
 import app.morphe.patches.music.interaction.jam.decode
 import app.morphe.patches.music.interaction.jam.installNativeAccessor
 import app.morphe.patches.music.interaction.jam.invokeKind
-import app.morphe.patches.music.interaction.jam.registerAt
-import app.morphe.util.getReference
-import app.morphe.util.indexOfFirstInstructionOrThrow
-import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-
-private val SUPER_INIT_OPCODES = setOf(Opcode.INVOKE_DIRECT, Opcode.INVOKE_DIRECT_RANGE)
+import app.morphe.util.numberOfParameterRegisters
+import com.android.tools.smali.dexlib2.AccessFlags
 
 private const val EXTENSION_CLASS =
     "Lapp/morphe/extension/music/patches/misc/EnableAudioVideoSwitchPatch;"
 private const val ACCESS =
     $$"Lapp/morphe/extension/music/patches/misc/EnableAudioVideoSwitchPatch$QueueAccess;"
+private const val QUEUE_LISTENER =
+    $$"Lapp/morphe/extension/music/patches/misc/AutoSongVersionPatch$QueueListener;"
+
+/** The receiver, plus a wide register for a default return value. */
+private const val LISTENER_LOCAL_REGISTERS = 3
 
 /**
  * Every bridge is named patch_atv* and the original queue operations are never renamed here.
@@ -95,6 +88,45 @@ internal fun BytecodePatchContext.installAudioVideoSwitchQueue(queue: AudioVideo
         """
     )
     manager.addBridge(
+        "patch_atvMove",
+        listOf("I", "I"),
+        "V",
+        5,
+        body = """
+            iget-object v0, p0, ${queue.storage.field}
+            const/4 v1, 0x0
+            ${invokeKind(queue.storage.lane)} {v0, v1}, ${queue.storage.lane}
+            move-result-object v0
+            ${invokeKind(queue.storage.laneMove)} {v0, p1, p2}, ${queue.storage.laneMove}
+            return-void
+        """
+    )
+    manager.addBridge(
+        "patch_atvPrimaryLane",
+        emptyList(),
+        "Ljava/lang/Object;",
+        3,
+        body = """
+            iget-object v0, p0, ${queue.storage.field}
+            const/4 v1, 0x0
+            ${invokeKind(queue.storage.lane)} {v0, v1}, ${queue.storage.lane}
+            move-result-object v0
+            return-object v0
+        """
+    )
+    manager.addBridge(
+        "patch_atvAddListener",
+        listOf("Ljava/lang/Object;", "Ljava/lang/Object;"),
+        "V",
+        3,
+        body = """
+            check-cast p1, ${queue.storage.laneType}
+            check-cast p2, ${queue.storage.listenerType}
+            ${invokeKind(queue.storage.attachListener)} {p1, p2}, ${queue.storage.attachListener}
+            return-void
+        """
+    )
+    manager.addBridge(
         "patch_atvLocal",
         emptyList(),
         "Z",
@@ -113,35 +145,32 @@ internal fun BytecodePatchContext.installAudioVideoSwitchQueue(queue: AudioVideo
         """
     )
 
-    installAudioVideoSwitchCapture(queue)
+    installQueueListener(queue.storage.listenerType)
+    installQueueConstructorCapture(queue.constructor, "$EXTENSION_CLASS->capture($ACCESS)V")
 }
 
-/**
- * Captures the manager right after its super constructor call. The receiver register of that call
- * is used instead of p0: the constructor reuses p0 as scratch before returning, and Jam queue
- * sharing may already have cloned the constructor, which moves `this` out of p0.
- */
-private fun BytecodePatchContext.installAudioVideoSwitchCapture(queue: AudioVideoQueueAbi) {
-    val manager = mutableClassDefBy(queue.managerType)
-    val constructor = manager.methods.single {
-        it.name == queue.constructor.name &&
-            it.parameterTypes.map(CharSequence::toString) ==
-            queue.constructor.parameterTypes.map(CharSequence::toString)
-    }
-
-    constructor.apply {
-        val superInitIndex = indexOfFirstInstructionOrThrow {
-            opcode in SUPER_INIT_OPCODES &&
-                getReference<MethodReference>()?.let {
-                    it.name == "<init>" && it.definingClass == manager.superclass
-                } == true
+/** All callbacks notify the extension that the queue changed. */
+private fun BytecodePatchContext.installQueueListener(listenerType: String) {
+    val listener = mutableClassDefBy(QUEUE_LISTENER)
+    listener.interfaces.add(listenerType)
+    classDefBy(listenerType).methods
+        .filter { AccessFlags.ABSTRACT.isSet(it.accessFlags) }
+        .forEach { callback ->
+            val returnDefault = when (callback.returnType.first()) {
+                'V' -> "return-void"
+                'L', '[' -> "const/4 v0, 0x0\nreturn-object v0"
+                'J', 'D' -> "const-wide/16 v0, 0x0\nreturn-wide v0"
+                else -> "const/4 v0, 0x0\nreturn v0"
+            }
+            listener.addBridge(
+                callback.name,
+                callback.parameterTypes.map { it.toString() },
+                callback.returnType,
+                callback.numberOfParameterRegisters + LISTENER_LOCAL_REGISTERS,
+                body = """
+                    invoke-static {}, $AUTO_SONG_VERSION_CLASS->onQueueChanged()V
+                    $returnDefault
+                """
+            )
         }
-        val thisRegister = (getInstruction(superInitIndex) as ReferenceInstruction).registerAt(0)
-            ?: error("Unable to resolve the audio/video switch queue manager receiver")
-
-        addInstructions(
-            superInitIndex + 1,
-            "invoke-static/range {v$thisRegister .. v$thisRegister}, $EXTENSION_CLASS->capture($ACCESS)V",
-        )
-    }
 }

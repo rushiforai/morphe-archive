@@ -72,8 +72,8 @@ internal fun BytecodePatchContext.resolveCopySends(): Triple<CopySend, CopySend,
     return Triple(text, photo, document)
 }
 
-/** The call's smali and the register count it needs, with the account's holder as argument 0. */
-internal fun copyCall(send: CopySend, stubParams: Int): Pair<String, Int> {
+/** The call's smali and the register count it needs, with the account's holder, made from p0, as argument [holderAt]. */
+internal fun copyCall(send: CopySend, stubParams: Int, holderAt: Int = 0): Pair<String, Int> {
     val types = send.method.types()
     val widths = types.map { if (it == "J") 2 else 1 }
     val locals = widths.sum()
@@ -81,7 +81,7 @@ internal fun copyCall(send: CopySend, stubParams: Int): Pair<String, Int> {
     var reg = 0
     for ((i, type) in types.withIndex()) {
         val source = send.sources[i]
-        if (i == 0) {
+        if (i == holderAt) {
             lines.append("invoke-static/range {p0 .. p0}, $type->getInstance(I)$type\nmove-result-object v$reg\n")
         } else if (source != null) {
             val move = when (type) {

@@ -550,13 +550,34 @@ public class MessageLogTest {
         assertEquals("first", entries.get(2).text);
     }
 
-    @Test public void keepsOnlyTheNewestFiveHundred() throws Exception {
-        for (int i = 0; i < MessageLog.MAX_ENTRIES + 7; i++) MessageLog.storeNow("m" + i, "t");
+    @Test public void keepsOnlyTheNewestUpToTheLimit() throws Exception {
+        long now = System.currentTimeMillis();
+        List<MessageLog.Entry> seeded = new ArrayList<>();
+        for (int i = 0; i < MessageLog.MAX_ENTRIES + 5; i++) seeded.add(new MessageLog.Entry(now - 100_000 + i, "t", "m" + i));
+        MessageLog.write(Settings.appContext, seeded);
+        MessageLog.storeNow("m" + (MessageLog.MAX_ENTRIES + 5), "t");
+        MessageLog.storeNow("m" + (MessageLog.MAX_ENTRIES + 6), "t");
         List<MessageLog.Entry> entries = MessageLog.entries();
         assertEquals(MessageLog.MAX_ENTRIES, entries.size());
         assertEquals("m" + (MessageLog.MAX_ENTRIES + 6), entries.get(0).text);
         // The seven oldest are gone.
-        for (MessageLog.Entry entry : entries) assertNotEquals("m0", entry.text);
+        for (MessageLog.Entry entry : entries) assertNotEquals("m6", entry.text);
+        assertEquals("m7", entries.get(entries.size() - 1).text);
+    }
+
+    @Test public void twentyThousandOrdinaryMessagesAllFit() throws Exception {
+        assertEquals(20_000, MessageLog.MAX_ENTRIES);
+        long now = System.currentTimeMillis();
+        List<MessageLog.Entry> seeded = new ArrayList<>();
+        String sentence = "Running a little late, be there in ten minutes. Save me a seat by the window ok";
+        for (int i = 0; i < MessageLog.MAX_ENTRIES; i++) {
+            seeded.add(new MessageLog.Entry(now - 100_000 + i, "1000" + (100_000_000_000L + i % 40), sentence + " " + i,
+                "Alex Morgan", "Weekend plans", "mid.$cAAAAB" + i, false));
+        }
+        MessageLog.write(Settings.appContext, seeded);
+        MessageLog.expireNow();
+        List<MessageLog.Entry> onDisk = MessageLog.read(logFile());
+        assertEquals("the size cap cut ordinary messages short of the count", MessageLog.MAX_ENTRIES, onDisk.size());
     }
 
     @Test public void dropsEntriesOlderThanThirtyDays() throws Exception {

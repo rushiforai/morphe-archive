@@ -1,3 +1,0 @@
-.class public abstract Ltzd;
-.super Ljava/lang/Object;
-.source "SourceFile"
