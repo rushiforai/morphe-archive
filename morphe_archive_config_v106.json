@@ -3187,14 +3187,6 @@
                 "updatedAt": 1792988391477
             },
             {
-                "name": "TaobaoLingo",
-                "source": "https://raw.githubusercontent.com/GoodLight999/TaobaoLingo/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 453,
-                "createdAt": 1792988391829,
-                "updatedAt": 1792988391829
-            },
-            {
                 "name": "sound-connect-patches",
                 "source": "https://raw.githubusercontent.com/Mouchoir/sound-connect-patches/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -3897,14 +3889,6 @@
                 "sortOrder": 554,
                 "createdAt": 1793593478109,
                 "updatedAt": 1793593478109
-            },
-            {
-                "name": "rex-ig-lite",
-                "source": "https://raw.githubusercontent.com/xboyrex/rex-ig-lite/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 555,
-                "createdAt": 1793593479213,
-                "updatedAt": 1793593479213
             },
             {
                 "name": "consumer-clarity",
@@ -5081,6 +5065,70 @@
                 "sortOrder": 711,
                 "createdAt": 1794548218511,
                 "updatedAt": 1794548218511
+            },
+            {
+                "name": "Soundsync",
+                "source": "https://raw.githubusercontent.com/Alcostrider/Soundsync/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 712,
+                "createdAt": 1794633414150,
+                "updatedAt": 1794633414150
+            },
+            {
+                "name": "ironfox-md3-patches",
+                "source": "https://raw.githubusercontent.com/dorfandiysoftware-glitch/ironfox-md3-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 713,
+                "createdAt": 1794633422213,
+                "updatedAt": 1794633422213
+            },
+            {
+                "name": "zeta-morphe-patches",
+                "source": "https://raw.githubusercontent.com/kubobeem2/zeta-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 714,
+                "createdAt": 1794633433648,
+                "updatedAt": 1794633433648
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/longthree1/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 715,
+                "createdAt": 1794633435502,
+                "updatedAt": 1794633435502
+            },
+            {
+                "name": "MightyMichs-Patches",
+                "source": "https://raw.githubusercontent.com/mich111discord/MightyMichs-Patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 716,
+                "createdAt": 1794633437246,
+                "updatedAt": 1794633437246
+            },
+            {
+                "name": "morphe-bilibili-danmaku",
+                "source": "https://raw.githubusercontent.com/RizkLee/morphe-bilibili-danmaku/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 717,
+                "createdAt": 1794633441883,
+                "updatedAt": 1794633441883
+            },
+            {
+                "name": "lustx-patches",
+                "source": "https://raw.githubusercontent.com/sqzass/lustx-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 718,
+                "createdAt": 1794633443148,
+                "updatedAt": 1794633443148
+            },
+            {
+                "name": "archivetune-microg-patches",
+                "source": "https://raw.githubusercontent.com/timtkdb/archivetune-microg-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 719,
+                "createdAt": 1794633445342,
+                "updatedAt": 1794633445342
             }
         ]
     }

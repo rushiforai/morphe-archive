@@ -40,6 +40,7 @@ akzzy/Morphi-Patcho
 alalloush/xperia-1v-camera-patches
 alan7383/sofatime-patches
 Alastor-Kaneki/Morphe-Patches
+Alcostrider/Soundsync
 AlecBlance/android-patches
 alejandrobellver/pichiwa-patches
 alexandreL/morphe-patches
@@ -186,6 +187,7 @@ DigitalPals/johns-morphe-patches
 DiogoGra/morphe-patches
 docbt/patched-up
 dongmin8350/fmkorea-splash-patches
+dorfandiysoftware-glitch/ironfox-md3-patches
 dowjames/morphe-patches
 Dr4w/morphe-patches
 drappula/morphe-patches-instaprime
@@ -370,6 +372,7 @@ kljjh/flyme-lyrics-patches
 kolaron/morphe-patches
 kondratjev/morphe-patches
 kontsevoye/emorphe-patches
+kubobeem2/zeta-morphe-patches
 kuchingneko28/ipusnas-patches
 kun-codes/npci-bhim-morphe-patches
 kuntal-devrat/diskwala-patches
@@ -395,6 +398,7 @@ liongalahad/stremio-androidTV-morphe-patches
 LOCKhart07/morphe-patches
 logm1lo/logm1lo-patches
 lokesh-sparrow/loki-patches
+longthree1/morphe-patches
 loody227/masajid-patches
 lootdev78/morphe-patches-sc
 lootdev78/psylos-morphe-patches
@@ -601,6 +605,7 @@ SouBryan/pinterest-morphed
 southstar21dev/southstar21-patches
 spicetify/morphe-patches
 spookyexe/morphe-patches
+sqzass/lustx-patches
 sqzass/patches
 srinath1848/nobrokerhood-patches
 Starkist124/stars-morphe-patch
@@ -647,6 +652,7 @@ tiaruebar1024/tiaruebar-patches
 tikkamasalla/stremio-morphe-patches
 TimBuckrue/nyt-games-vrr-patch
 timpra/a17
+timtkdb/archivetune-microg-patches
 titandrive/morphe-catppuccin
 tkiethuynh/den-patch
 toidicakhia/morphe-app-patches
