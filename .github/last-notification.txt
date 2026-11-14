@@ -1,13 +1,9 @@
-# Repos reported by the last notification (12)
-Hinatara/morphe-arcore-patches
-Nizarberyan/Avito-Patches
-Roboroads/morphe-patches
-SatanMerde/D-moniakPatches-dev
-avano/morphe-patches
-bhashanaliyanage/helakuru-morphe
-brandonp2412/instagram-notification-nudges
-chocolavv/extended-youtube-playlists
-hxmst/morphe-patches
-sebsebseb9b/lockstar-clock-patch
-thebugsmith/bugsmith-morphe-patches
-uta-a/cutlog
+# Repos reported by the last notification (8)
+RizkLee/morphe-bilibili-danmaku
+dorfandiysoftware-glitch/ironfox-md3-patches
+kubobeem2/zeta-morphe-patches
+longthree1/morphe-patches
+mich111discord/MightyMichs-Patches
+sqzass/lustx-patches
+sqzass/patches
+timtkdb/archivetune-microg-patches
