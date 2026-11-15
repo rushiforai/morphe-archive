@@ -1,9 +1,7 @@
-# Repos reported by the last notification (8)
-RizkLee/morphe-bilibili-danmaku
-dorfandiysoftware-glitch/ironfox-md3-patches
-kubobeem2/zeta-morphe-patches
-longthree1/morphe-patches
-mich111discord/MightyMichs-Patches
-sqzass/lustx-patches
-sqzass/patches
-timtkdb/archivetune-microg-patches
+# Repos reported by the last notification (6)
+CozyCode890/HoiTruyenChu-patches
+DrBushyTop/relay-morphe-patches
+Jo-Patches/jo-patches
+Razor573/mika2-morphe-patches
+ocel07/kmaps-nav-patches
+xboyrex/rex-ig-lite
