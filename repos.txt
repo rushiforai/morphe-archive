@@ -162,6 +162,7 @@ commit-regrets/morphe-youtube-vr-patches
 ComoEstaisAmigos/ck-zombies-morphe-patches
 contactjayclatty/tracket-patches
 cosm1c-matcha/hris-apn
+CozyCode890/HoiTruyenChu-patches
 crimera/piko
 crimera/piko-ig-lite
 crimera/piko-newx
@@ -191,6 +192,7 @@ dorfandiysoftware-glitch/ironfox-md3-patches
 dowjames/morphe-patches
 Dr4w/morphe-patches
 drappula/morphe-patches-instaprime
+DrBushyTop/relay-morphe-patches
 Dreaming-Codes/morphe-patches
 drnhzn/supreme-patches
 drosoCode/morphe-patches
@@ -220,6 +222,7 @@ eyalm2000/tidal-debug-menu
 eZ4RK0/morphe-patches
 fangkampanat/gmaps-patches
 fangkampanat/google-maps-automotive-patches
+farbener/shuffle-plus-spotify
 feixiangdao/letterboxd-stremio-nuvio-morphe-patch
 ffejhog/ffejhog_morphe_patches
 FinzoYFunzo/kyt-patches
@@ -341,6 +344,7 @@ Jman-Github/Patch-Bundle-Registry
 Jman-Github/ReVanced-Patch-Bundles
 Jman-Github/Universal-ReVanced-Manager
 jmwerk/carbridge-patches
+Jo-Patches/jo-patches
 JoanComasFdz/baconreader-morphe-patches
 joelmzj/cyberjoe
 JoFSlash/quora-patches
@@ -481,6 +485,7 @@ ns1207/nl.dumpert.nopatch
 NullWaypoint/morphe-patches
 nvbangg/builder-for-morphe
 o0b/morphe-patches
+ocel07/kmaps-nav-patches
 Okazakee/iptv-morphe-patches
 oliver-leung/transit-patches
 OrangeTree-Dev/Morphe-Patches
@@ -495,6 +500,7 @@ pardhu23/morphe-patches
 Paresh-Maheshwari/patch-explorer
 PawiX25/pepper-morphe-patches
 pengusto/penguin-patches
+PerfLite/morphe-patches-MovieLab
 PerfLite/morphe-patches-vk-messenger
 PerfLite/morphe-patches-vk-video
 PerfLite/morphe-patches-zona
@@ -533,6 +539,7 @@ RashKash103/sync-up
 ratatabananana-bit/gaming-hub-morphe-patches
 ravhirizaldi/navhi-morphe-patches
 RayBourn/medium
+Razor573/mika2-morphe-patches
 RAZORRZR0/gtasa-de-morphe-patches
 RealCyberwash/max-patches
 rhubarbshoelaces/morphe-patches
@@ -552,8 +559,8 @@ Rosaldivo/rosaldivo-morphe-patches
 RoundSalmon4/morphe-patches-template
 rubenaaroncalahorra/gospel-library-patches
 rufusin/revanced-patches
-rushiranpise/Ri-Vanced-Universal-Morphe-Patches
 rushiranpise/RI-Vanced-Universal-Morphe-Patches
+rushiranpise/Ri-Vanced-Universal-Morphe-Patches
 ryuya0124/gemini-microg-patches
 ryykitty/twitch-patched
 saadbinyousaf1/sby-patches

@@ -2955,14 +2955,6 @@
                 "updatedAt": 1792039067116
             },
             {
-                "name": "moon-patches",
-                "source": "https://raw.githubusercontent.com/noire342/moon-patches/master/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 417,
-                "createdAt": 1792039069665,
-                "updatedAt": 1792039069665
-            },
-            {
                 "name": "reddit-client-patches",
                 "source": "https://raw.githubusercontent.com/Adiker/reddit-client-patches/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -5003,14 +4995,6 @@
                 "updatedAt": 1794548203480
             },
             {
-                "name": "morphe-patches",
-                "source": "https://raw.githubusercontent.com/hxmst/morphe-patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 704,
-                "createdAt": 1794548204070,
-                "updatedAt": 1794548204070
-            },
-            {
                 "name": "Avito-Patches",
                 "source": "https://raw.githubusercontent.com/Nizarberyan/Avito-Patches/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -5083,14 +5067,6 @@
                 "updatedAt": 1794633422213
             },
             {
-                "name": "zeta-morphe-patches",
-                "source": "https://raw.githubusercontent.com/kubobeem2/zeta-morphe-patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 714,
-                "createdAt": 1794633433648,
-                "updatedAt": 1794633433648
-            },
-            {
                 "name": "morphe-patches",
                 "source": "https://raw.githubusercontent.com/longthree1/morphe-patches/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -5107,14 +5083,6 @@
                 "updatedAt": 1794633437246
             },
             {
-                "name": "morphe-bilibili-danmaku",
-                "source": "https://raw.githubusercontent.com/RizkLee/morphe-bilibili-danmaku/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 717,
-                "createdAt": 1794633441883,
-                "updatedAt": 1794633441883
-            },
-            {
                 "name": "lustx-patches",
                 "source": "https://raw.githubusercontent.com/sqzass/lustx-patches/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -5129,6 +5097,70 @@
                 "sortOrder": 719,
                 "createdAt": 1794633445342,
                 "updatedAt": 1794633445342
+            },
+            {
+                "name": "HoiTruyenChu-patches",
+                "source": "https://raw.githubusercontent.com/CozyCode890/HoiTruyenChu-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 720,
+                "createdAt": 1794719161654,
+                "updatedAt": 1794719161654
+            },
+            {
+                "name": "relay-morphe-patches",
+                "source": "https://raw.githubusercontent.com/DrBushyTop/relay-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 721,
+                "createdAt": 1794719162147,
+                "updatedAt": 1794719162147
+            },
+            {
+                "name": "shuffle-plus-spotify",
+                "source": "https://raw.githubusercontent.com/farbener/shuffle-plus-spotify/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 722,
+                "createdAt": 1794719162685,
+                "updatedAt": 1794719162685
+            },
+            {
+                "name": "jo-patches",
+                "source": "https://raw.githubusercontent.com/Jo-Patches/jo-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 723,
+                "createdAt": 1794719165213,
+                "updatedAt": 1794719165213
+            },
+            {
+                "name": "kmaps-nav-patches",
+                "source": "https://raw.githubusercontent.com/ocel07/kmaps-nav-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 724,
+                "createdAt": 1794719166938,
+                "updatedAt": 1794719166938
+            },
+            {
+                "name": "morphe-patches-MovieLab",
+                "source": "https://raw.githubusercontent.com/PerfLite/morphe-patches-MovieLab/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 725,
+                "createdAt": 1794719167276,
+                "updatedAt": 1794719167276
+            },
+            {
+                "name": "mika2-morphe-patches",
+                "source": "https://raw.githubusercontent.com/Razor573/mika2-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 726,
+                "createdAt": 1794719167701,
+                "updatedAt": 1794719167701
+            },
+            {
+                "name": "rex-ig-lite",
+                "source": "https://raw.githubusercontent.com/xboyrex/rex-ig-lite/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 727,
+                "createdAt": 1794719169383,
+                "updatedAt": 1794719169383
             }
         ]
     }
